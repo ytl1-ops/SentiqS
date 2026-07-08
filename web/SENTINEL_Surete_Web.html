@@ -4666,6 +4666,15 @@ async function doCollect() {
   const ico=document.getElementById('actuIco');
   const dot=document.getElementById('liveDot');
   const ltx=document.getElementById('liveTxt');
+  const barEl=document.getElementById('stbarLeft');
+
+  // Le corps de la collecte est protege par un try/finally : quoi qu'il
+  // arrive (erreur reseau, exception de parsing, etc.), busy doit toujours
+  // repasser a false et l'UI (icone/bouton/pastille) doit toujours se
+  // debloquer. Sans cela, une exception non prevue laisse le bouton
+  // "Actualiser" et l'auto-refresh definitivement bloques jusqu'au rechargement
+  // de la page.
+  try {
 
   ico.className='ti ti-refresh spin';
   btn.disabled=true;
@@ -4802,31 +4811,36 @@ async function doCollect() {
     );
     if (srcsManquantes.length > 0) {
       doCollect._repriseEnCours = true;
-      if (barEl) barEl.textContent = 'Finalisation : reprise de ' + srcsManquantes.length +
-        ' source(s) pour couvrir ' + paysManquants.length + ' pays manquant(s)...';
-      // Reprise ciblee, sequentielle et douce (ne pas ressaturer le reseau)
-      for (const src of srcsManquantes) {
-        try {
-          const result = await proxyFetch(src.rss);
-          const arts = result.type === 'json' ? parseJSON(result.data, src) : parseRSS(result.data, src);
-          arts.forEach(a => { fresh[a.id] = a; });
-          SRC_ST[src.id] = {ok:true, cnt:arts.length};
-          recordSrcOk(src.id);
-        } catch(e) {
-          recordSrcFail(src.id, e && e.message ? e.message : 'reprise echouee');
+      try {
+        if (barEl) barEl.textContent = 'Finalisation : reprise de ' + srcsManquantes.length +
+          ' source(s) pour couvrir ' + paysManquants.length + ' pays manquant(s)...';
+        // Reprise ciblee, sequentielle et douce (ne pas ressaturer le reseau)
+        for (const src of srcsManquantes) {
+          try {
+            const result = await proxyFetch(src.rss);
+            const arts = result.type === 'json' ? parseJSON(result.data, src) : parseRSS(result.data, src);
+            arts.forEach(a => { fresh[a.id] = a; });
+            SRC_ST[src.id] = {ok:true, cnt:arts.length};
+            recordSrcOk(src.id);
+          } catch(e) {
+            recordSrcFail(src.id, e && e.message ? e.message : 'reprise echouee');
+          }
         }
+        // Re-fusionner apres la reprise ciblee
+        const map2 = {}; ALL.forEach(a => map2[a.id] = a);
+        reconcilierDatesPremiereVue(fresh);
+        Object.assign(map2, fresh);
+        const tv2 = Object.values(map2);
+        ALL = dedupliquerArticles(tv2.filter(a => estRecentReel(a)));
+        const rej2 = tv2.filter(a => !estRecentReel(a) && a && a.cy && a.title);
+        if (typeof archiverHistorique === 'function') archiverHistorique([...ALL, ...rej2]);
+        if (typeof rehydrateArticles === 'function') rehydrateArticles(ALL);
+        dbPut(ALL);
+      } finally {
+        // Toujours relacher le verrou de reprise, meme si une etape a echoue,
+        // pour ne pas desactiver definitivement la finalisation de couverture.
+        doCollect._repriseEnCours = false;
       }
-      // Re-fusionner apres la reprise ciblee
-      const map2 = {}; ALL.forEach(a => map2[a.id] = a);
-      reconcilierDatesPremiereVue(fresh);
-      Object.assign(map2, fresh);
-      const tv2 = Object.values(map2);
-      ALL = dedupliquerArticles(tv2.filter(a => estRecentReel(a)));
-      const rej2 = tv2.filter(a => !estRecentReel(a) && a && a.cy && a.title);
-      if (typeof archiverHistorique === 'function') archiverHistorique([...ALL, ...rej2]);
-      if (typeof rehydrateArticles === 'function') rehydrateArticles(ALL);
-      dbPut(ALL);
-      doCollect._repriseEnCours = false;
     }
   }
 
@@ -4900,7 +4914,6 @@ async function doCollect() {
   // Etat honnete : distinguer collecte reussie et echec total, et afficher
   // la couverture reelle des 54 pays d'Afrique.
   const liveEl = document.getElementById('liveTxt');
-  const barEl = document.getElementById('stbarLeft');
   const nbCouverts = (typeof doCollect._derniereCouverture === 'number') ? doCollect._derniereCouverture : 0;
   if (ok > 0) {
     if (liveEl) liveEl.textContent = 'En direct';
@@ -4909,6 +4922,15 @@ async function doCollect() {
   } else {
     if (liveEl) liveEl.textContent = 'Hors ligne';
     if (barEl) barEl.textContent = 'Aucune source n a repondu · Reseau probablement bloque · Cliquez sur Diagnostic pour tester · Donnees de reference affichees';
+  }
+  } finally {
+    // Filet de securite : garantit que le verrou et l'UI de collecte ne
+    // restent jamais bloques, meme si une exception inattendue a interrompu
+    // le corps de la fonction avant son deroulement normal.
+    busy = false;
+    if (ico) ico.className = 'ti ti-refresh';
+    if (btn) btn.disabled = false;
+    if (dot) dot.className = 'ldot';
   }
 }
 
@@ -8078,7 +8100,21 @@ async function processIAQueue() {
 }
 
 // Appeler après chaque collecte RSS pour mettre en file les nouveaux articles
+//
+// DESACTIVE : enrichArticleIA() appelle https://api.anthropic.com/v1/messages
+// directement depuis le navigateur, sans en-tete x-api-key ni anthropic-version.
+// Cet appel ne peut jamais aboutir (l'API Anthropic n'autorise pas les appels
+// CORS non authentifies depuis un navigateur), et embarquer une cle API dans
+// ce fichier HTML statique cote client ne serait de toute facon pas sur.
+// Tant qu'aucun proxy backend ne detient la cle API pour ce module, la mise
+// en file etait un pur gaspillage : a chaque collecte, jusqu'a plusieurs
+// dizaines d'articles declenchaient des requetes reseau vouees a l'echec,
+// chacune suivie d'un renderFeed() complet (l'operation DOM la plus couteuse
+// de l'app) et d'une pause artificielle de 500ms par lot de 3.
+// Pour reactiver : brancher un backend qui relaie la requete avec la cle API
+// cote serveur, puis retirer le "return" ci-dessous.
 function planifierAnalyseIA(articles) {
+  return;
   const nouveaux = articles.filter(a => a.fromRSS && !IA_PROCESSED.has(a.id) && !a._ia_analysed);
   // Priorité aux articles critiques et récents
   const prioritaires = nouveaux.filter(a => a.level === 'crit' || a.level === 'high');
