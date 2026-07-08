@@ -1455,7 +1455,7 @@ button:not(:disabled){
       <button class="lang-btn on" data-lang="fr" onclick="setLang(&#39;fr&#39;)">FR</button>
       <button class="lang-btn" data-lang="en" onclick="setLang(&#39;en&#39;)">EN</button>
     </div>
-    <button class="actu-btn" onclick="doCollect()" id="actuBtn" disabled="">
+    <button class="actu-btn" onclick="doCollect()" id="actuBtn">
       <i class="ti ti-refresh spin" id="actuIco"></i> <span data-i18n="btn_actualiser">Actualiser</span>
     </button>
     <button class="actu-btn" onclick="runDiagnostic()" id="diagBtn" title="Tester les services de collecte" style="background:rgba(255,255,255,.08)">
@@ -2055,8 +2055,8 @@ button:not(:disabled){
               </div>
               <div class="rights-row">
                 <div class="rights-row-l">
-                  <div class="rights-row-name">Actualisation automatique (30 min)</div>
-                  <div class="rights-row-sub">Collecter les flux RSS automatiquement toutes les 30 minutes</div>
+                  <div class="rights-row-name">Actualisation automatique (15 min)</div>
+                  <div class="rights-row-sub">Collecter les flux RSS automatiquement toutes les 15 minutes</div>
                 </div>
                 <label class="tgl">
                   <input type="checkbox" id="tglAutoRefresh" checked="" onchange="saveAutoRefreshPref(this.checked)">
@@ -6397,7 +6397,7 @@ async function init() {
           return;
         }
         const visible = !document.hidden;
-        const INTERVAL_MIN = 30; // planification fixe : mise a jour toutes les 30 minutes, visible ou non
+        const INTERVAL_MIN = 15; // planification fixe : mise a jour toutes les 15 minutes, visible ou non
         const lastTs = parseInt(localStorage.getItem('sentinel_lastCollectTs')||'0');
         const elapsed = (Date.now() - lastTs) / 60000;
         if (elapsed >= INTERVAL_MIN) {
@@ -6942,7 +6942,7 @@ function saveAutoRefreshPref(val) {
           clearInterval(window._sentinelAutoRefresh); window._sentinelAutoRefresh = null; return;
         }
         const visible = !document.hidden;
-        const INTERVAL_MIN = 30; // planification fixe : mise a jour toutes les 30 minutes, visible ou non
+        const INTERVAL_MIN = 15; // planification fixe : mise a jour toutes les 15 minutes, visible ou non
         const lastTs = parseInt(localStorage.getItem('sentinel_lastCollectTs')||'0');
         if ((Date.now()-lastTs)/60000 >= INTERVAL_MIN) {
           localStorage.setItem('sentinel_lastCollectTs', Date.now().toString());
@@ -9144,7 +9144,12 @@ function initMobileCollapsibles() {
 // Point d'entrée : appelé ici, en toute fin de script, pour garantir que toutes
 // les constantes de référence (PAYS_INFO, ALERTE_EVENTS, FACTEURS_SPECIAUX, NIV,
 // MESURES, etc.) sont bien initialisées avant le tout premier rendu.
-init();
+// Protégé par le même verrou que checkAuth() (déclenché sur l'évènement
+// 'load') : sans lui, init() s'exécutait deux fois à chaque ouverture de
+// page (double collecte RSS, double rendu de tous les modules, double
+// intervalle d'auto-refresh potentiel) puisque cet appel direct ne posait
+// pas le verrou que checkAuth() vérifie ensuite.
+if (!window._appInitialized) { window._appInitialized = true; init(); }
 initMobileCollapsibles();
 
 </script>
