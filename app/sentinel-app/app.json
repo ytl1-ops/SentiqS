@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "SENTINEL",
+    "slug": "sentinel-veille",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0D1F2D"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.sentinel.veille",
+      "buildNumber": "1"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0D1F2D"
+      },
+      "package": "com.sentinel.veille",
+      "versionCode": 1,
+      "permissions": ["INTERNET", "RECEIVE_BOOT_COMPLETED", "VIBRATE"]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      ["expo-notifications", {
+        "icon": "./assets/notification-icon.png",
+        "color": "#1B6CA8"
+      }]
+    ],
+    "scheme": "sentinel",
+    "extra": {
+      "router": { "origin": false },
+      "eas": { "projectId": "VOTRE_EAS_PROJECT_ID" }
+    }
+  }
+}
