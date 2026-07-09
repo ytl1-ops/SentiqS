@@ -217,12 +217,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
    n'est configure (voir ADSENSE_CLIENT_ID/ADSENSE_SLOT_ID), affiche un
    simple encart "emplacement publicitaire" — aucun script Google charge. */
 .ad-banner{background:var(--sf);border-bottom:1px solid var(--bd);flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;min-height:44px;
-  padding:5px 10px;position:relative}
-.ad-banner-tag{position:absolute;top:2px;left:10px;font-size:8px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;min-height:7px;
+  padding:2px 10px;position:relative}
+.ad-banner-tag{position:absolute;top:1px;left:10px;font-size:7px;font-weight:700;
   color:var(--lg);text-transform:uppercase;letter-spacing:.06em}
-.ad-banner-placeholder{font-size:10px;color:var(--lg);text-align:center;
-  border:1px dashed var(--bd);border-radius:6px;padding:8px 16px;width:100%;max-width:255px}
+.ad-banner-placeholder{font-size:9px;color:var(--lg);text-align:center;
+  border:1px dashed var(--bd);border-radius:6px;padding:2px 16px;width:100%;max-width:100%}
 .ntab{padding:10px 14px;font-size:11px;font-weight:700;
   color:rgba(255,255,255,.38);cursor:pointer;border-bottom:2px solid transparent;
   white-space:nowrap;display:flex;align-items:center;gap:5px;
@@ -1740,7 +1740,7 @@ button:not(:disabled){
 <div class="ad-banner" id="adBanner">
   <span class="ad-banner-tag" data-i18n="ad_tag">PUBLICITÉ</span>
   <div class="ad-banner-placeholder" id="adBannerPlaceholder" data-i18n="ad_placeholder">Emplacement publicitaire — Google AdSense non configuré (voir Paramètres)</div>
-  <ins class="adsbygoogle" id="adBannerIns" style="display:none;width:100%;max-width:255px;height:90px"
+  <ins class="adsbygoogle" id="adBannerIns" style="display:none;width:100%;max-width:100%;height:14px"
        data-ad-client="" data-ad-slot="" data-ad-format="auto" data-full-width-responsive="true"></ins>
 </div>
 
