@@ -830,6 +830,36 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .dl-rc-access{font-size:10px;color:var(--lg);display:flex;align-items:center;gap:4px}
 .dl-rc-access i{font-size:11px;color:#4ade80}
 .dl-rc-access.no i{color:#ff8080}
+/* Tarification & abonnements */
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.pricing-card{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:16px;
+  display:flex;flex-direction:column;gap:8px}
+.pricing-card.featured{border-color:var(--b);box-shadow:0 0 0 2px rgba(27,95,168,.15)}
+.pricing-card-name{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--t)}
+.pricing-card-price{font-size:20px;font-weight:800;color:var(--t);display:flex;align-items:baseline;gap:5px}
+.pricing-card-price span{font-size:10px;font-weight:600;color:var(--lg)}
+.pricing-card-price input{width:100px;padding:4px 6px;border:1px solid var(--bd);border-radius:5px;
+  font-size:15px;font-weight:800;font-family:inherit;color:var(--t)}
+.pricing-card-feat{font-size:11px;color:var(--t2);line-height:1.8;flex:1;margin:0;padding-left:16px}
+/* Moyens de paiement */
+.paymethod-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.paymethod-card{background:var(--sf);border:1px solid var(--bd);border-radius:9px;padding:14px 10px;
+  display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.paymethod-card i{font-size:24px;color:var(--b)}
+.paymethod-card .pm-name{font-size:11px;font-weight:700;color:var(--t)}
+.paymethod-card .pm-desc{font-size:9.5px;color:var(--lg);line-height:1.4}
+/* Reclamations */
+.bs-nouveau{background:rgba(27,95,168,.12);color:#1B5FA8;border:1px solid rgba(27,95,168,.25)}
+.bs-encours{background:rgba(202,138,4,.14);color:#CA8A04;border:1px solid rgba(202,138,4,.28)}
+.bs-resolu{background:rgba(74,222,128,.12);color:#059669;border:1px solid rgba(74,222,128,.25)}
+/* Suivi du trafic (local a cet appareil, pas de serveur central) */
+.traffic-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:12px}
+.traffic-kpi{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:10px;text-align:center}
+.traffic-kpi-val{font-size:20px;font-weight:800;color:var(--t)}
+.traffic-kpi-lbl{font-size:9px;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.traffic-bar-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:11px}
+.traffic-bar-track{flex:1;height:8px;background:var(--bd);border-radius:4px;overflow:hidden}
+.traffic-bar-fill{height:100%;background:var(--b);border-radius:4px}
 /* Gestion utilisateurs */
 .pm-users-table{width:100%;border-collapse:collapse}
 .pm-users-table th{font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;
@@ -1503,6 +1533,26 @@ button:not(:disabled){
   </div>
 </div>
 
+<!-- ═══ RECLAMATION (accessible a tous les roles, via le menu profil) ═══ -->
+<div class="admin-panel hidden" id="reclamPanel">
+  <div class="admin-box" style="max-width:480px">
+    <div class="admin-hd">
+      <div class="admin-title"><i class="ti ti-message-report"></i>Signaler un problème</div>
+      <span class="admin-close" onclick="closeReclamation()">✕</span>
+    </div>
+    <div class="admin-sec">
+      <div style="font-size:11px;color:rgba(255,255,255,.55);margin-bottom:10px;line-height:1.6">
+        Décrivez votre problème ou votre réclamation — un administrateur la traitera depuis Paramètres &amp; Administration.
+      </div>
+      <div class="user-form" style="flex-direction:column;align-items:stretch">
+        <input type="text" id="reclamSujet" placeholder="Sujet (ex. Données manquantes, Bug d'affichage...)">
+        <textarea id="reclamMessage" placeholder="Décrivez le problème rencontré..." rows="4" style="padding:10px 12px;border:1px solid rgba(255,255,255,.15);border-radius:8px;background:rgba(255,255,255,.05);color:#fff;font-size:13px;font-family:inherit;resize:vertical"></textarea>
+        <button onclick="submitReclamation()"><i class="ti ti-send"></i> Envoyer</button>
+      </div>
+      <div class="admin-msg" id="reclamMsg"></div>
+    </div>
+  </div>
+</div>
 
 <!-- TOPBAR -->
 <div class="tb">
@@ -1545,6 +1595,9 @@ button:not(:disabled){
         <span class="user-name" id="userNameChip">Admin</span>
       </div>
       <div class="user-menu" id="userMenu">
+        <div class="user-menu-item" onclick="toggleUserMenu();openReclamation()">
+          <i class="ti ti-message-report"></i> <span data-i18n="menu_reclam">Signaler un problème</span>
+        </div>
         <div class="user-menu-item" onclick="switchView(&#39;params&#39;,document.getElementById(&#39;tabParams&#39;))" id="adminMenuItem" style="display:none">
           <i class="ti ti-settings"></i> <span data-i18n="menu_params">Parametres &amp; Administration</span>
         </div>
@@ -2183,6 +2236,101 @@ button:not(:disabled){
               </div>
             </div>
             <div class="pm-sec-body" id="pmPendingBody"><div style="color:var(--lg);font-size:12px;text-align:center;padding:16px">Aucune demande en attente</div></div>
+          </div>
+
+          <!-- Tarification & abonnements -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-tag"></i>
+                <div><div class="pm-sec-title">Tarification &amp; abonnements</div>
+                <div class="pm-sec-sub">Proposition de grille tarifaire — montants ajustables, en FCFA</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px">
+              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
+                Grille indicative à ajuster librement. La version gratuite reste financée par les publicités affichées
+                dans l'application ; les offres payantes les retirent et débloquent les modules avancés.
+              </div>
+              <div class="pricing-grid" id="pricingGrid"></div>
+              <div style="margin-top:12px;display:flex;align-items:center;gap:10px">
+                <button class="btn-action btn-rest" onclick="pmSavePricing()"><i class="ti ti-device-floppy"></i> Enregistrer les tarifs</button>
+                <span class="pmu-msg" id="pricingMsg" style="margin:0"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gestion clientèle -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-address-book"></i>
+                <div><div class="pm-sec-title">Gestion clientèle</div>
+                <div class="pm-sec-sub" id="clienteleCount">0 client(s)</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body">
+              <div style="font-size:10px;color:var(--lg);padding:10px 16px 0">Les forfaits et statuts de paiement s'appliquent aux comptes de la section « Gestion des utilisateurs » ci-dessus.</div>
+              <table class="pm-users-table">
+                <thead><tr><th>Client</th><th>Email</th><th>Forfait</th><th>Paiement</th><th>Prochaine échéance</th></tr></thead>
+                <tbody id="clienteleBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Moyens de paiement -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-credit-card"></i>
+                <div><div class="pm-sec-title">Moyens de paiement</div>
+                <div class="pm-sec-sub">Standards Côte d'Ivoire — carte bancaire et Mobile Money</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px">
+              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
+                L'application étant 100% statique (sans serveur), aucun paiement n'est prélevé automatiquement ici :
+                chaque moyen ci-dessous mène à une confirmation manuelle par l'administrateur (référence transmise par le
+                client, activation de l'abonnement une fois le règlement constaté). Une passerelle de paiement
+                (CinetPay, PayDunya…) pourra être branchée plus tard pour automatiser l'encaissement.
+              </div>
+              <div class="paymethod-grid">
+                <div class="paymethod-card"><i class="ti ti-credit-card"></i><div class="pm-name">Visa / Mastercard</div><div class="pm-desc">Carte bancaire, paiement en ligne sécurisé</div></div>
+                <div class="paymethod-card"><i class="ti ti-device-mobile"></i><div class="pm-name">Orange Money</div><div class="pm-desc">Paiement Mobile Money</div></div>
+                <div class="paymethod-card"><i class="ti ti-device-mobile"></i><div class="pm-name">MTN Mobile Money</div><div class="pm-desc">Paiement Mobile Money</div></div>
+                <div class="paymethod-card"><i class="ti ti-device-mobile"></i><div class="pm-name">Moov Money (Flooz)</div><div class="pm-desc">Paiement Mobile Money</div></div>
+                <div class="paymethod-card"><i class="ti ti-building-bank"></i><div class="pm-name">Virement bancaire</div><div class="pm-desc">Pour les comptes Entreprise</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Suivi des réclamations -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-message-report"></i>
+                <div><div class="pm-sec-title">Suivi des réclamations</div>
+                <div class="pm-sec-sub" id="reclamCount">0 réclamation(s)</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body">
+              <div style="font-size:10px;color:var(--lg);padding:10px 16px 0">Réclamations soumises par les utilisateurs via « Signaler un problème » (menu du profil).</div>
+              <table class="pm-users-table">
+                <thead><tr><th>Date</th><th>Client</th><th>Sujet</th><th>Message</th><th>Statut</th><th>Actions</th></tr></thead>
+                <tbody id="reclamBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Suivi du trafic -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-chart-bar"></i>
+                <div><div class="pm-sec-title">Suivi du trafic</div>
+                <div class="pm-sec-sub">Trafic local à cet appareil — application 100% statique, sans serveur central</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px">
+              <div class="traffic-kpi-grid" id="trafficKpis"></div>
+              <div style="font-size:10px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Répartition par module (7 derniers jours)</div>
+              <div id="trafficBars"></div>
+            </div>
           </div>
 
           <!-- Parametres de la plateforme -->
@@ -2949,6 +3097,7 @@ const I18N = {
     logo_sub:"Veille multi-sources · Médias + Réseaux sociaux · 54 pays d'Afrique",
     live_pret:'Collecte...', btn_actualiser:'Actualiser', btn_diagnostic:'Diagnostic',
     menu_params:'Paramètres & Administration', menu_access:'Gestion des accès', menu_logout:'Se déconnecter',
+    menu_reclam:'Signaler un problème',
     proxy_title:'Collecte RSS automatique — Cliquez Actualiser',
     cbar_lbl:'Collecte RSS', cbar_init:'Collecte en parallèle : Malijet... (15/195)',
     nav_flux:'Flux', nav_analyse:'Synthèse', nav_agenda:'Agenda', nav_rapports:'Rapports',
@@ -2976,6 +3125,7 @@ const I18N = {
     logo_sub:'Multi-source monitoring · Media + Social networks · 54 African countries',
     live_pret:'Collecting...', btn_actualiser:'Refresh', btn_diagnostic:'Diagnostic',
     menu_params:'Settings & Administration', menu_access:'Access management', menu_logout:'Log out',
+    menu_reclam:'Report an issue',
     proxy_title:'Automatic RSS collection — Click Refresh',
     cbar_lbl:'RSS Collection', cbar_init:'Parallel collection: Malijet... (15/195)',
     nav_flux:'Feed', nav_analyse:'Synthesis', nav_agenda:'Agenda', nav_rapports:'Reports',
@@ -6992,6 +7142,7 @@ function switchView(name,el){
   if(name==='rapports') peuplerFiltresRapports();
   if(name==='flux'){document.getElementById('nbadge').style.display='none';NEW_IDS.clear();renderFeed();}
   if(name==='recherche'){ peuplerFiltresRecherche(); renderRecherche(); }
+  if (typeof logTraffic === 'function') logTraffic(name);
 }
 
 // ── HORLOGE & AUTO-REFRESH ────────────────────────────────────────────────────
@@ -7846,6 +7997,213 @@ function loadParamsModule() {
   renderFeatureRights();
   pmRenderUsers();
   pmRenderPending();
+  renderPricing();
+  renderClientele();
+  renderReclamationsAdmin();
+  renderTraffic();
+}
+
+// ── TARIFICATION & ABONNEMENTS ───────────────────────────────────────────
+// Grille indicative en FCFA, éditable par l'administrateur et persistée
+// localement (localStorage) — pas de facturation réelle depuis cette appli
+// statique, voir la section "Moyens de paiement" (confirmation manuelle).
+const PRICING_KEY = 'sentinel_pricing_v1';
+const PRICING_DEFAUT = [
+  {key:'gratuit',   nom:'Gratuit',        prix:0,     periode:'/mois', featured:false,
+    feats:['Flux 12h, 1 pays suivi','Publicités affichées','Alertes de base']},
+  {key:'standard',  nom:'Standard',       prix:15000, periode:'/mois', featured:false,
+    feats:['54 pays, tous modules','Sans publicité','Exports Excel/CSV']},
+  {key:'pro',       nom:'Professionnel',  prix:45000, periode:'/mois', featured:true,
+    feats:['Exports Word/PDF/PowerPoint illimités','Alertes multi-pays','3 comptes utilisateurs']},
+  {key:'entreprise',nom:'Entreprise',     prix:null,  periode:'sur devis', featured:false,
+    feats:['Comptes illimités','Accompagnement dédié','API / intégration sur mesure']},
+];
+function getPricing()  { return _ls(()=>JSON.parse(localStorage.getItem(PRICING_KEY)||'null'),null) || PRICING_DEFAUT; }
+function savePricing(p){ _ls(()=>localStorage.setItem(PRICING_KEY,JSON.stringify(p))); }
+
+function renderPricing() {
+  const grid = document.getElementById('pricingGrid');
+  if (!grid) return;
+  const plans = getPricing();
+  grid.innerHTML = plans.map(p => {
+    const prixHtml = (p.prix===null)
+      ? '<div class="pricing-card-price">Sur devis</div>'
+      : '<div class="pricing-card-price"><input type="number" min="0" step="500" id="prix-'+p.key+'" value="'+p.prix+'"> <span>FCFA '+p.periode+'</span></div>';
+    return '<div class="pricing-card'+(p.featured?' featured':'')+'">'+
+      '<div class="pricing-card-name">'+p.nom+'</div>'+
+      prixHtml+
+      '<ul class="pricing-card-feat">'+p.feats.map(f=>'<li>'+f+'</li>').join('')+'</ul>'+
+    '</div>';
+  }).join('');
+}
+
+function pmSavePricing() {
+  const plans = getPricing().map(p => {
+    if (p.prix===null) return p;
+    const el = document.getElementById('prix-'+p.key);
+    const v = el ? parseInt(el.value,10) : p.prix;
+    return {...p, prix: isNaN(v) ? p.prix : v};
+  });
+  savePricing(plans);
+  pmMsg('Grille tarifaire enregistrée.', 'ok', 'pricingMsg');
+}
+
+// ── GESTION CLIENTÈLE ────────────────────────────────────────────────────
+// Reutilise la liste des comptes (getUsers()) — un "client" = un compte —
+// en y ajoutant forfait et statut de paiement (absents par defaut : plan
+// gratuit, paiement a jour).
+function renderClientele() {
+  const body = document.getElementById('clienteleBody');
+  if (!body) return;
+  const users = getUsers();
+  const plans = getPricing();
+  document.getElementById('clienteleCount').textContent = users.length + ' client(s)';
+  const planOptions = plans.map(p=>'<option value="'+p.key+'">'+p.nom+'</option>').join('');
+  body.innerHTML = users.map(u => {
+    const plan = u.plan || 'gratuit';
+    const paiement = u.paiement || 'a_jour';
+    const echeance = u.echeance || '—';
+    const paiementLbl = {a_jour:'À jour', en_retard:'En retard', impaye:'Impayé'}[paiement] || 'À jour';
+    const paiementCls = {a_jour:'bs-active', en_retard:'bs-nouveau', impaye:'bs-suspend'}[paiement] || 'bs-active';
+    return '<tr>'+
+      '<td>'+u.name+'</td>'+
+      '<td>'+u.email+'</td>'+
+      '<td><select onchange="pmSetClientPlan(\''+u.email+'\',this.value)" style="padding:4px 6px;border:1px solid var(--bd);border-radius:5px;font-size:11px">'+
+        plans.map(p=>'<option value="'+p.key+'"'+(p.key===plan?' selected':'')+'>'+p.nom+'</option>').join('')+
+      '</select></td>'+
+      '<td><select onchange="pmSetClientPaiement(\''+u.email+'\',this.value)" style="padding:4px 6px;border:1px solid var(--bd);border-radius:5px;font-size:11px">'+
+        '<option value="a_jour"'+(paiement==='a_jour'?' selected':'')+'>À jour</option>'+
+        '<option value="en_retard"'+(paiement==='en_retard'?' selected':'')+'>En retard</option>'+
+        '<option value="impaye"'+(paiement==='impaye'?' selected':'')+'>Impayé</option>'+
+      '</select></td>'+
+      '<td>'+echeance+'</td>'+
+    '</tr>';
+  }).join('');
+}
+function pmSetClientPlan(email, plan) {
+  const users = getUsers();
+  const u = users.find(x=>x.email===email);
+  if (!u) return;
+  u.plan = plan;
+  saveUsers(users);
+  renderClientele();
+}
+function pmSetClientPaiement(email, paiement) {
+  const users = getUsers();
+  const u = users.find(x=>x.email===email);
+  if (!u) return;
+  u.paiement = paiement;
+  saveUsers(users);
+  renderClientele();
+}
+
+// ── SUIVI DES RÉCLAMATIONS ───────────────────────────────────────────────
+const RECLAM_KEY = 'sentinel_reclamations_v1';
+function getReclamations()  { return _ls(()=>JSON.parse(localStorage.getItem(RECLAM_KEY)||'[]'),[]); }
+function saveReclamations(r){ _ls(()=>localStorage.setItem(RECLAM_KEY,JSON.stringify(r))); }
+
+function openReclamation() {
+  document.getElementById('reclamSujet').value='';
+  document.getElementById('reclamMessage').value='';
+  const msgEl = document.getElementById('reclamMsg');
+  msgEl.innerHTML=''; msgEl.className='admin-msg';
+  document.getElementById('reclamPanel').classList.remove('hidden');
+}
+function closeReclamation() { document.getElementById('reclamPanel').classList.add('hidden'); }
+
+function submitReclamation() {
+  const sujet   = document.getElementById('reclamSujet').value.trim();
+  const message = document.getElementById('reclamMessage').value.trim();
+  const msgEl = document.getElementById('reclamMsg');
+  if (!sujet || !message) { msgEl.textContent = 'Sujet et message sont requis.'; msgEl.className = 'admin-msg err'; return; }
+  const session = getSession();
+  const list = getReclamations();
+  list.unshift({
+    id: 'r'+Date.now().toString(36), email: session.email, nom: session.name,
+    sujet, message, statut: 'nouveau', date: new Date().toISOString(),
+  });
+  saveReclamations(list);
+  msgEl.innerHTML = '<b>Réclamation envoyée.</b> Un administrateur va la traiter.';
+  msgEl.className = 'admin-msg ok';
+  renderReclamationsAdmin();
+  setTimeout(closeReclamation, 1200);
+}
+
+function renderReclamationsAdmin() {
+  const body = document.getElementById('reclamBody');
+  if (!body) return;
+  const list = getReclamations();
+  document.getElementById('reclamCount').textContent = list.length + ' réclamation(s)';
+  if (!list.length) {
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--lg);padding:16px">Aucune réclamation pour le moment.</td></tr>';
+    return;
+  }
+  const lbl = {nouveau:['bs-nouveau','Nouveau'], en_cours:['bs-encours','En cours'], resolu:['bs-resolu','Résolu']};
+  body.innerHTML = list.map(r => {
+    const [cls, txt] = lbl[r.statut] || lbl.nouveau;
+    return '<tr>'+
+      '<td style="white-space:nowrap">'+new Date(r.date).toLocaleDateString('fr-FR')+'</td>'+
+      '<td>'+(r.nom||r.email)+'</td>'+
+      '<td>'+r.sujet+'</td>'+
+      '<td style="max-width:260px">'+r.message+'</td>'+
+      '<td><span class="badge-status '+cls+'">'+txt+'</span></td>'+
+      '<td style="display:flex;gap:5px;flex-wrap:wrap">'+
+        (r.statut!=='en_cours' ? '<button class="btn-action btn-rev" onclick="pmSetReclamStatut(\''+r.id+'\',\'en_cours\')">En cours</button>' : '')+
+        (r.statut!=='resolu' ? '<button class="btn-action btn-rest" onclick="pmSetReclamStatut(\''+r.id+'\',\'resolu\')">Résoudre</button>' : '')+
+      '</td></tr>';
+  }).join('');
+}
+function pmSetReclamStatut(id, statut) {
+  const list = getReclamations();
+  const r = list.find(x=>x.id===id);
+  if (!r) return;
+  r.statut = statut;
+  saveReclamations(list);
+  renderReclamationsAdmin();
+}
+
+// ── SUIVI DU TRAFIC ───────────────────────────────────────────────────────
+// Trafic local a cet appareil/navigateur uniquement : sans backend, aucun
+// outil ne peut agreger les visites de tous les utilisateurs. Chaque
+// changement de vue (switchView) journalise un horodatage + le module visite,
+// plafonne a 2000 entrees pour rester leger.
+const TRAFFIC_KEY = 'sentinel_traffic_v1';
+function getTraffic()  { return _ls(()=>JSON.parse(localStorage.getItem(TRAFFIC_KEY)||'[]'),[]); }
+function saveTraffic(t){ _ls(()=>localStorage.setItem(TRAFFIC_KEY,JSON.stringify(t))); }
+function logTraffic(view) {
+  const list = getTraffic();
+  list.push({v: view, t: Date.now()});
+  if (list.length > 2000) list.splice(0, list.length-2000);
+  saveTraffic(list);
+}
+const TRAFFIC_LABELS = {flux:'Flux',recherche:'Recherche',analyse:'Synthèse',agenda:'Agenda',rapports:'Rapports',alertes:'Alertes',dashboard:'Tableau de bord',params:'Paramètres'};
+function renderTraffic() {
+  const kpis = document.getElementById('trafficKpis');
+  const bars = document.getElementById('trafficBars');
+  if (!kpis || !bars) return;
+  const list = getTraffic();
+  const now = Date.now();
+  const sur7j = list.filter(e => now - e.t < 7*24*3600000);
+  const sur24h = list.filter(e => now - e.t < 24*3600000);
+  const parModule = {};
+  sur7j.forEach(e => { parModule[e.v] = (parModule[e.v]||0)+1; });
+  const modulesTries = Object.keys(parModule).sort((a,b)=>parModule[b]-parModule[a]);
+  const top = modulesTries[0] ? (TRAFFIC_LABELS[modulesTries[0]]||modulesTries[0]) : '—';
+  const maxVal = modulesTries.length ? parModule[modulesTries[0]] : 0;
+
+  kpis.innerHTML =
+    '<div class="traffic-kpi"><div class="traffic-kpi-val">'+list.length+'</div><div class="traffic-kpi-lbl">Vues totales</div></div>'+
+    '<div class="traffic-kpi"><div class="traffic-kpi-val">'+sur24h.length+'</div><div class="traffic-kpi-lbl">Vues 24h</div></div>'+
+    '<div class="traffic-kpi"><div class="traffic-kpi-val">'+sur7j.length+'</div><div class="traffic-kpi-lbl">Vues 7 jours</div></div>'+
+    '<div class="traffic-kpi"><div class="traffic-kpi-val" style="font-size:13px">'+top+'</div><div class="traffic-kpi-lbl">Module le + visité</div></div>';
+
+  bars.innerHTML = modulesTries.length ? modulesTries.map(m => {
+    const n = parModule[m];
+    const pct = maxVal ? Math.round(n/maxVal*100) : 0;
+    return '<div class="traffic-bar-row"><span style="width:100px;flex-shrink:0">'+(TRAFFIC_LABELS[m]||m)+'</span>'+
+      '<div class="traffic-bar-track"><div class="traffic-bar-fill" style="width:'+pct+'%"></div></div>'+
+      '<span style="width:30px;text-align:right;flex-shrink:0">'+n+'</span></div>';
+  }).join('') : '<div style="font-size:11px;color:var(--lg);text-align:center;padding:10px">Pas encore de donnees de trafic.</div>';
 }
 
 
