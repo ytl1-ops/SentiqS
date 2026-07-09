@@ -4075,7 +4075,7 @@ const PAYS_HORS_AFRIQUE = [
 // nomme aucun pays africain n'est pas une actu surete d'un pays africain.
 const SPORT_INTERNATIONAL_KW = [
   'coupe du monde','mondial 2026','mondial 2030','ligue des champions','premier league',
-  'liga','bundesliga','serie a','ballon d\'or','mercato','fifa','uefa','sélectionneur',
+  'liga','bundesliga','serie a','ballon d\'or','mercato','fifa','uefa','sélectionneur','selectionneur',
   'selectionneur','footballistique','footballeur','gardien de but','attaquant',
   'milieu de terrain','roland-garros','wimbledon','nba','formule 1','grand prix',
   'jeux olympiques','tour de france',
@@ -4338,6 +4338,17 @@ function normaliserAccents(t) {
 function classify(txt, src) {
   const t = txt.toLowerCase();
 
+  // Normalisation des accents D'ABORD (voir normaliserAccents) : reutilisee
+  // par TOUS les garde-fous ci-dessous, y compris sport/culture. Un titre
+  // comme "Les Étalons Dames à l'assaut de leur propre histoire" (accents
+  // presents) ne matchait pas le mot-cle sport "les etalons" (ecrit sans
+  // accent dans SPORT_CONTENU_KW) quand la normalisation n'intervenait
+  // qu'apres ces garde-fous : l'article retombait alors dans le scan
+  // CK_CRIT et remontait "assaut" comme incident critique — un article
+  // sportif classe a tort CRITIQUE. Meme normalisation utilisee partout
+  // desormais, coherente avec neutraliserExpressions ci-dessous.
+  const tAcc = normaliserAccents(t);
+
   // Garde-fous "hors surete" (priorite absolue) : SENTINEL SURETE est un
   // outil de veille SECURITAIRE, pas un fil d'actualite generaliste. Le sport
   // (transferts, matchs) et la culture/le divertissement/le people ne sont
@@ -4345,17 +4356,15 @@ function classify(txt, src) {
   // mots-cles de securite ("frappe", "coup franc", "mort subite"...). Niveau
   // force a 'ok' (Stable), categorie dediee, exclue du calcul des scores
   // d'alerte pays (voir getLiveAlertEvents, qui ne reconnait que crit/high/mod).
-  if (estContenuSportif(t)) return {lvl: 'ok', cat: 'sport'};
-  if (estContenuCulturel(t)) return {lvl: 'ok', cat: 'culture'};
+  if (estContenuSportif(tAcc)) return {lvl: 'ok', cat: 'sport'};
+  if (estContenuCulturel(tAcc)) return {lvl: 'ok', cat: 'culture'};
 
-  // Normalisation des accents D'ABORD (voir normaliserAccents), puis
-  // neutralisation des locutions figees ("coup de cœur", "siège social",
+  // Neutralisation des locutions figees ("coup de cœur", "siège social",
   // "explosion des prix", "larme"...) : ces expressions du francais courant
   // contiennent un mot de securite sans aucun rapport avec la surete (cf.
   // EXPRESSIONS_NON_SECURITAIRES, ecrites sans accent pour matcher le texte
-  // normalise). L'ordre inverse ferait manquer "siège social" (accentue)
-  // face a un motif "siege social" non accentue.
-  const tScan = neutraliserExpressions(normaliserAccents(t));
+  // normalise).
+  const tScan = neutraliserExpressions(tAcc);
 
   // Correspondance MOT ENTIER (matchMot), pas sous-chaine brute : evite les
   // faux positifs caches type "tue" dans "statue", "arme" dans "larme",
