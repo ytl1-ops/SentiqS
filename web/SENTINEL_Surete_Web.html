@@ -1615,10 +1615,11 @@ button:not(:disabled){
 <!-- NAV -->
 <div class="nav">
   <div class="ntab" onclick="switchView(&#39;flux&#39;,this)"><i class="ti ti-radar-2"></i><span data-i18n="nav_flux">Flux</span><span class="nbadge" id="nbadge" style="display: none;">0</span></div>
+  <div class="ntab" id="tabRecherche" onclick="switchView(&#39;recherche&#39;,this)"><i class="ti ti-search"></i><span data-i18n="nav_recherche">Recherche</span></div>
   <div class="ntab" onclick="switchView(&#39;analyse&#39;,this)"><i class="ti ti-chart-dots"></i><span data-i18n="nav_analyse">Synthèse</span></div>
-  <div class="ntab" onclick="switchView(&#39;agenda&#39;,this)"><i class="ti ti-calendar-event"></i><span data-i18n="nav_agenda">Agenda</span></div>
+  <div class="ntab" id="tabAgenda" onclick="switchView(&#39;agenda&#39;,this)"><i class="ti ti-calendar-event"></i><span data-i18n="nav_agenda">Agenda</span></div>
   <div class="ntab" onclick="switchView(&#39;rapports&#39;,this)"><i class="ti ti-download"></i><span data-i18n="nav_rapports">Rapports</span></div>
-  <div class="ntab" onclick="switchView(&#39;alertes&#39;,this)"><i class="ti ti-shield-exclamation"></i><span data-i18n="nav_alertes">Alertes</span></div>
+  <div class="ntab" id="tabAlertes" onclick="switchView(&#39;alertes&#39;,this)"><i class="ti ti-shield-exclamation"></i><span data-i18n="nav_alertes">Alertes</span></div>
   <div class="ntab on" onclick="switchView(&#39;dashboard&#39;,this)"><i class="ti ti-layout-dashboard"></i><span>Tableau de bord</span></div>
   <div class="ntab" id="tabParams" onclick="switchView(&#39;params&#39;,this)" style="display:none"><i class="ti ti-settings"></i><span>Parametres</span></div>
 </div>
@@ -1715,8 +1716,47 @@ button:not(:disabled){
       <div class="det" id="detPanel"><div class="dh"><div class="dt">Burkina Faso — Evaluation mission humanitaire dans le Soum reportee sine die</div><div class="dc" onclick="document.getElementById(&#39;detPanel&#39;).className=&#39;det&#39;"><i class="ti ti-x"></i></div></div><div class="dlvl" style="background:#FEF2F2;border-left:4px solid #8B1A1A;color:#8B1A1A"><i class="ti ti-alert-triangle"></i><strong>CRITIQUE</strong> — <span class="rtg rm">80%</span></div><div class="det-pubdate"><i class="ti ti-calendar-time"></i><strong>Publié :</strong> lun. 6 juillet à 12:18 UTC+0</div><div class="dsrcs"><span style="font-size:9px;font-weight:700;color:var(--gr);text-transform:uppercase;letter-spacing:.05em">Sources :</span><a href="https://wakatsera.com/?s=sahel" target="_blank"><span class="dot" style="background:#92400E"></span>Wakat Sera<i class="ti ti-external-link" style="font-size:9px;margin-left:2px"></i></a><a href="https://reliefweb.int/updates?search=west+africa&amp;source=13" target="_blank"><span class="dot" style="background:#166534"></span>ReliefWeb<i class="ti ti-external-link" style="font-size:9px;margin-left:2px"></i></a></div><div style="font-size:8px;color:var(--lg);padding:4px 0 0;font-style:italic;">Les liens menent vers la page de recherche ou de categorie du site source. SENTINEL ne dispose pas du lien direct vers la depeche individuelle.</div><div class="dan">Wakat Sera rapporte une tentative d organisation d une mission d evaluation humanitaire dans la province du Soum. La mission a ete reportee sine die faute d acces securise.</div><div class="drec"><div class="drec-hd"><i class="ti ti-chevron-right"></i>Actions recommandees</div><div class="rli">Province du Soum : aucune mission de terrain sans autorisation et escorte adaptee.</div></div><div class="dact"><a href="https://www.google.com/search?q=site%3Awakatsera.com%20sahel" target="_blank" class="dbt p"><i class="ti ti-external-link"></i>Rechercher sur Wakat Sera</a><div class="dbt" style="margin-left:auto" onclick="document.getElementById(&#39;detPanel&#39;).className=&#39;det&#39;"><i class="ti ti-x"></i>Fermer</div></div></div>
     </div>
 
+    <!-- RECHERCHE -->
+    <div class="view" id="v-recherche">
+      <div style="padding:14px;flex-shrink:0;border-bottom:1px solid var(--bd);background:var(--w);">
+        <div style="position:relative;margin-bottom:10px;">
+          <i class="ti ti-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--lg);font-size:15px;"></i>
+          <input type="text" id="searchQ" placeholder="Rechercher un pays, un evenement, un theme, une source..." oninput="renderRecherche()" style="width:100%;padding:10px 12px 10px 34px;border:1px solid var(--bd);border-radius:8px;font-size:13px;outline:none;">
+        </div>
+        <div class="tlbr" style="flex-wrap:wrap;">
+          <select id="seScope" onchange="setSeScope(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
+            <option value="all">Tout</option>
+            <option value="flux">Flux (actif, &lt;12h)</option>
+            <option value="historique">Historique</option>
+            <option value="agenda">Agenda</option>
+            <option value="alertes">Alertes verifiees</option>
+            <option value="sources">Sources</option>
+          </select>
+          <select id="seCy" onchange="setSeCy(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
+            <option value="all">Tous les pays</option>
+          </select>
+          <select id="seCat" onchange="setSeCat(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
+            <option value="all">Toutes categories</option>
+            <option value="securite">Securite</option>
+            <option value="humanitaire">Humanitaire</option>
+            <option value="politique">Politique</option>
+            <option value="economique">Economique</option>
+          </select>
+          <span style="margin-left:auto;font-size:10px;color:var(--lg);" id="seCount"></span>
+        </div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:12px 14px;" id="seResults">
+        <div class="empty"><i class="ti ti-search"></i><p>Tapez pour rechercher dans le Flux, l'Historique, l'Agenda, les Alertes et les Sources.</p></div>
+      </div>
+    </div>
+
     <!-- SYNTHESE -->
     <div class="view" id="v-analyse">
+
+      <div style="display:flex;border-bottom:1px solid var(--bd);flex-shrink:0;background:var(--w);padding:0 10px;">
+        <button class="ana-tab on" data-tab="synthese" onclick="setAnaTab('synthese',this)"><i class="ti ti-file-analytics"></i>Synthèse</button>
+        <button class="ana-tab" data-tab="correlations" onclick="setAnaTab('correlations',this)"><i class="ti ti-affiliate"></i>Corrélations</button>
+      </div>
 
       <!-- Sous-vue Synthèse -->
       <div id="ana-synthese" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
@@ -1752,6 +1792,21 @@ button:not(:disabled){
               <div class="empty"><i class="ti ti-rss"></i><p>Actualisez les flux RSS pour generer la synthese</p></div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Sous-vue Corrélations : signaux (mots-cles) partages entre plusieurs
+           pays sur la fenetre de temps reel (<12h), et top themes par pays.
+           100% derive des articles deja collectes — aucune donnee externe. -->
+      <div id="ana-correlations" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+        <div class="tlbr" style="flex-shrink:0;">
+          <span style="font-size:11px;font-weight:700;color:var(--t);display:flex;align-items:center;gap:5px;"><i class="ti ti-affiliate" style="font-size:14px"></i>Corrélations</span>
+          <button class="corr-dim on" data-dim="themes" onclick="setCorrDim('themes',this)"><i class="ti ti-tags"></i>Par thème</button>
+          <button class="corr-dim" data-dim="pays" onclick="setCorrDim('pays',this)"><i class="ti ti-world"></i>Par pays</button>
+          <span style="margin-left:auto;font-size:9px;color:var(--lg);" id="corrCount"></span>
+        </div>
+        <div style="overflow-y:auto;flex:1;padding:12px 14px;" id="corrCont">
+          <div class="empty"><i class="ti ti-affiliate"></i><p>Actualisez les flux RSS pour détecter les corrélations entre pays.</p></div>
         </div>
       </div>
 
@@ -2489,7 +2544,7 @@ const SRCS=[
  {id:'jeune_afrique',n:'Jeune Afrique',col:'#CC0000',cy:'INT',sc:'regional',cat:'politique',score:85,url:'https://www.jeuneafrique.com/',rss:'https://www.jeuneafrique.com/feed/rss/',rss_method:'RSS natif'},
  {id:'theafricareport',n:'The Africa Report',col:'#CC0000',cy:'INT',sc:'regional',cat:'politique',score:90,url:'https://www.theafricareport.com/',rss:'https://www.theafricareport.com/feed/',rss_method:'RSS natif'},
  {id:'africanews_tv',n:'Africanews',col:'#FF6B35',cy:'INT',sc:'regional',cat:'securite',score:82,url:'https://www.africanews.com/',rss:'https://www.africanews.com/rss',rss_method:'RSS natif'},
- {id:'allafrica_fr',n:'AllAfrica francais',col:'#003082',cy:'INT',sc:'regional',cat:'politique',score:78,url:'https://fr.allafrica.com/',rss:'https://fr.allafrica.com/feed/',rss_method:'RSS natif'},,
+ {id:'allafrica_fr',n:'AllAfrica francais',col:'#003082',cy:'INT',sc:'regional',cat:'politique',score:78,url:'https://fr.allafrica.com/',rss:'https://fr.allafrica.com/feed/',rss_method:'RSS natif'},
  // ── Filet de securite AllAfrica par pays (couverture des 54 pays sans exception) ──
  {id:'allafrica_ao',n:'AllAfrica (AO)',col:'#0C447C',cy:'AO',sc:'national',cat:'securite',score:80,url:'https://fr.allafrica.com/angola/',rss:'https://fr.allafrica.com/tools/headlines/rdf/angola/headlines.rdf'},
  {id:'allafrica_bf',n:'AllAfrica (BF)',col:'#0C447C',cy:'BF',sc:'national',cat:'securite',score:80,url:'https://fr.allafrica.com/burkinafaso/',rss:'https://fr.allafrica.com/tools/headlines/rdf/burkinafaso/headlines.rdf'},
@@ -2900,7 +2955,7 @@ const I18N = {
     proxy_title:'Collecte RSS automatique — Cliquez Actualiser',
     cbar_lbl:'Collecte RSS', cbar_init:'Collecte en parallèle : Malijet... (15/195)',
     nav_flux:'Flux', nav_analyse:'Synthèse', nav_agenda:'Agenda', nav_rapports:'Rapports',
-    nav_alertes:'Alertes',
+    nav_alertes:'Alertes', nav_recherche:'Recherche',
     chip_tout:'Tout', chip_critique:'Critique', chip_eleve:'Élevé', chip_securite:'Sécurité',
     ph_recherche:'Rechercher...',
     teletexte_lbl:'EN DIRECT',
@@ -2918,7 +2973,7 @@ const I18N = {
     proxy_title:'Automatic RSS collection — Click Refresh',
     cbar_lbl:'RSS Collection', cbar_init:'Parallel collection: Malijet... (15/195)',
     nav_flux:'Feed', nav_analyse:'Synthesis', nav_agenda:'Agenda', nav_rapports:'Reports',
-    nav_alertes:'Alerts',
+    nav_alertes:'Alerts', nav_recherche:'Search',
     chip_tout:'All', chip_critique:'Critical', chip_eleve:'High', chip_securite:'Security',
     ph_recherche:'Search...',
     teletexte_lbl:'LIVE',
@@ -4348,6 +4403,105 @@ function extractTopTermes(articles, n) {
     .sort((a,b)=>b[1]-a[1])
     .slice(0,n)
     .map(([terme,occurrences])=>({terme,occurrences}));
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  MODULE CORRÉLATIONS — signaux (mots-clés) partagés entre plusieurs
+//  pays sur la fenêtre temps réel (<12h). Détecte par exemple une même
+//  thématique (ex. "sécheresse", "élections", "manifestation") remontant
+//  simultanément dans plusieurs pays — utile pour repérer une dynamique
+//  régionale qu'un seul pays, pris isolément, ne révèle pas.
+//  100% dérivé des articles déjà collectés (ALL) — aucune donnée externe,
+//  aucune clé API.
+// ════════════════════════════════════════════════════════════════════
+let fCorrDim = 'themes';
+
+function setCorrDim(dim, btn) {
+  fCorrDim = dim;
+  document.querySelectorAll('.corr-dim').forEach(b => b.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  renderCorrelations();
+}
+
+// Construit, pour la fenêtre temps réel, la table terme -> {pays, articles}
+// en reutilisant la meme tokenisation que extractTopTermes (mots >=4
+// caracteres, hors mots vides et nombres purs).
+function _corrBuildSignaux(arts) {
+  const table = {}; // terme -> { pays:Set, articles:[] }
+  arts.forEach(a => {
+    if (!a.cy || a.cy === 'INT') return; // signal regional generique, pas de correlation pays-a-pays exploitable
+    const txt = (a.title||'').toLowerCase().replace(/[«»"'’,.:;!?()\/\-–—]/g,' ');
+    const vus = new Set(); // eviter de compter 2x le meme terme pour le meme article
+    txt.split(/\s+/).forEach(mot => {
+      if (mot.length < 4 || SOC_STOPWORDS.has(mot) || /^\d+$/.test(mot) || vus.has(mot)) return;
+      vus.add(mot);
+      if (!table[mot]) table[mot] = { pays: new Set(), articles: [] };
+      table[mot].pays.add(a.cy);
+      table[mot].articles.push(a);
+    });
+  });
+  return Object.entries(table)
+    .filter(([,v]) => v.pays.size >= 2) // signal "correle" = present dans au moins 2 pays distincts
+    .map(([terme,v]) => ({ terme, pays:[...v.pays], articles:v.articles }))
+    .sort((a,b) => b.pays.length - a.pays.length || b.articles.length - a.articles.length)
+    .slice(0, 40);
+}
+
+function renderCorrelations() {
+  const cont = document.getElementById('corrCont');
+  const countEl = document.getElementById('corrCount');
+  if (!cont) return;
+  const arts = (typeof antiHalluFilter === 'function') ? antiHalluFilter([...(ALL||[])], 12*3600000) : (ALL||[]).filter(estRecentReel);
+
+  if (fCorrDim === 'pays') {
+    const parPays = {};
+    arts.forEach(a => { if (a.cy && a.cy !== 'INT') (parPays[a.cy] = parPays[a.cy]||[]).push(a); });
+    const paysTries = Object.keys(parPays).sort((c1,c2) => parPays[c2].length - parPays[c1].length);
+    if (countEl) countEl.textContent = paysTries.length + ' pays actifs (<12h)';
+    if (!paysTries.length) { cont.innerHTML = '<div class="empty"><i class="ti ti-affiliate"></i><p>Aucune donnée récente — actualisez le Flux.</p></div>'; return; }
+    cont.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;">' +
+      paysTries.map(cy => {
+        const pys = PAYS_INFO[cy] || {flag:'🌍',name:cy};
+        const themes = extractTopTermes(parPays[cy], 5);
+        return '<div class="si-card">' +
+          '<div class="si-section-title"><span style="font-size:15px;">'+pys.flag+'</span>'+pys.name+
+            '<span style="margin-left:auto;font-weight:600;color:var(--lg);">'+parPays[cy].length+' art.</span></div>' +
+          (themes.length
+            ? themes.map(t => '<div class="corr-link" onclick="switchView(\'flux\',document.querySelector(\'.ntab\'));setGeo(\''+_seEsc(cy)+'\',\''+_seEsc(pys.name)+'\')" style="cursor:pointer;">'+
+                '<span class="corr-tag" style="background:var(--bl);color:var(--b);">#'+t.terme+'</span>'+
+                '<span style="margin-left:auto;font-size:10px;color:var(--lg);">'+t.occurrences+'</span></div>').join('')
+            : '<div style="font-size:10px;color:var(--lg);padding:6px 0;">Pas de thème récurrent détecté.</div>') +
+        '</div>';
+      }).join('') + '</div>';
+    return;
+  }
+
+  // Dimension "themes" (par defaut) : signaux correles entre plusieurs pays
+  const signaux = _corrBuildSignaux(arts);
+  if (countEl) countEl.textContent = signaux.length + ' signal' + (signaux.length>1?'aux':'') + ' corrélé' + (signaux.length>1?'s':'') + ' entre pays';
+  if (!signaux.length) {
+    cont.innerHTML = '<div class="empty"><i class="ti ti-affiliate"></i><p>Aucun thème commun détecté entre plusieurs pays pour le moment.</p></div>';
+    return;
+  }
+  cont.innerHTML = signaux.map(s => {
+    const flags = s.pays.map(cy => (PAYS_INFO[cy]||{}).flag || '🌍').join(' ');
+    const rows = s.articles.slice(0, 8).map(a => {
+      const pys = PAYS_INFO[a.cy] || {flag:'🌍',name:a.cy};
+      const lvl = levelMeta(a.level);
+      return '<div class="corr-link" onclick="switchView(\'flux\',document.querySelector(\'.ntab\'));showDet(\''+_seEsc(a.id)+'\')">' +
+        '<span class="corr-tag" style="background:'+lvl.bg+';color:'+lvl.col+';">'+pys.flag+' '+pys.name+'</span>' +
+        '<span style="font-size:11px;color:var(--t);flex:1;">'+_seHighlight(a.title, [])+'</span>' +
+      '</div>';
+    }).join('');
+    return '<div class="corr-node" style="margin-bottom:10px;">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">' +
+        '<span style="font-size:13px;font-weight:800;color:var(--t);">#'+s.terme+'</span>' +
+        '<span class="corr-tag" style="background:var(--bl);color:var(--b);">'+s.pays.length+' pays</span>' +
+        '<span style="font-size:14px;">'+flags+'</span>' +
+        '<span style="margin-left:auto;font-size:9px;color:var(--lg);">'+s.articles.length+' article'+(s.articles.length>1?'s':'')+'</span>' +
+      '</div>' + rows +
+    '</div>';
+  }).join('');
 }
 
 // ── Registre des plateformes sociales ──────────────────────────────────────
@@ -6256,13 +6410,21 @@ function renderDashboard() {
 }
 
 
-// setAnaTab(tab, btn) : conservee pour compatibilite avec les appels existants
-// (ex. depuis la fiche pays) — le module Regional a ete retire (integre au
-// Flux via le filtre "Regional"), Analyse n'a donc plus qu'un seul contenu :
-// la Synthese, toujours affichee sans systeme d'onglets.
+// setAnaTab(tab, btn) : bascule entre les deux contenus du module Analyse —
+// Synthese (rapport filtrable) et Correlations (signaux partages entre
+// plusieurs pays). Le module Regional historique reste retire (integre au
+// Flux via le filtre "Regional").
 function setAnaTab(tab, btn) {
-  ANA_TAB_ACTIF = 'synthese';
-  if (typeof updSynthese === 'function') { try { updSynthese(); } catch(_) {} }
+  ANA_TAB_ACTIF = (tab === 'correlations') ? 'correlations' : 'synthese';
+  document.querySelectorAll('.ana-tab').forEach(b => b.classList.remove('on'));
+  const activeBtn = btn || document.querySelector('.ana-tab[data-tab="'+ANA_TAB_ACTIF+'"]');
+  if (activeBtn) activeBtn.classList.add('on');
+  const synEl = document.getElementById('ana-synthese');
+  const corEl = document.getElementById('ana-correlations');
+  if (synEl) synEl.style.display = (ANA_TAB_ACTIF==='synthese') ? 'flex' : 'none';
+  if (corEl) corEl.style.display = (ANA_TAB_ACTIF==='correlations') ? 'flex' : 'none';
+  if (ANA_TAB_ACTIF === 'synthese' && typeof updSynthese === 'function') { try { updSynthese(); } catch(_) {} }
+  if (ANA_TAB_ACTIF === 'correlations' && typeof renderCorrelations === 'function') { try { renderCorrelations(); } catch(_) {} }
 }
 
 function updSynthese() {
@@ -6382,6 +6544,189 @@ function resolveAgendaZone(champ) {
   });
   if (zonesTrouvees.size === 1) return [...zonesTrouvees][0];
   return null;
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  MODULE RECHERCHE — moteur de recherche interne, multi-sources
+//  Cherche simultanement dans le Flux (ALL, <12h), l'Historique
+//  (HISTORIQUE), l'Agenda (AGENDA + evenements detectes), les incidents
+//  verifies (ALERTE_EVENTS) et le registre des sources (SRCS).
+//  100% local : aucune requete reseau, aucune cle API — le classement
+//  par pertinence et le surlignage se calculent entierement dans le
+//  navigateur, sur les donnees deja collectees.
+// ════════════════════════════════════════════════════════════════════
+let fSeScope = 'all', fSeCy = 'all', fSeCat = 'all';
+
+function peuplerFiltresRecherche() {
+  const selCy = document.getElementById('seCy');
+  if (!selCy || selCy.options.length > 1) return;
+  Object.keys(PAYS_INFO).sort((a,b) => PAYS_INFO[a].name.localeCompare(PAYS_INFO[b].name)).forEach(cy => {
+    const opt = document.createElement('option');
+    opt.value = cy;
+    opt.textContent = PAYS_INFO[cy].flag + ' ' + PAYS_INFO[cy].name;
+    selCy.appendChild(opt);
+  });
+}
+
+function setSeScope(v) { fSeScope = v; renderRecherche(); }
+function setSeCy(v)    { fSeCy = v; renderRecherche(); }
+function setSeCat(v)   { fSeCat = v; renderRecherche(); }
+
+// Echappement pour injection sure dans un attribut onclick delimite par
+// des apostrophes (necessaire : plusieurs noms de pays en contiennent,
+// ex. "Côte d'Ivoire", "N'Djamena").
+function _seEsc(s) { return (s == null ? '' : String(s)).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+
+function _seTokenize(q) {
+  return normaliserAccents((q||'').toLowerCase())
+    .replace(/[«»"'’,.:;!?()\/\-–—]/g,' ').split(/\s+/).filter(t => t.length >= 2);
+}
+function _seNorm(s) {
+  return normaliserAccents((s||'').toString().toLowerCase());
+}
+
+// Score de pertinence : occurrences ponderees (titre > corps > source),
+// bonus de fraicheur pour les elements dates. 0 = aucun terme ne
+// correspond, l'element est alors exclu des resultats.
+function _seScore(tokens, titre, texte, srcTxt, ts) {
+  if (!tokens.length) return 1; // pas de requete saisie : mode "parcourir", tout passe
+  const nt = _seNorm(titre), nb = _seNorm(texte), ns = _seNorm(srcTxt);
+  let score = 0;
+  tokens.forEach(tok => {
+    if (nt.includes(tok)) score += 6;
+    if (nb.includes(tok)) score += 2;
+    if (ns.includes(tok)) score += 1;
+  });
+  if (score === 0) return 0;
+  if (ts) {
+    const ageH = (Date.now() - ts) / 3600000;
+    if (ageH < 12) score += 3; else if (ageH < 72) score += 1;
+  }
+  return score;
+}
+
+function _seHighlight(text, tokens) {
+  if (!text) return '';
+  let out = String(text);
+  tokens.forEach(tok => {
+    if (tok.length < 2) return;
+    const re = new RegExp('(' + tok.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+    out = out.replace(re, '<mark style="background:#FDE68A;color:#78350F;padding:0 1px;border-radius:2px;">$1</mark>');
+  });
+  return out;
+}
+
+// Construit la liste unifiee de resultats a travers toutes les sources de
+// donnees de l'app, avec un score de pertinence commun.
+function buildRecherche(query, scope, cyFilter, catFilter) {
+  const tokens = _seTokenize(query);
+  const out = [];
+  const inScope = (t) => scope === 'all' || scope === t;
+
+  if (inScope('flux')) {
+    (ALL||[]).forEach(a => {
+      if (cyFilter !== 'all' && a.cy !== cyFilter) return;
+      if (catFilter !== 'all' && a.cat !== catFilter) return;
+      const score = _seScore(tokens, a.title, a.analysis, a.primary, a.pubDate);
+      if (!score) return;
+      out.push({ type:'flux', score, title:a.title, snippet:a.analysis||'', cy:a.cy, cat:a.cat, level:a.level,
+        dateLabel: fmtAge(a.pubDate), ts:a.pubDate||0, id:a.id });
+    });
+  }
+  if (inScope('historique') && typeof HISTORIQUE !== 'undefined') {
+    HISTORIQUE.forEach(a => {
+      if (cyFilter !== 'all' && a.cy !== cyFilter) return;
+      if (catFilter !== 'all' && a.cat !== catFilter) return;
+      const score = _seScore(tokens, a.title, '', '', a.pubDate);
+      if (!score) return;
+      out.push({ type:'historique', score, title:a.title, snippet:'', cy:a.cy, cat:a.cat, level:a.level,
+        dateLabel: a.pubDate ? fmtAge(a.pubDate) : 'Date inconnue', ts:a.pubDate||0, id:a.id });
+    });
+  }
+  if (inScope('agenda')) {
+    const detectes = (ALL||[]).filter(a => a._estAgenda && estRecentReel(a)).map(a => articleVersAgenda(a));
+    [...AGENDA, ...detectes].forEach((e, idx) => {
+      const cy = resolveAgendaCy(e.cy);
+      if (cyFilter !== 'all' && cy !== cyFilter) return;
+      if (catFilter !== 'all' && e.type !== catFilter) return;
+      const score = _seScore(tokens, e.title, e.desc, e.src, 0);
+      if (!score) return;
+      out.push({ type:'agenda', score, title:e.title, snippet:e.desc||'', cy, cat:e.type,
+        dateLabel: [e.day,e.month,e.year].filter(Boolean).join(' '), ts:0, id:'ag_'+idx });
+    });
+  }
+  if (inScope('alertes')) {
+    ALERTE_EVENTS.forEach((e, idx) => {
+      if (cyFilter !== 'all' && e.cy !== cyFilter) return;
+      const score = _seScore(tokens, e.title, e.src, '', 0);
+      if (!score) return;
+      const lvlKey = {rouge:'crit',marron:'high',orange:'high',jaune:'mod',vert:'ok'}[e.level] || 'mod';
+      out.push({ type:'alertes', score, title:e.title, snippet:e.src||'', cy:e.cy, cat:null, level:lvlKey,
+        dateLabel: e.date||'', ts:0, id:'al_'+idx });
+    });
+  }
+  if (inScope('sources')) {
+    SRCS.forEach(s => {
+      if (cyFilter !== 'all' && s.cy !== cyFilter) return;
+      if (catFilter !== 'all' && s.cat !== catFilter) return;
+      const score = _seScore(tokens, s.n, s.rss_method||'', '', 0);
+      if (!score) return;
+      out.push({ type:'sources', score, title:s.n, snippet:s.rss_method||'Flux RSS', cy:s.cy, cat:s.cat, level:null,
+        dateLabel: '', ts:0, id:s.id, url:s.url });
+    });
+  }
+
+  out.sort((x,y) => tokens.length ? (y.score-x.score) : (y.ts-x.ts));
+  return out.slice(0, 150);
+}
+
+const SE_TYPE_META = {
+  flux:       { label:'Flux',       icon:'ti-radar-2',            col:'#1D7AB8' },
+  historique: { label:'Historique', icon:'ti-history',            col:'#6B7280' },
+  agenda:     { label:'Agenda',     icon:'ti-calendar-event',     col:'#7C3AED' },
+  alertes:    { label:'Alerte',     icon:'ti-shield-exclamation', col:'#DC2626' },
+  sources:    { label:'Source',     icon:'ti-antenna',            col:'#059669' },
+};
+
+function renderRecherche() {
+  const qEl = document.getElementById('searchQ');
+  const q = qEl ? qEl.value.trim() : '';
+  const tokens = _seTokenize(q);
+  const results = buildRecherche(q, fSeScope, fSeCy, fSeCat);
+  const cont = document.getElementById('seResults');
+  const countEl = document.getElementById('seCount');
+  if (countEl) countEl.textContent = q
+    ? (results.length + ' resultat' + (results.length>1?'s':'') + ' pour "' + q + '"')
+    : (results.length + ' element' + (results.length>1?'s':'') + ' recent' + (results.length>1?'s':'') + ' · tapez pour rechercher');
+  if (!cont) return;
+  if (!results.length) {
+    cont.innerHTML = '<div class="empty"><i class="ti ti-search"></i><p>' +
+      (q ? 'Aucun resultat pour cette recherche.' : 'Aucune donnee a parcourir pour le moment — actualisez le Flux.') +
+      '</p></div>';
+    return;
+  }
+  cont.innerHTML = results.map(r => {
+    const m = SE_TYPE_META[r.type];
+    const pys = PAYS_INFO[r.cy];
+    const lvl = r.level ? levelMeta(r.level) : null;
+    const onclick = {
+      flux:       `switchView('flux', document.querySelector('.ntab'));showDet('${_seEsc(r.id)}')`,
+      historique: `switchView('flux', document.querySelector('.ntab'));setGeo('${_seEsc(r.cy)}','${_seEsc(pys?pys.name:r.cy)}')`,
+      agenda:     `switchView('agenda', document.getElementById('tabAgenda'))`,
+      alertes:    `switchView('alertes', document.getElementById('tabAlertes'))${r.cy?`;goToAlerteIncident('${_seEsc(r.cy)}')`:''}`,
+      sources:    `window.open('${_seEsc(r.url||'#')}','_blank')`,
+    }[r.type] || '';
+    return `<div onclick="${onclick}" style="background:var(--w);border:1px solid var(--bd);border-left:3px solid ${m.col};border-radius:8px;padding:11px 13px;margin-bottom:8px;cursor:pointer;">` +
+      `<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap;">` +
+        `<span style="display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;color:${m.col};text-transform:uppercase;letter-spacing:.05em;"><i class="ti ${m.icon}"></i>${m.label}</span>` +
+        (pys ? `<span style="font-size:10px;color:var(--lg);">${pys.flag} ${pys.name}</span>` : '') +
+        (lvl ? `<span style="font-size:8px;font-weight:700;padding:1px 6px;border-radius:3px;background:${lvl.bg};color:${lvl.col};">${lvl.label}</span>` : '') +
+        (r.dateLabel ? `<span style="margin-left:auto;font-size:9px;color:var(--lg);"><i class="ti ti-clock" style="font-size:10px"></i> ${r.dateLabel}</span>` : '') +
+      `</div>` +
+      `<div style="font-size:12px;font-weight:700;color:var(--t);line-height:1.35;">${_seHighlight(r.title, tokens)}</div>` +
+      (r.snippet ? `<div style="font-size:10.5px;color:var(--t2);margin-top:3px;line-height:1.4;">${_seHighlight(extraitLoyal(r.snippet, 160), tokens)}</div>` : '') +
+    `</div>`;
+  }).join('');
 }
 
 let fAgZone = 'all', fAgCy = 'all';
@@ -6534,10 +6879,14 @@ function switchView(name,el){
   if (_lpEl) _lpEl.style.display=(name==='rapports'||name==='params')?'none':'flex';
   if(name==='agenda')    { renderAgenda(); }
   if(name==='dashboard') { renderDashboard(); }
-  if(name==='analyse'){ if (typeof updSynthese === 'function') { try { updSynthese(); } catch(_) {} } }
+  if(name==='analyse'){
+    if (ANA_TAB_ACTIF === 'correlations') { if (typeof renderCorrelations === 'function') { try { renderCorrelations(); } catch(_) {} } }
+    else if (typeof updSynthese === 'function') { try { updSynthese(); } catch(_) {} }
+  }
   if(name==='params') loadParamsModule();
   if(name==='rapports') peuplerFiltresRapports();
   if(name==='flux'){document.getElementById('nbadge').style.display='none';NEW_IDS.clear();renderFeed();}
+  if(name==='recherche'){ peuplerFiltresRecherche(); renderRecherche(); }
 }
 
 // ── HORLOGE & AUTO-REFRESH ────────────────────────────────────────────────────
