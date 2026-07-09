@@ -3376,10 +3376,12 @@ function tr(texte, elId, transform) {
 }
 
 // retraduireActu(id) : declenchee par le bouton "traduire" pose sur chaque
-// actu du Flux dont la langue source differe de LANG. Force un nouvel appel
-// trFetch (bypass du cache meme si un echec — ex. quota MyMemory epuise —
-// y est deja consigne), pour donner un controle explicite et immediat sur
-// la traduction sans attendre un rechargement complet de la page.
+// actu du Flux (visible sur toutes, pas seulement celles en langue etrangere
+// detectee — detectLangue() est une heuristique faillible, controle manuel
+// "au cas par cas" toujours disponible). Force un nouvel appel trFetch
+// (bypass du cache meme si un echec — ex. quota MyMemory epuise — y est
+// deja consigne), pour un controle explicite et immediat sans recharger
+// toute la page.
 async function retraduireActu(id) {
   const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
   if (!a) return;
@@ -3393,14 +3395,21 @@ async function retraduireActu(id) {
     trFetch(a.title, srcLangT, LANG, true),
     a.analysis ? trFetch(a.analysis, srcLangD, LANG, true) : Promise.resolve(''),
   ]);
-  if (titleEl) titleEl.textContent = (outT === a.title) ? _trPlaceholderIndispo(srcLangT) : outT;
-  if (descEl && a.analysis) descEl.textContent = (outD === a.analysis) ? _trPlaceholderIndispo(srcLangD) : outD;
+  // outT === a.title est ambigu (deja dans la langue active OU echec de
+  // traduction) : on ne remplace le texte affiche par le placeholder
+  // "indisponible" QUE dans le second cas, sinon un article deja correct
+  // se voyait efface par ce placeholder au moindre clic.
+  const titreDejaCorrect = srcLangT === LANG;
+  const descDejaCorrecte = srcLangD === LANG;
+  if (titleEl && !titreDejaCorrect) titleEl.textContent = (outT === a.title) ? _trPlaceholderIndispo(srcLangT) : outT;
+  if (descEl && a.analysis && !descDejaCorrecte) descEl.textContent = (outD === a.analysis) ? _trPlaceholderIndispo(srcLangD) : outD;
   if (btn) {
     btn.classList.remove('tr-btn-busy');
     btn.disabled = false;
-    // Traduction reussie (le titre au moins) : le bouton n'a plus lieu d'etre,
-    // le texte affiche est maintenant dans la langue active.
-    if (outT !== a.title) btn.remove();
+    // Le bouton reste disponible : deja dans la langue active (rien a faire
+    // de plus) ou traduction toujours indisponible (permettre un nouvel
+    // essai). Retire uniquement quand une VRAIE traduction vient d'aboutir.
+    if (!titreDejaCorrect && outT !== a.title) btn.remove();
   }
 }
 
@@ -6245,7 +6254,12 @@ function renderFeed() {
           '<span class="flagcy" onclick="event.stopPropagation();ouvrirVuePays(\''+a.cy+'\')">'+cc.flag+' '+cc.name+'</span>'+
           '<span class="survtime'+(surv.ancien?' ancien':'')+'"><i class="ti ti-history"></i>'+surv.texte+'</span>'+
           survSuf+
-          (detectLangue(a.title)!==LANG ? '<button class="tr-btn" id="trbtn-'+a.id+'" onclick="event.stopPropagation();retraduireActu(\''+a.id+'\')" title="'+(LANG==='en'?'Translate now':'Traduire maintenant')+'"><i class="ti ti-language"></i>'+(LANG==='en'?'Translate':'Traduire')+'</button>' : '')+
+          // Bouton toujours present (pas seulement quand une langue etrangere est
+          // detectee) : detectLangue() est une heuristique qui peut se tromper,
+          // donc le controle manuel "au cas par cas" reste disponible sur chaque
+          // actu. Sans effet (aucun appel reseau) si l'article est deja dans la
+          // langue active — voir trFetch, repli immediat si srcLang===tgtLang.
+          '<button class="tr-btn" id="trbtn-'+a.id+'" onclick="event.stopPropagation();retraduireActu(\''+a.id+'\')" title="'+(LANG==='en'?'Translate now':'Traduire maintenant')+'"><i class="ti ti-language"></i>'+(LANG==='en'?'Translate':'Traduire')+'</button>'+
         '</div>'+
         // ── Contenu editorial : remonte au-dessus du reste des badges ──
         '<div class="atit" id="trt-'+a.id+'">'+tr(a.title,'trt-'+a.id)+'</div>'+
