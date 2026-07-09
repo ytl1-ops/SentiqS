@@ -107,6 +107,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
   padding:5px 10px;cursor:pointer;letter-spacing:.05em;transition:background .12s,color .12s}
 .lang-btn.on{background:rgba(156,163,175,.25);color:#fff}
 .lang-btn:hover:not(.on){color:rgba(255,255,255,.85)}
+.disp-switch{display:flex;border:1px solid rgba(255,255,255,.2);border-radius:5px;overflow:hidden;flex-shrink:0}
+.disp-btn{background:transparent;border:none;color:rgba(255,255,255,.5);font-size:12px;
+  padding:5px 8px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:background .12s,color .12s}
+.disp-btn span{font-size:9px;font-weight:700;letter-spacing:.03em}
+.disp-btn.on{background:rgba(156,163,175,.25);color:#fff}
+.disp-btn:hover:not(.on){color:rgba(255,255,255,.85)}
 .spin{animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
@@ -661,7 +667,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .ops-label.bl{bottom:20px;left:20px}
 .ops-label.br{bottom:20px;right:20px;text-align:right}
 .ops-label .ops-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:#4ade80;margin-right:5px;animation:blink 1.4s infinite}
-@media (max-width:760px){.ops-label{display:none}}
+@media (max-width:760px){html:not(.force-web) .ops-label{display:none}}
+html.force-mobile .ops-label{display:none}
 @media (prefers-reduced-motion:reduce){
   .ops-globe-wrap,.ops-node,.ops-arc,.ops-scan{animation:none !important}
   .ops-node{opacity:.7}
@@ -1009,123 +1016,174 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
    Ce bloc rend l'application utilisable sur smartphone (Android en priorité,
    cf. usage principal) sans toucher à la mise en page desktop existante. */
 @media (max-width:760px){
-  html,body{font-size:12px}
-  .tb{padding:0 8px;height:46px}
-  .logo-ico{width:26px;height:26px}
-  .logo-n{font-size:13px}
-  .logo-s{display:none} /* sous-titre masqué : place limitée */
-  .tb-r{gap:4px}
-  .live .ltxt,.actu-btn span{display:none} /* icônes seules sur mobile, texte masqué */
-  .actu-btn{padding:5px 8px;min-height:36px;min-width:36px;display:inline-flex;align-items:center;justify-content:center;}
-  .badge-r{padding:2px 5px;font-size:8px}
-  .lang-btn{padding:5px 7px;min-height:32px;}
-  #diagBtn,[onclick="runDiagnostic()"]{padding:5px 8px;min-height:36px;min-width:36px;display:inline-flex;align-items:center;justify-content:center;}
-  #tbTime{display:none} /* date/heure : non essentiel, cause un débordement horizontal */
-  .user-name{display:none} /* seul l'avatar reste visible, gain de place vital */
-  .user-chip{padding:4px 6px;gap:0}
-
-  .nav{padding:0 6px}
-  .ntab{padding:9px 10px;font-size:10px;flex-shrink:0}
-  .ntab span{white-space:nowrap}
-
-  .flashinfo-label{font-size:9px;padding:0 6px}
-  .proxy-bar{padding:8px 10px;flex-direction:column}
-  .cbar{padding:5px 8px;gap:6px}
-  .cbar-track{max-width:100%}
-
-  /* Panneau lateral (portee/pays) : tiroir off-canvas sur mobile plutot que
-     compresse a 120px (illisible). Ferme par defaut, s'ouvre via le bouton
-     hamburger (#lpToggleBtn) et se ferme au clic sur l'overlay ou un pays. */
-  .layout .lp{
+html:not(.force-web),
+html:not(.force-web) body{font-size:12px}
+html:not(.force-web) .tb{padding:0 8px;height:46px}
+html:not(.force-web) .logo-ico{width:26px;height:26px}
+html:not(.force-web) .logo-n{font-size:13px}
+html:not(.force-web) .logo-s{display:none}
+html:not(.force-web) .tb-r{gap:4px}
+html:not(.force-web) .live .ltxt,
+html:not(.force-web) .actu-btn span{display:none}
+html:not(.force-web) .actu-btn{padding:5px 8px;min-height:36px;min-width:36px;display:inline-flex;align-items:center;justify-content:center;}
+html:not(.force-web) .badge-r{padding:2px 5px;font-size:8px}
+html:not(.force-web) .lang-btn{padding:5px 7px;min-height:32px;}
+html:not(.force-web) #diagBtn,
+html:not(.force-web) [onclick="runDiagnostic()"]{padding:5px 8px;min-height:36px;min-width:36px;display:inline-flex;align-items:center;justify-content:center;}
+html:not(.force-web) #tbTime{display:none}
+html:not(.force-web) .user-name{display:none}
+html:not(.force-web) .user-chip{padding:4px 6px;gap:0}
+html:not(.force-web) .nav{padding:0 6px}
+html:not(.force-web) .ntab{padding:9px 10px;font-size:10px;flex-shrink:0}
+html:not(.force-web) .ntab span{white-space:nowrap}
+html:not(.force-web) .flashinfo-label{font-size:9px;padding:0 6px}
+html:not(.force-web) .proxy-bar{padding:8px 10px;flex-direction:column}
+html:not(.force-web) .cbar{padding:5px 8px;gap:6px}
+html:not(.force-web) .cbar-track{max-width:100%}
+html:not(.force-web) .layout .lp{
     position:fixed !important; left:0; top:145px; bottom:0;
     width:240px !important; min-width:240px !important;
     z-index:500; transform:translateX(-100%);
     transition:transform .2s ease; box-shadow:2px 0 16px rgba(0,0,0,.35);
   }
-  .layout .lp.lp-open{ transform:translateX(0); }
-  .lp-backdrop{display:none;position:fixed;inset:0;top:145px;
+html:not(.force-web) .layout .lp.lp-open{ transform:translateX(0); }
+html:not(.force-web) .lp-backdrop{display:none;position:fixed;inset:0;top:145px;
     background:rgba(0,0,0,.45);z-index:499;}
-  .lp-backdrop.on{display:block;}
-  .lp-toggle-btn{display:inline-flex !important;align-items:center;justify-content:center;
+html:not(.force-web) .lp-backdrop.on{display:block;}
+html:not(.force-web) .lp-toggle-btn{display:inline-flex !important;align-items:center;justify-content:center;
     padding:5px 8px;min-height:36px;min-width:36px;margin-right:6px;
     background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
     border-radius:6px;color:#9CA3AF;font-size:16px;flex-shrink:0;}
-
-  /* Grilles fixes a 2+ colonnes -> 1 colonne en dessous de 760px.
-     Les grilles en repeat(auto-fill/auto-fit,minmax(...)) restent inchangees :
-     elles s'adaptent deja naturellement. */
-  [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
-  [style*="grid-template-columns: 1fr 1fr"]{grid-template-columns:1fr !important}
-  .admin-stats{grid-template-columns:repeat(2,1fr) !important}
-  .sstrip{grid-template-columns:repeat(3,1fr) !important}
-
-  /* Cartes / KPI : padding reduit pour densite mobile */
-  .acard{padding:10px !important}
-
-  /* Tailles de police fixes (px) trop grandes sur mobile : la quasi-totalité
-     du texte de l'app utilise des valeurs px codées en dur dans les styles
-     inline (pas d'unités relatives), donc la réduction globale de font-size
-     sur html/body ci-dessus ne les affecte pas. On cible directement les
-     grandes valeurs (titres, chiffres-clés) pour libérer de l'espace vertical
-     et éviter le texte disproportionné. */
-  [style*="font-size:48px"]{font-size:28px !important}
-  [style*="font-size:40px"]{font-size:25px !important}
-  [style*="font-size:38px"]{font-size:24px !important}
-  [style*="font-size:32px"]{font-size:22px !important}
-  [style*="font-size:30px"]{font-size:21px !important}
-  [style*="font-size:28px"]{font-size:20px !important}
-  [style*="font-size:26px"]{font-size:18px !important}
-  [style*="font-size:24px"]{font-size:18px !important}
-  [style*="font-size:22px"]{font-size:17px !important}
-  [style*="font-size:20px"]{font-size:16px !important}
-  [style*="font-size:19px"]{font-size:15px !important}
-  [style*="font-size:18px"]{font-size:15px !important}
-  [style*="font-size:17px"]{font-size:14px !important}
-
-  /* Bandeau Flash Info et barre de collecte : masquables sur mobile pour
-     rendre de la place verticale au contenu reel des modules */
-  .flashinfo{max-height:26px;overflow:hidden;}
-  .cbar{max-height:34px;overflow:hidden;flex-wrap:wrap;}
-
-  /* Accessibilite (audit design-critique) : zones tactiles trop petites dans
-     la sidebar (~24px) sur mobile — remontees a 44px min, seuil WCAG usuel,
-     pour un usage tactile fiable. Le desktop garde la densite d'origine. */
-  .crow{min-height:44px;padding:8px 12px;}
-  .sb{min-height:44px;padding:10px 12px;}
-  .cname{font-size:12px;}
-
-  /* Modales (login, admin) : occuper toute la largeur utile */
-  .auth-box{width:94vw !important;max-width:94vw !important}
-  .admin-panel > div{width:96vw !important;max-width:96vw !important}
-
-  /* Filtres (chips) : defilement horizontal au lieu du retour a la ligne
-     sur plusieurs rangees — gain d'espace vertical majeur sur mobile */
-  .chips{flex-wrap:nowrap !important;overflow-x:auto !important;white-space:nowrap;
+html:not(.force-web) [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
+html:not(.force-web) [style*="grid-template-columns: 1fr 1fr"]{grid-template-columns:1fr !important}
+html:not(.force-web) .admin-stats{grid-template-columns:repeat(2,1fr) !important}
+html:not(.force-web) .sstrip{grid-template-columns:repeat(3,1fr) !important}
+html:not(.force-web) .acard{padding:10px !important}
+html:not(.force-web) [style*="font-size:48px"]{font-size:28px !important}
+html:not(.force-web) [style*="font-size:40px"]{font-size:25px !important}
+html:not(.force-web) [style*="font-size:38px"]{font-size:24px !important}
+html:not(.force-web) [style*="font-size:32px"]{font-size:22px !important}
+html:not(.force-web) [style*="font-size:30px"]{font-size:21px !important}
+html:not(.force-web) [style*="font-size:28px"]{font-size:20px !important}
+html:not(.force-web) [style*="font-size:26px"]{font-size:18px !important}
+html:not(.force-web) [style*="font-size:24px"]{font-size:18px !important}
+html:not(.force-web) [style*="font-size:22px"]{font-size:17px !important}
+html:not(.force-web) [style*="font-size:20px"]{font-size:16px !important}
+html:not(.force-web) [style*="font-size:19px"]{font-size:15px !important}
+html:not(.force-web) [style*="font-size:18px"]{font-size:15px !important}
+html:not(.force-web) [style*="font-size:17px"]{font-size:14px !important}
+html:not(.force-web) .flashinfo{max-height:26px;overflow:hidden;}
+html:not(.force-web) .cbar{max-height:34px;overflow:hidden;flex-wrap:wrap;}
+html:not(.force-web) .crow{min-height:44px;padding:8px 12px;}
+html:not(.force-web) .sb{min-height:44px;padding:10px 12px;}
+html:not(.force-web) .cname{font-size:12px;}
+html:not(.force-web) .auth-box{width:94vw !important;max-width:94vw !important}
+html:not(.force-web) .admin-panel > div{width:96vw !important;max-width:96vw !important}
+html:not(.force-web) .chips{flex-wrap:nowrap !important;overflow-x:auto !important;white-space:nowrap;
     -webkit-overflow-scrolling:touch;scrollbar-width:thin;padding-bottom:2px;}
-  .chips .chip{flex-shrink:0}
-
-  /* Statistiques (.sstrip) et barre d'export (.dl-toolbar) : repliees par
-     defaut sur mobile, un bouton bascule les affiche a la demande. Sans ca,
-     ces blocs a eux seuls remplissaient tout l'ecran avant le contenu reel. */
-  .sstrip:not(#fluxSstrip),.dl-toolbar{display:none !important}
-  .sstrip:not(#fluxSstrip).mob-open{display:grid !important}
-  .dl-toolbar.mob-open{display:flex !important}
-  .mob-toggle{display:flex !important;align-items:center;gap:5px;padding:6px 10px;
+html:not(.force-web) .chips .chip{flex-shrink:0}
+html:not(.force-web) .sstrip:not(#fluxSstrip),
+html:not(.force-web) .dl-toolbar{display:none !important}
+html:not(.force-web) .sstrip:not(#fluxSstrip).mob-open{display:grid !important}
+html:not(.force-web) .dl-toolbar.mob-open{display:flex !important}
+html:not(.force-web) .mob-toggle{display:flex !important;align-items:center;gap:5px;padding:6px 10px;
     background:var(--w);border-bottom:1px solid var(--bd);font-size:10px;font-weight:700;
     color:var(--b);cursor:pointer;flex-shrink:0;}
-  .mob-toggle i{font-size:11px;transition:transform .15s}
-  .mob-toggle.open i{transform:rotate(180deg)}
+html:not(.force-web) .mob-toggle i{font-size:11px;transition:transform .15s}
+html:not(.force-web) .mob-toggle.open i{transform:rotate(180deg)}
 }
 @media (min-width:761px){
-  .mob-toggle{display:none !important}
-  .lp-toggle-btn{display:none !important}
-  .lp-backdrop{display:none !important}
+html:not(.force-mobile) .mob-toggle{display:none !important}
+html:not(.force-mobile) .lp-toggle-btn{display:none !important}
+html:not(.force-mobile) .lp-backdrop{display:none !important}
 }
-
 @media (max-width:420px){
-  .ntab span{font-size:9px}
-  .ntab i{font-size:13px}
+html:not(.force-web) .ntab span{font-size:9px}
+html:not(.force-web) .ntab i{font-size:13px}
 }
+/* Mode d'affichage force (boutons Web/Mobile) : duplique inconditionnellement
+   les regles mobile sous .force-mobile, et les regles desktop sous
+   .force-web, independamment de la largeur reelle du viewport. */
+html.force-mobile,
+html.force-mobile body{font-size:12px}
+html.force-mobile .tb{padding:0 8px;height:46px}
+html.force-mobile .logo-ico{width:26px;height:26px}
+html.force-mobile .logo-n{font-size:13px}
+html.force-mobile .logo-s{display:none}
+html.force-mobile .tb-r{gap:4px}
+html.force-mobile .live .ltxt,
+html.force-mobile .actu-btn span{display:none}
+html.force-mobile .actu-btn{padding:5px 8px;min-height:36px;min-width:36px;display:inline-flex;align-items:center;justify-content:center;}
+html.force-mobile .badge-r{padding:2px 5px;font-size:8px}
+html.force-mobile .lang-btn{padding:5px 7px;min-height:32px;}
+html.force-mobile #diagBtn,
+html.force-mobile [onclick="runDiagnostic()"]{padding:5px 8px;min-height:36px;min-width:36px;display:inline-flex;align-items:center;justify-content:center;}
+html.force-mobile #tbTime{display:none}
+html.force-mobile .user-name{display:none}
+html.force-mobile .user-chip{padding:4px 6px;gap:0}
+html.force-mobile .nav{padding:0 6px}
+html.force-mobile .ntab{padding:9px 10px;font-size:10px;flex-shrink:0}
+html.force-mobile .ntab span{white-space:nowrap}
+html.force-mobile .flashinfo-label{font-size:9px;padding:0 6px}
+html.force-mobile .proxy-bar{padding:8px 10px;flex-direction:column}
+html.force-mobile .cbar{padding:5px 8px;gap:6px}
+html.force-mobile .cbar-track{max-width:100%}
+html.force-mobile .layout .lp{
+    position:fixed !important; left:0; top:145px; bottom:0;
+    width:240px !important; min-width:240px !important;
+    z-index:500; transform:translateX(-100%);
+    transition:transform .2s ease; box-shadow:2px 0 16px rgba(0,0,0,.35);
+  }
+html.force-mobile .layout .lp.lp-open{ transform:translateX(0); }
+html.force-mobile .lp-backdrop{display:none;position:fixed;inset:0;top:145px;
+    background:rgba(0,0,0,.45);z-index:499;}
+html.force-mobile .lp-backdrop.on{display:block;}
+html.force-mobile .lp-toggle-btn{display:inline-flex !important;align-items:center;justify-content:center;
+    padding:5px 8px;min-height:36px;min-width:36px;margin-right:6px;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+    border-radius:6px;color:#9CA3AF;font-size:16px;flex-shrink:0;}
+html.force-mobile [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
+html.force-mobile [style*="grid-template-columns: 1fr 1fr"]{grid-template-columns:1fr !important}
+html.force-mobile .admin-stats{grid-template-columns:repeat(2,1fr) !important}
+html.force-mobile .sstrip{grid-template-columns:repeat(3,1fr) !important}
+html.force-mobile .acard{padding:10px !important}
+html.force-mobile [style*="font-size:48px"]{font-size:28px !important}
+html.force-mobile [style*="font-size:40px"]{font-size:25px !important}
+html.force-mobile [style*="font-size:38px"]{font-size:24px !important}
+html.force-mobile [style*="font-size:32px"]{font-size:22px !important}
+html.force-mobile [style*="font-size:30px"]{font-size:21px !important}
+html.force-mobile [style*="font-size:28px"]{font-size:20px !important}
+html.force-mobile [style*="font-size:26px"]{font-size:18px !important}
+html.force-mobile [style*="font-size:24px"]{font-size:18px !important}
+html.force-mobile [style*="font-size:22px"]{font-size:17px !important}
+html.force-mobile [style*="font-size:20px"]{font-size:16px !important}
+html.force-mobile [style*="font-size:19px"]{font-size:15px !important}
+html.force-mobile [style*="font-size:18px"]{font-size:15px !important}
+html.force-mobile [style*="font-size:17px"]{font-size:14px !important}
+html.force-mobile .flashinfo{max-height:26px;overflow:hidden;}
+html.force-mobile .cbar{max-height:34px;overflow:hidden;flex-wrap:wrap;}
+html.force-mobile .crow{min-height:44px;padding:8px 12px;}
+html.force-mobile .sb{min-height:44px;padding:10px 12px;}
+html.force-mobile .cname{font-size:12px;}
+html.force-mobile .auth-box{width:94vw !important;max-width:94vw !important}
+html.force-mobile .admin-panel > div{width:96vw !important;max-width:96vw !important}
+html.force-mobile .chips{flex-wrap:nowrap !important;overflow-x:auto !important;white-space:nowrap;
+    -webkit-overflow-scrolling:touch;scrollbar-width:thin;padding-bottom:2px;}
+html.force-mobile .chips .chip{flex-shrink:0}
+html.force-mobile .sstrip:not(#fluxSstrip),
+html.force-mobile .dl-toolbar{display:none !important}
+html.force-mobile .sstrip:not(#fluxSstrip).mob-open{display:grid !important}
+html.force-mobile .dl-toolbar.mob-open{display:flex !important}
+html.force-mobile .mob-toggle{display:flex !important;align-items:center;gap:5px;padding:6px 10px;
+    background:var(--w);border-bottom:1px solid var(--bd);font-size:10px;font-weight:700;
+    color:var(--b);cursor:pointer;flex-shrink:0;}
+html.force-mobile .mob-toggle i{font-size:11px;transition:transform .15s}
+html.force-mobile .mob-toggle.open i{transform:rotate(180deg)}
+html.force-mobile .ntab span{font-size:9px}
+html.force-mobile .ntab i{font-size:13px}
+html.force-web .mob-toggle{display:none !important}
+html.force-web .lp-toggle-btn{display:none !important}
+html.force-web .lp-backdrop{display:none !important}
 
 @media print{
   .tb,.nav,.layout .lp,.dl-toolbar,.statusbar,.cbar,.setup-bar,
@@ -1581,6 +1639,10 @@ button:not(:disabled){
     <div class="lang-switch" id="langSwitch" title="Langue de l&#39;interface et des données / Interface and data language">
       <button class="lang-btn on" data-lang="fr" onclick="setLang(&#39;fr&#39;)">FR</button>
       <button class="lang-btn" data-lang="en" onclick="setLang(&#39;en&#39;)">EN</button>
+    </div>
+    <div class="disp-switch" id="dispSwitch" title="Forcer l&#39;affichage Web ou Mobile, quel que soit l&#39;écran utilisé">
+      <button class="disp-btn" data-disp="web" onclick="setDisplayMode(&#39;web&#39;)" title="Affichage Web (bureau)"><i class="ti ti-device-desktop"></i><span>WEB</span></button>
+      <button class="disp-btn" data-disp="mobile" onclick="setDisplayMode(&#39;mobile&#39;)" title="Affichage Mobile"><i class="ti ti-device-mobile"></i><span>MOBILE</span></button>
     </div>
     <button class="actu-btn" onclick="doCollect()" id="actuBtn">
       <i class="ti ti-refresh spin" id="actuIco"></i> <span data-i18n="btn_actualiser">Actualiser</span>
@@ -3172,6 +3234,23 @@ function setLang(lang) {
   if (typeof updSynthese === 'function' && document.getElementById('syCont')) { try { updSynthese(); } catch(_) {} }
   if (typeof renderDashboard === 'function' && document.getElementById('v-dashboard') && document.getElementById('v-dashboard').classList.contains('on')) { try { renderDashboard(); } catch(_) {} }
 }
+
+// setDisplayMode(mode) : force l'affichage Web ou Mobile independamment de la
+// largeur reelle de l'ecran, via les classes .force-web/.force-mobile sur <html>
+// (regles CSS dediees, voir @media max-width:760px / min-width:761px). 'auto'
+// revient au comportement responsive standard (detection par largeur d'ecran).
+function setDisplayMode(mode) {
+  const html = document.documentElement;
+  html.classList.remove('force-web', 'force-mobile');
+  if (mode === 'web' || mode === 'mobile') html.classList.add('force-' + mode);
+  document.querySelectorAll('.disp-btn').forEach(b => b.classList.toggle('on', b.dataset.disp === mode));
+  try { localStorage.setItem('sentinel_display_mode', mode); } catch(_) {}
+}
+(function initDisplayMode() {
+  let saved = 'auto';
+  try { saved = localStorage.getItem('sentinel_display_mode') || 'auto'; } catch(_) {}
+  setDisplayMode(saved);
+})();
 
 // tr(texte, elId) : traduction "optimiste" du contenu dynamique (titres d'articles,
 // mesures de protection, etc). Renvoie immédiatement le texte original (ou la
