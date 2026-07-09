@@ -853,8 +853,12 @@ html.force-mobile .ops-label{display:none}
 .paymethod-card{background:var(--sf);border:1px solid var(--bd);border-radius:9px;padding:14px 10px;
   display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
 .paymethod-card i{font-size:24px;color:var(--b)}
+.paymethod-card.pm-inactif{opacity:.5}
 .paymethod-card .pm-name{font-size:11px;font-weight:700;color:var(--t)}
 .paymethod-card .pm-desc{font-size:9.5px;color:var(--lg);line-height:1.4}
+.paymethod-card .tgl{margin-top:2px}
+.paymethod-card .pm-detail{width:100%;padding:5px 7px;border:1px solid var(--bd);border-radius:5px;
+  font-size:10.5px;font-family:inherit;color:var(--t);background:var(--w);text-align:center}
 /* Reclamations */
 .bs-nouveau{background:rgba(27,95,168,.12);color:#1B5FA8;border:1px solid rgba(27,95,168,.25)}
 .bs-encours{background:rgba(202,138,4,.14);color:#CA8A04;border:1px solid rgba(202,138,4,.28)}
@@ -2353,12 +2357,10 @@ button:not(:disabled){
                 client, activation de l'abonnement une fois le règlement constaté). Une passerelle de paiement
                 (CinetPay, PayDunya…) pourra être branchée plus tard pour automatiser l'encaissement.
               </div>
-              <div class="paymethod-grid">
-                <div class="paymethod-card"><i class="ti ti-credit-card"></i><div class="pm-name">Visa / Mastercard</div><div class="pm-desc">Carte bancaire, paiement en ligne sécurisé</div></div>
-                <div class="paymethod-card"><i class="ti ti-device-mobile"></i><div class="pm-name">Orange Money</div><div class="pm-desc">Paiement Mobile Money</div></div>
-                <div class="paymethod-card"><i class="ti ti-device-mobile"></i><div class="pm-name">MTN Mobile Money</div><div class="pm-desc">Paiement Mobile Money</div></div>
-                <div class="paymethod-card"><i class="ti ti-device-mobile"></i><div class="pm-name">Moov Money (Flooz)</div><div class="pm-desc">Paiement Mobile Money</div></div>
-                <div class="paymethod-card"><i class="ti ti-building-bank"></i><div class="pm-name">Virement bancaire</div><div class="pm-desc">Pour les comptes Entreprise</div></div>
+              <div class="paymethod-grid" id="paymethodGrid"></div>
+              <div style="margin-top:12px;display:flex;align-items:center;gap:10px">
+                <button class="btn-action btn-rest" onclick="pmSavePaymethods()"><i class="ti ti-device-floppy"></i> Enregistrer les moyens de paiement</button>
+                <span class="pmu-msg" id="paymethodMsg" style="margin:0"></span>
               </div>
             </div>
           </div>
@@ -8099,6 +8101,7 @@ function loadParamsModule() {
   pmRenderUsers();
   pmRenderPending();
   renderPricing();
+  renderPaymethods();
   renderClientele();
   renderReclamationsAdmin();
   renderTraffic();
@@ -8147,6 +8150,55 @@ function pmSavePricing() {
   });
   savePricing(plans);
   pmMsg('Grille tarifaire enregistrée.', 'ok', 'pricingMsg');
+}
+
+// ── MOYENS DE PAIEMENT ────────────────────────────────────────────────────
+// Configurable par l'administrateur (numero Mobile Money, RIB...) et
+// persiste localement. L'appli etant 100% statique (sans serveur), aucun
+// encaissement automatique n'est possible ici : chaque methode activee
+// affiche seulement la reference a communiquer au client, la confirmation
+// du reglement restant manuelle (voir "Gestion clientele" ci-dessus).
+const PAYMETHODS_KEY = 'sentinel_paymethods_v1';
+const PAYMETHODS_DEFAUT = [
+  {id:'visa',     nom:'Visa / Mastercard',    icon:'ti-credit-card',    actif:false,
+    desc:'Carte bancaire, paiement en ligne sécurisé', detail:'', placeholder:'Passerelle non configurée (CinetPay, PayDunya…)'},
+  {id:'orange',   nom:'Orange Money',         icon:'ti-device-mobile',  actif:true,
+    desc:'Paiement Mobile Money', detail:'', placeholder:'Numéro Orange Money, ex. 07 XX XX XX XX'},
+  {id:'mtn',      nom:'MTN Mobile Money',     icon:'ti-device-mobile',  actif:true,
+    desc:'Paiement Mobile Money', detail:'', placeholder:'Numéro MTN MoMo, ex. 05 XX XX XX XX'},
+  {id:'moov',     nom:'Moov Money (Flooz)',   icon:'ti-device-mobile',  actif:true,
+    desc:'Paiement Mobile Money', detail:'', placeholder:'Numéro Moov Money, ex. 01 XX XX XX XX'},
+  {id:'virement', nom:'Virement bancaire',    icon:'ti-building-bank',  actif:true,
+    desc:'Pour les comptes Entreprise', detail:'', placeholder:'IBAN / RIB à communiquer'},
+];
+function getPaymethods()  { return _ls(()=>JSON.parse(localStorage.getItem(PAYMETHODS_KEY)||'null'),null) || PAYMETHODS_DEFAUT; }
+function savePaymethods(m){ _ls(()=>localStorage.setItem(PAYMETHODS_KEY,JSON.stringify(m))); }
+
+function renderPaymethods() {
+  const grid = document.getElementById('paymethodGrid');
+  if (!grid) return;
+  const methods = getPaymethods();
+  grid.innerHTML = methods.map(m => {
+    return '<div class="paymethod-card'+(m.actif?'':' pm-inactif')+'">'+
+      '<i class="ti '+m.icon+'"></i>'+
+      '<div class="pm-name">'+m.nom+'</div>'+
+      '<div class="pm-desc">'+m.desc+'</div>'+
+      '<label class="tgl"><input type="checkbox" id="pmactif-'+m.id+'"'+(m.actif?' checked':'')+'>'+
+        '<div class="tgl-sw"></div></label>'+
+      '<input type="text" class="pm-detail" id="pmdetail-'+m.id+'" value="'+(m.detail||'').replace(/"/g,'&quot;')+'" placeholder="'+m.placeholder.replace(/"/g,'&quot;')+'">'+
+    '</div>';
+  }).join('');
+}
+
+function pmSavePaymethods() {
+  const methods = getPaymethods().map(m => {
+    const cb = document.getElementById('pmactif-'+m.id);
+    const inp = document.getElementById('pmdetail-'+m.id);
+    return {...m, actif: cb ? cb.checked : m.actif, detail: inp ? inp.value.trim() : m.detail};
+  });
+  savePaymethods(methods);
+  renderPaymethods();
+  pmMsg('Moyens de paiement enregistrés.', 'ok', 'paymethodMsg');
 }
 
 // ── GESTION CLIENTÈLE ────────────────────────────────────────────────────
