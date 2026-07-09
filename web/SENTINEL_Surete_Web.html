@@ -6254,12 +6254,10 @@ function renderFeed() {
           '<span class="flagcy" onclick="event.stopPropagation();ouvrirVuePays(\''+a.cy+'\')">'+cc.flag+' '+cc.name+'</span>'+
           '<span class="survtime'+(surv.ancien?' ancien':'')+'"><i class="ti ti-history"></i>'+surv.texte+'</span>'+
           survSuf+
-          // Bouton toujours present (pas seulement quand une langue etrangere est
-          // detectee) : detectLangue() est une heuristique qui peut se tromper,
-          // donc le controle manuel "au cas par cas" reste disponible sur chaque
-          // actu. Sans effet (aucun appel reseau) si l'article est deja dans la
-          // langue active — voir trFetch, repli immediat si srcLang===tgtLang.
-          '<button class="tr-btn" id="trbtn-'+a.id+'" onclick="event.stopPropagation();retraduireActu(\''+a.id+'\')" title="'+(LANG==='en'?'Translate now':'Traduire maintenant')+'"><i class="ti ti-language"></i>'+(LANG==='en'?'Translate':'Traduire')+'</button>'+
+          // Bouton affiche uniquement quand la langue detectee de l'actu differe
+          // de la langue active (LANG) — inutile sur une actu deja dans la bonne
+          // langue, ou trFetch/retraduireActu n'auraient de toute facon aucun effet.
+          (detectLangue(a.title)!==LANG ? '<button class="tr-btn" id="trbtn-'+a.id+'" onclick="event.stopPropagation();retraduireActu(\''+a.id+'\')" title="'+(LANG==='en'?'Translate now':'Traduire maintenant')+'"><i class="ti ti-language"></i>'+(LANG==='en'?'Translate':'Traduire')+'</button>' : '')+
         '</div>'+
         // ── Contenu editorial : remonte au-dessus du reste des badges ──
         '<div class="atit" id="trt-'+a.id+'">'+tr(a.title,'trt-'+a.id)+'</div>'+
