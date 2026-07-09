@@ -5507,6 +5507,30 @@ function safeUrl(rawUrl, fallbackQuery) {
     return 'https://www.google.com/search?q=' + encodeURIComponent(fallbackQuery || rawUrl);
   }
 }
+// articleLienDirect(a) : URL a privilegier pour "lire l'article" sur le
+// site source. La collecte (parseRSS/parseJSON) capture deja le lien
+// direct de chaque depeche (<link> RSS/Atom, ou item.link/guid en JSON)
+// dans a.url — mais l'affichage (chips, panneau detail) pointait jusqu'ici
+// systematiquement vers la page d'accueil generique de la source (s.url),
+// ignorant ce lien pourtant deja disponible. On privilegie desormais a.url
+// des qu'il differe reellement de la page d'accueil de la source (sinon
+// c'est qu'aucun lien specifique n'a ete trouve a la collecte, et s.url
+// reste la meilleure option). safeUrl() se charge ensuite de reconvertir
+// les pages de recherche/categorie (Google News, Twitter) en recherche
+// Google ciblee, plutot que d'y renvoyer telles quelles.
+function articleLienDirect(a) {
+  const src = gs(a.primary);
+  if (a.url && a.url !== '#' && a.url !== src.url) return a.url;
+  return src.url;
+}
+// articleADesLiensDirects(a) : vrai si au moins une source de l'article
+// dispose d'un lien specifique vers la depeche (et non d'un simple renvoi
+// vers la page d'accueil/recherche de la source) — utilise pour n'afficher
+// l'avertissement "lien generique" que lorsqu'il est reellement pertinent.
+function articleADesLiensDirects(a) {
+  const src = gs(a.primary);
+  return !!(a.url && a.url !== '#' && a.url !== src.url && !/\?s=|\/search/.test(a.url));
+}
 function rc(s){return s>=85?'rh':s>=65?'rm':'rl';}
 function lp(l){return {crit:['rc2','CRITIQUE'],high:['rh2','ELEVE'],mod:['rm2','MODERE'],ok:['ro2','STABLE'],u:['ru2','NON CONF']}[l]||['rm2','MODERE'];}
 function lbg(l){return {crit:'#8B1A1A',high:'#D97706',mod:'#4B5563',ok:'#0F4F2A'}[l]||'#4B5563';}
@@ -5800,7 +5824,11 @@ function renderFeed() {
     const scl={local:'Local',national:'National',regional:'Regional'};
     const chips=(a.srcs||[a.primary]).slice(0,3).map(sid=>{
       const s=gs(sid);
-      return '<a href="'+safeUrl(s.url, s.n+' actualite')+'" target="_blank" class="slink" onclick="event.stopPropagation()">'+
+      // Lien direct vers la depeche pour la source primaire (celle dont on a
+      // capture le lien exact a la collecte) ; page de la source pour les
+      // autres sources corroborantes (aucun lien specifique disponible pour elles).
+      const lien = (sid === a.primary) ? articleLienDirect(a) : s.url;
+      return '<a href="'+safeUrl(lien, s.n+' actualite')+'" target="_blank" class="slink" onclick="event.stopPropagation()">'+
              '<span class="dot" style="background:'+s.col+'"></span>'+s.n+
              '<i class="ti ti-external-link"></i></a>';
     }).join('');
@@ -5989,9 +6017,11 @@ function showDet(id) {
   const bgC=a.level==='crit'?'#FEF2F2':a.level==='high'?'#FFFBEB':'#EFF6FF';
   const srcHtml=(a.srcs||[a.primary]).map(sid=>{
     const s=gs(sid);
-    return '<a href="'+s.url+'" target="_blank"><span class="dot" style="background:'+s.col+'"></span>'+
+    const lien = (sid === a.primary) ? articleLienDirect(a) : s.url;
+    return '<a href="'+safeUrl(lien, s.n+' actualite')+'" target="_blank"><span class="dot" style="background:'+s.col+'"></span>'+
            s.n+'<i class="ti ti-external-link" style="font-size:9px;margin-left:2px"></i></a>';
   }).join('');
+  const lienDirectDispo = (typeof articleADesLiensDirects === 'function') && articleADesLiensDirects(a);
   const panel=document.getElementById('detPanel');
   panel.className='det op';
   const confHtml = (typeof confBadge === 'function' && a._conf) ? (() => {
@@ -6023,13 +6053,17 @@ function showDet(id) {
     '<div class="det-pubdate"><i class="ti ti-calendar-time"></i><strong>Publié :</strong> '+fmtFull(a.pubDate)+'</div>'+
     (()=>{ const s=fmtSurvenance(a); const suf = s.inconnue ? ' <span style="font-size:9px;">(à vérifier)</span>' : (s.ancien?' <span style="font-size:9px;">⚠ plus de 12h</span>':''); return '<div class="det-pubdate" style="'+(s.ancien?'color:#DC2626;font-weight:700;':'')+'"><i class="ti ti-history"></i><strong>Survenance estimée :</strong> '+s.texte+suf+'</div>'; })()+
     '<div class="dsrcs"><span style="font-size:9px;font-weight:700;color:var(--gr);text-transform:uppercase;letter-spacing:.05em">Sources :</span>'+srcHtml+'</div>'+
-    '<div style="font-size:8px;color:var(--lg);padding:4px 0 0;font-style:italic;">Les liens menent vers la page de recherche ou de categorie du site source. SENTINEL ne dispose pas du lien direct vers la depeche individuelle.</div>'+
+    '<div style="font-size:8px;color:var(--lg);padding:4px 0 0;font-style:italic;">'+
+      (lienDirectDispo
+        ? 'Le lien ci-dessus mene directement a la depeche source.'
+        : 'Aucun lien direct vers cette depeche precise n\'a ete trouve a la collecte : le lien mene vers la page de recherche ou de categorie du site source.')+
+    '</div>'+
     '<div class="dan">'+extraitLoyal(a.analysis, EXTRAIT_MAX_CARACTERES)+'</div>'+
     '<div style="font-size:8px;color:var(--lg);padding:6px 0 0;font-style:italic;border-top:.5px solid var(--bd);margin-top:8px;">Extrait à fin de veille (usage loyal). Contenu et droits appartenant à la source citée. Consulter l\'article complet sur le site d\'origine.</div>'+
     (a.recos?.length?'<div class="drec"><div class="drec-hd"><i class="ti ti-chevron-right"></i>Actions recommandees</div>'+
       a.recos.map(r=>'<div class="rli">'+r+'</div>').join('')+'</div>':'')+
     '<div class="dact">'+
-      '<a href="'+safeUrl(a.url, a.title)+'" target="_blank" class="dbt p"><i class="ti ti-external-link"></i>Rechercher sur '+ps.n+'</a>'+
+      '<a href="'+safeUrl(articleLienDirect(a), a.title)+'" target="_blank" class="dbt p"><i class="ti ti-external-link"></i>'+(lienDirectDispo ? 'Lire l\'article complet' : 'Rechercher sur '+ps.n)+'</a>'+
       '<div class="dbt" style="margin-left:auto" onclick="document.getElementById(\'detPanel\').className=\'det\'"><i class="ti ti-x"></i>Fermer</div>'+
     '</div>';
   panel.scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -6506,7 +6540,7 @@ function updSynthese() {
         '<div class="sy-tt2">'+a.title+'</div>'+
         '<div style="font-size:9px;color:var(--lg);font-weight:600;margin:2px 0 4px;"><i class="ti ti-clock" style="font-size:9px;vertical-align:-1px"></i> Publie le '+fmtFull(a.pubDate)+' ('+fmtAge(a.pubDate)+')'+((a.pubDate&&(Date.now()-a.pubDate)<12*3600000)?' <span style="font-size:8px;font-weight:700;color:#fff;background:#15803D;padding:1px 6px;border-radius:3px;">−12H</span>':'')+'</div>'+
         '<div class="sy-bd">'+a.analysis.slice(0,280)+(a.analysis.length>280?'...':'')+'</div>'+
-        '<div class="sy-sr"><a href="'+a.url+'" target="_blank" class="ssrc">'+
+        '<div class="sy-sr"><a href="'+safeUrl(articleLienDirect(a), ps.n+' actualite')+'" target="_blank" class="ssrc">'+
           '<span class="dot" style="background:'+ps.col+'"></span>'+ps.n+'<i class="ti ti-external-link"></i></a>'+
           '<span class="ss-sc '+sc+'">'+a.score+'%</span></div>'+
       '</div>';
