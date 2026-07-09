@@ -430,6 +430,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
   display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
 .art-top .survtime i{font-size:10px}
 .art-top .survtime.ancien{color:var(--r);font-weight:700}
+.tr-btn{margin-left:auto;display:inline-flex;align-items:center;gap:3px;padding:2px 7px;
+  border:1px solid var(--bd);border-radius:10px;background:var(--sf);color:var(--b);
+  font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.tr-btn:hover{background:var(--b);color:#fff;border-color:var(--b)}
+.tr-btn i{font-size:10px}
+.tr-btn.tr-btn-busy i{animation:spin 1s linear infinite}
+.tr-btn.tr-btn-busy{opacity:.6;cursor:wait}
 /* Statuts META (estime / a verifier / deduit) : couleur neutre slate,
    volontairement HORS de la palette d'alerte (rouge/orange/jaune) pour ne
    jamais laisser croire qu'une incertitude de date est un niveau de gravite. */
@@ -3368,6 +3375,35 @@ function tr(texte, elId, transform) {
   return transform ? transform(placeholder) : placeholder; // jamais de texte source affiche, meme brievement
 }
 
+// retraduireActu(id) : declenchee par le bouton "traduire" pose sur chaque
+// actu du Flux dont la langue source differe de LANG. Force un nouvel appel
+// trFetch (bypass du cache meme si un echec — ex. quota MyMemory epuise —
+// y est deja consigne), pour donner un controle explicite et immediat sur
+// la traduction sans attendre un rechargement complet de la page.
+async function retraduireActu(id) {
+  const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
+  if (!a) return;
+  const btn = document.getElementById('trbtn-' + id);
+  if (btn) { btn.classList.add('tr-btn-busy'); btn.disabled = true; }
+  const titleEl = document.getElementById('trt-' + id);
+  const descEl  = document.getElementById('tra-' + id);
+  const srcLangT = detectLangue(a.title);
+  const srcLangD = detectLangue(a.analysis || '');
+  const [outT, outD] = await Promise.all([
+    trFetch(a.title, srcLangT, LANG, true),
+    a.analysis ? trFetch(a.analysis, srcLangD, LANG, true) : Promise.resolve(''),
+  ]);
+  if (titleEl) titleEl.textContent = (outT === a.title) ? _trPlaceholderIndispo(srcLangT) : outT;
+  if (descEl && a.analysis) descEl.textContent = (outD === a.analysis) ? _trPlaceholderIndispo(srcLangD) : outD;
+  if (btn) {
+    btn.classList.remove('tr-btn-busy');
+    btn.disabled = false;
+    // Traduction reussie (le titre au moins) : le bouton n'a plus lieu d'etre,
+    // le texte affiche est maintenant dans la langue active.
+    if (outT !== a.title) btn.remove();
+  }
+}
+
 // trFetch(texte, srcLang, tgtLang) : traduction via MyMemory (API publique,
 // sans clé, CORS ouvert). Cache par paire de langue (TR_CACHE[tgtLang+':'+texte])
 // pour ne jamais confondre une traduction fr→en et en→fr du même texte source.
@@ -3385,12 +3421,15 @@ function _trReponseInvalide(d, out) {
   if (typeof out !== 'string') return true;
   return /MYMEMORY WARNING|USAGE ?LIMITS|INVALID (SOURCE|TARGET) LANGUAGE|SELECT TWO DISTINCT LANGUAGES/i.test(out);
 }
-async function trFetch(texte, srcLang, tgtLang) {
+async function trFetch(texte, srcLang, tgtLang, force) {
   if (!texte) return texte;
   srcLang = srcLang || detectLangue(texte);
   tgtLang = tgtLang || LANG;
   const cacheKey = tgtLang + ':' + texte;
-  if (TR_CACHE[cacheKey] !== undefined) return TR_CACHE[cacheKey];
+  // force=true (bouton "traduire maintenant") : ignore un echec deja en cache
+  // (ex. quota MyMemory epuise au moment du premier essai) pour retenter tout
+  // de suite, sans attendre un rechargement complet de la page.
+  if (TR_CACHE[cacheKey] !== undefined && !(force && TR_CACHE[cacheKey] === texte && srcLang !== tgtLang)) return TR_CACHE[cacheKey];
   if (srcLang === tgtLang) { TR_CACHE[cacheKey] = texte; return texte; }
   try {
     const r = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(texte) + '&langpair=' + srcLang + '|' + tgtLang);
@@ -6190,6 +6229,7 @@ function renderFeed() {
           '<span class="flagcy" onclick="event.stopPropagation();ouvrirVuePays(\''+a.cy+'\')">'+cc.flag+' '+cc.name+'</span>'+
           '<span class="survtime'+(surv.ancien?' ancien':'')+'"><i class="ti ti-history"></i>'+surv.texte+'</span>'+
           survSuf+
+          (detectLangue(a.title)!==LANG ? '<button class="tr-btn" id="trbtn-'+a.id+'" onclick="event.stopPropagation();retraduireActu(\''+a.id+'\')" title="'+(LANG==='en'?'Translate now':'Traduire maintenant')+'"><i class="ti ti-language"></i>'+(LANG==='en'?'Translate':'Traduire')+'</button>' : '')+
         '</div>'+
         // ── Contenu editorial : remonte au-dessus du reste des badges ──
         '<div class="atit" id="trt-'+a.id+'">'+tr(a.title,'trt-'+a.id)+'</div>'+
