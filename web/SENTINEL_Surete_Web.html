@@ -3340,6 +3340,18 @@ function tr(texte, elId, transform) {
 // pour ne jamais confondre une traduction fr→en et en→fr du même texte source.
 // Repli silencieux sur le texte original en cas d'échec (source non fiable,
 // hors ligne, quota API...).
+// _trReponseInvalide(d, out) : MyMemory renvoie parfois un HTTP 200 "reussi"
+// dont le contenu n'est pas une traduction mais un message de service (quota
+// journalier epuise, langue invalide...), ex. "MYMEMORY WARNING: YOU USED ALL
+// AVAILABLE FREE TRANSLATIONS FOR TODAY...". Sans detection, ce texte etait
+// mis en cache et affiche tel quel comme si c'etait le contenu traduit d'un
+// article. On le traite comme un echec de traduction (repli sur le texte
+// source, donc sur le placeholder "traduction indisponible" cote appelant).
+function _trReponseInvalide(d, out) {
+  if (d && d.responseStatus !== undefined && Number(d.responseStatus) !== 200) return true;
+  if (typeof out !== 'string') return true;
+  return /MYMEMORY WARNING|USAGE ?LIMITS|INVALID (SOURCE|TARGET) LANGUAGE|SELECT TWO DISTINCT LANGUAGES/i.test(out);
+}
 async function trFetch(texte, srcLang, tgtLang) {
   if (!texte) return texte;
   srcLang = srcLang || detectLangue(texte);
@@ -3350,7 +3362,8 @@ async function trFetch(texte, srcLang, tgtLang) {
   try {
     const r = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(texte) + '&langpair=' + srcLang + '|' + tgtLang);
     const d = await r.json();
-    const out = (d && d.responseData && d.responseData.translatedText) ? d.responseData.translatedText : texte;
+    let out = (d && d.responseData && d.responseData.translatedText) ? d.responseData.translatedText : texte;
+    if (_trReponseInvalide(d, out)) out = texte;
     TR_CACHE[cacheKey] = out;
     return out;
   } catch (e) {
