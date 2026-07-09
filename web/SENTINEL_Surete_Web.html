@@ -3039,21 +3039,56 @@ function detectLangue(texte) {
 // (mise en cache) et patche le DOM (element elId) une fois recue — meme
 // principe que la version precedente, generalise a toute langue source
 // (fr/en/pt/ar) vers la langue active (fr ou en), et non plus seulement fr→en.
+// LANGUES_SCRIPT_ILLISIBLE : langues dont le script n'est pas lisible par
+// l'equipe FR/EN de la plateforme (arabe). Pour ces langues, le texte
+// source n'est JAMAIS affiche brut — ni pendant l'attente de traduction,
+// ni en cas d'echec de l'API — un texte-relais (placeholder) est affiche
+// a la place, remplace par la vraie traduction des qu'elle aboutit.
+// Pour fr/en/pt (script latin, au moins partiellement lisible/skimmable
+// par l'equipe), le texte original reste affiche le temps de la traduction :
+// moins perturbant, et jamais illisible.
+const LANGUES_SCRIPT_ILLISIBLE = new Set(['ar']);
+
+function _trNomLangue(l) {
+  const noms = LANG === 'en'
+    ? {ar:'Arabic', pt:'Portuguese', en:'English', fr:'French'}
+    : {ar:'arabe', pt:'portugais', en:'anglais', fr:'français'};
+  return noms[l] || l;
+}
+function _trPlaceholderEnCours() {
+  return LANG === 'en' ? '🌐 Translating…' : '🌐 Traduction en cours…';
+}
+function _trPlaceholderIndispo(srcLang) {
+  return LANG === 'en'
+    ? '🌐 Translation unavailable (source: ' + _trNomLangue(srcLang) + ')'
+    : '🌐 Traduction indisponible (source : ' + _trNomLangue(srcLang) + ')';
+}
+
 function tr(texte, elId, transform) {
   if (!texte) return texte;
   const srcLang = detectLangue(texte);
   if (srcLang === LANG) return texte; // deja dans la langue active : rien a faire
+  const illisible = LANGUES_SCRIPT_ILLISIBLE.has(srcLang);
   const cacheKey = LANG + ':' + texte;
-  if (TR_CACHE[cacheKey] !== undefined) return transform ? transform(TR_CACHE[cacheKey]) : TR_CACHE[cacheKey];
+  if (TR_CACHE[cacheKey] !== undefined) {
+    const cached = TR_CACHE[cacheKey];
+    // cached === texte : trFetch a echoue et est retombe sur le texte source
+    // inchange — pour un script illisible, ne jamais l'afficher tel quel.
+    const val = (illisible && cached === texte) ? _trPlaceholderIndispo(srcLang) : cached;
+    return transform ? transform(val) : val;
+  }
   trFetch(texte, srcLang, LANG).then(out => {
     if (detectLangue(texte) === LANG) return; // LANG a change entre-temps
     const el = elId ? document.getElementById(elId) : null;
-    // transform(out) : ex. re-appliquer extraitLoyal() apres traduction, pour
+    if (!el) return;
+    const val = (illisible && out === texte) ? _trPlaceholderIndispo(srcLang) : out;
+    // transform(val) : ex. re-appliquer extraitLoyal() apres traduction, pour
     // que le texte injecte dans le DOM respecte la meme limite de longueur
     // (usage loyal) que le texte original tronque affiche avant traduction.
-    if (el) el.textContent = transform ? transform(out) : out;
+    el.textContent = transform ? transform(val) : val;
   });
-  return texte; // texte original affiche le temps que la traduction arrive
+  const placeholder = illisible ? _trPlaceholderEnCours() : texte;
+  return transform ? transform(placeholder) : placeholder; // jamais de script illisible affiche, meme brievement
 }
 
 // trFetch(texte, srcLang, tgtLang) : traduction via MyMemory (API publique,
@@ -3121,9 +3156,17 @@ async function preTraduireRapport(textes) {
 // sinon le texte d'origine (jamais de trou dans le document).
 function L(texte) {
   if (!texte) return texte;
-  if (detectLangue(texte) === LANG) return texte;
+  const srcLang = detectLangue(texte);
+  if (srcLang === LANG) return texte;
   const cacheKey = LANG + ':' + texte;
-  return TR_CACHE[cacheKey] !== undefined ? TR_CACHE[cacheKey] : texte;
+  const cached = TR_CACHE[cacheKey];
+  if (cached === undefined) {
+    // Traduction pas encore disponible (preTraduireRapport() pas appelee ou
+    // encore en cours) : jamais de script illisible dans un document exporte.
+    return LANGUES_SCRIPT_ILLISIBLE.has(srcLang) ? _trPlaceholderEnCours() : texte;
+  }
+  if (cached === texte && LANGUES_SCRIPT_ILLISIBLE.has(srcLang)) return _trPlaceholderIndispo(srcLang);
+  return cached;
 }
 
 // ── PAYS = CLÉ DE CORRÉLATION GLOBALE ──────────────────────────────────────
