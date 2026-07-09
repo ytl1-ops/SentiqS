@@ -6234,12 +6234,13 @@ function majFlashInfo(force) {
 
   const cc = cy => (CYS.find(x => x.code === cy) || {flag:'🌐', name:'International'});
 
-  // shown : jamais le texte source si sa langue detectee differe de LANG —
-  // placeholder pendant la traduction (ou en cas d'echec), meme regle que
-  // tr()/L() ailleurs dans l'application. Logique reprise en ligne (plutot
-  // que d'appeler tr()) car un titre apparait ici en DEUX exemplaires
-  // dupliques (boucle de defilement), identifies par data-tt et non par un
-  // id DOM unique — le patch une-seule-fois de tr() ne convient pas.
+  // shown : jamais le texte source si sa langue detectee differe de LANG.
+  // Plus de traduction automatique ici non plus (voir tr()) : le clic sur
+  // l'item mene au Flux, ou le bouton Traduire de la carte complete permet
+  // de demander la traduction — pas de nouvel appel reseau depuis le ruban
+  // lui-meme. Logique reprise en ligne (plutot que d'appeler tr()) car un
+  // titre apparait ici en DEUX exemplaires dupliques (boucle de defilement),
+  // identifies par data-tt et non par un id DOM unique.
   const unItem = a => {
     const c = cc(a.cy);
     const col = TT_NIV_COL[a.level] || '#4B5563';
@@ -6251,7 +6252,10 @@ function majFlashInfo(force) {
       shown = a.title;
     } else {
       const cached = TR_CACHE[LANG+':'+a.title];
-      shown = (cached === undefined) ? _trPlaceholderEnCours()
+      // cached === a.title signifie qu'une tentative MANUELLE (bouton
+      // Traduire, ailleurs) a deja echoue — sinon, pas de tentative faite,
+      // simple invitation a consulter l'actu dans le Flux pour traduire.
+      shown = (cached === undefined) ? _trPlaceholderSurDemande(srcLang)
             : (cached === a.title) ? _trPlaceholderIndispo(srcLang) : cached;
     }
     const d = a.pubDate ? new Date(a.pubDate) : null;
@@ -6269,20 +6273,6 @@ function majFlashInfo(force) {
   const htmlUneFois = items.map(unItem).join('');
   // Duplication du contenu pour un defilement en boucle continue sans coupure visible
   piste.innerHTML = htmlUneFois + htmlUneFois;
-
-  // Traduction asynchrone : chaque titre dont la langue source differe de
-  // LANG est traduit une fois, puis patche sur ses DEUX occurrences (boucle
-  // de defilement dupliquee). Jamais de texte source affiche entre-temps
-  // (placeholder deja pose par unItem ci-dessus).
-  items.forEach(a => {
-    const srcLang = detectLangue(a.title);
-    if (srcLang === LANG || TR_CACHE[LANG+':'+a.title] !== undefined) return;
-    trFetch(a.title, srcLang, LANG).then(out => {
-      if (detectLangue(a.title) === LANG) return; // LANG a change entre-temps
-      const val = (out === a.title) ? _trPlaceholderIndispo(srcLang) : out;
-      document.querySelectorAll('[data-tt="tt-'+a.id+'"]').forEach(el => { el.textContent = val; });
-    });
-  });
 
   // Vitesse proportionnelle a la longueur du contenu pour garder un rythme de lecture constant
   requestAnimationFrame(() => {
