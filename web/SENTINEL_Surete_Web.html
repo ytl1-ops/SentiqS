@@ -9490,9 +9490,29 @@ async function exportPPTX(type) {
     const circle = (slide, x, y, d, color, opts={}) =>
       slide.addShape(pres.shapes.OVAL, {x, y, w:d, h:d, fill:{color}, line:{type:'none'}, ...opts});
 
+    // Diapositive avec fond + numéro de page systématique (bandeau GRSCI :
+    // marque + pagination visibles sur chaque diapositive du support).
+    const newSlide = (bg) => {
+      const sl = pres.addSlide();
+      sl.background = {color:bg};
+      sl.slideNumber = {x:12.55, y:7.4, fontSize:9, color:'9CA3AF', fontFace:'Calibri'};
+      return sl;
+    };
+
+    // Titre de section numéroté (case colorée + chiffre romain), sur le
+    // modèle des en-têtes de section GRSCI — la numérotation ne compte que
+    // les diapositives de contenu effectivement incluses dans ce rapport.
+    let secN = 0;
+    const sectionHead = (sl, title, sub) => {
+      secN++;
+      circle(sl, 0.6, 0.42, 0.5, NAVY);
+      sl.addText(_toRoman(secN), {x:0.6,y:0.42,w:0.5,h:0.5,fontSize:16,bold:true,color:'FFFFFF',align:'center',valign:'middle',fontFace:'Calibri'});
+      sl.addText(title, {x:1.28,y:0.4,w:10,h:0.6,fontSize:26,bold:true,color:INK,fontFace:'Cambria'});
+      if (sub) sl.addText(sub, {x:1.28,y:0.98,w:11.2,h:0.35,fontSize:12,color:MUTED,fontFace:'Calibri'});
+    };
+
     // ── Slide 1 — Titre (fond sombre) ──────────────────────────────────
-    let s = pres.addSlide();
-    s.background = {color:NAVY};
+    let s = newSlide(NAVY);
     circle(s, 11.7, -0.6, 2.6, NAVY2);
     circle(s, 12.5, 5.6, 2.2, NAVY2);
     s.addText('SENTINEL', {x:0.7,y:2.35,w:9,h:0.8,fontSize:42,bold:true,color:'FFFFFF',fontFace:'Cambria',charSpacing:2});
@@ -9502,7 +9522,8 @@ async function exportPPTX(type) {
     s.addText('USAGE RESTREINT — RESPONSABLES SÛRETÉ', {x:0.7,y:6.7,w:9,h:0.4,fontSize:11,bold:true,color:RED,fontFace:'Calibri',charSpacing:1});
     s.addText(arts.length+' articles analysés · '+new Date().toLocaleDateString('fr-FR')+'', {x:0.7,y:7.05,w:9,h:0.35,fontSize:9,color:'6B7A88',fontFace:'Calibri'});
 
-    // ── Slide 2 — Vue d'ensemble (KPI + repartition) ───────────────────
+    // ── Calculs préalables — déterminent quelles sections seront réellement
+    // incluses, pour que le Sommaire (slide 2) liste exactement ce qui suit.
     const nbCrit = arts.filter(a=>a.level==='crit').length;
     const nbHigh = arts.filter(a=>a.level==='high').length;
     const nbMod  = arts.filter(a=>a.level==='mod').length;
@@ -9510,11 +9531,42 @@ async function exportPPTX(type) {
     const nbPays = new Set(arts.map(a=>a.cy)).size;
     const nbSrcs = new Set(arts.map(a=>a.primary)).size;
 
-    if (type==='rapport_complet' || type==='synthese') {
-    s = pres.addSlide();
-    s.background = {color:'FFFFFF'};
-    s.addText('Vue d\'ensemble', {x:0.6,y:0.45,w:8,h:0.6,fontSize:26,bold:true,color:INK,fontFace:'Cambria'});
-    s.addText(perimetre+' · '+periode.label.toLowerCase(), {x:0.6,y:1.0,w:8,h:0.35,fontSize:12,color:MUTED,fontFace:'Calibri'});
+    const scoresSlide = (scopeCy ? [scopeCy] : Object.keys(PAYS_INFO).filter(cy => !scopeZone || CY_TO_ZONE[cy]===scopeZone))
+      .map(cy => ({cy, pays:PAYS_INFO[cy], sc:calcAlertScore(cy)}))
+      .sort((a,b)=>b.sc.total-a.sc.total);
+    const marquants = arts.filter(a=>a.level==='crit'||a.level==='high')
+      .sort((a,b)=>(b.pubDate||0)-(a.pubDate||0)).slice(0,6);
+    const socialArtsP = arts.filter(a=>a._isSocial);
+    const postsPPTX = getPostsPrioritaires(socialArtsP, 5);
+    const agenda = (typeof getExportAgenda === 'function' ? getExportAgenda() : []).slice(0,8);
+
+    const incVue    = (type==='rapport_complet' || type==='synthese');
+    const incAlerte = (type==='rapport_complet' || type==='alertes') && scoresSlide.length;
+    const incMarq   = (type==='rapport_complet' || type==='synthese') && marquants.length;
+    const incSocial = (type==='rapport_complet' || type==='synthese') && postsPPTX.length;
+    const incAgenda = (type==='rapport_complet' || type==='agenda') && agenda.length;
+
+    // ── Slide 2 — Sommaire ──────────────────────────────────────────────
+    s = newSlide('FFFFFF');
+    s.addText('Sommaire', {x:0.6,y:0.5,w:8,h:0.7,fontSize:28,bold:true,color:INK,fontFace:'Cambria'});
+    s.addText(perimetre+' · '+periode.label, {x:0.6,y:1.15,w:8,h:0.35,fontSize:12,color:MUTED,fontFace:'Calibri'});
+    const sommaireItems = [];
+    if (incVue)    sommaireItems.push('Vue d\'ensemble');
+    if (incAlerte) sommaireItems.push('Niveau d\'alerte');
+    if (incMarq)   sommaireItems.push('Incidents marquants');
+    if (incSocial) sommaireItems.push('Réseaux sociaux — publications prioritaires');
+    if (incAgenda) sommaireItems.push('Agenda & échéances');
+    sommaireItems.push('Méthodologie');
+    sommaireItems.forEach((label,i)=>{
+      const y = 1.9 + i*0.6;
+      circle(s, 0.6, y, 0.36, BLUE);
+      s.addText(_toRoman(i+1), {x:0.6,y:y,w:0.36,h:0.36,fontSize:12,bold:true,color:'FFFFFF',align:'center',valign:'middle',fontFace:'Calibri'});
+      s.addText(label, {x:1.15,y:y-0.02,w:10,h:0.4,fontSize:15,color:INK,fontFace:'Calibri',valign:'middle'});
+    });
+
+    if (incVue) {
+    s = newSlide('FFFFFF');
+    sectionHead(s, 'Vue d\'ensemble', perimetre+' · '+periode.label.toLowerCase());
 
     const stat = (x, val, label, color) => {
       s.addText(String(val), {x, y:1.7, w:2.7, h:0.9, fontSize:48, bold:true, color, fontFace:'Calibri', align:'left'});
@@ -9556,16 +9608,10 @@ async function exportPPTX(type) {
     }
     }
 
-    // ── Slide 3 — Niveau d'alerte (pays du perimetre ou zone) ──────────
-    const scoresSlide = (scopeCy ? [scopeCy] : Object.keys(PAYS_INFO).filter(cy => !scopeZone || CY_TO_ZONE[cy]===scopeZone))
-      .map(cy => ({cy, pays:PAYS_INFO[cy], sc:calcAlertScore(cy)}))
-      .sort((a,b)=>b.sc.total-a.sc.total);
-
-    if ((type==='rapport_complet' || type==='alertes') && scoresSlide.length) {
-      s = pres.addSlide();
-      s.background = {color:PAPER};
-      s.addText('Niveau d\'alerte', {x:0.6,y:0.45,w:8,h:0.6,fontSize:26,bold:true,color:INK,fontFace:'Cambria'});
-      s.addText(scopeCy ? scoresSlide[0].pays.name : (perimetre+' — classement par score composite'), {x:0.6,y:1.0,w:11,h:0.35,fontSize:12,color:MUTED,fontFace:'Calibri'});
+    // ── Slide — Niveau d'alerte (pays du perimetre ou zone) ────────────
+    if (incAlerte) {
+      s = newSlide(PAPER);
+      sectionHead(s, 'Niveau d\'alerte', scopeCy ? scoresSlide[0].pays.name : (perimetre+' — classement par score composite'));
 
       if (scopeCy) {
         // Focus un seul pays : score + facteurs aggravants + mesures cles
@@ -9604,14 +9650,10 @@ async function exportPPTX(type) {
       }
     }
 
-    // ── Slide 4 — Incidents marquants de la periode ────────────────────
-    const marquants = arts.filter(a=>a.level==='crit'||a.level==='high')
-      .sort((a,b)=>(b.pubDate||0)-(a.pubDate||0)).slice(0,6);
-    if ((type==='rapport_complet' || type==='synthese') && marquants.length) {
-      s = pres.addSlide();
-      s.background = {color:'FFFFFF'};
-      s.addText('Incidents marquants', {x:0.6,y:0.45,w:9,h:0.6,fontSize:26,bold:true,color:INK,fontFace:'Cambria'});
-      s.addText(periode.label+' — '+perimetre, {x:0.6,y:1.0,w:11,h:0.35,fontSize:12,color:MUTED,fontFace:'Calibri'});
+    // ── Slide — Incidents marquants de la periode ───────────────────────
+    if (incMarq) {
+      s = newSlide('FFFFFF');
+      sectionHead(s, 'Incidents marquants', periode.label+' — '+perimetre);
       marquants.forEach((a,i)=>{
         const y = 1.55 + i*0.92;
         const pays = infoPays(a.cy);
@@ -9622,14 +9664,10 @@ async function exportPPTX(type) {
       });
     }
 
-    // ── Slide 4bis — Réseaux sociaux : publications prioritaires ───────
-    const socialArtsP = arts.filter(a=>a._isSocial);
-    const postsPPTX = getPostsPrioritaires(socialArtsP, 5);
-    if ((type==='rapport_complet' || type==='synthese') && postsPPTX.length) {
-      s = pres.addSlide();
-      s.background = {color:'FFFFFF'};
-      s.addText('Réseaux sociaux — publications prioritaires', {x:0.6,y:0.45,w:11,h:0.6,fontSize:24,bold:true,color:INK,fontFace:'Cambria'});
-      s.addText(periode.label+' — '+perimetre+' · sujets sensibles détectés (politique, insécurité, corruption, vie chère...)', {x:0.6,y:1.0,w:12,h:0.35,fontSize:11,color:MUTED,fontFace:'Calibri'});
+    // ── Slide — Réseaux sociaux : publications prioritaires ─────────────
+    if (incSocial) {
+      s = newSlide('FFFFFF');
+      sectionHead(s, 'Réseaux sociaux — publications prioritaires', periode.label+' — '+perimetre+' · sujets sensibles détectés (politique, insécurité, corruption, vie chère...)');
       postsPPTX.forEach((p,i)=>{
         const y = 1.55 + i*1.08;
         const sentCol = p.sentiment==='positif'?GREEN:p.sentiment==='negatif'?RED:'9CA3AF';
@@ -9640,13 +9678,10 @@ async function exportPPTX(type) {
       });
     }
 
-    // ── Slide 5 — Agenda / echeances du perimetre ──────────────────────
-    const agenda = (typeof getExportAgenda === 'function' ? getExportAgenda() : []).slice(0,8);
-    if ((type==='rapport_complet' || type==='agenda') && agenda.length) {
-      s = pres.addSlide();
-      s.background = {color:PAPER};
-      s.addText('Agenda & échéances', {x:0.6,y:0.45,w:9,h:0.6,fontSize:26,bold:true,color:INK,fontFace:'Cambria'});
-      s.addText(perimetre, {x:0.6,y:1.0,w:11,h:0.35,fontSize:12,color:MUTED,fontFace:'Calibri'});
+    // ── Slide — Agenda / echeances du perimetre ─────────────────────────
+    if (incAgenda) {
+      s = newSlide(PAPER);
+      sectionHead(s, 'Agenda & échéances', perimetre);
       agenda.forEach((e,i)=>{
         const col = i % 2 === 0 ? BLUE : NAVY2;
         const y = 1.6 + i*0.68;
@@ -9656,8 +9691,7 @@ async function exportPPTX(type) {
     }
 
     // ── Slide finale — methodologie (fond sombre, sandwich) ────────────
-    s = pres.addSlide();
-    s.background = {color:NAVY};
+    s = newSlide(NAVY);
     circle(s, -0.8, 4.8, 2.4, NAVY2);
     s.addText('Méthodologie', {x:0.7,y:2.0,w:9,h:0.6,fontSize:24,bold:true,color:'FFFFFF',fontFace:'Cambria'});
     s.addText(
@@ -9704,22 +9738,48 @@ function _pdfSafe(text) {
   return s;
 }
 
+// Numéros de section en chiffres romains (I, II, III...) — badges d'en-tête,
+// inspirés de la mise en page GRSCI (case colorée numérotée + titre souligné).
+function _toRoman(n) {
+  const table = [[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
+  let r = '', v = n;
+  for (const [val,sym] of table) { while (v >= val) { r += sym; v -= val; } }
+  return r || String(n);
+}
+
 // Petit moteur de mise en page : pagination automatique, retour à la ligne
 // manuel (pdf-lib ne le fait pas nativement), en-tête/pied de page.
+// En-têtes de section numérotées + pied de page systématique (marque +
+// périmètre + date + numéro de page) sur le modèle des rapports GRSCI :
+// case colorée numérotée, titre souligné, filet fin, bandeau de bas de page.
 function _pdfBuilder(doc, fontReg, fontBold, rgb) {
   const W = 595.28, H = 841.89, M = 50; // A4 portrait, points
   const NAVY = rgb(0.051,0.106,0.161), BLUE = rgb(0.114,0.373,0.659),
         INK = rgb(0.043,0.086,0.129), MUTED = rgb(0.42,0.46,0.5),
-        SKY = rgb(0.49,0.83,0.99), LINE = rgb(0.82,0.85,0.88);
+        SKY = rgb(0.49,0.83,0.99), LINE = rgb(0.82,0.85,0.88),
+        BOXBG = rgb(0.97,0.98,0.99);
   const b = {
-    page: null, y: 0, n: 0,
-    newPage() {
+    page: null, y: 0, n: 0, secNum: 0,
+    footerPerimetre: '', footerDate: '',
+    newPage(opts={}) {
       b.page = doc.addPage([W, H]);
       b.n++;
-      b.page.drawText('SENTINEL SÛRETÉ — page ' + b.n, {x:M, y:22, size:8, font:fontReg, color:MUTED});
+      if (!opts.cover) {
+        const footY = 26, fsize = 8;
+        b.page.drawLine({start:{x:M,y:footY+16},end:{x:W-M,y:footY+16},thickness:0.6,color:LINE});
+        const brand = 'SENTINEL SÛRETÉ';
+        const sep = b.footerPerimetre ? '  ·  '+b.footerPerimetre : '';
+        const bw = fontBold.widthOfTextAtSize(brand, fsize), sw = fontReg.widthOfTextAtSize(sep, fsize);
+        const boxW = bw+sw+16, boxX = (W-boxW)/2;
+        b.page.drawRectangle({x:boxX, y:footY, width:boxW, height:15, borderColor:BLUE, borderWidth:0.8});
+        b.page.drawText(brand, {x:boxX+8, y:footY+4.5, size:fsize, font:fontBold, color:BLUE});
+        if (sep) b.page.drawText(sep, {x:boxX+8+bw, y:footY+4.5, size:fsize, font:fontReg, color:MUTED});
+        if (b.footerDate) b.page.drawText(_pdfSafe(b.footerDate), {x:M, y:footY+4.5, size:7.5, font:fontReg, color:MUTED});
+        b.page.drawText('Page '+b.n, {x:W-M-42, y:footY+4.5, size:7.5, font:fontBold, color:INK});
+      }
       b.y = H - M;
     },
-    ensure(h) { if (b.y - h < M + 24) b.newPage(); },
+    ensure(h) { if (b.y - h < M + 30) b.newPage(); },
     wrap(text, size, font, maxWidth) {
       const words = _pdfSafe(text).replace(/\s+/g,' ').trim().split(' ');
       const lines = []; let cur = '';
@@ -9732,7 +9792,7 @@ function _pdfBuilder(doc, fontReg, fontBold, rgb) {
       return lines;
     },
     titlePage(titre, sousTitre, perimetre, dateStr) {
-      b.newPage();
+      b.newPage({cover:true});
       b.page.drawRectangle({x:0,y:0,width:W,height:H,color:NAVY});
       b.page.drawText('SENTINEL SÛRETÉ', {x:M,y:H-170,size:26,font:fontBold,color:rgb(1,1,1)});
       b.page.drawText(_pdfSafe(titre), {x:M,y:H-202,size:15,font:fontBold,color:SKY});
@@ -9743,15 +9803,26 @@ function _pdfBuilder(doc, fontReg, fontBold, rgb) {
       b.newPage();
     },
     heading(text) {
-      b.ensure(36);
-      b.page.drawRectangle({x:0,y:b.y-8,width:W,height:28,color:NAVY});
-      b.page.drawText(_pdfSafe(text), {x:M,y:b.y,size:13,font:fontBold,color:rgb(1,1,1)});
-      b.y -= 36;
+      b.ensure(50);
+      b.secNum++;
+      const num = _toRoman(b.secNum), badge = 22;
+      b.page.drawRectangle({x:M,y:b.y-badge+7,width:badge,height:badge,color:NAVY});
+      const nw = fontBold.widthOfTextAtSize(num, 11);
+      b.page.drawText(num, {x:M+(badge-nw)/2,y:b.y-badge+14,size:11,font:fontBold,color:rgb(1,1,1)});
+      const titleX = M+badge+10, ttxt = _pdfSafe(text);
+      b.page.drawText(ttxt, {x:titleX,y:b.y-14,size:14,font:fontBold,color:NAVY});
+      const tw = fontBold.widthOfTextAtSize(ttxt, 14);
+      b.page.drawLine({start:{x:titleX,y:b.y-19},end:{x:titleX+tw,y:b.y-19},thickness:1.2,color:BLUE});
+      b.page.drawLine({start:{x:M,y:b.y-31},end:{x:W-M,y:b.y-31},thickness:0.6,color:LINE});
+      b.y -= 46;
     },
     sub(text, color) {
-      b.ensure(20);
-      b.page.drawText(_pdfSafe(text), {x:M,y:b.y,size:11,font:fontBold,color:color||BLUE});
-      b.y -= 16;
+      b.ensure(22);
+      const stxt = _pdfSafe(text);
+      b.page.drawText(stxt, {x:M,y:b.y,size:11,font:fontBold,color:color||BLUE});
+      const sw = fontBold.widthOfTextAtSize(stxt, 11);
+      b.page.drawLine({start:{x:M,y:b.y-3},end:{x:M+sw,y:b.y-3},thickness:0.8,color:color||BLUE});
+      b.y -= 18;
     },
     para(text, opts={}) {
       const size = opts.size||9.5, font = opts.bold?fontBold:fontReg, color = opts.color||INK;
@@ -9769,6 +9840,21 @@ function _pdfBuilder(doc, fontReg, fontBold, rgb) {
         b.y -= size+4.5;
       });
       b.y -= 2;
+    },
+    // Encadré de mise en avant (façon "CONSTATATIONS" GRSCI) — chiffres clés
+    // ou synthèse à isoler visuellement du reste du texte courant.
+    box(titleText, lines, opts={}) {
+      const pad = 10, size = 9;
+      const wrapped = [];
+      lines.forEach(l => wrapped.push(...b.wrap(l, size, fontReg, W-M*2-pad*2)));
+      const h = 22 + wrapped.length*(size+4) + pad;
+      b.ensure(h+14);
+      const topY = b.y;
+      b.page.drawRectangle({x:M,y:topY-h,width:W-M*2,height:h,color:BOXBG,borderColor:LINE,borderWidth:1});
+      b.page.drawText(_pdfSafe(titleText), {x:M+pad,y:topY-pad-10,size:10,font:fontBold,color:BLUE});
+      let cy = topY-pad-27;
+      wrapped.forEach(l => { b.page.drawText(l, {x:M+pad,y:cy,size,font:fontReg,color:INK}); cy -= size+4; });
+      b.y = topY-h-10;
     },
     divider() {
       b.ensure(12);
@@ -9797,12 +9883,20 @@ async function exportPDF(type) {
 
     const nbSrcsMediaPDF = SRCS.filter(s => !(s.rss_method||'').match(/Twitter|Telegram|Facebook/)).length;
     const nbSrcsSocialesPDF = SRCS.length - nbSrcsMediaPDF;
+    b.footerPerimetre = perimetre;
+    b.footerDate = new Date().toLocaleDateString('fr-FR');
     b.titlePage(titre, SRCS.length+' sources ('+nbSrcsMediaPDF+' médias + '+nbSrcsSocialesPDF+' réseaux sociaux) · Filtre anti-hallucination < 12h', perimetre, dateStr);
 
     if (type === 'synthese') {
       const arts = getExportData();
       b.heading('SYNTHÈSE ANALYTIQUE — ' + perimetre);
-      b.para(arts.length+' articles analysés sur les dernières 12 heures.', {color:rgb(0.42,0.46,0.5)});
+      const nbCritS = arts.filter(a=>a.level==='crit').length;
+      const nbHighS = arts.filter(a=>a.level==='high').length;
+      const nbPaysS = new Set(arts.map(a=>a.cy)).size;
+      b.box(LANG==='en'?'KEY FIGURES':'CHIFFRES CLÉS', [
+        LANG==='en' ? arts.length+' articles analyzed over the last 12 hours.' : arts.length+' articles analysés sur les dernières 12 heures.',
+        LANG==='en' ? nbCritS+' critical alerts, '+nbHighS+' high-level, across '+nbPaysS+' countries.' : nbCritS+' alertes critiques, '+nbHighS+' élevées, réparties sur '+nbPaysS+' pays.',
+      ]);
       b.divider();
       const CATS = ['securite','humanitaire','politique','economique'];
       CATS.forEach(cat => {
@@ -9861,7 +9955,7 @@ async function exportPDF(type) {
         const signauxP = _corrBuildSignaux(arts);
         b.sub('CORRÉLATIONS ENTRE PAYS — Signaux régionaux', rgb(0.294,0.333,0.388));
         if (signauxP.length) {
-          b.para(signauxP.length+' thème'+(signauxP.length>1?'s':'')+' détecté'+(signauxP.length>1?'s':'')+' simultanément dans au moins 2 pays sur la période <12h.', {size:9});
+          b.box('CONSTATATIONS', [signauxP.length+' thème'+(signauxP.length>1?'s':'')+' détecté'+(signauxP.length>1?'s':'')+' simultanément dans au moins 2 pays sur la période <12h.']);
           signauxP.slice(0,10).forEach(s => {
             const paysNomsP = s.pays.map(cy => (PAYS_INFO[cy]||{}).name || cy).join(', ');
             b.para('#'+s.terme+' — '+s.pays.length+' pays : '+paysNomsP, {bold:true, size:9.5});
@@ -9928,6 +10022,11 @@ async function exportPDF(type) {
 
       b.heading(rl('alertes_titre') + ' — ' + perimetre);
       b.para(rl('pays_perimetre')(scores.length), {color:rgb(0.42,0.46,0.5)});
+      b.box(LANG==='en'?'READING GUIDE':'GUIDE DE LECTURE', [
+        LANG==='en'
+          ? 'Composite score = verified incidents + aggravating factors, out of 100. Levels: RED (critical), BROWN (severe), ORANGE (high), YELLOW (moderate), GREEN (stable).'
+          : 'Score composite = incidents vérifiés + facteurs aggravants, sur 100. Niveaux : ROUGE (critique), MARRON (sévère), ORANGE (élevé), JAUNE (modéré), VERT (stable).',
+      ]);
       b.divider();
       let paysEnErreur = 0;
       scores.forEach(s=>{
@@ -9983,6 +10082,7 @@ async function exportWord(type){
     const heading=(text,lvl=1,color='0B1A27')=>new Paragraph({
       text,heading:lvl===1?HeadingLevel.HEADING_1:lvl===2?HeadingLevel.HEADING_2:HeadingLevel.HEADING_3,
       spacing:{before:240,after:120},
+      border: lvl===2 ? {bottom:{style:BorderStyle.SINGLE,size:8,color,space:4}} : undefined,
       run:{color,bold:true}
     });
     const para=(text,opts={})=>new Paragraph({
@@ -9990,6 +10090,59 @@ async function exportWord(type){
       spacing:{after:80}
     });
     const divider=()=>new Paragraph({border:{bottom:{style:BorderStyle.SINGLE,size:1,color:'D1D9E0'}},spacing:{after:120}});
+
+    // Bandeau de section principale (I./II./III.) — bloc coloré plein texte
+    // blanc, sur le modèle des bandeaux BUZZ/TENDANCE/RISQUE déjà en usage
+    // plus bas ; conserve le style Titre 1 pour rester repérable au Sommaire.
+    const topBar=(text,color)=>new Paragraph({
+      text, heading:HeadingLevel.HEADING_1,
+      shading:{type:ShadingType.CLEAR,fill:color||'0D1B2A'},
+      spacing:{before:200,after:160},
+      run:{color:'FFFFFF',bold:true,size:24},
+    });
+
+    // Encadré de mise en avant (façon "CONSTATATIONS" GRSCI) — synthèse à
+    // isoler visuellement du reste du texte courant.
+    const calloutBox=(titleTxt,bodyTxt,color)=>new Table({
+      width:{size:100,type:WidthType.PERCENTAGE},
+      rows:[new TableRow({children:[new TableCell({
+        shading:{type:ShadingType.CLEAR,fill:'F5F8FB'},
+        borders:{
+          top:{style:BorderStyle.SINGLE,size:2,color:color||'1B5FA8'},
+          bottom:{style:BorderStyle.SINGLE,size:2,color:color||'1B5FA8'},
+          left:{style:BorderStyle.SINGLE,size:2,color:color||'1B5FA8'},
+          right:{style:BorderStyle.SINGLE,size:2,color:color||'1B5FA8'},
+        },
+        margins:{top:120,bottom:120,left:160,right:160},
+        children:[
+          new Paragraph({children:[new TextRun({text:titleTxt,bold:true,size:18,color:color||'1B5FA8'})],spacing:{after:60}}),
+          new Paragraph({children:[new TextRun({text:bodyTxt,italic:true,size:19,color:'374151'})]}),
+        ],
+      })]})],
+    });
+
+    // Bandeau de KPI (chiffres clés) — même fonction que l'encadré "CHIFFRES
+    // CLÉS" du PDF et la diapo "Vue d'ensemble" du PowerPoint, pour une
+    // lecture cohérente entre les trois formats d'export.
+    const kpiTable=(items)=>{
+      const cell=(val,label,color)=>new TableCell({
+        width:{size:Math.floor(100/items.length),type:WidthType.PERCENTAGE},
+        borders:{top:{style:BorderStyle.NONE},bottom:{style:BorderStyle.NONE},left:{style:BorderStyle.NONE},right:{style:BorderStyle.NONE}},
+        children:[
+          new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:String(val),bold:true,size:36,color})]}),
+          new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:label.toUpperCase(),size:14,color:'6B7280'})]}),
+        ],
+      });
+      return new Table({
+        width:{size:100,type:WidthType.PERCENTAGE},
+        borders:{
+          top:{style:BorderStyle.SINGLE,size:1,color:'D1D9E0'}, bottom:{style:BorderStyle.SINGLE,size:1,color:'D1D9E0'},
+          left:{style:BorderStyle.NONE}, right:{style:BorderStyle.NONE},
+          insideHorizontal:{style:BorderStyle.NONE}, insideVertical:{style:BorderStyle.NONE},
+        },
+        rows:[new TableRow({children:items.map(it=>cell(it.val,it.label,it.color))})],
+      });
+    };
 
     const children=[];
 
@@ -10022,9 +10175,26 @@ async function exportWord(type){
       children:[new TextRun({text:SRCS.length+' sources ('+nbSrcsMedia+' médias + '+nbSrcsSociales+' réseaux sociaux) · Filtre anti-hallucination <12h · '+arts.length+' articles analysés',size:18,color:'9CA3AF',italic:true})],
     }));
 
+    // ── Sommaire ────────────────────────────────────────────────────
+    children.push(new Paragraph({pageBreakBefore:true,
+      children:[new TextRun({text:'SOMMAIRE',bold:true,size:30,color:'0D1B2A'})], spacing:{after:80}}));
+    children.push(new Paragraph({
+      children:[new TextRun({text:'(clic droit sur la liste ci-dessous puis « Mettre à jour les champs » pour afficher la pagination)',italic:true,size:16,color:'9CA3AF'})],
+      spacing:{after:160}
+    }));
+    children.push(new TableOfContents('Sommaire', {hyperlink:true, headingStyleRange:'1-2'}));
+    children.push(new Paragraph({pageBreakBefore:true}));
+
     if(type==='synthese'||type==='rapport_complet'){
       children.push(divider());
-      children.push(heading('I. SYNTHÈSE ANALYTIQUE — Situation régionale'));
+      children.push(topBar('I. SYNTHÈSE ANALYTIQUE — Situation régionale'));
+      children.push(kpiTable([
+        {val:arts.length, label:'Articles', color:'0D1B2A'},
+        {val:arts.filter(a=>a.level==='crit').length, label:'Critiques', color:'8B1A1A'},
+        {val:new Set(arts.map(a=>a.cy)).size, label:'Pays', color:'1B5FA8'},
+        {val:new Set(arts.map(a=>a.primary)).size, label:'Sources', color:'0F4F2A'},
+      ]));
+      children.push(new Paragraph({spacing:{after:160}}));
 
       const byCat={securite:[],humanitaire:[],politique:[],economique:[]};
       arts.slice().sort((a,b)=>(b.pubDate||0)-(a.pubDate||0)).slice(0,40)
@@ -10128,7 +10298,8 @@ async function exportWord(type){
         const signauxW = _corrBuildSignaux(arts);
         children.push(heading('F. Corrélations entre pays — Signaux régionaux', 2, '4B5563'));
         if (signauxW.length) {
-          children.push(para(signauxW.length+' thème'+(signauxW.length>1?'s':'')+' détecté'+(signauxW.length>1?'s':'')+' simultanément dans au moins 2 pays sur la période <12h — une dynamique régionale qu\'une lecture pays par pays ne révèle pas isolément.'));
+          children.push(calloutBox('CONSTATATIONS', signauxW.length+' thème'+(signauxW.length>1?'s':'')+' détecté'+(signauxW.length>1?'s':'')+' simultanément dans au moins 2 pays sur la période <12h — une dynamique régionale qu\'une lecture pays par pays ne révèle pas isolément.', '4B5563'));
+          children.push(new Paragraph({spacing:{after:100}}));
           for (const s of signauxW.slice(0, 10)) {
             const paysNomsW = s.pays.map(cy => (PAYS_INFO[cy]||{}).name || cy).join(', ');
             children.push(new Paragraph({
@@ -10149,7 +10320,7 @@ async function exportWord(type){
 
     if(type==='flux'||type==='rapport_complet'){
       children.push(divider());
-      children.push(heading('II. FLUX OPÉRATIONNEL — Articles <12h'));
+      children.push(topBar('II. FLUX OPÉRATIONNEL — Articles <12h'));
       children.push(para(arts.length+' articles collectés · Filtre anti-hallucination actif · Sources : '+SRCS.length+' flux RSS'));
 
       // Tableau des articles critiques et élevés
@@ -10181,7 +10352,7 @@ async function exportWord(type){
 
     if(type==='agenda'||type==='rapport_complet'){
       children.push(divider());
-      children.push(heading('III. AGENDA SÛRETÉ — Événements & échéances'));
+      children.push(topBar('III. AGENDA SÛRETÉ — Événements & échéances'));
       const SL={'en-cours':'EN COURS','urgent':'URGENT','planifie':'PLANIFIÉ','surveillance':'SURVEILLANCE'};
       for(const e of getExportAgenda()){
         children.push(new Paragraph({
@@ -10206,8 +10377,24 @@ async function exportWord(type){
       children:[new TextRun({text:'SENTINEL SÛRETÉ · '+dateStr+' UTC · yorot225@gmail.com',size:18,italic:true,color:'9CA3AF'})],
     }));
 
+    // En-tête/pied de page systématiques (marque + périmètre + numéro de
+    // page), sur le modèle du bandeau GRSCI présent sur chaque diapositive.
+    const wordHeader=new Header({children:[new Paragraph({
+      alignment:AlignmentType.RIGHT,
+      children:[new TextRun({text:'SENTINEL SÛRETÉ · '+libellePerimetreRapport(),size:16,italics:true,color:'6B7280'})],
+    })]});
+    const wordFooter=new Footer({children:[new Paragraph({
+      alignment:AlignmentType.CENTER,
+      children:[
+        new TextRun({text:'SENTINEL SÛRETÉ  —  Page ',size:16,color:'9CA3AF'}),
+        new TextRun({children:[PageNumber.CURRENT],size:16,color:'9CA3AF'}),
+      ],
+    })]});
+
     const doc=new Document({sections:[{
       properties:{},
+      headers:{default:wordHeader},
+      footers:{default:wordFooter},
       children,
     }]});
 
