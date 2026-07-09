@@ -6379,10 +6379,11 @@ function showKpiDrill(kind) {
   const rowArticle = a => {
     const pays = infoPays(a.cy);
     const lvlMeta = {crit:{col:'#DC2626',lb:'CRITIQUE'},high:{col:'#D97706',lb:'ÉLEVÉ'},mod:{col:'#4B5563',lb:'MODÉRÉ'},ok:{col:'#059669',lb:'STABLE'}}[a.level]||{col:'#9CA3AF',lb:'INFO'};
+    const trId = 'kpitt-'+a.id;
     return `<div onclick="closeKpiDrill();showDet('${a.id}');switchView('flux',document.querySelector('.ntab[onclick*=flux]'))" style="padding:9px 0;border-bottom:.5px solid var(--bd);cursor:pointer;display:flex;gap:8px;align-items:flex-start;">
       <span style="width:6px;height:6px;border-radius:50%;background:${lvlMeta.col};flex-shrink:0;margin-top:5px;"></span>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;">${a.title}</div>
+        <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="${trId}">${tr(a.title,trId)}</div>
         <div style="font-size:9px;color:var(--lg);margin-top:2px;">${pays.flag} ${pays.name} · ${a.time||''}</div>
       </div>
       <span style="font-size:8px;font-weight:700;color:#fff;background:${lvlMeta.col};padding:2px 6px;border-radius:3px;flex-shrink:0;">${lvlMeta.lb}</span>
@@ -6548,7 +6549,7 @@ function renderPanelATraiter(cyFiltre, zoneFiltre) {
           <span style="width:6px;height:6px;border-radius:50%;background:${LVL_COL[a.level]||'#4B5563'};flex-shrink:0;margin-top:5px;"></span>
           <div style="flex:1;min-width:0;cursor:pointer;" onclick="showDet('${a.id}');switchView('flux',document.querySelector('.ntab[onclick*=flux]'))">
             <div style="font-size:9px;color:var(--lg);font-weight:600;">${pays.flag} ${pays.name} · ${LVL_LB[a.level]||'INFO'} · ${surv.texte}</div>
-            <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.35;">${a.title}</div>
+            <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.35;" id="atrait-${a.id}">${tr(a.title,'atrait-'+a.id)}</div>
           </div>
           <button onclick="event.stopPropagation();marquerArticleTraite('${a.id}')" title="Marquer comme traité" style="flex-shrink:0;background:none;border:1px solid var(--bd);border-radius:5px;padding:3px 7px;font-size:9px;color:var(--lg);cursor:pointer;">
             <i class="ti ti-check"></i>
@@ -6988,7 +6989,7 @@ function renderRecherche() {
         (r.dateLabel ? `<span style="margin-left:auto;font-size:9px;color:var(--lg);"><i class="ti ti-clock" style="font-size:10px"></i> ${r.dateLabel}</span>` : '') +
       `</div>` +
       `<div style="font-size:12px;font-weight:700;color:var(--t);line-height:1.35;" id="setr-${_seEsc(r.type+'_'+r.id)}">${_seHighlight(tr(r.title,'setr-'+r.type+'_'+r.id), tokens)}</div>` +
-      (r.snippet ? `<div style="font-size:10.5px;color:var(--t2);margin-top:3px;line-height:1.4;">${_seHighlight(extraitLoyal(r.snippet, 160), tokens)}</div>` : '') +
+      (r.snippet ? `<div style="font-size:10.5px;color:var(--t2);margin-top:3px;line-height:1.4;" id="sesnip-${_seEsc(r.type+'_'+r.id)}">${_seHighlight(extraitLoyal(tr(r.snippet,'sesnip-'+r.type+'_'+r.id), 160), tokens)}</div>` : '') +
     `</div>`;
   }).join('');
 }
@@ -7066,25 +7067,27 @@ function renderAgenda() {
     festival:['🎭','Festival','#7C3AED'],securite:['🛡️','Securite','#8B1A1A'],humanitaire:['🤝','Humanitaire','#7C4A00'],
     politique:['🗳️','Politique','#1B5FA8'],economique:['📊','Economique','#0F4F2A'],sanitaire:['⚕️','Sanitaire','#0E7490']};
   if(!filt.length){document.getElementById('agTl').innerHTML='<div class="empty"><i class="ti ti-calendar-off"></i><p>Aucun evenement pour ce filtre</p></div>';return;}
-  const agHtml = filt.map(e=>{
+  const agHtml = filt.map((e,i)=>{
     const sl=SL[e.status]||SL.planifie;
     const typ = TYP[e.type||'securite']||TYP.securite;
     const typBadge = '<span style="font-size:8px;font-weight:700;padding:1px 6px;border-radius:3px;margin-left:5px;color:'+typ[2]+';background:'+typ[2]+'1A;border:1px solid '+typ[2]+'44;">'+typ[0]+' '+typ[1]+'</span>';
     const fresh=(e.year==='2026'&&e.month==='Jun'&&parseInt(e.day)>=28);
     const freshTag=fresh?'<span style="font-size:8px;font-weight:700;color:#fff;background:#15803D;padding:1px 6px;border-radius:3px;margin-left:6px;">−18H</span>':'';
     const autoTag=e._detecteAuto?'<span style="font-size:8px;font-weight:700;color:#1D7AB8;background:#EFF6FF;border:1px solid #BFDBFE;padding:1px 6px;border-radius:3px;margin-left:6px;" title="Detecte automatiquement depuis les flux RSS"><i class="ti ti-robot" style="font-size:9px;"></i> Auto</span>':'';
+    const evId = e.id || ('agidx-'+i);
+    const ttId = 'evtt-'+evId, dcId = 'evdc-'+evId, rcId = 'evrc-'+evId;
     return '<div class="ev '+e.status+'">'+
       '<div class="ev-dt"><div class="ev-d">'+e.day+'</div><div class="ev-m">'+e.month+'</div>'+(e.hour?'<div class="ev-h" style="font-size:9px;color:var(--lg);font-weight:600;margin-top:2px;">'+e.hour+'</div>':'')+'</div>'+
       '<div class="ev-bd">'+
-        '<div class="ev-tp"><div class="ev-tt">'+e.title+typBadge+freshTag+autoTag+'</div><span class="ev-bg '+sl[0]+'">'+sl[1]+'</span></div>'+
-        '<div class="ev-dc">'+e.desc+'</div>'+
+        '<div class="ev-tp"><div class="ev-tt"><span id="'+ttId+'">'+tr(e.title,ttId)+'</span>'+typBadge+freshTag+autoTag+'</div><span class="ev-bg '+sl[0]+'">'+sl[1]+'</span></div>'+
+        '<div class="ev-dc" id="'+dcId+'">'+tr(e.desc,dcId)+'</div>'+
         '<div class="ev-mt">'+
           '<span class="ev-cy"'+(resolveAgendaCy(e.cy)?' style="cursor:pointer" onclick="ouvrirVuePays(\''+resolveAgendaCy(e.cy)+'\')"':'')+'><i class="ti ti-map-pin" style="font-size:10px"></i>'+e.cy+'</span>'+
           '<span class="ev-ip '+IC[e.impact]+'">Impact '+e.impact.toUpperCase()+'</span>'+
           (e.surl?'<a href="'+e.surl+'" target="_blank" class="ev-sc"><i class="ti ti-external-link"></i>'+e.src+'</a>':
                   '<span class="ev-sc"><i class="ti ti-cpu"></i>'+e.src+'</span>')+
         '</div>'+
-        (e.reco?'<div class="ev-rc"><i class="ti ti-chevron-right" style="color:var(--b);font-size:10px;vertical-align:-1px"></i> '+e.reco+'</div>':'')+
+        (e.reco?'<div class="ev-rc"><i class="ti ti-chevron-right" style="color:var(--b);font-size:10px;vertical-align:-1px"></i> <span id="'+rcId+'">'+tr(e.reco,rcId)+'</span></div>':'')+
       '</div>'+
     '</div>';
   }).join('');
@@ -9004,24 +9007,25 @@ function ouvrirVuePays(cy) {
 
   const htmlActus = actus.length ? actus.map(a => `
     <div style="padding:7px 0;border-bottom:.5px solid var(--bd);cursor:pointer;" onclick="showDet('${a.id}');document.getElementById('vuePaysOverlay').remove();switchView('flux',document.querySelector('.ntab[onclick*=flux]'));">
-      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;">${a.title}</div>
+      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="vpa-${a.id}">${tr(a.title,'vpa-'+a.id)}</div>
       <div style="font-size:9px;color:var(--lg);margin-top:2px;">${a.time || ''} · ${(a.crosses||[])[0] || ''}</div>
       ${(()=>{ const s=fmtSurvenance(a); if (s.inconnue) return `<div style="font-size:8.5px;color:#B45309;font-weight:700;margin-top:1px;">Survenance : ${s.texte} (à vérifier)</div>`; return s.ancien ? `<div style="font-size:8.5px;color:#DC2626;font-weight:700;margin-top:1px;">⚠ Survenance : ${s.texte} (plus de 12h)</div>` : `<div style="font-size:8.5px;color:var(--lg);margin-top:1px;">Survenance : ${s.texte}</div>`; })()}
     </div>`).join('') : '<div style="font-size:11px;color:var(--lg);font-style:italic;padding:6px 0;">Aucun article recent</div>';
 
   const htmlRegio = regionaux.length ? regionaux.map(a => `
     <div style="padding:7px 0;border-bottom:.5px solid var(--bd);">
-      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;">${a.title}</div>
+      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="vpr-${a.id}">${tr(a.title,'vpr-'+a.id)}</div>
       <div style="font-size:9px;color:var(--lg);margin-top:2px;">${a.srcName || a.srcId || ''}</div>
     </div>`).join('') : '';
 
-  const htmlIncidents = incidents.length ? incidents.map(e => {
+  const htmlIncidents = incidents.length ? incidents.map((e,i) => {
     const d = (typeof NIV !== 'undefined' && NIV[e.level]) ? NIV[e.level] : {dot:'#718096'};
+    const trId = 'vpi-'+(e.id || ('i'+i));
     return `<div style="display:flex;gap:7px;padding:6px 0;border-bottom:.5px solid var(--bd);">
       <span style="width:6px;height:6px;border-radius:50%;background:${d.dot};flex-shrink:0;margin-top:5px;"></span>
       <div style="flex:1;min-width:0;">
         <div style="font-size:9px;color:var(--lg);font-weight:600;">${e.date}</div>
-        <div style="font-size:11px;color:var(--t);line-height:1.4;">${e.title}</div>
+        <div style="font-size:11px;color:var(--t);line-height:1.4;" id="${trId}">${tr(e.title,trId)}</div>
         <div style="font-size:9px;color:var(--lg);">${e.src}</div>
       </div>
     </div>`;
@@ -9033,11 +9037,14 @@ function ouvrirVuePays(cy) {
       <span style="font-size:10px;color:var(--t2);">${f.label} <strong>(+${f.bonus})</strong></span>
     </div>`).join('') : '';
 
-  const htmlAgenda = evenementsAgenda.length ? evenementsAgenda.map(e => `
+  const htmlAgenda = evenementsAgenda.length ? evenementsAgenda.map((e,i) => {
+    const trId = 'vpag-'+(e.id || ('i'+i));
+    return `
     <div style="padding:7px 0;border-bottom:.5px solid var(--bd);">
       <div style="font-size:9px;color:var(--lg);font-weight:600;">${e.day} ${e.month} ${e.hour || ''} — ${e.status.toUpperCase()}</div>
-      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;">${e.title}</div>
-    </div>`).join('') : '';
+      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="${trId}">${tr(e.title,trId)}</div>
+    </div>`;
+  }).join('') : '';
 
   const htmlZones = zones.length ? zones.map(z => `
     <div style="padding:6px 0;border-bottom:.5px solid var(--bd);">
@@ -9067,7 +9074,7 @@ function ouvrirVuePays(cy) {
     </div>` : ''}
     ${social.arts.slice(0,5).map(a => `
     <div style="padding:6px 0;border-bottom:.5px solid var(--bd);cursor:pointer;" onclick="showDet('${a.id}');document.getElementById('vuePaysOverlay').remove();switchView('flux',document.querySelector('.ntab[onclick*=flux]'));">
-      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;">${a.title}</div>
+      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="vps-${a.id}">${tr(a.title,'vps-'+a.id)}</div>
       <div style="font-size:9px;color:var(--lg);margin-top:2px;">${a._srcBadge?a._srcBadge.label:'Reseau social'} · ${a.time||''}</div>
     </div>`).join('')}
   ` : '';
@@ -9225,10 +9232,11 @@ function renderAlerteChronologie() {
 
   // Regroupement par jour (libelle de date) pour des en-tetes de section lisibles
   let lastDay = null;
-  const rows = shown.map(it => {
+  const rows = shown.map((it,i) => {
     const day = it.ts ? new Date(it.ts).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) : (it.dateLabel||'Date inconnue');
     const lvl = levelMeta(it.level);
     const pys = PAYS_INFO[it.cy] || {flag:'🌍',name:it.cy};
+    const trId = 'chrtt-'+(it.id || ('i'+i));
     let header = '';
     if (day !== lastDay) {
       header = `<div style="font-size:10px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 8px 28px;">${day}</div>`;
@@ -9247,7 +9255,7 @@ function renderAlerteChronologie() {
             <span style="font-size:10px;color:var(--lg);">${pys.flag} ${pys.name}</span>
             <span style="margin-left:auto;font-size:9px;color:var(--lg);">${it.ts ? new Date(it.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : ''}</span>
           </div>
-          <div style="font-size:12px;font-weight:600;color:var(--t);line-height:1.35;">${it.title}</div>
+          <div style="font-size:12px;font-weight:600;color:var(--t);line-height:1.35;" id="${trId}">${tr(it.title,trId)}</div>
           ${it.src ? `<div style="font-size:9.5px;color:var(--lg);margin-top:2px;"><i class="ti ti-antenna" style="font-size:10px"></i> ${it.src}</div>` : ''}
         </div>
       </div>`;
