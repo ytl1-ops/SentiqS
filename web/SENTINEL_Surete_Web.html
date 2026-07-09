@@ -206,6 +206,17 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .flashinfo.collapsed{height:22px;}
 .flashinfo.collapsed .flashinfo-piste{display:none;}
 .flashinfo.collapsed #flashInfoChevron{transform:rotate(180deg);}
+/* Bandeau publicitaire (version gratuite) : au-dessus du contenu, present
+   quelle que soit la page active. Tant qu'aucun identifiant AdSense reel
+   n'est configure (voir ADSENSE_CLIENT_ID/ADSENSE_SLOT_ID), affiche un
+   simple encart "emplacement publicitaire" — aucun script Google charge. */
+.ad-banner{background:var(--sf);border-bottom:1px solid var(--bd);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;min-height:44px;
+  padding:5px 10px;position:relative}
+.ad-banner-tag{position:absolute;top:2px;left:10px;font-size:8px;font-weight:700;
+  color:var(--lg);text-transform:uppercase;letter-spacing:.06em}
+.ad-banner-placeholder{font-size:10px;color:var(--lg);text-align:center;
+  border:1px dashed var(--bd);border-radius:6px;padding:8px 16px;width:100%;max-width:728px}
 .ntab{padding:10px 14px;font-size:11px;font-weight:700;
   color:rgba(255,255,255,.38);cursor:pointer;border-bottom:2px solid transparent;
   white-space:nowrap;display:flex;align-items:center;gap:5px;
@@ -1597,6 +1608,16 @@ button:not(:disabled){
   </div>
 </div>
 
+<!-- Bandeau publicitaire — version gratuite, affiche au-dessus de chaque page.
+     Voir ADSENSE_CLIENT_ID/ADSENSE_SLOT_ID pour l'activation reelle une fois
+     le compte Google AdSense approuve (initAdBanner()). -->
+<div class="ad-banner" id="adBanner">
+  <span class="ad-banner-tag" data-i18n="ad_tag">PUBLICITÉ</span>
+  <div class="ad-banner-placeholder" id="adBannerPlaceholder" data-i18n="ad_placeholder">Emplacement publicitaire — Google AdSense non configuré (voir Paramètres)</div>
+  <ins class="adsbygoogle" id="adBannerIns" style="display:none;width:100%;max-width:728px;height:90px"
+       data-ad-client="" data-ad-slot="" data-ad-format="auto" data-full-width-responsive="true"></ins>
+</div>
+
 <!-- Barre de filtre compacte : remplace les listes verticales Portee/Pays
      (occupaient en permanence toute la hauteur de la sidebar) par 2 menus
      deroulants, toujours visibles quelle que soit la vue active, pour
@@ -2944,6 +2965,7 @@ const I18N = {
     note_alertes:'Alertes : niveau de risque calculé automatiquement par pays, consultable en grille ou en chronologie des incidents.',
     note_dashboard:'Tableau de bord : vision d\'ensemble en temps réel des 54 pays d\'Afrique, scores de risque et zones de tension.',
     note_params:'Paramètres : gestion des accès, des droits de téléchargement et de la configuration de la plateforme.',
+    ad_tag:'PUBLICITÉ', ad_placeholder:'Emplacement publicitaire — Google AdSense non configuré (voir Paramètres)',
   },
   en: {
     mes_expat:'Expatriates / Foreign nationals', mes_locaux:'Local staff',
@@ -2970,6 +2992,7 @@ const I18N = {
     note_alertes:'Alerts: risk level automatically computed per country, viewable as a grid or as an incident timeline.',
     note_dashboard:'Dashboard: real-time overview of all 54 African countries, risk scores and tension zones.',
     note_params:'Settings: manage access, download rights and platform configuration.',
+    ad_tag:'ADVERTISEMENT', ad_placeholder:'Ad placeholder — Google AdSense not configured yet (see Settings)',
   },
 };
 function t(cle) { return (I18N[LANG] && I18N[LANG][cle]) || I18N.fr[cle] || cle; }
@@ -7186,6 +7209,35 @@ const ADMIN_EMAIL = 'yorot225@gmail.com';
 const STORE_KEY   = 'sentinel_auth_v1';
 const USERS_KEY   = 'sentinel_users_v1';
 const PENDING_KEY = 'sentinel_pending_v1';
+
+// ── Google AdSense (bandeau publicitaire, version gratuite) ───────────────
+// Renseignez ces deux valeurs une fois le compte AdSense créé et approuvé
+// par Google (console.google.com/adsense) : ADSENSE_CLIENT_ID = "Publisher
+// ID" du compte (ex. 'ca-pub-1234567890123456'), ADSENSE_SLOT_ID = l'ID du
+// bloc d'annonce créé dans AdSense pour ce bandeau (ex. '1234567890'). Tant
+// qu'elles restent vides, l'encart "emplacement publicitaire" reste affiché
+// à leur place et aucun script Google n'est chargé — pas d'appel réseau
+// externe tant que le compte n'est pas configuré.
+const ADSENSE_CLIENT_ID = '';
+const ADSENSE_SLOT_ID   = '';
+
+function initAdBanner() {
+  if (!ADSENSE_CLIENT_ID || !ADSENSE_SLOT_ID) return; // encart placeholder deja visible par defaut
+  const ins = document.getElementById('adBannerIns');
+  const ph  = document.getElementById('adBannerPlaceholder');
+  if (!ins) return;
+  ins.setAttribute('data-ad-client', ADSENSE_CLIENT_ID);
+  ins.setAttribute('data-ad-slot', ADSENSE_SLOT_ID);
+  ins.style.display = 'block';
+  if (ph) ph.style.display = 'none';
+  const s = document.createElement('script');
+  s.async = true;
+  s.crossOrigin = 'anonymous';
+  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + ADSENSE_CLIENT_ID;
+  s.onload = () => { try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch(_) {} };
+  document.head.appendChild(s);
+}
+initAdBanner();
 
 let _MEM_USERS=[], _MEM_SESSION=null;
 function _ls(fn,fb){try{return fn();}catch(e){return fb;}}
