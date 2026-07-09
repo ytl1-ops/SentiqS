@@ -3012,30 +3012,78 @@ function setLang(lang) {
 // mesures de protection, etc). Renvoie immédiatement le texte original (ou la
 // traduction déjà en cache) et, si une traduction est nécessaire, la va chercher en
 // tâche de fond puis patche le DOM une fois reçue (élément identifié par elId).
-function tr(texte, elId) {
-  if (LANG !== 'en' || !texte) return texte;
-  if (TR_CACHE[texte] !== undefined) return TR_CACHE[texte];
-  trFetch(texte).then(out => {
-    if (LANG !== 'en') return;
-    const el = elId ? document.getElementById(elId) : null;
-    if (el) el.textContent = out;
+// détecteLangue(texte) : heuristique légère (hors ligne, sans API) qui devine
+// la langue probable d'un texte court (titre/extrait d'article) — arabe via
+// la plage Unicode dédiée, sinon vote majoritaire de mots-outils fr/en/pt.
+// Nécessaire depuis que SENTINEL agrège des sources en plusieurs langues
+// (Google News RSS localisé par pays : fr/en/pt/ar) : on ne peut plus
+// supposer que tout provient du français comme avant.
+const AR_RANGE = /[؀-ۿ]/;
+const EN_STOPWORDS = new Set(['the','and','for','with','from','after','before','have','has','been',
+  'their','this','that','was','were','are','will','said','says','over','into','amid','minister',
+  'government','president','police','attack','killed','forces','national','country','state','city',
+  'security','crisis','more','than','not','but','who','what','when','where','how','new','two','three']);
+const PT_STOPWORDS = new Set(['de','da','do','em','para','com','uma','um','das','dos','como','mais',
+  'sobre','apos','entre','governo','presidente','ministro','policia','ataque','forcas','nacional',
+  'pais','cidade','seguranca','crise','nao','mas','que','foi','sao','esta','este']);
+function detectLangue(texte) {
+  if (!texte) return 'fr';
+  if (AR_RANGE.test(texte)) return 'ar';
+  const mots = texte.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/[«»"'’,.:;!?()\/\-–—]/g,' ').split(/\s+/).filter(Boolean);
+  let fr = 0, en = 0, pt = 0;
+  mots.forEach(m => {
+    if (SOC_STOPWORDS.has(m)) fr++;
+    if (EN_STOPWORDS.has(m)) en++;
+    if (PT_STOPWORDS.has(m)) pt++;
   });
-  return texte;
+  if (en > fr && en > pt) return 'en';
+  if (pt > fr && pt > en) return 'pt';
+  return 'fr'; // par defaut (majorite des sources historiques) si ambigu
 }
 
-// trFetch(texte) : traduction FR→EN via MyMemory (API publique, sans clé, CORS ouvert).
-// Résultat mis en cache dans TR_CACHE ; repli silencieux sur le texte original en cas d'échec.
-async function trFetch(texte) {
+// tr(texte, elId) : renvoie le texte tel quel si sa langue detectee correspond
+// deja a la langue active (LANG), sinon lance une traduction en tache de fond
+// (mise en cache) et patche le DOM (element elId) une fois recue — meme
+// principe que la version precedente, generalise a toute langue source
+// (fr/en/pt/ar) vers la langue active (fr ou en), et non plus seulement fr→en.
+function tr(texte, elId, transform) {
   if (!texte) return texte;
-  if (TR_CACHE[texte] !== undefined) return TR_CACHE[texte];
+  const srcLang = detectLangue(texte);
+  if (srcLang === LANG) return texte; // deja dans la langue active : rien a faire
+  const cacheKey = LANG + ':' + texte;
+  if (TR_CACHE[cacheKey] !== undefined) return transform ? transform(TR_CACHE[cacheKey]) : TR_CACHE[cacheKey];
+  trFetch(texte, srcLang, LANG).then(out => {
+    if (detectLangue(texte) === LANG) return; // LANG a change entre-temps
+    const el = elId ? document.getElementById(elId) : null;
+    // transform(out) : ex. re-appliquer extraitLoyal() apres traduction, pour
+    // que le texte injecte dans le DOM respecte la meme limite de longueur
+    // (usage loyal) que le texte original tronque affiche avant traduction.
+    if (el) el.textContent = transform ? transform(out) : out;
+  });
+  return texte; // texte original affiche le temps que la traduction arrive
+}
+
+// trFetch(texte, srcLang, tgtLang) : traduction via MyMemory (API publique,
+// sans clé, CORS ouvert). Cache par paire de langue (TR_CACHE[tgtLang+':'+texte])
+// pour ne jamais confondre une traduction fr→en et en→fr du même texte source.
+// Repli silencieux sur le texte original en cas d'échec (source non fiable,
+// hors ligne, quota API...).
+async function trFetch(texte, srcLang, tgtLang) {
+  if (!texte) return texte;
+  srcLang = srcLang || detectLangue(texte);
+  tgtLang = tgtLang || LANG;
+  const cacheKey = tgtLang + ':' + texte;
+  if (TR_CACHE[cacheKey] !== undefined) return TR_CACHE[cacheKey];
+  if (srcLang === tgtLang) { TR_CACHE[cacheKey] = texte; return texte; }
   try {
-    const r = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(texte) + '&langpair=fr|en');
+    const r = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(texte) + '&langpair=' + srcLang + '|' + tgtLang);
     const d = await r.json();
     const out = (d && d.responseData && d.responseData.translatedText) ? d.responseData.translatedText : texte;
-    TR_CACHE[texte] = out;
+    TR_CACHE[cacheKey] = out;
     return out;
   } catch (e) {
-    TR_CACHE[texte] = texte;
+    TR_CACHE[cacheKey] = texte;
     return texte;
   }
 }
@@ -3067,21 +3115,23 @@ function rl(cle) {
   return dict[cle] !== undefined ? dict[cle] : (RAPPORT_LBL.fr[cle] !== undefined ? RAPPORT_LBL.fr[cle] : cle);
 }
 // preTraduireRapport(textes) : à appeler (avec await) juste avant de construire
-// un rapport. Si LANG='en', traduit en parallèle tous les textes fournis (noms
-// de pays, titres d'articles, mesures...) via trFetch et remplit TR_CACHE, pour
-// que L(texte) puisse ensuite renvoyer une traduction déjà disponible de façon
-// synchrone pendant la génération du document. Si LANG='fr', ne fait rien.
+// un rapport. Traduit en parallèle, vers la langue active (LANG), tous les
+// textes fournis (noms de pays, titres d'articles, mesures...) dont la langue
+// détectée diffère de LANG, et remplit TR_CACHE — pour que L(texte) puisse
+// ensuite renvoyer une traduction déjà disponible de façon synchrone pendant
+// la génération du document (Word/PDF/PPTX/Excel).
 async function preTraduireRapport(textes) {
-  if (LANG !== 'en') return;
-  const uniques = [...new Set(textes.filter(Boolean))];
-  await Promise.all(uniques.map(txt => trFetch(txt)));
+  const uniques = [...new Set(textes.filter(Boolean))].filter(t => detectLangue(t) !== LANG);
+  await Promise.all(uniques.map(txt => trFetch(txt, detectLangue(txt), LANG)));
 }
 // L(texte) : version synchrone de tr(), pour les rapports. Renvoie la
-// traduction en cache si LANG='en' et déjà traduite (via preTraduireRapport),
-// sinon le texte français d'origine (jamais de trou dans le document).
+// traduction en cache si elle est déjà disponible (via preTraduireRapport),
+// sinon le texte d'origine (jamais de trou dans le document).
 function L(texte) {
-  if (LANG !== 'en' || !texte) return texte;
-  return TR_CACHE[texte] !== undefined ? TR_CACHE[texte] : texte;
+  if (!texte) return texte;
+  if (detectLangue(texte) === LANG) return texte;
+  const cacheKey = LANG + ':' + texte;
+  return TR_CACHE[cacheKey] !== undefined ? TR_CACHE[cacheKey] : texte;
 }
 
 // ── PAYS = CLÉ DE CORRÉLATION GLOBALE ──────────────────────────────────────
@@ -4485,12 +4535,13 @@ function renderCorrelations() {
   }
   cont.innerHTML = signaux.map(s => {
     const flags = s.pays.map(cy => (PAYS_INFO[cy]||{}).flag || '🌍').join(' ');
-    const rows = s.articles.slice(0, 8).map(a => {
+    const rows = s.articles.slice(0, 8).map((a, ai) => {
       const pys = PAYS_INFO[a.cy] || {flag:'🌍',name:a.cy};
       const lvl = levelMeta(a.level);
+      const trId = 'corrtt-'+s.terme+'-'+ai;
       return '<div class="corr-link" onclick="switchView(\'flux\',document.querySelector(\'.ntab\'));showDet(\''+_seEsc(a.id)+'\')">' +
         '<span class="corr-tag" style="background:'+lvl.bg+';color:'+lvl.col+';">'+pys.flag+' '+pys.name+'</span>' +
-        '<span style="font-size:11px;color:var(--t);flex:1;">'+_seHighlight(a.title, [])+'</span>' +
+        '<span style="font-size:11px;color:var(--t);flex:1;" id="'+_seEsc(trId)+'">'+_seHighlight(tr(a.title,trId), [])+'</span>' +
       '</div>';
     }).join('');
     return '<div class="corr-node" style="margin-bottom:10px;">' +
@@ -5679,7 +5730,7 @@ function renderToast(a) {
       '<span style="font-size:10px;color:var(--lg);font-weight:600;">'+cc.flag+' '+cc.name+'</span>'+
       '<span style="margin-left:auto;font-size:13px;color:var(--lg);cursor:pointer;" onclick="event.stopPropagation();dismissToastManual(\''+id+'\')">✕</span>'+
     '</div>'+
-    '<div style="font-size:12px;font-weight:700;color:var(--t);line-height:1.35;margin-bottom:3px;">'+a.title+'</div>'+
+    '<div style="font-size:12px;font-weight:700;color:var(--t);line-height:1.35;margin-bottom:3px;" id="'+id+'-tt">'+tr(a.title,id+'-tt')+'</div>'+
     '<div style="font-size:9px;color:var(--lg);display:flex;align-items:center;gap:4px;">'+
       '<i class="ti ti-clock" style="font-size:10px"></i> Vient d etre publie · '+(fmtAge(a.pubDate)||'a l instant')+
     '</div>';
@@ -6042,7 +6093,7 @@ function showDet(id) {
     return html;
   })() : '';
   panel.innerHTML=
-    '<div class="dh"><div class="dt">'+a.title+'</div>'+
+    '<div class="dh"><div class="dt" id="dettt-'+a.id+'">'+tr(a.title,'dettt-'+a.id)+'</div>'+
     '<div class="dc" onclick="document.getElementById(\'detPanel\').className=\'det\'"><i class="ti ti-x"></i></div></div>'+
     confHtml+
     '<div class="dlvl" style="background:'+bgC+';border-left:4px solid '+bc+';color:'+bc+'">'+
@@ -6058,7 +6109,7 @@ function showDet(id) {
         ? 'Le lien ci-dessus mene directement a la depeche source.'
         : 'Aucun lien direct vers cette depeche precise n\'a ete trouve a la collecte : le lien mene vers la page de recherche ou de categorie du site source.')+
     '</div>'+
-    '<div class="dan">'+extraitLoyal(a.analysis, EXTRAIT_MAX_CARACTERES)+'</div>'+
+    '<div class="dan" id="detan-'+a.id+'">'+extraitLoyal(tr(a.analysis,'detan-'+a.id, t=>extraitLoyal(t,EXTRAIT_MAX_CARACTERES)), EXTRAIT_MAX_CARACTERES)+'</div>'+
     '<div style="font-size:8px;color:var(--lg);padding:6px 0 0;font-style:italic;border-top:.5px solid var(--bd);margin-top:8px;">Extrait à fin de veille (usage loyal). Contenu et droits appartenant à la source citée. Consulter l\'article complet sur le site d\'origine.</div>'+
     (a.recos?.length?'<div class="drec"><div class="drec-hd"><i class="ti ti-chevron-right"></i>Actions recommandees</div>'+
       a.recos.map(r=>'<div class="rli">'+r+'</div>').join('')+'</div>':'')+
@@ -6537,9 +6588,9 @@ function updSynthese() {
       const villeTxt=geo.ville?(' · '+geo.ville+(geo.estime?' (estime)':'')):'';
       html+='<div class="sy-ar">'+
         '<div class="sy-lvl '+lc+'"><i class="ti '+lic(a.level)+'"></i>'+lt+' — '+cc.flag+' '+cc.name+villeTxt+' — '+catFr(a.cat)+'</div>'+
-        '<div class="sy-tt2">'+a.title+'</div>'+
+        '<div class="sy-tt2" id="sytt-'+a.id+'">'+tr(a.title,'sytt-'+a.id)+'</div>'+
         '<div style="font-size:9px;color:var(--lg);font-weight:600;margin:2px 0 4px;"><i class="ti ti-clock" style="font-size:9px;vertical-align:-1px"></i> Publie le '+fmtFull(a.pubDate)+' ('+fmtAge(a.pubDate)+')'+((a.pubDate&&(Date.now()-a.pubDate)<12*3600000)?' <span style="font-size:8px;font-weight:700;color:#fff;background:#15803D;padding:1px 6px;border-radius:3px;">−12H</span>':'')+'</div>'+
-        '<div class="sy-bd">'+a.analysis.slice(0,280)+(a.analysis.length>280?'...':'')+'</div>'+
+        '<div class="sy-bd" id="sybd-'+a.id+'">'+tr(a.analysis,'sybd-'+a.id, t=>t.slice(0,280)+(t.length>280?'...':'')).slice(0,280)+(a.analysis.length>280?'...':'')+'</div>'+
         '<div class="sy-sr"><a href="'+safeUrl(articleLienDirect(a), ps.n+' actualite')+'" target="_blank" class="ssrc">'+
           '<span class="dot" style="background:'+ps.col+'"></span>'+ps.n+'<i class="ti ti-external-link"></i></a>'+
           '<span class="ss-sc '+sc+'">'+a.score+'%</span></div>'+
@@ -6757,7 +6808,7 @@ function renderRecherche() {
         (lvl ? `<span style="font-size:8px;font-weight:700;padding:1px 6px;border-radius:3px;background:${lvl.bg};color:${lvl.col};">${lvl.label}</span>` : '') +
         (r.dateLabel ? `<span style="margin-left:auto;font-size:9px;color:var(--lg);"><i class="ti ti-clock" style="font-size:10px"></i> ${r.dateLabel}</span>` : '') +
       `</div>` +
-      `<div style="font-size:12px;font-weight:700;color:var(--t);line-height:1.35;">${_seHighlight(r.title, tokens)}</div>` +
+      `<div style="font-size:12px;font-weight:700;color:var(--t);line-height:1.35;" id="setr-${_seEsc(r.type+'_'+r.id)}">${_seHighlight(tr(r.title,'setr-'+r.type+'_'+r.id), tokens)}</div>` +
       (r.snippet ? `<div style="font-size:10.5px;color:var(--t2);margin-top:3px;line-height:1.4;">${_seHighlight(extraitLoyal(r.snippet, 160), tokens)}</div>` : '') +
     `</div>`;
   }).join('');
