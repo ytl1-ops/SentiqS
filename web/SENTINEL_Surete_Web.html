@@ -10315,19 +10315,33 @@ async function exportPPTX(type) {
       circle(sl, cx-r*0.13, cy0-r*0.13, r*0.26, SKY);
     };
 
-    // ── Slide 1 — Titre (fond sombre) ──────────────────────────────────
-    let s = newSlide(NAVY);
-    circle(s, 11.7, -0.6, 2.6, NAVY2);
-    circle(s, 12.5, 5.6, 2.2, NAVY2);
-    drawRadarPPTX(s, 0.95, 1.55, 0.38);
-    s.addText('SENTINEL', {x:0.7,y:2.35,w:9,h:0.8,fontSize:42,bold:true,color:'FFFFFF',fontFace:'Cambria',charSpacing:2});
-    s.addText('SÛRETÉ', {x:0.7,y:2.95,w:9,h:0.8,fontSize:42,bold:true,color:SKY,fontFace:'Cambria',charSpacing:2});
-    s.addText((titrePPTX+' '+periode.label+' — '+perimetre).toUpperCase(), {x:0.7,y:3.95,w:11,h:0.5,fontSize:17,color:'C7D3DF',fontFace:'Calibri',charSpacing:1});
-    s.addText(fmtD(dateDebut)+'  →  '+fmtD(dateFin), {x:0.7,y:4.45,w:11,h:0.4,fontSize:12,italic:true,color:'8A99A8',fontFace:'Calibri'});
+    // ── Slide 1 — Couverture (fond clair, mise en page scindée) ─────────
+    // Sur le modele du gabarit de reference (SENTINEL Modele PPTX) :
+    // bloc de texte a gauche, panneau decoratif radar a droite (pas de
+    // photo disponible dans cet export automatise, remplacee par le motif
+    // radar de la marque plutot qu'un emplacement image vide).
+    const EEF = 'EEF1F5', SLATE = '5B7290', DARK2 = '3D4C5E';
+    let s = newSlide(EEF);
+    s.addText((LANG==='en'?'Operational report — All zones · Africa':'Rapport opérationnel — Toutes zones · Afrique'),
+      {x:0.6,y:2.15,w:7.2,h:0.4,fontSize:13,color:SLATE,fontFace:'Calibri',charSpacing:2});
+    s.addText('SENTINEL SÛRETÉ', {x:0.6,y:2.6,w:7.2,h:1.1,fontSize:52,bold:true,color:NAVY,fontFace:'Cambria'});
+    s.addText(titrePPTX.charAt(0)+titrePPTX.slice(1).toLowerCase()+' '+periode.label.toLowerCase()+' — '+perimetre,
+      {x:0.6,y:3.7,w:7.2,h:0.55,fontSize:19,bold:true,color:DARK2,fontFace:'Calibri'});
     const nowPPTX = new Date();
-    s.addText((LANG==='en'?'Generated on: ':'Généré le : ')+nowPPTX.toLocaleDateString('fr-FR')+' '+nowPPTX.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+'   |   '+(LANG==='en'?'Slot: ':'Créneau : ')+nowPPTX.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}), {x:0.7,y:4.85,w:11,h:0.35,fontSize:10.5,color:'8A99A8',fontFace:'Calibri'});
-    s.addText('USAGE RESTREINT — RESPONSABLES SÛRETÉ', {x:0.7,y:6.7,w:9,h:0.4,fontSize:11,bold:true,color:RED,fontFace:'Calibri',charSpacing:1});
-    s.addText(arts.length+' articles analysés · '+new Date().toLocaleDateString('fr-FR')+'', {x:0.7,y:7.05,w:9,h:0.35,fontSize:9,color:'6B7A88',fontFace:'Calibri'});
+    s.addText((LANG==='en'?'Generated on ':'Généré le ')+nowPPTX.toLocaleDateString('fr-FR')+' '+(LANG==='en'?'at ':'à ')+nowPPTX.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'   ·   '+(LANG==='en'?'Slot ':'Créneau ')+nowPPTX.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),
+      {x:0.6,y:4.35,w:7.2,h:0.4,fontSize:13,color:SLATE,fontFace:'Calibri'});
+    s.addText(fmtD(dateDebut)+'  →  '+fmtD(dateFin), {x:0.6,y:4.72,w:7.2,h:0.35,fontSize:11.5,italic:true,color:SLATE,fontFace:'Calibri'});
+    s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:5.35,w:4.4,h:0.42,fill:{type:'none'},line:{color:RED,width:1}});
+    s.addText((LANG==='en'?'Restricted use — security officers':'Usage restreint — responsables sûreté'),
+      {x:0.6,y:5.35,w:4.4,h:0.42,fontSize:11,bold:true,color:RED,fontFace:'Calibri',charSpacing:1,align:'center',valign:'middle'});
+
+    // Panneau droit (motif radar decoratif)
+    s.addShape(pres.shapes.RECTANGLE, {x:8.03,y:0,w:5.3,h:7.5,fill:{color:NAVY},line:{type:'none'}});
+    circle(s, 12.7,-0.5,2.3, NAVY2);
+    circle(s, 8.4,6.9,1.8, NAVY2);
+    drawRadarPPTX(s, 10.68, 3.75, 1.55);
+    s.addText('SENTINEL', {x:8.4,y:5.75,w:4.5,h:0.5,fontSize:22,bold:true,color:'FFFFFF',fontFace:'Cambria',charSpacing:2,align:'center'});
+    s.addText('SÛRETÉ', {x:8.4,y:6.15,w:4.5,h:0.5,fontSize:22,bold:true,color:SKY,fontFace:'Cambria',charSpacing:2,align:'center'});
 
     // ── Calculs préalables — déterminent quelles sections seront réellement
     // incluses, pour que le Sommaire (slide 2) liste exactement ce qui suit.
@@ -10346,12 +10360,16 @@ async function exportPPTX(type) {
     const socialArtsP = arts.filter(a=>a._isSocial);
     const postsPPTX = getPostsPrioritaires(socialArtsP, 5);
     const agenda = (typeof getExportAgenda === 'function' ? getExportAgenda() : []).slice(0,8);
+    // Corrélations entre pays — memes signaux que le module Correlations de
+    // l'interface (_corrBuildSignaux), pour aligner PPTX sur PDF/Word.
+    const signauxPPTX = (typeof _corrBuildSignaux === 'function') ? _corrBuildSignaux(arts) : [];
 
     const incVue    = (type==='rapport_complet' || type==='synthese');
     const incAlerte = (type==='rapport_complet' || type==='alertes') && scoresSlide.length;
     const incMarq   = (type==='rapport_complet' || type==='synthese') && marquants.length;
     const incSocial = (type==='rapport_complet' || type==='synthese') && postsPPTX.length;
     const incAgenda = (type==='rapport_complet' || type==='agenda') && agenda.length;
+    const incCorrel = (type==='rapport_complet' || type==='synthese') && signauxPPTX.length;
 
     // Traduction vers la langue active avant construction des diapositives —
     // aucune actu dans une autre langue que FR (ou EN) ne doit apparaitre.
@@ -10371,6 +10389,7 @@ async function exportPPTX(type) {
     if (incMarq)   sommaireItems.push('Incidents marquants');
     if (incSocial) sommaireItems.push('Réseaux sociaux — publications prioritaires');
     if (incAgenda) sommaireItems.push('Agenda & échéances');
+    if (incCorrel) sommaireItems.push('Corrélations entre pays');
     sommaireItems.push('Méthodologie');
     sommaireItems.forEach((label,i)=>{
       const y = 1.9 + i*0.6;
@@ -10502,6 +10521,31 @@ async function exportPPTX(type) {
         const y = 1.6 + i*0.68;
         s.addText((e.day||'')+' '+(e.month||''), {x:0.6,y:y,w:1.3,h:0.5,fontSize:12,bold:true,color:col,fontFace:'Calibri'});
         s.addText(L(e.title)||'', {x:2.05,y:y,w:10.6,h:0.5,fontSize:12,color:INK,fontFace:'Calibri'});
+      });
+    }
+
+    // ── Slide — Corrélations entre pays (signaux régionaux) ─────────────
+    // Sur le modèle de la section F. du gabarit de référence (SENTINEL
+    // Modele PPTX) : encadré CONSTATATIONS + grille de cartes par thème.
+    if (incCorrel) {
+      s = newSlide('FFFFFF');
+      sectionHead(s, 'Corrélations entre pays', 'Signaux régionaux — '+perimetre);
+      s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:1.55,w:12.13,h:0.9,fill:{color:PAPER},line:{color:LINE,width:0.75}});
+      s.addText('CONSTATATIONS', {x:0.85,y:1.68,w:4,h:0.3,fontSize:10,bold:true,color:'4B5563',fontFace:'Calibri',charSpacing:1});
+      s.addText(signauxPPTX.length+' thème'+(signauxPPTX.length>1?'s':'')+' détecté'+(signauxPPTX.length>1?'s':'')+' simultanément dans au moins 2 pays sur la période <12h — une dynamique régionale qu\'une lecture pays par pays ne révèle pas isolément.',
+        {x:0.85,y:1.98,w:11.6,h:0.45,fontSize:11,color:'374151',fontFace:'Calibri'});
+
+      const cartes = signauxPPTX.slice(0,8);
+      const colW = 5.95, rowH = 1.55, gx = 0.6, gy = 2.75, gap = 0.23;
+      cartes.forEach((sig,i)=>{
+        const col = i % 2, row = Math.floor(i/2);
+        const x = gx + col*(colW+gap), y = gy + row*(rowH+gap);
+        s.addShape(pres.shapes.RECTANGLE, {x,y,w:colW,h:rowH,fill:{color:'FFFFFF'},line:{color:LINE,width:0.75}});
+        const paysNoms = sig.pays.map(cy=>(PAYS_INFO[cy]||{}).name || cy).join(', ');
+        s.addText('#'+sig.terme, {x:x+0.18,y:y+0.1,w:colW-2,h:0.3,fontSize:13,bold:true,color:'0B1A27',fontFace:'Calibri'});
+        s.addText(sig.pays.length+' pays · '+sig.articles.length+' art.', {x:x+colW-2,y:y+0.1,w:1.85,h:0.3,fontSize:10,bold:true,color:BLUE,fontFace:'Calibri',align:'right'});
+        s.addText(paysNoms, {x:x+0.18,y:y+0.44,w:colW-0.36,h:0.42,fontSize:9,color:MUTED,fontFace:'Calibri'});
+        s.addText(sig.articles.slice(0,2).map(a=>L(a.title)).join(' · '), {x:x+0.18,y:y+0.9,w:colW-0.36,h:0.58,fontSize:9.5,color:'374151',fontFace:'Calibri'});
       });
     }
 
