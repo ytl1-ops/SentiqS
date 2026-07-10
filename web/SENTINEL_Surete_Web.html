@@ -4011,9 +4011,45 @@ let SRC_ST    = {};
 // SRC_HEALTH conserve le nombre d'échecs consécutifs par source.
 // Une source avec 3 échecs ou plus est mise en veille pour 1h afin de
 // ne pas ralentir les lots de collecte sur les sources fonctionnelles.
-let SRC_HEALTH = JSON.parse(localStorage.getItem('sentinel_src_health')||'{}');
+// AGENT AUDITEUR — bug critique corrige : ce JSON.parse s'executait au tout
+// debut du chargement du script (avant meme la definition de la moindre
+// fonction), sans try/catch. Une valeur corrompue dans localStorage (ancien
+// format incompatible, ecriture interrompue, quota depasse...) faisait
+// planter cette ligne AVANT que le reste du script (~12000 lignes) ne
+// s'execute — page blanche totale, irrecuperable sans que l'utilisateur
+// vide manuellement son stockage local. Repli sur {} en cas d'echec.
+let SRC_HEALTH = _ls(() => JSON.parse(localStorage.getItem('sentinel_src_health')||'{}'), {});
 const SRC_FAIL_THRESHOLD = 3;   // nombre d'échecs consécutifs avant mise en veille
 const SRC_COOLDOWN_MS    = 60 * 60 * 1000; // 1h en ms
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  AGENT AUDITEUR — filet de sécurité global. Sans lui, une exception non
+//  interceptée dans un clic ou une promesse (export, traduction, collecte
+//  d'une seule source défaillante...) laissait parfois un bouton bloqué en
+//  "spinner" indéfiniment — l'utilisateur percevait ça comme l'application
+//  entière plantée, alors que le reste de l'interface restait fonctionnel.
+//  Journalise l'erreur (diagnostic) ET débloque tout bouton resté en état
+//  "chargement", pour que l'app reste utilisable au lieu de sembler figée.
+// ═══════════════════════════════════════════════════════════════════════════
+function _agentAuditeurDebloquerBoutons() {
+  try {
+    document.querySelectorAll('button').forEach(btn => {
+      if (btn.disabled && (btn.querySelector('.dl-spin') || btn.classList.contains('tr-btn-busy'))) {
+        btn.disabled = false;
+        btn.classList.remove('tr-btn-busy');
+        if (btn._txt) btn.innerHTML = btn._txt;
+      }
+    });
+  } catch(_) { /* le filet de securite lui-meme ne doit jamais planter */ }
+}
+window.addEventListener('error', (e) => {
+  console.error('SENTINEL — Erreur non interceptée :', e.error || e.message);
+  _agentAuditeurDebloquerBoutons();
+});
+window.addEventListener('unhandledrejection', (e) => {
+  console.error('SENTINEL — Promesse rejetée non interceptée :', e.reason);
+  _agentAuditeurDebloquerBoutons();
+});
 
 function srcIsSkippable(src) {
   const h = SRC_HEALTH[src.id];
