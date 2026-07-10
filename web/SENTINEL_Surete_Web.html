@@ -3505,20 +3505,23 @@ function tr(texte, elId, transform) {
   return transform ? transform(placeholder) : placeholder; // jamais de texte source affiche, meme brievement
 }
 
-// retraduireActu(id) : declenchee par le bouton "traduire" pose sur chaque
-// actu du Flux (visible sur toutes, pas seulement celles en langue etrangere
-// detectee — detectLangue() est une heuristique faillible, controle manuel
-// "au cas par cas" toujours disponible). Force un nouvel appel trFetch
-// (bypass du cache meme si un echec — ex. quota MyMemory epuise — y est
-// deja consigne), pour un controle explicite et immediat sans recharger
-// toute la page.
+// retraduireActu(id) : declenchee par le bouton "Traduire" — pose sur chaque
+// actu du Flux ET sur le panneau de detail d'une actu (deux emplacements,
+// memes elements sous-jacents, cf. showDet) — visible sur toutes, pas
+// seulement celles en langue etrangere detectee (detectLangue() est une
+// heuristique faillible, controle manuel "au cas par cas" toujours
+// disponible). Traduit systematiquement VERS LANG (FR si l'interface est en
+// francais, EN si elle est en anglais — jamais l'inverse). Force un nouvel
+// appel trFetch (bypass du cache meme si un echec — ex. quota MyMemory
+// epuise — y est deja consigne), pour un controle explicite et immediat
+// sans recharger toute la page.
 async function retraduireActu(id) {
   const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
   if (!a) return;
-  const btn = document.getElementById('trbtn-' + id);
-  if (btn) { btn.classList.add('tr-btn-busy'); btn.disabled = true; }
-  const titleEl = document.getElementById('trt-' + id);
-  const descEl  = document.getElementById('tra-' + id);
+  const btns = [document.getElementById('trbtn-' + id), document.getElementById('dettrbtn-' + id)].filter(Boolean);
+  btns.forEach(btn => { btn.classList.add('tr-btn-busy'); btn.disabled = true; });
+  const titleEls = [document.getElementById('trt-' + id), document.getElementById('dettt-' + id)].filter(Boolean);
+  const descEls  = [document.getElementById('tra-' + id), document.getElementById('detan-' + id)].filter(Boolean);
   const srcLangT = detectLangue(a.title);
   const srcLangD = detectLangue(a.analysis || '');
   const [outT, outD] = await Promise.all([
@@ -3531,16 +3534,28 @@ async function retraduireActu(id) {
   // se voyait efface par ce placeholder au moindre clic.
   const titreDejaCorrect = srcLangT === LANG;
   const descDejaCorrecte = srcLangD === LANG;
-  if (titleEl && !titreDejaCorrect) titleEl.textContent = (outT === a.title) ? _trPlaceholderIndispo(srcLangT) : outT;
-  if (descEl && a.analysis && !descDejaCorrecte) descEl.textContent = (outD === a.analysis) ? _trPlaceholderIndispo(srcLangD) : outD;
-  if (btn) {
+  if (!titreDejaCorrect) {
+    const valT = (outT === a.title) ? _trPlaceholderIndispo(srcLangT) : outT;
+    titleEls.forEach(el => { el.textContent = valT; });
+  }
+  if (a.analysis && !descDejaCorrecte) {
+    const valD = (outD === a.analysis) ? _trPlaceholderIndispo(srcLangD) : outD;
+    descEls.forEach(el => {
+      // Le panneau de detail (id detan-*) affiche un extrait tronque (usage
+      // loyal) — reappliquer la meme troncature que showDet() lors du
+      // premier rendu, sinon la traduction complete remplacerait l'extrait.
+      el.textContent = el.id.startsWith('detan-') && typeof extraitLoyal === 'function'
+        ? extraitLoyal(valD, EXTRAIT_MAX_CARACTERES) : valD;
+    });
+  }
+  btns.forEach(btn => {
     btn.classList.remove('tr-btn-busy');
     btn.disabled = false;
     // Le bouton reste disponible : deja dans la langue active (rien a faire
     // de plus) ou traduction toujours indisponible (permettre un nouvel
     // essai). Retire uniquement quand une VRAIE traduction vient d'aboutir.
     if (!titreDejaCorrect && outT !== a.title) btn.remove();
-  }
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -6962,8 +6977,10 @@ function showDet(id) {
     }
     return html;
   })() : '';
+  const detTraduireDispo = detectLangue(a.title)!==LANG || detectLangue(a.analysis||'')!==LANG;
   panel.innerHTML=
     '<div class="dh"><div class="dt" id="dettt-'+a.id+'">'+tr(a.title,'dettt-'+a.id)+'</div>'+
+    (detTraduireDispo ? '<button class="tr-btn" id="dettrbtn-'+a.id+'" style="flex-shrink:0;margin-right:6px" onclick="event.stopPropagation();retraduireActu(\''+a.id+'\')" title="'+(LANG==='en'?'Translate now':'Traduire maintenant')+'"><i class="ti ti-language"></i>'+(LANG==='en'?'Translate':'Traduire')+'</button>' : '')+
     '<div class="dc" onclick="document.getElementById(\'detPanel\').className=\'det\'"><i class="ti ti-x"></i></div></div>'+
     confHtml+
     '<div class="dlvl" style="background:'+bgC+';border-left:4px solid '+bc+';color:'+bc+'">'+
