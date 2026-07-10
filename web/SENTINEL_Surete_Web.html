@@ -3448,7 +3448,14 @@ function detectLangue(texte) {
   });
   if (en > fr && en > pt) return 'en';
   if (pt > fr && pt > en) return 'pt';
-  return 'fr'; // par defaut (majorite des sources historiques) si ambigu
+  // Aucun mot-outil FR/EN/PT reconnu sur un texte assez long pour en
+  // contenir normalement (langue locale non couverte par les listes
+  // ci-dessus — chichewa, swahili, haoussa, wolof, yoruba, amharique...) :
+  // NE PAS presumer francais par defaut, sinon ce texte est considere
+  // "deja dans la langue active" et s'affiche tel quel, illisible, sans
+  // placeholder ni bouton Traduire (cf. tr()/retraduireActu ci-dessous).
+  if (fr === 0 && en === 0 && pt === 0 && mots.length >= 4) return 'other';
+  return 'fr'; // par defaut (majorite des sources historiques) si ambigu ou texte trop court
 }
 
 // tr(texte, elId) : renvoie le texte tel quel si sa langue detectee correspond
@@ -3461,8 +3468,8 @@ function detectLangue(texte) {
 // remplace par la vraie traduction des qu'elle aboutit.
 function _trNomLangue(l) {
   const noms = LANG === 'en'
-    ? {ar:'Arabic', pt:'Portuguese', en:'English', fr:'French'}
-    : {ar:'arabe', pt:'portugais', en:'anglais', fr:'français'};
+    ? {ar:'Arabic', pt:'Portuguese', en:'English', fr:'French', other:'unrecognized'}
+    : {ar:'arabe', pt:'portugais', en:'anglais', fr:'français', other:'non reconnue'};
   return noms[l] || l;
 }
 function _trPlaceholderEnCours() {
@@ -3591,7 +3598,8 @@ async function _trViaMyMemory(texte, srcLang, tgtLang) {
   // les visiteurs de l'appli derriere la meme IP/proxy). Avec un email
   // enregistre, MyMemory porte ce quota a 50000 mots/jour (gratuit, sans
   // cle API).
-  const r = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(texte) + '&langpair=' + srcLang + '|' + tgtLang + '&de=yorot225@gmail.com', { signal: AbortSignal.timeout(6000) });
+  const srcMM = (srcLang === 'other') ? 'autodetect' : srcLang;
+  const r = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(texte) + '&langpair=' + srcMM + '|' + tgtLang + '&de=yorot225@gmail.com', { signal: AbortSignal.timeout(6000) });
   const d = await r.json();
   const out = (d && d.responseData && d.responseData.translatedText) ? d.responseData.translatedText : null;
   if (_trReponseInvalide(d, out)) throw new Error('mymemory: quota depasse ou reponse invalide');
@@ -3608,9 +3616,10 @@ const LINGVA_MIRRORS = [
   'https://lingva.garudalinux.org',
 ];
 async function _trViaLingva(texte, srcLang, tgtLang) {
+  const srcLV = (srcLang === 'other') ? 'auto' : srcLang;
   for (const mirror of LINGVA_MIRRORS) {
     try {
-      const url = mirror + '/api/v1/' + srcLang + '/' + tgtLang + '/' + encodeURIComponent(texte);
+      const url = mirror + '/api/v1/' + srcLV + '/' + tgtLang + '/' + encodeURIComponent(texte);
       const r = await fetch(url, { signal: AbortSignal.timeout(6000) });
       const d = await r.json();
       if (d && typeof d.translation === 'string' && d.translation.trim()) return d.translation;
@@ -3622,7 +3631,8 @@ async function _trViaLingva(texte, srcLang, tgtLang) {
 // Moteur 3/3 — endpoint public de Google Translate (sans cle, utilise par de
 // nombreux outils open-source). Dernier recours de l'agent.
 async function _trViaGoogle(texte, srcLang, tgtLang) {
-  const url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=' + srcLang + '&tl=' + tgtLang + '&dt=t&q=' + encodeURIComponent(texte);
+  const srcGT = (srcLang === 'other') ? 'auto' : srcLang;
+  const url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=' + srcGT + '&tl=' + tgtLang + '&dt=t&q=' + encodeURIComponent(texte);
   const r = await fetch(url, { signal: AbortSignal.timeout(6000) });
   const d = await r.json();
   const out = (Array.isArray(d) && Array.isArray(d[0])) ? d[0].map(seg => seg[0]).join('') : null;
@@ -3664,6 +3674,12 @@ async function trFetch(texte, srcLang, tgtLang, force) {
   // retenter tout de suite, sans attendre un rechargement complet de la page.
   if (TR_CACHE[cacheKey] !== undefined && !(force && TR_CACHE[cacheKey] === texte && srcLang !== tgtLang)) return TR_CACHE[cacheKey];
   if (srcLang === tgtLang) { TR_CACHE[cacheKey] = texte; return texte; }
+  // 'other' (langue locale non couverte par detectLangue — chichewa, swahili,
+  // haoussa...) n'est pas un code de langue valide pour les moteurs de
+  // traduction : chaque moteur mappe ce cas vers son propre mot-cle de
+  // detection automatique (voir _trViaMyMemory/_trViaLingva/_trViaGoogle),
+  // srcLang lui-meme reste inchange (utilise plus haut pour le cache et la
+  // comparaison avec tgtLang).
   for (const moteur of TR_AGENT_PROVIDERS) {
     try {
       const out = await moteur(texte, srcLang, tgtLang);
