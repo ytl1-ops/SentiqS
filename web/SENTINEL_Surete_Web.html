@@ -2104,8 +2104,9 @@ button:not(:disabled){
                 <i class="ti ti-shield-exclamation" style="font-size:16px;color:var(--b)"></i>
                 <span style="font-size:12px;font-weight:700;color:var(--t)">Alertes pays</span>
               </div>
-              <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Fiches pays, niveaux d'alerte et mesures.</div>
+              <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Fiches pays, niveaux d'alerte, mesures et actualité nationale/régionale.</div>
               <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <button class="btn-dl btn-dl-word" onclick="exportWord('alertes')"><i class="ti ti-file-text"></i>Word</button>
                 <button class="btn-dl btn-dl-pdf" onclick="exportPDF('alertes')"><i class="ti ti-file-type-pdf"></i>PDF</button>
                 <button class="btn-dl" style="background:#EFF6FF;color:var(--b);border-color:#BFDBFE" onclick="exportPPTX('alertes')"><i class="ti ti-presentation"></i>PowerPoint</button>
               </div>
@@ -3780,6 +3781,88 @@ const PAYS_INFO = {
 function infoPays(cy) {
   if (cy === 'INT') return { flag:'🌐', name:'International', capital:'' };
   return PAYS_INFO[cy] || { flag:'🌍', name:cy };
+}
+
+// PAYS_LIMITROPHES : frontières terrestres par pays (adjacence géographique
+// réelle, pas la zone régionale ZONES_GEO qui est un simple regroupement
+// administratif). Alimente l'enrichissement des rapports "Alertes pays" en
+// actualité régionale (pays limitrophes). Îles sans frontière terrestre
+// (Cap-Vert, Comores, Madagascar, Maurice, Seychelles, Sao Tomé) : liste vide.
+const PAYS_LIMITROPHES = {
+  AO:['CD','CG','NA','ZM'], BF:['ML','NE','BJ','TG','GH','CI'], BI:['RW','TZ','CD'],
+  BJ:['TG','BF','NE','NG'], BW:['NA','ZA','ZW','ZM'], CD:['CG','CF','SS','UG','RW','BI','TZ','ZM','AO'],
+  CF:['TD','SD','SS','CD','CG','CM'], CG:['GA','CM','CF','CD','AO'], CI:['LR','GN','ML','BF','GH'],
+  CM:['NG','TD','CF','CG','GA','GQ'], CV:[], DJ:['ER','ET','SO'], DZ:['MA','MR','ML','NE','LY','TN'],
+  EG:['LY','SD'], ER:['SD','ET','DJ'], ET:['ER','DJ','SO','KE','SS','SD'], GA:['GQ','CM','CG'],
+  GH:['CI','BF','TG'], GM:['SN'], GN:['GW','SN','ML','CI','LR','SL'], GQ:['CM','GA'],
+  GW:['SN','GN'], KE:['ET','SO','TZ','UG','SS'], KM:[], LR:['SL','GN','CI'], LS:['ZA'],
+  LY:['TN','DZ','NE','TD','SD','EG'], MA:['DZ','MR'], MG:[], ML:['DZ','NE','BF','CI','GN','SN','MR'],
+  MR:['DZ','MA','ML','SN'], MU:[], MW:['TZ','MZ','ZM'], MZ:['TZ','MW','ZM','ZW','ZA','SZ'],
+  NA:['AO','ZM','BW','ZA'], NE:['DZ','LY','TD','NG','BJ','BF','ML'], NG:['BJ','NE','TD','CM'],
+  RW:['UG','TZ','BI','CD'], SC:[], SD:['EG','LY','TD','CF','SS','ET','ER'], SL:['GN','LR'],
+  SN:['MR','ML','GN','GW','GM'], SO:['DJ','ET','KE'], SS:['SD','ET','KE','UG','CD','CF'], ST:[],
+  SZ:['ZA','MZ'], TD:['LY','SD','CF','CM','NG','NE'], TG:['GH','BF','BJ'], TN:['DZ','LY'],
+  TZ:['KE','UG','RW','BI','CD','ZM','MW','MZ'], UG:['KE','SS','CD','RW','TZ'],
+  ZA:['NA','BW','ZW','MZ','SZ','LS'], ZM:['AO','CD','TZ','MW','MZ','ZW','BW','NA'],
+  ZW:['ZA','BW','ZM','MZ'],
+};
+
+// _articleKey(a) : identifiant stable d'un article pour la deduplication
+// inter-sections d'un meme rapport (une actu ne doit jamais etre citee deux
+// fois dans le meme document — ex. section nationale d'un pays ET section
+// regionale d'un pays voisin). Priorite a l'URL (identifiant le plus fiable,
+// deux sources distinctes du meme fait ont des URLs differentes) ; repli sur
+// pays+titre si l'URL manque.
+function _articleKey(a) {
+  return a.url || ((a.cy||'')+'|'+(a.title||''));
+}
+
+function pickNationalNews(cy, artsTries, usedKeys, cap) {
+  cap = cap || 3;
+  const out = [];
+  for (const a of artsTries) {
+    if (a.cy !== cy) continue;
+    const k = _articleKey(a);
+    if (usedKeys.has(k)) continue;
+    out.push(a); usedKeys.add(k);
+    if (out.length >= cap) break;
+  }
+  return out;
+}
+
+function pickRegionalNews(cy, artsTries, usedKeys, cap) {
+  cap = cap || 3;
+  const voisins = PAYS_LIMITROPHES[cy] || [];
+  const out = [];
+  if (voisins.length) {
+    for (const a of artsTries) {
+      if (!voisins.includes(a.cy)) continue;
+      const k = _articleKey(a);
+      if (usedKeys.has(k)) continue;
+      out.push(a); usedKeys.add(k);
+      if (out.length >= cap) break;
+    }
+  }
+  return out;
+}
+
+// buildCountryDossier(cy, artsTries, usedKeys, capNational, capRegional) :
+// selectionne, pour UN SEUL pays, jusqu'a capNational actualites nationales
+// et jusqu'a capRegional actualites regionales (pays limitrophes, chacune
+// etiquetee avec son pays d'origine) — sans jamais reutiliser un article deja
+// cite ailleurs dans le meme rapport (usedKeys). artsTries doit deja etre
+// trie par pertinence (severite puis recence) par l'appelant.
+// N'utiliser QUE pour un rapport a perimetre mono-pays (ex. diapositive
+// PPTX en focus sur un pays) : pour une boucle multi-pays (PDF/Word "Alertes
+// pays" sur plusieurs pays), traiter le national de TOUS les pays d'abord
+// (pickNationalNews en boucle), puis SEULEMENT ENSUITE le regional de tous
+// les pays (pickRegionalNews en boucle) — sinon un pays a fort score traite
+// en premier peut "voler" comme actualite regionale les articles qui
+// auraient du rester l'actualite nationale d'un pays voisin traite plus tard.
+function buildCountryDossier(cy, artsTries, usedKeys, capNational, capRegional) {
+  const national = pickNationalNews(cy, artsTries, usedKeys, capNational);
+  const regional = pickRegionalNews(cy, artsTries, usedKeys, capRegional);
+  return { national, regional, voisins: PAYS_LIMITROPHES[cy] || [] };
 }
 
 // ZONES_GEO : regroupements régionaux utilisés pour les filtres Synthèse / Agenda / Rapports.
@@ -10794,6 +10877,37 @@ async function exportPPTX(type) {
           s.addText('Mesure clé — Installations', {x:3.6,y:5.5,w:9,h:0.35,fontSize:12,bold:true,color:BLUE,fontFace:'IBM Plex Sans'});
           s.addText(mes.installations[0]||'', {x:3.6,y:5.9,w:9,h:0.5,fontSize:12,color:INK,fontFace:'IBM Plex Sans'});
         }
+
+        // Actualité nationale + régionale (pays limitrophes) — dossier pays,
+        // sur une diapositive dédiée pour laisser la place nécessaire.
+        const rangOrdreP = {crit:0, high:1, mod:2, ok:3};
+        const artsP = getExportDataPeriode(periode.jours).slice().sort((x,y) => {
+          const r = (rangOrdreP[x.level]??3)-(rangOrdreP[y.level]??3); if (r!==0) return r;
+          return (y.pubDate||0)-(x.pubDate||0);
+        });
+        const dossierP = buildCountryDossier(scopeCy, artsP, new Set(), 4, 4);
+        if (dossierP.national.length || dossierP.regional.length) {
+          s = newSlide('FFFFFF');
+          sectionHead(s, 'Dossier pays — Actualité', scoresSlide[0].pays.name);
+          let yP = 1.7;
+          if (dossierP.national.length) {
+            s.addText('ACTUALITÉ NATIONALE', {x:0.6,y:yP,w:11.6,h:0.3,fontSize:11,bold:true,color:BLUE,fontFace:'IBM Plex Mono'});
+            yP += 0.42;
+            dossierP.national.forEach(a => {
+              s.addText('•  '+L(a.title)+'  ('+(a.time||'')+')', {x:0.6,y:yP,w:11.6,h:0.36,fontSize:11.5,color:INK,fontFace:'IBM Plex Sans'});
+              yP += 0.4;
+            });
+            yP += 0.2;
+          }
+          if (dossierP.regional.length) {
+            s.addText('ACTUALITÉ RÉGIONALE — PAYS LIMITROPHES', {x:0.6,y:yP,w:11.6,h:0.3,fontSize:11,bold:true,color:BLUE,fontFace:'IBM Plex Mono'});
+            yP += 0.42;
+            dossierP.regional.forEach(a => {
+              s.addText('•  ['+L(infoPays(a.cy).name)+']  '+L(a.title)+'  ('+(a.time||'')+')', {x:0.6,y:yP,w:11.6,h:0.36,fontSize:11.5,color:INK,fontFace:'IBM Plex Sans'});
+              yP += 0.4;
+            });
+          }
+        }
       } else {
         // Plusieurs pays : graphique en barres, score composite /100
         const top = scoresSlide.slice(0,10);
@@ -11447,13 +11561,38 @@ async function exportPDF(type) {
       const cys = fRapportCy!=='all' ? [fRapportCy] : Object.keys(PAYS_INFO).filter(cy => !fRapportZone || fRapportZone==='all' || CY_TO_ZONE[cy]===fRapportZone);
       const scores = cys.map(cy=>({cy, pays:PAYS_INFO[cy], sc:calcAlertScore(cy)})).sort((a,b2)=>b2.sc.total-a.sc.total);
 
+      // Enrichissement par pays — actualité nationale + actualité régionale
+      // (pays limitrophes, chacune étiquetée avec son pays d'origine), sans
+      // jamais citer deux fois la même actu dans le rapport (usedKeys partagé
+      // entre tous les pays du périmètre).
+      const rangOrdreAl = {crit:0, high:1, mod:2, ok:3};
+      const artsAl = getExportData().slice().sort((x,y) => {
+        const r = (rangOrdreAl[x.level]??3)-(rangOrdreAl[y.level]??3); if (r!==0) return r;
+        return (y.pubDate||0)-(x.pubDate||0);
+      });
+      const usedKeysAl = new Set();
+      // Deux passes : le national de TOUS les pays est reserve avant que le
+      // regional d'aucun pays ne soit rempli (sinon un pays a fort score,
+      // traite en premier, pourrait "voler" comme actualite regionale des
+      // articles qui restent l'actualite nationale d'un voisin traite plus
+      // tard dans la boucle).
+      scores.forEach(s => { if (s && s.cy) s.dossier = { national: pickNationalNews(s.cy, artsAl, usedKeysAl, 3), regional: [] }; });
+      scores.forEach(s => { if (s && s.cy) s.dossier.regional = pickRegionalNews(s.cy, artsAl, usedKeysAl, 3); });
+
       // Traduction FR->EN des données dynamiques du rapport (noms de pays,
-      // mesures de protection) si l'interface est basculée en anglais. Les
-      // libellés fixes (ALERTES PAYS, Incidents, ROUGE/RED...) passent par rl(),
-      // instantané ; seul le contenu variable a besoin d'un aller-retour réseau,
-      // fait ici en une fois, avant de construire le PDF page par page.
+      // mesures de protection, titres d'actualité) si l'interface est
+      // basculée en anglais. Les libellés fixes (ALERTES PAYS, Incidents,
+      // ROUGE/RED...) passent par rl(), instantané ; seul le contenu
+      // variable a besoin d'un aller-retour réseau, fait ici en une fois,
+      // avant de construire le PDF page par page.
       const textesATraduire = [];
-      scores.forEach(s=>{ if (s && s.pays && s.pays.name) textesATraduire.push(s.pays.name); });
+      scores.forEach(s=>{
+        if (s && s.pays && s.pays.name) textesATraduire.push(s.pays.name);
+        if (s && s.dossier) {
+          s.dossier.national.forEach(a=>textesATraduire.push(a.title));
+          s.dossier.regional.forEach(a=>textesATraduire.push(a.title));
+        }
+      });
       Object.values(MESURES).forEach(m=>{ textesATraduire.push(m.expatries[0], m.installations[0]); });
       await preTraduireRapport(textesATraduire);
 
@@ -11479,6 +11618,14 @@ async function exportPDF(type) {
           const mes = MESURES[s.sc.key];
           if (mes && mes.expatries && mes.expatries[0]) b.bullet(rl('expatries')+' : '+L(mes.expatries[0]));
           if (mes && mes.installations && mes.installations[0]) b.bullet(rl('installations')+' : '+L(mes.installations[0]));
+          if (s.dossier && s.dossier.national.length) {
+            b.para((LANG==='en'?'National news':'Actualité nationale'), {bold:true, size:9, color:rgb(0.114,0.373,0.659)});
+            s.dossier.national.forEach(a => b.bullet(L(a.title)+'  ('+(a.time||'')+')'));
+          }
+          if (s.dossier && s.dossier.regional.length) {
+            b.para((LANG==='en'?'Regional news — neighbouring countries':'Actualité régionale — pays limitrophes'), {bold:true, size:9, color:rgb(0.114,0.373,0.659)});
+            s.dossier.regional.forEach(a => b.bullet('['+L(infoPays(a.cy).name)+'] '+L(a.title)+'  ('+(a.time||'')+')'));
+          }
           b.y -= 6;
         } catch(errPays) {
           paysEnErreur++;
@@ -12056,6 +12203,59 @@ async function exportWord(type){
       }
     }
 
+    if(type==='alertes'){
+      children.push(divider());
+      children.push(topBar('IV. ALERTES PAYS — Niveau composite & dossier régional', '8B1A1A'));
+      const cysW = fRapportCy!=='all' ? [fRapportCy] : Object.keys(PAYS_INFO).filter(cy => !fRapportZone || fRapportZone==='all' || CY_TO_ZONE[cy]===fRapportZone);
+      const scoresW = cysW.map(cy=>({cy, pays:PAYS_INFO[cy], sc:calcAlertScore(cy)})).sort((a,b2)=>b2.sc.total-a.sc.total);
+      children.push(para(rl('pays_perimetre')(scoresW.length), {color:'6B7280'}));
+      children.push(calloutBox(LANG==='en'?'READING GUIDE':'GUIDE DE LECTURE',
+        LANG==='en'
+          ? 'Composite score = verified incidents + aggravating factors, out of 100. Levels: RED (critical), BROWN (severe), ORANGE (high), YELLOW (moderate), GREEN (stable).'
+          : 'Score composite = incidents vérifiés + facteurs aggravants, sur 100. Niveaux : ROUGE (critique), MARRON (sévère), ORANGE (élevé), JAUNE (modéré), VERT (stable).',
+        '4B5563'));
+      children.push(new Paragraph({spacing:{after:120}}));
+
+      const rangOrdreW = {crit:0, high:1, mod:2, ok:3};
+      const artsW = getExportData().slice().sort((x,y) => {
+        const r = (rangOrdreW[x.level]??3)-(rangOrdreW[y.level]??3); if (r!==0) return r;
+        return (y.pubDate||0)-(x.pubDate||0);
+      });
+      const usedKeysW = new Set();
+      // Deux passes (voir buildCountryDossier) : national de tous les pays
+      // reservé avant que le regional d'aucun pays ne soit rempli.
+      scoresW.forEach(s => { if (s && s.cy) s.dossier = { national: pickNationalNews(s.cy, artsW, usedKeysW, 3), regional: [] }; });
+      scoresW.forEach(s => { if (s && s.cy) s.dossier.regional = pickRegionalNews(s.cy, artsW, usedKeysW, 3); });
+      let paysEnErreurW = 0;
+      for (const s of scoresW) {
+        try {
+          if (!s || !s.pays || !s.sc) { paysEnErreurW++; continue; }
+          const nivLabel = rl('niv')[s.sc.key] || '—';
+          children.push(heading((s.pays.flag||'')+' '+L(s.pays.name)+'  —  '+nivLabel+'  ('+rl('score')+' '+s.sc.total100+'/100)', 2, '1B5FA8'));
+          children.push(para(rl('incidents')+' : '+s.sc.baseScore+' '+rl('verifies')+' · '+rl('facteurs')+' : '+s.sc.specialScore, {color:'6B7280'}));
+          const mesW = MESURES[s.sc.key];
+          if (mesW && mesW.expatries && mesW.expatries[0]) children.push(para('▶ '+rl('expatries')+' : '+L(mesW.expatries[0])));
+          if (mesW && mesW.installations && mesW.installations[0]) children.push(para('▶ '+rl('installations')+' : '+L(mesW.installations[0])));
+
+          const dossierW = s.dossier || {national:[],regional:[]};
+          if (dossierW.national.length) {
+            children.push(para(LANG==='en'?'National news':'Actualité nationale', {bold:true, color:'1B5FA8'}));
+            dossierW.national.forEach(a => children.push(para('▶ '+L(a.title)+'  ('+(a.time||'')+')')));
+          }
+          if (dossierW.regional.length) {
+            children.push(para(LANG==='en'?'Regional news — neighbouring countries':'Actualité régionale — pays limitrophes', {bold:true, color:'1B5FA8'}));
+            dossierW.regional.forEach(a => children.push(para('▶ ['+L(infoPays(a.cy).name)+'] '+L(a.title)+'  ('+(a.time||'')+')')));
+          }
+          children.push(new Paragraph({spacing:{after:160}}));
+        } catch(errPaysW) {
+          paysEnErreurW++;
+          console.warn('SENTINEL — pays ignoré dans le Word Alertes (', (s&&s.cy)||'?', ') :', errPaysW);
+        }
+      }
+      if (!scoresW.length) children.push(para(rl('aucun_pays'), {italic:true, color:'6B7280'}));
+      if (paysEnErreurW) children.push(para(paysEnErreurW+(LANG==='en'?' country/countries skipped due to incomplete data (see console).':' pays ignoré(s) suite à une donnée incomplète (voir console).'), {color:'B45309'}));
+    }
+
     // Pied de rapport — pas d'adresse e-mail (usage interne uniquement).
     children.push(divider());
     children.push(new Paragraph({
@@ -12095,7 +12295,7 @@ async function exportWord(type){
     }]});
 
     const blob=await Packer.toBlob(doc);
-    const tname={flux:'Flux',synthese:'Synthese',agenda:'Agenda',rapport_complet:'Rapport_Complet'}[type]||type;
+    const tname={flux:'Flux',synthese:'Synthese',agenda:'Agenda',rapport_complet:'Rapport_Complet',alertes:'Alertes_Pays'}[type]||type;
     dlFile(blob,'SENTINEL_'+tname+suffixePerimetre()+'_'+new Date().toISOString().slice(0,10)+'.docx');
 
   }catch(e){
