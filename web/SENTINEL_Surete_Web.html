@@ -7459,7 +7459,12 @@ function renderDashboard() {
   const artsActifs = (ALL||[]).filter(a=>estRecentReel(a));
   const nbCrit  = artsActifs.filter(a=>a.level==='crit').length;
   const nbHigh  = artsActifs.filter(a=>a.level==='high').length;
-  const nbPays  = new Set(artsActifs.map(a=>a.cy)).size;
+  // Exclut 'INT' (actualite internationale, hors des 54 pays d'Afrique) du
+  // decompte "Pays couverts" — sinon une actu internationale (ex. Espagne,
+  // Chine) se comptait a tort comme un 55e "pays" couvert, gonflant le
+  // chiffre au lieu de refleter la couverture reelle des 54 pays africains.
+  // Meme correctif deja applique aux rapports exportes (Word/PDF/PPTX).
+  const nbPays  = new Set(artsActifs.filter(a=>a.cy && a.cy!=='INT').map(a=>a.cy)).size;
   const nbSrcs  = new Set(artsActifs.map(a=>a.primary)).size;
 
   // Scores par pays (54 pays) — score ET niveau calcules ensemble (un seul
@@ -10971,7 +10976,9 @@ async function exportPPTX(type) {
     const nbHigh = arts.filter(a=>a.level==='high').length;
     const nbMod  = arts.filter(a=>a.level==='mod').length;
     const nbOk   = arts.filter(a=>a.level==='ok').length;
-    const nbPays = new Set(arts.map(a=>a.cy)).size;
+    // Exclut 'INT' (actualite internationale) du decompte "Pays couverts" —
+    // meme correctif que le tableau de bord et les autres formats d'export.
+    const nbPays = new Set(arts.filter(a=>a.cy && a.cy!=='INT').map(a=>a.cy)).size;
     const nbSrcs = new Set(arts.map(a=>a.primary)).size;
 
     const scoresSlide = (scopeCy ? [scopeCy] : Object.keys(PAYS_INFO).filter(cy => !scopeZone || CY_TO_ZONE[cy]===scopeZone))
