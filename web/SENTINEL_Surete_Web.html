@@ -3601,6 +3601,23 @@ async function _trViaGoogle(texte, srcLang, tgtLang) {
 
 const TR_AGENT_PROVIDERS = [_trViaMyMemory, _trViaLingva, _trViaGoogle];
 
+// _trDecodeEntities(str) : MyMemory (et parfois d'autres API de traduction
+// publiques) renvoie occasionnellement le texte traduit avec des caracteres
+// accentues echappes en entites HTML numeriques (ex. "p&#xEA;cheurs" au lieu
+// de "pêcheurs") plutot qu'en UTF-8 brut. Sans decodage, ces entites
+// s'affichent telles quelles (comme du texte litteral) partout ou la
+// traduction est utilisee : Flux, Synthese, et les rapports Word/PDF/PPTX
+// exportes. On decode via le parseur HTML natif du navigateur (un <textarea>
+// n'execute ni script ni style, contrairement a un <div>) plutot qu'avec une
+// regex maison, pour couvrir toutes les formes d'entites (numeriques ET
+// nommees) sans avoir a maintenir une table de correspondance.
+function _trDecodeEntities(str) {
+  if (typeof str !== 'string' || str.indexOf('&') === -1) return str;
+  const ta = document.createElement('textarea');
+  ta.innerHTML = str;
+  return ta.value;
+}
+
 // trFetch(texte, srcLang, tgtLang) : point d'entree de l'agent de traduction.
 // Cache par paire de langue (TR_CACHE[tgtLang+':'+texte]) pour ne jamais
 // confondre une traduction fr→en et en→fr du même texte source. Repli
@@ -3620,8 +3637,8 @@ async function trFetch(texte, srcLang, tgtLang, force) {
     try {
       const out = await moteur(texte, srcLang, tgtLang);
       if (typeof out === 'string' && out.trim()) {
-        TR_CACHE[cacheKey] = out;
-        return out;
+        TR_CACHE[cacheKey] = _trDecodeEntities(out);
+        return TR_CACHE[cacheKey];
       }
     } catch (e) { /* moteur suivant de l'agent */ }
   }
