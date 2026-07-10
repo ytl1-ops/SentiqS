@@ -981,6 +981,8 @@ html.force-mobile .ops-label{display:none}
 .btn-dl-pdf:hover{background:#FEE2E2}
 .btn-dl-csv{background:#FFFBEB;color:#92400E;border-color:#FDE68A}
 .btn-dl-csv:hover{background:#FEF3C7}
+.btn-dl-apercu{background:#F1F4F8;color:#0D1B2A;border-color:#D1D9E0}
+.btn-dl-apercu:hover{background:#E7EBEF}
 .dl-sep{width:1px;height:20px;background:var(--bd);margin:0 4px;flex-shrink:0}
 .dl-spin{animation:spin .7s linear infinite}
 /* ── TABLEAU DE BORD ENTERPRISE ─────────────────────────────────────── */
@@ -1909,6 +1911,7 @@ button:not(:disabled){
           <span class="dl-toolbar-label"><i class="ti ti-download"></i>Exporter</span>
           <button class="btn-dl btn-dl-word" onclick="exportWord(&#39;synthese&#39;)"><i class="ti ti-file-text"></i>Rapport Word</button>
           <button class="btn-dl btn-dl-pdf" onclick="exportPDF(&#39;synthese&#39;)"><i class="ti ti-file-type-pdf"></i>PDF</button>
+          <button class="btn-dl btn-dl-apercu" onclick="apercuSynthese()"><i class="ti ti-printer"></i>Aperçu impression</button>
           <div class="dl-sep"></div>
           <span style="font-size:9px;color:var(--lg)" id="dlSyntheseDate">Données du 04/07/2026 20:08</span>
         </div>
@@ -2055,6 +2058,7 @@ button:not(:disabled){
                 <button class="btn-dl btn-dl-word" onclick="exportWord('synthese')"><i class="ti ti-file-text"></i>Word</button>
                 <button class="btn-dl btn-dl-pdf" onclick="exportPDF('synthese')"><i class="ti ti-file-type-pdf"></i>PDF</button>
                 <button class="btn-dl" style="background:#EFF6FF;color:var(--b);border-color:#BFDBFE" onclick="exportPPTX('synthese')"><i class="ti ti-presentation"></i>PowerPoint</button>
+                <button class="btn-dl btn-dl-apercu" onclick="apercuSynthese()"><i class="ti ti-printer"></i>Aperçu impression</button>
               </div>
             </div>
 
@@ -11039,6 +11043,206 @@ async function exportPDF(type) {
   } catch(e) {
     console.error('SENTINEL — Erreur export PDF ('+type+') :', e);
     alert('Erreur PDF ('+type+'): '+e.message+(e.stack?'\n\n'+e.stack.split('\n').slice(0,4).join('\n'):''));
+  } finally {
+    setTimeout(()=>btnReset(btn),600);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  APERÇU IMPRESSION — SYNTHÈSE (design masthead — cf. Claude Design)
+//  Rendu HTML/CSS pixel-fidèle au gabarit imprimable validé (police
+//  Source Serif 4 / IBM Plex Sans / IBM Plex Mono, bandeau de section,
+//  cartes de corrélation), ouvert dans un nouvel onglet puis envoyé à
+//  window.print() — contrairement à exportPDF() (pdf-lib), ce rendu
+//  passe par le moteur d'impression du navigateur, seul moyen fidèle
+//  aux polices/à la mise en page du gabarit. Alimenté par les mêmes
+//  données live que exportWord()/exportPDF() (getExportData(),
+//  _corrBuildSignaux()...) — ce n'est pas un instantané figé.
+// ════════════════════════════════════════════════════════════════════
+
+function _apEsc(s) {
+  return (s == null ? '' : String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function _apLevelPill(a) {
+  const lm = levelMeta(a.level);
+  return '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;font-weight:600;color:'+lm.col+';background:'+lm.bg+';padding:2px 7px;border-radius:3px;letter-spacing:0.04em;">'+_apEsc(lm.label)+'</span>';
+}
+
+function _apArticleItem(a) {
+  const geo = detectGeo(a.cy, a.title+' '+(a.analysis||''));
+  const villeTxt = geo.ville ? (geo.ville+(geo.estime?' (estimé)':'')) : '';
+  const pays = infoPays(a.cy);
+  const lieu = pays.name + (villeTxt ? ' — '+villeTxt : '');
+  return '<div style="margin-bottom:18px;break-inside:avoid;">'
+    + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;">'
+    + _apLevelPill(a)
+    + '<span style="font-weight:600;font-size:15px;color:#111827;">'+_apEsc(L(a.title))+'</span>'
+    + '</div>'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#9CA3AF;">'+_apEsc(lieu)+' &nbsp;·&nbsp; '+_apEsc(a.time||'')+'</div>'
+    + '</div>';
+}
+
+function _apCorrelationCard(s) {
+  const paysNoms = s.pays.map(cy => (PAYS_INFO[cy]||{}).name || cy).join(', ');
+  const titres = s.articles.slice(0,3).map(a => L(a.title)).join(' · ');
+  return '<div style="border:1px solid #D1D9E0;border-radius:4px;padding:12px 14px;break-inside:avoid;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">'
+    + '<span style="font-weight:700;font-size:13.5px;color:#0B1A27;">#'+_apEsc(s.terme)+'</span>'
+    + '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:#1B5FA8;font-weight:600;">'+s.pays.length+' pays · '+s.articles.length+' art.</span>'
+    + '</div>'
+    + '<div style="font-size:11.5px;color:#6B7280;line-height:1.5;margin-bottom:6px;">'+_apEsc(paysNoms)+'</div>'
+    + '<div style="font-size:12px;color:#374151;line-height:1.5;">'+_apEsc(titres)+'</div>'
+    + '</div>';
+}
+
+function _apSocialSection(arts) {
+  const socialArts = arts.filter(a => a._isSocial);
+  if (!socialArts.length) return '';
+  let pos=0, neg=0;
+  socialArts.forEach(a => { const s=computeSentiment(a.title+' '+(a.analysis||'')); if (s.label==='positif') pos++; else if (s.label==='negatif') neg++; });
+  const termes = extractTopTermes(socialArts, 5);
+  const chaines = getChainesActives(socialArts, 5);
+  const posts = getPostsPrioritaires(socialArts, 6);
+  const bandeau = (label,color) => '<div style="background:'+color+';color:#fff;padding:6px 12px;font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.03em;margin:14px 0 10px;break-inside:avoid;">'+_apEsc(label)+'</div>';
+  let html = '<h2 style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:16px;color:#4B5563;border-bottom:2px solid #4B5563;padding-bottom:6px;margin:26px 0 14px;">E. Réseaux sociaux — Buzz, tendance, risque</h2>';
+  html += bandeau('BUZZ — VOLUME & ACTIVITÉ', '#0066FF');
+  html += '<div style="font-size:12.5px;color:#374151;line-height:1.55;margin-bottom:6px;">'+socialArts.length+' publications — '+pos+' positives, '+neg+' négatives, '+(socialArts.length-pos-neg)+' neutres.</div>';
+  if (chaines.length) html += '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:#6B7280;">Chaînes actives : '+_apEsc(chaines.map(c=>c.nom+' ('+c.n+')').join(' · '))+'</div>';
+  html += bandeau('TENDANCE — THÈMES ÉMERGENTS', '#0086A0');
+  html += '<div style="font-size:12.5px;color:#374151;line-height:1.55;">'+(termes.length ? _apEsc(termes.map(t=>t.terme).join(', ')) : 'Pas assez de volume pour dégager une tendance.')+'</div>';
+  html += bandeau('RISQUE — ALERTES & MENACES', '#8B1A1A');
+  if (posts.length) {
+    html += posts.map(p => '<div style="margin-bottom:14px;break-inside:avoid;">'
+      + '<div style="font-weight:700;font-size:13px;color:#0B1A27;">'+_apEsc(L(p.pays.name))+' — '+_apEsc(p.sujets.map(s=>s.label).join(', '))+'</div>'
+      + '<div style="font-size:12.5px;color:#374151;line-height:1.5;margin:2px 0;">'+_apEsc(L(p.resume))+'</div>'
+      + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:#9CA3AF;">'+_apEsc(p.date)+' · Sentiment : '+_apEsc(p.sentiment)+' · Criticité : '+_apEsc(p.criticite)+' · Fiabilité : '+_apEsc(p.fiabilite)+'</div>'
+      + '</div>').join('');
+  } else {
+    html += '<div style="font-size:12.5px;color:#6B7280;font-style:italic;">Aucune publication à sujet prioritaire détectée sur la période.</div>';
+  }
+  return html;
+}
+
+const AP_CAT_DEFS = [
+  {k:'securite',    lettre:'A', lb:'Situation sécuritaire',    col:'#8B1A1A'},
+  {k:'humanitaire', lettre:'B', lb:'Axe humanitaire',          col:'#7C4A00'},
+  {k:'politique',   lettre:'C', lb:'Environnement politique',  col:'#1B5FA8'},
+  {k:'economique',  lettre:'D', lb:'Contexte économique',      col:'#0F4F2A'},
+];
+
+function _buildRapportSyntheseHTML(arts) {
+  const now = new Date();
+  const dateGenLong = now.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' à '+now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  const creneau = now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  const perimetre = libellePerimetreRapport();
+
+  const nbSrcsMedia = SRCS.filter(s => !(s.rss_method||'').match(/Twitter|Telegram|Facebook/)).length;
+  const nbSrcsSociales = SRCS.length - nbSrcsMedia;
+  const nbCritiques = arts.filter(a => a.level==='crit').length;
+  const nbPaysCouverts = new Set(arts.filter(a => a.cy && a.cy!=='INT').map(a => a.cy)).size;
+  const nbSrcActifs = new Set(arts.map(a => a.primary)).size;
+
+  const rangOrdre = {crit:0, high:1, mod:2, ok:3};
+  const cmp = (x,y) => { const r=(rangOrdre[x.level]??3)-(rangOrdre[y.level]??3); if (r!==0) return r; return (y.pubDate||0)-(x.pubDate||0); };
+
+  const byCat = {securite:[], humanitaire:[], politique:[], economique:[]};
+  arts.forEach(a => { if (byCat[a.cat]) byCat[a.cat].push(a); });
+
+  let sectionsHTML = '';
+  AP_CAT_DEFS.forEach(cd => {
+    const items = byCat[cd.k].slice().sort(cmp).slice(0,8);
+    if (!items.length) return;
+    sectionsHTML += '<h2 style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:16px;color:'+cd.col+';border-bottom:2px solid '+cd.col+';padding-bottom:6px;margin:0 0 14px;">'+cd.lettre+'. '+_apEsc(cd.lb)+'</h2>';
+    sectionsHTML += items.map(_apArticleItem).join('');
+  });
+
+  sectionsHTML += _apSocialSection(arts);
+
+  let corrHTML = '';
+  if (typeof _corrBuildSignaux === 'function') {
+    const signaux = _corrBuildSignaux(arts);
+    if (signaux.length) {
+      corrHTML = '<h2 style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:16px;color:#4B5563;border-bottom:2px solid #4B5563;padding-bottom:6px;margin:26px 0 14px;">F. Corrélations entre pays — Signaux régionaux</h2>'
+        + '<div style="background:#F5F8FB;border:1px solid #D1D9E0;border-radius:4px;padding:14px 16px;margin-bottom:18px;break-inside:avoid;">'
+        + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.08em;font-weight:600;color:#4B5563;margin-bottom:6px;">CONSTATATIONS</div>'
+        + '<div style="font-size:13.5px;color:#374151;line-height:1.55;">'+signaux.length+' thème'+(signaux.length>1?'s':'')+' détecté'+(signaux.length>1?'s':'')+' simultanément dans au moins 2 pays sur la période &lt;12h — une dynamique régionale qu\'une lecture pays par pays ne révèle pas isolément.</div>'
+        + '</div>'
+        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">'
+        + signaux.slice(0,10).map(_apCorrelationCard).join('')
+        + '</div>';
+    }
+  }
+
+  const session = (typeof getSession === 'function') ? getSession() : {email:''};
+
+  return '<!DOCTYPE html><html><head><meta charset="utf-8">'
+    + '<title>SENTINEL Synthèse — '+_apEsc(now.toLocaleDateString('fr-FR'))+'</title>'
+    + '<link rel="preconnect" href="https://fonts.googleapis.com">'
+    + '<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">'
+    + '<style>'
+    + '@page{size:letter;margin:0}'
+    + 'html,body{margin:0;padding:0;background:#E7EBEF;font-family:\'IBM Plex Sans\',sans-serif;color:#111827}'
+    + '*{box-sizing:border-box}'
+    + '.sheet{width:8.5in;min-height:11in;margin:24px auto;background:#fff;box-shadow:0 2px 14px rgba(20,20,19,.12);border-radius:2px;padding:0.55in}'
+    + '@media print{html,body{background:none}.sheet{width:auto;min-height:0;margin:0;box-shadow:none;border-radius:0}}'
+    + '</style></head><body><div class="sheet">'
+
+    + '<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #0D1B2A;padding-bottom:10px;margin-bottom:18px;">'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#6B7280;text-transform:uppercase;">Généré le '+_apEsc(dateGenLong)+' &nbsp;·&nbsp; Créneau '+_apEsc(creneau)+'</div>'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#8B1A1A;font-weight:600;text-transform:uppercase;">Usage restreint — responsables sûreté</div>'
+    + '</div>'
+
+    + '<div style="text-align:center;margin-bottom:6px;">'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.16em;color:#9CA3AF;text-transform:uppercase;margin-bottom:10px;">Rapport opérationnel — '+_apEsc(perimetre)+'</div>'
+    + '<h1 style="font-family:\'Source Serif 4\',serif;font-weight:800;font-size:40px;letter-spacing:0.01em;color:#0D1B2A;margin:0 0 8px;">SENTINEL SÛRETÉ</h1>'
+    + '<div style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:600;font-size:16px;color:#0B1A27;margin-bottom:14px;">Analyse sécuritaire opérationnelle</div>'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#6B7280;">'+SRCS.length+' sources ('+nbSrcsMedia+' médias + '+nbSrcsSociales+' réseaux sociaux) &nbsp;·&nbsp; filtre anti-hallucination &lt;12h &nbsp;·&nbsp; '+arts.length+' articles analysés</div>'
+    + '</div>'
+
+    + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:26px 0 30px;border-top:1px solid #D1D9E0;border-bottom:1px solid #D1D9E0;padding:18px 0;">'
+    + '<div style="text-align:center;border-right:1px solid #D1D9E0;"><div style="font-family:\'Source Serif 4\',serif;font-weight:700;font-size:32px;color:#0D1B2A;">'+arts.length+'</div><div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.08em;color:#6B7280;margin-top:4px;">ARTICLES</div></div>'
+    + '<div style="text-align:center;border-right:1px solid #D1D9E0;"><div style="font-family:\'Source Serif 4\',serif;font-weight:700;font-size:32px;color:#8B1A1A;">'+nbCritiques+'</div><div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.08em;color:#6B7280;margin-top:4px;">CRITIQUES</div></div>'
+    + '<div style="text-align:center;border-right:1px solid #D1D9E0;"><div style="font-family:\'Source Serif 4\',serif;font-weight:700;font-size:32px;color:#1B5FA8;">'+nbPaysCouverts+'</div><div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.08em;color:#6B7280;margin-top:4px;">PAYS</div></div>'
+    + '<div style="text-align:center;"><div style="font-family:\'Source Serif 4\',serif;font-weight:700;font-size:32px;color:#0F4F2A;">'+nbSrcActifs+'</div><div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.08em;color:#6B7280;margin-top:4px;">SOURCES</div></div>'
+    + '</div>'
+
+    + '<div style="background:#0D1B2A;color:#FFFFFF;padding:10px 14px;font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.03em;margin-bottom:20px;">I. SYNTHÈSE ANALYTIQUE — SITUATION RÉGIONALE</div>'
+
+    + sectionsHTML
+    + corrHTML
+
+    + '<div style="margin-top:30px;border-top:1px solid #D1D9E0;padding-top:12px;display:flex;justify-content:space-between;font-family:\'IBM Plex Mono\',monospace;font-size:10.5px;color:#9CA3AF;">'
+    + '<span>SENTINEL SÛRETÉ</span><span>'+_apEsc(dateGenLong)+' UTC</span><span>'+_apEsc(session.email||'')+'</span>'
+    + '</div>'
+
+    + '</div>'
+    + '<script>(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(function(){setTimeout(function(){window.print()},250)});<\/script>'
+    + '</body></html>';
+}
+
+async function apercuSynthese() {
+  const btn = event?.target; btnSpin(btn);
+  try {
+    const arts = getExportData();
+    const textesATraduire = arts.flatMap(a => [a.title, a.analysis]);
+    const socialArts = arts.filter(a => a._isSocial);
+    let postsPrev = [];
+    if (socialArts.length) {
+      postsPrev = getPostsPrioritaires(socialArts, 6);
+      textesATraduire.push(...postsPrev.map(p => p.resume));
+    }
+    await preTraduireRapport(textesATraduire);
+
+    const html = _buildRapportSyntheseHTML(arts);
+    const w = window.open('', '_blank');
+    if (!w) { alert("Fenêtre bloquée par le navigateur — autorisez les popups pour SENTINEL puis réessayez."); return; }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+  } catch(e) {
+    console.error('SENTINEL — Erreur aperçu impression (synthese) :', e);
+    alert('Erreur aperçu : '+e.message);
   } finally {
     setTimeout(()=>btnReset(btn),600);
   }
