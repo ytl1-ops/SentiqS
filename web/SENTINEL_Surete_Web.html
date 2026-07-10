@@ -5974,6 +5974,11 @@ async function doCollect() {
   if (typeof planifierAnalyseIA === 'function') planifierAnalyseIA(ALL);
   // Mise a jour du ruban Flash Info — throttlee en interne a 3h (voir majFlashInfo)
   if (typeof majFlashInfo === 'function') majFlashInfo();
+  // Agent de verification des liens source (arriere-plan, non bloquant) :
+  // corrige silencieusement les liens deja casses avant que l'utilisateur
+  // ne clique dessus. Delai de 2s pour laisser le reseau de la collecte
+  // elle-meme se liberer avant d'ajouter des requetes de verification.
+  if (typeof agentValiderLiensArticles === 'function') setTimeout(() => agentValiderLiensArticles(ALL), 2000);
   // Etat honnete : distinguer collecte reussie et echec total, et afficher
   // la couverture reelle des 54 pays d'Afrique.
   const liveEl = document.getElementById('liveTxt');
@@ -6104,6 +6109,84 @@ function safeUrl(rawUrl, fallbackQuery) {
     return 'https://www.google.com/search?q=' + encodeURIComponent(fallbackQuery || rawUrl);
   }
 }
+// ═══════════════════════════════════════════════════════════════════════════
+//  AGENT DE VERIFICATION DES LIENS SOURCE — le lien direct capture a la
+//  collecte (a.url) peut se reveler mort au moment ou l'utilisateur clique
+//  (article deplace/depublie chez le media source entretemps, ou lien deja
+//  casse au moment meme de la collecte). Sans verification, "Lire l'article
+//  complet" menait alors tout droit vers une page d'erreur (404 ou autre)
+//  chez le site source. Cet agent tourne en arriere-plan apres chaque
+//  collecte : il verifie chaque lien direct via le meme pool de proxys CORS
+//  que la collecte RSS elle-meme (CORS_PX), et marque les liens morts
+//  (a._lienMort) pour qu'articleLienDirect() bascule automatiquement sur la
+//  page de la source (repli deja garanti fonctionnel) — jamais de lien casse
+//  propose a l'utilisateur.
+// ═══════════════════════════════════════════════════════════════════════════
+const LIEN_VALIDE_CACHE = {}; // url -> true/false : evite de revalider deux fois le meme lien par session
+
+async function agentVerifierLien(url) {
+  if (LIEN_VALIDE_CACHE[url] !== undefined) return LIEN_VALIDE_CACHE[url];
+  let valide;
+  try {
+    // Course entre les proxys CORS (identiques a ceux de la collecte RSS) :
+    // le premier qui confirme un statut de reponse OK (2xx) l'emporte. Un
+    // fetch direct echouerait presque toujours (la plupart des sites de
+    // presse ne posent pas d'en-tetes CORS), d'ou le passage systematique
+    // par les proxys. Seul un succes (r.ok) resout la course : une reponse
+    // en erreur ou un timeout d'un proxy rejette sa promesse individuelle
+    // pour laisser la chance aux autres proxys, plutot que de conclure a
+    // tort a un lien mort sur le premier echec isole.
+    valide = await Promise.any(CORS_PX.map(px =>
+      fetch(px(url), { signal: AbortSignal.timeout(6000) }).then(r => {
+        if (!r.ok) throw new Error('proxy: statut ' + r.status);
+        return true;
+      })
+    ));
+  } catch (e) {
+    // AggregateError : tous les proxys ont echoue -> lien considere mort
+    valide = false;
+  }
+  LIEN_VALIDE_CACHE[url] = valide;
+  return valide;
+}
+
+// agentValiderLiensArticles(articles) : passe en arriere-plan sur les liens
+// directs pas encore verifies (plafonnee pour ne pas resaturer les proxys
+// CORS deja fortement sollicites par la collecte RSS elle-meme). Redessine
+// le Flux/la Synthese une fois la passe terminee si des corrections ont ete
+// appliquees, sans attendre la prochaine collecte.
+let _agentLiensEnCours = false;
+async function agentValiderLiensArticles(articles) {
+  if (_agentLiensEnCours) return;
+  _agentLiensEnCours = true;
+  try {
+    const MAX_A_VERIFIER = 30;
+    const aVerifier = (articles || []).filter(a => {
+      if (a._lienMort !== undefined || !a.url || a.url === '#') return false;
+      const s = gs(a.primary);
+      return a.url !== s.url;
+    }).slice(0, MAX_A_VERIFIER);
+    if (!aVerifier.length) return;
+    let corrections = 0;
+    const LOT = 5; // petits lots paralleles : rapide sans saturer les proxys partages
+    for (let i = 0; i < aVerifier.length; i += LOT) {
+      const lot = aVerifier.slice(i, i + LOT);
+      await Promise.all(lot.map(async a => {
+        const ok = await agentVerifierLien(a.url);
+        a._lienMort = !ok;
+        if (!ok) corrections++;
+      }));
+    }
+    if (corrections > 0) {
+      if (typeof dbPut === 'function') dbPut(ALL);
+      if (typeof renderFeed === 'function') renderFeed();
+      if (typeof updSynthese === 'function') updSynthese();
+    }
+  } finally {
+    _agentLiensEnCours = false;
+  }
+}
+
 // articleLienDirect(a) : URL a privilegier pour "lire l'article" sur le
 // site source. La collecte (parseRSS/parseJSON) capture deja le lien
 // direct de chaque depeche (<link> RSS/Atom, ou item.link/guid en JSON)
@@ -6114,9 +6197,12 @@ function safeUrl(rawUrl, fallbackQuery) {
 // c'est qu'aucun lien specifique n'a ete trouve a la collecte, et s.url
 // reste la meilleure option). safeUrl() se charge ensuite de reconvertir
 // les pages de recherche/categorie (Google News, Twitter) en recherche
-// Google ciblee, plutot que d'y renvoyer telles quelles.
+// Google ciblee, plutot que d'y renvoyer telles quelles. Si l'agent de
+// verification a marque a.url comme mort (a._lienMort), on bascule
+// directement sur la page de la source, garantie fonctionnelle.
 function articleLienDirect(a) {
   const src = gs(a.primary);
+  if (a._lienMort) return src.url;
   if (a.url && a.url !== '#' && a.url !== src.url) return a.url;
   return src.url;
 }
@@ -6125,6 +6211,7 @@ function articleLienDirect(a) {
 // vers la page d'accueil/recherche de la source) — utilise pour n'afficher
 // l'avertissement "lien generique" que lorsqu'il est reellement pertinent.
 function articleADesLiensDirects(a) {
+  if (a._lienMort) return false;
   const src = gs(a.primary);
   return !!(a.url && a.url !== '#' && a.url !== src.url && !/\?s=|\/search/.test(a.url));
 }
