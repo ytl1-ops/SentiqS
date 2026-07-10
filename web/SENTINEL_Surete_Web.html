@@ -10948,9 +10948,28 @@ async function exportPPTX(type) {
     // l'interface (_corrBuildSignaux), pour aligner PPTX sur PDF/Word.
     const signauxPPTX = (typeof _corrBuildSignaux === 'function') ? _corrBuildSignaux(arts) : [];
 
+    // Synthèse par catégorie (A-D) — même contenu détaillé article par
+    // article (pastille de niveau + titre + lieu/heure) que la section
+    // "I. Synthèse Analytique" du PDF/Word, réservée au Rapport complet
+    // ("des détails pour les rapports complets") ; le type Synthèse seul
+    // garde le digest condensé "Incidents marquants" ("des synthèses pour
+    // les synthèses") plutôt que de dupliquer le même contenu exhaustif.
+    const rangOrdrePptx = {crit:0, high:1, mod:2, ok:3};
+    const cmpPptx = (x,y) => { const r=(rangOrdrePptx[x.level]??3)-(rangOrdrePptx[y.level]??3); if (r!==0) return r; return (y.pubDate||0)-(x.pubDate||0); };
+    const byCatPPTX = {securite:[], humanitaire:[], politique:[], economique:[]};
+    arts.forEach(a => { if (byCatPPTX[a.cat]) byCatPPTX[a.cat].push(a); });
+    const CAT_DEFS_PPTX = [
+      {k:'securite',    lettre:'A', lb:'Situation sécuritaire',   col:'8B1A1A'},
+      {k:'humanitaire', lettre:'B', lb:'Axe humanitaire',         col:'7C4A00'},
+      {k:'politique',   lettre:'C', lb:'Environnement politique', col:'1B5FA8'},
+      {k:'economique',  lettre:'D', lb:'Contexte économique',     col:'0F4F2A'},
+    ].map(cd => ({...cd, items: byCatPPTX[cd.k].slice().sort(cmpPptx).slice(0,8)}))
+     .filter(cd => cd.items.length);
+
     const incVue    = (type==='rapport_complet' || type==='synthese');
     const incAlerte = (type==='rapport_complet' || type==='alertes') && scoresSlide.length;
-    const incMarq   = (type==='rapport_complet' || type==='synthese') && marquants.length;
+    const incMarq   = type==='synthese' && marquants.length;
+    const incCatDetail = type==='rapport_complet' && CAT_DEFS_PPTX.length;
     const incSocial = (type==='rapport_complet' || type==='synthese') && postsPPTX.length;
     const incAgenda = (type==='rapport_complet' || type==='agenda') && agenda.length;
     const incCorrel = (type==='rapport_complet' || type==='synthese') && signauxPPTX.length;
@@ -10962,6 +10981,7 @@ async function exportPPTX(type) {
     // Traduction vers la langue active avant construction des diapositives —
     // aucune actu dans une autre langue que FR (ou EN) ne doit apparaitre.
     await preTraduireRapport([
+      ...(incCatDetail ? CAT_DEFS_PPTX.flatMap(cd=>cd.items.map(a=>a.title)) : []),
       ...marquants.map(a=>a.title),
       ...postsPPTX.map(p=>p.resume),
       ...agenda.map(e=>e.title),
@@ -10976,6 +10996,7 @@ async function exportPPTX(type) {
     if (incVue)     sommaireItems.push('Vue d\'ensemble');
     if (incAlerte)  sommaireItems.push('Niveau d\'alerte');
     if (incMarq)    sommaireItems.push('Incidents marquants');
+    if (incCatDetail) CAT_DEFS_PPTX.forEach(cd => sommaireItems.push(cd.lettre+'. '+cd.lb));
     if (incFlux)    sommaireItems.push('Flux opérationnel');
     if (incSocial)  sommaireItems.push('Réseaux sociaux — publications prioritaires');
     if (incAgenda)  sommaireItems.push('Agenda & échéances');
@@ -11117,6 +11138,32 @@ async function exportPPTX(type) {
         circle(s, 0.6, y+0.06, 0.16, col);
         s.addText((pays.flag||'')+' '+pays.name+'  ·  '+(a.time||''), {x:0.95,y:y-0.08,w:11.6,h:0.3,fontSize:10,color:MUTED,fontFace:'IBM Plex Sans'});
         s.addText(L(a.title)||'', {x:0.95,y:y+0.18,w:11.6,h:0.55,fontSize:13,bold:true,color:INK,fontFace:'IBM Plex Sans'});
+      });
+    }
+
+    // ── Slides — Synthèse par catégorie A-D (Rapport complet uniquement) —
+    // pastille de niveau + titre + lieu/heure par article, sur le même
+    // modèle que la section "I. Synthèse Analytique" du PDF/Word (gabarit
+    // de référence) : le contenu détaillé, article par article, propre au
+    // Rapport complet — la Synthèse seule reste au digest "Incidents
+    // marquants" ci-dessus.
+    if (incCatDetail) {
+      CAT_DEFS_PPTX.forEach(cd => {
+        const chunkSizeCat = 5;
+        for (let ci = 0; ci < cd.items.length; ci += chunkSizeCat) {
+          const chunk = cd.items.slice(ci, ci+chunkSizeCat);
+          s = newSlide('FFFFFF');
+          sectionHead(s, cd.lettre+'. '+cd.lb, ci===0 ? (periode.label+' — '+perimetre) : (perimetre+' (suite)'));
+          chunk.forEach((a,i)=>{
+            const y = 1.55 + i*1.05;
+            const pays = infoPays(a.cy);
+            const col = LVL_COL[a.level] || '9CA3AF';
+            s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:y,w:0.95,h:0.28,fill:{color:col},line:{type:'none'}});
+            s.addText(lvlFr(a.level).toUpperCase(), {x:0.6,y:y,w:0.95,h:0.28,fontSize:8,bold:true,color:'FFFFFF',align:'center',valign:'middle',fontFace:'IBM Plex Mono'});
+            s.addText(L(a.title)||'', {x:1.7,y:y-0.06,w:10.9,h:0.55,fontSize:12,bold:true,color:INK,fontFace:'IBM Plex Sans'});
+            s.addText(pays.name+(a._ville?' — '+a._ville:'')+'  ·  '+(a.time||''), {x:1.7,y:y+0.44,w:10.9,h:0.3,fontSize:9,color:MUTED,fontFace:'IBM Plex Sans'});
+          });
+        }
       });
     }
 
@@ -11865,11 +11912,18 @@ async function exportPDF(type) {
           if (mes && mes.installations && mes.installations[0]) b.bullet(rl('installations')+' : '+L(mes.installations[0]));
           if (s.dossier && s.dossier.national.length) {
             b.para((LANG==='en'?'National news':'Actualité nationale'), {bold:true, size:9, color:rgb(0.114,0.373,0.659)});
-            s.dossier.national.forEach(a => b.bullet(L(a.title)+'  ('+(a.time||'')+')'));
+            s.dossier.national.forEach(a => {
+              const geoDos = detectGeo(a.cy, a.title+' '+(a.analysis||''));
+              const villeDos = geoDos.ville ? (geoDos.ville+(geoDos.estime?(LANG==='en'?' (estimated)':' (estimé)'):'')) : '';
+              b.articleItem({...a, title:L(a.title)}, s.pays.name+(villeDos?' — '+villeDos:''));
+            });
           }
           if (s.dossier && s.dossier.regional.length) {
             b.para((LANG==='en'?'Regional news — neighbouring countries':'Actualité régionale — pays limitrophes'), {bold:true, size:9, color:rgb(0.114,0.373,0.659)});
-            s.dossier.regional.forEach(a => b.bullet('['+L(infoPays(a.cy).name)+'] '+L(a.title)+'  ('+(a.time||'')+')'));
+            s.dossier.regional.forEach(a => {
+              const paysVoisin = infoPays(a.cy) || {};
+              b.articleItem({...a, title:L(a.title)}, paysVoisin.name || a.cy);
+            });
           }
           b.y -= 6;
         } catch(errPays) {
@@ -12690,14 +12744,38 @@ async function exportWord(type){
           if (mesW && mesW.expatries && mesW.expatries[0]) children.push(para('▶ '+rl('expatries')+' : '+L(mesW.expatries[0])));
           if (mesW && mesW.installations && mesW.installations[0]) children.push(para('▶ '+rl('installations')+' : '+L(mesW.installations[0])));
 
+          // Item d'actualité façon gabarit de référence (pastille de niveau +
+          // titre en gras, puis ligne meta lieu · heure) — même présentation
+          // que les sections A-D de la Synthèse, pour un dossier pays
+          // "détaillé" au sens du gabarit fourni, pas une simple liste à puces.
+          const dossierArticleWordS = (a, lieuTxt) => {
+            const colL = lvlColor[a.level]||'1B5FA8';
+            children.push(new Paragraph({
+              children:[
+                new TextRun({text:'['+lvlFr(a.level)+'] ', bold:true, size:18, color:colL, font:FONT_MONO}),
+                new TextRun({text:L(a.title), bold:true, size:20, color:'111827', font:FONT_SANS}),
+              ], spacing:{before:60,after:20}
+            }));
+            children.push(new Paragraph({
+              children:[new TextRun({text:lieuTxt+'   ·   '+(a.time||''), size:16, italic:true, color:'9CA3AF', font:FONT_MONO})],
+              spacing:{after:80}
+            }));
+          };
           const dossierW = s.dossier || {national:[],regional:[]};
           if (dossierW.national.length) {
             children.push(para(LANG==='en'?'National news':'Actualité nationale', {bold:true, color:'1B5FA8'}));
-            dossierW.national.forEach(a => children.push(para('▶ '+L(a.title)+'  ('+(a.time||'')+')')));
+            dossierW.national.forEach(a => {
+              const geoDosW = detectGeo(a.cy, a.title+' '+(a.analysis||''));
+              const villeDosW = geoDosW.ville ? (geoDosW.ville+(geoDosW.estime?' (estimé)':'')) : '';
+              dossierArticleWordS(a, s.pays.name+(villeDosW?' — '+villeDosW:''));
+            });
           }
           if (dossierW.regional.length) {
             children.push(para(LANG==='en'?'Regional news — neighbouring countries':'Actualité régionale — pays limitrophes', {bold:true, color:'1B5FA8'}));
-            dossierW.regional.forEach(a => children.push(para('▶ ['+L(infoPays(a.cy).name)+'] '+L(a.title)+'  ('+(a.time||'')+')')));
+            dossierW.regional.forEach(a => {
+              const paysVoisinW = infoPays(a.cy) || {};
+              dossierArticleWordS(a, paysVoisinW.name || a.cy);
+            });
           }
           children.push(new Paragraph({spacing:{after:160}}));
         } catch(errPaysW) {
