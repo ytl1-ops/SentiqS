@@ -12136,7 +12136,7 @@ async function exportWord(type){
     if(typeof docx==='undefined') throw new Error('docx.js non chargé');
     const {Document,Paragraph,TextRun,HeadingLevel,Table,TableRow,TableCell,
            WidthType,AlignmentType,BorderStyle,ShadingType,Packer,
-           TableOfContents,Header,Footer,PageNumber,NumberFormat}=docx;
+           Header,Footer,PageNumber}=docx;
 
     const arts=getExportData();
     const now=new Date();
@@ -12250,67 +12250,130 @@ async function exportWord(type){
 
     const children=[];
 
-    // ── En-tête "Bulletin de veille" — logo radar + titre + date/heure de
-    // génération + créneau, sur le modèle des bulletins de veille stratégique.
-    children.push(new Paragraph({spacing:{before:300}}));
-    children.push(new Paragraph({
-      alignment:AlignmentType.CENTER,
-      children:[new TextRun({text:'🎯',size:44})],
-      spacing:{after:80}
-    }));
-    children.push(new Paragraph({
-      alignment:AlignmentType.CENTER,
-      children:[new TextRun({text:'SENTINEL SÛRETÉ',bold:true,size:56,color:'0D1B2A',font:FONT_SERIF})],
-      spacing:{after:160},
-      border:{bottom:{style:BorderStyle.SINGLE,size:10,color:'0D1B2A',space:8}},
-    }));
-    children.push(new Paragraph({
-      alignment:AlignmentType.CENTER,
-      children:[new TextRun({text:'RAPPORT D\'ANALYSE SÉCURITAIRE OPÉRATIONNELLE',bold:true,size:28,color:'0B1A27',font:FONT_SANS})],
-      spacing:{after:120}
-    }));
-    children.push(new Paragraph({
-      alignment:AlignmentType.CENTER,
-      children:[new TextRun({text:'Généré le : '+dateStr+'  |  Créneau : '+now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),size:20,color:'6B7280',font:FONT_MONO})],
-      spacing:{after:80}
-    }));
-    children.push(new Paragraph({
-      alignment:AlignmentType.CENTER,
-      children:[new TextRun({text:libellePerimetreRapport(),size:22,color:'6B7280',italic:true,font:FONT_MONO})],
-      spacing:{after:120}
-    }));
-    children.push(new Paragraph({
-      alignment:AlignmentType.CENTER,
-      children:[new TextRun({text:'⚠ USAGE RESTREINT — RESPONSABLES SÛRETÉ',bold:true,size:20,color:'8B1A1A',font:FONT_MONO})],
-      spacing:{after:80}
-    }));
+    // ── Masthead compact — reproduit exactement le gabarit de référence
+    // (Claude Design / exportPDF bulletinHeader+statsGrid) : bandeau meta
+    // (date/créneau à gauche, usage restreint à droite), bloc centré
+    // (eyebrow "Rapport opérationnel — périmètre", titre serif "SENTINEL
+    // SÛRETÉ", sous-titre = libellé du rapport SELON LE TYPE, phrase de
+    // synthèse), puis bandeau de statistiques clés — même structure et
+    // mêmes couleurs que le PDF, pour une première page identique entre
+    // les deux formats. Remplace l'ancienne page de couverture (logo +
+    // Sommaire/TOC) qui ne correspondait plus au gabarit de référence.
+    const perimetreW = libellePerimetreRapport();
+    const titreRapportW = rl('titres_rapport')[type] || (LANG==='en'?'Report':'Rapport');
     const nbSrcsMedia = SRCS.filter(s => !(s.rss_method||'').match(/Twitter|Telegram|Facebook/)).length;
     const nbSrcsSociales = SRCS.length - nbSrcsMedia;
+    const nbSrcActifsW = new Set(arts.map(a=>a.primary)).size;
+    const nbCritiquesW = arts.filter(a=>a.level==='crit').length;
+    const nbPaysCouvertsW = new Set(arts.filter(a=>a.cy && a.cy!=='INT').map(a=>a.cy)).size;
+
+    // Phrase de synthèse + bandeau de stats — dynamiques selon le type,
+    // miroir exact de chaque branche équivalente de exportPDF (une même
+    // section produit la même phrase et les mêmes chiffres, quel que soit
+    // le format d'export).
+    let syntheseTxtW = '', statsItemsW = null;
+    if (type==='synthese' || type==='rapport_complet') {
+      syntheseTxtW = (type==='rapport_complet')
+        ? (LANG==='en' ? 'Consolidated report — analytical summary, operational feed and agenda, across '+nbSrcActifsW+' consolidated feeds.'
+                       : 'Rapport consolidé — synthèse analytique, flux opérationnel et agenda, à partir de '+nbSrcActifsW+' flux consolidés.')
+        : (LANG==='en' ? 'Impact summary on the regional security situation and disruption to state activities. Analysis of '+nbSrcActifsW+' consolidated feeds.'
+                       : "Synthèse d'impact sur la situation sécuritaire régionale et la perturbation des activités étatiques. Analyse de "+nbSrcActifsW+' flux consolidés.');
+      statsItemsW = [
+        {val:arts.length, label:LANG==='en'?'Articles':'Articles', color:'0D1B2A'},
+        {val:nbCritiquesW, label:LANG==='en'?'Critical':'Critiques', color:'8B1A1A'},
+        {val:nbPaysCouvertsW, label:LANG==='en'?'Countries':'Pays', color:'1B5FA8'},
+        {val:nbSrcActifsW, label:LANG==='en'?'Sources':'Sources', color:'0F4F2A'},
+      ];
+    } else if (type==='flux') {
+      syntheseTxtW = LANG==='en'
+        ? arts.length+' events collected over the last 12 hours, across '+nbSrcActifsW+' consolidated feeds.'
+        : arts.length+' événements collectés sur les 12 dernières heures, à partir de '+nbSrcActifsW+' flux consolidés.';
+      // Pas de bandeau de stats pour ce type (cf. exportPDF) : une liste
+      // chronologique n'appelle pas de lecture par indicateurs clés.
+    } else if (type==='agenda') {
+      const agendaMastW = getExportAgenda();
+      syntheseTxtW = LANG==='en' ? agendaMastW.length+' ongoing or upcoming events.' : agendaMastW.length+' événement'+(agendaMastW.length>1?'s':'')+' en cours ou à venir.';
+      statsItemsW = [
+        {val:agendaMastW.length, label:LANG==='en'?'Events':'Événements', color:'0D1B2A'},
+        {val:agendaMastW.filter(e=>e.status==='urgent').length, label:LANG==='en'?'Urgent':'Urgent', color:'8B1A1A'},
+        {val:agendaMastW.filter(e=>e.status==='en-cours').length, label:LANG==='en'?'Ongoing':'En cours', color:'1B5FA8'},
+        {val:agendaMastW.filter(e=>e.status==='planifie'||e.status==='surveillance').length, label:LANG==='en'?'Planned':'Planifié', color:'0F4F2A'},
+      ];
+    } else if (type==='alertes') {
+      const cysMastW = fRapportCy!=='all' ? [fRapportCy] : Object.keys(PAYS_INFO).filter(cy => !fRapportZone || fRapportZone==='all' || CY_TO_ZONE[cy]===fRapportZone);
+      const scoresMastW = cysMastW.map(cy=>({cy, sc:calcAlertScore(cy)}));
+      syntheseTxtW = rl('pays_perimetre')(scoresMastW.length);
+      statsItemsW = [
+        {val:scoresMastW.length, label:LANG==='en'?'Countries':'Pays', color:'0D1B2A'},
+        {val:scoresMastW.filter(s=>s.sc && s.sc.key==='rouge').length, label:LANG==='en'?'Red':'Rouge', color:'8B1A1A'},
+        {val:scoresMastW.filter(s=>s.sc && (s.sc.key==='marron'||s.sc.key==='orange')).length, label:LANG==='en'?'Brown / orange':'Marron / orange', color:'7C4A00'},
+        {val:scoresMastW.filter(s=>s.sc && (s.sc.key==='jaune'||s.sc.key==='vert')).length, label:LANG==='en'?'Yellow / green':'Jaune / vert', color:'0F4F2A'},
+      ];
+    } else if (type==='sources') {
+      const srcsMastW = getExportSources();
+      const nbMediaMastW = srcsMastW.filter(s=>!(s.rss_method||'').match(/Twitter|Telegram|Facebook/)).length;
+      const nbSocialMastW = srcsMastW.length - nbMediaMastW;
+      const avgFiabMastW = srcsMastW.length ? Math.round(srcsMastW.reduce((s2,x)=>s2+(x.score||0),0)/srcsMastW.length) : 0;
+      syntheseTxtW = LANG==='en'
+        ? srcsMastW.length+' sources tracked for this scope, media and social networks combined.'
+        : srcsMastW.length+' sources suivies pour ce périmètre, médias et réseaux sociaux confondus.';
+      statsItemsW = [
+        {val:srcsMastW.length, label:LANG==='en'?'Sources':'Sources', color:'0D1B2A'},
+        {val:nbMediaMastW, label:LANG==='en'?'Media':'Médias', color:'1B5FA8'},
+        {val:nbSocialMastW, label:LANG==='en'?'Social networks':'Réseaux sociaux', color:'0F4F2A'},
+        {val:avgFiabMastW+'%', label:LANG==='en'?'Avg. reliability':'Fiabilité moy.', color:'8B1A1A'},
+      ];
+    }
+
+    const mastheadMetaRow = new Table({
+      width:{size:100,type:WidthType.PERCENTAGE},
+      borders:{top:{style:BorderStyle.NONE},bottom:{style:BorderStyle.NONE},left:{style:BorderStyle.NONE},right:{style:BorderStyle.NONE},insideHorizontal:{style:BorderStyle.NONE},insideVertical:{style:BorderStyle.NONE}},
+      rows:[new TableRow({children:[
+        new TableCell({width:{size:60,type:WidthType.PERCENTAGE},borders:{top:{style:BorderStyle.NONE},bottom:{style:BorderStyle.NONE},left:{style:BorderStyle.NONE},right:{style:BorderStyle.NONE}},children:[
+          new Paragraph({children:[new TextRun({text:(LANG==='en'?'Generated on: ':'Généré le : ')+dateStr+'   |   '+(LANG==='en'?'Slot: ':'Créneau : ')+now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),size:16,color:'6B7280',font:FONT_MONO})]}),
+        ]}),
+        new TableCell({width:{size:40,type:WidthType.PERCENTAGE},borders:{top:{style:BorderStyle.NONE},bottom:{style:BorderStyle.NONE},left:{style:BorderStyle.NONE},right:{style:BorderStyle.NONE}},children:[
+          new Paragraph({alignment:AlignmentType.RIGHT,children:[new TextRun({text:LANG==='en'?'RESTRICTED USE — SECURITY OFFICERS':'USAGE RESTREINT — RESPONSABLES SÛRETÉ',bold:true,size:16,color:'8B1A1A',font:FONT_MONO})]}),
+        ]}),
+      ]})],
+    });
+
+    children.push(new Paragraph({spacing:{before:120},border:{top:{style:BorderStyle.SINGLE,size:8,color:'0D1B2A'}}}));
+    children.push(mastheadMetaRow);
+    children.push(new Paragraph({spacing:{after:160}}));
     children.push(new Paragraph({
       alignment:AlignmentType.CENTER,
-      children:[new TextRun({text:SRCS.length+' sources ('+nbSrcsMedia+' médias + '+nbSrcsSociales+' réseaux sociaux) · Filtre anti-hallucination <12h · '+arts.length+' articles analysés',size:18,color:'9CA3AF',italic:true,font:FONT_MONO})],
+      children:[new TextRun({text:((LANG==='en'?'OPERATIONAL REPORT':'RAPPORT OPÉRATIONNEL')+' — '+perimetreW.toUpperCase()),size:17,color:'9CA3AF',font:FONT_SANS})],
+      spacing:{after:100}
     }));
-
-    // ── Sommaire ────────────────────────────────────────────────────
-    children.push(new Paragraph({pageBreakBefore:true,
-      children:[new TextRun({text:'SOMMAIRE',bold:true,size:30,color:'0D1B2A'})], spacing:{after:80}}));
     children.push(new Paragraph({
-      children:[new TextRun({text:'(clic droit sur la liste ci-dessous puis « Mettre à jour les champs » pour afficher la pagination)',italic:true,size:16,color:'9CA3AF'})],
-      spacing:{after:160}
+      alignment:AlignmentType.CENTER,
+      children:[new TextRun({text:'SENTINEL SÛRETÉ',bold:true,size:54,color:'0D1B2A',font:FONT_SERIF})],
+      spacing:{after:60}
     }));
-    children.push(new TableOfContents('Sommaire', {hyperlink:true, headingStyleRange:'1-2'}));
-    children.push(new Paragraph({pageBreakBefore:true}));
+    children.push(new Paragraph({
+      alignment:AlignmentType.CENTER,
+      children:[new TextRun({text:titreRapportW,bold:true,size:25,color:'0B1A27',font:FONT_SANS})],
+      spacing:{after:200},
+      border:{bottom:{style:BorderStyle.SINGLE,size:4,color:'D1D9E0'}},
+    }));
+    if (syntheseTxtW) {
+      children.push(new Paragraph({
+        children:[new TextRun({text:syntheseTxtW,size:20,color:'6B7280',font:FONT_SANS})],
+        spacing:{after:160},
+        border:{bottom:{style:BorderStyle.SINGLE,size:4,color:'D1D9E0'}},
+      }));
+    }
+    if (statsItemsW) {
+      children.push(kpiTable(statsItemsW));
+      children.push(new Paragraph({spacing:{after:200}}));
+    } else {
+      children.push(new Paragraph({spacing:{after:80}}));
+    }
 
     if(type==='synthese'||type==='rapport_complet'){
       children.push(divider());
       children.push(topBar('I. SYNTHÈSE ANALYTIQUE — Situation régionale'));
-      children.push(kpiTable([
-        {val:arts.length, label:'Articles', color:'0D1B2A'},
-        {val:arts.filter(a=>a.level==='crit').length, label:'Critiques', color:'8B1A1A'},
-        {val:new Set(arts.map(a=>a.cy)).size, label:'Pays', color:'1B5FA8'},
-        {val:new Set(arts.map(a=>a.primary)).size, label:'Sources', color:'0F4F2A'},
-      ]));
-      children.push(new Paragraph({spacing:{after:160}}));
 
       const byCat={securite:[],humanitaire:[],politique:[],economique:[]};
       arts.slice().sort((a,b)=>(b.pubDate||0)-(a.pubDate||0)).slice(0,120)
@@ -12459,13 +12522,6 @@ async function exportWord(type){
       children.push(divider());
       children.push(topBar('III. AGENDA SÛRETÉ — Événements & échéances'));
       const agendaW=getExportAgenda();
-      children.push(kpiTable([
-        {val:agendaW.length, label:'Événements', color:'0D1B2A'},
-        {val:agendaW.filter(e=>e.status==='urgent').length, label:'Urgent', color:'8B1A1A'},
-        {val:agendaW.filter(e=>e.status==='en-cours').length, label:'En cours', color:'1B5FA8'},
-        {val:agendaW.filter(e=>e.status==='planifie'||e.status==='surveillance').length, label:'Planifié', color:'0F4F2A'},
-      ]));
-      children.push(new Paragraph({spacing:{after:160}}));
       const SL={'en-cours':'EN COURS','urgent':'URGENT','planifie':'PLANIFIÉ','surveillance':'SURVEILLANCE'};
       for(const e of agendaW){
         children.push(new Paragraph({
@@ -12488,15 +12544,6 @@ async function exportWord(type){
       children.push(divider());
       children.push(topBar(type==='rapport_complet' ? 'IV. MATRICE DES SOURCES' : 'MATRICE DES SOURCES'));
       const srcsW = getExportSources().slice().sort((a,z)=>(z.score||0)-(a.score||0));
-      const nbMediaW = srcsW.filter(s=>!(s.rss_method||'').match(/Twitter|Telegram|Facebook/)).length;
-      const nbSocialW = srcsW.length - nbMediaW;
-      children.push(kpiTable([
-        {val:srcsW.length, label:'Sources', color:'0D1B2A'},
-        {val:nbMediaW,     label:'Médias', color:'1B5FA8'},
-        {val:nbSocialW,    label:'Réseaux sociaux', color:'0F4F2A'},
-        {val:(srcsW.length ? Math.round(srcsW.reduce((s2,x)=>s2+(x.score||0),0)/srcsW.length) : 0)+'%', label:'Fiabilité moy.', color:'8B1A1A'},
-      ]));
-      children.push(new Paragraph({spacing:{after:160}}));
       // Plafonné aux sources les plus fiables — un document Word n'est pas
       // le bon format pour des centaines de lignes, la liste exhaustive
       // reste disponible via l'export Excel dédié.
@@ -12513,13 +12560,6 @@ async function exportWord(type){
       children.push(topBar('IV. ALERTES PAYS — Niveau composite & dossier régional', '8B1A1A'));
       const cysW = fRapportCy!=='all' ? [fRapportCy] : Object.keys(PAYS_INFO).filter(cy => !fRapportZone || fRapportZone==='all' || CY_TO_ZONE[cy]===fRapportZone);
       const scoresW = cysW.map(cy=>({cy, pays:PAYS_INFO[cy], sc:calcAlertScore(cy)})).sort((a,b2)=>b2.sc.total-a.sc.total);
-      children.push(kpiTable([
-        {val:scoresW.length, label:'Pays', color:'0D1B2A'},
-        {val:scoresW.filter(s=>s.sc && s.sc.key==='rouge').length, label:'Rouge', color:'8B1A1A'},
-        {val:scoresW.filter(s=>s.sc && (s.sc.key==='marron'||s.sc.key==='orange')).length, label:'Marron / orange', color:'7C4A00'},
-        {val:scoresW.filter(s=>s.sc && (s.sc.key==='jaune'||s.sc.key==='vert')).length, label:'Jaune / vert', color:'0F4F2A'},
-      ]));
-      children.push(new Paragraph({spacing:{after:160}}));
       children.push(para(rl('pays_perimetre')(scoresW.length), {color:'6B7280'}));
       children.push(calloutBox(LANG==='en'?'READING GUIDE':'GUIDE DE LECTURE',
         LANG==='en'
