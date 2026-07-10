@@ -10898,7 +10898,12 @@ async function exportPPTX(type) {
 // silencieusement pour l'utilisateur (bouton qui "ne fait rien"). On les
 // retire donc avant toute écriture dans le PDF ; le nom du pays reste affiché.
 function _pdfSafe(text) {
-  let s = String(text==null ? '' : text)
+  // Decode d'abord toute entite HTML residuelle (cf. _decodeEntitesHTML) :
+  // filet de securite supplementaire en plus du correctif a la collecte
+  // (parseRSS/parseJSON) et de l'agent correcteur (agentCorrigerTextesArticles),
+  // au cas ou une donnee encore corrompue (cache historique, source non
+  // couverte) arriverait jusqu'a l'ecriture PDF.
+  let s = (typeof _decodeEntitesHTML === 'function' ? _decodeEntitesHTML(String(text==null ? '' : text)) : String(text==null ? '' : text))
     .replace(/[\u{1F1E6}-\u{1F1FF}]/gu, '')  // lettres indicatrices régionales (drapeaux)
     .replace(/[\u{1F300}-\u{1FAFF}]/gu, '')  // emoji / pictogrammes
     .replace(/[\u{2600}-\u{27BF}]/gu, '')    // symboles divers / dingbats
@@ -11501,7 +11506,14 @@ async function exportPDF(type) {
 // ════════════════════════════════════════════════════════════════════
 
 function _apEsc(s) {
-  return (s == null ? '' : String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // Decode d'abord toute entite HTML residuelle (cf. _decodeEntitesHTML) :
+  // sans cela, un texte deja corrompu (donnee historique en cache, source non
+  // couverte) voit son "&" litteral re-echappe en "&amp;", ce qui affiche la
+  // sequence "&#xE9;" telle quelle a l'ecran au lieu du caractere "é" —
+  // double filet de securite en plus du correctif a la collecte (parseRSS/
+  // parseJSON) et de l'agent correcteur (agentCorrigerTextesArticles).
+  const decoded = (typeof _decodeEntitesHTML === 'function') ? _decodeEntitesHTML(s == null ? '' : String(s)) : (s == null ? '' : String(s));
+  return decoded.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 function _apLevelPill(a) {
