@@ -10516,12 +10516,18 @@ async function exportPPTX(type) {
     const circle = (slide, x, y, d, color, opts={}) =>
       slide.addShape(pres.shapes.OVAL, {x, y, w:d, h:d, fill:{color}, line:{type:'none'}, ...opts});
 
-    // Diapositive avec fond + numéro de page systématique (bandeau GRSCI :
-    // marque + pagination visibles sur chaque diapositive du support).
+    // Diapositive avec fond + ruban de pied de page systématique (bandeau
+    // plein bord-a-bord bleu nuit : logo radar + marque + pagination, sur
+    // chaque diapositive — pas d'adresse e-mail, usage interne uniquement).
     const newSlide = (bg) => {
       const sl = pres.addSlide();
       sl.background = {color:bg};
-      sl.slideNumber = {x:12.55, y:7.4, fontSize:9, color:'9CA3AF', fontFace:'IBM Plex Sans'};
+      const ribbonY = 7.15, ribbonH = 0.35;
+      sl.addShape(pres.shapes.RECTANGLE, {x:0, y:ribbonY, w:13.33, h:ribbonH, fill:{color:NAVY}, line:{type:'none'}});
+      circle(sl, 0.35, ribbonY + ribbonH/2 - 0.07, 0.14, 'FFFFFF');
+      sl.addText('SENTINEL SÛRETÉ', {x:0.62, y:ribbonY, w:5, h:ribbonH, fontSize:9, bold:true, color:'FFFFFF', fontFace:'IBM Plex Mono', valign:'middle'});
+      sl.addText('Page ', {x:12.2, y:ribbonY, w:1.1, h:ribbonH, fontSize:8.5, color:'FFFFFF', fontFace:'IBM Plex Mono', valign:'middle', align:'right'});
+      sl.slideNumber = {x:12.9, y:ribbonY, w:0.35, h:ribbonH, fontSize:8.5, color:'FFFFFF', fontFace:'IBM Plex Mono', valign:'middle'};
       return sl;
     };
 
@@ -10790,7 +10796,6 @@ async function exportPPTX(type) {
       'signaux non corroborés.',
       {x:0.7,y:2.7,w:11,h:1.6,fontSize:13,color:'C7D3DF',fontFace:'IBM Plex Sans'}
     );
-    s.addText('Généré le '+new Date().toLocaleDateString('fr-FR')+' · '+ADMIN_EMAIL, {x:0.7,y:6.9,w:9,h:0.4,fontSize:10,color:'6B7A88',fontFace:'IBM Plex Sans'});
 
     await pres.writeFile({fileName:'SENTINEL_'+titrePPTX.replace(/\s+/g,'_')+'_'+periode.label+suffixePerimetre()+'_'+new Date().toISOString().slice(0,10)+'.pptx'});
   } catch(e) {
@@ -10858,20 +10863,27 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
   const b = {
     page: null, y: 0, n: 0, secNum: 0,
     footerPerimetre: '', footerDate: '',
+    // Ruban de bas de page — bandeau plein bord-a-bord (pas d'encadre), logo
+    // radar + nom de marque, sur le modele du ruban utilise en pied de page
+    // du site. Pas d'adresse e-mail (usage interne uniquement).
     newPage() {
       b.page = doc.addPage([W, H]);
       b.n++;
-      const footY = 26, fsize = 8;
-      b.page.drawLine({start:{x:M,y:footY+16},end:{x:W-M,y:footY+16},thickness:0.6,color:LINE});
+      const ribbonH = 26, midY = ribbonH / 2;
+      b.page.drawRectangle({x:0, y:0, width:W, height:ribbonH, color:NAVY});
+      const logoCx = M * 0.55, logoR = 6.5;
+      b.page.drawEllipse({x:logoCx, y:midY, xScale:logoR, yScale:logoR, borderColor:rgb(1,1,1), borderWidth:0.9});
+      b.page.drawEllipse({x:logoCx, y:midY, xScale:logoR*0.55, yScale:logoR*0.55, borderColor:rgb(1,1,1), borderWidth:0.6});
+      b.page.drawEllipse({x:logoCx, y:midY, xScale:logoR*0.16, yScale:logoR*0.16, color:rgb(1,1,1)});
       const brand = 'SENTINEL SÛRETÉ';
+      b.page.drawText(brand, {x:logoCx+logoR+9, y:midY-3.5, size:9, font:fontBold, color:rgb(1,1,1)});
       const sep = b.footerPerimetre ? '  ·  '+b.footerPerimetre : '';
-      const bw = fontBold.widthOfTextAtSize(brand, fsize), sw = fontReg.widthOfTextAtSize(sep, fsize);
-      const boxW = bw+sw+16, boxX = (W-boxW)/2;
-      b.page.drawRectangle({x:boxX, y:footY, width:boxW, height:15, borderColor:BLUE, borderWidth:0.8});
-      b.page.drawText(brand, {x:boxX+8, y:footY+4.5, size:fsize, font:fontBold, color:BLUE});
-      if (sep) b.page.drawText(sep, {x:boxX+8+bw, y:footY+4.5, size:fsize, font:fontReg, color:MUTED});
-      if (b.footerDate) b.page.drawText(_pdfSafe(b.footerDate), {x:M, y:footY+4.5, size:7.5, font:fontReg, color:MUTED});
-      b.page.drawText('Page '+b.n, {x:W-M-42, y:footY+4.5, size:7.5, font:fontBold, color:INK});
+      const mid = _pdfSafe((b.footerDate||'')+sep);
+      if (mid) {
+        const mw = fontReg.widthOfTextAtSize(mid, 7.5);
+        b.page.drawText(mid, {x:(W-mw)/2, y:midY-3, size:7.5, font:fontReg, color:rgb(0.78,0.83,0.9)});
+      }
+      b.page.drawText('Page '+b.n, {x:W-M-38, y:midY-3, size:7.5, font:fontBold, color:rgb(1,1,1)});
       b.y = H - M;
     },
     ensure(h) { if (b.y - h < M + 30) b.newPage(); },
@@ -11557,8 +11569,9 @@ function _buildRapportSyntheseHTML(arts) {
     + sectionsHTML
     + corrHTML
 
-    + '<div style="margin-top:30px;border-top:1px solid #D1D9E0;padding-top:12px;display:flex;justify-content:space-between;font-family:\'IBM Plex Mono\',monospace;font-size:10.5px;color:#9CA3AF;">'
-    + '<span>SENTINEL SÛRETÉ</span><span>'+_apEsc(dateGenLong)+' UTC</span><span>'+_apEsc(session.email||'')+'</span>'
+    + '<div style="margin-top:30px;background:#0D1B2A;color:#FFFFFF;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;font-family:\'IBM Plex Mono\',monospace;font-size:10.5px;">'
+    + '<span style="display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:0.04em;"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="#fff" stroke-width="1.3"/><circle cx="8" cy="8" r="1.5" fill="#fff"/></svg>SENTINEL SÛRETÉ</span>'
+    + '<span style="color:#B9C6D6;">'+_apEsc(dateGenLong)+' UTC</span>'
     + '</div>'
 
     + '</div>'
@@ -11941,11 +11954,11 @@ async function exportWord(type){
       }
     }
 
-    // Pied de rapport
+    // Pied de rapport — pas d'adresse e-mail (usage interne uniquement).
     children.push(divider());
     children.push(new Paragraph({
       alignment:AlignmentType.CENTER,
-      children:[new TextRun({text:'SENTINEL SÛRETÉ · '+dateStr+' UTC · yorot225@gmail.com',size:18,italic:true,color:'9CA3AF'})],
+      children:[new TextRun({text:'SENTINEL SÛRETÉ · '+dateStr+' UTC',size:18,italic:true,color:'9CA3AF'})],
     }));
 
     // En-tête/pied de page systématiques (marque + périmètre + numéro de
@@ -11954,12 +11967,22 @@ async function exportWord(type){
       alignment:AlignmentType.RIGHT,
       children:[new TextRun({text:'SENTINEL SÛRETÉ · '+libellePerimetreRapport(),size:16,italics:true,color:'6B7280'})],
     })]});
-    const wordFooter=new Footer({children:[new Paragraph({
-      alignment:AlignmentType.CENTER,
-      children:[
-        new TextRun({text:'SENTINEL SÛRETÉ  —  Page ',size:16,color:'9CA3AF'}),
-        new TextRun({children:[PageNumber.CURRENT],size:16,color:'9CA3AF'}),
-      ],
+    // Ruban de pied de page — bandeau plein bord-a-bord (pas d'encadre), sur
+    // le modele du ruban de bas de page du site/du PDF.
+    const footerCell=(children2,align)=>new TableCell({
+      width:{size:50,type:WidthType.PERCENTAGE},
+      shading:{type:ShadingType.CLEAR,fill:'0D1B2A'},
+      borders:{top:{style:BorderStyle.NONE},bottom:{style:BorderStyle.NONE},left:{style:BorderStyle.NONE},right:{style:BorderStyle.NONE}},
+      margins:{top:80,bottom:80,left:160,right:160},
+      children:[new Paragraph({alignment:align,children:children2})],
+    });
+    const wordFooter=new Footer({children:[new Table({
+      width:{size:100,type:WidthType.PERCENTAGE},
+      borders:{top:{style:BorderStyle.NONE},bottom:{style:BorderStyle.NONE},left:{style:BorderStyle.NONE},right:{style:BorderStyle.NONE},insideHorizontal:{style:BorderStyle.NONE},insideVertical:{style:BorderStyle.NONE}},
+      rows:[new TableRow({children:[
+        footerCell([new TextRun({text:'SENTINEL SÛRETÉ',bold:true,size:16,color:'FFFFFF',font:FONT_MONO})],AlignmentType.LEFT),
+        footerCell([new TextRun({text:'Page ',size:16,color:'FFFFFF',font:FONT_MONO}),new TextRun({children:[PageNumber.CURRENT],size:16,color:'FFFFFF',font:FONT_MONO})],AlignmentType.RIGHT),
+      ]})],
     })]});
 
     const doc=new Document({sections:[{
