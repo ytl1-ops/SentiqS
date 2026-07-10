@@ -466,6 +466,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
   font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 .wa-btn:hover{background:#0F4F2A;color:#fff;border-color:#0F4F2A}
 .wa-btn i{font-size:10px}
+.mail-btn{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;
+  border:1px solid var(--bb);border-radius:10px;background:var(--bl);color:var(--b);
+  font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.mail-btn:hover{background:var(--b);color:#fff;border-color:var(--b)}
+.mail-btn i{font-size:10px}
 /* Statuts META (estime / a verifier / deduit) : couleur neutre slate,
    volontairement HORS de la palette d'alerte (rouge/orange/jaune) pour ne
    jamais laisser croire qu'une incertitude de date est un niveau de gravite. */
@@ -1868,6 +1873,9 @@ button:not(:disabled){
           <option value="level">Priorite</option>
           <option value="score">Fiabilite</option>
         </select>
+        <button onclick="renderFeed()" title="Rafraichir l'affichage du Flux depuis les donnees deja collectees" style="padding:5px 12px;background:rgba(27,95,168,.12);border:1px solid rgba(27,95,168,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
+          <i class="ti ti-refresh"></i> Actualiser
+        </button>
       </div>
 
       <!-- Barre DL Flux -->
@@ -1934,6 +1942,9 @@ button:not(:disabled){
             <option value="politique">Politique</option>
             <option value="economique">Economique</option>
           </select>
+          <button onclick="renderRecherche()" title="Rafraichir les resultats depuis les donnees deja collectees" style="padding:5px 12px;background:rgba(27,95,168,.12);border:1px solid rgba(27,95,168,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
+            <i class="ti ti-refresh"></i> Actualiser
+          </button>
           <span style="margin-left:auto;font-size:10px;color:var(--lg);" id="seCount"></span>
         </div>
       </div>
@@ -1964,6 +1975,9 @@ button:not(:disabled){
           <select id="syCyFilter" onchange="setSyntheseCy(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
             <option value="all">Tous les pays</option>
           </select>
+          <button onclick="updSynthese()" title="Rafraichir la synthese depuis les donnees deja collectees" style="padding:5px 12px;background:rgba(27,95,168,.12);border:1px solid rgba(27,95,168,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
+            <i class="ti ti-refresh"></i> Actualiser
+          </button>
         </div>
         <div style="overflow-y:auto;flex:1">
           <div class="sy-wrap">
@@ -2066,6 +2080,9 @@ button:not(:disabled){
               <option value="mensuel" selected>Mensuel (30 jours)</option>
               <option value="trimestriel">Trimestriel (90 jours)</option>
             </select>
+            <button onclick="updateDLCounts();majLibelleRapport()" title="Rafraichir les compteurs depuis les donnees deja collectees" style="padding:5px 12px;background:rgba(27,95,168,.12);border:1px solid rgba(27,95,168,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
+              <i class="ti ti-refresh"></i> Actualiser
+            </button>
           </div>
           <div id="rpLibellePerimetre" style="font-size:10px;color:var(--lg);margin-bottom:16px">Périmètre : toutes zones, tous pays</div>
 
@@ -6639,6 +6656,22 @@ function envoyerActuWhatsapp(id) {
   });
 }
 
+// envoyerActuEmail(id) : partage par email — ouvre le client mail par
+// defaut (mailto:) avec sujet/corps deja rediges, destinataire au choix
+// de l'utilisateur (pas de carnet de contacts dedie ici, a la difference
+// de WhatsApp : le partage par email vise n'importe quel destinataire au
+// coup par coup). Gratuit, aucun serveur, aucun envoi en tache de fond —
+// mailto: ouvre une fenetre de composition, l'envoi reste manuel.
+function envoyerActuEmail(id) {
+  const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
+  if (!a) return;
+  const cc = (typeof CYS !== 'undefined' ? CYS.find(x => x.code === a.cy) : null) || { flag: '🌍', name: a.cy };
+  const niveauLbl = { crit: 'CRITIQUE', high: 'ÉLEVÉ', mod: 'MODÉRÉ', ok: 'STABLE' }[a.level] || 'INFO';
+  const sujet = 'SENTINEL SÛRETÉ — ' + niveauLbl + ' — ' + cc.name;
+  const corps = whatsappMessageActu(a); // meme contenu (niveau, pays/ville, titre, lien) que le partage WhatsApp
+  window.location.href = 'mailto:?subject=' + encodeURIComponent(sujet) + '&body=' + encodeURIComponent(corps);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 //  AGENT DE VERIFICATION DES LIENS SOURCE — le lien direct capture a la
 //  collecte (a.url) peut se reveler mort au moment ou l'utilisateur clique
@@ -7132,6 +7165,7 @@ function renderFeed() {
         // ── Groupe de confiance unifie : sources + confiance composite + score + corroboration + pub-time ──
         '<div class="aftr conf-group">'+chips+
           '<button class="wa-btn" onclick="event.stopPropagation();envoyerActuWhatsapp(\''+a.id+'\')" title="'+(LANG==='en'?'Send on WhatsApp':'Envoyer sur WhatsApp')+'"><i class="ti ti-brand-whatsapp"></i>WhatsApp</button>'+
+          '<button class="mail-btn" onclick="event.stopPropagation();envoyerActuEmail(\''+a.id+'\')" title="'+(LANG==='en'?'Share by email':'Partager par email')+'"><i class="ti ti-mail"></i>Email</button>'+
           (typeof confBadge==='function' ? confBadge(a) : '')+
           '<span class="rtg '+rc(a.score)+'">'+a.score+'%</span>'+
           (a.verified?'<span class="vtg"><i class="ti ti-shield-check"></i>'+(a.crosses?.length||1)+' src</span>':
@@ -7325,6 +7359,8 @@ function showDet(id) {
       a.recos.map(r=>'<div class="rli">'+r+'</div>').join('')+'</div>':'')+
     '<div class="dact">'+
       '<a href="'+safeUrl(articleLienDirect(a), a.title)+'" target="_blank" class="dbt p"><i class="ti ti-external-link"></i>'+(lienDirectDispo ? 'Lire l\'article complet' : 'Rechercher sur '+ps.n)+'</a>'+
+      '<button class="dbt" onclick="envoyerActuWhatsapp(\''+a.id+'\')" style="background:#F0FDF4;color:#0F4F2A;border-color:#B7E4C7"><i class="ti ti-brand-whatsapp"></i>WhatsApp</button>'+
+      '<button class="dbt" onclick="envoyerActuEmail(\''+a.id+'\')" style="background:var(--bl);color:var(--b);border-color:var(--bb)"><i class="ti ti-mail"></i>Email</button>'+
       '<div class="dbt" style="margin-left:auto" onclick="document.getElementById(\'detPanel\').className=\'det\'"><i class="ti ti-x"></i>Fermer</div>'+
     '</div>';
   panel.scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -7819,6 +7855,8 @@ function updSynthese() {
         '<div class="sy-bd" id="sybd-'+a.id+'">'+tr(a.analysis,'sybd-'+a.id, t=>t.slice(0,280)+(t.length>280?'...':'')).slice(0,280)+(a.analysis.length>280?'...':'')+'</div>'+
         '<div class="sy-sr"><a href="'+safeUrl(articleLienDirect(a), ps.n+' actualite')+'" target="_blank" class="ssrc">'+
           '<span class="dot" style="background:'+ps.col+'"></span>'+ps.n+'<i class="ti ti-external-link"></i></a>'+
+          '<button class="wa-btn" onclick="envoyerActuWhatsapp(\''+a.id+'\')" title="'+(LANG==='en'?'Send on WhatsApp':'Envoyer sur WhatsApp')+'"><i class="ti ti-brand-whatsapp"></i>WhatsApp</button>'+
+          '<button class="mail-btn" onclick="envoyerActuEmail(\''+a.id+'\')" title="'+(LANG==='en'?'Share by email':'Partager par email')+'"><i class="ti ti-mail"></i>Email</button>'+
           '<span class="ss-sc '+sc+'">'+a.score+'%</span></div>'+
       '</div>';
     });
