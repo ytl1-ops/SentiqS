@@ -1984,6 +1984,10 @@ button:not(:disabled){
               <button class="af" onclick="setAgFilt(this,&#39;urgent&#39;)">Urgent</button>
               <button class="af" onclick="setAgFilt(this,&#39;planifie&#39;)">Planifie</button>
               <button class="af" onclick="setAgFilt(this,&#39;surveillance&#39;)">Surveillance</button>
+              <button class="af" onclick="setAgFilt(this,&#39;acheve&#39;)">Acheve</button>
+              <button onclick="renderAgenda()" style="padding:5px 12px;background:rgba(27,95,168,.12);border:1px solid rgba(27,95,168,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;margin-left:6px;">
+                <i class="ti ti-refresh"></i> Actualiser
+              </button>
             </div>
           </div>
           <div class="tlbr" style="flex-shrink:0;margin-bottom:8px;">
@@ -1996,12 +2000,14 @@ button:not(:disabled){
             </select>
             <select id="agTypeFilter" onchange="setAgendaType(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
               <option value="all">Tous les types</option>
+              <option value="travaux">Travaux</option>
               <option value="gouvernemental">Gouvernemental</option>
               <option value="seminaire">Seminaire</option>
               <option value="colloque">Colloque</option>
               <option value="sportif">Sportif</option>
               <option value="concert">Concert</option>
               <option value="festival">Festival</option>
+              <option value="securite">Securite</option>
               <option value="humanitaire">Humanitaire</option>
               <option value="politique">Politique</option>
               <option value="economique">Economique</option>
@@ -8009,12 +8015,15 @@ function tick(){
 }
 setInterval(tick,60000);
 // Auto-collect désactivé — collecte manuelle uniquement
-// Purge horaire des articles > 12h
+// Purge horaire des articles > 12h — SAUF les évenements Agenda auto-détectés
+// (cf. estAgendaRecent, fenêtre 72h) : cette purge générique retirait
+// jusqu'ici tout article de ALL après 12h, y compris les articles Agenda,
+// ce qui vidait ALL avant même que la fenêtre de 72h de l'Agenda ait eu la
+// moindre chance de s'appliquer (l'article n'existait plus du tout).
 setInterval(()=>{
-  const MAX=12*60*60*1000;
   const before=ALL.length;
-  ALL=ALL.filter(a=>estRecentReel(a));
-  if(ALL.length!==before){ renderFeed(); updStats(); updSynthese(); }
+  ALL=ALL.filter(a => estRecentReel(a) || (a._estAgenda && estAgendaRecent(a)));
+  if(ALL.length!==before){ renderFeed(); updStats(); updSynthese(); if (typeof renderAgenda==='function' && document.getElementById('agTl')) { try { renderAgenda(); } catch(_) {} } }
 }, 30*60*1000);
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
