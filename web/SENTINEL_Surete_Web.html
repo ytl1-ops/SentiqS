@@ -9,24 +9,29 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.4.0/dist/tabler-icons.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com/">
 <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  /* Palette existante conservée pour compatibilité */
-  --n:#0D1B2A;--b:#1D7AB8;--bl:#EBF5FC;--bb:#BAD9F0;
-  --r:#DC2626;--rl:#FEF2F2;--rb:#FECACA;
-  --a:#D97706;--al:#FFFBEB;--ab:#FDE68A;
-  --g:#059669;--gl:#F0FDF4;--gb:#BBF7D0;
+  /* Palette alignee sur la page d'accueil (index.html) et les rapports
+     exportes (PDF/Word/PowerPoint) — meme identite de marque partout :
+     rouge/ambre/vert plus sourds (#8B1A1A/#7C4A00/#0F4F2A au lieu des
+     teintes vives d'origine #8B1A1A/#7C4A00/#0F4F2A), bleu aligne sur
+     #1B5FA8, typographie IBM Plex Sans/Mono + Source Serif 4 pour la marque. */
+  --n:#0D1B2A;--b:#1B5FA8;--bl:#EBF5FC;--bb:#BAD9F0;
+  --r:#8B1A1A;--rl:#FEF2F2;--rb:#FECACA;
+  --a:#7C4A00;--al:#FFFBEB;--ab:#FDE68A;
+  --g:#0F4F2A;--gl:#F0FDF4;--gb:#BBF7D0;
   --gr:#4A5568;--lg:#718096;--bd:#E2E8EF;
   --sf:#F5F8FB;--w:#FFFFFF;--t:#0B1622;--t2:#374151;
   /* Nouvelles variables de design */
-  --nav-bg:#0D1B2A;--nav-border:#1B3A52;--nav-active:#1D7AB8;
+  --nav-bg:#0D1B2A;--nav-border:#1B3A52;--nav-active:#1B5FA8;
   --topbar-bg:linear-gradient(135deg,#0D1B2A 0%,#162840 100%);
   --card-radius:9px;--card-shadow:0 1px 4px rgba(13,27,42,.08);
   --card-shadow-hover:0 4px 14px rgba(13,27,42,.14);
-  --font-body:'Inter',system-ui,sans-serif;
-  --font-mono:'Roboto Mono',monospace;
-  --accent-glow:rgba(29,122,184,.18);
+  --font-body:'IBM Plex Sans',system-ui,sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+  --font-serif:'Source Serif 4',serif;
+  --accent-glow:rgba(27,95,168,.18);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 /* width:100% + overflow-x:hidden explicites (pas seulement le comportement
@@ -237,7 +242,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .ntab i{font-size:13px}
 .ntab.on{color:#9CA3AF;border-bottom-color:#9CA3AF}
 .ntab:hover:not(.on){color:rgba(255,255,255,.65)}
-.nbadge{font-size:8px;background:#D97706;color:#fff;border-radius:8px;
+.nbadge{font-size:8px;background:#7C4A00;color:#fff;border-radius:8px;
   padding:1px 5px;font-weight:700;margin-left:2px;display:none}
 
 /* LAYOUT */
@@ -363,13 +368,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 /* FEED */
 .feed{flex:1;overflow-y:auto;display:flex;flex-direction:column}
 /* Bordure gauche colorée par niveau de risque (signature visuelle) */
-.art[data-level="crit"]{ border-left:3px solid #DC2626; }
-.art[data-level="high"] { border-left:3px solid #D97706; }
+.art[data-level="crit"]{ border-left:3px solid #8B1A1A; }
+.art[data-level="high"] { border-left:3px solid #7C4A00; }
 .art[data-level="mod"]  { border-left:3px solid #2563EB; }
-.art[data-level="ok"]   { border-left:3px solid #059669; }
+.art[data-level="ok"]   { border-left:3px solid #0F4F2A; }
 .art{background:var(--w);border-bottom:1px solid var(--bd);padding:10px 12px;
   cursor:pointer;display:flex;gap:9px;transition:background .15s,box-shadow .15s;position:relative;border-left:3px solid transparent}
-.art:hover{background:var(--sf);box-shadow:inset 0 0 0 1px rgba(29,122,184,.12)}
+.art:hover{background:var(--sf);box-shadow:inset 0 0 0 1px rgba(27,95,168,.12)}
 .art.lc2{border-left:3px solid var(--r)}
 .art.lh2{border-left:3px solid var(--a)}
 .art.lm2{border-left:3px solid var(--b)}
@@ -514,7 +519,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .ev.en-cours{border-left:4px solid #4ade80}
 .ev.urgent{border-left:4px solid var(--r)}
 .ev.planifie{border-left:4px solid var(--b)}
-.ev.surveillance{border-left:4px solid #D97706}
+.ev.surveillance{border-left:4px solid #7C4A00}
 .ev-dt{display:flex;flex-direction:column;align-items:center;
   flex-shrink:0;width:42px}
 .ev-d{font-size:17px;font-weight:700;color:var(--t);line-height:1}
@@ -529,14 +534,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .bc{background:rgba(74,222,128,.15);color:#16a34a;border:1px solid rgba(74,222,128,.3)}
 .bu{background:var(--rl);color:var(--r);border:1px solid var(--rb)}
 .bp{background:var(--bl);color:var(--b);border:1px solid var(--bb)}
-.bs{background:var(--al);color:#D97706;border:1px solid var(--ab)}
+.bs{background:var(--al);color:#7C4A00;border:1px solid var(--ab)}
 .ev-dc{font-size:11px;color:var(--t2);line-height:1.5;margin-bottom:5px}
 .ev-mt{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
 .ev-cy{font-size:10px;color:var(--lg);display:flex;align-items:center;gap:3px}
 .ev-ip{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;
   text-transform:uppercase}
 .ih{background:var(--rl);color:var(--r)}
-.im{background:var(--al);color:#D97706}
+.im{background:var(--al);color:#7C4A00}
 .if{background:var(--gl);color:var(--g)}
 .ev-sc{font-size:9px;color:var(--b);display:flex;align-items:center;
   gap:2px;margin-left:auto}
@@ -563,7 +568,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
   padding-bottom:6px;border-bottom:2px solid;margin-bottom:11px;
   display:flex;align-items:center;gap:6px}
 .sy-shd i{font-size:13px}
-.hr{color:var(--r);border-color:var(--r)}.ha{color:#D97706;border-color:#D97706}
+.hr{color:var(--r);border-color:var(--r)}.ha{color:#7C4A00;border-color:#7C4A00}
 .hb{color:var(--b);border-color:var(--b)}.hg{color:var(--g);border-color:var(--g)}
 .sy-ar{margin-bottom:15px;padding-bottom:15px;border-bottom:1px solid var(--bd)}
 .sy-ar:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
@@ -571,7 +576,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
   text-transform:uppercase;letter-spacing:.05em;display:inline-flex;
   align-items:center;gap:3px;margin-bottom:5px}
 .sy-lvl i{font-size:10px}
-.slc{background:var(--rl);color:var(--r)}.slh{background:var(--al);color:#D97706}
+.slc{background:var(--rl);color:var(--r)}.slh{background:var(--al);color:#7C4A00}
 .slm{background:var(--bl);color:var(--b)}.sli{background:var(--sf);color:var(--lg)}
 .sy-tt2{font-size:13px;font-weight:700;color:var(--t);line-height:1.4;margin-bottom:5px}
 .sy-bd{font-size:12px;color:var(--t2);line-height:1.7;margin-bottom:8px}
@@ -701,7 +706,7 @@ html.force-mobile .ops-label{display:none}
 .auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px}
 .auth-logo-ico{width:36px;height:36px;border-radius:8px;background:#1a3a52;
   display:flex;align-items:center;justify-content:center;border:1px solid #2a5a82}
-.auth-logo-n{font-size:17px;font-weight:700;color:#fff;letter-spacing:.07em}
+.auth-logo-n{font-family:var(--font-serif);font-size:19px;font-weight:700;color:#fff;letter-spacing:.02em}
 .auth-logo-s{font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;
   letter-spacing:.06em;margin-top:1px}
 .auth-title{font-size:14px;font-weight:700;color:#fff;margin-bottom:4px}
@@ -849,7 +854,7 @@ html.force-mobile .ops-label{display:none}
 .dl-rc-tag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
   text-transform:uppercase;letter-spacing:.04em;flex-shrink:0}
 .tag-own{background:rgba(15,79,42,.12);color:#16a34a;border:1px solid rgba(74,222,128,.25)}
-.tag-admin{background:rgba(220,140,0,.12);color:#D97706;border:1px solid rgba(220,140,0,.25)}
+.tag-admin{background:rgba(220,140,0,.12);color:#7C4A00;border:1px solid rgba(220,140,0,.25)}
 .tag-user{background:rgba(75,85,99,.12);color:var(--b);border:1px solid var(--bb)}
 .tag-none{background:var(--surface);color:var(--lg);border:1px solid var(--bd)}
 .dl-rc-foot{display:flex;align-items:center;justify-content:space-between;
@@ -883,7 +888,7 @@ html.force-mobile .ops-label{display:none}
 /* Reclamations */
 .bs-nouveau{background:rgba(27,95,168,.12);color:#1B5FA8;border:1px solid rgba(27,95,168,.25)}
 .bs-encours{background:rgba(202,138,4,.14);color:#CA8A04;border:1px solid rgba(202,138,4,.28)}
-.bs-resolu{background:rgba(74,222,128,.12);color:#059669;border:1px solid rgba(74,222,128,.25)}
+.bs-resolu{background:rgba(74,222,128,.12);color:#0F4F2A;border:1px solid rgba(74,222,128,.25)}
 /* Suivi du trafic (local a cet appareil, pas de serveur central) */
 .traffic-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:12px}
 .traffic-kpi{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:10px;text-align:center}
@@ -957,7 +962,7 @@ html.force-mobile .ops-label{display:none}
 .copy-btn i{font-size:12px}
 /* Pending requests */
 .pending-card{background:var(--sf);border:1px solid var(--amber-b,#FDE68A);
-  border-left:3px solid #D97706;border-radius:0 7px 7px 0;
+  border-left:3px solid #7C4A00;border-radius:0 7px 7px 0;
   padding:11px 14px;margin-bottom:8px}
 .pending-card:last-child{margin-bottom:0}
 .pending-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
@@ -1011,11 +1016,11 @@ html.force-mobile .ops-label{display:none}
   padding:12px 14px;cursor:pointer;display:flex;gap:10px;
   transition:background .1s;border-left:3px solid transparent}
 .art-ent:hover{background:#FAFBFC}
-.art-ent.lc2{border-left-color:var(--r)}.art-ent.lh2{border-left-color:#D97706}
+.art-ent.lc2{border-left-color:var(--r)}.art-ent.lh2{border-left-color:#7C4A00}
 .art-ent.lm2{border-left-color:var(--b)}.art-ent.lo2{border-left-color:var(--g)}
 .art-ent.new-art{background:#FFFDF5}
 .art-ent.new-art::after{content:'NEW';position:absolute;top:8px;right:10px;
-  font-size:8px;font-weight:700;background:#D97706;color:#fff;
+  font-size:8px;font-weight:700;background:#7C4A00;color:#fff;
   border-radius:3px;padding:1px 5px;letter-spacing:.05em}
 .art-ent{position:relative}
 /* ── RAPPORT ENTREPRISE ──────────────────────────────────────────────── */
@@ -1254,21 +1259,23 @@ html.force-web .lp-backdrop{display:none !important}
 
 /* ══════════════════════════════════════════════════════════════════════
    SENTINEL SÛRETÉ v4 — Refonte visuelle
-   Signature : bordures-couleur de risque + typographie Inter/Roboto Mono
+   Signature : bordures-couleur de risque + typographie IBM Plex Sans/Mono
+   + Source Serif 4 pour la marque, alignee sur la page d'accueil et les
+   rapports exportes (PDF/Word/PowerPoint) — meme identite visuelle partout.
    ══════════════════════════════════════════════════════════════════════ */
 
 /* ── Topbar améliorée ─────────────────────────────────────────────── */
 .tb{
   background:var(--topbar-bg) !important;
   height:52px;
-  border-bottom:1px solid rgba(29,122,184,.35) !important;
+  border-bottom:1px solid rgba(27,95,168,.35) !important;
   box-shadow:0 2px 12px rgba(0,0,0,.28);
 }
 .logo-n{
-  font-family:var(--font-body) !important;
-  font-size:14px !important;
-  font-weight:800 !important;
-  letter-spacing:.12em !important;
+  font-family:var(--font-serif) !important;
+  font-size:15px !important;
+  font-weight:700 !important;
+  letter-spacing:.04em !important;
   color:#fff !important;
 }
 .logo-s{
@@ -1278,15 +1285,15 @@ html.force-web .lp-backdrop{display:none !important}
   letter-spacing:.06em;
 }
 .logo-ico{
-  background:linear-gradient(135deg,#1D7AB8 0%,#0d5b8a 100%) !important;
+  background:linear-gradient(135deg,#1B5FA8 0%,#0d5b8a 100%) !important;
   border:none !important;
-  box-shadow:0 0 0 1px rgba(29,122,184,.5),0 0 12px rgba(29,122,184,.25);
+  box-shadow:0 0 0 1px rgba(27,95,168,.5),0 0 12px rgba(27,95,168,.25);
 }
 
 /* ── Navigation onglets ───────────────────────────────────────────── */
 .nav{
   background:linear-gradient(180deg,#11263a 0%,#0D1B2A 100%) !important;
-  border-bottom:1px solid rgba(29,122,184,.2) !important;
+  border-bottom:1px solid rgba(27,95,168,.2) !important;
 }
 .ntab{
   font-family:var(--font-body) !important;
@@ -1299,13 +1306,13 @@ html.force-web .lp-backdrop{display:none !important}
 }
 .ntab:hover:not(.on){
   color:rgba(255,255,255,.65) !important;
-  background:rgba(29,122,184,.08);
+  background:rgba(27,95,168,.08);
 }
 .ntab.on{
   color:#5BB8F0 !important;
-  border-bottom-color:#1D7AB8 !important;
+  border-bottom-color:#1B5FA8 !important;
   border-bottom-width:2px !important;
-  background:rgba(29,122,184,.1);
+  background:rgba(27,95,168,.1);
 }
 
 /* ── Barre de statistiques ─────────────────────────────────────────── */
@@ -1335,12 +1342,12 @@ html.force-web .lp-backdrop{display:none !important}
 /* CRITIQUE */
 .acard[data-level="crit"],
 .alv-crit .acard{
-  border-left:3px solid #DC2626 !important;
+  border-left:3px solid #8B1A1A !important;
 }
 /* ÉLEVÉ */
 .acard[data-level="high"],
 .alv-high .acard{
-  border-left:3px solid #D97706 !important;
+  border-left:3px solid #7C4A00 !important;
 }
 /* MODÉRÉ */
 .acard[data-level="mod"],
@@ -1350,7 +1357,7 @@ html.force-web .lp-backdrop{display:none !important}
 /* STABLE */
 .acard[data-level="ok"],
 .alv-ok .acard{
-  border-left:3px solid #059669 !important;
+  border-left:3px solid #0F4F2A !important;
 }
 /* Titre des cartes */
 .atit{
@@ -1387,36 +1394,36 @@ html.force-web .lp-backdrop{display:none !important}
   transition:background .15s, box-shadow .15s !important;
 }
 .actu-btn:hover:not(:disabled){
-  background:rgba(29,122,184,.2) !important;
-  box-shadow:0 0 0 1px rgba(29,122,184,.4);
+  background:rgba(27,95,168,.2) !important;
+  box-shadow:0 0 0 1px rgba(27,95,168,.4);
 }
 
 /* ── Panneau gauche sources ─────────────────────────────────────────── */
 .lp{
   background:linear-gradient(180deg,#0d1e2e 0%,#0a1825 100%) !important;
-  border-right:1px solid rgba(29,122,184,.18) !important;
+  border-right:1px solid rgba(27,95,168,.18) !important;
 }
 .lp-hd{
   font-family:var(--font-body) !important;
   font-size:8.5px !important;
-  color:rgba(29,122,184,.7) !important;
+  color:rgba(27,95,168,.7) !important;
   letter-spacing:.1em !important;
 }
 
 /* ── Barre de collecte ─────────────────────────────────────────────── */
 .cbar{
   background:linear-gradient(90deg,#0a1e2e 0%,#0d2540 100%) !important;
-  border-bottom:1px solid rgba(29,122,184,.3) !important;
+  border-bottom:1px solid rgba(27,95,168,.3) !important;
 }
 .cbar-fill{
-  background:linear-gradient(90deg,#1D7AB8 0%,#5BB8F0 100%) !important;
+  background:linear-gradient(90deg,#1B5FA8 0%,#5BB8F0 100%) !important;
   border-radius:4px;
   transition:width .4s cubic-bezier(.4,0,.2,1);
 }
 .cbar-lbl{
   font-family:var(--font-mono) !important;
   font-size:9px !important;
-  color:rgba(29,122,184,.9) !important;
+  color:rgba(27,95,168,.9) !important;
 }
 
 /* ── Badge de vérification ─────────────────────────────────────────── */
@@ -1852,7 +1859,7 @@ button:not(:disabled){
       <div class="sstrip" id="fluxSstrip">
         <div class="ss"><div class="sn" id="stTot">0</div><div class="sl">-12h</div></div>
         <div class="ss"><div class="sn" style="color:var(--r)" id="stCrit">0</div><div class="sl">Critiques</div></div>
-        <div class="ss"><div class="sn" style="color:#D97706" id="stHigh">0</div><div class="sl">Eleves</div></div>
+        <div class="ss"><div class="sn" style="color:#7C4A00" id="stHigh">0</div><div class="sl">Eleves</div></div>
         <div class="ss"><div class="sn" style="color:var(--g)" id="stVer">0</div><div class="sl">Verifies</div></div>
         <div class="ss" title="Sources corroborees par au moins une autre source"><div class="sn" style="color:#15803D" id="stConfVer">0</div><div class="sl">✓ Conf.</div></div>
         <div class="ss" title="Sources isolees, non encore corroborees"><div class="sn" style="color:#7A5D00" id="stConfNV">0</div><div class="sl">? Non ver.</div></div>
@@ -2181,16 +2188,16 @@ button:not(:disabled){
 
     <!-- ═══════════════════ TABLEAU DE BORD ═══════════════════ -->
     <div class="view on" id="v-dashboard">
-      <div style="background:var(--topbar-bg,linear-gradient(135deg,#0D1B2A,#162840));padding:12px 16px;flex-shrink:0;border-bottom:1px solid rgba(29,122,184,.3);">
+      <div style="background:var(--topbar-bg,linear-gradient(135deg,#0D1B2A,#162840));padding:12px 16px;flex-shrink:0;border-bottom:1px solid rgba(27,95,168,.3);">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-          <div style="width:34px;height:34px;border-radius:8px;background:rgba(29,122,184,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <div style="width:34px;height:34px;border-radius:8px;background:rgba(27,95,168,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <i class="ti ti-layout-dashboard" style="font-size:18px;color:#5BB8F0"></i>
           </div>
           <div style="flex:1;">
             <div style="font-size:13px;font-weight:800;color:#fff;letter-spacing:.04em;">TABLEAU DE BORD</div>
             <div style="font-size:9px;color:rgba(255,255,255,.45);">Vision temps réel — 54 pays africains — Score de risque 0-100</div>
           </div>
-          <button onclick="renderDashboard()" style="padding:6px 12px;background:rgba(29,122,184,.2);border:1px solid rgba(29,122,184,.5);border-radius:6px;color:#5BB8F0;font-size:11px;font-weight:700;cursor:pointer;"><i class="ti ti-refresh"></i> Actualiser</button>
+          <button onclick="renderDashboard()" style="padding:6px 12px;background:rgba(27,95,168,.2);border:1px solid rgba(27,95,168,.5);border-radius:6px;color:#5BB8F0;font-size:11px;font-weight:700;cursor:pointer;"><i class="ti ti-refresh"></i> Actualiser</button>
         </div>
       </div>
       <div style="flex:1;overflow-y:auto;padding:14px;background:var(--sf);" id="dashContent">
@@ -2201,19 +2208,19 @@ button:not(:disabled){
        <div style="font-size:10px;color:var(--lg);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;">Articles actifs</div>
      </div>
         <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:14px;text-align:center;">
-       <div style="font-family:var(--font-mono,&#39;Roboto Mono&#39;,monospace);font-size:28px;font-weight:700;color:#1D7AB8">14</div>
+       <div style="font-family:var(--font-mono,&#39;Roboto Mono&#39;,monospace);font-size:28px;font-weight:700;color:#1B5FA8">14</div>
        <div style="font-size:10px;color:var(--lg);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;">Pays couverts</div>
      </div>
         <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:14px;text-align:center;">
-       <div style="font-family:var(--font-mono,&#39;Roboto Mono&#39;,monospace);font-size:28px;font-weight:700;color:#DC2626">2</div>
+       <div style="font-family:var(--font-mono,&#39;Roboto Mono&#39;,monospace);font-size:28px;font-weight:700;color:#8B1A1A">2</div>
        <div style="font-size:10px;color:var(--lg);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;">Critiques</div>
      </div>
         <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:14px;text-align:center;">
-       <div style="font-family:var(--font-mono,&#39;Roboto Mono&#39;,monospace);font-size:28px;font-weight:700;color:#D97706">5</div>
+       <div style="font-family:var(--font-mono,&#39;Roboto Mono&#39;,monospace);font-size:28px;font-weight:700;color:#7C4A00">5</div>
        <div style="font-size:10px;color:var(--lg);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;">Élevés</div>
      </div>
         <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:14px;text-align:center;">
-       <div style="font-family:var(--font-mono,&#39;Roboto Mono&#39;,monospace);font-size:28px;font-weight:700;color:#059669">17</div>
+       <div style="font-family:var(--font-mono,&#39;Roboto Mono&#39;,monospace);font-size:28px;font-weight:700;color:#0F4F2A">17</div>
        <div style="font-size:10px;color:var(--lg);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;">Sources actives</div>
      </div>
         <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:14px;text-align:center;">
@@ -2225,7 +2232,7 @@ button:not(:disabled){
       <!-- Heatmap des scores par pays -->
       <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:14px;margin-bottom:12px;">
         <div style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:12px;display:flex;align-items:center;gap:6px;">
-          <i class="ti ti-map-2" style="color:#1D7AB8"></i>
+          <i class="ti ti-map-2" style="color:#1B5FA8"></i>
           Carte de chaleur des risques — Score 0-100 par pays
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px;">
@@ -2610,7 +2617,7 @@ button:not(:disabled){
                 </div>
               </div>
 
-              <div style="background:#FEF3C7;border:1px solid #D97706;border-radius:8px;padding:10px 12px;">
+              <div style="background:#FEF3C7;border:1px solid #7C4A00;border-radius:8px;padding:10px 12px;">
                 <div style="font-size:11px;font-weight:700;color:#7A5D00;margin-bottom:4px;display:flex;align-items:center;gap:5px;">
                   <i class="ti ti-alert-triangle"></i>Limites à connaître
                 </div>
@@ -2671,17 +2678,17 @@ const SRCS=[
  {id:'dakaractu',n:'Dakar Actu',col:'#166534',cy:'SN',sc:'local',cat:'politique',score:70,url:'https://dakaractu.com/?s=securite',rss:'https://www.dakaractu.com/rss.xml'},
  {id:'xibaaru',n:'Xibaaru',col:'#14532D',cy:'SN',sc:'local',cat:'politique',score:65,url:'https://xibaaru.com/?s=senegal',rss:'https://xibaaru.com/feed/'},
  {id:'beninwebs',n:'Beninwebs',col:'#B91C1C',cy:'BJ',sc:'national',cat:'politique',score:68,url:'https://beninwebs.com/?s=securite+benin',rss:'https://beninwebs.com/feed/'},
- {id:'haubenin',n:'24h Benin',col:'#DC2626',cy:'BJ',sc:'local',cat:'securite',score:66,url:'https://24haubenin.info/?s=securite',rss:'https://www.24haubenin.info/feed/'},
+ {id:'haubenin',n:'24h Benin',col:'#8B1A1A',cy:'BJ',sc:'local',cat:'securite',score:66,url:'https://24haubenin.info/?s=securite',rss:'https://www.24haubenin.info/feed/'},
  {id:'lanation',n:'La Nation Benin',col:'#991B1B',cy:'BJ',sc:'national',cat:'politique',score:70,url:'https://lnation-benin.com/?s=securite',rss:'https://lnation-benin.com/feed/'},
  {id:'togofirst',n:'Togo First',col:'#4B5563',cy:'TG',sc:'national',cat:'economique',score:72,url:'https://togo-first.com/?s=togo',rss:'https://togo-first.com/feed/'},
  {id:'togoweb',n:'Togoweb',col:'#0F766E',cy:'TG',sc:'national',cat:'politique',score:68,url:'https://togoweb.net/?s=securite',rss:'https://www.togoweb.net/rss.xml'},
  {id:'icilome',n:'Icilome',col:'#0F766E',cy:'TG',sc:'local',cat:'politique',score:65,url:'https://icilome.com/?s=togo+politique',rss:'https://icilome.com/feed/'},
- {id:'ghanaweb',n:'GhanaWeb',col:'#059669',cy:'GH',sc:'national',cat:'politique',score:78,url:'https://ghanaweb.com/GhanaHomePage/s-results.php?query=security',rss:'https://www.ghanaweb.com/GhanaHomePage/rss/rss.php'},
+ {id:'ghanaweb',n:'GhanaWeb',col:'#0F4F2A',cy:'GH',sc:'national',cat:'politique',score:78,url:'https://ghanaweb.com/GhanaHomePage/s-results.php?query=security',rss:'https://www.ghanaweb.com/GhanaHomePage/rss/rss.php'},
  {id:'joyonline',n:'JoyOnline',col:'#047857',cy:'GH',sc:'national',cat:'securite',score:80,url:'https://myjoyonline.com/?s=security',rss:'https://www.myjoyonline.com/feed/'},
- {id:'graphic',n:'Graphic Online',col:'#059669',cy:'GH',sc:'local',cat:'economique',score:75,url:'https://graphic.com.gh/?s=security+ghana',rss:'https://www.graphic.com.gh/feed.xml'},
+ {id:'graphic',n:'Graphic Online',col:'#0F4F2A',cy:'GH',sc:'local',cat:'economique',score:75,url:'https://graphic.com.gh/?s=security+ghana',rss:'https://www.graphic.com.gh/feed.xml'},
  {id:'premiumtimes',n:'Premium Times',col:'#991B1B',cy:'NG',sc:'national',cat:'securite',score:84,url:'https://premiumtimesng.com/?s=security',rss:'https://www.premiumtimesng.com/feed/'},
  {id:'vanguard',n:'Vanguard',col:'#B91C1C',cy:'NG',sc:'national',cat:'politique',score:78,url:'https://vanguardngr.com/?s=security',rss:'https://www.vanguardngr.com/feed/'},
- {id:'punch',n:'Punch Nigeria',col:'#DC2626',cy:'NG',sc:'local',cat:'politique',score:80,url:'https://punchng.com/?s=security',rss:'https://punchng.com/feed/'},
+ {id:'punch',n:'Punch Nigeria',col:'#8B1A1A',cy:'NG',sc:'local',cat:'politique',score:80,url:'https://punchng.com/?s=security',rss:'https://punchng.com/feed/'},
  {id:'channelstv',n:'Channels TV',col:'#EA580C',cy:'NG',sc:'national',cat:'securite',score:82,url:'https://channelstv.com/?s=security',rss:'https://www.channelstv.com/feed/'},
  {id:'cridem',n:'Cridem',col:'#4B5563',cy:'MR',sc:'national',cat:'politique',score:67,url:'https://www.cridem.org/?s=securite',rss:'https://www.cridem.org/rss/'},
  {id:'mauritanieenligne',n:'Mauritanie.mr',col:'#4B5563',cy:'MR',sc:'local',cat:'politique',score:64,url:'https://mauritanie.mr/?s=securite',rss:'https://mauritanie.mr/feed/'},
@@ -2691,9 +2698,9 @@ const SRCS=[
  {id:'aib',n:'AIB — Agence Info Burkina',col:'#92400E',cy:'BF',sc:'national',cat:'securite',score:88,url:'https://www.aib.media/',rss:'https://news.google.com/rss/search?q=site:aib.media&hl=fr&gl=BF&ceid=BF:fr',rss_method:'Google News RSS'},
  {id:'amap',n:'AMAP — Agence Malienne Presse',col:'#854F0B',cy:'ML',sc:'national',cat:'securite',score:85,url:'https://www.maliweb.net/',rss:'https://www.maliweb.net/feed/',rss_method:'RSS natif'},
  {id:'anp',n:'ANP — Agence Nigérienne Presse',col:'#0E7490',cy:'NE',sc:'national',cat:'securite',score:82,url:'https://anp.ne/',rss:'https://news.google.com/rss/search?q=site:anp.ne&hl=fr&gl=NE&ceid=NE:fr',rss_method:'Google News RSS'},
- {id:'agp_gh',n:'GNA — Ghana News Agency',col:'#059669',cy:'GH',sc:'national',cat:'securite',score:86,url:'https://www.ghananewsagency.org/',rss:'https://www.ghananewsagency.org/rss.php',rss_method:'RSS natif'},
+ {id:'agp_gh',n:'GNA — Ghana News Agency',col:'#0F4F2A',cy:'GH',sc:'national',cat:'securite',score:86,url:'https://www.ghananewsagency.org/',rss:'https://www.ghananewsagency.org/rss.php',rss_method:'RSS natif'},
  {id:'nan_ng',n:'NAN — News Agency Nigeria',col:'#B91C1C',cy:'NG',sc:'national',cat:'securite',score:87,url:'https://www.nannews.ng/',rss:'https://www.nannews.ng/feed/',rss_method:'RSS natif'},
- {id:'abp_bj',n:'ABP — Agence Bénin Presse',col:'#DC2626',cy:'BJ',sc:'national',cat:'securite',score:80,url:'https://agencebeninpresse.info/',rss:'https://news.google.com/rss/search?q=site:agencebeninpresse.info&hl=fr&gl=BJ&ceid=BJ:fr',rss_method:'Google News RSS'},
+ {id:'abp_bj',n:'ABP — Agence Bénin Presse',col:'#8B1A1A',cy:'BJ',sc:'national',cat:'securite',score:80,url:'https://agencebeninpresse.info/',rss:'https://news.google.com/rss/search?q=site:agencebeninpresse.info&hl=fr&gl=BJ&ceid=BJ:fr',rss_method:'Google News RSS'},
  {id:'atop_tg',n:'ATOP — Agence Togolaise Presse',col:'#4B5563',cy:'TG',sc:'national',cat:'securite',score:79,url:'https://www.republicoftogo.com/Toutes-les-news',rss:'https://news.google.com/rss/search?q=site:republicoftogo.com&hl=fr&gl=TG&ceid=TG:fr',rss_method:'Google News RSS'},
  {id:'agi_gn',n:'AGP — Agence Guinéenne Presse',col:'#7C3AED',cy:'GN',sc:'national',cat:'securite',score:76,url:'https://www.aguinee.com/',rss:'https://news.google.com/rss/search?q=site:aguinee.com&hl=fr&gl=GN&ceid=GN:fr',rss_method:'Google News RSS'},
  {id:'aps_sn',n:'APS — Agence Sénégalaise Presse',col:'#16A34A',cy:'SN',sc:'national',cat:'securite',score:88,url:'https://www.aps.sn/',rss:'https://www.aps.sn/spip.php?page=backend',rss_method:'RSS natif'},
@@ -6321,7 +6328,7 @@ function articleADesLiensDirects(a) {
 }
 function rc(s){return s>=85?'rh':s>=65?'rm':'rl';}
 function lp(l){return {crit:['rc2','CRITIQUE'],high:['rh2','ELEVE'],mod:['rm2','MODERE'],ok:['ro2','STABLE'],u:['ru2','NON CONF']}[l]||['rm2','MODERE'];}
-function lbg(l){return {crit:'#8B1A1A',high:'#D97706',mod:'#4B5563',ok:'#0F4F2A'}[l]||'#4B5563';}
+function lbg(l){return {crit:'#8B1A1A',high:'#7C4A00',mod:'#4B5563',ok:'#0F4F2A'}[l]||'#4B5563';}
 function lic(l){return l==='crit'?'ti-alert-triangle':l==='high'?'ti-alert-circle':'ti-info-circle';}
 
 function getFiltered() {
@@ -6510,7 +6517,7 @@ function dismissToastManual(id) {
 // cycle de collecte comme l'ancien ruban "EN DIRECT". Chaque titre est un
 // lien vers l'actualite concernee (ouvre le Flux + le detail de l'article)
 // et affiche pays, date et heure de publication.
-const TT_NIV_COL = {crit:'#DC2626',high:'#D97706',mod:'#4B5563',ok:'#059669'};
+const TT_NIV_COL = {crit:'#8B1A1A',high:'#7C4A00',mod:'#4B5563',ok:'#0F4F2A'};
 const TT_NIV_LB  = {crit:'CRITIQUE',high:'ÉLEVÉ',mod:'MODÉRÉ',ok:'STABLE'};
 const FLASH_INFO_INTERVAL = 3*60*60*1000; // 3 heures
 let FLASH_INFO_LAST_GEN = 0;
@@ -6874,7 +6881,7 @@ function showDet(id) {
       (a.fromRSS?'<span class="rtag" style="margin-left:6px">RSS live</span>':'')+
     '</div>'+
     '<div class="det-pubdate"><i class="ti ti-calendar-time"></i><strong>Publié :</strong> '+fmtFull(a.pubDate)+'</div>'+
-    (()=>{ const s=fmtSurvenance(a); const suf = s.inconnue ? ' <span style="font-size:9px;">(à vérifier)</span>' : (s.ancien?' <span style="font-size:9px;">⚠ plus de 12h</span>':''); return '<div class="det-pubdate" style="'+(s.ancien?'color:#DC2626;font-weight:700;':'')+'"><i class="ti ti-history"></i><strong>Survenance estimée :</strong> '+s.texte+suf+'</div>'; })()+
+    (()=>{ const s=fmtSurvenance(a); const suf = s.inconnue ? ' <span style="font-size:9px;">(à vérifier)</span>' : (s.ancien?' <span style="font-size:9px;">⚠ plus de 12h</span>':''); return '<div class="det-pubdate" style="'+(s.ancien?'color:#8B1A1A;font-weight:700;':'')+'"><i class="ti ti-history"></i><strong>Survenance estimée :</strong> '+s.texte+suf+'</div>'; })()+
     '<div class="dsrcs"><span style="font-size:9px;font-weight:700;color:var(--gr);text-transform:uppercase;letter-spacing:.05em">Sources :</span>'+srcHtml+'</div>'+
     '<div style="font-size:8px;color:var(--lg);padding:4px 0 0;font-style:italic;">'+
       (lienDirectDispo
@@ -6976,12 +6983,12 @@ function closeKpiDrill() { const o = document.getElementById('kpiDrillOverlay');
 function showKpiDrill(kind) {
   const MAX = 12*60*60*1000;
   const artsActifs = (ALL||[]).filter(a=>estRecentReel(a));
-  const scoreCol = key => (typeof NIV !== 'undefined' && NIV[key]) ? NIV[key].col : '#059669';
+  const scoreCol = key => (typeof NIV !== 'undefined' && NIV[key]) ? NIV[key].col : '#0F4F2A';
   let title = '', icon = 'ti-list', rows = '';
 
   const rowArticle = a => {
     const pays = infoPays(a.cy);
-    const lvlMeta = {crit:{col:'#DC2626',lb:'CRITIQUE'},high:{col:'#D97706',lb:'ÉLEVÉ'},mod:{col:'#4B5563',lb:'MODÉRÉ'},ok:{col:'#059669',lb:'STABLE'}}[a.level]||{col:'#9CA3AF',lb:'INFO'};
+    const lvlMeta = {crit:{col:'#8B1A1A',lb:'CRITIQUE'},high:{col:'#7C4A00',lb:'ÉLEVÉ'},mod:{col:'#4B5563',lb:'MODÉRÉ'},ok:{col:'#0F4F2A',lb:'STABLE'}}[a.level]||{col:'#9CA3AF',lb:'INFO'};
     const trId = 'kpitt-'+a.id;
     return `<div onclick="closeKpiDrill();showDet('${a.id}');switchView('flux',document.querySelector('.ntab[onclick*=flux]'))" style="padding:9px 0;border-bottom:.5px solid var(--bd);cursor:pointer;display:flex;gap:8px;align-items:flex-start;">
       <span style="width:6px;height:6px;border-radius:50%;background:${lvlMeta.col};flex-shrink:0;margin-top:5px;"></span>
@@ -7130,11 +7137,11 @@ function marquerArticleTraite(id) {
 // Analyse > Synthese — la meme liste, la meme logique, pas de duplication.
 function renderPanelATraiter(cyFiltre, zoneFiltre) {
   const arts = getArticlesATraiter(cyFiltre, zoneFiltre).slice(0, 15);
-  const LVL_COL = {crit:'#DC2626', high:'#D97706', mod:'#4B5563', ok:'#059669'};
+  const LVL_COL = {crit:'#8B1A1A', high:'#7C4A00', mod:'#4B5563', ok:'#0F4F2A'};
   const LVL_LB  = {crit:'CRITIQUE', high:'ÉLEVÉ', mod:'MODÉRÉ', ok:'STABLE'};
   if (!arts.length) {
     return `<div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:16px;margin-bottom:12px;text-align:center;color:var(--lg);font-size:11px;">
-      <i class="ti ti-circle-check" style="font-size:22px;color:#059669;display:block;margin-bottom:6px;"></i>
+      <i class="ti ti-circle-check" style="font-size:22px;color:#0F4F2A;display:block;margin-bottom:6px;"></i>
       Aucune actualité de moins de 12h en attente de traitement.
     </div>`;
   }
@@ -7197,7 +7204,7 @@ function renderDashboard() {
   // "En tension" = tout ce qui n'est pas Stable/Modere (orange, marron, rouge)
   const enTension = scores.filter(s=>s.key==='orange'||s.key==='marron'||s.key==='rouge');
 
-  const scoreColor = s => NIV[s.key] ? NIV[s.key].col : '#059669';
+  const scoreColor = s => NIV[s.key] ? NIV[s.key].col : '#0F4F2A';
 
   const kpiCard = (v,l,c,icon,kind) =>
     `<div class="acard" style="background:var(--w);border:1px solid var(--bd);border-top:3px solid ${c};border-radius:9px;padding:14px;text-align:center;position:relative;cursor:pointer;" onclick="showKpiDrill('${kind}')" title="Voir le détail">
@@ -7264,10 +7271,10 @@ function renderDashboard() {
       <!-- KPI globaux -->
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:16px;">
         ${kpiCard(artsActifs.length,'Articles actifs','var(--t)','ti-file-text','articles')}
-        ${kpiCard(nbPays,'Pays couverts','#1D7AB8','ti-world','pays')}
-        ${kpiCard(nbCrit,'Critiques','#DC2626','ti-alert-triangle','crit')}
-        ${kpiCard(nbHigh,'Élevés','#D97706','ti-alert-circle','high')}
-        ${kpiCard(nbSrcs,'Sources actives','#059669','ti-antenna','sources')}
+        ${kpiCard(nbPays,'Pays couverts','#1B5FA8','ti-world','pays')}
+        ${kpiCard(nbCrit,'Critiques','#8B1A1A','ti-alert-triangle','crit')}
+        ${kpiCard(nbHigh,'Élevés','#7C4A00','ti-alert-circle','high')}
+        ${kpiCard(nbSrcs,'Sources actives','#0F4F2A','ti-antenna','sources')}
         ${kpiCard(enTension.length,'Pays en tension','#CA8A04','ti-trending-up','tension')}
       </div>
 
@@ -7277,18 +7284,18 @@ function renderDashboard() {
       <!-- Cartogramme régional des scores par pays -->
       <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:14px;margin-bottom:12px;">
         <div style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:12px;display:flex;align-items:center;gap:6px;">
-          <i class="ti ti-map-2" style="color:#1D7AB8"></i>
+          <i class="ti ti-map-2" style="color:#1B5FA8"></i>
           Carte régionale des risques — Score 0-100 par pays, regroupés par zone
         </div>
         ${cartogramme()}
       </div>
 
       <!-- Zones de risque -->
-      ${zoneCard('🔴 RISQUE GRAVE — Rouge', rouge, '#DC2626')}
+      ${zoneCard('🔴 RISQUE GRAVE — Rouge', rouge, '#8B1A1A')}
       ${zoneCard('🟤 RISQUE CRITIQUE — Marron', marron, '#8B1A1A')}
-      ${zoneCard('🟠 RISQUE TENDU — Orange', orange, '#D97706')}
+      ${zoneCard('🟠 RISQUE TENDU — Orange', orange, '#7C4A00')}
       ${zoneCard('🟡 RISQUE MODÉRÉ — Jaune', jaune, '#CA8A04')}
-      ${zoneCard('🟢 SITUATION NORMALE — Vert', vert, '#059669')}
+      ${zoneCard('🟢 SITUATION NORMALE — Vert', vert, '#0F4F2A')}
     `;
   });
 }
@@ -7549,11 +7556,11 @@ function buildRecherche(query, scope, cyFilter, catFilter) {
 }
 
 const SE_TYPE_META = {
-  flux:       { label:'Flux',       icon:'ti-radar-2',            col:'#1D7AB8' },
+  flux:       { label:'Flux',       icon:'ti-radar-2',            col:'#1B5FA8' },
   historique: { label:'Historique', icon:'ti-history',            col:'#6B7280' },
   agenda:     { label:'Agenda',     icon:'ti-calendar-event',     col:'#7C3AED' },
-  alertes:    { label:'Alerte',     icon:'ti-shield-exclamation', col:'#DC2626' },
-  sources:    { label:'Source',     icon:'ti-antenna',            col:'#059669' },
+  alertes:    { label:'Alerte',     icon:'ti-shield-exclamation', col:'#8B1A1A' },
+  sources:    { label:'Source',     icon:'ti-antenna',            col:'#0F4F2A' },
 };
 
 function renderRecherche() {
@@ -7676,7 +7683,7 @@ function renderAgenda() {
     const typBadge = '<span style="font-size:8px;font-weight:700;padding:1px 6px;border-radius:3px;margin-left:5px;color:'+typ[2]+';background:'+typ[2]+'1A;border:1px solid '+typ[2]+'44;">'+typ[0]+' '+typ[1]+'</span>';
     const fresh=(e.year==='2026'&&e.month==='Jun'&&parseInt(e.day)>=28);
     const freshTag=fresh?'<span style="font-size:8px;font-weight:700;color:#fff;background:#15803D;padding:1px 6px;border-radius:3px;margin-left:6px;">−18H</span>':'';
-    const autoTag=e._detecteAuto?'<span style="font-size:8px;font-weight:700;color:#1D7AB8;background:#EFF6FF;border:1px solid #BFDBFE;padding:1px 6px;border-radius:3px;margin-left:6px;" title="Detecte automatiquement depuis les flux RSS"><i class="ti ti-robot" style="font-size:9px;"></i> Auto</span>':'';
+    const autoTag=e._detecteAuto?'<span style="font-size:8px;font-weight:700;color:#1B5FA8;background:#EFF6FF;border:1px solid #BFDBFE;padding:1px 6px;border-radius:3px;margin-left:6px;" title="Detecte automatiquement depuis les flux RSS"><i class="ti ti-robot" style="font-size:9px;"></i> Auto</span>':'';
     const evId = e.id || ('agidx-'+i);
     const ttId = 'evtt-'+evId, dcId = 'evdc-'+evId, rcId = 'evrc-'+evId;
     return '<div class="ev '+e.status+'">'+
@@ -9443,11 +9450,11 @@ function getLiveAlertEvents(cy) {
 
 // NIV : référentiel visuel des 5 niveaux d'alerte pays (couleurs, libellés).
 const NIV = {
-  rouge:  {dot:'#DC2626', col:'#DC2626', border:'#DC2626', bg:'#FEF2F2', bgLight:'#FEE2E2', txt:'#7F1D1D', label:'ROUGE',  sous:'Critique'},
+  rouge:  {dot:'#8B1A1A', col:'#8B1A1A', border:'#8B1A1A', bg:'#FEF2F2', bgLight:'#FEE2E2', txt:'#7F1D1D', label:'ROUGE',  sous:'Critique'},
   marron: {dot:'#78350F', col:'#78350F', border:'#78350F', bg:'#FDF4EC', bgLight:'#F3E1CB', txt:'#78350F', label:'MARRON', sous:'Grave'},
-  orange: {dot:'#D97706', col:'#D97706', border:'#D97706', bg:'#FFFBEB', bgLight:'#FEF3C7', txt:'#92400E', label:'ORANGE', sous:'Élevé'},
+  orange: {dot:'#7C4A00', col:'#7C4A00', border:'#7C4A00', bg:'#FFFBEB', bgLight:'#FEF3C7', txt:'#92400E', label:'ORANGE', sous:'Élevé'},
   jaune:  {dot:'#CA8A04', col:'#CA8A04', border:'#CA8A04', bg:'#FEFCE8', bgLight:'#FEF9C3', txt:'#854D0E', label:'JAUNE',  sous:'Modéré'},
-  vert:   {dot:'#059669', col:'#059669', border:'#059669', bg:'#F0FDF4', bgLight:'#DCFCE7', txt:'#065F46', label:'VERT',   sous:'Stable'},
+  vert:   {dot:'#0F4F2A', col:'#0F4F2A', border:'#0F4F2A', bg:'#F0FDF4', bgLight:'#DCFCE7', txt:'#065F46', label:'VERT',   sous:'Stable'},
 };
 
 // getNivKey(total) : convertit le score composite d'un pays (voir calcAlertScore,
@@ -9851,7 +9858,7 @@ function ouvrirVuePays(cy) {
     <div style="padding:7px 0;border-bottom:.5px solid var(--bd);cursor:pointer;" onclick="showDet('${a.id}');document.getElementById('vuePaysOverlay').remove();switchView('flux',document.querySelector('.ntab[onclick*=flux]'));">
       <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="vpa-${a.id}">${tr(a.title,'vpa-'+a.id)}</div>
       <div style="font-size:9px;color:var(--lg);margin-top:2px;">${(a.crosses||[])[0] || ''}</div>
-      ${(()=>{ const s=fmtSurvenance(a); if (s.inconnue) return `<div style="font-size:8.5px;color:#B45309;font-weight:700;margin-top:1px;">Survenance : ${s.texte} (à vérifier)</div>`; return s.ancien ? `<div style="font-size:8.5px;color:#DC2626;font-weight:700;margin-top:1px;">⚠ Survenance : ${s.texte} (plus de 12h)</div>` : `<div style="font-size:8.5px;color:var(--lg);margin-top:1px;">Survenance : ${s.texte}</div>`; })()}
+      ${(()=>{ const s=fmtSurvenance(a); if (s.inconnue) return `<div style="font-size:8.5px;color:#B45309;font-weight:700;margin-top:1px;">Survenance : ${s.texte} (à vérifier)</div>`; return s.ancien ? `<div style="font-size:8.5px;color:#8B1A1A;font-weight:700;margin-top:1px;">⚠ Survenance : ${s.texte} (plus de 12h)</div>` : `<div style="font-size:8.5px;color:var(--lg);margin-top:1px;">Survenance : ${s.texte}</div>`; })()}
     </div>`).join('') : '<div style="font-size:11px;color:var(--lg);font-style:italic;padding:6px 0;">Aucun article recent</div>';
 
   const htmlRegio = regionaux.length ? regionaux.map(a => `
