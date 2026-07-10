@@ -177,6 +177,18 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 /* NAV */
 .nav{background:#142030;border-bottom:1px solid #1e3550;
   display:flex;padding:0 14px;overflow-x:auto;flex-shrink:0}
+/* Enrobage de la barre de modules + fleches de navigation (mobile
+   uniquement, cf. media queries plus bas) — permet de passer d'un module
+   a l'autre d'un tap au lieu de devoir deviner qu'il faut faire defiler
+   la barre horizontalement. */
+.nav-wrap{display:flex;align-items:stretch;min-width:0;flex-shrink:0;background:#142030}
+.nav-wrap .nav{flex:1;min-width:0}
+.nav-arrow{display:none;flex-shrink:0;border:none;cursor:pointer;
+  background:rgba(91,184,240,.12);color:#5BB8F0;font-size:16px;
+  align-items:center;justify-content:center;}
+.nav-arrow-l{border-right:1px solid rgba(91,184,240,.25)}
+.nav-arrow-r{border-left:1px solid rgba(91,184,240,.25)}
+.nav-arrow:active{background:rgba(91,184,240,.28)}
 /* Barre de filtre compacte : remplace les listes verticales Portee/Pays de
    la sidebar par 2 menus deroulants, sur une seule ligne fine, pour degager
    de l'espace vertical et faciliter la prise en main de l'app (moins de
@@ -1068,8 +1080,9 @@ html:not(.force-web) #tbTime{display:none}
 html:not(.force-web) .user-name{display:none}
 html:not(.force-web) .user-chip{padding:4px 6px;gap:0}
 html:not(.force-web) .nav{padding:0 6px}
-html:not(.force-web) .ntab{padding:9px 10px;font-size:10px;flex-shrink:0}
+html:not(.force-web) .ntab{padding:9px 10px;font-size:10px;flex-shrink:0;min-height:36px;display:flex;align-items:center;}
 html:not(.force-web) .ntab span{white-space:nowrap}
+html:not(.force-web) .nav-arrow{display:flex !important;width:28px;min-height:36px;}
 html:not(.force-web) .flashinfo-label{font-size:9px;padding:0 6px}
 html:not(.force-web) .proxy-bar{padding:8px 10px;flex-direction:column}
 html:not(.force-web) .cbar{padding:5px 8px;gap:6px}
@@ -1130,6 +1143,7 @@ html:not(.force-web) .mob-toggle.open i{transform:rotate(180deg)}
 html:not(.force-mobile) .mob-toggle{display:none !important}
 html:not(.force-mobile) .lp-toggle-btn{display:none !important}
 html:not(.force-mobile) .lp-backdrop{display:none !important}
+html:not(.force-mobile) .nav-arrow{display:none !important}
 }
 @media (max-width:420px){
 html:not(.force-web) .ntab span{font-size:9px}
@@ -1156,8 +1170,9 @@ html.force-mobile #tbTime{display:none}
 html.force-mobile .user-name{display:none}
 html.force-mobile .user-chip{padding:4px 6px;gap:0}
 html.force-mobile .nav{padding:0 6px}
-html.force-mobile .ntab{padding:9px 10px;font-size:10px;flex-shrink:0}
+html.force-mobile .ntab{padding:9px 10px;font-size:10px;flex-shrink:0;min-height:36px;display:flex;align-items:center;}
 html.force-mobile .ntab span{white-space:nowrap}
+html.force-mobile .nav-arrow{display:flex !important;width:28px;min-height:36px;}
 html.force-mobile .flashinfo-label{font-size:9px;padding:0 6px}
 html.force-mobile .proxy-bar{padding:8px 10px;flex-direction:column}
 html.force-mobile .cbar{padding:5px 8px;gap:6px}
@@ -1218,6 +1233,7 @@ html.force-mobile .ntab i{font-size:13px}
 html.force-web .mob-toggle{display:none !important}
 html.force-web .lp-toggle-btn{display:none !important}
 html.force-web .lp-backdrop{display:none !important}
+html.force-web .nav-arrow{display:none !important}
 
 @media print{
   .tb,.nav,.layout .lp,.dl-toolbar,.statusbar,.cbar,.setup-bar,
@@ -1769,15 +1785,19 @@ button:not(:disabled){
 </div>
 
 <!-- NAV -->
-<div class="nav">
-  <div class="ntab" onclick="switchView(&#39;flux&#39;,this)"><i class="ti ti-radar-2"></i><span data-i18n="nav_flux">Flux</span><span class="nbadge" id="nbadge" style="display: none;">0</span></div>
-  <div class="ntab" id="tabRecherche" onclick="switchView(&#39;recherche&#39;,this)"><i class="ti ti-search"></i><span data-i18n="nav_recherche">Recherche</span></div>
-  <div class="ntab" onclick="switchView(&#39;analyse&#39;,this)"><i class="ti ti-chart-dots"></i><span data-i18n="nav_analyse">Synthèse</span></div>
-  <div class="ntab" id="tabAgenda" onclick="switchView(&#39;agenda&#39;,this)"><i class="ti ti-calendar-event"></i><span data-i18n="nav_agenda">Agenda</span></div>
-  <div class="ntab" onclick="switchView(&#39;rapports&#39;,this)"><i class="ti ti-download"></i><span data-i18n="nav_rapports">Rapports</span></div>
-  <div class="ntab" id="tabAlertes" onclick="switchView(&#39;alertes&#39;,this)"><i class="ti ti-shield-exclamation"></i><span data-i18n="nav_alertes">Alertes</span></div>
-  <div class="ntab on" onclick="switchView(&#39;dashboard&#39;,this)"><i class="ti ti-layout-dashboard"></i><span>Tableau de bord</span></div>
-  <div class="ntab" id="tabParams" onclick="switchView(&#39;params&#39;,this)" style="display:none"><i class="ti ti-settings"></i><span>Parametres</span></div>
+<div class="nav-wrap">
+  <button class="nav-arrow nav-arrow-l" onclick="navScrollModule(-1)" aria-label="Module précédent" title="Module précédent"><i class="ti ti-chevron-left"></i></button>
+  <div class="nav" id="navTabs">
+    <div class="ntab" data-view="flux" onclick="switchView(&#39;flux&#39;,this)"><i class="ti ti-radar-2"></i><span data-i18n="nav_flux">Flux</span><span class="nbadge" id="nbadge" style="display: none;">0</span></div>
+    <div class="ntab" id="tabRecherche" data-view="recherche" onclick="switchView(&#39;recherche&#39;,this)"><i class="ti ti-search"></i><span data-i18n="nav_recherche">Recherche</span></div>
+    <div class="ntab" data-view="analyse" onclick="switchView(&#39;analyse&#39;,this)"><i class="ti ti-chart-dots"></i><span data-i18n="nav_analyse">Synthèse</span></div>
+    <div class="ntab" id="tabAgenda" data-view="agenda" onclick="switchView(&#39;agenda&#39;,this)"><i class="ti ti-calendar-event"></i><span data-i18n="nav_agenda">Agenda</span></div>
+    <div class="ntab" data-view="rapports" onclick="switchView(&#39;rapports&#39;,this)"><i class="ti ti-download"></i><span data-i18n="nav_rapports">Rapports</span></div>
+    <div class="ntab" id="tabAlertes" data-view="alertes" onclick="switchView(&#39;alertes&#39;,this)"><i class="ti ti-shield-exclamation"></i><span data-i18n="nav_alertes">Alertes</span></div>
+    <div class="ntab on" data-view="dashboard" onclick="switchView(&#39;dashboard&#39;,this)"><i class="ti ti-layout-dashboard"></i><span>Tableau de bord</span></div>
+    <div class="ntab" id="tabParams" data-view="params" onclick="switchView(&#39;params&#39;,this)" style="display:none"><i class="ti ti-settings"></i><span>Parametres</span></div>
+  </div>
+  <button class="nav-arrow nav-arrow-r" onclick="navScrollModule(1)" aria-label="Module suivant" title="Module suivant"><i class="ti ti-chevron-right"></i></button>
 </div>
 
 <div class="flashinfo" id="flashInfoBar">
@@ -8074,6 +8094,14 @@ function switchView(name,el){
   document.getElementById('v-'+name).classList.add('on');
   document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
   if(el)el.classList.add('on');
+  // Fait defiler l'onglet actif dans le champ visible de la barre de
+  // modules — sur mobile, la barre deborde souvent (7-8 modules sur un
+  // ecran etroit) : sans ca, activer un onglet situe hors champ (via un
+  // lien ailleurs dans l'app, cf. showDet/setGeo...) le laissait invisible,
+  // l'utilisateur ne voyait pas quel module etait realmente actif.
+  if (el && typeof el.scrollIntoView === 'function') {
+    try { el.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'}); } catch(_) {}
+  }
   const _lpEl = document.getElementById('lp');
   if (_lpEl) _lpEl.style.display=(name==='rapports'||name==='params')?'none':'flex';
   if(name==='agenda')    { renderAgenda(); }
@@ -8084,6 +8112,23 @@ function switchView(name,el){
   if(name==='flux'){document.getElementById('nbadge').style.display='none';NEW_IDS.clear();renderFeed();}
   if(name==='recherche'){ peuplerFiltresRecherche(); renderRecherche(); }
   if (typeof logTraffic === 'function') logTraffic(name);
+}
+
+// navScrollModule(dir) : passe au module precedent (dir=-1) ou suivant
+// (dir=1) dans l'ordre de la barre de navigation, avec retour au debut/fin
+// (cyclique) — boutons flèches affichés uniquement sur mobile, pour changer
+// de module d'un tap sans avoir a deviner qu'il faut faire defiler la barre
+// horizontalement ni a viser un onglet parfois hors champ.
+function navScrollModule(dir) {
+  const tabs = Array.from(document.querySelectorAll('.ntab')).filter(t => {
+    const cs = window.getComputedStyle(t);
+    return cs.display !== 'none' && cs.visibility !== 'hidden';
+  });
+  if (!tabs.length) return;
+  let idx = tabs.findIndex(t => t.classList.contains('on'));
+  if (idx === -1) idx = 0;
+  const next = tabs[(idx + dir + tabs.length) % tabs.length];
+  switchView(next.dataset.view, next);
 }
 
 // ── HORLOGE & AUTO-REFRESH ────────────────────────────────────────────────────
