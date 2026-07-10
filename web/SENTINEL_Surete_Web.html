@@ -4018,6 +4018,75 @@ function rehydrateArticles(arts) {
   return arts;
 }
 
+// _decodeEntitesHTML(str) : decode les entites HTML (nommees : &eacute; /
+// numeriques decimales : &#233; / numeriques hexadecimales : &#xE9;) qui
+// echappent parfois au parsing XML normal. Deux cas frequents chez les
+// sources collectees : (1) un flux encode son contenu en HTML a l'interieur
+// d'un bloc CDATA — le parseur XML (DOMParser) ne decode alors JAMAIS ces
+// entites, un CDATA etant pris au mot ; (2) un flux est fourni en JSON par
+// un service tiers (rss2json) sans aucune passe de decodage HTML. Sans ce
+// decodage, des sequences comme "&#xE9;" restent affichees telles quelles
+// au lieu du caractere qu'elles representent ("é") — ex. signale : "copr&#xE9;side"
+// au lieu de "copréside". Corrompt aussi bien la lecture que la tokenisation
+// (extraction de termes pour les corrélations entre pays, qui traite alors
+// "copr&#xe9;side" comme un mot inconnu au lieu de "copréside").
+// Astuce robuste (couvre les ~250 entites HTML5 nommees, pas seulement une
+// liste maison) : un <textarea> detache decode son innerHTML sans jamais
+// executer de script (contenu toujours traite comme texte brut).
+let _entityDecoderEl = null;
+function _decodeEntitesHTML(str) {
+  if (!str || str.indexOf('&') === -1) return str; // rien a decoder : sortie rapide
+  if (!_entityDecoderEl) _entityDecoderEl = document.createElement('textarea');
+  _entityDecoderEl.innerHTML = str;
+  return _entityDecoderEl.value;
+}
+
+// _corrigerTextesArticlesEnPlace(articles) : applique _decodeEntitesHTML au
+// titre et a l'analyse de chaque article, en place, et renvoie le nombre de
+// champs corriges.
+function _corrigerTextesArticlesEnPlace(articles) {
+  let corrections = 0;
+  (articles || []).forEach(a => {
+    if (!a) return;
+    const t2 = _decodeEntitesHTML(a.title);
+    if (t2 !== a.title) { a.title = t2; corrections++; }
+    const d2 = _decodeEntitesHTML(a.analysis);
+    if (d2 !== a.analysis) { a.analysis = d2; corrections++; }
+  });
+  return corrections;
+}
+
+// agentCorrigerTextesArticles() : agent correcteur de texte — le correctif
+// applique dans parseRSS/parseJSON empeche la corruption par entites HTML
+// non decodees sur les FUTURES collectes, mais ne repare pas les articles
+// deja stockes localement (ALL en memoire, HISTORIQUE en IndexedDB), qui
+// restent affiches avec des sequences du type "&#xE9;" tant qu'ils n'ont
+// pas ete re-collectes. Cet agent balaie ALL et HISTORIQUE apres chaque
+// collecte (cout CPU negligeable : _decodeEntitesHTML sort immediatement
+// si aucune esperluette n'est presente, pas d'appel reseau) et corrige en
+// place les textes deja corrompus — meme principe d'auto-guerison que
+// l'agent de verification des liens (agentValiderLiensArticles), mais sans
+// besoin de cache puisqu'il n'y a aucun cout reseau a economiser ici.
+let _agentTextesEnCours = false;
+function agentCorrigerTextesArticles() {
+  if (_agentTextesEnCours) return 0;
+  _agentTextesEnCours = true;
+  try {
+    const corrALL = _corrigerTextesArticlesEnPlace(typeof ALL !== 'undefined' ? ALL : []);
+    const corrHist = _corrigerTextesArticlesEnPlace(typeof HISTORIQUE !== 'undefined' ? HISTORIQUE : []);
+    if (corrHist > 0 && typeof DB !== 'undefined' && DB) {
+      try {
+        const tx = DB.transaction('historique', 'readwrite');
+        const s = tx.objectStore('historique');
+        HISTORIQUE.forEach(a => s.put(a));
+      } catch (_) {}
+    }
+    return corrALL + corrHist;
+  } finally {
+    _agentTextesEnCours = false;
+  }
+}
+
 function parseJSON(d, src) {
   if (!d || !d.items) return [];
   const now = Date.now();
@@ -4025,12 +4094,12 @@ function parseJSON(d, src) {
   const isSocial = src.rss_method && (src.rss_method.includes('Telegram') || src.rss_method.includes('Google News RSS'));
 
   return d.items.slice(0, isSocial ? 8 : 12).map((item, i) => {
-    let title = (item.title || item.description || '').trim().replace(/<[^>]+>/g,'').replace(/\s+/g,' ');
+    let title = _decodeEntitesHTML((item.title || item.description || '').trim().replace(/<[^>]+>/g,'')).replace(/\s+/g,' ');
     if (isSocial && title.length < 15) return null;
     if (!isSocial && title.length < 8) return null;
 
-    const desc = (item.description || item.content || item.title || '')
-      .replace(/<[^>]+>/g,'').replace(/&[a-z]+;/g,' ')
+    const desc = _decodeEntitesHTML((item.description || item.content || item.title || '')
+      .replace(/<[^>]+>/g,''))
       .replace(/\s+/g,' ').trim().slice(0, 400);
 
     // Extraction des médias depuis les champs rss2json (enclosure, thumbnail)
@@ -5476,11 +5545,16 @@ function parseRSS(xml, src) {
   const isSocial = src.rss_method && (src.rss_method.includes('Telegram') || src.rss_method.includes('Google News RSS'));
 
   for (const [i, item] of items.slice(0, isSocial ? 8 : 12).entries()) {
-    let title = (item.querySelector('title')?.textContent||'').trim().replace(/\s+/g,' ');
+    // _decodeEntitesHTML : le titre/la description peuvent contenir des
+    // entites HTML litterales non decodees par le parseur XML (ex. une
+    // source qui encode son contenu en HTML a l'interieur d'un bloc CDATA,
+    // que DOMParser prend au mot sans les interpreter) — cf. la note detaillee
+    // au-dessus de la definition de _decodeEntitesHTML.
+    let title = _decodeEntitesHTML((item.querySelector('title')?.textContent||'').trim()).replace(/\s+/g,' ');
     // Telegram/Twitter : le titre peut etre vide, utiliser la description
     if (isSocial && title.length < 10) {
-      title = (item.querySelector('description,summary')?.textContent||'')
-        .replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim().slice(0,140);
+      title = _decodeEntitesHTML((item.querySelector('description,summary')?.textContent||'')
+        .replace(/<[^>]+>/g,'')).replace(/\s+/g,' ').trim().slice(0,140);
     }
     if (title.length < 8) continue;
 
@@ -5488,8 +5562,8 @@ function parseRSS(xml, src) {
               || item.querySelector('link')?.textContent?.trim()
               || src.url;
 
-    let desc = (item.querySelector('description,summary,content')?.textContent||'')
-      .replace(/<[^>]+>/g,'').replace(/&[a-z]+;/g,' ').replace(/\s+/g,' ').trim().slice(0,400);
+    let desc = _decodeEntitesHTML((item.querySelector('description,summary,content')?.textContent||'')
+      .replace(/<[^>]+>/g,'')).replace(/\s+/g,' ').trim().slice(0,400);
 
     const descRaw = item.querySelector('description,summary,content')?.textContent || '';
     const _media = extractMediaFromItem(item, descRaw);
@@ -5861,6 +5935,11 @@ async function doCollect() {
   // heures dans le suivi historique.
   if (typeof archiverHistorique === 'function') archiverHistorique([...ALL, ...rejetes]);
   if (typeof rehydrateArticles === 'function') rehydrateArticles(ALL);
+  // Agent correcteur de texte : repare en place les entites HTML residuelles
+  // (ex. "&#xE9;" au lieu de "é") dans les articles deja en cache — cout
+  // negligeable (pas d'appel reseau), donc execute de facon synchrone avant
+  // le premier rendu du cycle plutot qu'en tache differee.
+  if (typeof agentCorrigerTextesArticles === 'function') agentCorrigerTextesArticles();
 
   // ── FINALISATION : couverture des 54 pays + correction des anciennes donnees ──
   // 1. Corriger retroactivement TOUTES les donnees encore en cache (pays
@@ -7838,6 +7917,10 @@ async function init() {
         if(fresh.length){
           ALL=fresh; ALL.forEach(a=>{a.time=fmtAge(a.pubDate||0);});
           if (typeof rehydrateArticles === 'function') rehydrateArticles(ALL);
+          // Repare les articles caches depuis une session precedente, avant meme
+          // le premier rendu (evite d'afficher brievement des entites HTML non
+          // decodees restees dans IndexedDB) — voir agentCorrigerTextesArticles.
+          if (typeof agentCorrigerTextesArticles === 'function') agentCorrigerTextesArticles();
           renderFeed(); updStats(); updSynthese();
           document.getElementById('stbarLeft').textContent=fresh.length+' articles en cache · Actualisation en direct en cours...';
           document.getElementById('liveTxt').textContent='Cache';
