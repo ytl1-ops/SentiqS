@@ -10824,11 +10824,12 @@ function _toRoman(n) {
 // En-têtes de section numérotées + pied de page systématique (marque +
 // périmètre + date + numéro de page) sur le modèle des rapports GRSCI :
 // case colorée numérotée, titre souligné, filet fin, bandeau de bas de page.
-function _pdfBuilder(doc, fontReg, fontBold, rgb) {
+function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
   const W = 595.28, H = 841.89, M = 50; // A4 portrait, points
   const NAVY = rgb(0.051,0.106,0.161), BLUE = rgb(0.114,0.373,0.659),
         INK = rgb(0.043,0.086,0.129), MUTED = rgb(0.42,0.46,0.5),
-        LINE = rgb(0.82,0.85,0.88), BOXBG = rgb(0.97,0.98,0.99);
+        LINE = rgb(0.82,0.85,0.88), BOXBG = rgb(0.97,0.98,0.99),
+        RED = rgb(0.545,0.102,0.102), PAPER = rgb(0.906,0.922,0.937);
   // Convertit un hex '#RRGGBB' (palette du gabarit imprimable — cf.
   // levelMeta()) en rgb() pdf-lib (0-1) : mêmes couleurs de niveau que
   // Word et l'aperçu HTML, pour une identité visuelle cohérente entre
@@ -10877,22 +10878,47 @@ function _pdfBuilder(doc, fontReg, fontBold, rgb) {
       b.page.drawLine({start:{x:cx,y:cy0+r+4}, end:{x:cx,y:cy0-r-4}, thickness:0.5, color:BLUE});
       b.page.drawLine({start:{x:cx-r-4,y:cy0}, end:{x:cx+r+4,y:cy0}, thickness:0.5, color:BLUE});
     },
-    // En-tete "Bulletin de veille" — logo radar + titre + date/heure de
-    // generation + creneau + phrase de synthese, sur fond clair (pas de
-    // couverture sombre separee). Remplace titlePage() pour synthese/flux.
+    // En-tete "masthead" — sur le modele du gabarit de reference (Claude
+    // Design, cf. l'apercu HTML "Analyse securitaire operationnelle") :
+    // bandeau meta (date/creneau a gauche, usage restreint a droite), puis
+    // bloc centre sur fond clair (eyebrow "Rapport operationnel — perimetre",
+    // titre de marque serif "SENTINEL SÛRETÉ", sous-titre = libelle du
+    // rapport, phrase de synthese) — meme structure et memes couleurs que
+    // Word/PPTX/l'apercu HTML, pour une identite visuelle coherente entre
+    // tous les formats d'export.
     bulletinHeader(titre, dateGenStr, creneauStr, syntheseTxt) {
       b.newPage();
       const cx = W/2;
-      b.drawRadarLogo(cx, H-70, 13);
-      const ttxt = _pdfSafe(titre.toUpperCase());
-      const tsize = 19;
+      const headH = 168;
+      b.page.drawRectangle({x:0, y:H-headH, width:W, height:headH, color:PAPER});
+
+      // Bandeau meta superieur
+      b.page.drawLine({start:{x:M,y:H-30},end:{x:W-M,y:H-30},thickness:1,color:NAVY});
+      const metaL = (LANG==='en'?'Generated on: ':'Généré le : ')+dateGenStr+'   |   '+(LANG==='en'?'Slot: ':'Créneau : ')+creneauStr;
+      b.page.drawText(_pdfSafe(metaL), {x:M, y:H-26, size:7.5, font:fontReg, color:MUTED});
+      const metaR = _pdfSafe(LANG==='en'?'RESTRICTED USE — SECURITY OFFICERS':'USAGE RESTREINT — RESPONSABLES SÛRETÉ');
+      const metaRw = fontBold.widthOfTextAtSize(metaR, 7.5);
+      b.page.drawText(metaR, {x:W-M-metaRw, y:H-26, size:7.5, font:fontBold, color:RED});
+
+      // Eyebrow centre (perimetre du rapport)
+      const eyebrow = _pdfSafe(((LANG==='en'?'OPERATIONAL REPORT':'RAPPORT OPÉRATIONNEL')+(b.footerPerimetre?' — '+b.footerPerimetre.toUpperCase():'')));
+      const ew = fontReg.widthOfTextAtSize(eyebrow, 8.5);
+      b.page.drawText(eyebrow, {x:cx-ew/2, y:H-50, size:8.5, font:fontReg, color:MUTED});
+
+      // Titre de marque (serif, identique a Word/PPTX/apercu HTML)
+      const brandTxt = 'SENTINEL SÛRETÉ';
+      const bsize = 27;
+      const bw = fontSerif.widthOfTextAtSize(brandTxt, bsize);
+      b.page.drawText(brandTxt, {x:cx-bw/2, y:H-80, size:bsize, font:fontSerif, color:NAVY});
+
+      // Sous-titre : libelle du rapport (ex. "Synthèse analytique")
+      const ttxt = _pdfSafe(titre);
+      const tsize = 12.5;
       const tw = fontBold.widthOfTextAtSize(ttxt, tsize);
-      b.page.drawText(ttxt, {x:cx-tw/2, y:H-104, size:tsize, font:fontBold, color:NAVY});
-      b.page.drawLine({start:{x:M,y:H-116},end:{x:W-M,y:H-116},thickness:1.2,color:NAVY});
-      const meta = (LANG==='en'?'Generated on: ':'Généré le : ')+dateGenStr+'   |   '+(LANG==='en'?'Slot: ':'Créneau : ')+creneauStr;
-      const mw = fontReg.widthOfTextAtSize(meta, 9);
-      b.page.drawText(meta, {x:cx-mw/2, y:H-132, size:9, font:fontReg, color:MUTED});
-      b.y = H-155;
+      b.page.drawText(ttxt, {x:cx-tw/2, y:H-98, size:tsize, font:fontBold, color:INK});
+
+      b.page.drawLine({start:{x:M,y:H-headH+16},end:{x:W-M,y:H-headH+16},thickness:0.6,color:LINE});
+      b.y = H-headH-4;
       if (syntheseTxt) {
         b.wrap(syntheseTxt, 10, fontReg, W-M*2).forEach(line => {
           b.page.drawText(line, {x:M, y:b.y, size:10, font:fontReg, color:MUTED});
@@ -11133,7 +11159,13 @@ async function exportPDF(type) {
     const doc = await PDFDocument.create();
     const fontReg  = await doc.embedFont(StandardFonts.Helvetica);
     const fontBold = await doc.embedFont(StandardFonts.HelveticaBold);
-    const b = _pdfBuilder(doc, fontReg, fontBold, rgb);
+    // Police serif pour le titre de marque du masthead (gabarit "Analyse
+    // sécuritaire opérationnelle" — Source Serif 4 utilisée par Word/PPTX/
+    // l'aperçu HTML, non disponible en police standard PDF ; Times-Bold est
+    // la police serif la plus proche parmi les 14 polices standard PDF,
+    // sans dépendance réseau pour charger une police custom).
+    const fontSerif = await doc.embedFont(StandardFonts.TimesRomanBold);
+    const b = _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb);
 
     const perimetre = libellePerimetreRapport();
     const dateStr = new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' à '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
@@ -11157,7 +11189,7 @@ async function exportPDF(type) {
       // que FR (ou EN) ne doit apparaitre dans le document exporte.
       await preTraduireRapport(arts.flatMap(a => [a.title, a.analysis]));
       const nbSrcActifs = new Set(arts.map(a=>a.primary)).size;
-      b.bulletinHeader(titre+' — '+creneauStr, dateGenStr, creneauStr,
+      b.bulletinHeader(titre, dateGenStr, creneauStr,
         (LANG==='en'
           ? 'Impact summary on the regional security situation and disruption to state activities. Analysis of '+nbSrcActifs+' consolidated feeds.'
           : "Synthèse d'impact sur la situation sécuritaire régionale et la perturbation des activités étatiques. Analyse de "+nbSrcActifs+' flux consolidés.'));
@@ -11255,7 +11287,7 @@ async function exportPDF(type) {
       const arts = getExportData();
       await preTraduireRapport(arts.map(a => a.title));
       const nbSrcActifsF = new Set(arts.map(a=>a.primary)).size;
-      b.bulletinHeader(titre+' — '+creneauStr, dateGenStr, creneauStr,
+      b.bulletinHeader(titre, dateGenStr, creneauStr,
         (LANG==='en'
           ? arts.length+' events collected over the last 12 hours, across '+nbSrcActifsF+' consolidated feeds.'
           : arts.length+' événements collectés sur les 12 dernières heures, à partir de '+nbSrcActifsF+' flux consolidés.'));
@@ -11271,7 +11303,7 @@ async function exportPDF(type) {
     else if (type === 'agenda') {
       const agenda = (typeof getExportAgenda === 'function') ? getExportAgenda() : [];
       await preTraduireRapport(agenda.flatMap(e => [e.title, e.desc, e.reco]));
-      b.bulletinHeader(titre+' — '+creneauStr, dateGenStr, creneauStr,
+      b.bulletinHeader(titre, dateGenStr, creneauStr,
         (LANG==='en' ? agenda.length+' ongoing or upcoming events.' : agenda.length+' événement'+(agenda.length>1?'s':'')+' en cours ou à venir.'));
       b.heading('AGENDA SÛRETÉ — ' + perimetre);
       b.para(agenda.length+' événement'+(agenda.length>1?'s':'')+' en cours ou à venir.', {color:rgb(0.42,0.46,0.5)});
@@ -11301,7 +11333,7 @@ async function exportPDF(type) {
       Object.values(MESURES).forEach(m=>{ textesATraduire.push(m.expatries[0], m.installations[0]); });
       await preTraduireRapport(textesATraduire);
 
-      b.bulletinHeader(titre+' — '+creneauStr, dateGenStr, creneauStr, rl('pays_perimetre')(scores.length));
+      b.bulletinHeader(titre, dateGenStr, creneauStr, rl('pays_perimetre')(scores.length));
       b.heading(rl('alertes_titre') + ' — ' + perimetre);
       b.para(rl('pays_perimetre')(scores.length), {color:rgb(0.42,0.46,0.5)});
       b.box(LANG==='en'?'READING GUIDE':'GUIDE DE LECTURE', [
