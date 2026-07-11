@@ -3824,9 +3824,14 @@ function setDisplayMode(mode) {
 // (Google News RSS localisé par pays : fr/en/pt/ar) : on ne peut plus
 // supposer que tout provient du français comme avant.
 const AR_RANGE = /[؀-ۿ]/;
+// 'president','police','forces','national' volontairement EXCLUS : identiques
+// au francais sans accent ("président"->"president", "sécurité"->"securite"
+// n'a pas ce probleme mais ces 4-la si), ils faussaient la detection d'un
+// titre francais authentique vers 'en' des qu'il en contenait deux ou trois
+// (ex. "President visite forces armees a Bamako" -> detecte 'en' a tort).
 const EN_STOPWORDS = new Set(['the','and','for','with','from','after','before','have','has','been',
   'their','this','that','was','were','are','will','said','says','over','into','amid','minister',
-  'government','president','police','attack','killed','forces','national','country','state','city',
+  'government','attack','killed','country','state','city',
   'security','crisis','more','than','not','but','who','what','when','where','how','new','two','three']);
 const PT_STOPWORDS = new Set(['de','da','do','em','para','com','uma','um','das','dos','como','mais',
   'sobre','apos','entre','governo','presidente','ministro','policia','ataque','forcas','nacional',
@@ -4112,6 +4117,14 @@ async function trFetch(texte, srcLang, tgtLang, force) {
   // retenter tout de suite, sans attendre un rechargement complet de la page.
   if (TR_CACHE[cacheKey] !== undefined && !(force && TR_CACHE[cacheKey] === texte && srcLang !== tgtLang)) return TR_CACHE[cacheKey];
   if (srcLang === tgtLang) { TR_CACHE[cacheKey] = texte; return texte; }
+  // Plafonne le texte reellement ENVOYE aux moteurs (appels GET, texte
+  // transmis dans l'URL) — les analyses RSS brutes font parfois plusieurs
+  // centaines de caracteres et faisaient echouer silencieusement la
+  // traduction sur ce chemin (Flux/popup/rapports via preTraduireRapport),
+  // alors que retraduireActu (bouton "Traduire") tronquait deja pour la
+  // meme raison. Le cache reste indexe sur le texte ORIGINAL non tronque
+  // (cacheKey ci-dessus) : seul l'appel reseau porte sur la version courte.
+  const texteEnvoye = _trTexteTraduisible(texte, EXTRAIT_MAX_CARACTERES + 40);
   // 'other' (langue locale non couverte par detectLangue — chichewa, swahili,
   // haoussa...) n'est pas un code de langue valide pour les moteurs de
   // traduction : chaque moteur mappe ce cas vers son propre mot-cle de
@@ -4120,7 +4133,7 @@ async function trFetch(texte, srcLang, tgtLang, force) {
   // comparaison avec tgtLang).
   for (const moteur of TR_AGENT_PROVIDERS) {
     try {
-      const out = await moteur(texte, srcLang, tgtLang);
+      const out = await moteur(texteEnvoye, srcLang, tgtLang);
       if (typeof out === 'string' && out.trim()) {
         TR_CACHE[cacheKey] = _trDecodeEntities(out);
         return TR_CACHE[cacheKey];
@@ -6927,16 +6940,27 @@ function safeUrl(rawUrl, fallbackQuery) {
   }
   try {
     const u = new URL(rawUrl);
+    // Allowlist de protocole : un flux RSS n'est pas une source de confiance,
+    // et new URL() n'echoue PAS pour javascript:/data:/vbscript: (elle les
+    // parse comme des URL "opaques" valides, protocol='javascript:' etc.).
+    // Sans ce garde-fou, une actu malveillante pourrait injecter un lien
+    // javascript:... dans un href affiche sans autre echappement — XSS.
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') {
+      return 'https://www.google.com/search?q=' + encodeURIComponent(fallbackQuery || 'actualite');
+    }
     const domain = u.hostname.replace(/^www\./, '');
+    // .href (forme normalisee par l'API URL) plutot que rawUrl brut partout
+    // ci-dessous : neutralise au passage tout guillemet/chevron qui casserait
+    // l'attribut href="..." dans lequel ce retour est concatene sans echappement.
     // Liens t.me (Telegram) et facebook.com restent tels quels : valides par nature
-    if (domain.includes('t.me') || domain.includes('facebook.com')) return rawUrl;
+    if (domain.includes('t.me') || domain.includes('facebook.com')) return u.href;
     // Liens de recherche interne (?s=, /search, twitter.com/search) -> Google site-search
     if (rawUrl.includes('?s=') || rawUrl.includes('/search') || domain.includes('twitter.com')) {
       const q = u.searchParams.get('s') || u.searchParams.get('q') || domain;
       return 'https://www.google.com/search?q=' + encodeURIComponent('site:' + domain + ' ' + q);
     }
     // Page d'accueil ou de catégorie simple : conservée (généralement stable)
-    return rawUrl;
+    return u.href;
   } catch(e) {
     return 'https://www.google.com/search?q=' + encodeURIComponent(fallbackQuery || rawUrl);
   }
@@ -9365,7 +9389,7 @@ const SE_TYPE_META = {
   sources:    { label:'Source',     icon:'ti-antenna',            col:'#0F4F2A' },
 };
 
-function renderRecherche() {
+async function renderRecherche() {
   const qEl = document.getElementById('searchQ');
   const q = qEl ? qEl.value.trim() : '';
   const tokens = _seTokenize(q);
@@ -9382,6 +9406,9 @@ function renderRecherche() {
       '</p></div>';
     return;
   }
+  // Traduction ACTIVE avant affichage — meme regle que le Flux/popup/ruban :
+  // jamais de placeholder "traduction disponible sur demande" ici.
+  await preTraduireRapport(results.flatMap(r => [r.title, r.snippet].filter(Boolean)));
   cont.innerHTML = results.map(r => {
     const m = SE_TYPE_META[r.type];
     const pys = PAYS_INFO[r.cy];
@@ -9400,8 +9427,8 @@ function renderRecherche() {
         (lvl ? `<span style="font-size:8px;font-weight:700;padding:1px 6px;border-radius:3px;background:${lvl.bg};color:${lvl.col};">${lvl.label}</span>` : '') +
         (r.dateLabel ? `<span style="margin-left:auto;font-size:9px;color:var(--lg);"><i class="ti ti-clock" style="font-size:10px"></i> ${r.dateLabel}</span>` : '') +
       `</div>` +
-      `<div style="font-size:12px;font-weight:700;color:var(--t);line-height:1.35;" id="setr-${_seEsc(r.type+'_'+r.id)}">${_seHighlight(tr(r.title,'setr-'+r.type+'_'+r.id), tokens)}</div>` +
-      (r.snippet ? `<div style="font-size:10.5px;color:var(--t2);margin-top:3px;line-height:1.4;" id="sesnip-${_seEsc(r.type+'_'+r.id)}">${_seHighlight(extraitLoyal(tr(r.snippet,'sesnip-'+r.type+'_'+r.id), 160), tokens)}</div>` : '') +
+      `<div style="font-size:12px;font-weight:700;color:var(--t);line-height:1.35;" id="setr-${_seEsc(r.type+'_'+r.id)}">${_seHighlight(L(r.title), tokens)}</div>` +
+      (r.snippet ? `<div style="font-size:10.5px;color:var(--t2);margin-top:3px;line-height:1.4;" id="sesnip-${_seEsc(r.type+'_'+r.id)}">${_seHighlight(extraitLoyal(L(r.snippet), 160), tokens)}</div>` : '') +
     `</div>`;
   }).join('');
 }
@@ -9480,7 +9507,7 @@ async function renderAgenda() {
     politique:['🗳️','Politique','#1B5FA8'],economique:['📊','Economique','#0F4F2A'],sanitaire:['⚕️','Sanitaire','#0E7490'],
     travaux:['🚧','Travaux','#B45309']};
   if(!filt.length){document.getElementById('agTl').innerHTML='<div class="empty"><i class="ti ti-calendar-off"></i><p>Aucun evenement pour ce filtre</p></div>';return;}
-  await preTraduireRapport(filt.flatMap(e => [e.title, e.desc]));
+  await preTraduireRapport(filt.flatMap(e => [e.title, e.desc, e.reco]));
   const agHtml = filt.map((e,i)=>{
     const sl=SL[e.status]||SL.planifie;
     const typ = TYP[e.type||'securite']||TYP.securite;
@@ -9498,10 +9525,10 @@ async function renderAgenda() {
         '<div class="ev-mt">'+
           '<span class="ev-cy"'+(resolveAgendaCy(e.cy)?' style="cursor:pointer" onclick="ouvrirVuePays(\''+resolveAgendaCy(e.cy)+'\')"':'')+'><i class="ti ti-map-pin" style="font-size:10px"></i>'+e.cy+'</span>'+
           '<span class="ev-ip '+IC[e.impact]+'">Impact '+e.impact.toUpperCase()+'</span>'+
-          (e.surl?'<a href="'+e.surl+'" target="_blank" class="ev-sc"><i class="ti ti-external-link"></i>'+e.src+'</a>':
+          (e.surl?'<a href="'+safeUrl(e.surl,e.src)+'" target="_blank" class="ev-sc"><i class="ti ti-external-link"></i>'+e.src+'</a>':
                   '<span class="ev-sc"><i class="ti ti-cpu"></i>'+e.src+'</span>')+
         '</div>'+
-        (e.reco?'<div class="ev-rc"><i class="ti ti-chevron-right" style="color:var(--b);font-size:10px;vertical-align:-1px"></i> <span id="'+rcId+'">'+tr(e.reco,rcId)+'</span></div>':'')+
+        (e.reco?'<div class="ev-rc"><i class="ti ti-chevron-right" style="color:var(--b);font-size:10px;vertical-align:-1px"></i> <span id="'+rcId+'">'+L(e.reco)+'</span></div>':'')+
       '</div>'+
     '</div>';
   }).join('');
@@ -12316,7 +12343,7 @@ function _chronoParseDate(dateStr) {
 
 const NIV_TO_LEVELMETA = { rouge:'crit', marron:'high', orange:'high', jaune:'mod', vert:'ok' };
 
-function renderAlerteChronologie() {
+async function renderAlerteChronologie() {
   const cont = document.getElementById('chronoCont');
   const countEl = document.getElementById('chronoCount');
   if (!cont) return;
@@ -12341,6 +12368,10 @@ function renderAlerteChronologie() {
     cont.innerHTML = '<div class="empty"><i class="ti ti-timeline"></i><p>Aucun evenement pour ce perimetre.</p></div>';
     return;
   }
+
+  // Traduction ACTIVE avant affichage — meme regle que le Flux/popup/ruban :
+  // jamais de placeholder "traduction disponible sur demande" ici.
+  await preTraduireRapport(shown.map(it => it.title));
 
   // Regroupement par jour (libelle de date) pour des en-tetes de section lisibles
   let lastDay = null;
@@ -12367,7 +12398,7 @@ function renderAlerteChronologie() {
             <span style="font-size:10px;color:var(--lg);">${pys.flag} ${pys.name}</span>
             <span style="margin-left:auto;font-size:9px;color:var(--lg);">${it.ts ? new Date(it.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : ''}</span>
           </div>
-          <div style="font-size:12px;font-weight:600;color:var(--t);line-height:1.35;" id="${trId}">${tr(it.title,trId)}</div>
+          <div style="font-size:12px;font-weight:600;color:var(--t);line-height:1.35;" id="${trId}">${L(it.title)}</div>
           ${it.src ? `<div style="font-size:9.5px;color:var(--lg);margin-top:2px;"><i class="ti ti-antenna" style="font-size:10px"></i> ${it.src}</div>` : ''}
         </div>
       </div>`;
@@ -13023,7 +13054,7 @@ async function exportExcel(type){
           lvlFr(a.level), a.cy||'', villeTxt, a.sc||'',
           L(a.title), L(a.analysis)||'',
           catFr(a.cat), a.score||'',
-          srcName(a.primary), a.url||'',
+          srcName(a.primary), articleLienDirect(a),
           a.time||''
         ];
       });
@@ -13098,7 +13129,7 @@ async function exportCSV(type){
         const villeTxt=geo.ville?(geo.ville+(geo.estime?' (estimé)':'')):'';
         return [
           lvlFr(a.level),a.cy,villeTxt,a.sc,L(a.title),L(a.analysis)||'',
-          catFr(a.cat),a.score,srcName(a.primary),a.url,a.time
+          catFr(a.cat),a.score,srcName(a.primary),articleLienDirect(a),a.time
         ].map(esc).join(',');
       })
     ];
