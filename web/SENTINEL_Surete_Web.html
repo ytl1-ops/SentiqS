@@ -767,6 +767,29 @@ html.force-mobile .ops-label{display:none}
 .auth-link span{color:#9CA3AF;cursor:pointer}
 .auth-link span:hover{text-decoration:underline}
 
+/* ── Instantané public (preuve sociale sur l'ecran de connexion) ────────
+   Lu depuis un instantane persiste localement a chaque collecte reelle
+   (voir sauvegarderInstantanePublic/recalcAlertes) — jamais de chiffre
+   invente : "—" tant qu'aucune collecte n'a encore eu lieu sur cet
+   appareil. La collecte elle-meme reste bloquee derriere l'authentification
+   (choix delibere, voir checkAuth) ; seul le DERNIER instantane connu est
+   visible avant connexion. */
+.auth-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+  margin:-6px 0 20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08)}
+.auth-stats .as-item{text-align:center}
+.auth-stats .as-n{font-family:var(--font-mono,'Roboto Mono',monospace);font-size:18px;
+  font-weight:700;color:#7dd3fc;font-variant-numeric:tabular-nums;line-height:1.1}
+.auth-stats .as-l{font-size:8px;color:rgba(255,255,255,.4);text-transform:uppercase;
+  letter-spacing:.05em;margin-top:3px;line-height:1.35}
+.auth-stats-sync{font-size:9px;color:rgba(255,255,255,.3);text-align:center;
+  margin:-14px 0 20px}
+.auth-public-links{display:flex;gap:14px;justify-content:center;margin-top:16px;
+  flex-wrap:wrap;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
+.auth-public-links span{font-size:10.5px;color:#9CA3AF;cursor:pointer;
+  display:inline-flex;align-items:center;gap:4px}
+.auth-public-links span:hover{color:#fff}
+#publicPanel{z-index:9500}
+
 /* ── ADMIN PANEL ─────────────────────────────────────────────────── */
 .admin-panel{position:fixed;inset:0;background:rgba(5,12,20,.97);
   z-index:8000;display:flex;align-items:flex-start;justify-content:center;
@@ -1575,6 +1598,12 @@ button:not(:disabled){
       Plateforme d'aide à la décision pour responsables sûreté<br>
       <span style="opacity:.7">Security intelligence platform for risk & security managers</span>
     </div>
+    <div class="auth-stats" id="authStats">
+      <div class="as-item"><div class="as-n" id="asPays">54</div><div class="as-l">Pays sous veille</div></div>
+      <div class="as-item"><div class="as-n" id="asActus">—</div><div class="as-l">Actus /24h</div></div>
+      <div class="as-item"><div class="as-n" id="asAlertes">—</div><div class="as-l">Pays en alerte</div></div>
+    </div>
+    <div class="auth-stats-sync" id="authStatsSync"></div>
     <div id="loginForm">
       <div class="auth-title">Connexion</div>
       <div class="auth-sub">Acces restreint aux responsables surete autorises</div>
@@ -1620,6 +1649,23 @@ button:not(:disabled){
       <div class="auth-err" id="registerErr"></div>
       <div class="auth-link"><span onclick="showLoginForm()">← Retour a la connexion</span></div>
     </div>
+    <div class="auth-public-links">
+      <span onclick="ouvrirBulletinPublic()"><i class="ti ti-news"></i>Bulletin public gratuit</span>
+      <span onclick="ouvrirMethodologiePublique()"><i class="ti ti-shield-check"></i>Méthodologie &amp; sources</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PANNEAU PUBLIC (bulletin, méthodologie) — accessible sans connexion,
+     preuve sociale et transparence avant meme la creation d'un compte ═══ -->
+<div class="admin-panel hidden" id="publicPanel">
+  <div class="admin-box" style="max-width:640px">
+    <div class="admin-hd">
+      <div class="admin-title" id="publicPanelTitle"><i class="ti ti-news"></i>Bulletin public</div>
+      <span class="admin-close" onclick="fermerPublicPanel()">✕</span>
+    </div>
+    <div id="publicPanelBody" style="max-height:64vh;overflow-y:auto;padding-right:4px"></div>
+    <div id="publicPanelShare" style="display:flex;gap:8px;margin-top:18px;padding-top:16px;border-top:1px solid #1e3550;flex-wrap:wrap"></div>
   </div>
 </div>
 
@@ -10072,6 +10118,14 @@ function closeAdmin() { document.getElementById('adminPanel').classList.add('hid
 
 function checkAuth() {
   initUsers();
+  // Instantane public (compteur + bulletin) : lu independamment de l'etat de
+  // connexion, voir sauvegarderInstantanePublic/renderAuthStats.
+  if (typeof renderAuthStats === 'function') renderAuthStats();
+  // Lien direct partageable : #bulletin ou #methodologie ouvre le panneau
+  // public correspondant immediatement, connecte ou non (voir audit marketing
+  // — un bulletin qui n'ouvre pas tout seul en un clic n'est pas "citable").
+  if (location.hash === '#bulletin' && typeof ouvrirBulletinPublic === 'function') ouvrirBulletinPublic();
+  else if (location.hash === '#methodologie' && typeof ouvrirMethodologiePublique === 'function') ouvrirMethodologiePublique();
   const user = restoreSession();
   if (user) {
     // Session valide deja en cours (reconnexion automatique tant que le
@@ -12346,6 +12400,12 @@ async function recalcAlertes(opts) {
     pushAlerteChangementToast(c, aggrave);
   });
 
+  // Instantane public (ecran de connexion / bulletin partageable) : capture
+  // a chaque cycle de collecte reussi, pour rester consultable meme avant
+  // authentification (voir sauvegarderInstantanePublic — la collecte elle-
+  // meme reste gatee derriere le login, seul le DERNIER instantane l'est pas).
+  if (typeof sauvegarderInstantanePublic === 'function') sauvegarderInstantanePublic(scores);
+
   const grid  = document.getElementById('alerteGrid');
   const table = document.getElementById('alerteTable');
   if (!grid || !table) return; // vue Alertes pas encore ouverte : le calcul reste fait, juste pas affiche
@@ -12360,6 +12420,161 @@ async function recalcAlertes(opts) {
 
   // Persistance des niveaux actifs
   if (typeof saveAlertesState === 'function') saveAlertesState();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  INSTANTANÉ PUBLIC — écran de connexion + bulletin partageable sans login
+//  (audit marketing juillet 2026 : construire la preuve sociale avant même
+//  la création d'un compte). La collecte RSS reste volontairement gatée
+//  derriere l'authentification (voir checkAuth) — ce module ne l'outrepasse
+//  jamais : il persiste juste, a chaque cycle de collecte REEL effectue par
+//  un utilisateur connecte, un instantane consultable ensuite par n'importe
+//  qui sur cet appareil, meme deconnecte. Aucun chiffre invente : tant
+//  qu'aucune collecte n'a eu lieu, les compteurs restent a "—".
+// ═══════════════════════════════════════════════════════════════════════════
+const PUBLIC_SNAPSHOT_KEY = 'sentinel_public_snapshot_v1';
+
+function sauvegarderInstantanePublic(scores) {
+  try {
+    const paysAlerte = scores.filter(s => s.key==='rouge'||s.key==='marron'||s.key==='orange').length;
+    const actus24h = (typeof ALL !== 'undefined' ? ALL : []).filter(a => typeof estRecentReel==='function' ? estRecentReel(a) : true).length;
+    const topPays = scores.slice(0, 5).map(s => {
+      const p = PAYS_INFO[s.cy] || {};
+      return { cy: s.cy, name: p.name || s.cy, flag: p.flag || '', nivKey: s.key, nivLabel: s.niv.label, nivCol: s.niv.col };
+    });
+    const artsSrc = (typeof ALL !== 'undefined' ? ALL : [])
+      .filter(a => (a.level==='crit'||a.level==='high') && (typeof estRecentReel!=='function' || estRecentReel(a)))
+      .sort((a,b) => (b.pubDate||0)-(a.pubDate||0)).slice(0, 8);
+    const topArts = artsSrc.map(a => {
+      const p = PAYS_INFO[a.cy] || {};
+      return {
+        level: a.level, title: (typeof L==='function' ? L(a.title) : a.title),
+        cyName: p.name || a.cy, cyFlag: p.flag || '', time: a.time || '',
+      };
+    });
+    const snap = { ts: Date.now(), pays: Object.keys(PAYS_INFO).length, actus24h, paysAlerte, topPays, topArts };
+    localStorage.setItem(PUBLIC_SNAPSHOT_KEY, JSON.stringify(snap));
+  } catch(_) {}
+}
+function lireInstantanePublic() {
+  try { return JSON.parse(localStorage.getItem(PUBLIC_SNAPSHOT_KEY) || 'null'); } catch(_) { return null; }
+}
+
+function renderAuthStats() {
+  const elP = document.getElementById('asPays'), elA = document.getElementById('asActus'),
+        elAl = document.getElementById('asAlertes'), elSync = document.getElementById('authStatsSync');
+  if (!elP) return;
+  const snap = lireInstantanePublic();
+  elP.textContent = snap ? snap.pays : (typeof PAYS_INFO !== 'undefined' ? Object.keys(PAYS_INFO).length : 54);
+  if (elA) elA.textContent = snap ? snap.actus24h : '—';
+  if (elAl) elAl.textContent = snap ? snap.paysAlerte : '—';
+  if (elSync) {
+    if (!snap) { elSync.textContent = 'Veille pas encore activée sur cet appareil'; }
+    else {
+      const minAgo = Math.round((Date.now() - snap.ts) / 60000);
+      const txt = minAgo < 1 ? 'à l\'instant' : minAgo < 60 ? 'il y a ' + minAgo + ' min' : 'il y a ' + Math.round(minAgo/60) + ' h';
+      elSync.textContent = 'Dernière synchronisation : ' + txt;
+    }
+  }
+}
+
+function construireBulletinPublicHTML() {
+  const snap = lireInstantanePublic();
+  const dateLbl = new Date().toLocaleDateString('fr-FR', {day:'2-digit', month:'long', year:'numeric'});
+  if (!snap) {
+    return '<div style="font-size:10px;color:#7dd3fc;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:10px;">Bulletin public · ' + dateLbl + '</div>'
+      + '<div style="font-size:12px;color:rgba(255,255,255,.55);line-height:1.6;">Aucune veille n\'a encore été activée sur cet appareil — le bulletin se construit automatiquement dès la première connexion. Créez un accès gratuit pour l\'amorcer.</div>';
+  }
+  const escFn = typeof _apEsc === 'function' ? _apEsc : (s => String(s==null?'':s));
+  const paysHTML = snap.topPays.map(p =>
+    '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #1e3550;">'
+    + '<span style="font-size:18px;">'+p.flag+'</span>'
+    + '<span style="flex:1;font-size:12.5px;font-weight:700;color:#fff;">'+escFn(p.name)+'</span>'
+    + '<span style="font-family:var(--font-mono,monospace);font-size:9.5px;font-weight:700;padding:3px 9px;border-radius:4px;color:#fff;background:'+p.nivCol+';text-transform:uppercase;">'+p.nivLabel+'</span>'
+    + '</div>'
+  ).join('');
+  const artsHTML = snap.topArts.length ? snap.topArts.map(a => {
+    const lm = typeof levelMeta === 'function' ? levelMeta(a.level) : {col:'#4B5563', label:'INFO'};
+    return '<div style="padding:10px 0;border-bottom:1px solid #1e3550;">'
+      + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:3px;">'
+      + '<span style="font-family:var(--font-mono,monospace);font-size:9px;font-weight:700;color:'+lm.col+';">'+escFn(lm.label)+'</span>'
+      + '<span style="font-size:12.5px;color:#e5e9f0;line-height:1.4;">'+escFn(a.title)+'</span>'
+      + '</div>'
+      + '<div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--font-mono,monospace);">'+a.cyFlag+' '+escFn(a.cyName)+' · '+escFn(a.time)+'</div>'
+      + '</div>';
+  }).join('') : '<div style="font-size:11.5px;color:rgba(255,255,255,.4);padding:10px 0;">Aucun incident critique/élevé sur la dernière période observée.</div>';
+
+  return '<div style="font-size:10px;color:#7dd3fc;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:4px;">Bulletin public · ' + dateLbl + '</div>'
+    + '<div style="font-size:11px;color:rgba(255,255,255,.45);margin-bottom:18px;line-height:1.5;">Aperçu généré automatiquement à partir de la veille SENTINEL SÛRETÉ — 54 pays d\'Afrique. Compte gratuit pour l\'historique complet, les alertes personnalisées et les exports.</div>'
+    + '<div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Pays les plus surveillés</div>'
+    + paysHTML
+    + '<div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;margin:18px 0 8px;">Incidents marquants</div>'
+    + artsHTML;
+}
+
+function ouvrirBulletinPublic() {
+  document.getElementById('publicPanelTitle').innerHTML = '<i class="ti ti-news"></i>Bulletin public';
+  document.getElementById('publicPanelBody').innerHTML = construireBulletinPublicHTML();
+  document.getElementById('publicPanelShare').innerHTML =
+    '<button class="auth-btn" style="width:auto;flex:1;background:#0F4F2A;margin:0" onclick="partagerBulletinWhatsapp()"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button>'
+    + '<button class="auth-btn" style="width:auto;flex:1;background:#1B5FA8;margin:0" onclick="partagerBulletinTelegram()"><i class="ti ti-brand-telegram"></i> Telegram</button>'
+    + '<button class="auth-btn" style="width:auto;flex:1;margin:0" onclick="copierBulletinTexte()"><i class="ti ti-copy"></i> Copier</button>';
+  document.getElementById('publicPanel').classList.remove('hidden');
+}
+
+function ouvrirMethodologiePublique() {
+  document.getElementById('publicPanelTitle').innerHTML = '<i class="ti ti-shield-check"></i>Méthodologie &amp; sources';
+  document.getElementById('publicPanelBody').innerHTML =
+    '<div style="display:flex;flex-direction:column;gap:14px;font-size:12px;color:rgba(255,255,255,.6);line-height:1.6">'
+    + '<div><div style="font-size:11px;font-weight:700;color:#fff;margin-bottom:4px;">Sources et couverture</div>'
+    + 'SENTINEL SÛRETÉ agrège des flux RSS publics (agences de presse nationales, AllAfrica édition française, médias régionaux) couvrant les 54 pays d\'Afrique. Chaque source est pondérée par un score de fiabilité ; un fait rapporté par plusieurs sources indépendantes reçoit un badge de corroboration ("2 src", "3 src"...). Un article sans corroboration reste marqué "1 src" — à recouper avant décision opérationnelle.</div>'
+    + '<div><div style="font-size:11px;font-weight:700;color:#fff;margin-bottom:4px;">Niveau d\'une actualité vs niveau d\'alerte pays</div>'
+    + 'Ce sont deux échelles distinctes, jamais confondues : le niveau d\'une actualité (Critique/Élevé/Modéré/Stable) dépend uniquement de son propre contenu, pas du pays où elle survient — une actualité économique dans un pays classé Rouge n\'est pas automatiquement critique. Le niveau d\'alerte du pays (Vert/Jaune/Orange/Marron/Rouge) est recalculé en continu à partir des incidents documentés et des signaux collectés en direct.</div>'
+    + '<div><div style="font-size:11px;font-weight:700;color:#fff;margin-bottom:4px;">Fraîcheur des données</div>'
+    + 'Le Flux principal n\'affiche que les faits survenus dans les 12 dernières heures. Les contenus plus anciens sont écartés du Flux et conservés séparément comme référence historique — jamais présentés comme des faits du jour.</div>'
+    + '<div style="background:rgba(255,184,77,.1);border:1px solid rgba(255,184,77,.35);border-radius:8px;padding:10px 12px;">'
+    + '<div style="font-size:11px;font-weight:700;color:#ffb84d;margin-bottom:4px;"><i class="ti ti-alert-triangle"></i> Limites à connaître</div>'
+    + '<span style="color:rgba(255,220,170,.85)">Outil d\'aide à la veille, pas une source unique de vérité : les flux RSS publics peuvent être incomplets, en retard, ou temporairement indisponibles. L\'absence d\'alerte sur un pays ne signifie pas l\'absence d\'événement. Toute décision opérationnelle doit recouper ces données avec d\'autres canaux de renseignement.</span>'
+    + '</div>'
+    + '</div>';
+  document.getElementById('publicPanelShare').innerHTML = '';
+  document.getElementById('publicPanel').classList.remove('hidden');
+}
+
+function fermerPublicPanel() {
+  document.getElementById('publicPanel').classList.add('hidden');
+  if (location.hash === '#bulletin' || location.hash === '#methodologie') {
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+}
+
+function _bulletinTexteDigest() {
+  const snap = lireInstantanePublic();
+  const url = location.origin + location.pathname + '#bulletin';
+  if (!snap) return 'SENTINEL SÛRETÉ — Veille sûreté Afrique\n\nBulletin gratuit : ' + url;
+  const lignes = snap.topPays.map(p => '• ' + p.name + ' : ' + p.nivLabel);
+  return 'SENTINEL SÛRETÉ — Bulletin sûreté Afrique\n\n' + lignes.join('\n') + '\n\nBulletin complet et gratuit : ' + url;
+}
+function partagerBulletinWhatsapp() {
+  window.open('https://wa.me/?text=' + encodeURIComponent(_bulletinTexteDigest()), '_blank');
+}
+function partagerBulletinTelegram() {
+  const url = location.origin + location.pathname + '#bulletin';
+  window.open('https://t.me/share/url?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(_bulletinTexteDigest()), '_blank');
+}
+async function copierBulletinTexte() {
+  const texte = _bulletinTexteDigest();
+  try {
+    await navigator.clipboard.writeText(texte);
+    if (typeof _toastRapide === 'function') _toastRapide('Bulletin copié dans le presse-papiers', 'ti-check');
+  } catch(e) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = texte; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+      if (typeof _toastRapide === 'function') _toastRapide('Bulletin copié dans le presse-papiers', 'ti-check');
+    } catch(e2) { alert('Échec de la copie — copiez manuellement.'); }
+  }
 }
 
 // ── Notification visible quand un pays change de niveau d'alerte ──────────
