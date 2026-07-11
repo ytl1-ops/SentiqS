@@ -13494,7 +13494,10 @@ async function exportPPTX(type) {
         const col = LVL_COL[a.level] || '9CA3AF';
         const cyNivP1 = _cyNivTexteEtCouleur(a.cy);
         circle(s, 0.6, y+0.06, 0.16, col);
-        s.addText((pays.flag||'')+' '+pays.name+'  ·  '+(a.time||'')+(cyNivP1?'  ·  '+cyNivP1.texte:''), {x:0.95,y:y-0.08,w:11.6,h:0.3,fontSize:10,color:MUTED,fontFace:'IBM Plex Sans'});
+        s.addText([
+          {text:(pays.flag||'')+' '+pays.name+'  ·  '+(a.time||'')+(cyNivP1?'  ·  '+cyNivP1.texte:'')+'  ·  ', options:{fontSize:10,color:MUTED,fontFace:'IBM Plex Sans'}},
+          {text:srcName(a.primary), options:{fontSize:10,color:'1B5FA8',underline:{style:'sng'},fontFace:'IBM Plex Sans',hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}},
+        ], {x:0.95,y:y-0.08,w:11.6,h:0.3});
         s.addText(L(a.title)||'', {x:0.95,y:y+0.18,w:11.6,h:0.55,fontSize:13,bold:true,color:INK,fontFace:'IBM Plex Sans'});
       });
     }
@@ -13520,7 +13523,10 @@ async function exportPPTX(type) {
             s.addText(lvlFr(a.level).toUpperCase(), {x:0.6,y:y,w:0.95,h:0.28,fontSize:8,bold:true,color:'FFFFFF',align:'center',valign:'middle',fontFace:'IBM Plex Mono'});
             s.addText(L(a.title)||'', {x:1.7,y:y-0.06,w:10.9,h:0.55,fontSize:12,bold:true,color:INK,fontFace:'IBM Plex Sans'});
             const cyNivP2 = _cyNivTexteEtCouleur(a.cy);
-            s.addText(pays.name+(a._ville?' — '+a._ville:'')+'  ·  '+(a.time||'')+(cyNivP2?'  ·  '+cyNivP2.texte:''), {x:1.7,y:y+0.44,w:10.9,h:0.3,fontSize:9,color:MUTED,fontFace:'IBM Plex Sans'});
+            s.addText([
+              {text:pays.name+(a._ville?' — '+a._ville:'')+'  ·  '+(a.time||'')+(cyNivP2?'  ·  '+cyNivP2.texte:'')+'  ·  ', options:{fontSize:9,color:MUTED,fontFace:'IBM Plex Sans'}},
+              {text:srcName(a.primary), options:{fontSize:9,color:'1B5FA8',underline:{style:'sng'},fontFace:'IBM Plex Sans',hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}},
+            ], {x:1.7,y:y+0.44,w:10.9,h:0.3});
           });
         }
       });
@@ -13542,7 +13548,10 @@ async function exportPPTX(type) {
           circle(s, 0.6, y+0.09, 0.09, col);
           const dateTxt = a.pubDate ? new Date(a.pubDate).toLocaleDateString('fr-FR')+' '+new Date(a.pubDate).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '';
           const cyNivP3 = _cyNivTexteEtCouleur(a.cy);
-          s.addText('['+dateTxt+']  '+(pays.flag||'')+' '+pays.name+'  ·  '+lvlFr(a.level).toUpperCase()+(cyNivP3?'  ·  '+cyNivP3.texte:''), {x:0.85,y:y-0.06,w:11.7,h:0.22,fontSize:8.5,bold:true,color:MUTED,fontFace:'IBM Plex Mono'});
+          s.addText([
+            {text:'['+dateTxt+']  '+(pays.flag||'')+' '+pays.name+'  ·  '+lvlFr(a.level).toUpperCase()+(cyNivP3?'  ·  '+cyNivP3.texte:'')+'  ·  ', options:{fontSize:8.5,bold:true,color:MUTED,fontFace:'IBM Plex Mono'}},
+            {text:srcName(a.primary), options:{fontSize:8.5,bold:true,color:'1B5FA8',underline:{style:'sng'},fontFace:'IBM Plex Mono',hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}},
+          ], {x:0.85,y:y-0.06,w:11.7,h:0.22});
           s.addText(L(a.title)||'', {x:0.85,y:y+0.13,w:11.7,h:0.3,fontSize:11,color:INK,fontFace:'IBM Plex Sans'});
         });
       }
@@ -13738,6 +13747,24 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
       b.y = H - M;
     },
     ensure(h) { if (b.y - h < M + 30) b.newPage(); },
+    // Annotation Link cliquable (recette bas-niveau pdf-lib, qui n'expose pas
+    // de methode "addLink" de haut niveau) : Rect en coordonnees PDF (origine
+    // bas-gauche, comme drawText), action URI. Ajoutee a la page COURANTE —
+    // append a /Annots si deja present (plusieurs liens par page), cree sinon.
+    addLink(x, y, width, height, url) {
+      if (!url) return;
+      const { PDFName, PDFString } = PDFLib;
+      const linkAnnot = doc.context.obj({
+        Type: 'Annot', Subtype: 'Link',
+        Rect: [x, y, x + width, y + height],
+        Border: [0, 0, 0],
+        A: { Type: 'Action', S: 'URI', URI: PDFString.of(url) },
+      });
+      const linkRef = doc.context.register(linkAnnot);
+      const existing = b.page.node.Annots();
+      if (existing) existing.push(linkRef);
+      else b.page.node.set(PDFName.of('Annots'), doc.context.obj([linkRef]));
+    },
     wrap(text, size, font, maxWidth) {
       const words = _pdfSafe(text).replace(/\s+/g,' ').trim().split(' ');
       const lines = []; let cur = '';
@@ -13989,10 +14016,23 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
       });
       b.y = topY - 9 - lines.length*(size+4) - 3;
       const cyNiv = _cyNivTexteEtCouleur(a.cy);
-      b.page.drawText(_pdfSafe(lieuTxt+'   ·   '+(a.time||'')), {x:M, y:b.y, size:8.5, font:fontReg, color:MUTED});
+      const lieuTexte = _pdfSafe(lieuTxt+'   ·   '+(a.time||''));
+      b.page.drawText(lieuTexte, {x:M, y:b.y, size:8.5, font:fontReg, color:MUTED});
+      let xCursor = M + fontReg.widthOfTextAtSize(lieuTexte, 8.5);
       if (cyNiv) {
-        const lieuW = fontReg.widthOfTextAtSize(_pdfSafe(lieuTxt+'   ·   '+(a.time||'')), 8.5);
-        b.page.drawText(_pdfSafe('   ·   '+cyNiv.texte), {x:M+lieuW, y:b.y, size:8, font:fontBold, color:hexRgb('#'+cyNiv.couleur)});
+        const cyNivTxt = _pdfSafe('   ·   '+cyNiv.texte);
+        b.page.drawText(cyNivTxt, {x:xCursor, y:b.y, size:8, font:fontBold, color:hexRgb('#'+cyNiv.couleur)});
+        xCursor += fontBold.widthOfTextAtSize(cyNivTxt, 8);
+      }
+      // Lien source cliquable (annotation Link, voir b.addLink) — reutilise
+      // articleLienDirect(a)/safeUrl comme le Flux/Excel/CSV/Word/PPTX, pour
+      // ne jamais dupliquer/diverger la logique primaire vs corroborante.
+      if (typeof articleLienDirect==='function' && typeof safeUrl==='function' && typeof srcName==='function') {
+        const lienUrl = safeUrl(articleLienDirect(a), srcName(a.primary));
+        const srcTxt = _pdfSafe('   ·   '+(LANG==='en'?'Source: ':'Source : ')+srcName(a.primary));
+        b.page.drawText(srcTxt, {x:xCursor, y:b.y, size:8, font:fontReg, color:BLUE});
+        const srcW = fontReg.widthOfTextAtSize(srcTxt, 8);
+        b.addLink(xCursor, b.y-2, srcW, 10, lienUrl);
       }
       b.y -= 18;
     },
@@ -14040,7 +14080,7 @@ async function exportPDF(type) {
   const btn = event?.target; btnSpin(btn);
   try {
     if (typeof PDFLib === 'undefined') throw new Error('pdf-lib non chargé — verifiez la connexion internet');
-    const { PDFDocument, StandardFonts, rgb } = PDFLib;
+    const { PDFDocument, StandardFonts, rgb, PDFName, PDFString } = PDFLib;
 
     const doc = await PDFDocument.create();
     const fontReg  = await doc.embedFont(StandardFonts.Helvetica);
@@ -14887,7 +14927,14 @@ async function exportWord(type){
     if(typeof docx==='undefined') throw new Error('docx.js non chargé');
     const {Document,Paragraph,TextRun,HeadingLevel,Table,TableRow,TableCell,
            WidthType,AlignmentType,BorderStyle,ShadingType,Packer,
-           Header,Footer,PageNumber}=docx;
+           Header,Footer,PageNumber,ExternalHyperlink}=docx;
+    // Lien source cliquable (docx.js ExternalHyperlink) — reutilise
+    // articleLienDirect(a)/safeUrl deja utilises dans le Flux/Excel/CSV,
+    // pour ne jamais dupliquer/diverger la logique primaire vs corroborante.
+    const lienSourceRun=(a)=>new ExternalHyperlink({
+      link: safeUrl(articleLienDirect(a), srcName(a.primary)),
+      children:[new TextRun({text:(LANG==='en'?'Source: ':'Source : ')+srcName(a.primary),size:16,italic:true,color:'1B5FA8',underline:{},font:'IBM Plex Mono'})],
+    });
 
     const arts=getExportData();
     const now=new Date();
@@ -15164,8 +15211,9 @@ async function exportWord(type){
           const cyNivW1=_cyNivTexteEtCouleur(a.cy);
           children.push(new Paragraph({
             children:[
-              new TextRun({text:(infoPays(a.cy).flag||'')+' '+infoPays(a.cy).name+villeTxtW+' — '+a.time,size:18,italic:true,color:'9CA3AF',font:FONT_MONO}),
-              ...(cyNivW1?[new TextRun({text:'   ·   '+cyNivW1.texte,size:17,bold:true,color:cyNivW1.couleur,font:FONT_MONO})]:[]),
+              new TextRun({text:(infoPays(a.cy).flag||'')+' '+infoPays(a.cy).name+villeTxtW+' — '+a.time+'   ·   ',size:18,italic:true,color:'9CA3AF',font:FONT_MONO}),
+              ...(cyNivW1?[new TextRun({text:cyNivW1.texte+'   ·   ',size:17,bold:true,color:cyNivW1.couleur,font:FONT_MONO})]:[]),
+              lienSourceRun(a),
             ],
             spacing:{after:120}
           }));
@@ -15273,7 +15321,7 @@ async function exportWord(type){
               ],spacing:{before:80,after:20}
             }));
             children.push(new Paragraph({
-              children:[new TextRun({text:dateTxtW,size:17,italic:true,color:'9CA3AF',font:FONT_MONO})],
+              children:[new TextRun({text:dateTxtW+'   ·   ',size:17,italic:true,color:'9CA3AF',font:FONT_MONO}), lienSourceRun(a)],
               spacing:{after:80}
             }));
           });
@@ -15375,7 +15423,7 @@ async function exportWord(type){
               ], spacing:{before:60,after:20}
             }));
             children.push(new Paragraph({
-              children:[new TextRun({text:lieuTxt+'   ·   '+(a.time||''), size:16, italic:true, color:'9CA3AF', font:FONT_MONO})],
+              children:[new TextRun({text:lieuTxt+'   ·   '+(a.time||'')+'   ·   ', size:16, italic:true, color:'9CA3AF', font:FONT_MONO}), lienSourceRun(a)],
               spacing:{after:80}
             }));
           };
