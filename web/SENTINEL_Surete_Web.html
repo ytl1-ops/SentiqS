@@ -461,6 +461,24 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .tr-btn i{font-size:10px}
 .tr-btn.tr-btn-busy i{animation:spin 1s linear infinite}
 .tr-btn.tr-btn-busy{opacity:.6;cursor:wait}
+.share-trigger{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;
+  border:1px solid var(--bd);border-radius:10px;background:var(--sf);color:var(--gr);
+  font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.share-trigger:hover,.share-trigger.on{background:var(--n);color:#fff;border-color:var(--n)}
+.share-trigger i{font-size:10px}
+.share-menu{position:fixed;z-index:3000;min-width:190px;background:var(--w);
+  border:1px solid var(--bd);border-radius:8px;box-shadow:0 8px 24px rgba(13,27,42,.18);
+  padding:5px;font-size:12px;}
+.share-fmt-row{display:flex;gap:4px;padding:2px 2px 7px;border-bottom:1px solid var(--bd);margin-bottom:4px;}
+.share-fmt{flex:1;padding:5px 3px;border:1px solid var(--bd);border-radius:5px;background:var(--sf);
+  color:var(--gr);font-size:9px;font-weight:700;cursor:pointer;text-align:center;white-space:nowrap;}
+.share-fmt:hover{border-color:var(--n)}
+.share-fmt.on{background:var(--n);color:#fff;border-color:var(--n)}
+.share-mi{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:5px;
+  cursor:pointer;color:var(--t);font-weight:600;white-space:nowrap;}
+.share-mi:hover{background:var(--sf)}
+.share-mi i{font-size:14px;width:16px;text-align:center;flex-shrink:0}
+.share-mi.copied{color:#0F4F2A}
 /* Statuts META (estime / a verifier / deduit) : couleur neutre slate,
    volontairement HORS de la palette d'alerte (rouge/orange/jaune) pour ne
    jamais laisser croire qu'une incertitude de date est un niveau de gravite. */
@@ -1863,6 +1881,9 @@ button:not(:disabled){
           <option value="level">Priorite</option>
           <option value="score">Fiabilite</option>
         </select>
+        <button onclick="renderFeed()" title="Rafraichir l'affichage du Flux depuis les donnees deja collectees" style="padding:5px 12px;background:rgba(27,95,168,.12);border:1px solid rgba(27,95,168,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
+          <i class="ti ti-refresh"></i> Actualiser
+        </button>
       </div>
 
       <!-- Barre DL Flux -->
@@ -1929,6 +1950,9 @@ button:not(:disabled){
             <option value="politique">Politique</option>
             <option value="economique">Economique</option>
           </select>
+          <button onclick="renderRecherche()" title="Rafraichir les resultats depuis les donnees deja collectees" style="padding:5px 12px;background:rgba(27,95,168,.12);border:1px solid rgba(27,95,168,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
+            <i class="ti ti-refresh"></i> Actualiser
+          </button>
           <span style="margin-left:auto;font-size:10px;color:var(--lg);" id="seCount"></span>
         </div>
       </div>
@@ -1959,6 +1983,9 @@ button:not(:disabled){
           <select id="syCyFilter" onchange="setSyntheseCy(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
             <option value="all">Tous les pays</option>
           </select>
+          <button onclick="updSynthese()" title="Rafraichir la synthese depuis les donnees deja collectees" style="padding:5px 12px;background:rgba(27,95,168,.12);border:1px solid rgba(27,95,168,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
+            <i class="ti ti-refresh"></i> Actualiser
+          </button>
         </div>
         <div style="overflow-y:auto;flex:1">
           <div class="sy-wrap">
@@ -2061,6 +2088,9 @@ button:not(:disabled){
               <option value="mensuel" selected>Mensuel (30 jours)</option>
               <option value="trimestriel">Trimestriel (90 jours)</option>
             </select>
+            <button onclick="updateDLCounts();majLibelleRapport()" title="Rafraichir les compteurs depuis les donnees deja collectees" style="padding:5px 12px;background:rgba(27,95,168,.12);border:1px solid rgba(27,95,168,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
+              <i class="ti ti-refresh"></i> Actualiser
+            </button>
           </div>
           <div id="rpLibellePerimetre" style="font-size:10px;color:var(--lg);margin-bottom:16px">Périmètre : toutes zones, tous pays</div>
 
@@ -2521,6 +2551,115 @@ button:not(:disabled){
               <div style="display:flex;align-items:center;gap:10px">
                 <button class="btn-action btn-rest" onclick="pmSaveEmailjsCfg()"><i class="ti ti-device-floppy"></i> Enregistrer la configuration EmailJS</button>
                 <span class="pmu-msg" id="emailjsCfgMsg" style="margin:0"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contacts WhatsApp -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-brand-whatsapp"></i>
+                <div><div class="pm-sec-title">Contacts WhatsApp</div>
+                <div class="pm-sec-sub" id="waContactsCount">0 contact(s)</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px">
+              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
+                Un bouton « WhatsApp » apparaît sur chaque actu du Flux : il ouvre WhatsApp avec un message
+                déjà rédigé (niveau, pays, titre, lien) vers chacun des contacts ci-dessous — gratuit, sans
+                clé API, sans serveur. WhatsApp n'autorisant pas l'envoi automatique sans action de
+                l'utilisateur, le clic final « Envoyer » reste à faire dans WhatsApp.
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:12px">
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Nom</label>
+                  <input type="text" id="waContactNom" placeholder="Ex. Directeur Sûreté" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                </div>
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Numéro (avec indicatif pays)</label>
+                  <input type="text" id="waContactTel" placeholder="Ex. +225 07 12 34 56 78" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                </div>
+                <div style="display:flex;align-items:flex-end">
+                  <button class="btn-action btn-rest" onclick="waAjouterContact()"><i class="ti ti-plus"></i> Ajouter</button>
+                </div>
+              </div>
+              <span class="pmu-msg" id="waContactMsg"></span>
+              <table class="pm-users-table">
+                <thead><tr><th>Nom</th><th>Numéro</th><th>Actions</th></tr></thead>
+                <tbody id="waContactsBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Personnalisation de marque (fonctionnalite payante) -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-writing"></i>
+                <div><div class="pm-sec-title">Personnalisation de marque
+                  <span id="marquePlanBadge" style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:2px;"></span>
+                </div>
+                <div class="pm-sec-sub">Remplace "SENTINEL SÛRETÉ" en en-tête/pied de page des exports et dans les partages</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px">
+              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
+                Remplace "SENTINEL SÛRETÉ" par le nom de votre société dans l'en-tête et le pied de page
+                des documents exportés (PDF, Word, PowerPoint, aperçu impression) et dans les messages
+                WhatsApp/Email partagés. Ajoutez aussi une identité d'envoi (pseudo ou nom de société,
+                email ou numéro de téléphone) qui apparaît en signature de chaque partage — utile pour
+                qu'un numéro dédié (ex. +225 01 01 23 24 25) envoie sous le nom de votre société plutôt
+                que sous la marque SENTINEL.
+              </div>
+              <div id="marqueUpsell" style="display:none;background:var(--al);border:1px solid #FDE68A;border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:#7C4A00;display:flex;align-items:center;gap:8px;">
+                <i class="ti ti-lock" style="font-size:14px;flex-shrink:0"></i>
+                <span>Fonctionnalité réservée aux plans payants (Standard, Professionnel, Entreprise).
+                <a href="javascript:void(0)" onclick="document.getElementById('pricingGrid')?.scrollIntoView({behavior:'smooth'})" style="color:#7C4A00;font-weight:700;text-decoration:underline">Voir les tarifs</a></span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Nom de la marque / société</label>
+                  <input type="text" id="marqueNom" placeholder="Ex. Groupe Sûreté SARL" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                </div>
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Identité d'envoi (pseudo ou société)</label>
+                  <input type="text" id="marqueIdentite" placeholder="Ex. Cellule Sûreté ABC" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                </div>
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Contact affiché (email ou téléphone)</label>
+                  <input type="text" id="marqueContact" placeholder="Ex. +225 01 01 23 24 25" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <button class="btn-action btn-rest" id="marqueSaveBtn" onclick="pmSaveMarquePerso()"><i class="ti ti-device-floppy"></i> Enregistrer la personnalisation</button>
+                <span class="pmu-msg" id="marqueMsg" style="margin:0"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Statistiques de partage (agent de partage) -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-chart-bar"></i>
+                <div><div class="pm-sec-title">Statistiques de partage</div>
+                <div class="pm-sec-sub" id="partageStatsCount">0 partage(s)</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px">
+              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
+                Chaque partage réussi (WhatsApp, Telegram, Email, presse-papiers, partage natif) est
+                journalisé localement — répartition par canal et par format, activité récente et pays
+                les plus partagés.
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:14px" id="partageStatsGrid"></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div>
+                  <div style="font-size:10px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Par format</div>
+                  <div id="partageStatsFormat" style="font-size:11px;color:var(--t2);line-height:2"></div>
+                </div>
+                <div>
+                  <div style="font-size:10px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Pays les plus partagés</div>
+                  <div id="partageStatsPays" style="font-size:11px;color:var(--t2);line-height:2"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -6545,6 +6684,606 @@ function safeUrl(rawUrl, fallbackQuery) {
     return 'https://www.google.com/search?q=' + encodeURIComponent(fallbackQuery || rawUrl);
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  CONTACTS WHATSAPP — partage manuel, pas d'envoi automatique en tache de
+//  fond : WhatsApp n'autorise l'envoi d'un message que via une action
+//  explicite de l'utilisateur (clic "Envoyer" dans WhatsApp lui-meme), par
+//  conception et par ses conditions d'utilisation. Aucune API tierce
+//  d'envoi automatique n'est gratuite ni compatible avec une appli 100%
+//  statique sans serveur (elle exigerait un jeton d'acces cote serveur,
+//  jamais embarquable en clair dans ce fichier). Le bouton WhatsApp pose
+//  sur chaque actu ouvre donc un lien wa.me pre-rempli vers chacun des
+//  contacts designes ci-dessous — gratuit, sans cle API, sans serveur —
+//  et laisse le clic final "Envoyer" a l'utilisateur.
+// ═══════════════════════════════════════════════════════════════════════════
+const WHATSAPP_CONTACTS_KEY = 'sentinel_whatsapp_contacts';
+function getWhatsappContacts() {
+  try { return JSON.parse(localStorage.getItem(WHATSAPP_CONTACTS_KEY) || '[]'); } catch (e) { return []; }
+}
+function saveWhatsappContacts(list) {
+  try { localStorage.setItem(WHATSAPP_CONTACTS_KEY, JSON.stringify(list)); } catch (e) {}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  PERSONNALISATION DE MARQUE (fonctionnalite payante) — un client abonne
+//  (plan standard/pro/entreprise) peut remplacer "SENTINEL SÛRETÉ" par le
+//  nom de sa propre societe dans les en-tetes/pieds de page des documents
+//  exportes et dans les messages partages, et signer ses partages avec une
+//  identite dediee (pseudo, email ou numero de telephone) plutot que
+//  d'apparaitre sous la marque SENTINEL. Reste sur le plan gratuit :
+//  toujours "SENTINEL SÛRETÉ" par defaut, sans configuration possible.
+// ═══════════════════════════════════════════════════════════════════════════
+const MARQUE_PERSO_KEY = 'sentinel_marque_perso';
+function getMarquePerso() {
+  try { return JSON.parse(localStorage.getItem(MARQUE_PERSO_KEY) || 'null') || {}; } catch (e) { return {}; }
+}
+function saveMarquePerso(m) {
+  try { localStorage.setItem(MARQUE_PERSO_KEY, JSON.stringify(m)); } catch (e) {}
+}
+
+// planUtilisateurActuel() : plan de l'utilisateur connecte ('gratuit' par
+// defaut). L'administrateur racine (ADMIN_EMAIL) beneficie toujours de
+// l'acces complet, meme sans enregistrement explicite de plan.
+function planUtilisateurActuel() {
+  const session = (typeof getSession === 'function') ? getSession() : {};
+  if (session.email === ADMIN_EMAIL) return 'entreprise';
+  const u = (typeof getUsers === 'function' ? getUsers() : []).find(x => x.email === session.email);
+  return (u && u.plan) || 'gratuit';
+}
+// fonctionnalitePayante() : vrai si le plan actuel autorise la
+// personnalisation de marque — tout plan au-dessus de "gratuit".
+function fonctionnalitePayante() {
+  return planUtilisateurActuel() !== 'gratuit';
+}
+// nomMarqueActuelle() : nom affiche en en-tete/pied de page et dans les
+// partages — le nom personnalise si le plan l'autorise et qu'il est
+// configure, sinon toujours "SENTINEL SÛRETÉ" (comportement gratuit inchange).
+function nomMarqueActuelle() {
+  if (!fonctionnalitePayante()) return 'SENTINEL SÛRETÉ';
+  const m = getMarquePerso();
+  return (m.nomMarque || '').trim() || 'SENTINEL SÛRETÉ';
+}
+// signatureEnvoiActuelle() : ligne de signature ajoutee en fin de message
+// partage (pseudo/societe + contact), uniquement si le plan l'autorise et
+// qu'une identite a ete configuree. Chaine vide sinon (aucun changement
+// de comportement pour un compte gratuit).
+function signatureEnvoiActuelle() {
+  if (!fonctionnalitePayante()) return '';
+  const m = getMarquePerso();
+  const identite = (m.identitePartage || '').trim();
+  const contact = (m.contactPartage || '').trim();
+  if (!identite && !contact) return '';
+  return '\n\n— ' + [identite, contact].filter(Boolean).join(' · ');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  AGENT DE PARTAGE — journalise chaque partage reussi (canal, format,
+//  pays, niveau, horodatage) pour un suivi statistique consultable dans
+//  Parametres > Statistiques de partage, et centralise la construction du
+//  contenu partage quel que soit le canal (WhatsApp, Telegram, Email,
+//  presse-papiers, partage natif du systeme) et le format choisi par
+//  l'utilisateur (texte seul / texte + lien / image dimensionnee).
+// ═══════════════════════════════════════════════════════════════════════════
+const PARTAGE_STATS_KEY = 'sentinel_partage_stats';
+const PARTAGE_STATS_MAX = 500; // plafond : evite une croissance illimitee du localStorage
+function getPartageStats() {
+  try { return JSON.parse(localStorage.getItem(PARTAGE_STATS_KEY) || '[]'); } catch (e) { return []; }
+}
+function enregistrerPartage(a, canal, format) {
+  try {
+    const stats = getPartageStats();
+    const session = (typeof getSession === 'function') ? getSession() : {};
+    stats.push({ ts: Date.now(), articleId: a.id, cy: a.cy, level: a.level, canal, format, email: session.email || null });
+    if (stats.length > PARTAGE_STATS_MAX) stats.splice(0, stats.length - PARTAGE_STATS_MAX);
+    localStorage.setItem(PARTAGE_STATS_KEY, JSON.stringify(stats));
+  } catch (e) {}
+}
+// ── QUOTA DE PARTAGE (plan gratuit) ─────────────────────────────────────────
+// La version gratuite est limitee a PARTAGE_LIMITE_GRATUIT partages par mode
+// (canal WhatsApp/Telegram/Email/Copier/Autres, compte tenu independamment
+// les uns des autres) — au-dela, l'envoi est bloque et l'utilisateur est
+// invite a passer a un plan payant (partages illimites des le plan Particulier).
+// Comptabilise par compte (email de session), pas globalement, pour qu'un
+// compte gratuit ne consomme jamais le quota d'un autre.
+const PARTAGE_LIMITE_GRATUIT = 5;
+function partagesRestants(canal) {
+  if (fonctionnalitePayante()) return Infinity;
+  const email = (typeof getSession === 'function' ? getSession().email : null) || null;
+  const n = getPartageStats().filter(s => s.canal === canal && s.email === email).length;
+  return Math.max(0, PARTAGE_LIMITE_GRATUIT - n);
+}
+function limiteDePartageAtteinte(canal) { return partagesRestants(canal) <= 0; }
+// _verifierLimitePartage(canal) : a appeler en tete de chaque fonction
+// d'envoi — bloque et previent l'utilisateur si le quota gratuit du canal
+// est deja consomme, sans jamais affecter les plans payants (illimite).
+function _verifierLimitePartage(canal) {
+  if (!limiteDePartageAtteinte(canal)) return false;
+  const msg = LANG === 'en'
+    ? 'Free plan: limit of ' + PARTAGE_LIMITE_GRATUIT + ' shares reached for this mode. Upgrade to continue sharing.'
+    : 'Version gratuite : limite de ' + PARTAGE_LIMITE_GRATUIT + ' partages atteinte pour ce mode. Passez a un plan payant pour continuer.';
+  _toastRapide(msg, 'ti-lock');
+  return true;
+}
+// statsPartageAgregees() : agregats consultables dans Parametres (repartition
+// par canal/format, activite des 7 derniers jours, pays les plus partages).
+function statsPartageAgregees() {
+  const stats = getPartageStats();
+  const parCanal = {}, parFormat = {}, parPays = {};
+  const semaineMs = 7 * 24 * 60 * 60 * 1000;
+  let derniers7j = 0;
+  stats.forEach(s => {
+    parCanal[s.canal] = (parCanal[s.canal] || 0) + 1;
+    parFormat[s.format] = (parFormat[s.format] || 0) + 1;
+    if (s.cy) parPays[s.cy] = (parPays[s.cy] || 0) + 1;
+    if (Date.now() - s.ts < semaineMs) derniers7j++;
+  });
+  const topPays = Object.entries(parPays).sort((a, b) => b[1] - a[1]).slice(0, 5)
+    .map(([cy, n]) => ({ cy, n, nom: (typeof PAYS_INFO !== 'undefined' && PAYS_INFO[cy]) ? PAYS_INFO[cy].flag + ' ' + PAYS_INFO[cy].name : cy }));
+  return { total: stats.length, parCanal, parFormat, derniers7j, topPays };
+}
+
+// construireContenuPartage(a, format) : texte adapte au format choisi par
+// l'utilisateur dans le menu de partage.
+// - 'texte'      : sans lien (envoi tres court, ou quand l'image jointe
+//                  porte deja la source visuellement).
+// - 'texte_lien' : comportement historique — titre + lien direct verifie
+//                  (meme lien que "Lire l'article complet").
+// - 'image'      : legende courte accompagnant l'image generee
+//                  (genererImageActuBlob), qui porte le detail visuel.
+function construireContenuPartage(a, format) {
+  const cc = (typeof CYS !== 'undefined' ? CYS.find(x => x.code === a.cy) : null) || { flag: '🌍', name: a.cy };
+  const niveauLbl = { crit: 'CRITIQUE', high: 'ÉLEVÉ', mod: 'MODÉRÉ', ok: 'STABLE' }[a.level] || 'INFO';
+  const villeTxt = a._ville ? (' — ' + a._ville + (a._villeEstimee ? ' (estimé)' : '')) : '';
+  const entete = '🚨 ' + nomMarqueActuelle() + ' — ' + niveauLbl + '\n' + cc.flag + ' ' + cc.name + villeTxt;
+  if (format === 'texte_lien') {
+    const lien = safeUrl(articleLienDirect(a), a.title);
+    return entete + '\n\n' + a.title + '\n\n' + lien + signatureEnvoiActuelle();
+  }
+  // 'texte' et 'image' : meme legende courte, sans lien
+  return entete + '\n\n' + a.title + signatureEnvoiActuelle();
+}
+// whatsappMessageActu(a) : conserve pour compatibilite (utilise par
+// certains appels existants) — equivaut a construireContenuPartage(a,'texte_lien').
+function whatsappMessageActu(a) { return construireContenuPartage(a, 'texte_lien'); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  GENERATION D'IMAGE — dessine une carte visuelle de l'actu (marque,
+//  niveau, pays/ville, titre, date) sur un <canvas>, dimensionnee pour le
+//  canal cible. 100% cote client (Canvas 2D natif du navigateur), aucune
+//  bibliotheque externe. wa.me/t.me/mailto: ne peuvent pas transporter de
+//  piece jointe binaire (limite du schema d'URL, incontournable) : l'image
+//  generee est donc telechargee sur l'appareil pour un envoi via un canal
+//  precis (l'utilisateur la joint manuellement), ou transmise directement
+//  via le partage natif du systeme (navigator.share avec fichiers) quand
+//  aucun canal precis n'est impose — voir partagerActuNatif.
+// ═══════════════════════════════════════════════════════════════════════════
+const DIMENSIONS_IMAGE_PARTAGE = {
+  // largeur fixe (coherente avec les formats media de chaque canal), hauteur
+  // adaptee a la longueur du titre a chaque envoi, entre ces deux bornes.
+  mail:     { w: 1200, minH: 550, maxH: 1000 },
+  whatsapp: { w: 1080, minH: 550, maxH: 950  },
+  telegram: { w: 1280, minH: 600, maxH: 1080 },
+  natif:    { w: 1200, minH: 550, maxH: 1000 },
+};
+function _roundRectCanvas(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function _wrapCanvasText(ctx, texte, maxW) {
+  const mots = (texte || '').split(' ');
+  const lignes = []; let cur = '';
+  mots.forEach(mot => {
+    const test = cur ? cur + ' ' + mot : mot;
+    if (ctx.measureText(test).width > maxW && cur) { lignes.push(cur); cur = mot; }
+    else cur = test;
+  });
+  if (cur) lignes.push(cur);
+  return lignes;
+}
+// Palette harmonisee avec le reste de l'identite SENTINEL (topbar, page
+// d'accueil, couvertures PDF/Word/PowerPoint) : fond degrade bleu nuit
+// (identique a --topbar-bg), halo decoratif colore par niveau en coin
+// (meme esprit que les cercles decoratifs de la couverture PowerPoint),
+// plutot qu'un bandeau plein qui rompait l'harmonie du fond sur la
+// premiere version.
+async function genererImageActuBlob(a, canal) {
+  const dim = DIMENSIONS_IMAGE_PARTAGE[canal] || DIMENSIONS_IMAGE_PARTAGE.natif;
+  const w = dim.w;
+  const NIVEAU_COL = { crit: '#8B1A1A', high: '#7C4A00', mod: '#1B5FA8', ok: '#0F4F2A' };
+  const niveauLbl = { crit: 'CRITIQUE', high: 'ÉLEVÉ', mod: 'MODÉRÉ', ok: 'STABLE' }[a.level] || 'INFO';
+  const col = NIVEAU_COL[a.level] || '#4B5563';
+  const cc = (typeof CYS !== 'undefined' ? CYS.find(x => x.code === a.cy) : null) || { flag: '🌍', name: a.cy };
+
+  const pad = Math.round(w * 0.06);
+  const titreSize = Math.round(w * 0.042);
+  const maxW = w - pad * 2;
+  const badgeH = Math.round(w * 0.05);
+
+  // Passe de mesure (avant de fixer la hauteur du canevas) : le nombre de
+  // lignes que prendra le titre determine la hauteur finale de la capture,
+  // pour que le format colle a la longueur du texte a chaque envoi.
+  const cvMesure = document.createElement('canvas');
+  const ctxMesure = cvMesure.getContext('2d');
+  ctxMesure.font = '800 ' + titreSize + 'px "Source Serif 4", Georgia, serif';
+  const lignes = _wrapCanvasText(ctxMesure, a.title, maxW).slice(0, 6);
+
+  const zoneEntete = Math.round(w * 0.09) + Math.round(w * 0.038) + Math.round(w * 0.05) + badgeH + Math.round(w * 0.04) + Math.round(w * 0.065);
+  const zonePied = Math.round(w * 0.16);
+  const zoneTitreNat = lignes.length * titreSize * 1.28;
+  const h = Math.min(dim.maxH, Math.max(dim.minH, Math.round(zoneEntete + zoneTitreNat + zonePied)));
+
+  // Securite : si la hauteur a ete plafonnee (titre tres long), on n'affiche
+  // que le nombre de lignes qui tient reellement dans l'espace disponible.
+  const placeTitreDispo = h - zoneEntete - zonePied;
+  const maxLignesAffichables = Math.max(1, Math.floor(placeTitreDispo / (titreSize * 1.28)));
+  const lignesAffichees = lignes.slice(0, maxLignesAffichables);
+
+  const cv = document.createElement('canvas');
+  cv.width = w; cv.height = h;
+  const ctx = cv.getContext('2d');
+
+  // Fond degrade bleu nuit (135deg, memes teintes que --topbar-bg)
+  const grad = ctx.createLinearGradient(0, 0, w, h);
+  grad.addColorStop(0, '#0D1B2A');
+  grad.addColorStop(1, '#162840');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+
+  // Halo decoratif colore par niveau, en coin bas-droit — coherence de
+  // marque avec les motifs decoratifs deja utilises sur la couverture
+  // PowerPoint, sans jamais nuire a la lisibilite du texte (opacite faible).
+  const haloR = w * 0.42;
+  const haloGrad = ctx.createRadialGradient(w * 0.92, h * 0.95, 0, w * 0.92, h * 0.95, haloR);
+  haloGrad.addColorStop(0, col + '3D');
+  haloGrad.addColorStop(1, col + '00');
+  ctx.fillStyle = haloGrad;
+  ctx.beginPath();
+  ctx.arc(w * 0.92, h * 0.95, haloR, 0, Math.PI * 2);
+  ctx.fill();
+
+  let y = Math.round(w * 0.09);
+
+  ctx.fillStyle = '#7DD3FC';
+  ctx.font = '700 ' + Math.round(w * 0.026) + 'px "IBM Plex Mono", monospace';
+  ctx.textBaseline = 'top';
+  ctx.fillText(nomMarqueActuelle().toUpperCase(), pad, y);
+  y += Math.round(w * 0.038);
+
+  // Ligne d'accent fine coloree par niveau, sous la marque — remplace
+  // l'ancien bandeau plein en pleine largeur.
+  ctx.fillStyle = col;
+  ctx.fillRect(pad, y, Math.round(w * 0.09), 3);
+  y += Math.round(w * 0.05);
+
+  const badgeTxt = niveauLbl;
+  ctx.font = '700 ' + Math.round(w * 0.026) + 'px "IBM Plex Sans", sans-serif';
+  const badgeW = ctx.measureText(badgeTxt).width + Math.round(w * 0.045);
+  ctx.fillStyle = col;
+  _roundRectCanvas(ctx, pad, y, badgeW, badgeH, 6);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.fillText(badgeTxt, pad + Math.round(w * 0.022), y + Math.round(badgeH * 0.24));
+  y += badgeH + Math.round(w * 0.04);
+
+  ctx.fillStyle = '#C7D3DF';
+  ctx.font = '600 ' + Math.round(w * 0.028) + 'px "IBM Plex Sans", sans-serif';
+  const villeTxt = a._ville ? (' — ' + a._ville) : '';
+  ctx.fillText(cc.flag + ' ' + cc.name + villeTxt, pad, y);
+  y += Math.round(w * 0.065);
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = '800 ' + titreSize + 'px "Source Serif 4", Georgia, serif';
+  lignesAffichees.forEach((ligne, i) => {
+    ctx.fillText(ligne, pad, y + i * titreSize * 1.28);
+  });
+
+  // Ligne de pied fine (meme esprit que le filet horizontal des rubans de
+  // pied de page PDF/Word/PowerPoint), coherence de marque. Position ancree
+  // au bas du canevas (h dynamique) via un decalage relatif a la largeur.
+  ctx.strokeStyle = 'rgba(255,255,255,.14)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad, h - Math.round(w * 0.09));
+  ctx.lineTo(w - pad, h - Math.round(w * 0.09));
+  ctx.stroke();
+
+  ctx.fillStyle = '#8CA0B8';
+  ctx.font = '500 ' + Math.round(w * 0.02) + 'px "IBM Plex Mono", monospace';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText((typeof fmtFull === 'function' ? fmtFull(a.pubDate) : ''), pad, h - Math.round(w * 0.05));
+
+  return new Promise(resolve => cv.toBlob(resolve, 'image/png'));
+}
+function _telechargerImage(blob, nomFichier) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = nomFichier; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+// _toastRapide(texte, icone) : notification ephemere generique (copie
+// reussie, action confirmee...), reutilise le conteneur de toasts deja en
+// place pour les notifications de nouvelles actus.
+function _toastRapide(texte, icone) {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+  const el = document.createElement('div');
+  el.style.cssText = 'pointer-events:none;background:#0F4F2A;color:#fff;border-radius:8px;'+
+    'box-shadow:0 8px 24px rgba(0,0,0,.18);padding:9px 14px;font-size:11px;font-weight:700;'+
+    'display:flex;align-items:center;gap:7px;transform:translateX(360px);opacity:0;'+
+    'transition:transform .3s ease,opacity .3s ease;max-width:300px;';
+  el.innerHTML = '<i class="ti ' + (icone || 'ti-check') + '"></i>' + texte;
+  container.appendChild(el);
+  requestAnimationFrame(() => { el.style.transform = 'translateX(0)'; el.style.opacity = '1'; });
+  setTimeout(() => {
+    el.style.transform = 'translateX(360px)'; el.style.opacity = '0';
+    setTimeout(() => el.remove(), 350);
+  }, 2200);
+}
+
+// envoyerActuWhatsapp(id, format) : ouvre un onglet wa.me pre-rempli par
+// contact designe (tous, pas de selection au clic — ce sont des contacts
+// deja choisis a l'avance dans Parametres pour recevoir ces alertes). En
+// format 'image', l'image dimensionnee WhatsApp (carre) est telechargee —
+// wa.me ne peut pas transporter de piece jointe, voir note ci-dessus.
+async function envoyerActuWhatsapp(id, format) {
+  format = format || 'texte_lien';
+  const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
+  if (!a) return;
+  if (_verifierLimitePartage('whatsapp')) return;
+  const contacts = getWhatsappContacts();
+  if (!contacts.length) {
+    alert(LANG === 'en'
+      ? 'No WhatsApp contact configured yet. Add one in Settings > WhatsApp Contacts.'
+      : 'Aucun contact WhatsApp configuré. Ajoutez-en un dans Paramètres > Contacts WhatsApp.');
+    return;
+  }
+  if (format === 'image') {
+    const blob = await genererImageActuBlob(a, 'whatsapp');
+    _telechargerImage(blob, 'sentinel_' + a.id + '_whatsapp.png');
+    _toastRapide(LANG === 'en' ? 'Image downloaded — attach it in WhatsApp before sending.' : 'Image téléchargée — joignez-la dans WhatsApp avant d\'envoyer.', 'ti-photo');
+  }
+  const msg = encodeURIComponent(construireContenuPartage(a, format));
+  contacts.forEach(c => {
+    const numero = (c.tel || '').replace(/[^\d]/g, ''); // wa.me exige des chiffres seuls (indicatif inclus, sans +)
+    if (!numero) return;
+    window.open('https://wa.me/' + numero + '?text=' + msg, '_blank', 'noopener');
+  });
+  enregistrerPartage(a, 'whatsapp', format);
+}
+
+// envoyerActuTelegram(id, format) : partage via le lien officiel Telegram
+// (t.me/share/url) — meme principe que wa.me pour WhatsApp : gratuit, sans
+// bot ni API, Telegram propose lui-meme la liste des discussions/canaux ou
+// coller le message. En format 'image', memes contraintes que WhatsApp/Email
+// (telechargement + jonction manuelle).
+async function envoyerActuTelegram(id, format) {
+  format = format || 'texte_lien';
+  const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
+  if (!a) return;
+  if (_verifierLimitePartage('telegram')) return;
+  if (format === 'image') {
+    const blob = await genererImageActuBlob(a, 'telegram');
+    _telechargerImage(blob, 'sentinel_' + a.id + '_telegram.png');
+    _toastRapide(LANG === 'en' ? 'Image downloaded — attach it in Telegram before sending.' : 'Image téléchargée — joignez-la dans Telegram avant d\'envoyer.', 'ti-photo');
+  }
+  let url;
+  if (format === 'texte_lien') {
+    const lien = safeUrl(articleLienDirect(a), a.title);
+    const caption = nomMarqueActuelle() + ' — ' + a.title + signatureEnvoiActuelle();
+    url = 'https://t.me/share/url?url=' + encodeURIComponent(lien) + '&text=' + encodeURIComponent(caption);
+  } else {
+    url = 'https://t.me/share/url?url=&text=' + encodeURIComponent(construireContenuPartage(a, format));
+  }
+  window.open(url, '_blank', 'noopener');
+  enregistrerPartage(a, 'telegram', format);
+}
+
+// envoyerActuEmail(id, format) : partage par email — ouvre le client mail
+// par defaut (mailto:) avec sujet/corps deja rediges, destinataire au choix
+// de l'utilisateur (pas de carnet de contacts dedie ici, a la difference de
+// WhatsApp : le partage par email vise n'importe quel destinataire au coup
+// par coup). En format 'image', l'image dimensionnee email (bandeau 1200x630)
+// est telechargee pour jonction manuelle — mailto: ne transporte pas de
+// piece jointe.
+async function envoyerActuEmail(id, format) {
+  format = format || 'texte_lien';
+  const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
+  if (!a) return;
+  if (_verifierLimitePartage('email')) return;
+  const cc = (typeof CYS !== 'undefined' ? CYS.find(x => x.code === a.cy) : null) || { flag: '🌍', name: a.cy };
+  const niveauLbl = { crit: 'CRITIQUE', high: 'ÉLEVÉ', mod: 'MODÉRÉ', ok: 'STABLE' }[a.level] || 'INFO';
+  const sujet = nomMarqueActuelle() + ' — ' + niveauLbl + ' — ' + cc.name;
+  if (format === 'image') {
+    const blob = await genererImageActuBlob(a, 'mail');
+    _telechargerImage(blob, 'sentinel_' + a.id + '_email.png');
+    _toastRapide(LANG === 'en' ? 'Image downloaded — attach it to your email.' : 'Image téléchargée — joignez-la à votre email.', 'ti-photo');
+  }
+  const corps = construireContenuPartage(a, format);
+  window.location.href = 'mailto:?subject=' + encodeURIComponent(sujet) + '&body=' + encodeURIComponent(corps);
+  enregistrerPartage(a, 'email', format);
+}
+
+// copierActuTexte(id, format) : copie le contenu adapte au format dans le
+// presse-papiers — le filet de partage le plus universel : ne depend
+// d'aucune application installee, se colle ensuite n'importe ou (Signal,
+// Teams, SMS, Slack...). En format 'image', copie l'image elle-meme
+// (Clipboard API images, largement supportee) plutot que du texte.
+async function copierActuTexte(id, format) {
+  format = format || 'texte_lien';
+  const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
+  if (!a) return;
+  if (_verifierLimitePartage('copier')) return;
+  if (format === 'image') {
+    const blob = await genererImageActuBlob(a, 'natif');
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      _toastRapide(LANG === 'en' ? 'Image copied to clipboard' : 'Image copiée dans le presse-papiers', 'ti-check');
+    } catch (e) {
+      // Le presse-papiers image n'est pas supporte partout (navigateur/
+      // contexte non securise) : repli sur le telechargement.
+      _telechargerImage(blob, 'sentinel_' + a.id + '.png');
+      _toastRapide(LANG === 'en' ? 'Image downloaded (clipboard image unsupported here)' : 'Image téléchargée (presse-papiers image non pris en charge ici)', 'ti-download');
+    }
+    enregistrerPartage(a, 'copier', format);
+    return;
+  }
+  const texte = construireContenuPartage(a, format);
+  try {
+    await navigator.clipboard.writeText(texte);
+  } catch (e) {
+    // Repli si l'API Clipboard est indisponible/refusee (contexte non
+    // securise, permission bloquee...) : champ temporaire + execCommand,
+    // methode historique mais toujours largement supportee.
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = texte; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    } catch (e2) {
+      alert(LANG === 'en' ? 'Copy failed — please copy manually.' : 'Échec de la copie — copiez manuellement.');
+      return;
+    }
+  }
+  _toastRapide(LANG === 'en' ? 'Copied to clipboard' : 'Copié dans le presse-papiers', 'ti-check');
+  enregistrerPartage(a, 'copier', format);
+}
+
+// partagerActuNatif(id, format) : partage natif du systeme (Web Share API)
+// quand disponible — ouvre le selecteur natif du telephone/PC (Signal,
+// Teams, Messages, AirDrop, Mail, WhatsApp, tout ce qui est installe), sans
+// coder chaque destination une par une. En format 'image', c'est ICI que
+// l'image est transmise directement en piece jointe (navigator.share avec
+// fichiers) : aucun canal precis n'etant impose par ce bouton, le systeme
+// peut relayer le fichier binaire a l'application choisie par l'utilisateur
+// — contrairement a wa.me/t.me/mailto:, qui ne le peuvent pas. Repli sur le
+// presse-papiers (copierActuTexte) si l'API n'est pas supportee.
+async function partagerActuNatif(id, format) {
+  format = format || 'texte_lien';
+  const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
+  if (!a) return;
+  if (_verifierLimitePartage('natif')) return;
+  if (format === 'image') {
+    const blob = await genererImageActuBlob(a, 'natif');
+    if (navigator.share && navigator.canShare) {
+      try {
+        const file = new File([blob], 'sentinel_' + a.id + '.png', { type: 'image/png' });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ title: nomMarqueActuelle(), text: a.title, files: [file] });
+          enregistrerPartage(a, 'natif', format);
+          return;
+        }
+      } catch (e) {
+        if (e && e.name === 'AbortError') return; // annule par l'utilisateur
+      }
+    }
+    _telechargerImage(blob, 'sentinel_' + a.id + '.png');
+    _toastRapide(LANG === 'en' ? 'Image downloaded (file sharing unsupported here)' : 'Image téléchargée (partage de fichier non pris en charge ici)', 'ti-download');
+    enregistrerPartage(a, 'natif', format);
+    return;
+  }
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: nomMarqueActuelle(), text: construireContenuPartage(a, format) });
+      enregistrerPartage(a, 'natif', format);
+      return;
+    } catch (e) {
+      if (e && e.name === 'AbortError') return; // annule par l'utilisateur : rien de plus a faire
+    }
+  }
+  copierActuTexte(id, format); // journalise deja le partage (canal 'copier')
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  MENU DE PARTAGE — un seul bouton "Partager" par actu (choix du format en
+//  tete, puis WhatsApp/Telegram/Email/Copier/Partage natif regroupes dans un
+//  menu deroulant) plutot qu'un bouton distinct par mode — plus compact sur
+//  les cartes du Flux/Synthese. Un seul menu existe dans le DOM a la fois
+//  (repositionne dynamiquement pres du bouton clique), ferme au clic
+//  exterieur, a l'echap, ou apres selection d'un canal.
+// ═══════════════════════════════════════════════════════════════════════════
+function toggleShareMenu(ev, id) {
+  ev.stopPropagation();
+  const menuExistant = document.getElementById('shareMenuGlobal');
+  const dejaOuvertPourCetId = menuExistant && menuExistant.dataset.actid === id;
+  closeShareMenu();
+  if (dejaOuvertPourCetId) return; // reclic sur le meme bouton -> fermer seulement
+
+  const btn = ev.currentTarget;
+  const menu = document.createElement('div');
+  menu.id = 'shareMenuGlobal';
+  menu.className = 'share-menu';
+  menu.dataset.actid = id;
+  menu.dataset.format = 'texte_lien';
+  // Sur le plan gratuit, chaque libelle de canal affiche le quota restant
+  // (X/5) — les plans payants ne voient aucune mention, partage illimite.
+  const quotaTag = canal => fonctionnalitePayante() ? '' :
+    '<span style="margin-left:auto;font-size:9px;font-weight:700;color:'+(limiteDePartageAtteinte(canal)?'#8B1A1A':'var(--gr)')+'">'+partagesRestants(canal)+'/'+PARTAGE_LIMITE_GRATUIT+'</span>';
+  menu.innerHTML =
+    '<div class="share-fmt-row">'+
+      '<button type="button" class="share-fmt on" onclick="_choisirFormatPartage(this,\'texte_lien\')">'+(LANG==='en'?'Text+link':'Texte+lien')+'</button>'+
+      '<button type="button" class="share-fmt" onclick="_choisirFormatPartage(this,\'texte\')">'+(LANG==='en'?'Text only':'Texte seul')+'</button>'+
+      '<button type="button" class="share-fmt" onclick="_choisirFormatPartage(this,\'image\')">'+(LANG==='en'?'Image':'Image')+'</button>'+
+    '</div>'+
+    '<div class="share-mi" onclick="envoyerActuWhatsapp(\''+id+'\',shareFormatCourant());closeShareMenu()"><i class="ti ti-brand-whatsapp" style="color:#0F4F2A"></i>WhatsApp'+quotaTag('whatsapp')+'</div>'+
+    '<div class="share-mi" onclick="envoyerActuTelegram(\''+id+'\',shareFormatCourant());closeShareMenu()"><i class="ti ti-brand-telegram" style="color:#1B5FA8"></i>Telegram'+quotaTag('telegram')+'</div>'+
+    '<div class="share-mi" onclick="envoyerActuEmail(\''+id+'\',shareFormatCourant());closeShareMenu()"><i class="ti ti-mail" style="color:var(--b)"></i>Email'+quotaTag('email')+'</div>'+
+    '<div class="share-mi" onclick="copierActuTexte(\''+id+'\',shareFormatCourant());closeShareMenu()"><i class="ti ti-copy" style="color:var(--gr)"></i>'+(LANG==='en'?'Copy':'Copier')+quotaTag('copier')+'</div>'+
+    '<div class="share-mi" onclick="partagerActuNatif(\''+id+'\',shareFormatCourant());closeShareMenu()"><i class="ti ti-share-2" style="color:var(--gr)"></i>'+(LANG==='en'?'Other apps…':'Autres applications…')+quotaTag('natif')+'</div>';
+  document.body.appendChild(menu);
+
+  // Positionnement sous le bouton (position:fixed -> coordonnees viewport,
+  // pas besoin d'ajouter le scroll), ajuste pour ne jamais deborder de l'ecran.
+  const rect = btn.getBoundingClientRect();
+  const mw = 210, mh = menu.offsetHeight || 230;
+  let left = Math.min(rect.left, window.innerWidth - mw - 8);
+  let top = rect.bottom + 4;
+  if (top + mh > window.innerHeight) top = rect.top - mh - 4;
+  menu.style.left = Math.max(8, left) + 'px';
+  menu.style.top = Math.max(8, top) + 'px';
+
+  btn.classList.add('on');
+  setTimeout(() => {
+    document.addEventListener('click', _closeShareMenuOnOutsideClick);
+    document.addEventListener('keydown', _closeShareMenuOnEscape);
+  }, 0);
+}
+// _choisirFormatPartage(btn, fmt) : change le format actif SANS fermer le
+// menu — seule la selection d'un canal (WhatsApp/Telegram/Email/Copier/
+// Autres) declenche le partage et referme le menu.
+function _choisirFormatPartage(btn, fmt) {
+  const menu = document.getElementById('shareMenuGlobal');
+  if (!menu) return;
+  menu.dataset.format = fmt;
+  menu.querySelectorAll('.share-fmt').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+}
+function shareFormatCourant() {
+  const menu = document.getElementById('shareMenuGlobal');
+  return (menu && menu.dataset.format) || 'texte_lien';
+}
+function _closeShareMenuOnOutsideClick(e) {
+  const menu = document.getElementById('shareMenuGlobal');
+  if (menu && !menu.contains(e.target)) closeShareMenu();
+}
+function _closeShareMenuOnEscape(e) {
+  if (e.key === 'Escape') closeShareMenu();
+}
+function closeShareMenu() {
+  const menu = document.getElementById('shareMenuGlobal');
+  if (menu) menu.remove();
+  document.querySelectorAll('.share-trigger.on').forEach(b => b.classList.remove('on'));
+  document.removeEventListener('click', _closeShareMenuOnOutsideClick);
+  document.removeEventListener('keydown', _closeShareMenuOnEscape);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 //  AGENT DE VERIFICATION DES LIENS SOURCE — le lien direct capture a la
 //  collecte (a.url) peut se reveler mort au moment ou l'utilisateur clique
@@ -7037,6 +7776,7 @@ function renderFeed() {
         '</div>'+
         // ── Groupe de confiance unifie : sources + confiance composite + score + corroboration + pub-time ──
         '<div class="aftr conf-group">'+chips+
+          '<button class="share-trigger" onclick="toggleShareMenu(event,\''+a.id+'\')" title="'+(LANG==='en'?'Share':'Partager')+'"><i class="ti ti-share-2"></i>'+(LANG==='en'?'Share':'Partager')+'</button>'+
           (typeof confBadge==='function' ? confBadge(a) : '')+
           '<span class="rtg '+rc(a.score)+'">'+a.score+'%</span>'+
           (a.verified?'<span class="vtg"><i class="ti ti-shield-check"></i>'+(a.crosses?.length||1)+' src</span>':
@@ -7230,6 +7970,7 @@ function showDet(id) {
       a.recos.map(r=>'<div class="rli">'+r+'</div>').join('')+'</div>':'')+
     '<div class="dact">'+
       '<a href="'+safeUrl(articleLienDirect(a), a.title)+'" target="_blank" class="dbt p"><i class="ti ti-external-link"></i>'+(lienDirectDispo ? 'Lire l\'article complet' : 'Rechercher sur '+ps.n)+'</a>'+
+      '<button class="dbt" onclick="toggleShareMenu(event,\''+a.id+'\')"><i class="ti ti-share-2"></i>'+(LANG==='en'?'Share':'Partager')+'</button>'+
       '<div class="dbt" style="margin-left:auto" onclick="document.getElementById(\'detPanel\').className=\'det\'"><i class="ti ti-x"></i>Fermer</div>'+
     '</div>';
   panel.scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -7724,6 +8465,7 @@ function updSynthese() {
         '<div class="sy-bd" id="sybd-'+a.id+'">'+tr(a.analysis,'sybd-'+a.id, t=>t.slice(0,280)+(t.length>280?'...':'')).slice(0,280)+(a.analysis.length>280?'...':'')+'</div>'+
         '<div class="sy-sr"><a href="'+safeUrl(articleLienDirect(a), ps.n+' actualite')+'" target="_blank" class="ssrc">'+
           '<span class="dot" style="background:'+ps.col+'"></span>'+ps.n+'<i class="ti ti-external-link"></i></a>'+
+          '<button class="share-trigger" onclick="toggleShareMenu(event,\''+a.id+'\')" title="'+(LANG==='en'?'Share':'Partager')+'"><i class="ti ti-share-2"></i>'+(LANG==='en'?'Share':'Partager')+'</button>'+
           '<span class="ss-sc '+sc+'">'+a.score+'%</span></div>'+
       '</div>';
     });
@@ -8393,16 +9135,29 @@ function getSession()  { return _MEM_SESSION || {email:ADMIN_EMAIL, name:'Admini
 function saveSession(s){ _MEM_SESSION=s; _ls(()=>localStorage.setItem(STORE_KEY,JSON.stringify(s))); }
 function clearSession(){ _MEM_SESSION=null; _ls(()=>localStorage.removeItem(STORE_KEY)); }
 
+// compteGratuitExpire(user) : le plan gratuit n'est valide que 24h a
+// compter de sa creation (createdAt) — passe ce delai, le compte ne peut
+// plus se connecter tant qu'il n'est pas passe a un plan payant. L'admin
+// racine et tout compte deja sur un plan payant ne sont jamais concernes.
+const COMPTE_GRATUIT_VALIDITE_MS = 24 * 60 * 60 * 1000;
+function compteGratuitExpire(user) {
+  if (!user || user.email === ADMIN_EMAIL) return false;
+  if ((user.plan || 'gratuit') !== 'gratuit') return false;
+  if (!user.createdAt) return false;
+  return (Date.now() - new Date(user.createdAt).getTime()) > COMPTE_GRATUIT_VALIDITE_MS;
+}
+
 // restoreSession() : recharge la session sauvegardee par saveSession() (persistee
 // dans localStorage sous STORE_KEY) au demarrage, pour eviter de redemander une
 // connexion a chaque ouverture/rafraichissement de la page tant que la session
 // reste valide. Revalide contre la liste des utilisateurs actuelle : un compte
-// desactive ou supprime entre-temps par l'admin ne peut pas rester connecte.
+// desactive ou supprime entre-temps par l'admin ne peut pas rester connecte,
+// de meme qu'un compte gratuit dont les 24h de validite se sont ecoulees.
 function restoreSession() {
   const saved = _ls(()=>JSON.parse(localStorage.getItem(STORE_KEY)||'null'), null);
   if (!saved || !saved.email) return null;
   const user = getUsers().find(u=>u.email===saved.email);
-  if (!user || user.status!=='active') { clearSession(); return null; }
+  if (!user || user.status!=='active' || compteGratuitExpire(user)) { clearSession(); return null; }
   _MEM_SESSION = {email:user.email, name:user.name, role:user.role, loginAt:saved.loginAt};
   return user;
 }
@@ -8461,6 +9216,9 @@ function doLogin() {
   }
 
   if(user.status!=='active'){errEl.textContent='Acces suspendu. Contactez : '+ADMIN_EMAIL;errEl.classList.add('show');return;}
+  if(compteGratuitExpire(user)){
+    errEl.textContent='Compte gratuit expire (validite 24h). Passez a un plan payant pour continuer — contactez '+ADMIN_EMAIL+'.';
+    errEl.classList.add('show');return;}
   if(pass!==user.code&&pass!==makeCode(email)){
     errEl.textContent='Code d\'acces incorrect. Votre code : '+user.code;errEl.classList.add('show');return;}
   user.lastLogin=new Date().toISOString(); saveUsers(users);
@@ -8473,6 +9231,13 @@ function doLogin() {
   // l'utilisateur authentifie — verrou partage avec checkAuth() pour ne
   // jamais initialiser deux fois (session restauree + connexion manuelle).
   if (!window._appInitialized) { window._appInitialized = true; init(); }
+  // Rappel discret de la validite du plan gratuit (24h a compter de la creation
+  // du compte) — n'affecte jamais les plans payants ni l'administrateur.
+  if (user.email !== ADMIN_EMAIL && (user.plan || 'gratuit') === 'gratuit' && user.createdAt && typeof _toastRapide === 'function') {
+    const resteMs = COMPTE_GRATUIT_VALIDITE_MS - (Date.now() - new Date(user.createdAt).getTime());
+    const resteH = Math.max(0, Math.ceil(resteMs / 3600000));
+    _toastRapide('Compte gratuit — ' + resteH + 'h restantes avant expiration. ' + PARTAGE_LIMITE_GRATUIT + ' partages/mode inclus.', 'ti-clock');
+  }
 }
 
 function doLogout() {
@@ -8998,6 +9763,9 @@ function loadParamsModule() {
   renderClientele();
   renderPaiementsAdmin();
   renderEmailjsCfg();
+  renderWhatsappContacts();
+  renderMarquePerso();
+  renderPartageStats();
   renderReclamationsAdmin();
   renderTraffic();
 }
@@ -9007,15 +9775,25 @@ function loadParamsModule() {
 // localement (localStorage) — pas de facturation réelle depuis cette appli
 // statique, voir la section "Moyens de paiement" (confirmation manuelle).
 const PRICING_KEY = 'sentinel_pricing_v1';
+// Grille alignee sur 3 profils cibles (au-dela de la decouverte gratuite) :
+// Particulier (individu), Professionnel Sûreté (consultant/entreprise de
+// securite), Institution/International (ONG, bailleur, organisme regional).
+// Tarifs en FCFA, calibres sur le pouvoir d'achat regional (un abonnement
+// Particulier reste sous le prix d'un forfait data mensuel courant) tout en
+// reconnaissant la valeur operationnelle croissante pour un usage
+// professionnel puis institutionnel. Cles internes (gratuit/standard/pro/
+// entreprise) conservees pour rester compatibles avec les comptes deja
+// enregistres (u.plan) — seuls le libelle, le tarif et les fonctionnalites
+// affichees changent.
 const PRICING_DEFAUT = [
-  {key:'gratuit',   nom:'Gratuit',        prix:0,     periode:'/mois', featured:false,
-    feats:['Flux 12h, 1 pays suivi','Publicités affichées','Alertes de base']},
-  {key:'standard',  nom:'Standard',       prix:15000, periode:'/mois', featured:false,
-    feats:['54 pays, tous modules','Sans publicité','Exports Excel/CSV']},
-  {key:'pro',       nom:'Professionnel',  prix:45000, periode:'/mois', featured:true,
-    feats:['Exports Word/PDF/PowerPoint illimités','Alertes multi-pays','3 comptes utilisateurs']},
-  {key:'entreprise',nom:'Entreprise',     prix:null,  periode:'sur devis', featured:false,
-    feats:['Comptes illimités','Accompagnement dédié','API / intégration sur mesure']},
+  {key:'gratuit',   nom:'Découverte',              prix:0,     periode:'/mois', featured:false,
+    feats:['Compte gratuit valable 24h','Flux 12h, 1 pays suivi','5 partages par mode (WhatsApp/Telegram/Email/Copier)','Publicités affichées']},
+  {key:'standard',  nom:'Particulier',              prix:9000,  periode:'/mois', featured:false,
+    feats:['54 pays, tous modules','Sans publicité','Partages illimités (tous modes)','Exports Excel/CSV','1 compte utilisateur']},
+  {key:'pro',       nom:'Professionnel Sûreté',     prix:39000, periode:'/mois', featured:true,
+    feats:['Exports Word/PDF/PowerPoint illimités','Alertes multi-pays','Marque personnalisée (en-têtes, partages)','Captures image dimensionnées WhatsApp/Telegram/Email','5 comptes utilisateurs']},
+  {key:'entreprise',nom:'Institution / International', prix:null, periode:'sur devis', featured:false,
+    feats:['À partir de ~250 000 FCFA/mois (ou facturation USD/EUR pour bailleurs)','Comptes illimités','API / intégration sur mesure','Accompagnement dédié, SLA prioritaire']},
 ];
 function getPricing()  { return _ls(()=>JSON.parse(localStorage.getItem(PRICING_KEY)||'null'),null) || PRICING_DEFAUT; }
 function savePricing(p){ _ls(()=>localStorage.setItem(PRICING_KEY,JSON.stringify(p))); }
@@ -9170,6 +9948,113 @@ function pmSaveEmailjsCfg() {
     publicKey:  (document.getElementById('ejPublicKey').value||'').trim(),
   });
   pmMsg('Configuration EmailJS enregistrée.', 'ok', 'emailjsCfgMsg');
+}
+
+// ── Contacts WhatsApp (voir envoyerActuWhatsapp/whatsappMessageActu) ──────
+function renderWhatsappContacts() {
+  const body = document.getElementById('waContactsBody');
+  if (!body) return;
+  const contacts = getWhatsappContacts();
+  const cntEl = document.getElementById('waContactsCount');
+  if (cntEl) cntEl.textContent = contacts.length + ' contact(s)';
+  // Bouton "Supprimer" en style inline (rouge sur fond clair) : .btn-del est
+  // concu pour les panneaux sombres (texte quasi transparent, invisible sur
+  // le fond clair de ce tableau Parametres).
+  body.innerHTML = contacts.length ? contacts.map((c, i) =>
+    '<tr><td>' + _apEsc(c.nom || '—') + '</td><td>' + _apEsc(c.tel || '') + '</td>' +
+    '<td><button class="btn-action" style="background:var(--rl);color:var(--r);border-color:var(--rb)" onclick="waSupprimerContact(' + i + ')"><i class="ti ti-trash"></i></button></td></tr>'
+  ).join('') : '<tr><td colspan="3" style="color:var(--lg);text-align:center;padding:12px">Aucun contact — le bouton WhatsApp des actus invitera à en ajouter un.</td></tr>';
+}
+function waAjouterContact() {
+  const nomEl = document.getElementById('waContactNom'), telEl = document.getElementById('waContactTel');
+  const nom = (nomEl.value || '').trim();
+  const telBrut = (telEl.value || '').trim();
+  const tel = telBrut.replace(/[^\d]/g, '');
+  if (!tel || tel.length < 8) {
+    pmMsg('Numéro invalide — incluez l\'indicatif pays (ex. +225...).', 'err', 'waContactMsg');
+    return;
+  }
+  const contacts = getWhatsappContacts();
+  contacts.push({ nom: nom || tel, tel });
+  saveWhatsappContacts(contacts);
+  nomEl.value = ''; telEl.value = '';
+  renderWhatsappContacts();
+  pmMsg('Contact ajouté.', 'ok', 'waContactMsg');
+}
+function waSupprimerContact(index) {
+  const contacts = getWhatsappContacts();
+  contacts.splice(index, 1);
+  saveWhatsappContacts(contacts);
+  renderWhatsappContacts();
+}
+
+// ── Personnalisation de marque (fonctionnalite payante, voir
+// planUtilisateurActuel/fonctionnalitePayante/nomMarqueActuelle) ──────────
+function renderMarquePerso() {
+  const nomEl = document.getElementById('marqueNom'), idEl = document.getElementById('marqueIdentite'),
+        ctEl = document.getElementById('marqueContact'), badgeEl = document.getElementById('marquePlanBadge'),
+        upsellEl = document.getElementById('marqueUpsell'), saveBtn = document.getElementById('marqueSaveBtn');
+  if (!nomEl) return;
+  const m = getMarquePerso();
+  nomEl.value = m.nomMarque || '';
+  idEl.value = m.identitePartage || '';
+  ctEl.value = m.contactPartage || '';
+
+  const payant = fonctionnalitePayante();
+  const plan = planUtilisateurActuel();
+  if (badgeEl) {
+    badgeEl.textContent = payant ? plan.toUpperCase() : 'PREMIUM';
+    badgeEl.style.background = payant ? '#DCFCE7' : '#FEF3C7';
+    badgeEl.style.color = payant ? '#0F4F2A' : '#7C4A00';
+  }
+  if (upsellEl) upsellEl.style.display = payant ? 'none' : 'flex';
+  [nomEl, idEl, ctEl].forEach(el => { el.disabled = !payant; el.style.opacity = payant ? '1' : '.55'; });
+  if (saveBtn) saveBtn.disabled = !payant;
+}
+function pmSaveMarquePerso() {
+  // Double verification cote enregistrement (pas seulement l'UI grisee) :
+  // un plan gratuit ne doit jamais pouvoir persister de personnalisation,
+  // meme via un appel direct a cette fonction.
+  if (!fonctionnalitePayante()) {
+    pmMsg('Fonctionnalité réservée aux plans payants.', 'err', 'marqueMsg');
+    return;
+  }
+  saveMarquePerso({
+    nomMarque: (document.getElementById('marqueNom').value || '').trim(),
+    identitePartage: (document.getElementById('marqueIdentite').value || '').trim(),
+    contactPartage: (document.getElementById('marqueContact').value || '').trim(),
+  });
+  pmMsg('Personnalisation enregistrée.', 'ok', 'marqueMsg');
+}
+
+// ── Statistiques de partage (voir enregistrerPartage/statsPartageAgregees) ──
+function renderPartageStats() {
+  const grid = document.getElementById('partageStatsGrid');
+  if (!grid) return;
+  const s = statsPartageAgregees();
+  const cntEl = document.getElementById('partageStatsCount');
+  if (cntEl) cntEl.textContent = s.total + ' partage(s) · ' + s.derniers7j + ' sur 7 jours';
+
+  const LBL_CANAL = { whatsapp: 'WhatsApp', telegram: 'Telegram', email: 'Email', copier: 'Copié', natif: 'Partage natif' };
+  grid.innerHTML = Object.keys(LBL_CANAL).map(c =>
+    '<div style="background:var(--w);border:1px solid var(--bd);border-radius:8px;padding:10px;text-align:center">'+
+      '<div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--n)">'+(s.parCanal[c]||0)+'</div>'+
+      '<div style="font-size:9px;color:var(--lg);margin-top:2px">'+LBL_CANAL[c]+'</div>'+
+    '</div>'
+  ).join('');
+
+  const LBL_FORMAT = { texte: 'Texte seul', texte_lien: 'Texte + lien', image: 'Image' };
+  const fmtEl = document.getElementById('partageStatsFormat');
+  if (fmtEl) {
+    const lignes = Object.keys(LBL_FORMAT).map(f => LBL_FORMAT[f] + ' — <b>' + (s.parFormat[f] || 0) + '</b>');
+    fmtEl.innerHTML = s.total ? lignes.join('<br>') : '<span style="color:var(--lg)">Aucun partage enregistré pour le moment.</span>';
+  }
+  const paysEl = document.getElementById('partageStatsPays');
+  if (paysEl) {
+    paysEl.innerHTML = s.topPays.length
+      ? s.topPays.map(p => p.nom + ' — <b>' + p.n + '</b>').join('<br>')
+      : '<span style="color:var(--lg)">Aucun partage enregistré pour le moment.</span>';
+  }
 }
 let _emailjsSdkPromise = null;
 function _chargerSdkEmailjs() {
@@ -10879,7 +11764,7 @@ async function exportExcel(type){
 
     // Métadonnées
     const wsMeta=XLSX.utils.aoa_to_sheet([
-      ['SENTINEL SÛRETÉ — Export de données'],[''],
+      [nomMarqueActuelle()+' — Export de données'],[''],
       ['Généré le',nowStr()],
       ['Filtre','Articles <12h uniquement'],
       ['Sources actives',Object.values(SRC_ST).filter(s=>s?.ok).length+'/'+SRCS.length],
@@ -10981,8 +11866,8 @@ async function exportPPTX(type) {
 
     const pres = new PptxGenJS();
     pres.layout = 'LAYOUT_WIDE';
-    pres.author = 'SENTINEL SÛRETÉ';
-    pres.company = 'SENTINEL SÛRETÉ';
+    pres.author = nomMarqueActuelle();
+    pres.company = nomMarqueActuelle();
     pres.title = titrePPTX + ' ' + periode.label + ' — ' + perimetre;
 
     const circle = (slide, x, y, d, color, opts={}) =>
@@ -10997,7 +11882,7 @@ async function exportPPTX(type) {
       const ribbonY = 7.15, ribbonH = 0.35;
       sl.addShape(pres.shapes.RECTANGLE, {x:0, y:ribbonY, w:13.33, h:ribbonH, fill:{color:NAVY}, line:{type:'none'}});
       circle(sl, 0.35, ribbonY + ribbonH/2 - 0.07, 0.14, 'FFFFFF');
-      sl.addText('SENTINEL SÛRETÉ', {x:0.62, y:ribbonY, w:5, h:ribbonH, fontSize:9, bold:true, color:'FFFFFF', fontFace:'IBM Plex Mono', valign:'middle'});
+      sl.addText(nomMarqueActuelle(), {x:0.62, y:ribbonY, w:5, h:ribbonH, fontSize:9, bold:true, color:'FFFFFF', fontFace:'IBM Plex Mono', valign:'middle'});
       sl.addText('Page ', {x:12.2, y:ribbonY, w:1.1, h:ribbonH, fontSize:8.5, color:'FFFFFF', fontFace:'IBM Plex Mono', valign:'middle', align:'right'});
       sl.slideNumber = {x:12.9, y:ribbonY, w:0.35, h:ribbonH, fontSize:8.5, color:'FFFFFF', fontFace:'IBM Plex Mono', valign:'middle'};
       return sl;
@@ -11048,8 +11933,15 @@ async function exportPPTX(type) {
     circle(s, 12.7,-0.5,2.3, NAVY2);
     circle(s, 8.4,6.9,1.8, NAVY2);
     drawRadarPPTX(s, 10.68, 3.75, 1.55);
-    s.addText('SENTINEL', {x:8.4,y:5.75,w:4.5,h:0.5,fontSize:22,bold:true,color:'FFFFFF',fontFace:'Source Serif 4',charSpacing:2,align:'center'});
-    s.addText('SÛRETÉ', {x:8.4,y:6.15,w:4.5,h:0.5,fontSize:22,bold:true,color:SKY,fontFace:'Source Serif 4',charSpacing:2,align:'center'});
+    // Marque sur 2 lignes (motif conçu pour "SENTINEL"/"SÛRETÉ") : coupee au
+    // premier espace pour une marque personnalisee, ou affichee sur une
+    // seule ligne si le nom n'en comporte pas.
+    (() => {
+      const mots = nomMarqueActuelle().split(' ');
+      const l1 = mots[0], l2 = mots.slice(1).join(' ');
+      s.addText(l1, {x:8.4,y:l2?5.75:5.95,w:4.5,h:0.5,fontSize:22,bold:true,color:'FFFFFF',fontFace:'Source Serif 4',charSpacing:2,align:'center'});
+      if (l2) s.addText(l2, {x:8.4,y:6.15,w:4.5,h:0.5,fontSize:22,bold:true,color:SKY,fontFace:'Source Serif 4',charSpacing:2,align:'center'});
+    })();
 
     // ── Calculs préalables — déterminent quelles sections seront réellement
     // incluses, pour que le Sommaire (slide 2) liste exactement ce qui suit.
@@ -11487,7 +12379,7 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
       b.page.drawEllipse({x:logoCx, y:midY, xScale:logoR, yScale:logoR, borderColor:rgb(1,1,1), borderWidth:0.9});
       b.page.drawEllipse({x:logoCx, y:midY, xScale:logoR*0.55, yScale:logoR*0.55, borderColor:rgb(1,1,1), borderWidth:0.6});
       b.page.drawEllipse({x:logoCx, y:midY, xScale:logoR*0.16, yScale:logoR*0.16, color:rgb(1,1,1)});
-      const brand = 'SENTINEL SÛRETÉ';
+      const brand = _pdfSafe(nomMarqueActuelle());
       b.page.drawText(brand, {x:logoCx+logoR+9, y:midY-3.5, size:9, font:fontBold, color:rgb(1,1,1)});
       const sep = b.footerPerimetre ? '  ·  '+b.footerPerimetre : '';
       const mid = _pdfSafe((b.footerDate||'')+sep);
@@ -11547,7 +12439,7 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
       b.page.drawText(eyebrow, {x:cx-ew/2, y:H-50, size:8.5, font:fontReg, color:MUTED});
 
       // Titre de marque (serif, identique a Word/PPTX/apercu HTML)
-      const brandTxt = 'SENTINEL SÛRETÉ';
+      const brandTxt = _pdfSafe(nomMarqueActuelle());
       const bsize = 27;
       const bw = fontSerif.widthOfTextAtSize(brandTxt, bsize);
       b.page.drawText(brandTxt, {x:cx-bw/2, y:H-80, size:bsize, font:fontSerif, color:NAVY});
@@ -12363,7 +13255,7 @@ function _buildRapportSyntheseHTML(arts) {
 
     + '<div style="text-align:center;margin-bottom:6px;">'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.16em;color:#9CA3AF;text-transform:uppercase;margin-bottom:10px;">Rapport opérationnel — '+_apEsc(perimetre)+'</div>'
-    + '<h1 style="font-family:\'Source Serif 4\',serif;font-weight:800;font-size:40px;letter-spacing:0.01em;color:#0D1B2A;margin:0 0 8px;">SENTINEL SÛRETÉ</h1>'
+    + '<h1 style="font-family:\'Source Serif 4\',serif;font-weight:800;font-size:40px;letter-spacing:0.01em;color:#0D1B2A;margin:0 0 8px;">'+_apEsc(nomMarqueActuelle())+'</h1>'
     + '<div style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:600;font-size:16px;color:#0B1A27;margin-bottom:14px;">Analyse sécuritaire opérationnelle</div>'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#6B7280;">'+SRCS.length+' sources ('+nbSrcsMedia+' médias + '+nbSrcsSociales+' réseaux sociaux) &nbsp;·&nbsp; filtre anti-hallucination &lt;12h &nbsp;·&nbsp; '+arts.length+' articles analysés</div>'
     + '</div>'
@@ -12381,7 +13273,7 @@ function _buildRapportSyntheseHTML(arts) {
     + corrHTML
 
     + '<div style="margin-top:30px;background:#0D1B2A;color:#FFFFFF;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;font-family:\'IBM Plex Mono\',monospace;font-size:10.5px;">'
-    + '<span style="display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:0.04em;"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="#fff" stroke-width="1.3"/><circle cx="8" cy="8" r="1.5" fill="#fff"/></svg>SENTINEL SÛRETÉ</span>'
+    + '<span style="display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:0.04em;"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="#fff" stroke-width="1.3"/><circle cx="8" cy="8" r="1.5" fill="#fff"/></svg>'+_apEsc(nomMarqueActuelle())+'</span>'
     + '<span style="color:#B9C6D6;">'+_apEsc(dateGenLong)+' UTC</span>'
     + '</div>'
 
@@ -12640,7 +13532,7 @@ async function exportWord(type){
     }));
     children.push(new Paragraph({
       alignment:AlignmentType.CENTER,
-      children:[new TextRun({text:'SENTINEL SÛRETÉ',bold:true,size:54,color:'0D1B2A',font:FONT_SERIF})],
+      children:[new TextRun({text:nomMarqueActuelle(),bold:true,size:54,color:'0D1B2A',font:FONT_SERIF})],
       spacing:{after:60}
     }));
     children.push(new Paragraph({
@@ -12935,14 +13827,14 @@ async function exportWord(type){
     children.push(divider());
     children.push(new Paragraph({
       alignment:AlignmentType.CENTER,
-      children:[new TextRun({text:'SENTINEL SÛRETÉ · '+dateStr+' UTC',size:18,italic:true,color:'9CA3AF'})],
+      children:[new TextRun({text:nomMarqueActuelle()+' · '+dateStr+' UTC',size:18,italic:true,color:'9CA3AF'})],
     }));
 
     // En-tête/pied de page systématiques (marque + périmètre + numéro de
     // page), sur le modèle du bandeau GRSCI présent sur chaque diapositive.
     const wordHeader=new Header({children:[new Paragraph({
       alignment:AlignmentType.RIGHT,
-      children:[new TextRun({text:'SENTINEL SÛRETÉ · '+libellePerimetreRapport(),size:16,italics:true,color:'6B7280'})],
+      children:[new TextRun({text:nomMarqueActuelle()+' · '+libellePerimetreRapport(),size:16,italics:true,color:'6B7280'})],
     })]});
     // Ruban de pied de page — bandeau plein bord-a-bord (pas d'encadre), sur
     // le modele du ruban de bas de page du site/du PDF.
@@ -12957,7 +13849,7 @@ async function exportWord(type){
       width:{size:100,type:WidthType.PERCENTAGE},
       borders:{top:{style:BorderStyle.NONE},bottom:{style:BorderStyle.NONE},left:{style:BorderStyle.NONE},right:{style:BorderStyle.NONE},insideHorizontal:{style:BorderStyle.NONE},insideVertical:{style:BorderStyle.NONE}},
       rows:[new TableRow({children:[
-        footerCell([new TextRun({text:'SENTINEL SÛRETÉ',bold:true,size:16,color:'FFFFFF',font:FONT_MONO})],AlignmentType.LEFT),
+        footerCell([new TextRun({text:nomMarqueActuelle(),bold:true,size:16,color:'FFFFFF',font:FONT_MONO})],AlignmentType.LEFT),
         footerCell([new TextRun({text:'Page ',size:16,color:'FFFFFF',font:FONT_MONO}),new TextRun({children:[PageNumber.CURRENT],size:16,color:'FFFFFF',font:FONT_MONO})],AlignmentType.RIGHT),
       ]})],
     })]});
