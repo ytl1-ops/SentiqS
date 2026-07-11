@@ -7740,7 +7740,7 @@ async function majFlashInfo(force) {
   });
 }
 
-function renderFeed() {
+async function renderFeed() {
   const arts=getFiltered();
   const c=document.getElementById('feed');
   // Bandeau tableau de bord pays : construit tot pour s'afficher meme si
@@ -7773,6 +7773,11 @@ function renderFeed() {
       '</span></div>';
     return;
   }
+
+  // Traduction ACTIVE de tous les titres/analyses AVANT construction du
+  // Flux — meme regle que le popup, le toast et le ruban : jamais d'actu
+  // affichee dans sa langue source si elle differe de la langue active.
+  await preTraduireRapport(arts.flatMap(a => [a.title, a.analysis]));
 
   function renderOneArt(a){
     const ps=gs(a.primary);
@@ -7808,8 +7813,8 @@ function renderFeed() {
           (detectLangue(a.title)!==LANG ? '<button class="tr-btn" id="trbtn-'+a.id+'" onclick="event.stopPropagation();retraduireActu(\''+a.id+'\')" title="'+(LANG==='en'?'Translate now':'Traduire maintenant')+'"><i class="ti ti-language"></i>'+(LANG==='en'?'Translate':'Traduire')+'</button>' : '')+
         '</div>'+
         // ── Contenu editorial : remonte au-dessus du reste des badges ──
-        '<div class="atit" id="trt-'+a.id+'">'+tr(a.title,'trt-'+a.id)+'</div>'+
-        '<div class="asum" id="tra-'+a.id+'">'+tr(a.analysis,'tra-'+a.id)+'</div>'+
+        '<div class="atit" id="trt-'+a.id+'">'+L(a.title)+'</div>'+
+        '<div class="asum" id="tra-'+a.id+'">'+L(a.analysis)+'</div>'+
         // ── Meta secondaire : portee, ville, categorie, source RSS, sentiment, viralite ──
         '<div class="meta2">'+
           '<span class="stag">'+(scl[a.sc]||'Regional')+'</span>'+
@@ -8123,7 +8128,7 @@ function calcScorePays(cy) {
 
 function closeKpiDrill() { const o = document.getElementById('kpiDrillOverlay'); if (o) o.remove(); }
 
-function showKpiDrill(kind) {
+async function showKpiDrill(kind) {
   const MAX = 12*60*60*1000;
   const artsActifs = (ALL||[]).filter(a=>estRecentReel(a));
   const scoreCol = key => (typeof NIV !== 'undefined' && NIV[key]) ? NIV[key].col : '#0F4F2A';
@@ -8136,7 +8141,7 @@ function showKpiDrill(kind) {
     return `<div onclick="closeKpiDrill();showDet('${a.id}');switchView('flux',document.querySelector('.ntab[onclick*=flux]'))" style="padding:9px 0;border-bottom:.5px solid var(--bd);cursor:pointer;display:flex;gap:8px;align-items:flex-start;">
       <span style="width:6px;height:6px;border-radius:50%;background:${lvlMeta.col};flex-shrink:0;margin-top:5px;"></span>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="${trId}">${tr(a.title,trId)}</div>
+        <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="${trId}">${L(a.title)}</div>
         <div style="font-size:9px;color:var(--lg);margin-top:2px;">${pays.flag} ${pays.name} · ${a.time||''}</div>
       </div>
       <span style="font-size:8px;font-weight:700;color:#fff;background:${lvlMeta.col};padding:2px 6px;border-radius:3px;flex-shrink:0;">${lvlMeta.lb}</span>
@@ -8149,6 +8154,7 @@ function showKpiDrill(kind) {
     else if (kind==='high') { list = list.filter(a=>a.level==='high'); title='Articles à niveau élevé (moins de 12h)'; icon='ti-alert-circle'; }
     else { title='Articles actifs (moins de 12h)'; icon='ti-file-text'; }
     list = list.slice().sort((a,b)=>(b.pubDate||0)-(a.pubDate||0));
+    await preTraduireRapport(list.map(a => a.title));
     rows = list.length ? list.map(rowArticle).join('') : '<div style="padding:16px;text-align:center;color:var(--lg);font-size:11px;">Aucun article.</div>';
   } else if (kind==='pays' || kind==='tension') {
     const scores = Object.keys(PAYS_INFO).map(cy=>{
@@ -8278,10 +8284,11 @@ function marquerArticleTraite(id) {
 
 // renderPanelATraiter(cyFiltre) : bloc HTML partage entre Tableau de bord et
 // Analyse > Synthese — la meme liste, la meme logique, pas de duplication.
-function renderPanelATraiter(cyFiltre, zoneFiltre) {
+async function renderPanelATraiter(cyFiltre, zoneFiltre) {
   const arts = getArticlesATraiter(cyFiltre, zoneFiltre).slice(0, 15);
   const LVL_COL = {crit:'#8B1A1A', high:'#7C4A00', mod:'#4B5563', ok:'#0F4F2A'};
   const LVL_LB  = {crit:'CRITIQUE', high:'ÉLEVÉ', mod:'MODÉRÉ', ok:'STABLE'};
+  await preTraduireRapport(arts.map(a => a.title));
   if (!arts.length) {
     return `<div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:16px;margin-bottom:12px;text-align:center;color:var(--lg);font-size:11px;">
       <i class="ti ti-circle-check" style="font-size:22px;color:#0F4F2A;display:block;margin-bottom:6px;"></i>
@@ -8302,7 +8309,7 @@ function renderPanelATraiter(cyFiltre, zoneFiltre) {
           <span style="width:6px;height:6px;border-radius:50%;background:${LVL_COL[a.level]||'#4B5563'};flex-shrink:0;margin-top:5px;"></span>
           <div style="flex:1;min-width:0;cursor:pointer;" onclick="showDet('${a.id}');switchView('flux',document.querySelector('.ntab[onclick*=flux]'))">
             <div style="font-size:9px;color:var(--lg);font-weight:600;">${pays.flag} ${pays.name} · ${LVL_LB[a.level]||'INFO'} · ${surv.texte}</div>
-            <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.35;" id="atrait-${a.id}">${tr(a.title,'atrait-'+a.id)}</div>
+            <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.35;" id="atrait-${a.id}">${L(a.title)}</div>
           </div>
           <button onclick="event.stopPropagation();marquerArticleTraite('${a.id}')" title="Marquer comme traité" style="flex-shrink:0;background:none;border:1px solid var(--bd);border-radius:5px;padding:3px 7px;font-size:9px;color:var(--lg);cursor:pointer;">
             <i class="ti ti-check"></i>
@@ -8313,7 +8320,7 @@ function renderPanelATraiter(cyFiltre, zoneFiltre) {
   </div>`;
 }
 
-function renderDashboard() {
+async function renderDashboard() {
   const el = document.getElementById('dashContent');
   if (!el) return;
 
@@ -8414,6 +8421,7 @@ function renderDashboard() {
        </div>
      </div>`;
 
+  const panelATraiterHTML = await renderPanelATraiter(GLOBAL_CY_FILTER);
   requestAnimationFrame(() => {
     el.innerHTML = `
       <!-- KPI globaux -->
@@ -8427,7 +8435,7 @@ function renderDashboard() {
       </div>
 
       <!-- Actualités a traiter (< 12h) -->
-      ${renderPanelATraiter(GLOBAL_CY_FILTER)}
+      ${panelATraiterHTML}
 
       <!-- Cartogramme régional des scores par pays -->
       <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:14px;margin-bottom:12px;">
@@ -8450,7 +8458,7 @@ function renderDashboard() {
 
 
 
-function updSynthese() {
+async function updSynthese() {
   peuplerFiltresSynthese();
   const n=new Date();
   document.getElementById('syDate').textContent=
@@ -8493,7 +8501,7 @@ function updSynthese() {
   let html='';
 
   // Actualites a traiter (< 12h), respecte le meme perimetre pays/zone que la synthese
-  html += renderPanelATraiter(fSyCy !== 'all' ? fSyCy : 'all', fSyZone !== 'all' ? fSyZone : 'all');
+  html += await renderPanelATraiter(fSyCy !== 'all' ? fSyCy : 'all', fSyZone !== 'all' ? fSyZone : 'all');
 
   // ── Pouls reseaux sociaux du perimetre filtre ────────────────────────────
   const socialPerimetre = perimetre.filter(a => a._isSocial);
@@ -8513,6 +8521,8 @@ function updSynthese() {
       '</div></div>';
   }
 
+  await preTraduireRapport(cats.flatMap(c => byCat[c.k].slice(0,4).flatMap(a => [a.title, a.analysis])));
+
   cats.forEach(c=>{
     const items=byCat[c.k].slice(0,4); if(!items.length) return;
     html+='<div class="sy-sec"><div class="sy-shd '+c.cl+'"><i class="ti '+c.ic+'"></i>'+c.lb+'</div>';
@@ -8524,11 +8534,12 @@ function updSynthese() {
       const cc=CYS.find(x=>x.code===a.cy)||{flag:'🌍',name:a.cy};
       const geo=detectGeo(a.cy, a.title+' '+(a.analysis||''));
       const villeTxt=geo.ville?(' · '+geo.ville+(geo.estime?' (estime)':'')):'';
+      const analyseL=L(a.analysis);
       html+='<div class="sy-ar">'+
         '<div class="sy-lvl '+lc+'"><i class="ti '+lic(a.level)+'"></i>'+lt+' — '+cc.flag+' '+cc.name+villeTxt+' — '+catFr(a.cat)+'</div>'+
-        '<div class="sy-tt2" id="sytt-'+a.id+'">'+tr(a.title,'sytt-'+a.id)+'</div>'+
+        '<div class="sy-tt2" id="sytt-'+a.id+'">'+L(a.title)+'</div>'+
         '<div style="font-size:9px;color:var(--lg);font-weight:600;margin:2px 0 4px;"><i class="ti ti-clock" style="font-size:9px;vertical-align:-1px"></i> Publie le '+fmtFull(a.pubDate)+' ('+fmtAge(a.pubDate)+')'+((a.pubDate&&(Date.now()-a.pubDate)<12*3600000)?' <span style="font-size:8px;font-weight:700;color:#fff;background:#15803D;padding:1px 6px;border-radius:3px;">−12H</span>':'')+'</div>'+
-        '<div class="sy-bd" id="sybd-'+a.id+'">'+tr(a.analysis,'sybd-'+a.id, t=>t.slice(0,280)+(t.length>280?'...':'')).slice(0,280)+(a.analysis.length>280?'...':'')+'</div>'+
+        '<div class="sy-bd" id="sybd-'+a.id+'">'+analyseL.slice(0,280)+(analyseL.length>280?'...':'')+'</div>'+
         '<div class="sy-sr"><a href="'+safeUrl(articleLienDirect(a), ps.n+' actualite')+'" target="_blank" class="ssrc">'+
           '<span class="dot" style="background:'+ps.col+'"></span>'+ps.n+'<i class="ti ti-external-link"></i></a>'+
           '<button class="share-trigger" onclick="toggleShareMenu(event,\''+a.id+'\')" title="'+(LANG==='en'?'Share':'Partager')+'"><i class="ti ti-share-2"></i>'+(LANG==='en'?'Share':'Partager')+'</button>'+
@@ -8790,7 +8801,7 @@ function setAgendaType(tp) {
   renderAgenda();
 }
 
-function renderAgenda() {
+async function renderAgenda() {
   peuplerFiltresAgenda();
 
   // Evenements detectes automatiquement dans les flux (colloque, seminaire,
@@ -8827,6 +8838,7 @@ function renderAgenda() {
     politique:['🗳️','Politique','#1B5FA8'],economique:['📊','Economique','#0F4F2A'],sanitaire:['⚕️','Sanitaire','#0E7490'],
     travaux:['🚧','Travaux','#B45309']};
   if(!filt.length){document.getElementById('agTl').innerHTML='<div class="empty"><i class="ti ti-calendar-off"></i><p>Aucun evenement pour ce filtre</p></div>';return;}
+  await preTraduireRapport(filt.flatMap(e => [e.title, e.desc]));
   const agHtml = filt.map((e,i)=>{
     const sl=SL[e.status]||SL.planifie;
     const typ = TYP[e.type||'securite']||TYP.securite;
@@ -8839,8 +8851,8 @@ function renderAgenda() {
     return '<div class="ev '+e.status+'">'+
       '<div class="ev-dt"><div class="ev-d">'+e.day+'</div><div class="ev-m">'+e.month+'</div>'+(e.hour?'<div class="ev-h" style="font-size:9px;color:var(--lg);font-weight:600;margin-top:2px;">'+e.hour+'</div>':'')+'</div>'+
       '<div class="ev-bd">'+
-        '<div class="ev-tp"><div class="ev-tt"><span id="'+ttId+'">'+tr(e.title,ttId)+'</span>'+typBadge+freshTag+autoTag+'</div><span class="ev-bg '+sl[0]+'">'+sl[1]+'</span></div>'+
-        '<div class="ev-dc" id="'+dcId+'">'+tr(e.desc,dcId)+'</div>'+
+        '<div class="ev-tp"><div class="ev-tt"><span id="'+ttId+'">'+L(e.title)+'</span>'+typBadge+freshTag+autoTag+'</div><span class="ev-bg '+sl[0]+'">'+sl[1]+'</span></div>'+
+        '<div class="ev-dc" id="'+dcId+'">'+L(e.desc)+'</div>'+
         '<div class="ev-mt">'+
           '<span class="ev-cy"'+(resolveAgendaCy(e.cy)?' style="cursor:pointer" onclick="ouvrirVuePays(\''+resolveAgendaCy(e.cy)+'\')"':'')+'><i class="ti ti-map-pin" style="font-size:10px"></i>'+e.cy+'</span>'+
           '<span class="ev-ip '+IC[e.impact]+'">Impact '+e.impact.toUpperCase()+'</span>'+
@@ -10927,7 +10939,7 @@ function dateDernierIncident(events) {
   return pad(plusRecent.getDate())+'/'+pad(plusRecent.getMonth()+1)+'/'+plusRecent.getFullYear();
 }
 
-function renderAlertCard(score) {
+async function renderAlertCard(score) {
   const pays = PAYS_INFO[score.cy];
   if (!pays) return '';
   const n = score.niv;
@@ -10936,6 +10948,7 @@ function renderAlertCard(score) {
   const sorted = [...score.events].sort((a,b)=>(lo[a.level]||4)-(lo[b.level]||4));
   const pct = Math.min(100, Math.round(score.total100));
 
+  await preTraduireRapport(sorted.slice(0,5).map(e => e.title));
   const evHtml = sorted.slice(0,5).map((e, idx) => {
     const d = NIV[e.level]||NIV.vert;
     const fresh = isWithin12h(e.date);
@@ -10950,7 +10963,7 @@ function renderAlertCard(score) {
       <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${d.dot};flex-shrink:0;margin-top:4px;"></span>
       <div style="flex:1;min-width:0;">
         <div style="font-size:9px;color:var(--lg);font-weight:600;">${e.date}${freshTag}${liveTag}</div>
-        <div id="${evId}" style="font-size:10px;color:var(--t);line-height:1.35;font-weight:${e.level==='rouge'||e.level==='marron'?'700':'400'}">${tr(e.title,evId)}</div>
+        <div id="${evId}" style="font-size:10px;color:var(--t);line-height:1.35;font-weight:${e.level==='rouge'||e.level==='marron'?'700':'400'}">${L(e.title)}</div>
         <div style="font-size:8px;color:var(--lg);margin-top:1px;">${e.src}</div>
       </div>
     </div>`;
@@ -11140,7 +11153,7 @@ function updateGlobalFilterBadge() {
     '<i class="ti ti-x" onclick="event.stopPropagation();clearGlobalCountryFilter()" style="cursor:pointer;margin-left:4px;font-size:12px;opacity:.8;"></i>';
 }
 
-function ouvrirVuePays(cy) {
+async function ouvrirVuePays(cy) {
   applyGlobalCountryFilter(cy);
   const pays = PAYS_INFO[cy];
   if (!pays) return;
@@ -11176,6 +11189,16 @@ function ouvrirVuePays(cy) {
 
   const social = (typeof getSocialSummary === 'function') ? getSocialSummary(cy) : null;
 
+  // Traduction ACTIVE de tous les titres avant construction du panneau —
+  // meme regle que partout ailleurs dans l'app.
+  await preTraduireRapport([
+    ...actus.map(a => a.title),
+    ...regionaux.map(a => a.title),
+    ...incidents.map(e => e.title),
+    ...evenementsAgenda.map(e => e.title),
+    ...(social ? social.arts.slice(0,5).map(a => a.title) : []),
+  ]);
+
   let overlay = document.getElementById('vuePaysOverlay');
   if (overlay) overlay.remove();
   overlay = document.createElement('div');
@@ -11192,14 +11215,14 @@ function ouvrirVuePays(cy) {
 
   const htmlActus = actus.length ? actus.map(a => `
     <div style="padding:7px 0;border-bottom:.5px solid var(--bd);cursor:pointer;" onclick="showDet('${a.id}');document.getElementById('vuePaysOverlay').remove();switchView('flux',document.querySelector('.ntab[onclick*=flux]'));">
-      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="vpa-${a.id}">${tr(a.title,'vpa-'+a.id)}</div>
+      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="vpa-${a.id}">${L(a.title)}</div>
       <div style="font-size:9px;color:var(--lg);margin-top:2px;">${(a.crosses||[])[0] || ''}</div>
       ${(()=>{ const s=fmtSurvenance(a); if (s.inconnue) return `<div style="font-size:8.5px;color:#B45309;font-weight:700;margin-top:1px;">Survenance : ${s.texte} (à vérifier)</div>`; return s.ancien ? `<div style="font-size:8.5px;color:#8B1A1A;font-weight:700;margin-top:1px;">⚠ Survenance : ${s.texte} (plus de 12h)</div>` : `<div style="font-size:8.5px;color:var(--lg);margin-top:1px;">Survenance : ${s.texte}</div>`; })()}
     </div>`).join('') : '<div style="font-size:11px;color:var(--lg);font-style:italic;padding:6px 0;">Aucun article recent</div>';
 
   const htmlRegio = regionaux.length ? regionaux.map(a => `
     <div style="padding:7px 0;border-bottom:.5px solid var(--bd);">
-      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="vpr-${a.id}">${tr(a.title,'vpr-'+a.id)}</div>
+      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="vpr-${a.id}">${L(a.title)}</div>
       <div style="font-size:9px;color:var(--lg);margin-top:2px;">${a.srcName || a.srcId || ''}</div>
     </div>`).join('') : '';
 
@@ -11210,7 +11233,7 @@ function ouvrirVuePays(cy) {
       <span style="width:6px;height:6px;border-radius:50%;background:${d.dot};flex-shrink:0;margin-top:5px;"></span>
       <div style="flex:1;min-width:0;">
         <div style="font-size:9px;color:var(--lg);font-weight:600;">${e.date}</div>
-        <div style="font-size:11px;color:var(--t);line-height:1.4;" id="${trId}">${tr(e.title,trId)}</div>
+        <div style="font-size:11px;color:var(--t);line-height:1.4;" id="${trId}">${L(e.title)}</div>
         <div style="font-size:9px;color:var(--lg);">${e.src}</div>
       </div>
     </div>`;
@@ -11227,7 +11250,7 @@ function ouvrirVuePays(cy) {
     return `
     <div style="padding:7px 0;border-bottom:.5px solid var(--bd);">
       <div style="font-size:9px;color:var(--lg);font-weight:600;">${e.day} ${e.month} ${e.hour || ''} — ${e.status.toUpperCase()}</div>
-      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="${trId}">${tr(e.title,trId)}</div>
+      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="${trId}">${L(e.title)}</div>
     </div>`;
   }).join('') : '';
 
@@ -11259,7 +11282,7 @@ function ouvrirVuePays(cy) {
     </div>` : ''}
     ${social.arts.slice(0,5).map(a => `
     <div style="padding:6px 0;border-bottom:.5px solid var(--bd);cursor:pointer;" onclick="showDet('${a.id}');document.getElementById('vuePaysOverlay').remove();switchView('flux',document.querySelector('.ntab[onclick*=flux]'));">
-      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="vps-${a.id}">${tr(a.title,'vps-'+a.id)}</div>
+      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="vps-${a.id}">${L(a.title)}</div>
       <div style="font-size:9px;color:var(--lg);margin-top:2px;">${a._srcBadge?a._srcBadge.label:'Reseau social'} · ${a.time||''}</div>
     </div>`).join('')}
   ` : '';
@@ -11450,7 +11473,7 @@ function renderAlerteChronologie() {
 }
 
 // Memorise le dernier niveau connu par pays pour detecter les changements
-function recalcAlertes(opts) {
+async function recalcAlertes(opts) {
   const silencieux = opts && opts.silencieux;
   const scores = Object.keys(PAYS_INFO)
     .map(cy => calcAlertScore(cy))
@@ -11477,7 +11500,7 @@ function recalcAlertes(opts) {
   const table = document.getElementById('alerteTable');
   if (!grid || !table) return; // vue Alertes pas encore ouverte : le calcul reste fait, juste pas affiche
 
-  grid.innerHTML  = scores.map(s => renderAlertCard(s)).join('');
+  grid.innerHTML  = (await Promise.all(scores.map(s => renderAlertCard(s)))).join('');
   table.innerHTML = renderAlertTable(scores);
 
   const now = new Date().toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
