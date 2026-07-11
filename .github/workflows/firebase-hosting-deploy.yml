@@ -1,19 +1,42 @@
 name: Déploiement Firebase Hosting
 
-# Se déclenche à chaque push sur cette branche de test, ou manuellement
-# depuis l'onglet Actions (bouton "Run workflow"). Le job tourne sur les
-# serveurs GitHub — pas de restriction réseau côté environnement de dev.
+# Se déclenche à chaque push sur main, ou manuellement depuis l'onglet
+# Actions (bouton "Run workflow"). Le job tourne sur les serveurs GitHub —
+# pas de restriction réseau côté environnement de dev.
+#
+# Secrets requis (Settings > Secrets and variables > Actions > New repository
+# secret) — sans eux, ce job s'exécute mais saute le déploiement sans échouer :
+#   - FIREBASE_PROJECT_ID      : l'ID du projet Firebase (Project Settings >
+#                                 General > "Project ID", pas le nom affiché)
+#   - FIREBASE_SERVICE_ACCOUNT : le contenu JSON complet d'une clé de compte
+#                                 de service (Project Settings > Service
+#                                 accounts > "Generate new private key")
 on:
   push:
-    branches: [claude/ameliorer-g1td4n]
+    branches: [main]
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Vérifier la présence des secrets Firebase
+        id: check
+        run: |
+          if [ -n "${{ secrets.FIREBASE_PROJECT_ID }}" ] && [ -n "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::FIREBASE_PROJECT_ID et/ou FIREBASE_SERVICE_ACCOUNT absents (Settings > Secrets and variables > Actions) — déploiement Firebase ignoré. GitHub Pages reste disponible entre-temps."
+          fi
+
       - uses: FirebaseExtended/action-hosting-deploy@v0
+        if: steps.check.outputs.configured == 'true'
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
