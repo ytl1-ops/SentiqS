@@ -90,6 +90,11 @@ export async function getLiveFeed(params: {
   return fetchAPI(`/feed?${q.toString()}`);
 }
 
+// ── Détail d'un article ───────────────────────────────────────
+export async function getArticleById(id: string): Promise<Article> {
+  return fetchAPI(`/articles/${id}`);
+}
+
 // ── Alertes actives ───────────────────────────────────────────
 export async function getActiveAlerts(countries?: string[]): Promise<Alert[]> {
   const q = countries ? `?countries=${countries.join(',')}` : '';

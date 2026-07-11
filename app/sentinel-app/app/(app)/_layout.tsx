@@ -74,6 +74,7 @@ export default function AppLayout() {
           tabBarIcon: ({ focused }) => <TabIcon name="person-outline" focused={focused} />,
         }}
       />
+      <Tabs.Screen name="article" options={{ href: null }} />
     </Tabs>
   );
 }

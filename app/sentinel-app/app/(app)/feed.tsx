@@ -270,7 +270,7 @@ export default function FeedScreen() {
 }
 
 // ── Données démo ──────────────────────────────────────────────
-const DEMO_ARTICLES: Article[] = [
+export const DEMO_ARTICLES: Article[] = [
   { id: '1', title: "Sommet CEDEAO d'urgence convoqué à Abuja — 2 juillet 2026", summary: "Les chefs d'État se réuniront en session extraordinaire sur la sécurité au Sahel.", source: 'AFP · RFI', source_url: 'https://rfi.fr', reliability_score: 95, category: 'security', tags: ['CEDEAO','Sahel'], country: 'NG', published_at: new Date().toISOString(), is_verified: true, cross_check_count: 4, cross_check_sources: [], is_flagged: false },
   { id: '2', title: 'FAO : 7,4 millions de personnes en insécurité alimentaire sévère', summary: 'Projection pour la période de soudure août 2026 dans le Liptako-Gourma.', source: 'FAO · ReliefWeb', source_url: 'https://fao.org', reliability_score: 97, category: 'food', tags: ['FAO','Sahel'], country: 'ML', published_at: new Date(Date.now()-1800000).toISOString(), is_verified: true, cross_check_count: 3, cross_check_sources: [], is_flagged: false },
   { id: '3', title: 'Bénin : la filière anacarde franchit 1 million de tonnes exportées', summary: "Record historique pour la campagne 2025-2026.", source: 'AFP · BBC Afrique', source_url: 'https://bbc.com/afrique', reliability_score: 90, category: 'economy', tags: ['Bénin','Anacarde'], country: 'BJ', published_at: new Date(Date.now()-3600000).toISOString(), is_verified: true, cross_check_count: 3, cross_check_sources: [], is_flagged: false },

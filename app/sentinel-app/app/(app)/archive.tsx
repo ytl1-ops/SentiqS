@@ -186,7 +186,7 @@ export default function ArchiveScreen() {
   );
 }
 
-const DEMO_HISTORY: Article[] = [
+export const DEMO_HISTORY: Article[] = [
   { id: 'h1', title: "Coup d'État au Burkina Faso — Lt-col Ibrahim Traoré", summary: "Renversement du régime de Damiba le 30 septembre 2022.", source: 'AFP', source_url: 'https://afp.com', reliability_score: 99, category: 'politics', tags: ['Burkina','Coup d\'état','2022'], country: 'BF', published_at: '2022-09-30T00:00:00Z', is_verified: true, cross_check_count: 5, cross_check_sources: [], is_flagged: false },
   { id: 'h2', title: "Coup d'État au Niger — Garde présidentielle renverse Bazoum", summary: "Le général Tiani prend le pouvoir le 26 juillet 2023.", source: 'AFP · RFI', source_url: 'https://rfi.fr', reliability_score: 98, category: 'politics', tags: ['Niger','Coup d\'état','2023'], country: 'NE', published_at: '2023-07-26T00:00:00Z', is_verified: true, cross_check_count: 4, cross_check_sources: [], is_flagged: false },
   { id: 'h3', title: 'CEDEAO : sanctions sévères contre le Mali', summary: "Fermeture des frontières et gel des avoirs suite au second coup d'État.", source: 'CEDEAO', source_url: 'https://ecowas.int', reliability_score: 96, category: 'politics', tags: ['CEDEAO','Mali','Sanctions'], country: 'ML', published_at: '2022-01-09T00:00:00Z', is_verified: true, cross_check_count: 3, cross_check_sources: [], is_flagged: false },
