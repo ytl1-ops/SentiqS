@@ -224,7 +224,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .flashinfo-item .tt-niv{font-size:8px;font-weight:800;padding:1px 6px;border-radius:3px;
   letter-spacing:.04em;flex-shrink:0}
 .flashinfo-item .tt-pays{color:#9CA3AF;font-weight:700;flex-shrink:0}
-.flashinfo-item .tt-date,.flashinfo-item .tt-heure{color:#6B7280;font-weight:600;
+.flashinfo-item .tt-date,.flashinfo-item .tt-heure{color:#6B7280;font-weight:800;
   font-size:10px;flex-shrink:0;display:inline-flex;align-items:center;gap:2px}
 .flashinfo-item .tt-date i,.flashinfo-item .tt-heure i{font-size:10px}
 .flashinfo-sep{color:#4B5563;flex-shrink:0}
@@ -419,7 +419,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
   text-transform:uppercase}
 .atit{font-size:13px;font-weight:700;color:var(--t);line-height:1.4;margin-bottom:3px}
 .asum{font-size:12px;color:var(--t2);line-height:1.5;margin-bottom:5px;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  white-space:normal;overflow-wrap:break-word}
 .aftr{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
 .slink{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;
   border:1px solid var(--bd);border-radius:4px;font-size:10px;font-weight:600;
@@ -1589,7 +1589,7 @@ button:not(:disabled){
     </div>
     <div id="registerForm" style="display:none">
       <div class="auth-title">Demande d'acces</div>
-      <div class="auth-sub">Votre demande sera transmise a l'administrateur (yorot225@gmail.com) pour validation.</div>
+      <div class="auth-sub">Votre demande sera transmise a l'administrateur (yo•••••@gmail.com) pour validation.</div>
       <div class="auth-field">
         <label>Nom complet</label>
         <input type="text" id="regName" placeholder="Prenom Nom">
@@ -2345,7 +2345,7 @@ button:not(:disabled){
                 <div class="profile-avatar" id="pmAvatar">A</div>
                 <div class="profile-info">
                   <div class="profile-name" id="pmName">Administrateur SENTINEL</div>
-                  <div class="profile-email" id="pmEmail">yorot225@gmail.com</div>
+                  <div class="profile-email" id="pmEmail">yo•••••@gmail.com</div>
                 </div>
                 <span class="badge-role br-admin" style="font-size:10px">Admin</span>
               </div>
@@ -2415,7 +2415,7 @@ button:not(:disabled){
                   <th>Email</th><th>Nom</th><th>Role</th>
                   <th>Statut</th><th>Code d'acces</th><th>Derniere connexion</th><th>Actions</th>
                 </tr></thead>
-                <tbody id="pmUsersBody"><tr><td>yorot225@gmail.com</td><td>Administrateur SENTINEL</td><td><span class="badge-role br-admin">Admin</span></td><td><span class="badge-status bs-active">Actif</span></td><td><span style="font-family:monospace;font-size:12px;font-weight:700;color:var(--b)">SJPNI2T</span><button class="copy-btn" style="margin-left:6px;padding:3px 8px" onclick="copyText(&#39;SJPNI2T&#39;)" title="Copier le code"><i class="ti ti-copy"></i></button></td><td style="color:rgba(0,0,0,.4)">29/06/2026</td><td style="display:flex;gap:5px;flex-wrap:wrap;align-items:center"><span style="font-size:10px;color:var(--lg)">Compte principal</span></td></tr><tr><td>stephanekouame221@gmail.com</td><td>KOUAME YAO STEPHANE</td><td><span class="badge-role br-user">Utilisateur</span></td><td><span class="badge-status bs-active">Actif</span></td><td><span style="font-family:monospace;font-size:12px;font-weight:700;color:var(--b)">S7XN9EM</span><button class="copy-btn" style="margin-left:6px;padding:3px 8px" onclick="copyText(&#39;S7XN9EM&#39;)" title="Copier le code"><i class="ti ti-copy"></i></button></td><td style="color:rgba(0,0,0,.4)">Jamais</td><td style="display:flex;gap:5px;flex-wrap:wrap;align-items:center"><button class="btn-action btn-rev" onclick="pmToggleStatus(&#39;stephanekouame221@gmail.com&#39;)">Suspendre</button><button class="btn-action btn-del" onclick="pmDeleteUser(&#39;stephanekouame221@gmail.com&#39;)">Supprimer</button></td></tr></tbody>
+                <tbody id="pmUsersBody"><tr><td>yo•••••@gmail.com</td><td>Administrateur SENTINEL</td><td><span class="badge-role br-admin">Admin</span></td><td><span class="badge-status bs-active">Actif</span></td><td><span style="font-family:monospace;font-size:12px;font-weight:700;color:var(--b)">SJPNI2T</span><button class="copy-btn" style="margin-left:6px;padding:3px 8px" onclick="copyText(&#39;SJPNI2T&#39;)" title="Copier le code"><i class="ti ti-copy"></i></button></td><td style="color:rgba(0,0,0,.4)">29/06/2026</td><td style="display:flex;gap:5px;flex-wrap:wrap;align-items:center"><span style="font-size:10px;color:var(--lg)">Compte principal</span></td></tr><tr><td>stephanekouame221@gmail.com</td><td>KOUAME YAO STEPHANE</td><td><span class="badge-role br-user">Utilisateur</span></td><td><span class="badge-status bs-active">Actif</span></td><td><span style="font-family:monospace;font-size:12px;font-weight:700;color:var(--b)">S7XN9EM</span><button class="copy-btn" style="margin-left:6px;padding:3px 8px" onclick="copyText(&#39;S7XN9EM&#39;)" title="Copier le code"><i class="ti ti-copy"></i></button></td><td style="color:rgba(0,0,0,.4)">Jamais</td><td style="display:flex;gap:5px;flex-wrap:wrap;align-items:center"><button class="btn-action btn-rev" onclick="pmToggleStatus(&#39;stephanekouame221@gmail.com&#39;)">Suspendre</button><button class="btn-action btn-del" onclick="pmDeleteUser(&#39;stephanekouame221@gmail.com&#39;)">Supprimer</button></td></tr></tbody>
               </table>
             </div>
           </div>
@@ -2805,7 +2805,7 @@ button:not(:disabled){
                 </div>
               </div>
 
-              <div style="font-size:10px;color:var(--lg);text-align:right;">SENTINEL SÛRETÉ · Administrateur : YOROT225@GMAIL.COM</div>
+              <div style="font-size:10px;color:var(--lg);text-align:right;">SENTINEL SÛRETÉ · Administrateur : YO•••••@GMAIL.COM</div>
             </div>
           </div>
 
@@ -2819,7 +2819,7 @@ button:not(:disabled){
 
 <div class="stbar">
   <span id="stbarLeft">Initialisation de la veille en direct...</span>
-  <span>SENTINEL SURETE · RSS live · Sans API · <a href="mailto:yorot225@gmail.com">yorot225@gmail.com</a></span>
+  <span>SENTINEL SURETE · RSS live · Sans API · <a href="mailto:yorot225@gmail.com">yo•••••@gmail.com</a></span>
 </div>
 
 <script>
@@ -9159,6 +9159,18 @@ async function init() {
 //  Admin : yorot225@gmail.com
 // ════════════════════════════════════════════════════════════════════
 const ADMIN_EMAIL = 'yorot225@gmail.com';
+// _maskEmail(email) : masque l'adresse de l'administrateur/proprietaire du
+// compte partout ou elle est affichee a l'ecran ou dans un rapport genere
+// (statut, profil, tableau des comptes, rapports) — garde les 2 premiers
+// caracteres + le domaine visibles (reconnaissable sans exposer l'adresse
+// complete), jamais utilisee pour la logique d'authentification elle-meme
+// (comparaisons a ADMIN_EMAIL, session.email, mailto de depannage) qui
+// continue d'utiliser l'adresse reelle.
+function _maskEmail(email) {
+  if (!email || email.indexOf('@') < 2) return email;
+  const at = email.indexOf('@');
+  return email.slice(0, 2) + '•••••' + email.slice(at);
+}
 const STORE_KEY   = 'sentinel_auth_v1';
 const USERS_KEY   = 'sentinel_users_v1';
 const PENDING_KEY = 'sentinel_pending_v1';
@@ -9417,7 +9429,7 @@ function renderUsersTable() {
     const[rc,rl]=rL[u.role]||['br-reader','Lecteur'];
     const ll=u.lastLogin?new Date(u.lastLogin).toLocaleDateString('fr-FR'):'Jamais';
     const isA=u.email===ADMIN_EMAIL;
-    return '<tr><td>'+u.email+'</td><td>'+u.name+'</td>'+
+    return '<tr><td>'+(isA?_maskEmail(u.email):u.email)+'</td><td>'+u.name+'</td>'+
       '<td><span class="badge-role '+rc+'">'+rl+'</span></td>'+
       '<td><span class="badge-status '+(u.status==='active'?'bs-active':'bs-suspend')+'">'+(u.status==='active'?'Actif':'Suspendu')+'</span></td>'+
       '<td style="color:rgba(255,255,255,.4)">'+ll+'</td>'+
@@ -9658,7 +9670,7 @@ function pmRenderUsers() {
     const ll = u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('fr-FR') : 'Jamais';
     const isA = u.email === ADMIN_EMAIL;
     return '<tr>' +
-      '<td>' + u.email + '</td>' +
+      '<td>' + (isA ? _maskEmail(u.email) : u.email) + '</td>' +
       '<td>' + u.name  + '</td>' +
       '<td><span class="badge-role ' + rc + '">' + rl + '</span></td>' +
       '<td><span class="badge-status ' + (u.status==='active'?'bs-active':'bs-suspend') + '">' +
@@ -9745,7 +9757,7 @@ function renderAdminProfile() {
   const code = makeCode(session.email);
   document.getElementById('pmAvatar').textContent = (session.name||session.email).charAt(0).toUpperCase();
   document.getElementById('pmName').textContent   = session.name || 'Administrateur';
-  document.getElementById('pmEmail').textContent  = session.email;
+  document.getElementById('pmEmail').textContent  = session.email === ADMIN_EMAIL ? _maskEmail(session.email) : session.email;
   document.getElementById('pmCode').textContent   = code;
 }
 
@@ -11836,7 +11848,7 @@ async function exportExcel(type){
       ['Filtre','Articles <12h uniquement'],
       ['Sources actives',Object.values(SRC_ST).filter(s=>s?.ok).length+'/'+SRCS.length],
       ['Articles exportés',getExportData().length],
-      ['Contact','yorot225@gmail.com'],
+      ['Contact',_maskEmail('yorot225@gmail.com')],
     ]);
     XLSX.utils.book_append_sheet(wb, wsMeta, 'Métadonnées');
 
