@@ -12060,9 +12060,10 @@ async function exportPPTX(type) {
     await preTraduireRapport([
       ...(incCatDetail ? CAT_DEFS_PPTX.flatMap(cd=>cd.items.map(a=>a.title)) : []),
       ...marquants.map(a=>a.title),
-      ...postsPPTX.map(p=>p.resume),
+      ...postsPPTX.flatMap(p=>[p.resume, p.pays && p.pays.name]),
       ...agenda.map(e=>e.title),
       ...(incFlux ? evenementsFlux.map(a=>a.title) : []),
+      ...arts.map(a=>a.title),
     ]);
 
     // ── Slide 2 — Sommaire ──────────────────────────────────────────────
@@ -12166,6 +12167,11 @@ async function exportPPTX(type) {
           return (y.pubDate||0)-(x.pubDate||0);
         });
         const dossierP = buildCountryDossier(scopeCy, artsP, new Set(), 4, 4);
+        // Noms des pays limitrophes cites dans le dossier regional — connus
+        // seulement une fois buildCountryDossier execute, donc non couverts
+        // par la pre-traduction generale du haut de fonction (qui s'execute
+        // avant que ces pays specifiques soient determines).
+        await preTraduireRapport(dossierP.regional.map(a => infoPays(a.cy).name));
         if (dossierP.national.length || dossierP.regional.length) {
           s = newSlide('FFFFFF');
           sectionHead(s, 'Dossier pays — Actualité', scoresSlide[0].pays.name);
@@ -12836,7 +12842,7 @@ async function exportPDF(type) {
         const termesP = extractTopTermes(socialArts,5);
         const chainesP = getChainesActives(socialArts,5);
         const postsPDF = getPostsPrioritaires(socialArts, 6);
-        await preTraduireRapport(postsPDF.map(p => p.resume));
+        await preTraduireRapport(postsPDF.flatMap(p => [p.resume, p.pays && p.pays.name]));
 
         b.bulletinSection(LANG==='en'?'Social Networks':'Réseaux Sociaux');
         b.sub('BUZZ — Volume & activité', TI_BLUE);
@@ -12877,7 +12883,10 @@ async function exportPDF(type) {
 
     else if (type === 'flux') {
       const arts = getExportData();
-      await preTraduireRapport(arts.map(a => a.title));
+      // Inclut les noms des pays de regroupement (groupeArticlesParPays) —
+      // sinon les en-tetes de section pays restent en francais dans un
+      // rapport genere en anglais.
+      await preTraduireRapport([...arts.map(a => a.title), ...[...new Set(arts.map(a=>a.cy))].map(cy=>infoPays(cy).name)]);
       const nbSrcActifsF = new Set(arts.map(a=>a.primary)).size;
       b.bulletinHeader(titre, dateGenStr, creneauStr,
         (LANG==='en'
@@ -13028,9 +13037,13 @@ async function exportPDF(type) {
       // les autres types, pour une lecture identique à un rapport unique.
       const arts = getExportData();
       const agendaC = (typeof getExportAgenda === 'function') ? getExportAgenda() : [];
+      // Inclut les noms des pays de regroupement (groupeArticlesParPays,
+      // section II Flux) — sinon les en-tetes de section pays restent en
+      // francais dans un rapport genere en anglais.
       await preTraduireRapport([
         ...arts.flatMap(a => [a.title, a.analysis]),
         ...agendaC.flatMap(e => [e.title, e.desc, e.reco]),
+        ...[...new Set(arts.map(a=>a.cy))].map(cy=>infoPays(cy).name),
       ]);
       const nbSrcActifsC = new Set(arts.map(a=>a.primary)).size;
       b.bulletinHeader(titre, dateGenStr, creneauStr,
@@ -13389,7 +13402,7 @@ async function exportWord(type){
     // type (synthese/flux/agenda/rapport_complet reunit les trois).
     await preTraduireRapport([
       ...arts.flatMap(a=>[a.title,a.analysis]),
-      ...getPostsPrioritaires(arts.filter(a=>a._isSocial), 8).map(p=>p.resume),
+      ...getPostsPrioritaires(arts.filter(a=>a._isSocial), 8).flatMap(p=>[p.resume, p.pays&&p.pays.name]),
       ...getExportAgenda().flatMap(e=>[e.title,e.desc,e.reco]),
     ]);
 
@@ -13810,6 +13823,14 @@ async function exportWord(type){
       children.push(topBar('IV. ALERTES PAYS — Niveau composite & dossier régional', '8B1A1A'));
       const cysW = fRapportCy!=='all' ? [fRapportCy] : Object.keys(PAYS_INFO).filter(cy => !fRapportZone || fRapportZone==='all' || CY_TO_ZONE[cy]===fRapportZone);
       const scoresW = cysW.map(cy=>({cy, pays:PAYS_INFO[cy], sc:calcAlertScore(cy)})).sort((a,b2)=>b2.sc.total-a.sc.total);
+      // Noms de pays et mesures de protection non couverts par la
+      // pre-traduction generale du haut de fonction (qui ne porte que sur
+      // les actus/agenda) — sans ce complement, ils restent en francais
+      // dans un rapport genere en anglais.
+      await preTraduireRapport([
+        ...scoresW.filter(s=>s&&s.pays&&s.pays.name).map(s=>s.pays.name),
+        ...Object.values(MESURES).flatMap(m=>[m.expatries[0], m.installations[0]]),
+      ]);
       children.push(para(rl('pays_perimetre')(scoresW.length), {color:'6B7280'}));
       children.push(calloutBox(LANG==='en'?'READING GUIDE':'GUIDE DE LECTURE',
         LANG==='en'
