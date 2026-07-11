@@ -2105,6 +2105,7 @@ button:not(:disabled){
                 <button class="btn-dl btn-dl-word" onclick="exportWord('rapport_complet')"><i class="ti ti-file-text"></i>Word</button>
                 <button class="btn-dl btn-dl-pdf" onclick="exportPDF('rapport_complet')"><i class="ti ti-file-type-pdf"></i>PDF</button>
                 <button class="btn-dl" style="background:#EFF6FF;color:var(--b);border-color:#BFDBFE" onclick="exportPPTX('rapport_complet')"><i class="ti ti-presentation"></i>PowerPoint</button>
+                <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('rapport_complet')"><i class="ti ti-printer"></i>Aperçu impression</button>
               </div>
             </div>
 
@@ -2120,6 +2121,7 @@ button:not(:disabled){
                 <button class="btn-dl" style="background:#EFF6FF;color:var(--b);border-color:#BFDBFE" onclick="exportPPTX('flux')"><i class="ti ti-presentation"></i>PowerPoint</button>
                 <button class="btn-dl btn-dl-excel" onclick="exportExcel('flux')"><i class="ti ti-table"></i>Excel</button>
                 <button class="btn-dl btn-dl-csv" onclick="exportCSV('flux')"><i class="ti ti-file-spreadsheet"></i>CSV</button>
+                <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('flux')"><i class="ti ti-printer"></i>Aperçu impression</button>
               </div>
             </div>
 
@@ -2148,6 +2150,7 @@ button:not(:disabled){
                 <button class="btn-dl btn-dl-excel" onclick="exportExcel('agenda')"><i class="ti ti-table"></i>Excel</button>
                 <button class="btn-dl btn-dl-pdf" onclick="exportPDF('agenda')"><i class="ti ti-file-type-pdf"></i>PDF</button>
                 <button class="btn-dl" style="background:#EFF6FF;color:var(--b);border-color:#BFDBFE" onclick="exportPPTX('agenda')"><i class="ti ti-presentation"></i>PowerPoint</button>
+                <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('agenda')"><i class="ti ti-printer"></i>Aperçu impression</button>
               </div>
             </div>
 
@@ -2175,6 +2178,7 @@ button:not(:disabled){
                 <button class="btn-dl btn-dl-word" onclick="exportWord('alertes')"><i class="ti ti-file-text"></i>Word</button>
                 <button class="btn-dl btn-dl-pdf" onclick="exportPDF('alertes')"><i class="ti ti-file-type-pdf"></i>PDF</button>
                 <button class="btn-dl" style="background:#EFF6FF;color:var(--b);border-color:#BFDBFE" onclick="exportPPTX('alertes')"><i class="ti ti-presentation"></i>PowerPoint</button>
+                <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('alertes')"><i class="ti ti-printer"></i>Aperçu impression</button>
               </div>
             </div>
           </div>
@@ -12191,11 +12195,138 @@ function nowStr(){
   return new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'})+
          ' '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
 }
+// dlFile(blob, name) : declenche le telechargement ET conserve le dernier
+// document genere (blob+nom) pour proposer son partage juste apres —
+// voir _dernierDocGenere/afficherPartageDocument. Point de passage unique
+// pour tous les exports (Word/PDF/CSV directement, Excel/PPTX via un Blob
+// desormais aussi construit plutot que telecharge en direct) : le bouton
+// de partage post-enregistrement s'applique donc a tous les formats sans
+// dupliquer cette logique dans chaque fonction d'export.
 function dlFile(blob, name){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url; a.download=name; a.click();
   setTimeout(()=>URL.revokeObjectURL(url), 1500);
+  _dernierDocGenere = { blob, name };
+  if (typeof afficherPartageDocument === 'function') afficherPartageDocument(name);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  PARTAGE D'UN DOCUMENT GÉNÉRÉ (rapport enregistré) — apparait juste apres
+//  chaque export (voir dlFile). Le partage natif (navigator.share avec
+//  fichiers) est le SEUL canal capable de transmettre reellement le fichier
+//  (.docx/.pdf/.pptx/.xlsx/.csv ne sont pas des types que le presse-papiers
+//  peut transporter, contrairement a une image PNG) : privilegie en premier.
+//  A defaut, le fichier est deja sur l'appareil (telecharge par dlFile juste
+//  avant) — WhatsApp/Telegram/Email s'ouvrent avec un message pret, il ne
+//  reste qu'a joindre le fichier manuellement depuis les telechargements.
+// ═══════════════════════════════════════════════════════════════════════════
+let _dernierDocGenere = null;
+function afficherPartageDocument(name) {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+  const id = 'docshare_' + Date.now();
+  const el = document.createElement('div');
+  el.id = id;
+  el.style.cssText = 'pointer-events:auto;background:var(--w);border-left:4px solid #0F4F2A;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:12px 14px;cursor:default;transform:translateX(360px);opacity:0;transition:transform .35s ease,opacity .35s ease;max-width:280px;';
+  el.innerHTML =
+    '<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;">'+
+      '<i class="ti ti-circle-check" style="color:#0F4F2A;font-size:14px;flex-shrink:0"></i>'+
+      '<span style="font-size:11px;font-weight:700;color:var(--t);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+_apEsc(name)+'">'+_apEsc(name)+'</span>'+
+      '<span style="font-size:13px;color:var(--lg);cursor:pointer;flex-shrink:0" onclick="document.getElementById(\''+id+'\').remove()">✕</span>'+
+    '</div>'+
+    '<button class="share-trigger" style="width:100%;justify-content:center;" onclick="partagerDernierDocument(event)"><i class="ti ti-share-2"></i>'+(LANG==='en'?'Share this document':'Partager ce document')+'</button>';
+  container.appendChild(el);
+  requestAnimationFrame(() => { el.style.transform='translateX(0)'; el.style.opacity='1'; });
+  setTimeout(() => {
+    const stillThere = document.getElementById(id);
+    if (stillThere) { stillThere.style.transform='translateX(360px)'; stillThere.style.opacity='0'; setTimeout(()=>stillThere.remove(),350); }
+  }, 20000);
+}
+async function partagerDernierDocument(ev) {
+  if (!_dernierDocGenere) return;
+  const { blob, name } = _dernierDocGenere;
+  if (navigator.share && navigator.canShare) {
+    try {
+      const file = new File([blob], name, { type: blob.type });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({ title: nomMarqueActuelle(), text: name, files: [file] });
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;
+    }
+  }
+  toggleShareMenuDocument(ev);
+}
+// toggleShareMenuDocument(ev) : repli quand le partage natif de fichiers
+// n'est pas disponible — le fichier etant deja telecharge sur l'appareil,
+// chaque canal ouvre juste un message pret, invitant a joindre le document
+// manuellement (aucun de ces canaux ne peut transporter un fichier via un
+// simple lien, cf. note en tete de section).
+function _docShareMessage() {
+  const name = _dernierDocGenere ? _dernierDocGenere.name : '';
+  return (LANG==='en' ? 'Document generated: ' : 'Document généré : ') + name + (LANG==='en' ? ' — please attach it from your downloads.' : ' — joignez-le depuis vos téléchargements.');
+}
+// Fonctions dediees (plutot que des donnees serialisees dans l'attribut
+// onclick, ex. JSON.stringify) : un contact/groupe peut contenir des
+// guillemets ou apostrophes (nom saisi librement) qui casseraient
+// l'attribut HTML si injectes tels quels dans le innerHTML du menu.
+function _docWhatsappContacts() {
+  const msg = encodeURIComponent(_docShareMessage());
+  getWhatsappContacts().filter(c => c.type !== 'groupe').forEach(c => {
+    const n = (c.tel || '').replace(/[^\d]/g, '');
+    if (n) window.open('https://wa.me/' + n + '?text=' + msg, '_blank', 'noopener');
+  });
+}
+function _docWhatsappGroupes() {
+  getWhatsappContacts().filter(c => c.type === 'groupe').forEach(g => { if (g.lien) window.open(g.lien, '_blank', 'noopener'); });
+}
+function _docTelegram() {
+  window.open('https://t.me/share/url?url=&text=' + encodeURIComponent(_docShareMessage()), '_blank', 'noopener');
+}
+function _docEmail() {
+  const name = _dernierDocGenere ? _dernierDocGenere.name : '';
+  window.location.href = 'mailto:?subject=' + encodeURIComponent(nomMarqueActuelle() + ' — ' + name) + '&body=' + encodeURIComponent(_docShareMessage());
+}
+function _docCopier() {
+  navigator.clipboard.writeText(_docShareMessage()).then(() => {
+    _toastRapide(LANG==='en' ? 'Copied to clipboard' : 'Copié dans le presse-papiers', 'ti-check');
+  }).catch(() => {});
+}
+function toggleShareMenuDocument(ev) {
+  if (!_dernierDocGenere) return;
+  const menuExistant = document.getElementById('shareMenuGlobal');
+  const dejaOuvertPourCetId = menuExistant && menuExistant.dataset.actid === 'doc';
+  closeShareMenu();
+  if (dejaOuvertPourCetId) return;
+
+  const btn = (ev && ev.currentTarget) || document.activeElement || document.body;
+  const menu = document.createElement('div');
+  menu.id = 'shareMenuGlobal';
+  menu.className = 'share-menu';
+  menu.dataset.actid = 'doc';
+  const hasWaGroupes = getWhatsappContacts().some(c => c.type === 'groupe');
+  menu.innerHTML =
+    '<div class="share-mi" onclick="_docWhatsappContacts();closeShareMenu()"><i class="ti ti-brand-whatsapp" style="color:#0F4F2A"></i>WhatsApp</div>'+
+    (hasWaGroupes ? '<div class="share-mi" onclick="_docWhatsappGroupes();closeShareMenu()"><i class="ti ti-users" style="color:#0F4F2A"></i>'+(LANG==='en'?'WhatsApp group':'Groupe WhatsApp')+'</div>' : '')+
+    '<div class="share-mi" onclick="_docTelegram();closeShareMenu()"><i class="ti ti-brand-telegram" style="color:#1B5FA8"></i>Telegram</div>'+
+    '<div class="share-mi" onclick="_docEmail();closeShareMenu()"><i class="ti ti-mail" style="color:var(--b)"></i>Email</div>'+
+    '<div class="share-mi" onclick="_docCopier();closeShareMenu()"><i class="ti ti-copy" style="color:var(--gr)"></i>'+(LANG==='en'?'Copy message':'Copier le message')+'</div>';
+  document.body.appendChild(menu);
+
+  const rect = btn.getBoundingClientRect ? btn.getBoundingClientRect() : {left:20, bottom:20, top:20};
+  const mw = 210, mh = menu.offsetHeight || 180;
+  let left = Math.min(rect.left, window.innerWidth - mw - 8);
+  let top = rect.bottom + 4;
+  if (top + mh > window.innerHeight) top = rect.top - mh - 4;
+  menu.style.left = Math.max(8, left) + 'px';
+  menu.style.top = Math.max(8, top) + 'px';
+
+  setTimeout(() => {
+    document.addEventListener('click', _closeShareMenuOnOutsideClick);
+    document.addEventListener('keydown', _closeShareMenuOnEscape);
+  }, 0);
 }
 function btnSpin(btn){ if(btn){btn._txt=btn.innerHTML; btn.innerHTML='<i class="ti ti-loader dl-spin"></i>';btn.disabled=true;} }
 function btnReset(btn){ if(btn){btn.innerHTML=btn._txt||btn.innerHTML;btn.disabled=false;} }
@@ -12383,7 +12514,11 @@ async function exportExcel(type){
     XLSX.utils.book_append_sheet(wb, wsMeta, 'Métadonnées');
 
     const fname='SENTINEL_Export_'+type+suffixePerimetre()+'_'+new Date().toISOString().slice(0,10)+'.xlsx';
-    XLSX.writeFile(wb, fname);
+    // XLSX.write (plutot que XLSX.writeFile, qui declenche le telechargement
+    // directement sans exposer de Blob) : passe par dlFile comme les autres
+    // formats pour beneficier du bouton de partage post-enregistrement.
+    const wbArray = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+    dlFile(new Blob([wbArray], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), fname);
   }catch(e){alert('Erreur Excel: '+e.message);}
   finally{setTimeout(()=>btnReset(btn),800);}
 }
@@ -12911,7 +13046,12 @@ async function exportPPTX(type) {
       {x:0.7,y:2.7,w:11,h:1.6,fontSize:13,color:'C7D3DF',fontFace:'IBM Plex Sans'}
     );
 
-    await pres.writeFile({fileName:'SENTINEL_'+titrePPTX.replace(/\s+/g,'_')+'_'+periode.label+suffixePerimetre()+'_'+new Date().toISOString().slice(0,10)+'.pptx'});
+    // pres.write('blob') (plutot que pres.writeFile, qui declenche le
+    // telechargement directement sans exposer de Blob) : passe par dlFile
+    // comme les autres formats pour beneficier du bouton de partage
+    // post-enregistrement.
+    const pptxBlob = await pres.write('blob');
+    dlFile(pptxBlob, 'SENTINEL_'+titrePPTX.replace(/\s+/g,'_')+'_'+periode.label+suffixePerimetre()+'_'+new Date().toISOString().slice(0,10)+'.pptx');
   } catch(e) {
     alert('Erreur PowerPoint: '+e.message);
   } finally {
@@ -13812,6 +13952,177 @@ const AP_CAT_DEFS = [
   {k:'politique',   lettre:'C', lb:'Environnement politique',  col:'#1B5FA8'},
   {k:'economique',  lettre:'D', lb:'Contexte économique',      col:'#0F4F2A'},
 ];
+
+// ── APERÇU GÉNÉRIQUE (Flux/Agenda/Alertes/Rapport complet) ──────────────────
+// _apPageWrap/_apStatsGrid/_apSectionBand : gabarit partagé (masthead, grille
+// de stats, bandeau de section, ruban de pied de page) extrait du modèle
+// Synthèse (cf. _buildRapportSyntheseHTML) pour que TOUS les types de
+// rapport disposent d'un aperçu — jusqu'ici réservé à la seule Synthèse.
+function _apPageWrap(titreSection, sousTitre, statsHTML, bodyHTML) {
+  const now = new Date();
+  const dateGenLong = now.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' à '+now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  const perimetre = (typeof libellePerimetreRapport === 'function') ? libellePerimetreRapport() : '';
+  return '<!DOCTYPE html><html><head><meta charset="utf-8">'
+    + '<title>SENTINEL '+_apEsc(titreSection)+' — '+_apEsc(now.toLocaleDateString('fr-FR'))+'</title>'
+    + '<link rel="preconnect" href="https://fonts.googleapis.com">'
+    + '<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">'
+    + '<style>'
+    + '@page{size:letter;margin:0}'
+    + 'html,body{margin:0;padding:0;background:#E7EBEF;font-family:\'IBM Plex Sans\',sans-serif;color:#111827}'
+    + '*{box-sizing:border-box}'
+    + '.sheet{width:8.5in;min-height:11in;margin:24px auto;background:#fff;box-shadow:0 2px 14px rgba(20,20,19,.12);border-radius:2px;padding:0.55in}'
+    + '@media print{html,body{background:none}.sheet{width:auto;min-height:0;margin:0;box-shadow:none;border-radius:0}}'
+    + '</style></head><body><div class="sheet">'
+    + '<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #0D1B2A;padding-bottom:10px;margin-bottom:18px;">'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#6B7280;text-transform:uppercase;">Généré le '+_apEsc(dateGenLong)+'</div>'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#8B1A1A;font-weight:600;text-transform:uppercase;">Usage restreint — responsables sûreté</div>'
+    + '</div>'
+    + '<div style="text-align:center;margin-bottom:6px;">'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.16em;color:#9CA3AF;text-transform:uppercase;margin-bottom:10px;">'+_apEsc(titreSection)+' — '+_apEsc(perimetre)+'</div>'
+    + '<h1 style="font-family:\'Source Serif 4\',serif;font-weight:800;font-size:40px;letter-spacing:0.01em;color:#0D1B2A;margin:0 0 8px;">'+_apEsc(nomMarqueActuelle())+'</h1>'
+    + '<div style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:600;font-size:16px;color:#0B1A27;margin-bottom:14px;">'+_apEsc(sousTitre)+'</div>'
+    + '</div>'
+    + statsHTML
+    + bodyHTML
+    + '<div style="margin-top:30px;background:#0D1B2A;color:#FFFFFF;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;font-family:\'IBM Plex Mono\',monospace;font-size:10.5px;">'
+    + '<span style="display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:0.04em;"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="#fff" stroke-width="1.3"/><circle cx="8" cy="8" r="1.5" fill="#fff"/></svg>'+_apEsc(nomMarqueActuelle())+'</span>'
+    + '<span style="color:#B9C6D6;">'+_apEsc(dateGenLong)+' UTC</span>'
+    + '</div>'
+    + '</div>'
+    + '<script>(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(function(){setTimeout(function(){window.print()},250)});<\/script>'
+    + '</body></html>';
+}
+function _apStatsGrid(items) {
+  const cols = items.map((it,i) => '<div style="text-align:center;'+(i<items.length-1?'border-right:1px solid #D1D9E0;':'')+'"><div style="font-family:\'Source Serif 4\',serif;font-weight:700;font-size:32px;color:'+it.color+';">'+it.value+'</div><div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.08em;color:#6B7280;margin-top:4px;">'+_apEsc(it.label)+'</div></div>').join('');
+  return '<div style="display:grid;grid-template-columns:repeat('+items.length+',1fr);gap:0;margin:26px 0 30px;border-top:1px solid #D1D9E0;border-bottom:1px solid #D1D9E0;padding:18px 0;">'+cols+'</div>';
+}
+function _apSectionBand(titre) {
+  return '<div style="background:#0D1B2A;color:#FFFFFF;padding:10px 14px;font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.03em;margin:26px 0 20px;">'+_apEsc(titre)+'</div>';
+}
+function _apAgendaItem(e) {
+  const statutLbl = {'en-cours':'EN COURS','urgent':'URGENT','planifie':'PLANIFIÉ','surveillance':'SURVEILLANCE','acheve':'ACHEVÉ'}[e.status] || (e.status||'').toUpperCase();
+  return '<div style="margin-bottom:16px;break-inside:avoid;">'
+    + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;">'
+    + '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;font-weight:600;color:#1B5FA8;background:#EFF6FF;padding:2px 7px;border-radius:3px;">'+_apEsc(statutLbl)+'</span>'
+    + '<span style="font-weight:600;font-size:15px;color:#111827;">'+_apEsc(L(e.title))+'</span>'
+    + '</div>'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#9CA3AF;">'+_apEsc([e.day,e.month,e.hour].filter(Boolean).join(' '))+(e.cy?' &nbsp;·&nbsp; '+_apEsc(e.cy):'')+'</div>'
+    + '</div>';
+}
+function _apAlerteItem(score) {
+  const pays = PAYS_INFO[score.cy] || {flag:'',name:score.cy};
+  const n = score.niv;
+  return '<div style="margin-bottom:14px;break-inside:avoid;border:1px solid #D1D9E0;border-radius:4px;padding:12px 14px;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">'
+    + '<span style="font-weight:700;font-size:15px;color:#0B1A27;">'+_apEsc(pays.flag+' '+pays.name)+'</span>'
+    + '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;font-weight:700;color:'+n.col+';">'+_apEsc(n.label)+' — '+score.total100+'/100</span>'
+    + '</div>'
+    + '<div style="font-size:12px;color:#6B7280;">Incidents : '+score.baseScore+' &nbsp;·&nbsp; Aggravants : '+score.specialScore+'</div>'
+    + '</div>';
+}
+async function _buildRapportFluxHTML(arts) {
+  await preTraduireRapport([
+    ...arts.flatMap(a => [a.title, a.analysis]),
+    ...[...new Set(arts.map(a=>a.cy))].map(cy=>infoPays(cy).name),
+  ]);
+  const groupes = groupeArticlesParPays(arts);
+  let body = _apSectionBand('FLUX OPÉRATIONNEL — ÉVÉNEMENTS DES DERNIÈRES 12 HEURES');
+  groupes.forEach(g => {
+    body += '<h2 style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:15px;color:#0D1B2A;border-bottom:1px solid #0D1B2A;padding-bottom:5px;margin:20px 0 12px;">'+_apEsc(g.pays.flag+' '+L(g.pays.name))+'</h2>';
+    body += g.items.map(_apArticleItem).join('');
+  });
+  const stats = _apStatsGrid([
+    {value:arts.length, label:'ARTICLES', color:'#0D1B2A'},
+    {value:groupes.filter(g=>g.cy!=='INT').length, label:'PAYS', color:'#1B5FA8'},
+    {value:new Set(arts.map(a=>a.primary)).size, label:'SOURCES', color:'#0F4F2A'},
+  ]);
+  return _apPageWrap('Flux opérationnel', 'Événements des 12 dernières heures', stats, body);
+}
+async function _buildRapportAgendaHTML(agenda) {
+  await preTraduireRapport(agenda.flatMap(e => [e.title, e.desc]));
+  const body = _apSectionBand('AGENDA SÛRETÉ — ÉVÉNEMENTS EN COURS ET À VENIR') + (agenda.length ? agenda.map(_apAgendaItem).join('') : '<div style="font-size:12.5px;color:#6B7280;font-style:italic;">Aucun événement pour ce périmètre.</div>');
+  const stats = _apStatsGrid([{value:agenda.length, label:'ÉVÉNEMENTS', color:'#0D1B2A'}]);
+  return _apPageWrap('Agenda sûreté', 'Événements en cours et à venir', stats, body);
+}
+async function _buildRapportAlertesHTML(scores) {
+  await preTraduireRapport([
+    ...scores.filter(s=>s&&s.pays&&s.pays.name).map(s=>s.pays.name),
+  ]);
+  const body = _apSectionBand('ALERTES PAYS — NIVEAU COMPOSITE') + (scores.length ? scores.map(_apAlerteItem).join('') : '<div style="font-size:12.5px;color:#6B7280;font-style:italic;">Aucun pays dans ce périmètre.</div>');
+  const stats = _apStatsGrid([{value:scores.length, label:'PAYS', color:'#0D1B2A'}]);
+  return _apPageWrap('Alertes pays', 'Niveau composite par pays', stats, body);
+}
+async function _buildRapportCompletHTML(arts, agenda) {
+  await preTraduireRapport([
+    ...arts.flatMap(a => [a.title, a.analysis]),
+    ...agenda.flatMap(e => [e.title, e.desc]),
+    ...[...new Set(arts.map(a=>a.cy))].map(cy=>infoPays(cy).name),
+  ]);
+  const rangOrdre = {crit:0, high:1, mod:2, ok:3};
+  const cmp = (x,y) => { const r=(rangOrdre[x.level]??3)-(rangOrdre[y.level]??3); if (r!==0) return r; return (y.pubDate||0)-(x.pubDate||0); };
+  const byCat = {securite:[], humanitaire:[], politique:[], economique:[]};
+  arts.forEach(a => { if (byCat[a.cat]) byCat[a.cat].push(a); });
+
+  let body = _apSectionBand('I. SYNTHÈSE ANALYTIQUE');
+  const dejaMontres = new Set();
+  AP_CAT_DEFS.forEach(cd => {
+    const items = byCat[cd.k].slice().sort(cmp).slice(0,8);
+    if (!items.length) return;
+    body += '<h2 style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:16px;color:'+cd.col+';border-bottom:2px solid '+cd.col+';padding-bottom:6px;margin:0 0 14px;">'+cd.lettre+'. '+_apEsc(cd.lb)+'</h2>';
+    body += items.map(_apArticleItem).join('');
+    items.forEach(a => dejaMontres.add(_articleKey(a)));
+  });
+
+  body += _apSectionBand('II. FLUX OPÉRATIONNEL');
+  // Dedup partagee avec la section I : un article deja montre dans la
+  // synthese n'est pas repete dans le flux (meme regle que les exports
+  // PDF/Word), sans re-trier/re-trancher byCat a chaque article verifie.
+  const groupes = groupeArticlesParPays(arts.filter(a => !dejaMontres.has(_articleKey(a))));
+  groupes.forEach(g => {
+    body += '<h2 style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:15px;color:#0D1B2A;border-bottom:1px solid #0D1B2A;padding-bottom:5px;margin:20px 0 12px;">'+_apEsc(g.pays.flag+' '+L(g.pays.name))+'</h2>';
+    body += g.items.map(_apArticleItem).join('');
+  });
+
+  if (agenda.length) {
+    body += _apSectionBand('III. AGENDA SÛRETÉ');
+    body += agenda.map(_apAgendaItem).join('');
+  }
+
+  const stats = _apStatsGrid([
+    {value:arts.length, label:'ARTICLES', color:'#0D1B2A'},
+    {value:arts.filter(a=>a.level==='crit').length, label:'CRITIQUES', color:'#8B1A1A'},
+    {value:new Set(arts.filter(a=>a.cy&&a.cy!=='INT').map(a=>a.cy)).size, label:'PAYS', color:'#1B5FA8'},
+    {value:new Set(arts.map(a=>a.primary)).size, label:'SOURCES', color:'#0F4F2A'},
+  ]);
+  return _apPageWrap('Rapport complet', 'Synthèse, flux et agenda', stats, body);
+}
+async function apercuRapport(type) {
+  const btn = event?.target; btnSpin(btn);
+  try {
+    const arts = getExportData();
+    let html;
+    if (type === 'flux') html = await _buildRapportFluxHTML(arts);
+    else if (type === 'agenda') html = await _buildRapportAgendaHTML(getExportAgenda());
+    else if (type === 'alertes') {
+      const cysA = fRapportCy !== 'all' ? [fRapportCy] : Object.keys(PAYS_INFO).filter(cy => !fRapportZone || fRapportZone==='all' || CY_TO_ZONE[cy]===fRapportZone);
+      const scoresA = cysA.map(cy => { const sc = calcAlertScore(cy); return {cy, pays:PAYS_INFO[cy], niv:sc.niv, total100:sc.total100, baseScore:sc.baseScore, specialScore:sc.specialScore}; }).sort((a,b)=>b.total100-a.total100);
+      html = await _buildRapportAlertesHTML(scoresA);
+    }
+    else if (type === 'rapport_complet') html = await _buildRapportCompletHTML(arts, getExportAgenda());
+    else { alert('Aperçu non disponible pour ce type de rapport.'); return; }
+
+    const w = window.open('', '_blank');
+    if (!w) { alert("Fenêtre bloquée par le navigateur — autorisez les popups pour SENTINEL puis réessayez."); return; }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+  } catch(e) {
+    console.error('SENTINEL — Erreur aperçu impression :', e);
+    alert('Erreur aperçu : '+e.message);
+  } finally {
+    setTimeout(()=>btnReset(btn),600);
+  }
+}
 
 function _buildRapportSyntheseHTML(arts) {
   const now = new Date();
