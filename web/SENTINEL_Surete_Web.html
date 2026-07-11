@@ -865,6 +865,13 @@ html.force-mobile .ops-label{display:none}
 .pm-hero-badge i{font-size:11px}
 .pm-body{padding:18px 22px;display:flex;flex-direction:column;gap:18px;max-width:900px;margin:0 auto;width:100%}
 .pm-section{background:var(--w);border:1px solid var(--bd);border-radius:9px;overflow:hidden}
+.pm-group-hd{display:flex;align-items:center;gap:9px;padding:10px 4px 2px;margin-top:6px}
+.pm-group-hd:first-child{margin-top:0}
+.pm-group-hd i{font-size:15px;color:var(--b)}
+.pm-group-hd-txt{display:flex;flex-direction:column}
+.pm-group-hd-title{font-size:12px;font-weight:800;color:var(--t);text-transform:uppercase;letter-spacing:.05em}
+.pm-group-hd-sub{font-size:10px;color:var(--lg);margin-top:1px}
+.pm-group-hd-line{flex:1;height:1px;background:var(--bd)}
 .pm-sec-hd{display:flex;align-items:center;justify-content:space-between;
   padding:13px 16px;border-bottom:1px solid var(--bd);background:var(--sf)}
 .pm-sec-hd-l{display:flex;align-items:center;gap:8px}
@@ -901,10 +908,12 @@ html.force-mobile .ops-label{display:none}
   display:flex;flex-direction:column;gap:8px}
 .pricing-card.featured{border-color:var(--b);box-shadow:0 0 0 2px rgba(27,95,168,.15)}
 .pricing-card-name{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--t)}
-.pricing-card-price{font-size:20px;font-weight:800;color:var(--t);display:flex;align-items:baseline;gap:5px}
+.pricing-card-price{display:flex;flex-direction:column;gap:3px}
+.pricing-card-price>div{font-size:20px;font-weight:800;color:var(--t);display:flex;align-items:baseline;gap:5px}
 .pricing-card-price span{font-size:10px;font-weight:600;color:var(--lg)}
 .pricing-card-price input{width:100px;padding:4px 6px;border:1px solid var(--bd);border-radius:5px;
   font-size:15px;font-weight:800;font-family:inherit;color:var(--t)}
+.pricing-card-eur{font-size:11px !important;font-weight:700 !important;color:var(--b) !important}
 .pricing-card-feat{font-size:11px;color:var(--t2);line-height:1.8;flex:1;margin:0;padding-left:16px}
 /* Moyens de paiement */
 .paymethod-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
@@ -2336,6 +2345,16 @@ button:not(:disabled){
 
         <div class="pm-body">
 
+          <!-- ══ GROUPE : ADMINISTRATION DE LA PLATEFORME ══ -->
+          <div class="pm-group-hd">
+            <i class="ti ti-shield-cog"></i>
+            <div class="pm-group-hd-txt">
+              <div class="pm-group-hd-title">Administration de la plateforme</div>
+              <div class="pm-group-hd-sub">Accès, utilisateurs, paiements, contacts et suivi — communs à tous les abonnements</div>
+            </div>
+            <div class="pm-group-hd-line"></div>
+          </div>
+
           <!-- Profil administrateur -->
           <div class="pm-section">
             <div class="pm-sec-hd">
@@ -2435,6 +2454,16 @@ button:not(:disabled){
             <div class="pm-sec-body" id="pmPendingBody"><div style="color:var(--lg);font-size:12px;text-align:center;padding:16px">Aucune demande en attente</div></div>
           </div>
 
+          <!-- ══ GROUPE : PARAMETRES PAR ABONNEMENT ══ -->
+          <div class="pm-group-hd">
+            <i class="ti ti-tag"></i>
+            <div class="pm-group-hd-txt">
+              <div class="pm-group-hd-title">Paramètres par abonnement</div>
+              <div class="pm-group-hd-sub">Tarifs, quotas de téléchargement et fonctionnalités qui varient selon le plan de l'utilisateur</div>
+            </div>
+            <div class="pm-group-hd-line"></div>
+          </div>
+
           <!-- Tarification & abonnements -->
           <div class="pm-section">
             <div class="pm-sec-hd">
@@ -2445,8 +2474,16 @@ button:not(:disabled){
             </div>
             <div class="pm-sec-body" style="padding:14px 16px">
               <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
-                Grille indicative à ajuster librement. La version gratuite reste financée par les publicités affichées
-                dans l'application ; les offres payantes les retirent et débloquent les modules avancés.
+                Grille indicative à ajuster librement, y compris le forfait Institution / International (plus de
+                palier "sur devis" : un montant FCFA modifiable, comme les autres abonnements). La version gratuite
+                reste financée par les publicités affichées dans l'application ; les offres payantes les retirent
+                et débloquent les modules avancés.
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:10px 12px;background:var(--sf);border:1px solid var(--bd);border-radius:7px">
+                <i class="ti ti-currency-euro" style="color:var(--b);font-size:15px"></i>
+                <label style="font-size:10px;color:var(--lg);white-space:nowrap">Taux de change (FCFA pour 1 €)</label>
+                <input type="number" min="1" step="0.001" id="tauxEurFcfa" value="655.957" oninput="_pricingMajTousLesEur()" style="width:100px;padding:5px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px;font-weight:700">
+                <span style="font-size:9px;color:var(--lg)">Le franc CFA est arrimé à l'euro (~655,957) ; ajustable si vous facturez à un autre taux.</span>
               </div>
               <div class="pricing-grid" id="pricingGrid"></div>
               <div style="margin-top:12px;display:flex;align-items:center;gap:10px">
@@ -2479,6 +2516,61 @@ button:not(:disabled){
                 <span class="pmu-msg" id="dlQuotaMsg" style="margin:0"></span>
               </div>
             </div>
+          </div>
+
+          <!-- Personnalisation de marque (fonctionnalite payante) -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-writing"></i>
+                <div><div class="pm-sec-title">Personnalisation de marque
+                  <span id="marquePlanBadge" style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:2px;"></span>
+                </div>
+                <div class="pm-sec-sub">Remplace "SENTINEL SÛRETÉ" en en-tête/pied de page des exports et dans les partages</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px">
+              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
+                Remplace "SENTINEL SÛRETÉ" par le nom de votre société dans l'en-tête et le pied de page
+                des documents exportés (PDF, Word, PowerPoint, aperçu impression) et dans les messages
+                WhatsApp/Email partagés. Ajoutez aussi une identité d'envoi (pseudo ou nom de société,
+                email ou numéro de téléphone) qui apparaît en signature de chaque partage — utile pour
+                qu'un numéro dédié (ex. +225 01 01 23 24 25) envoie sous le nom de votre société plutôt
+                que sous la marque SENTINEL.
+              </div>
+              <div id="marqueUpsell" style="display:none;background:var(--al);border:1px solid #FDE68A;border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:#7C4A00;display:flex;align-items:center;gap:8px;">
+                <i class="ti ti-lock" style="font-size:14px;flex-shrink:0"></i>
+                <span>Fonctionnalité réservée aux plans payants (Standard, Professionnel, Entreprise).
+                <a href="javascript:void(0)" onclick="document.getElementById('pricingGrid')?.scrollIntoView({behavior:'smooth'})" style="color:#7C4A00;font-weight:700;text-decoration:underline">Voir les tarifs</a></span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Nom de la marque / société</label>
+                  <input type="text" id="marqueNom" placeholder="Ex. Groupe Sûreté SARL" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                </div>
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Identité d'envoi (pseudo ou société)</label>
+                  <input type="text" id="marqueIdentite" placeholder="Ex. Cellule Sûreté ABC" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                </div>
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Contact affiché (email ou téléphone)</label>
+                  <input type="text" id="marqueContact" placeholder="Ex. +225 01 01 23 24 25" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <button class="btn-action btn-rest" id="marqueSaveBtn" onclick="pmSaveMarquePerso()"><i class="ti ti-device-floppy"></i> Enregistrer la personnalisation</button>
+                <span class="pmu-msg" id="marqueMsg" style="margin:0"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ══ GROUPE : ADMINISTRATION DE LA PLATEFORME (suite) ══ -->
+          <div class="pm-group-hd">
+            <i class="ti ti-shield-cog"></i>
+            <div class="pm-group-hd-txt">
+              <div class="pm-group-hd-title">Administration de la plateforme</div>
+              <div class="pm-group-hd-sub">Clientèle, paiements, contacts et statistiques — communs à tous les abonnements</div>
+            </div>
+            <div class="pm-group-hd-line"></div>
           </div>
 
           <!-- Gestion clientèle -->
@@ -2692,51 +2784,6 @@ button:not(:disabled){
                 <thead><tr><th>Nom</th><th>Emails</th><th>Actions</th></tr></thead>
                 <tbody id="emGroupesBody"></tbody>
               </table>
-            </div>
-          </div>
-
-          <!-- Personnalisation de marque (fonctionnalite payante) -->
-          <div class="pm-section">
-            <div class="pm-sec-hd">
-              <div class="pm-sec-hd-l"><i class="ti ti-writing"></i>
-                <div><div class="pm-sec-title">Personnalisation de marque
-                  <span id="marquePlanBadge" style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:2px;"></span>
-                </div>
-                <div class="pm-sec-sub">Remplace "SENTINEL SÛRETÉ" en en-tête/pied de page des exports et dans les partages</div></div>
-              </div>
-            </div>
-            <div class="pm-sec-body" style="padding:14px 16px">
-              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
-                Remplace "SENTINEL SÛRETÉ" par le nom de votre société dans l'en-tête et le pied de page
-                des documents exportés (PDF, Word, PowerPoint, aperçu impression) et dans les messages
-                WhatsApp/Email partagés. Ajoutez aussi une identité d'envoi (pseudo ou nom de société,
-                email ou numéro de téléphone) qui apparaît en signature de chaque partage — utile pour
-                qu'un numéro dédié (ex. +225 01 01 23 24 25) envoie sous le nom de votre société plutôt
-                que sous la marque SENTINEL.
-              </div>
-              <div id="marqueUpsell" style="display:none;background:var(--al);border:1px solid #FDE68A;border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:#7C4A00;display:flex;align-items:center;gap:8px;">
-                <i class="ti ti-lock" style="font-size:14px;flex-shrink:0"></i>
-                <span>Fonctionnalité réservée aux plans payants (Standard, Professionnel, Entreprise).
-                <a href="javascript:void(0)" onclick="document.getElementById('pricingGrid')?.scrollIntoView({behavior:'smooth'})" style="color:#7C4A00;font-weight:700;text-decoration:underline">Voir les tarifs</a></span>
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
-                <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Nom de la marque / société</label>
-                  <input type="text" id="marqueNom" placeholder="Ex. Groupe Sûreté SARL" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
-                </div>
-                <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Identité d'envoi (pseudo ou société)</label>
-                  <input type="text" id="marqueIdentite" placeholder="Ex. Cellule Sûreté ABC" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
-                </div>
-                <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Contact affiché (email ou téléphone)</label>
-                  <input type="text" id="marqueContact" placeholder="Ex. +225 01 01 23 24 25" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
-                </div>
-              </div>
-              <div style="display:flex;align-items:center;gap:10px">
-                <button class="btn-action btn-rest" id="marqueSaveBtn" onclick="pmSaveMarquePerso()"><i class="ti ti-device-floppy"></i> Enregistrer la personnalisation</button>
-                <span class="pmu-msg" id="marqueMsg" style="margin:0"></span>
-              </div>
             </div>
           </div>
 
@@ -10424,20 +10471,36 @@ const PRICING_DEFAUT = [
     feats:['54 pays, tous modules','Sans publicité','Partages illimités (tous modes)','Exports Excel/CSV','1 compte utilisateur']},
   {key:'pro',       nom:'Professionnel Sûreté',     prix:39000, periode:'/mois', featured:true,
     feats:['Exports Word/PDF/PowerPoint illimités','Alertes multi-pays','Marque personnalisée (en-têtes, partages)','Captures image dimensionnées WhatsApp/Telegram/Email','5 comptes utilisateurs']},
-  {key:'entreprise',nom:'Institution / International', prix:null, periode:'sur devis', featured:false,
-    feats:['À partir de ~250 000 FCFA/mois (ou facturation USD/EUR pour bailleurs)','Comptes illimités','API / intégration sur mesure','Accompagnement dédié, SLA prioritaire']},
+  {key:'entreprise',nom:'Institution / International', prix:250000, periode:'/mois', featured:false,
+    feats:['Facturation possible en USD/EUR pour bailleurs','Comptes illimités','API / intégration sur mesure','Accompagnement dédié, SLA prioritaire']},
 ];
 function getPricing()  { return _ls(()=>JSON.parse(localStorage.getItem(PRICING_KEY)||'null'),null) || PRICING_DEFAUT; }
 function savePricing(p){ _ls(()=>localStorage.setItem(PRICING_KEY,JSON.stringify(p))); }
+
+// Le FCFA (XOF/XAF) est arrime a l'euro a taux fixe (1 EUR = 655,957 FCFA) ;
+// le taux reste neanmoins editable par l'administrateur (facturation en
+// devise tierce, marge de conversion...) plutot que fige en dur.
+const EUR_RATE_KEY = 'sentinel_eur_rate_v1';
+const EUR_RATE_DEFAUT = 655.957;
+function getEurRate()  { return _ls(()=>parseFloat(localStorage.getItem(EUR_RATE_KEY)),null) || EUR_RATE_DEFAUT; }
+function saveEurRate(r){ _ls(()=>localStorage.setItem(EUR_RATE_KEY, String(r))); }
+function fcfaVersEur(fcfa, taux) {
+  const t = taux || getEurRate();
+  return (fcfa / t).toLocaleString('fr-FR', {minimumFractionDigits:0, maximumFractionDigits:0});
+}
 
 function renderPricing() {
   const grid = document.getElementById('pricingGrid');
   if (!grid) return;
   const plans = getPricing();
+  const taux = getEurRate();
+  const tauxEl = document.getElementById('tauxEurFcfa');
+  if (tauxEl) tauxEl.value = taux;
   grid.innerHTML = plans.map(p => {
-    const prixHtml = (p.prix===null)
-      ? '<div class="pricing-card-price">Sur devis</div>'
-      : '<div class="pricing-card-price"><input type="number" min="0" step="500" id="prix-'+p.key+'" value="'+p.prix+'"> <span>FCFA '+p.periode+'</span></div>';
+    const prixHtml = '<div class="pricing-card-price">'
+      + '<div class="pricing-card-eur" id="eur-'+p.key+'">≈ '+fcfaVersEur(p.prix, taux)+' € '+p.periode+'</div>'
+      + '<div><input type="number" min="0" step="500" id="prix-'+p.key+'" value="'+p.prix+'" oninput="_pricingMajEur(\''+p.key+'\')"> <span>FCFA '+p.periode+'</span></div>'
+      + '</div>';
     return '<div class="pricing-card'+(p.featured?' featured':'')+'">'+
       '<div class="pricing-card-name">'+p.nom+'</div>'+
       prixHtml+
@@ -10445,10 +10508,24 @@ function renderPricing() {
     '</div>';
   }).join('');
 }
+function _pricingMajEur(key) {
+  const inp = document.getElementById('prix-'+key);
+  const eurEl = document.getElementById('eur-'+key);
+  if (!inp || !eurEl) return;
+  const v = parseInt(inp.value, 10) || 0;
+  const taux = parseFloat(document.getElementById('tauxEurFcfa')?.value) || getEurRate();
+  const periode = (getPricing().find(p=>p.key===key) || {}).periode || '';
+  eurEl.textContent = '≈ '+fcfaVersEur(v, taux)+' € '+periode;
+}
+function _pricingMajTousLesEur() {
+  getPricing().forEach(p => _pricingMajEur(p.key));
+}
 
 function pmSavePricing() {
+  const tauxEl = document.getElementById('tauxEurFcfa');
+  const taux = tauxEl ? parseFloat(tauxEl.value) : getEurRate();
+  if (taux && !isNaN(taux) && taux > 0) saveEurRate(taux);
   const plans = getPricing().map(p => {
-    if (p.prix===null) return p;
     const el = document.getElementById('prix-'+p.key);
     const v = el ? parseInt(el.value,10) : p.prix;
     return {...p, prix: isNaN(v) ? p.prix : v};
