@@ -450,6 +450,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .art-top .flagcy{font-size:10px;font-weight:700;color:var(--t);
   text-transform:uppercase;letter-spacing:.03em;cursor:pointer;white-space:nowrap}
 .art-top .flagcy:hover{text-decoration:underline}
+.cy-niv-pill{font-size:8px;font-weight:800;padding:1px 6px;border-radius:3px;
+  color:#fff;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;
+  cursor:pointer;display:inline-flex;align-items:center;gap:3px}
 .art-top .survtime{font-family:var(--font-mono);font-size:9.5px;color:var(--lg);
   display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
 .art-top .survtime i{font-size:10px}
@@ -4791,9 +4794,11 @@ function neutraliserExpressions(t) {
   return out;
 }
 
-// Pays à niveau de base élevé (tout article = au minimum HIGH)
+// Plancher de niveau par pays : ne releve une actu a HIGH/MOD que si elle a
+// deja un lien reel, meme faible, avec la surete/l'humanitaire (voir
+// lienSecuriteFaible dans classify()) — jamais pour une actu purement
+// economique/politique/people rattachee a un pays a risque.
 const HIGH_BASE_CY = new Set(['BF','ML','NE','CD','SS','SD','CF','LY','CM','MZ','SO','MG']);
-// Pays à niveau de base modéré (tout article = minimum MOD)
 const MOD_BASE_CY  = new Set(['NG','GN','TD','ZW','RW','ET','CG','TN','DZ','SL','ZA']);
 
 // ── DETECTION DU PAYS REEL DONT L'ARTICLE PARLE ─────────────────────────────
@@ -5361,15 +5366,6 @@ function classify(txt, src) {
   // normalise).
   const tScan = neutraliserExpressions(tAcc);
 
-  // Correspondance MOT ENTIER (matchMot), pas sous-chaine brute : evite les
-  // faux positifs caches type "tue" dans "statue", "arme" dans "larme",
-  // "mort" dans "amortissement" — une confusion grave pour un outil de surete.
-  let lvl = CK_CRIT.some(k=>matchMot(tScan,k)) ? 'crit'
-          : CK_HIGH.some(k=>matchMot(tScan,k)) ? 'high'
-          : HIGH_BASE_CY.has(src.cy) ? 'high'
-          : MOD_BASE_CY.has(src.cy) ? 'mod'
-          : 'mod';
-
   const scores = {
     securite:   CK_SEC.filter(k=>matchMot(tScan,k)).length,
     humanitaire:CK_HUM.filter(k=>matchMot(tScan,k)).length,
@@ -5378,6 +5374,26 @@ function classify(txt, src) {
   };
   let cat = src.cat, mx = 0;
   for (const [c,v] of Object.entries(scores)) if (v>mx) { mx=v; cat=c; }
+
+  // Correspondance MOT ENTIER (matchMot), pas sous-chaine brute : evite les
+  // faux positifs caches type "tue" dans "statue", "arme" dans "larme",
+  // "mort" dans "amortissement" — une confusion grave pour un outil de surete.
+  //
+  // Le niveau d'une actu est determine par SON PROPRE contenu, jamais copie
+  // du niveau d'alerte du pays (calcAlertScore, systeme rouge/marron/orange/
+  // jaune/vert distinct — voir niveauAlertePays()). HIGH_BASE_CY/MOD_BASE_CY
+  // ne fixent qu'un plancher, et seulement si l'actu a un lien reel — meme
+  // faible — avec la surete ou l'humanitaire (scores.securite/humanitaire).
+  // Sans ce garde-fou, un accord commercial ou une nomination ministerielle
+  // au Mali remontait "ELEVE" au seul motif que le Mali est un pays a risque
+  // — une actu dans un pays critique n'est pas forcement elle-meme critique.
+  const lienSecuriteFaible = scores.securite > 0 || scores.humanitaire > 0;
+  let lvl = CK_CRIT.some(k=>matchMot(tScan,k)) ? 'crit'
+          : CK_HIGH.some(k=>matchMot(tScan,k)) ? 'high'
+          : (lienSecuriteFaible && HIGH_BASE_CY.has(src.cy)) ? 'high'
+          : (lienSecuriteFaible && MOD_BASE_CY.has(src.cy)) ? 'mod'
+          : lienSecuriteFaible ? 'mod'
+          : 'ok';
 
   return {lvl, cat};
 }
@@ -8294,9 +8310,11 @@ async function majFlashInfo(force) {
     const d = a.pubDate ? new Date(a.pubDate) : null;
     const dateTxt = d ? d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'}) : '—';
     const heureTxt = d ? d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '—';
+    const npy = (a.cy && a.cy!=='INT') ? niveauAlertePays(a.cy) : null;
     return '<span class="flashinfo-item" onclick="switchView(\'flux\',document.querySelector(\'.ntab[onclick*=flux]\'));showDet(\''+a.id+'\')">'+
-      '<span class="tt-niv" style="background:'+col+';color:#fff;">'+lb+'</span>'+
+      '<span class="tt-niv" style="background:'+col+';color:#fff;" title="Niveau de cette actu">'+lb+'</span>'+
       '<span class="tt-pays">'+c.flag+' '+c.name+'</span>'+
+      (npy ? '<span class="cy-niv-pill" style="background:'+npy.col+'" title="Niveau d\'alerte sûreté du pays (distinct du niveau de cette actu)"><i class="ti ti-shield-half" style="font-size:8px"></i>'+npy.label+'</span>' : '')+
       '<span class="tt-date"><i class="ti ti-calendar"></i>'+dateTxt+'</span>'+
       '<span class="tt-heure"><i class="ti ti-clock"></i>'+heureTxt+'</span>'+
       '<span data-tt="'+ttKey+'">'+shown+'</span>'+
@@ -8382,6 +8400,7 @@ async function renderFeed() {
         // ── Ligne meta prioritaire : pays + heure de survenance (mono), avant tout le reste ──
         '<div class="art-top">'+
           '<span class="flagcy" onclick="event.stopPropagation();ouvrirVuePays(\''+a.cy+'\')">'+cc.flag+' '+cc.name+'</span>'+
+          (a.cy && a.cy!=='INT' ? (()=>{ const npy=niveauAlertePays(a.cy); return '<span class="cy-niv-pill" style="background:'+npy.col+'" title="Niveau d\'alerte sûreté du pays (distinct du niveau de cette actu)" onclick="event.stopPropagation();ouvrirVuePays(\''+a.cy+'\')"><i class="ti ti-shield-half" style="font-size:8px"></i>'+npy.label+'</span>'; })() : '')+
           '<span class="survtime'+(surv.ancien?' ancien':'')+'"><i class="ti ti-history"></i>'+surv.texte+'</span>'+
           survSuf+
           // Bouton affiche uniquement quand la langue detectee de l'actu differe
@@ -11605,6 +11624,26 @@ const NIV = {
   vert:   {dot:'#0F4F2A', col:'#0F4F2A', border:'#0F4F2A', bg:'#F0FDF4', bgLight:'#DCFCE7', txt:'#065F46', label:'VERT',   sous:'Stable'},
 };
 
+// niveauAlertePays(cy) : niveau d'alerte SURETE du PAYS (rouge/marron/orange/
+// jaune/vert, calcAlertScore) — a ne jamais confondre avec le niveau d'une
+// actu individuelle (crit/high/mod/ok, classify()) : une actu situee dans un
+// pays au niveau critique n'est pas forcement elle-meme critique. Lit le
+// dernier niveau connu (LAST_NIV_PAR_PAYS, mis a jour par recalcAlertes) pour
+// eviter de recalculer calcAlertScore() a chaque rendu d'actu.
+function niveauAlertePays(cy) {
+  const key = (typeof LAST_NIV_PAR_PAYS !== 'undefined' && LAST_NIV_PAR_PAYS[cy]) || 'vert';
+  return NIV[key] || NIV.vert;
+}
+// _cyNivTexteEtCouleur(cy) : version texte brut + couleur hexa (sans '#') du
+// niveau d'alerte pays, pour les exports Word/PDF/PowerPoint (docx/pdf-lib/
+// pptxgenjs attendent des couleurs hexa sans '#'). null si pas de pays reel
+// (cy vide ou 'INT').
+function _cyNivTexteEtCouleur(cy) {
+  if (!cy || cy === 'INT') return null;
+  const npy = niveauAlertePays(cy);
+  return { texte: 'PAYS '+npy.label, couleur: (npy.col||'#4B5563').replace('#','') };
+}
+
 // getNivKey(total) : convertit le score composite d'un pays (voir calcAlertScore,
 // affiché en /100) en clé de niveau NIV. Seuils calibrés sur les poids des
 // evenements (rouge:3-4, marron:2, orange:1-2, jaune:1, vert:0) de sorte qu'un
@@ -13207,8 +13246,9 @@ async function exportPPTX(type) {
         const y = 1.55 + i*0.92;
         const pays = infoPays(a.cy);
         const col = LVL_COL[a.level] || '9CA3AF';
+        const cyNivP1 = _cyNivTexteEtCouleur(a.cy);
         circle(s, 0.6, y+0.06, 0.16, col);
-        s.addText((pays.flag||'')+' '+pays.name+'  ·  '+(a.time||''), {x:0.95,y:y-0.08,w:11.6,h:0.3,fontSize:10,color:MUTED,fontFace:'IBM Plex Sans'});
+        s.addText((pays.flag||'')+' '+pays.name+'  ·  '+(a.time||'')+(cyNivP1?'  ·  '+cyNivP1.texte:''), {x:0.95,y:y-0.08,w:11.6,h:0.3,fontSize:10,color:MUTED,fontFace:'IBM Plex Sans'});
         s.addText(L(a.title)||'', {x:0.95,y:y+0.18,w:11.6,h:0.55,fontSize:13,bold:true,color:INK,fontFace:'IBM Plex Sans'});
       });
     }
@@ -13233,7 +13273,8 @@ async function exportPPTX(type) {
             s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:y,w:0.95,h:0.28,fill:{color:col},line:{type:'none'}});
             s.addText(lvlFr(a.level).toUpperCase(), {x:0.6,y:y,w:0.95,h:0.28,fontSize:8,bold:true,color:'FFFFFF',align:'center',valign:'middle',fontFace:'IBM Plex Mono'});
             s.addText(L(a.title)||'', {x:1.7,y:y-0.06,w:10.9,h:0.55,fontSize:12,bold:true,color:INK,fontFace:'IBM Plex Sans'});
-            s.addText(pays.name+(a._ville?' — '+a._ville:'')+'  ·  '+(a.time||''), {x:1.7,y:y+0.44,w:10.9,h:0.3,fontSize:9,color:MUTED,fontFace:'IBM Plex Sans'});
+            const cyNivP2 = _cyNivTexteEtCouleur(a.cy);
+            s.addText(pays.name+(a._ville?' — '+a._ville:'')+'  ·  '+(a.time||'')+(cyNivP2?'  ·  '+cyNivP2.texte:''), {x:1.7,y:y+0.44,w:10.9,h:0.3,fontSize:9,color:MUTED,fontFace:'IBM Plex Sans'});
           });
         }
       });
@@ -13254,7 +13295,8 @@ async function exportPPTX(type) {
           const col = LVL_COL[a.level] || '9CA3AF';
           circle(s, 0.6, y+0.09, 0.09, col);
           const dateTxt = a.pubDate ? new Date(a.pubDate).toLocaleDateString('fr-FR')+' '+new Date(a.pubDate).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '';
-          s.addText('['+dateTxt+']  '+(pays.flag||'')+' '+pays.name+'  ·  '+lvlFr(a.level).toUpperCase(), {x:0.85,y:y-0.06,w:11.7,h:0.22,fontSize:8.5,bold:true,color:MUTED,fontFace:'IBM Plex Mono'});
+          const cyNivP3 = _cyNivTexteEtCouleur(a.cy);
+          s.addText('['+dateTxt+']  '+(pays.flag||'')+' '+pays.name+'  ·  '+lvlFr(a.level).toUpperCase()+(cyNivP3?'  ·  '+cyNivP3.texte:''), {x:0.85,y:y-0.06,w:11.7,h:0.22,fontSize:8.5,bold:true,color:MUTED,fontFace:'IBM Plex Mono'});
           s.addText(L(a.title)||'', {x:0.85,y:y+0.13,w:11.7,h:0.3,fontSize:11,color:INK,fontFace:'IBM Plex Sans'});
         });
       }
@@ -13700,7 +13742,12 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
         b.page.drawText(line, {x: i===0 ? M+pillW+8 : M, y: topY-9-i*(size+4), size, font:fontBold, color:INK});
       });
       b.y = topY - 9 - lines.length*(size+4) - 3;
+      const cyNiv = _cyNivTexteEtCouleur(a.cy);
       b.page.drawText(_pdfSafe(lieuTxt+'   ·   '+(a.time||'')), {x:M, y:b.y, size:8.5, font:fontReg, color:MUTED});
+      if (cyNiv) {
+        const lieuW = fontReg.widthOfTextAtSize(_pdfSafe(lieuTxt+'   ·   '+(a.time||'')), 8.5);
+        b.page.drawText(_pdfSafe('   ·   '+cyNiv.texte), {x:M+lieuW, y:b.y, size:8, font:fontBold, color:hexRgb('#'+cyNiv.couleur)});
+      }
       b.y -= 18;
     },
     // Grille 2 colonnes de cartes de corrélation (thème / pays / articles
@@ -14196,14 +14243,21 @@ function _apLevelPill(a) {
   return '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;font-weight:600;color:'+lm.col+';background:'+lm.bg+';padding:2px 7px;border-radius:3px;letter-spacing:0.04em;">'+_apEsc(lm.label)+'</span>';
 }
 
+function _apCyNivPill(a) {
+  if (!a.cy || a.cy === 'INT') return '';
+  const npy = niveauAlertePays(a.cy);
+  return '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:9px;font-weight:800;color:#fff;background:'+npy.col+';padding:2px 7px;border-radius:3px;letter-spacing:0.04em;" title="Niveau d\'alerte sûreté du pays (distinct du niveau de cette actu)">PAYS '+_apEsc(npy.label)+'</span>';
+}
+
 function _apArticleItem(a) {
   const geo = detectGeo(a.cy, a.title+' '+(a.analysis||''));
   const villeTxt = geo.ville ? (geo.ville+(geo.estime?' (estimé)':'')) : '';
   const pays = infoPays(a.cy);
   const lieu = pays.name + (villeTxt ? ' — '+villeTxt : '');
   return '<div style="margin-bottom:18px;break-inside:avoid;">'
-    + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;">'
+    + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;flex-wrap:wrap;">'
     + _apLevelPill(a)
+    + _apCyNivPill(a)
     + '<span style="font-weight:600;font-size:15px;color:#111827;">'+_apEsc(L(a.title))+'</span>'
     + '</div>'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#9CA3AF;">'+_apEsc(lieu)+' &nbsp;·&nbsp; '+_apEsc(a.time||'')+'</div>'
@@ -14861,8 +14915,12 @@ async function exportWord(type){
             children:[new TextRun({text:'Survenance : '+survW.texte+(survW.inconnue?' — à vérifier':(survW.ancien?' — plus de 12h':'')),size:17,bold:survW.ancien,color:survW.inconnue?'B45309':(survW.ancien?'DC2626':'9CA3AF'),font:FONT_MONO})],
             spacing:{after:40}
           }));
+          const cyNivW1=_cyNivTexteEtCouleur(a.cy);
           children.push(new Paragraph({
-            children:[new TextRun({text:(infoPays(a.cy).flag||'')+' '+infoPays(a.cy).name+villeTxtW+' — '+a.time,size:18,italic:true,color:'9CA3AF',font:FONT_MONO})],
+            children:[
+              new TextRun({text:(infoPays(a.cy).flag||'')+' '+infoPays(a.cy).name+villeTxtW+' — '+a.time,size:18,italic:true,color:'9CA3AF',font:FONT_MONO}),
+              ...(cyNivW1?[new TextRun({text:'   ·   '+cyNivW1.texte,size:17,bold:true,color:cyNivW1.couleur,font:FONT_MONO})]:[]),
+            ],
             spacing:{after:120}
           }));
         }
@@ -14957,7 +15015,8 @@ async function exportWord(type){
       const groupesFluxW = groupeArticlesParPays(artsFluxW);
       if (groupesFluxW.length) {
         groupesFluxW.forEach(g => {
-          children.push(heading((g.pays.flag||'')+' '+g.pays.name, 2, '1B5FA8'));
+          const cyNivW2 = _cyNivTexteEtCouleur(g.cy);
+          children.push(heading((g.pays.flag||'')+' '+g.pays.name+(cyNivW2?'  —  '+cyNivW2.texte:''), 2, '1B5FA8'));
           g.items.slice().sort((a,z)=>(z.pubDate||0)-(a.pubDate||0)).forEach(a => {
             const color=lvlColor[a.level]||'1B5FA8';
             const dateTxtW = a.pubDate ? new Date(a.pubDate).toLocaleDateString('fr-FR')+' '+new Date(a.pubDate).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : (a.time||'');
