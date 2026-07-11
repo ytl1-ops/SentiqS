@@ -3813,10 +3813,6 @@ function setDisplayMode(mode) {
   setDisplayMode(saved);
 })();
 
-// tr(texte, elId) : traduction "optimiste" du contenu dynamique (titres d'articles,
-// mesures de protection, etc). Renvoie immédiatement le texte original (ou la
-// traduction déjà en cache) et, si une traduction est nécessaire, la va chercher en
-// tâche de fond puis patche le DOM une fois reçue (élément identifié par elId).
 // détecteLangue(texte) : heuristique légère (hors ligne, sans API) qui devine
 // la langue probable d'un texte court (titre/extrait d'article) — arabe via
 // la plage Unicode dédiée, sinon vote majoritaire de mots-outils fr/en/pt.
@@ -3861,34 +3857,11 @@ function detectLangue(texte) {
   // Aucune langue couverte n'atteint le seuil de confiance sur un texte
   // assez long pour que ce ne soit pas une simple ambiguite : NE PAS
   // presumer francais par defaut, sinon ce texte est considere "deja dans
-  // la langue active" et s'affiche tel quel, illisible, sans placeholder ni
-  // bouton Traduire (cf. tr()/retraduireActu ci-dessous).
+  // la langue active" et s'affiche tel quel, illisible.
   if (mots.length >= 4) return 'other';
   return 'fr'; // texte trop court pour etre fiable : repli sur le francais
 }
 
-// tr(texte, elId) : renvoie le texte tel quel si sa langue detectee correspond
-// deja a la langue active (LANG), sinon lance une traduction en tache de fond
-// (mise en cache) et patche le DOM (element elId) une fois recue.
-// Regle stricte : si FR est actif, seul le francais est affiche ; si EN est
-// actif, seul l'anglais est affiche — jamais de texte source dans une autre
-// langue (arabe ou non), ni pendant l'attente de traduction, ni en cas
-// d'echec de l'API. Un texte-relais (placeholder) est affiche a la place,
-// remplace par la vraie traduction des qu'elle aboutit.
-function _trNomLangue(l) {
-  const noms = LANG === 'en'
-    ? {ar:'Arabic', pt:'Portuguese', en:'English', fr:'French', other:'unrecognized'}
-    : {ar:'arabe', pt:'portugais', en:'anglais', fr:'français', other:'non reconnue'};
-  return noms[l] || l;
-}
-function _trPlaceholderEnCours() {
-  return LANG === 'en' ? '🌐 Translating…' : '🌐 Traduction en cours…';
-}
-function _trPlaceholderIndispo(srcLang) {
-  return LANG === 'en'
-    ? '🌐 Translation unavailable (source: ' + _trNomLangue(srcLang) + ')'
-    : '🌐 Traduction indisponible (source : ' + _trNomLangue(srcLang) + ')';
-}
 // _trTexteAffichable(texte) : filet de securite final avant affichage — decode
 // toute entite HTML residuelle (cf. _decodeEntitesHTML, deja applique a la
 // collecte mais insuffisant pour les sources doublement echappees ou les cas
@@ -3898,38 +3871,6 @@ function _trPlaceholderIndispo(srcLang) {
 // technique dans un rapport livre a un responsable surete.
 function _trTexteAffichable(texte) {
   return (typeof _decodeEntitesHTML === 'function') ? _decodeEntitesHTML(texte) : texte;
-}
-// _trPlaceholderSurDemande(srcLang) : texte-relais affiche quand une actu
-// n'est pas dans la langue active mais qu'AUCUNE traduction automatique
-// n'est tentee — voir tr() ci-dessous. Remplace l'ancien comportement
-// "traduction en cours"/"traduction indisponible" pose sans action de
-// l'utilisateur : desormais, seul le bouton Traduire declenche un appel
-// reseau (voir retraduireActu), jamais le simple affichage d'une actu.
-function _trPlaceholderSurDemande(srcLang) {
-  return LANG === 'en'
-    ? '🌐 Translation available on request (source: ' + _trNomLangue(srcLang) + ') — use the Translate button'
-    : '🌐 Traduction disponible sur demande (source : ' + _trNomLangue(srcLang) + ') — bouton Traduire';
-}
-
-function tr(texte, elId, transform) {
-  if (!texte) return texte;
-  const texteAff = _trTexteAffichable(texte);
-  const srcLang = detectLangue(texteAff);
-  if (srcLang === LANG) return transform ? transform(texteAff) : texteAff; // deja dans la langue active : rien a faire
-  const cacheKey = LANG + ':' + texte;
-  if (TR_CACHE[cacheKey] !== undefined) {
-    const cached = TR_CACHE[cacheKey];
-    // cached === texte : une tentative (bouton Traduire) a deja echoue —
-    // on affiche l'actu (texte source, decode) plutot qu'un message
-    // d'erreur ; le bouton Traduire reste disponible pour reessayer.
-    const val = (cached === texte) ? texteAff : _trTexteAffichable(cached);
-    return transform ? transform(val) : val;
-  }
-  // Plus de traduction automatique en tache de fond : aucun appel reseau ici.
-  // Le texte-relais invite a utiliser le bouton Traduire (retraduireActu),
-  // seul declencheur d'un appel a l'API de traduction desormais.
-  const placeholder = _trPlaceholderSurDemande(srcLang);
-  return transform ? transform(placeholder) : placeholder; // jamais de texte source affiche, meme brievement
 }
 
 // _trTexteTraduisible(texte, max) : plafonne un texte avant envoi aux
@@ -4171,15 +4112,35 @@ function rl(cle) {
   const dict = RAPPORT_LBL[LANG] || RAPPORT_LBL.fr;
   return dict[cle] !== undefined ? dict[cle] : (RAPPORT_LBL.fr[cle] !== undefined ? RAPPORT_LBL.fr[cle] : cle);
 }
+// TR_CONCURRENCE_MAX : plafond de requetes de traduction simultanees. Un
+// rapport complet peut contenir plusieurs centaines de textes distincts a
+// traduire (titres, analyses, evenements agenda...) ; les envoyer tous en
+// une seule fois vers des API gratuites sans cle (MyMemory/Lingva/Google)
+// expose a un throttling/quota qui ferait echouer silencieusement une
+// bonne partie d'entre elles (repli sur texte source, cf. trFetch). Pool de
+// N "travailleurs" qui consomment la liste au lieu d'un Promise.all sans
+// limite — tout est quand meme traduit, juste par lots au lieu d'un seul.
+const TR_CONCURRENCE_MAX = 8;
+async function _traduireParLots(uniques) {
+  let i = 0;
+  async function travailleur() {
+    while (i < uniques.length) {
+      const txt = uniques[i++];
+      await trFetch(txt, detectLangue(txt), LANG);
+    }
+  }
+  const n = Math.min(TR_CONCURRENCE_MAX, uniques.length);
+  await Promise.all(Array.from({length: n}, travailleur));
+}
 // preTraduireRapport(textes) : à appeler (avec await) juste avant de construire
-// un rapport. Traduit en parallèle, vers la langue active (LANG), tous les
-// textes fournis (noms de pays, titres d'articles, mesures...) dont la langue
-// détectée diffère de LANG, et remplit TR_CACHE — pour que L(texte) puisse
-// ensuite renvoyer une traduction déjà disponible de façon synchrone pendant
-// la génération du document (Word/PDF/PPTX/Excel).
+// un rapport. Traduit, vers la langue active (LANG), tous les textes fournis
+// (noms de pays, titres d'articles, mesures...) dont la langue détectée
+// diffère de LANG, et remplit TR_CACHE — pour que L(texte) puisse ensuite
+// renvoyer une traduction déjà disponible de façon synchrone pendant la
+// génération du document (Word/PDF/PPTX/Excel).
 async function preTraduireRapport(textes) {
   const uniques = [...new Set(textes.filter(Boolean))].filter(t => detectLangue(t) !== LANG);
-  await Promise.all(uniques.map(txt => trFetch(txt, detectLangue(txt), LANG)));
+  await _traduireParLots(uniques);
 }
 // traduireAvantPartage(texte) : traduction ACTIVE (appel reel a l'agent de
 // traduction via trFetch, pas une simple consultation de cache) tentee a
@@ -4196,8 +4157,9 @@ async function traduireAvantPartage(texte) {
   const traduit = await trFetch(texteAff, srcLang, LANG);
   return _trTexteAffichable(traduit);
 }
-// L(texte) : version synchrone de tr(), pour les rapports (Word/PDF/PPTX/
-// Excel/CSV). Renvoie la traduction en cache si elle est déjà disponible
+// L(texte) : version synchrone (lecture cache uniquement), pour les rapports
+// (Word/PDF/PPTX/Excel/CSV) et tout affichage direct. Renvoie la traduction
+// en cache si elle est déjà disponible
 // (via preTraduireRapport(), à appeler avant de construire le document),
 // sinon un texte-relais — jamais le texte source dans une autre langue que
 // celle active (FR ou EN), quelle que soit sa langue d'origine.
