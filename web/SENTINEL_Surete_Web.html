@@ -6940,13 +6940,21 @@ async function genererImageActuBlob(a, canal) {
   const zoneEntete = Math.round(w * 0.09) + Math.round(w * 0.038) + Math.round(w * 0.05) + badgeH + Math.round(w * 0.04) + Math.round(w * 0.065);
   const zonePied = Math.round(w * 0.16);
   const zoneTitreNat = lignes.length * titreSize * 1.28;
-  const h = Math.min(dim.maxH, Math.max(dim.minH, Math.round(zoneEntete + zoneTitreNat + zonePied)));
+  const zoneNaturelle = zoneEntete + zoneTitreNat + zonePied;
+  const h = Math.min(dim.maxH, Math.max(dim.minH, Math.round(zoneNaturelle)));
 
-  // Securite : si la hauteur a ete plafonnee (titre tres long), on n'affiche
-  // que le nombre de lignes qui tient reellement dans l'espace disponible.
-  const placeTitreDispo = h - zoneEntete - zonePied;
-  const maxLignesAffichables = Math.max(1, Math.floor(placeTitreDispo / (titreSize * 1.28)));
-  const lignesAffichees = lignes.slice(0, maxLignesAffichables);
+  // Si la hauteur naturelle (non plafonnee par maxH) suffit, TOUTES les
+  // lignes calculees tiennent par construction dans le canevas — les
+  // afficher telles quelles. Recalculer un nombre de lignes "disponibles"
+  // en soustrayant zoneEntete/zonePied d'un h deja arrondi perdait jusqu'a
+  // une ligne entiere par erreur d'arrondi (ex. zoneTitreNat=115.2 pour 2
+  // lignes -> h arrondi a 647 -> placeTitreDispo=115 -> 115/57.6=1.997 ->
+  // floor=1 ligne affichee au lieu de 2, laissant un grand vide sous le
+  // titre tronque). Le repli en floor() ne reste utile QUE si le titre est
+  // reellement trop long pour tenir meme a hauteur maximale (dim.maxH).
+  const lignesAffichees = (Math.round(zoneNaturelle) <= dim.maxH)
+    ? lignes
+    : lignes.slice(0, Math.max(1, Math.floor((h - zoneEntete - zonePied) / (titreSize * 1.28))));
 
   const cv = document.createElement('canvas');
   cv.width = w; cv.height = h;
