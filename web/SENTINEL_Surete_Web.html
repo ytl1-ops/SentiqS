@@ -2569,6 +2569,12 @@ button:not(:disabled){
                 déjà rédigé (niveau, pays, titre, lien) vers chacun des contacts ci-dessous — gratuit, sans
                 clé API, sans serveur. WhatsApp n'autorisant pas l'envoi automatique sans action de
                 l'utilisateur, le clic final « Envoyer » reste à faire dans WhatsApp.
+                <b>Groupe</b> : WhatsApp ne permet pas de pré-remplir un message vers un groupe existant —
+                le message est copié dans le presse-papiers puis le groupe s'ouvre, il ne reste qu'à coller.
+              </div>
+              <div class="share-fmt-row" style="margin-bottom:10px;max-width:260px">
+                <button type="button" class="share-fmt on" id="waTypeBtnContact" onclick="waBasculerType('contact')">Contact</button>
+                <button type="button" class="share-fmt" id="waTypeBtnGroupe" onclick="waBasculerType('groupe')">Groupe</button>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:12px">
                 <div>
@@ -2576,7 +2582,7 @@ button:not(:disabled){
                   <input type="text" id="waContactNom" placeholder="Ex. Directeur Sûreté" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
                 <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Numéro (avec indicatif pays)</label>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" id="waContactValLbl">Numéro (avec indicatif pays)</label>
                   <input type="text" id="waContactTel" placeholder="Ex. +225 07 12 34 56 78" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
                 <div style="display:flex;align-items:flex-end">
@@ -2585,8 +2591,77 @@ button:not(:disabled){
               </div>
               <span class="pmu-msg" id="waContactMsg"></span>
               <table class="pm-users-table">
-                <thead><tr><th>Nom</th><th>Numéro</th><th>Actions</th></tr></thead>
+                <thead><tr><th>Nom</th><th>Type</th><th>Numéro / Lien</th><th>Actions</th></tr></thead>
                 <tbody id="waContactsBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Groupes/Canaux Telegram -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-brand-telegram"></i>
+                <div><div class="pm-sec-title">Groupes/Canaux Telegram</div>
+                <div class="pm-sec-sub" id="tgGroupesCount">0 groupe(s)</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px">
+              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
+                Telegram ne permet pas de pré-remplir un message vers un groupe/canal existant depuis un
+                simple lien — le message est copié dans le presse-papiers puis le groupe/canal s'ouvre,
+                il ne reste qu'à coller et envoyer.
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:12px">
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Nom</label>
+                  <input type="text" id="tgGroupeNom" placeholder="Ex. Cellule Sûreté Régionale" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                </div>
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Lien (t.me/...)</label>
+                  <input type="text" id="tgGroupeLien" placeholder="Ex. https://t.me/joinchat/XXXXXXXXXX" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                </div>
+                <div style="display:flex;align-items:flex-end">
+                  <button class="btn-action btn-rest" onclick="tgAjouterGroupe()"><i class="ti ti-plus"></i> Ajouter</button>
+                </div>
+              </div>
+              <span class="pmu-msg" id="tgGroupeMsg"></span>
+              <table class="pm-users-table">
+                <thead><tr><th>Nom</th><th>Lien</th><th>Actions</th></tr></thead>
+                <tbody id="tgGroupesBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Groupes Email (listes de diffusion) -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-mail"></i>
+                <div><div class="pm-sec-title">Groupes Email (listes de diffusion)</div>
+                <div class="pm-sec-sub" id="emGroupesCount">0 groupe(s)</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px">
+              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
+                Un groupe email envoie directement à tous les destinataires listés (client mail par
+                défaut, aucune configuration serveur nécessaire).
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:12px">
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Nom</label>
+                  <input type="text" id="emGroupeNom" placeholder="Ex. Comité de crise" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                </div>
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Emails (séparés par des virgules)</label>
+                  <input type="text" id="emGroupeEmails" placeholder="Ex. a@x.com, b@y.com" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                </div>
+                <div style="display:flex;align-items:flex-end">
+                  <button class="btn-action btn-rest" onclick="emAjouterGroupe()"><i class="ti ti-plus"></i> Ajouter</button>
+                </div>
+              </div>
+              <span class="pmu-msg" id="emGroupeMsg"></span>
+              <table class="pm-users-table">
+                <thead><tr><th>Nom</th><th>Emails</th><th>Actions</th></tr></thead>
+                <tbody id="emGroupesBody"></tbody>
               </table>
             </div>
           </div>
@@ -6713,11 +6788,44 @@ function safeUrl(rawUrl, fallbackQuery) {
 //  et laisse le clic final "Envoyer" a l'utilisateur.
 // ═══════════════════════════════════════════════════════════════════════════
 const WHATSAPP_CONTACTS_KEY = 'sentinel_whatsapp_contacts';
+// getWhatsappContacts() : chaque entree a un champ type — 'contact' (numero,
+// comportement historique, wa.me pre-rempli) ou 'groupe' (lien d'invitation
+// chat.whatsapp.com/... — wa.me ne peut PAS cibler un groupe existant avec un
+// texte pre-rempli, seule une conversation individuelle le permet ; voir
+// envoyerActuWhatsappGroupes). Entrees anciennes sans champ type : toujours
+// des contacts individuels (retro-compatibilite).
 function getWhatsappContacts() {
-  try { return JSON.parse(localStorage.getItem(WHATSAPP_CONTACTS_KEY) || '[]'); } catch (e) { return []; }
+  try { return (JSON.parse(localStorage.getItem(WHATSAPP_CONTACTS_KEY) || '[]')).map(c => ({ type: 'contact', ...c })); } catch (e) { return []; }
 }
 function saveWhatsappContacts(list) {
   try { localStorage.setItem(WHATSAPP_CONTACTS_KEY, JSON.stringify(list)); } catch (e) {}
+}
+// ═══════════════════════════════════════════════════════════════════════════
+//  GROUPES TELEGRAM ET EMAIL — meme principe que les contacts WhatsApp
+//  ci-dessus : destinations enregistrees une fois, reutilisables sur chaque
+//  actu via le menu de partage, sans jamais d'envoi automatique reel.
+//  - Telegram : les liens t.me (canaux/groupes publics ou invitation) ne
+//    peuvent pas non plus transporter de texte pre-rempli vers UN groupe
+//    precis (seul t.me/share/url le peut, mais il ouvre le selecteur de
+//    destination de Telegram lui-meme, sans cibler un groupe enregistre a
+//    l'avance) — meme repli copier/ouvrir que WhatsApp.
+//  - Email : mailto: accepte nativement plusieurs destinataires separes par
+//    des virgules — un "groupe" email est directement fonctionnel, sans
+//    contournement necessaire.
+// ═══════════════════════════════════════════════════════════════════════════
+const TELEGRAM_GROUPES_KEY = 'sentinel_telegram_groupes';
+function getTelegramGroupes() {
+  try { return JSON.parse(localStorage.getItem(TELEGRAM_GROUPES_KEY) || '[]'); } catch (e) { return []; }
+}
+function saveTelegramGroupes(list) {
+  try { localStorage.setItem(TELEGRAM_GROUPES_KEY, JSON.stringify(list)); } catch (e) {}
+}
+const EMAIL_GROUPES_KEY = 'sentinel_email_groupes';
+function getEmailGroupes() {
+  try { return JSON.parse(localStorage.getItem(EMAIL_GROUPES_KEY) || '[]'); } catch (e) { return []; }
+}
+function saveEmailGroupes(list) {
+  try { localStorage.setItem(EMAIL_GROUPES_KEY, JSON.stringify(list)); } catch (e) {}
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -7099,7 +7207,7 @@ async function envoyerActuWhatsapp(id, format) {
   const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
   if (!a) return;
   if (_verifierLimitePartage('whatsapp')) return;
-  const contacts = getWhatsappContacts();
+  const contacts = getWhatsappContacts().filter(c => c.type !== 'groupe');
   if (!contacts.length) {
     alert(LANG === 'en'
       ? 'No WhatsApp contact configured yet. Add one in Settings > WhatsApp Contacts.'
@@ -7118,6 +7226,36 @@ async function envoyerActuWhatsapp(id, format) {
     if (!numero) return;
     window.open('https://wa.me/' + numero + '?text=' + msg, '_blank', 'noopener');
   });
+  enregistrerPartage(a, 'whatsapp', format);
+}
+
+// envoyerActuWhatsappGroupes(id, format) : variante "groupe" — wa.me ne peut
+// PAS ouvrir une conversation de GROUPE existante avec un texte pre-rempli
+// (seul un numero individuel le permet, voir envoyerActuWhatsapp ci-dessus) :
+// le message est donc copie dans le presse-papiers, puis chaque lien
+// d'invitation de groupe enregistre est ouvert — il ne reste qu'a coller.
+async function envoyerActuWhatsappGroupes(id, format) {
+  format = format || 'texte_lien';
+  const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
+  if (!a) return;
+  if (_verifierLimitePartage('whatsapp')) return;
+  const groupes = getWhatsappContacts().filter(c => c.type === 'groupe');
+  if (!groupes.length) {
+    alert(LANG === 'en'
+      ? 'No WhatsApp group configured yet. Add one in Settings > WhatsApp Contacts.'
+      : 'Aucun groupe WhatsApp configuré. Ajoutez-en un dans Paramètres > Contacts WhatsApp.');
+    return;
+  }
+  if (format === 'image') {
+    const blob = await genererImageActuBlob(a, 'whatsapp');
+    try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]); }
+    catch (e) { _telechargerImage(blob, 'sentinel_' + a.id + '_whatsapp.png'); }
+  } else {
+    const texte = await construireContenuPartage(a, format);
+    try { await navigator.clipboard.writeText(texte); } catch (e) {}
+  }
+  groupes.forEach(g => { if (g.lien) window.open(g.lien, '_blank', 'noopener'); });
+  _toastRapide(LANG === 'en' ? 'Copied — paste it in the WhatsApp group(s) that just opened.' : 'Copié — collez-le dans le(s) groupe(s) WhatsApp qui viennent de s\'ouvrir.', 'ti-copy');
   enregistrerPartage(a, 'whatsapp', format);
 }
 
@@ -7150,6 +7288,36 @@ async function envoyerActuTelegram(id, format) {
   enregistrerPartage(a, 'telegram', format);
 }
 
+// envoyerActuTelegramGroupes(id, format) : variante "groupe/canal" — comme
+// pour WhatsApp, aucun lien t.me ne peut ouvrir un groupe/canal existant
+// avec un texte pre-rempli (t.me/share/url ouvre le SELECTEUR de Telegram,
+// pas un groupe precis) : copie presse-papiers puis ouverture des liens
+// enregistres.
+async function envoyerActuTelegramGroupes(id, format) {
+  format = format || 'texte_lien';
+  const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
+  if (!a) return;
+  if (_verifierLimitePartage('telegram')) return;
+  const groupes = getTelegramGroupes();
+  if (!groupes.length) {
+    alert(LANG === 'en'
+      ? 'No Telegram group/channel configured yet. Add one in Settings > Telegram Groups.'
+      : 'Aucun groupe/canal Telegram configuré. Ajoutez-en un dans Paramètres > Groupes Telegram.');
+    return;
+  }
+  if (format === 'image') {
+    const blob = await genererImageActuBlob(a, 'telegram');
+    try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]); }
+    catch (e) { _telechargerImage(blob, 'sentinel_' + a.id + '_telegram.png'); }
+  } else {
+    const texte = await construireContenuPartage(a, format);
+    try { await navigator.clipboard.writeText(texte); } catch (e) {}
+  }
+  groupes.forEach(g => { if (g.lien) window.open(g.lien, '_blank', 'noopener'); });
+  _toastRapide(LANG === 'en' ? 'Copied — paste it in the Telegram group(s)/channel(s) that just opened.' : 'Copié — collez-le dans le(s) groupe(s)/canal(aux) Telegram qui viennent de s\'ouvrir.', 'ti-copy');
+  enregistrerPartage(a, 'telegram', format);
+}
+
 // envoyerActuEmail(id, format) : partage par email — ouvre le client mail
 // par defaut (mailto:) avec sujet/corps deja rediges, destinataire au choix
 // de l'utilisateur (pas de carnet de contacts dedie ici, a la difference de
@@ -7174,6 +7342,37 @@ async function envoyerActuEmail(id, format) {
   }
   const corps = await construireContenuPartage(a, format);
   window.location.href = 'mailto:?subject=' + encodeURIComponent(sujet) + '&body=' + encodeURIComponent(corps);
+  enregistrerPartage(a, 'email', format);
+}
+
+// envoyerActuEmailGroupes(id, format) : variante "groupe" — contrairement a
+// WhatsApp/Telegram, mailto: accepte nativement plusieurs destinataires
+// separes par des virgules : un envoi direct et fonctionnel, sans
+// contournement copier/coller.
+async function envoyerActuEmailGroupes(id, format) {
+  format = format || 'texte_lien';
+  const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
+  if (!a) return;
+  if (_verifierLimitePartage('email')) return;
+  const groupes = getEmailGroupes();
+  if (!groupes.length) {
+    alert(LANG === 'en'
+      ? 'No email group configured yet. Add one in Settings > Email Groups.'
+      : 'Aucun groupe email configuré. Ajoutez-en un dans Paramètres > Groupes Email.');
+    return;
+  }
+  const cc = (typeof CYS !== 'undefined' ? CYS.find(x => x.code === a.cy) : null) || { flag: '🌍', name: a.cy };
+  const niveauLbl = { crit: 'CRITIQUE', high: 'ÉLEVÉ', mod: 'MODÉRÉ', ok: 'STABLE' }[a.level] || 'INFO';
+  const sujet = nomMarqueActuelle() + ' — ' + niveauLbl + ' — ' + cc.name;
+  const destinataires = [...new Set(groupes.flatMap(g => g.emails || []))].join(',');
+  if (format === 'image') {
+    const blob = await genererImageActuBlob(a, 'mail');
+    const transmiseDirect = await _partagerImageAvecRepli(blob, 'sentinel_' + a.id + '_email.png', sujet);
+    if (transmiseDirect) { enregistrerPartage(a, 'email', format); return; }
+    _toastRapide(LANG === 'en' ? 'Image downloaded — attach it to your email.' : 'Image téléchargée — joignez-la à votre email.', 'ti-photo');
+  }
+  const corps = await construireContenuPartage(a, format);
+  window.location.href = 'mailto:' + encodeURIComponent(destinataires).replace(/%2C/g, ',') + '?subject=' + encodeURIComponent(sujet) + '&body=' + encodeURIComponent(corps);
   enregistrerPartage(a, 'email', format);
 }
 
@@ -7293,6 +7492,13 @@ function toggleShareMenu(ev, id) {
   // (X/5) — les plans payants ne voient aucune mention, partage illimite.
   const quotaTag = canal => fonctionnalitePayante() ? '' :
     '<span style="margin-left:auto;font-size:9px;font-weight:700;color:'+(limiteDePartageAtteinte(canal)?'#8B1A1A':'var(--gr)')+'">'+partagesRestants(canal)+'/'+PARTAGE_LIMITE_GRATUIT+'</span>';
+  // Options "groupe" affichees uniquement si au moins un groupe est
+  // enregistre pour le canal concerne — sinon le menu resterait encombre
+  // d'options inutilisables pour la grande majorite des utilisateurs qui
+  // n'en configurent aucun.
+  const hasWaGroupes = getWhatsappContacts().some(c => c.type === 'groupe');
+  const hasTgGroupes = getTelegramGroupes().length > 0;
+  const hasEmGroupes = getEmailGroupes().length > 0;
   menu.innerHTML =
     '<div class="share-fmt-row">'+
       '<button type="button" class="share-fmt on" onclick="_choisirFormatPartage(this,\'texte_lien\')">'+(LANG==='en'?'Text+link':'Texte+lien')+'</button>'+
@@ -7300,8 +7506,11 @@ function toggleShareMenu(ev, id) {
       '<button type="button" class="share-fmt" onclick="_choisirFormatPartage(this,\'image\')">'+(LANG==='en'?'Image':'Image')+'</button>'+
     '</div>'+
     '<div class="share-mi" onclick="envoyerActuWhatsapp(\''+id+'\',shareFormatCourant());closeShareMenu()"><i class="ti ti-brand-whatsapp" style="color:#0F4F2A"></i>WhatsApp'+quotaTag('whatsapp')+'</div>'+
+    (hasWaGroupes ? '<div class="share-mi" onclick="envoyerActuWhatsappGroupes(\''+id+'\',shareFormatCourant());closeShareMenu()"><i class="ti ti-users" style="color:#0F4F2A"></i>'+(LANG==='en'?'WhatsApp group':'Groupe WhatsApp')+'</div>' : '')+
     '<div class="share-mi" onclick="envoyerActuTelegram(\''+id+'\',shareFormatCourant());closeShareMenu()"><i class="ti ti-brand-telegram" style="color:#1B5FA8"></i>Telegram'+quotaTag('telegram')+'</div>'+
+    (hasTgGroupes ? '<div class="share-mi" onclick="envoyerActuTelegramGroupes(\''+id+'\',shareFormatCourant());closeShareMenu()"><i class="ti ti-users" style="color:#1B5FA8"></i>'+(LANG==='en'?'Telegram group':'Groupe Telegram')+'</div>' : '')+
     '<div class="share-mi" onclick="envoyerActuEmail(\''+id+'\',shareFormatCourant());closeShareMenu()"><i class="ti ti-mail" style="color:var(--b)"></i>Email'+quotaTag('email')+'</div>'+
+    (hasEmGroupes ? '<div class="share-mi" onclick="envoyerActuEmailGroupes(\''+id+'\',shareFormatCourant());closeShareMenu()"><i class="ti ti-users" style="color:var(--b)"></i>'+(LANG==='en'?'Email group':'Groupe Email')+'</div>' : '')+
     '<div class="share-mi" onclick="copierActuTexte(\''+id+'\',shareFormatCourant());closeShareMenu()"><i class="ti ti-copy" style="color:var(--gr)"></i>'+(LANG==='en'?'Copy':'Copier')+quotaTag('copier')+'</div>'+
     '<div class="share-mi" onclick="partagerActuNatif(\''+id+'\',shareFormatCourant());closeShareMenu()"><i class="ti ti-share-2" style="color:var(--gr)"></i>'+(LANG==='en'?'Other apps…':'Autres applications…')+quotaTag('natif')+'</div>';
   document.body.appendChild(menu);
@@ -9854,6 +10063,8 @@ function loadParamsModule() {
   renderPaiementsAdmin();
   renderEmailjsCfg();
   renderWhatsappContacts();
+  renderTelegramGroupes();
+  renderEmailGroupes();
   renderMarquePerso();
   renderPartageStats();
   renderReclamationsAdmin();
@@ -10041,6 +10252,20 @@ function pmSaveEmailjsCfg() {
 }
 
 // ── Contacts WhatsApp (voir envoyerActuWhatsapp/whatsappMessageActu) ──────
+let waTypeCourant = 'contact';
+function waBasculerType(type) {
+  waTypeCourant = type;
+  document.getElementById('waTypeBtnContact').classList.toggle('on', type === 'contact');
+  document.getElementById('waTypeBtnGroupe').classList.toggle('on', type === 'groupe');
+  const lbl = document.getElementById('waContactValLbl'), inp = document.getElementById('waContactTel');
+  if (type === 'groupe') {
+    lbl.textContent = 'Lien d\'invitation (chat.whatsapp.com/...)';
+    inp.placeholder = 'Ex. https://chat.whatsapp.com/XXXXXXXXXXXX';
+  } else {
+    lbl.textContent = 'Numéro (avec indicatif pays)';
+    inp.placeholder = 'Ex. +225 07 12 34 56 78';
+  }
+}
 function renderWhatsappContacts() {
   const body = document.getElementById('waContactsBody');
   if (!body) return;
@@ -10051,31 +10276,110 @@ function renderWhatsappContacts() {
   // concu pour les panneaux sombres (texte quasi transparent, invisible sur
   // le fond clair de ce tableau Parametres).
   body.innerHTML = contacts.length ? contacts.map((c, i) =>
-    '<tr><td>' + _apEsc(c.nom || '—') + '</td><td>' + _apEsc(c.tel || '') + '</td>' +
+    '<tr><td>' + _apEsc(c.nom || '—') + '</td>' +
+    '<td>' + (c.type === 'groupe' ? '<i class="ti ti-users"></i> Groupe' : '<i class="ti ti-user"></i> Contact') + '</td>' +
+    '<td>' + _apEsc(c.type === 'groupe' ? (c.lien || '') : (c.tel || '')) + '</td>' +
     '<td><button class="btn-action" style="background:var(--rl);color:var(--r);border-color:var(--rb)" onclick="waSupprimerContact(' + i + ')"><i class="ti ti-trash"></i></button></td></tr>'
-  ).join('') : '<tr><td colspan="3" style="color:var(--lg);text-align:center;padding:12px">Aucun contact — le bouton WhatsApp des actus invitera à en ajouter un.</td></tr>';
+  ).join('') : '<tr><td colspan="4" style="color:var(--lg);text-align:center;padding:12px">Aucun contact — le bouton WhatsApp des actus invitera à en ajouter un.</td></tr>';
 }
 function waAjouterContact() {
   const nomEl = document.getElementById('waContactNom'), telEl = document.getElementById('waContactTel');
   const nom = (nomEl.value || '').trim();
-  const telBrut = (telEl.value || '').trim();
-  const tel = telBrut.replace(/[^\d]/g, '');
-  if (!tel || tel.length < 8) {
-    pmMsg('Numéro invalide — incluez l\'indicatif pays (ex. +225...).', 'err', 'waContactMsg');
-    return;
-  }
+  const valBrute = (telEl.value || '').trim();
   const contacts = getWhatsappContacts();
-  contacts.push({ nom: nom || tel, tel });
+  if (waTypeCourant === 'groupe') {
+    if (!/^https?:\/\/(chat\.whatsapp\.com|wa\.me)\//i.test(valBrute)) {
+      pmMsg('Lien de groupe invalide — collez le lien d\'invitation WhatsApp (chat.whatsapp.com/...).', 'err', 'waContactMsg');
+      return;
+    }
+    contacts.push({ type: 'groupe', nom: nom || 'Groupe WhatsApp', lien: valBrute });
+    pmMsg('Groupe ajouté.', 'ok', 'waContactMsg');
+  } else {
+    const tel = valBrute.replace(/[^\d]/g, '');
+    if (!tel || tel.length < 8) {
+      pmMsg('Numéro invalide — incluez l\'indicatif pays (ex. +225...).', 'err', 'waContactMsg');
+      return;
+    }
+    contacts.push({ type: 'contact', nom: nom || tel, tel });
+    pmMsg('Contact ajouté.', 'ok', 'waContactMsg');
+  }
   saveWhatsappContacts(contacts);
   nomEl.value = ''; telEl.value = '';
   renderWhatsappContacts();
-  pmMsg('Contact ajouté.', 'ok', 'waContactMsg');
 }
 function waSupprimerContact(index) {
   const contacts = getWhatsappContacts();
   contacts.splice(index, 1);
   saveWhatsappContacts(contacts);
   renderWhatsappContacts();
+}
+
+// ── Groupes/Canaux Telegram (voir envoyerActuTelegramGroupes) ────────────
+function renderTelegramGroupes() {
+  const body = document.getElementById('tgGroupesBody');
+  if (!body) return;
+  const groupes = getTelegramGroupes();
+  const cntEl = document.getElementById('tgGroupesCount');
+  if (cntEl) cntEl.textContent = groupes.length + ' groupe(s)';
+  body.innerHTML = groupes.length ? groupes.map((g, i) =>
+    '<tr><td>' + _apEsc(g.nom || '—') + '</td><td>' + _apEsc(g.lien || '') + '</td>' +
+    '<td><button class="btn-action" style="background:var(--rl);color:var(--r);border-color:var(--rb)" onclick="tgSupprimerGroupe(' + i + ')"><i class="ti ti-trash"></i></button></td></tr>'
+  ).join('') : '<tr><td colspan="3" style="color:var(--lg);text-align:center;padding:12px">Aucun groupe — le bouton Telegram des actus invitera à en ajouter un.</td></tr>';
+}
+function tgAjouterGroupe() {
+  const nomEl = document.getElementById('tgGroupeNom'), lienEl = document.getElementById('tgGroupeLien');
+  const nom = (nomEl.value || '').trim();
+  const lien = (lienEl.value || '').trim();
+  if (!/^https?:\/\/t\.me\//i.test(lien)) {
+    pmMsg('Lien invalide — collez un lien Telegram (https://t.me/...).', 'err', 'tgGroupeMsg');
+    return;
+  }
+  const groupes = getTelegramGroupes();
+  groupes.push({ nom: nom || 'Groupe Telegram', lien });
+  saveTelegramGroupes(groupes);
+  nomEl.value = ''; lienEl.value = '';
+  renderTelegramGroupes();
+  pmMsg('Groupe ajouté.', 'ok', 'tgGroupeMsg');
+}
+function tgSupprimerGroupe(index) {
+  const groupes = getTelegramGroupes();
+  groupes.splice(index, 1);
+  saveTelegramGroupes(groupes);
+  renderTelegramGroupes();
+}
+
+// ── Groupes Email / listes de diffusion (voir envoyerActuEmailGroupes) ───
+function renderEmailGroupes() {
+  const body = document.getElementById('emGroupesBody');
+  if (!body) return;
+  const groupes = getEmailGroupes();
+  const cntEl = document.getElementById('emGroupesCount');
+  if (cntEl) cntEl.textContent = groupes.length + ' groupe(s)';
+  body.innerHTML = groupes.length ? groupes.map((g, i) =>
+    '<tr><td>' + _apEsc(g.nom || '—') + '</td><td>' + _apEsc((g.emails || []).join(', ')) + '</td>' +
+    '<td><button class="btn-action" style="background:var(--rl);color:var(--r);border-color:var(--rb)" onclick="emSupprimerGroupe(' + i + ')"><i class="ti ti-trash"></i></button></td></tr>'
+  ).join('') : '<tr><td colspan="3" style="color:var(--lg);text-align:center;padding:12px">Aucun groupe — le bouton Email des actus invitera à en ajouter un.</td></tr>';
+}
+function emAjouterGroupe() {
+  const nomEl = document.getElementById('emGroupeNom'), emailsEl = document.getElementById('emGroupeEmails');
+  const nom = (nomEl.value || '').trim();
+  const emails = (emailsEl.value || '').split(',').map(e => e.trim()).filter(e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e));
+  if (!emails.length) {
+    pmMsg('Aucune adresse email valide — séparez plusieurs adresses par des virgules.', 'err', 'emGroupeMsg');
+    return;
+  }
+  const groupes = getEmailGroupes();
+  groupes.push({ nom: nom || emails[0], emails });
+  saveEmailGroupes(groupes);
+  nomEl.value = ''; emailsEl.value = '';
+  renderEmailGroupes();
+  pmMsg('Groupe ajouté.', 'ok', 'emGroupeMsg');
+}
+function emSupprimerGroupe(index) {
+  const groupes = getEmailGroupes();
+  groupes.splice(index, 1);
+  saveEmailGroupes(groupes);
+  renderEmailGroupes();
 }
 
 // ── Personnalisation de marque (fonctionnalite payante, voir
