@@ -7561,6 +7561,199 @@ function closeShareMenu() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+//  PARTAGE D'UNE FICHE PAYS (module Alertes) — meme agent de traduction actif
+//  et memes canaux (WhatsApp/Telegram/Email/Copier/natif) que le partage
+//  d'une actu, mais construit a partir du score d'alerte d'un pays (pas d'un
+//  article) : pas de lien direct ni de variante image, seulement un resume
+//  texte (niveau, score, incidents recents, mesures cles).
+// ═══════════════════════════════════════════════════════════════════════════
+async function construireContenuPartageAlerte(cy) {
+  const pays = PAYS_INFO[cy];
+  if (!pays || typeof calcAlertScore !== 'function') return '';
+  const score = calcAlertScore(cy);
+  const n = score.niv;
+  const entete = nomMarqueActuelle() + ' — ' + (LANG === 'en' ? 'COUNTRY ALERT' : 'ALERTE PAYS') +
+    '\n' + pays.flag + ' ' + pays.name + ' — ' + n.label + ' (' + score.total100 + '/100)';
+  const rangOrdre = { rouge: 0, marron: 1, orange: 2, jaune: 3, vert: 4 };
+  const topIncidents = [...score.events].sort((a, b) => (rangOrdre[a.level] ?? 4) - (rangOrdre[b.level] ?? 4)).slice(0, 3);
+  let incidentsTxt = '';
+  if (topIncidents.length) {
+    const lignes = await Promise.all(topIncidents.map(async e => '• ' + await traduireAvantPartage(e.title) + ' (' + e.date + ')'));
+    incidentsTxt = '\n\n' + (LANG === 'en' ? 'Recent incidents:' : 'Incidents récents :') + '\n' + lignes.join('\n');
+  }
+  const m = MESURES[score.key];
+  const mesureTxt = (m && m.expatries && m.expatries[0])
+    ? '\n\n' + (LANG === 'en' ? 'Key measure:' : 'Mesure clé :') + ' ' + m.expatries[0]
+    : '';
+  return entete + incidentsTxt + mesureTxt + signatureEnvoiActuelle();
+}
+
+async function envoyerAlerteWhatsapp(cy, format) {
+  if (_verifierLimitePartage('whatsapp')) return;
+  const contacts = getWhatsappContacts().filter(c => c.type !== 'groupe');
+  if (!contacts.length) {
+    alert(LANG === 'en'
+      ? 'No WhatsApp contact configured yet. Add one in Settings > WhatsApp Contacts.'
+      : 'Aucun contact WhatsApp configuré. Ajoutez-en un dans Paramètres > Contacts WhatsApp.');
+    return;
+  }
+  const msg = encodeURIComponent(await construireContenuPartageAlerte(cy));
+  contacts.forEach(c => {
+    const numero = (c.tel || '').replace(/[^\d]/g, '');
+    if (!numero) return;
+    window.open('https://wa.me/' + numero + '?text=' + msg, '_blank', 'noopener');
+  });
+  enregistrerAlertePartagee(cy, 'whatsapp');
+}
+async function envoyerAlerteWhatsappGroupes(cy) {
+  if (_verifierLimitePartage('whatsapp')) return;
+  const groupes = getWhatsappContacts().filter(c => c.type === 'groupe');
+  if (!groupes.length) {
+    alert(LANG === 'en'
+      ? 'No WhatsApp group configured yet. Add one in Settings > WhatsApp Contacts.'
+      : 'Aucun groupe WhatsApp configuré. Ajoutez-en un dans Paramètres > Contacts WhatsApp.');
+    return;
+  }
+  try { await navigator.clipboard.writeText(await construireContenuPartageAlerte(cy)); } catch (e) {}
+  groupes.forEach(g => { if (g.lien) window.open(g.lien, '_blank', 'noopener'); });
+  _toastRapide(LANG === 'en' ? 'Copied — paste it in the WhatsApp group(s) that just opened.' : 'Copié — collez-le dans le(s) groupe(s) WhatsApp qui viennent de s\'ouvrir.', 'ti-copy');
+  enregistrerAlertePartagee(cy, 'whatsapp');
+}
+async function envoyerAlerteTelegram(cy) {
+  if (_verifierLimitePartage('telegram')) return;
+  const url = 'https://t.me/share/url?url=&text=' + encodeURIComponent(await construireContenuPartageAlerte(cy));
+  window.open(url, '_blank', 'noopener');
+  enregistrerAlertePartagee(cy, 'telegram');
+}
+async function envoyerAlerteTelegramGroupes(cy) {
+  if (_verifierLimitePartage('telegram')) return;
+  const groupes = getTelegramGroupes();
+  if (!groupes.length) {
+    alert(LANG === 'en'
+      ? 'No Telegram group/channel configured yet. Add one in Settings > Telegram Groups.'
+      : 'Aucun groupe/canal Telegram configuré. Ajoutez-en un dans Paramètres > Groupes Telegram.');
+    return;
+  }
+  try { await navigator.clipboard.writeText(await construireContenuPartageAlerte(cy)); } catch (e) {}
+  groupes.forEach(g => { if (g.lien) window.open(g.lien, '_blank', 'noopener'); });
+  _toastRapide(LANG === 'en' ? 'Copied — paste it in the Telegram group(s)/channel(s) that just opened.' : 'Copié — collez-le dans le(s) groupe(s)/canal(aux) Telegram qui viennent de s\'ouvrir.', 'ti-copy');
+  enregistrerAlertePartagee(cy, 'telegram');
+}
+async function envoyerAlerteEmail(cy) {
+  if (_verifierLimitePartage('email')) return;
+  const pays = PAYS_INFO[cy] || { name: cy };
+  const sujet = nomMarqueActuelle() + ' — ' + (LANG === 'en' ? 'Country alert' : 'Alerte pays') + ' — ' + pays.name;
+  const corps = await construireContenuPartageAlerte(cy);
+  window.location.href = 'mailto:?subject=' + encodeURIComponent(sujet) + '&body=' + encodeURIComponent(corps);
+  enregistrerAlertePartagee(cy, 'email');
+}
+async function envoyerAlerteEmailGroupes(cy) {
+  if (_verifierLimitePartage('email')) return;
+  const groupes = getEmailGroupes();
+  if (!groupes.length) {
+    alert(LANG === 'en'
+      ? 'No email group configured yet. Add one in Settings > Email Groups.'
+      : 'Aucun groupe email configuré. Ajoutez-en un dans Paramètres > Groupes Email.');
+    return;
+  }
+  const pays = PAYS_INFO[cy] || { name: cy };
+  const sujet = nomMarqueActuelle() + ' — ' + (LANG === 'en' ? 'Country alert' : 'Alerte pays') + ' — ' + pays.name;
+  const destinataires = [...new Set(groupes.flatMap(g => g.emails || []))].join(',');
+  const corps = await construireContenuPartageAlerte(cy);
+  window.location.href = 'mailto:' + encodeURIComponent(destinataires).replace(/%2C/g, ',') + '?subject=' + encodeURIComponent(sujet) + '&body=' + encodeURIComponent(corps);
+  enregistrerAlertePartagee(cy, 'email');
+}
+async function copierAlerteTexte(cy) {
+  if (_verifierLimitePartage('copier')) return;
+  const texte = await construireContenuPartageAlerte(cy);
+  try {
+    await navigator.clipboard.writeText(texte);
+  } catch (e) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = texte; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    } catch (e2) {
+      alert(LANG === 'en' ? 'Copy failed — please copy manually.' : 'Échec de la copie — copiez manuellement.');
+      return;
+    }
+  }
+  _toastRapide(LANG === 'en' ? 'Copied to clipboard' : 'Copié dans le presse-papiers', 'ti-check');
+  enregistrerAlertePartagee(cy, 'copier');
+}
+async function partagerAlerteNatif(cy) {
+  if (_verifierLimitePartage('natif')) return;
+  const pays = PAYS_INFO[cy] || { name: cy };
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: nomMarqueActuelle(), text: await construireContenuPartageAlerte(cy) });
+      enregistrerAlertePartagee(cy, 'natif');
+      return;
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;
+    }
+  }
+  copierAlerteTexte(cy);
+}
+// enregistrerAlertePartagee(cy, canal) : journalise le partage d'une fiche
+// pays dans les memes statistiques et le meme quota que le partage d'une
+// actu (voir enregistrerPartage) — pas de compteur separe, un partage reste
+// un partage quel que soit son origine dans l'application.
+function enregistrerAlertePartagee(cy, canal) {
+  const pays = PAYS_INFO[cy] || { name: cy };
+  enregistrerPartage({ id: 'alerte-' + cy, cy, title: pays.name }, canal, 'texte');
+}
+
+// toggleShareMenuAlerte(ev, cy) : menu de partage d'une fiche pays — reutilise
+// le meme composant visuel (.share-menu/.share-mi) et les memes fonctions de
+// positionnement/fermeture (closeShareMenu, etc.) que le partage d'une actu,
+// sans la ligne de choix de format (une fiche pays n'a pas de variante image).
+function toggleShareMenuAlerte(ev, cy) {
+  ev.stopPropagation();
+  const menuExistant = document.getElementById('shareMenuGlobal');
+  const dejaOuvertPourCetId = menuExistant && menuExistant.dataset.actid === 'alerte-' + cy;
+  closeShareMenu();
+  if (dejaOuvertPourCetId) return;
+
+  const btn = ev.currentTarget;
+  const menu = document.createElement('div');
+  menu.id = 'shareMenuGlobal';
+  menu.className = 'share-menu';
+  menu.dataset.actid = 'alerte-' + cy;
+  const quotaTag = canal => fonctionnalitePayante() ? '' :
+    '<span style="margin-left:auto;font-size:9px;font-weight:700;color:'+(limiteDePartageAtteinte(canal)?'#8B1A1A':'var(--gr)')+'">'+partagesRestants(canal)+'/'+PARTAGE_LIMITE_GRATUIT+'</span>';
+  const hasWaGroupes = getWhatsappContacts().some(c => c.type === 'groupe');
+  const hasTgGroupes = getTelegramGroupes().length > 0;
+  const hasEmGroupes = getEmailGroupes().length > 0;
+  menu.innerHTML =
+    '<div class="share-mi" onclick="envoyerAlerteWhatsapp(\''+cy+'\');closeShareMenu()"><i class="ti ti-brand-whatsapp" style="color:#0F4F2A"></i>WhatsApp'+quotaTag('whatsapp')+'</div>'+
+    (hasWaGroupes ? '<div class="share-mi" onclick="envoyerAlerteWhatsappGroupes(\''+cy+'\');closeShareMenu()"><i class="ti ti-users" style="color:#0F4F2A"></i>'+(LANG==='en'?'WhatsApp group':'Groupe WhatsApp')+'</div>' : '')+
+    '<div class="share-mi" onclick="envoyerAlerteTelegram(\''+cy+'\');closeShareMenu()"><i class="ti ti-brand-telegram" style="color:#1B5FA8"></i>Telegram'+quotaTag('telegram')+'</div>'+
+    (hasTgGroupes ? '<div class="share-mi" onclick="envoyerAlerteTelegramGroupes(\''+cy+'\');closeShareMenu()"><i class="ti ti-users" style="color:#1B5FA8"></i>'+(LANG==='en'?'Telegram group':'Groupe Telegram')+'</div>' : '')+
+    '<div class="share-mi" onclick="envoyerAlerteEmail(\''+cy+'\');closeShareMenu()"><i class="ti ti-mail" style="color:var(--b)"></i>Email'+quotaTag('email')+'</div>'+
+    (hasEmGroupes ? '<div class="share-mi" onclick="envoyerAlerteEmailGroupes(\''+cy+'\');closeShareMenu()"><i class="ti ti-users" style="color:var(--b)"></i>'+(LANG==='en'?'Email group':'Groupe Email')+'</div>' : '')+
+    '<div class="share-mi" onclick="copierAlerteTexte(\''+cy+'\');closeShareMenu()"><i class="ti ti-copy" style="color:var(--gr)"></i>'+(LANG==='en'?'Copy':'Copier')+quotaTag('copier')+'</div>'+
+    '<div class="share-mi" onclick="partagerAlerteNatif(\''+cy+'\');closeShareMenu()"><i class="ti ti-share-2" style="color:var(--gr)"></i>'+(LANG==='en'?'Other apps…':'Autres applications…')+quotaTag('natif')+'</div>';
+  document.body.appendChild(menu);
+
+  const rect = btn.getBoundingClientRect();
+  const mw = 210, mh = menu.offsetHeight || 200;
+  let left = Math.min(rect.left, window.innerWidth - mw - 8);
+  let top = rect.bottom + 4;
+  if (top + mh > window.innerHeight) top = rect.top - mh - 4;
+  menu.style.left = Math.max(8, left) + 'px';
+  menu.style.top = Math.max(8, top) + 'px';
+
+  btn.classList.add('on');
+  setTimeout(() => {
+    document.addEventListener('click', _closeShareMenuOnOutsideClick);
+    document.addEventListener('keydown', _closeShareMenuOnEscape);
+  }, 0);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 //  AGENT DE VERIFICATION DES LIENS SOURCE — le lien direct capture a la
 //  collecte (a.url) peut se reveler mort au moment ou l'utilisateur clique
 //  (article deplace/depublie chez le media source entretemps, ou lien deja
@@ -11252,7 +11445,10 @@ async function renderAlertCard(score) {
   const sorted = [...score.events].sort((a,b)=>(lo[a.level]||4)-(lo[b.level]||4));
   const pct = Math.min(100, Math.round(score.total100));
 
-  await preTraduireRapport(sorted.slice(0,5).map(e => e.title));
+  await preTraduireRapport([
+    ...sorted.slice(0,5).map(e => e.title),
+    ...m.expatries, ...m.locaux, ...m.installations, ...m.vehicules,
+  ]);
   const evHtml = sorted.slice(0,5).map((e, idx) => {
     const d = NIV[e.level]||NIV.vert;
     const fresh = isWithin12h(e.date);
@@ -11286,7 +11482,7 @@ async function renderAlertCard(score) {
       </div>
       ${items.map((it,idx)=>{const mId='mes-'+score.cy+'-'+catKey+'-'+idx;return `<div style="display:flex;gap:6px;padding:3px 0;border-bottom:.5px solid var(--bd);">
         <i class="ti ti-check" style="font-size:10px;color:${n.col};flex-shrink:0;margin-top:2px;"></i>
-        <span id="${mId}" style="font-size:10px;color:var(--t2);line-height:1.4;">${tr(it,mId)}</span>
+        <span id="${mId}" style="font-size:10px;color:var(--t2);line-height:1.4;">${L(it)}</span>
       </div>`;}).join('')}
     </div>`;
   }
@@ -11340,14 +11536,19 @@ async function renderAlertCard(score) {
         ${mesureBlock(t('mes_vehic'),'ti-car',m.vehicules,'vehic')}
       </div>
     </div>
+    <!-- PARTAGE DE LA FICHE PAYS -->
+    <div style="padding:8px 12px;background:var(--sf);border-top:1px solid var(--bd);display:flex;justify-content:flex-end;">
+      <button class="share-trigger" onclick="toggleShareMenuAlerte(event,'${score.cy}')" title="${LANG==='en'?'Share this country card':'Partager cette fiche pays'}"><i class="ti ti-share-2"></i>${LANG==='en'?'Share':'Partager'}</button>
+    </div>
   </div>`;
 }
 
-function renderAlertTable(scores) {
+async function renderAlertTable(scores) {
   const h = '<tr>' + ['Pays','Capitale','Niveau','Score','Incidents','Mesure clé expatriés','Mesure clé installations','MAJ'].map(c=>
     `<th style="padding:7px 10px;text-align:left;font-size:9px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.06em;background:var(--n);border-bottom:1px solid var(--bd);">${c}</th>`
   ).join('') + '</tr>';
 
+  await preTraduireRapport(Object.values(MESURES).flatMap(m => [m.expatries[0], m.installations[0]]));
   const rows = scores.map((s,i) => {
     const pays = PAYS_INFO[s.cy];
     const n = s.niv;
@@ -11359,8 +11560,8 @@ function renderAlertTable(scores) {
       <td style="padding:7px 10px;"><div style="padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700;color:#fff;background:${n.col};display:inline-block;">${n.label} — ${n.sous}</div></td>
       <td style="padding:7px 10px;font-size:11px;font-weight:700;color:${n.col};">${s.total100}</td>
       <td style="padding:7px 10px;font-size:10px;color:var(--t2);">${s.events.length}</td>
-      <td style="padding:7px 10px;font-size:9px;color:var(--t2);">${m.expatries[0]}</td>
-      <td style="padding:7px 10px;font-size:9px;color:var(--t2);">${m.installations[0]}</td>
+      <td style="padding:7px 10px;font-size:9px;color:var(--t2);">${L(m.expatries[0])}</td>
+      <td style="padding:7px 10px;font-size:9px;color:var(--t2);">${L(m.installations[0])}</td>
       <td style="padding:7px 10px;font-size:9px;color:var(--lg);">${new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'})} ${new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</td>
     </tr>`;
   }).join('');
@@ -11622,6 +11823,9 @@ async function ouvrirVuePays(cy) {
           <button onclick="document.getElementById('vuePaysOverlay').remove();switchView('rapports',document.querySelector('.ntab[onclick*=rapports]'));setRapportCy('${cy}')" style="flex:1;min-width:160px;padding:9px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;color:var(--t);font-size:11px;font-weight:700;cursor:pointer;">
             <i class="ti ti-download"></i> Generer un rapport
           </button>
+          <button class="share-trigger" onclick="toggleShareMenuAlerte(event,'${cy}')" style="flex:1;min-width:160px;padding:9px;justify-content:center;">
+            <i class="ti ti-share-2"></i>${LANG==='en'?'Share':'Partager'}
+          </button>
         </div>
       </div>
     </div>`;
@@ -11805,7 +12009,7 @@ async function recalcAlertes(opts) {
   if (!grid || !table) return; // vue Alertes pas encore ouverte : le calcul reste fait, juste pas affiche
 
   grid.innerHTML  = (await Promise.all(scores.map(s => renderAlertCard(s)))).join('');
-  table.innerHTML = renderAlertTable(scores);
+  table.innerHTML = await renderAlertTable(scores);
 
   const now = new Date().toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
   const upd = document.getElementById('alerteLastUpdate');
