@@ -1,0 +1,21 @@
+name: Déploiement Firebase Hosting
+
+# Se déclenche à chaque push sur cette branche de test, ou manuellement
+# depuis l'onglet Actions (bouton "Run workflow"). Le job tourne sur les
+# serveurs GitHub — pas de restriction réseau côté environnement de dev.
+on:
+  push:
+    branches: [claude/ameliorer-g1td4n]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
+          channelId: live
