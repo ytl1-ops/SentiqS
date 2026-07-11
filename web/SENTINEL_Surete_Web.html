@@ -2456,6 +2456,31 @@ button:not(:disabled){
             </div>
           </div>
 
+          <!-- Téléchargements par abonnement -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-download"></i>
+                <div><div class="pm-sec-title">Téléchargements par abonnement</div>
+                <div class="pm-sec-sub">Limite de documents téléchargeables selon le plan de l'utilisateur</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px">
+              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
+                Fixe, pour chaque abonnement, un nombre maximal de documents téléchargeables (tous formats
+                confondus — Word/PDF/PowerPoint/Excel/CSV —, cumulé par compte). Cochez « Illimité » pour ne
+                fixer aucune limite sur ce plan.
+              </div>
+              <table class="pm-users-table">
+                <thead><tr><th>Abonnement</th><th>Limite</th><th>Illimité</th></tr></thead>
+                <tbody id="dlQuotaBody"></tbody>
+              </table>
+              <div style="margin-top:12px;display:flex;align-items:center;gap:10px">
+                <button class="btn-action btn-rest" onclick="pmSaveDLQuotas()"><i class="ti ti-device-floppy"></i> Enregistrer les quotas</button>
+                <span class="pmu-msg" id="dlQuotaMsg" style="margin:0"></span>
+              </div>
+            </div>
+          </div>
+
           <!-- Gestion clientèle -->
           <div class="pm-section">
             <div class="pm-sec-hd">
@@ -2743,6 +2768,33 @@ button:not(:disabled){
             </div>
           </div>
 
+          <!-- Statistiques de téléchargement -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-chart-bar"></i>
+                <div><div class="pm-sec-title">Statistiques de téléchargement</div>
+                <div class="pm-sec-sub" id="dlStatsCount">0 téléchargement(s)</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px">
+              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
+                Chaque document généré avec succès (Word, PDF, PowerPoint, Excel, CSV) est journalisé
+                localement — répartition par format et par utilisateur, activité des 7 derniers jours.
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:14px" id="dlStatsGrid"></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div>
+                  <div style="font-size:10px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Par format</div>
+                  <div id="dlStatsFormat" style="font-size:11px;color:var(--t2);line-height:2"></div>
+                </div>
+                <div>
+                  <div style="font-size:10px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Téléchargements par utilisateur</div>
+                  <div id="dlStatsUsers"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Suivi des réclamations -->
           <div class="pm-section">
             <div class="pm-sec-hd">
@@ -2771,7 +2823,9 @@ button:not(:disabled){
             <div class="pm-sec-body" style="padding:14px 16px">
               <div class="traffic-kpi-grid" id="trafficKpis"></div>
               <div style="font-size:10px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Répartition par module (7 derniers jours)</div>
-              <div id="trafficBars"></div>
+              <div id="trafficBars" style="margin-bottom:14px"></div>
+              <div style="font-size:10px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Vues par utilisateur (7 derniers jours)</div>
+              <div id="trafficBarsUsers"></div>
             </div>
           </div>
 
@@ -6950,6 +7004,76 @@ function statsPartageAgregees() {
   return { total: stats.length, parCanal, parFormat, derniers7j, topPays };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  QUOTA DE TÉLÉCHARGEMENT PAR ABONNEMENT — même principe que le quota de
+//  partage ci-dessus (comptabilise par compte, jamais globalement), mais la
+//  limite elle-meme est CONFIGURABLE par l'administrateur (Parametres >
+//  Téléchargements par abonnement) plutot que figee dans le code — un plan
+//  peut etre limite ou passe a illimite (valeur null) a tout moment, sans
+//  toucher au code.
+// ═══════════════════════════════════════════════════════════════════════════
+const DL_QUOTA_KEY = 'sentinel_dl_quota_v1';
+// Valeurs par defaut : null = illimite. Alignees sur l'esprit de la grille
+// tarifaire (PRICING_DEFAUT) sans y etre couplees en dur.
+const DL_QUOTA_DEFAUT = { gratuit: 5, standard: 20, pro: null, entreprise: null };
+function getDLQuotas() { return _ls(() => JSON.parse(localStorage.getItem(DL_QUOTA_KEY) || 'null'), null) || DL_QUOTA_DEFAUT; }
+function saveDLQuotas(q) { _ls(() => localStorage.setItem(DL_QUOTA_KEY, JSON.stringify(q))); }
+const DL_STATS_KEY = 'sentinel_dl_stats';
+const DL_STATS_MAX = 1000;
+function getDLStats() { try { return JSON.parse(localStorage.getItem(DL_STATS_KEY) || '[]'); } catch (e) { return []; } }
+// enregistrerTelechargement(name) : journalise un document genere avec
+// succes (voir dlFile, point de passage unique de tous les exports) —
+// format deduit de l'extension, pas besoin de le faire remonter depuis
+// chaque fonction d'export individuellement.
+function enregistrerTelechargement(name) {
+  try {
+    const stats = getDLStats();
+    const session = (typeof getSession === 'function') ? getSession() : {};
+    const format = (name.split('.').pop() || '').toLowerCase();
+    stats.push({ ts: Date.now(), name, format, email: session.email || null });
+    if (stats.length > DL_STATS_MAX) stats.splice(0, stats.length - DL_STATS_MAX);
+    localStorage.setItem(DL_STATS_KEY, JSON.stringify(stats));
+  } catch (e) {}
+}
+function telechargementsRestants() {
+  const plan = (typeof planUtilisateurActuel === 'function') ? planUtilisateurActuel() : 'gratuit';
+  const limite = getDLQuotas()[plan];
+  if (limite === null || limite === undefined) return Infinity;
+  const email = (typeof getSession === 'function' ? getSession().email : null) || null;
+  const n = getDLStats().filter(s => s.email === email).length;
+  return Math.max(0, limite - n);
+}
+function limiteDeTelechargementAtteinte() { return telechargementsRestants() <= 0; }
+// _verifierLimiteTelechargement() : a appeler en tete de chaque fonction
+// d'export (exportWord/exportPDF/exportPPTX/exportExcel/exportCSV) — bloque
+// et previent l'utilisateur si le quota de son abonnement est deja
+// consomme, avant meme de lancer la generation (evite un travail inutile).
+function _verifierLimiteTelechargement() {
+  if (!limiteDeTelechargementAtteinte()) return false;
+  const msg = LANG === 'en'
+    ? 'Download limit reached for your plan. Upgrade to continue.'
+    : 'Limite de téléchargements atteinte pour votre abonnement. Passez à un plan supérieur pour continuer.';
+  if (typeof _toastRapide === 'function') _toastRapide(msg, 'ti-lock');
+  else alert(msg);
+  return true;
+}
+// statsTelechargementsAgregees() : agregats consultables dans Parametres
+// (total, activite 7j, repartition par format, top utilisateurs).
+function statsTelechargementsAgregees() {
+  const stats = getDLStats();
+  const parFormat = {}, parEmail = {};
+  const semaineMs = 7 * 24 * 60 * 60 * 1000;
+  let derniers7j = 0;
+  stats.forEach(s => {
+    parFormat[s.format] = (parFormat[s.format] || 0) + 1;
+    if (s.email) parEmail[s.email] = (parEmail[s.email] || 0) + 1;
+    if (Date.now() - s.ts < semaineMs) derniers7j++;
+  });
+  const topUtilisateurs = Object.entries(parEmail).sort((a, b) => b[1] - a[1]).slice(0, 8)
+    .map(([email, n]) => ({ email, n }));
+  return { total: stats.length, parFormat, derniers7j, topUtilisateurs };
+}
+
 // construireContenuPartage(a, format) : texte adapte au format choisi par
 // l'utilisateur dans le menu de partage.
 // - 'texte'      : sans lien (envoi tres court, ou quand l'image jointe
@@ -9958,25 +10082,33 @@ const FEATURES = [
 const KEY_DL = 'sentinel_dl_rights_v1';
 const KEY_FT = 'sentinel_ft_rights_v1';
 
-// Droits en mémoire — admin a tout, toujours
+// Droits persistes en localStorage (cf. _ls) — auparavant geres en memoire
+// seule (_MEM_DL/_MEM_FT jamais lus/ecrits dans localStorage malgre KEY_DL/
+// KEY_FT deja declares) : les droits configures par l'administrateur
+// disparaissaient a chaque rechargement de page, revenant systematiquement
+// a l'acces complet par defaut.
 let _MEM_DL = null, _MEM_FT = null;
 function getDLRights() {
   if (_MEM_DL) return _MEM_DL;
+  const saved = _ls(() => JSON.parse(localStorage.getItem(KEY_DL) || 'null'), null);
+  if (saved) { _MEM_DL = saved; return _MEM_DL; }
   // Admin : accès total à tout par défaut
   const d = {};
   DL_REPORTS.forEach(r => { d[r.id] = ['admin','user','reader']; });
   _MEM_DL = d;
   return _MEM_DL;
 }
-function saveDLRights(r) { _MEM_DL = r; }
+function saveDLRights(r) { _MEM_DL = r; _ls(() => localStorage.setItem(KEY_DL, JSON.stringify(r))); }
 function getFTRights() {
   if (_MEM_FT) return _MEM_FT;
+  const saved = _ls(() => JSON.parse(localStorage.getItem(KEY_FT) || 'null'), null);
+  if (saved) { _MEM_FT = saved; return _MEM_FT; }
   const d = {};
   FEATURES.forEach(f => { d[f.id] = ['admin','user','reader']; });
   _MEM_FT = d;
   return _MEM_FT;
 }
-function saveFTRights(r) { _MEM_FT = r; }
+function saveFTRights(r) { _MEM_FT = r; _ls(() => localStorage.setItem(KEY_FT, JSON.stringify(r))); }
 
 // Initialiser les droits par defaut
 function initRights() {
@@ -10255,6 +10387,7 @@ function loadParamsModule() {
   pmRenderUsers();
   pmRenderPending();
   renderPricing();
+  renderDLQuotas();
   renderPaymethods();
   renderClientele();
   renderPaiementsAdmin();
@@ -10264,6 +10397,7 @@ function loadParamsModule() {
   renderEmailGroupes();
   renderMarquePerso();
   renderPartageStats();
+  renderDLStats();
   renderReclamationsAdmin();
   renderTraffic();
 }
@@ -10321,6 +10455,39 @@ function pmSavePricing() {
   });
   savePricing(plans);
   pmMsg('Grille tarifaire enregistrée.', 'ok', 'pricingMsg');
+}
+
+// ── TÉLÉCHARGEMENTS PAR ABONNEMENT (voir DL_QUOTA_KEY/telechargementsRestants) ──
+function renderDLQuotas() {
+  const body = document.getElementById('dlQuotaBody');
+  if (!body) return;
+  const quotas = getDLQuotas();
+  const plans = (typeof getPricing === 'function') ? getPricing() : PRICING_DEFAUT;
+  body.innerHTML = plans.map(p => {
+    const limite = quotas[p.key];
+    const illimite = limite === null || limite === undefined;
+    return '<tr><td>' + p.nom + '</td>' +
+      '<td><input type="number" min="0" id="dlq-' + p.key + '" value="' + (illimite ? '' : limite) + '" ' + (illimite ? 'disabled' : '') + ' style="width:80px;padding:4px 6px;border:1px solid var(--bd);border-radius:5px;font-size:11px"></td>' +
+      '<td><label class="tgl"><input type="checkbox" id="dlqu-' + p.key + '" ' + (illimite ? 'checked' : '') + ' onchange="_dlQuotaToggleIllimite(\'' + p.key + '\',this.checked)"><div class="tgl-sw"></div></label></td>' +
+    '</tr>';
+  }).join('');
+}
+function _dlQuotaToggleIllimite(key, checked) {
+  const inp = document.getElementById('dlq-' + key);
+  if (inp) inp.disabled = checked;
+}
+function pmSaveDLQuotas() {
+  const plans = (typeof getPricing === 'function') ? getPricing() : PRICING_DEFAUT;
+  const quotas = {};
+  plans.forEach(p => {
+    const illimiteEl = document.getElementById('dlqu-' + p.key);
+    if (illimiteEl && illimiteEl.checked) { quotas[p.key] = null; return; }
+    const valEl = document.getElementById('dlq-' + p.key);
+    const v = valEl ? parseInt(valEl.value, 10) : 0;
+    quotas[p.key] = isNaN(v) ? 0 : v;
+  });
+  saveDLQuotas(quotas);
+  pmMsg('Quotas de téléchargement enregistrés.', 'ok', 'dlQuotaMsg');
 }
 
 // ── MOYENS DE PAIEMENT ────────────────────────────────────────────────────
@@ -10647,6 +10814,44 @@ function renderPartageStats() {
       : '<span style="color:var(--lg)">Aucun partage enregistré pour le moment.</span>';
   }
 }
+// ── Statistiques de téléchargement (voir enregistrerTelechargement/statsTelechargementsAgregees) ──
+function renderDLStats() {
+  const grid = document.getElementById('dlStatsGrid');
+  if (!grid) return;
+  const s = statsTelechargementsAgregees();
+  const cntEl = document.getElementById('dlStatsCount');
+  if (cntEl) cntEl.textContent = s.total + ' téléchargement(s) · ' + s.derniers7j + ' sur 7 jours';
+
+  const LBL_FORMAT = { docx: 'Word', pdf: 'PDF', pptx: 'PowerPoint', xlsx: 'Excel', csv: 'CSV' };
+  grid.innerHTML = Object.keys(LBL_FORMAT).map(f =>
+    '<div style="background:var(--w);border:1px solid var(--bd);border-radius:8px;padding:10px;text-align:center">'+
+      '<div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--n)">'+(s.parFormat[f]||0)+'</div>'+
+      '<div style="font-size:9px;color:var(--lg);margin-top:2px">'+LBL_FORMAT[f]+'</div>'+
+    '</div>'
+  ).join('');
+
+  const fmtEl = document.getElementById('dlStatsFormat');
+  if (fmtEl) {
+    const lignes = Object.keys(LBL_FORMAT).map(f => LBL_FORMAT[f] + ' — <b>' + (s.parFormat[f] || 0) + '</b>');
+    fmtEl.innerHTML = s.total ? lignes.join('<br>') : '<span style="color:var(--lg)">Aucun téléchargement enregistré pour le moment.</span>';
+  }
+  const usersEl = document.getElementById('dlStatsUsers');
+  if (usersEl) {
+    const maxN = s.topUtilisateurs.length ? s.topUtilisateurs[0].n : 0;
+    // Emails des AUTRES utilisateurs affiches en clair (necessaire a
+    // l'administration — voir _maskEmail) ; seul l'email de l'admin
+    // lui-meme est masque, comme partout ailleurs dans l'application.
+    usersEl.innerHTML = s.topUtilisateurs.length
+      ? s.topUtilisateurs.map(u => {
+          const label = u.email === ADMIN_EMAIL ? _maskEmail(u.email) : u.email;
+          const pct = maxN ? Math.round(u.n / maxN * 100) : 0;
+          return '<div class="traffic-bar-row"><span style="width:130px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+_apEsc(label)+'">'+_apEsc(label)+'</span>'+
+            '<div class="traffic-bar-track"><div class="traffic-bar-fill" style="width:'+pct+'%"></div></div>'+
+            '<span style="width:24px;text-align:right;flex-shrink:0">'+u.n+'</span></div>';
+        }).join('')
+      : '<span style="font-size:11px;color:var(--lg)">Aucun téléchargement enregistré pour le moment.</span>';
+  }
+}
 let _emailjsSdkPromise = null;
 function _chargerSdkEmailjs() {
   if (_emailjsSdkPromise) return _emailjsSdkPromise;
@@ -10879,7 +11084,8 @@ function getTraffic()  { return _ls(()=>JSON.parse(localStorage.getItem(TRAFFIC_
 function saveTraffic(t){ _ls(()=>localStorage.setItem(TRAFFIC_KEY,JSON.stringify(t))); }
 function logTraffic(view) {
   const list = getTraffic();
-  list.push({v: view, t: Date.now()});
+  const session = (typeof getSession === 'function') ? getSession() : {};
+  list.push({v: view, t: Date.now(), email: session.email || null});
   if (list.length > 2000) list.splice(0, list.length-2000);
   saveTraffic(list);
 }
@@ -10887,6 +11093,7 @@ const TRAFFIC_LABELS = {flux:'Flux',recherche:'Recherche',analyse:'Synthèse',ag
 function renderTraffic() {
   const kpis = document.getElementById('trafficKpis');
   const bars = document.getElementById('trafficBars');
+  const barsUsers = document.getElementById('trafficBarsUsers');
   if (!kpis || !bars) return;
   const list = getTraffic();
   const now = Date.now();
@@ -10911,6 +11118,21 @@ function renderTraffic() {
       '<div class="traffic-bar-track"><div class="traffic-bar-fill" style="width:'+pct+'%"></div></div>'+
       '<span style="width:30px;text-align:right;flex-shrink:0">'+n+'</span></div>';
   }).join('') : '<div style="font-size:11px;color:var(--lg);text-align:center;padding:10px">Pas encore de donnees de trafic.</div>';
+
+  if (barsUsers) {
+    const parUser = {};
+    sur7j.forEach(e => { if (e.email) parUser[e.email] = (parUser[e.email]||0)+1; });
+    const usersTries = Object.keys(parUser).sort((a,b)=>parUser[b]-parUser[a]).slice(0,8);
+    const maxU = usersTries.length ? parUser[usersTries[0]] : 0;
+    barsUsers.innerHTML = usersTries.length ? usersTries.map(email => {
+      const n = parUser[email];
+      const pct = maxU ? Math.round(n/maxU*100) : 0;
+      const label = email === ADMIN_EMAIL ? _maskEmail(email) : email;
+      return '<div class="traffic-bar-row"><span style="width:130px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+_apEsc(label)+'">'+_apEsc(label)+'</span>'+
+        '<div class="traffic-bar-track"><div class="traffic-bar-fill" style="width:'+pct+'%"></div></div>'+
+        '<span style="width:30px;text-align:right;flex-shrink:0">'+n+'</span></div>';
+    }).join('') : '<div style="font-size:11px;color:var(--lg);text-align:center;padding:10px">Pas encore de donnees de trafic par utilisateur.</div>';
+  }
 }
 
 
@@ -12195,19 +12417,21 @@ function nowStr(){
   return new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'})+
          ' '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
 }
-// dlFile(blob, name) : declenche le telechargement ET conserve le dernier
-// document genere (blob+nom) pour proposer son partage juste apres —
-// voir _dernierDocGenere/afficherPartageDocument. Point de passage unique
-// pour tous les exports (Word/PDF/CSV directement, Excel/PPTX via un Blob
-// desormais aussi construit plutot que telecharge en direct) : le bouton
-// de partage post-enregistrement s'applique donc a tous les formats sans
-// dupliquer cette logique dans chaque fonction d'export.
+// dlFile(blob, name) : declenche le telechargement, journalise le
+// telechargement (voir enregistrerTelechargement — quota par abonnement)
+// ET conserve le dernier document genere (blob+nom) pour proposer son
+// partage juste apres — voir _dernierDocGenere/afficherPartageDocument.
+// Point de passage unique pour tous les exports (Word/PDF/CSV directement,
+// Excel/PPTX via un Blob desormais aussi construit plutot que telecharge
+// en direct) : quota et partage post-enregistrement s'appliquent donc a
+// tous les formats sans dupliquer cette logique dans chaque export.
 function dlFile(blob, name){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url; a.download=name; a.click();
   setTimeout(()=>URL.revokeObjectURL(url), 1500);
   _dernierDocGenere = { blob, name };
+  if (typeof enregistrerTelechargement === 'function') enregistrerTelechargement(name);
   if (typeof afficherPartageDocument === 'function') afficherPartageDocument(name);
 }
 
@@ -12447,6 +12671,7 @@ function updateDLCounts(){
 //  EXPORT EXCEL via SheetJS (XLSX)
 // ════════════════════════════════════════════════════════════════════
 async function exportExcel(type){
+  if (_verifierLimiteTelechargement()) return;
   if(typeof XLSX==='undefined'){
     alert('SheetJS non chargé. Vérifiez votre connexion internet.'); return;
   }
@@ -12527,6 +12752,7 @@ async function exportExcel(type){
 //  EXPORT CSV (fallback universel sans lib)
 // ════════════════════════════════════════════════════════════════════
 async function exportCSV(type){
+  if (_verifierLimiteTelechargement()) return;
   const btn=event?.target;btnSpin(btn);
   try{
     const arts=getExportData();
@@ -12568,6 +12794,7 @@ function getExportDataPeriode(jours) {
 }
 
 async function exportPPTX(type) {
+  if (_verifierLimiteTelechargement()) return;
   type = type || 'rapport_complet';
   const btn = event?.target; btnSpin(btn);
   try {
@@ -13439,6 +13666,7 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
 }
 
 async function exportPDF(type) {
+  if (_verifierLimiteTelechargement()) return;
   const btn = event?.target; btnSpin(btn);
   try {
     if (typeof PDFLib === 'undefined') throw new Error('pdf-lib non chargé — verifiez la connexion internet');
@@ -14246,6 +14474,7 @@ async function apercuSynthese() {
 //  EXPORT WORD via docx.js (CDN)
 // ════════════════════════════════════════════════════════════════════
 async function exportWord(type){
+  if (_verifierLimiteTelechargement()) return;
   const btn=event?.target;btnSpin(btn);
   try{
     if(typeof docx==='undefined') throw new Error('docx.js non chargé');
