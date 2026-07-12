@@ -114,7 +114,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .corr-dim{padding:5px 11px;border:1px solid rgba(255,255,255,.18);border-radius:5px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;transition:background .12s,color .12s}
 .corr-dim.on{background:#1B5FA8;color:#fff;border-color:#1B5FA8}
 .corr-dim:hover:not(.on){background:rgba(255,255,255,.1);color:rgba(255,255,255,.8)}
-.lang-switch{display:flex;border:1px solid rgba(255,255,255,.2);border-radius:5px;overflow:hidden;flex-shrink:0}
+/* z-index au-dessus de .auth-overlay (9000) : le selecteur de langue doit
+   rester utilisable AVANT connexion, pas seulement une fois dans l'app —
+   corrige un bouton visible mais bloque par l'overlay (clics interceptes). */
+.lang-switch{display:flex;border:1px solid rgba(255,255,255,.2);border-radius:5px;overflow:hidden;flex-shrink:0;position:relative;z-index:9001}
 .lang-btn{background:transparent;border:none;color:rgba(255,255,255,.5);font-size:10px;font-weight:700;
   padding:5px 10px;cursor:pointer;letter-spacing:.05em;transition:background .12s,color .12s}
 .lang-btn.on{background:rgba(156,163,175,.25);color:#fff}
@@ -1602,12 +1605,23 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
   </div>
   <div class="ops-scan"></div>
   <div class="ops-vignette"></div>
-  <div class="ops-label tl"><span class="ops-dot"></span>Veille active · 54 pays</div>
-  <div class="ops-label tr">Réseau de surveillance<br>Afrique · temps réel</div>
-  <div class="ops-label bl">Flux · Corrélations · Alertes</div>
-  <div class="ops-label br">Sûreté opérationnelle</div>
+  <div class="ops-label tl"><span class="ops-dot"></span><span data-i18n="auth_ops_veille">Veille active · 54 pays</span></div>
+  <div class="ops-label tr"><span data-i18n="auth_ops_reseau1">Réseau de surveillance</span><br><span data-i18n="auth_ops_reseau2">Afrique · temps réel</span></div>
+  <div class="ops-label bl" data-i18n="auth_ops_flux">Flux · Corrélations · Alertes</div>
+  <div class="ops-label br" data-i18n="auth_ops_surete">Sûreté opérationnelle</div>
 </div>
   <div class="auth-box">
+    <!-- Selecteur de langue duplique ICI (en plus de celui du bandeau, cf.
+         #langSwitch) : celui du bandeau est visuellement bloque par cet
+         overlay lui-meme (probleme de contexte d'empilement CSS non
+         resolu proprement malgre z-index) — celui-ci, place a l'interieur
+         du DOM de l'overlay, est garanti cliquable avant toute connexion.
+         Les deux restent synchronises : setLang() met a jour tous les
+         elements .lang-btn de la page, peu importe leur emplacement. -->
+    <div class="lang-switch" style="position:absolute;top:12px;right:12px;z-index:5">
+      <button class="lang-btn on" data-lang="fr" onclick="setLang('fr')">FR</button>
+      <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+    </div>
     <div class="auth-logo">
       <div class="auth-logo-ico">
         <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
@@ -1618,7 +1632,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       </div>
       <div>
         <div class="auth-logo-n">SENTINEL SÛRETÉ</div>
-        <div class="auth-logo-s">Veille sûreté · 54 pays d'Afrique</div>
+        <div class="auth-logo-s" data-i18n="auth_logo_sub">Veille sûreté · 54 pays d'Afrique</div>
       </div>
     </div>
     <div style="font-size:10px;color:rgba(255,255,255,.4);text-align:center;margin:-4px 0 14px;line-height:1.5;">
@@ -1626,63 +1640,62 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <span style="opacity:.7">Security intelligence platform for risk & security managers</span>
     </div>
     <div class="auth-stats" id="authStats">
-      <div class="as-item"><div class="as-n" id="asPays">54</div><div class="as-l">Pays sous veille</div></div>
-      <div class="as-item"><div class="as-n" id="asActus">—</div><div class="as-l">Actus /24h</div></div>
-      <div class="as-item"><div class="as-n" id="asAlertes">—</div><div class="as-l">Pays en alerte</div></div>
+      <div class="as-item"><div class="as-n" id="asPays">54</div><div class="as-l" data-i18n="auth_stat_pays">Pays sous veille</div></div>
+      <div class="as-item"><div class="as-n" id="asActus">—</div><div class="as-l" data-i18n="auth_stat_actus">Actus /24h</div></div>
+      <div class="as-item"><div class="as-n" id="asAlertes">—</div><div class="as-l" data-i18n="auth_stat_alertes">Pays en alerte</div></div>
     </div>
     <div class="auth-stats-sync" id="authStatsSync"></div>
     <div id="loginForm">
-      <div class="auth-title">Connexion</div>
-      <div class="auth-sub">Acces restreint aux responsables surete autorises</div>
+      <div class="auth-title" data-i18n="login_title">Connexion</div>
+      <div class="auth-sub" data-i18n="login_sub">Acces restreint aux responsables surete autorises</div>
       <div class="auth-field">
-        <label>Adresse e-mail</label>
+        <label data-i18n="login_email_label">Adresse e-mail</label>
         <input type="email" id="loginEmail" placeholder="votre@email.com" autocomplete="email">
       </div>
       <div class="auth-field">
-        <label>Code d'acces</label>
-        <input type="text" id="loginPass" placeholder="Votre code d&#39;acces (ex: SJPNI2T)" autocomplete="off" style="letter-spacing:.1em;font-weight:700;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key===&#39;Enter&#39;)doLogin()">
+        <label data-i18n="login_code_label">Code d'acces</label>
+        <input type="text" id="loginPass" placeholder="Votre code d&#39;acces (ex: SJPNI2T)" data-i18n-ph="ph_login_code" autocomplete="off" style="letter-spacing:.1em;font-weight:700;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key===&#39;Enter&#39;)doLogin()">
       </div>
       <button class="auth-btn" onclick="doLogin()" id="loginBtn">
-        <i class="ti ti-login"></i> Se connecter
+        <i class="ti ti-login"></i> <span data-i18n="login_btn">Se connecter</span>
       </button>
       <div class="auth-err" id="loginErr"></div>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-        <div class="auth-link" style="flex:1">Premiere connexion ? <span onclick="showRegisterForm()">Demander un acces</span></div>
-        <div class="auth-link"><span onclick="resetLocalStorage()" style="color:rgba(255,255,255,.3)">Reinitialiser</span></div>
+        <div class="auth-link" style="flex:1"><span data-i18n="login_first_time">Premiere connexion ?</span> <span onclick="showRegisterForm()" data-i18n="login_request_access">Demander un acces</span></div>
+        <div class="auth-link"><span onclick="resetLocalStorage()" style="color:rgba(255,255,255,.3)" data-i18n="login_reset">Reinitialiser</span></div>
       </div>
     </div>
     <div id="registerForm" style="display:none">
-      <div class="auth-title">Demande d'acces</div>
-      <div class="auth-sub">Acces immediat, aucune validation requise.</div>
+      <div class="auth-title" data-i18n="register_title">Demande d'acces</div>
+      <div class="auth-sub" data-i18n="register_sub">Acces immediat, aucune validation requise.</div>
       <div style="display:flex;gap:8px;align-items:flex-start;background:rgba(255,184,77,.1);border:1px solid rgba(255,184,77,.25);border-radius:8px;padding:10px 12px;margin-bottom:14px">
         <i class="ti ti-clock" style="font-size:14px;color:#ffb84d;flex-shrink:0;margin-top:1px"></i>
         <div style="font-size:11px;color:rgba(255,255,255,.65);line-height:1.5">
-          Essai gratuit valable <b style="color:#ffb84d">72 heures</b> a compter de l'activation.
-          Passe ce delai, vous pourrez redemander un nouveau code gratuit avec la meme adresse,
-          ou passer a un plan payant.
+          <span data-i18n="register_trial_pre">Essai gratuit valable</span> <b style="color:#ffb84d"><span data-i18n="register_trial_hours">72 heures</span></b>
+          <span data-i18n="register_trial_post">a compter de l'activation. Passe ce delai, vous pourrez redemander un nouveau code gratuit avec la meme adresse, ou passer a un plan payant.</span>
         </div>
       </div>
       <div class="auth-field">
-        <label>Nom complet</label>
-        <input type="text" id="regName" placeholder="Prenom Nom">
+        <label data-i18n="register_name_label">Nom complet</label>
+        <input type="text" id="regName" placeholder="Prenom Nom" data-i18n-ph="ph_reg_name">
       </div>
       <div class="auth-field">
-        <label>Adresse e-mail professionnelle</label>
+        <label data-i18n="register_email_label">Adresse e-mail professionnelle</label>
         <input type="email" id="regEmail" placeholder="votre@organisation.com">
       </div>
       <div class="auth-field">
-        <label>Organisation / Fonction</label>
-        <input type="text" id="regOrg" placeholder="Ex : DSI - Entreprise XYZ">
+        <label data-i18n="register_org_label">Organisation / Fonction</label>
+        <input type="text" id="regOrg" placeholder="Ex : DSI - Entreprise XYZ" data-i18n-ph="ph_reg_org">
       </div>
       <button class="auth-btn" onclick="doRegister()" id="registerBtn">
-        <i class="ti ti-send"></i> Envoyer la demande
+        <i class="ti ti-send"></i> <span data-i18n="register_btn">Envoyer la demande</span>
       </button>
       <div class="auth-err" id="registerErr"></div>
-      <div class="auth-link"><span onclick="showLoginForm()">← Retour a la connexion</span></div>
+      <div class="auth-link"><span onclick="showLoginForm()" data-i18n="register_back">← Retour a la connexion</span></div>
     </div>
     <div class="auth-public-links">
-      <span onclick="ouvrirBulletinPublic()"><i class="ti ti-news"></i>Bulletin public gratuit</span>
-      <span onclick="ouvrirMethodologiePublique()"><i class="ti ti-shield-check"></i>Méthodologie &amp; sources</span>
+      <span onclick="ouvrirBulletinPublic()"><i class="ti ti-news"></i><span data-i18n="public_bulletin">Bulletin public gratuit</span></span>
+      <span onclick="ouvrirMethodologiePublique()"><i class="ti ti-shield-check"></i><span data-i18n="public_methodo">Méthodologie &amp; sources</span></span>
     </div>
   </div>
 </div>
@@ -3769,6 +3782,32 @@ const I18N = {
     note_dashboard:'Tableau de bord : vision d\'ensemble en temps réel des 54 pays d\'Afrique, scores de risque et zones de tension.',
     note_params:'Paramètres : gestion des accès, des droits de téléchargement et de la configuration de la plateforme.',
     ad_tag:'PUBLICITÉ', ad_placeholder:'Emplacement publicitaire — Google AdSense non configuré (voir Paramètres)',
+    // ── Écran de connexion / inscription ──
+    auth_ops_veille:'Veille active · 54 pays', auth_ops_reseau1:'Réseau de surveillance', auth_ops_reseau2:'Afrique · temps réel',
+    auth_ops_flux:'Flux · Corrélations · Alertes', auth_ops_surete:'Sûreté opérationnelle',
+    auth_logo_sub:"Veille sûreté · 54 pays d'Afrique",
+    auth_stat_pays:'Pays sous veille', auth_stat_actus:'Actus /24h', auth_stat_alertes:'Pays en alerte',
+    login_title:'Connexion', login_sub:'Accès restreint aux responsables sûreté autorisés',
+    login_email_label:'Adresse e-mail', login_code_label:"Code d'accès", login_btn:'Se connecter',
+    login_first_time:'Première connexion ?', login_request_access:'Demander un accès', login_reset:'Réinitialiser',
+    ph_login_code:"Votre code d'accès (ex: SJPNI2T)",
+    register_title:"Demande d'accès", register_sub:'Accès immédiat, aucune validation requise.',
+    register_trial_pre:'Essai gratuit valable', register_trial_hours:'72 heures',
+    register_trial_post:"à compter de l'activation. Passé ce délai, vous pourrez redemander un nouveau code gratuit avec la même adresse, ou passer à un plan payant.",
+    register_name_label:'Nom complet', register_email_label:'Adresse e-mail professionnelle', register_org_label:'Organisation / Fonction',
+    register_btn:'Envoyer la demande', register_back:'← Retour à la connexion',
+    ph_reg_name:'Prénom Nom', ph_reg_org:'Ex : DSI - Entreprise XYZ',
+    public_bulletin:'Bulletin public gratuit', public_methodo:'Méthodologie & sources',
+    err_fields_required:'Veuillez remplir tous les champs.', err_invalid_email:'Adresse e-mail invalide.',
+    err_email_unknown:"Adresse e-mail non reconnue. Demandez un accès à l'administrateur.",
+    err_suspended:'Accès suspendu. Contactez : ', err_wrong_code:"Code d'accès incorrect.",
+    err_trial_expired:'Compte gratuit expiré (validité 72h). Demandez un nouveau code gratuit ci-dessous, ou passez à un plan payant — contactez ',
+    err_already_registered:'Cette adresse est déjà enregistrée.',
+    register_activating:'Activation de votre essai gratuit…', register_activated:'Essai gratuit activé (72h)',
+    register_code_sent:'Votre code d\'accès a été envoyé à :', register_code_manual:"Envoi automatique indisponible — notez votre code d'accès :",
+    register_go_login:'Aller à la connexion',
+    auth_sync_none:'Veille pas encore activée sur cet appareil', auth_sync_now:"à l'instant",
+    auth_sync_min:'il y a {n} min', auth_sync_hour:'il y a {n} h', auth_sync_last:'Dernière synchronisation : ',
   },
   en: {
     mes_expat:'Expatriates / Foreign nationals', mes_locaux:'Local staff',
@@ -3797,6 +3836,32 @@ const I18N = {
     note_dashboard:'Dashboard: real-time overview of all 54 African countries, risk scores and tension zones.',
     note_params:'Settings: manage access, download rights and platform configuration.',
     ad_tag:'ADVERTISEMENT', ad_placeholder:'Ad placeholder — Google AdSense not configured yet (see Settings)',
+    // ── Login / registration screen ──
+    auth_ops_veille:'Active monitoring · 54 countries', auth_ops_reseau1:'Surveillance network', auth_ops_reseau2:'Africa · real-time',
+    auth_ops_flux:'Feed · Correlations · Alerts', auth_ops_surete:'Operational security',
+    auth_logo_sub:'Security monitoring · 54 African countries',
+    auth_stat_pays:'Countries monitored', auth_stat_actus:'News /24h', auth_stat_alertes:'Countries on alert',
+    login_title:'Log in', login_sub:'Access restricted to authorized security officers',
+    login_email_label:'Email address', login_code_label:'Access code', login_btn:'Log in',
+    login_first_time:'First time here?', login_request_access:'Request access', login_reset:'Reset',
+    ph_login_code:'Your access code (e.g. SJPNI2T)',
+    register_title:'Access request', register_sub:'Immediate access, no approval required.',
+    register_trial_pre:'Free trial valid for', register_trial_hours:'72 hours',
+    register_trial_post:'from activation. After that, you can request a new free code with the same address, or switch to a paid plan.',
+    register_name_label:'Full name', register_email_label:'Professional email address', register_org_label:'Organization / Role',
+    register_btn:'Send request', register_back:'← Back to login',
+    ph_reg_name:'First name Last name', ph_reg_org:'E.g.: CISO - Company XYZ',
+    public_bulletin:'Free public bulletin', public_methodo:'Methodology & sources',
+    err_fields_required:'Please fill in all fields.', err_invalid_email:'Invalid email address.',
+    err_email_unknown:'Email address not recognized. Request access from the administrator.',
+    err_suspended:'Access suspended. Contact: ', err_wrong_code:'Incorrect access code.',
+    err_trial_expired:'Free account expired (72h validity). Request a new free code below, or switch to a paid plan — contact ',
+    err_already_registered:'This address is already registered.',
+    register_activating:'Activating your free trial…', register_activated:'Free trial activated (72h)',
+    register_code_sent:'Your access code has been sent to:', register_code_manual:'Automatic sending unavailable — note your access code:',
+    register_go_login:'Go to login',
+    auth_sync_none:'Monitoring not yet activated on this device', auth_sync_now:'just now',
+    auth_sync_min:'{n} min ago', auth_sync_hour:'{n} h ago', auth_sync_last:'Last sync: ',
   },
 };
 function t(cle) { return (I18N[LANG] && I18N[LANG][cle]) || I18N.fr[cle] || cle; }
@@ -3825,6 +3890,7 @@ function setLang(lang) {
   if (typeof renderFeed === 'function') { try { renderFeed(); } catch(_) {} }
   if (typeof updSynthese === 'function' && document.getElementById('syCont')) { try { updSynthese(); } catch(_) {} }
   if (typeof renderDashboard === 'function' && document.getElementById('v-dashboard') && document.getElementById('v-dashboard').classList.contains('on')) { try { renderDashboard(); } catch(_) {} }
+  if (typeof renderAuthStats === 'function') { try { renderAuthStats(); } catch(_) {} }
 }
 
 // setDisplayMode(mode) : force l'affichage Web ou Mobile independamment de la
@@ -9769,23 +9835,37 @@ async function demanderPermissionNotifWeb() {
 // classify() (voir CK_CRIT/CK_HIGH). 'vibrate' n'a d'effet que sur les
 // navigateurs qui l'honorent pour Notification (Chrome/Android notamment) ;
 // ignore silencieusement ailleurs (Safari, desktop sans vibreur...).
+// Libelles bilingues directement ici (plutot que via I18N/t()) : l'ordre des
+// mots differe entre francais et anglais pour une alerte groupee (adjectif
+// avant/apres le nom), un simple remplacement de mot ne suffit pas.
 const SEVERITE_META_WEB = {
-  crit: { emoji: '🔴', label: 'critique', vibrate: [200, 100, 200, 100, 200] },
-  high: { emoji: '🟠', label: 'élevée',  vibrate: [150, 80, 150] },
+  crit: {
+    emoji: '🔴', vibrate: [200, 100, 200, 100, 200],
+    fr: { single: 'Alerte critique SENTINEL', group: n => `${n} nouvelles alertes critiques SENTINEL` },
+    en: { single: 'SENTINEL critical alert', group: n => `${n} new critical alerts — SENTINEL` },
+  },
+  high: {
+    emoji: '🟠', vibrate: [150, 80, 150],
+    fr: { single: 'Alerte élevée SENTINEL', group: n => `${n} nouvelles alertes élevées SENTINEL` },
+    en: { single: 'SENTINEL high-level alert', group: n => `${n} new high-level alerts — SENTINEL` },
+  },
 };
 
 function notifierParSeveriteWeb(nouvelles, sev) {
   if (!nouvelles.length) return;
   const meta = SEVERITE_META_WEB[sev];
+  const langKey = (typeof LANG !== 'undefined' && LANG === 'en') ? 'en' : 'fr';
+  const txt = meta[langKey];
+  const etAutres = langKey === 'en' ? (n => `and ${n} more`) : (n => `et ${n} autre${n > 1 ? 's' : ''}`);
   try {
     if (nouvelles.length === 1) {
       const a = nouvelles[0];
-      new Notification(`${meta.emoji} Alerte ${meta.label} SENTINEL`, { body: a.title, tag: 'sentinel-' + a.id, vibrate: meta.vibrate });
+      new Notification(`${meta.emoji} ${txt.single}`, { body: a.title, tag: 'sentinel-' + a.id, vibrate: meta.vibrate });
     } else {
       const apercu = nouvelles.slice(0, 2).map(a => a.title).join(' · ');
       const reste = nouvelles.length - 2;
-      new Notification(`${meta.emoji} ${nouvelles.length} nouvelles alertes ${meta.label}s SENTINEL`, {
-        body: reste > 0 ? `${apercu} et ${reste} autre${reste > 1 ? 's' : ''}` : apercu,
+      new Notification(`${meta.emoji} ${txt.group(nouvelles.length)}`, {
+        body: reste > 0 ? `${apercu} ${etAutres(reste)}` : apercu,
         tag: 'sentinel-groupe-' + sev + '-' + Date.now(),
         vibrate: meta.vibrate,
       });
@@ -10084,7 +10164,7 @@ function doLogin() {
   const pass =document.getElementById('loginPass').value.trim().toUpperCase();
   const errEl=document.getElementById('loginErr');
   errEl.classList.remove('show');
-  if(!email||!pass){errEl.textContent='Veuillez remplir tous les champs.';errEl.classList.add('show');return;}
+  if(!email||!pass){errEl.textContent=t('err_fields_required');errEl.classList.add('show');return;}
   const users=getUsers();
   let user=users.find(u=>u.email.toLowerCase()===email);
 
@@ -10095,15 +10175,15 @@ function doLogin() {
   // instantanement — n'importe qui pouvait donc se donner acces sans jamais
   // passer par l'administrateur.
   if(!user){
-    errEl.textContent='Adresse e-mail non reconnue. Demandez un acces a l\'administrateur.';errEl.classList.add('show');return;
+    errEl.textContent=t('err_email_unknown');errEl.classList.add('show');return;
   }
 
-  if(user.status!=='active'){errEl.textContent='Acces suspendu. Contactez : '+ADMIN_EMAIL;errEl.classList.add('show');return;}
+  if(user.status!=='active'){errEl.textContent=t('err_suspended')+ADMIN_EMAIL;errEl.classList.add('show');return;}
   if(compteGratuitExpire(user)){
-    errEl.textContent='Compte gratuit expire (validite 72h). Demandez un nouveau code gratuit ci-dessous, ou passez a un plan payant — contactez '+ADMIN_EMAIL+'.';
+    errEl.textContent=t('err_trial_expired')+ADMIN_EMAIL+'.';
     errEl.classList.add('show');return;}
   if(pass!==user.code){
-    errEl.textContent='Code d\'acces incorrect.';errEl.classList.add('show');return;}
+    errEl.textContent=t('err_wrong_code');errEl.classList.add('show');return;}
   user.lastLogin=new Date().toISOString(); saveUsers(users);
   saveSession({email:user.email,name:user.name,role:user.role,loginAt:new Date().toISOString()});
   document.getElementById('authOverlay').classList.add('hidden');
@@ -10167,8 +10247,8 @@ function doRegister() {
   const org  =document.getElementById('regOrg').value.trim();
   const errEl=document.getElementById('registerErr');
   errEl.classList.remove('show');
-  if(!name||!email||!org){errEl.textContent='Veuillez remplir tous les champs.';errEl.classList.add('show');return;}
-  if(!/^[^@]+@[^@]+\.[^@]+$/.test(email)){errEl.textContent='Adresse e-mail invalide.';errEl.classList.add('show');return;}
+  if(!name||!email||!org){errEl.textContent=t('err_fields_required');errEl.classList.add('show');return;}
+  if(!/^[^@]+@[^@]+\.[^@]+$/.test(email)){errEl.textContent=t('err_invalid_email');errEl.classList.add('show');return;}
 
   const users=getUsers();
   const existing=users.find(u=>u.email===email);
@@ -10177,7 +10257,7 @@ function doRegister() {
   // encore actif, suspendu avant expiration, ou passe sur un plan payant/admin
   // reste bloque ici.
   if(existing && !compteGratuitExpire(existing)){
-    errEl.textContent='Cette adresse est deja enregistree.';errEl.classList.add('show');return;}
+    errEl.textContent=t('err_already_registered');errEl.classList.add('show');return;}
 
   const code=genAccessCode();
   let user;
@@ -10196,19 +10276,19 @@ function doRegister() {
   document.getElementById('registerForm').innerHTML=
     '<div style="text-align:center;padding:20px 0">'+
     '<i class="ti ti-loader-2" style="font-size:32px;color:#9CA3AF;display:block;margin-bottom:14px"></i>'+
-    '<div style="font-size:13px;color:rgba(255,255,255,.6)">Activation de votre essai gratuit…</div></div>';
+    '<div style="font-size:13px;color:rgba(255,255,255,.6)">'+t('register_activating')+'</div></div>';
 
   envoyerCodeActivation(user).then(res => {
     const detail = res.ok
-      ? 'Votre code d\'acces a ete envoye a :<br><b style="color:#9CA3AF">'+email+'</b>'
-      : 'Envoi automatique indisponible — notez votre code d\'acces :<br>'
+      ? t('register_code_sent')+'<br><b style="color:#9CA3AF">'+email+'</b>'
+      : t('register_code_manual')+'<br>'
         +'<b style="color:#fff;font-family:monospace;font-size:15px;letter-spacing:.08em">'+code+'</b>';
     document.getElementById('registerForm').innerHTML=
       '<div style="text-align:center;padding:20px 0">'+
       '<i class="ti ti-circle-check" style="font-size:48px;color:#4ade80;display:block;margin-bottom:14px"></i>'+
-      '<div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:8px">Essai gratuit active (72h)</div>'+
+      '<div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:8px">'+t('register_activated')+'</div>'+
       '<div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.6">'+detail+'</div>'+
-      '<div style="margin-top:16px"><span style="color:#9CA3AF;cursor:pointer" onclick="showLoginForm()">Aller a la connexion</span></div></div>';
+      '<div style="margin-top:16px"><span style="color:#9CA3AF;cursor:pointer" onclick="showLoginForm()">'+t('register_go_login')+'</span></div></div>';
   });
 }
 
@@ -12654,11 +12734,11 @@ function renderAuthStats() {
   if (elA) elA.textContent = snap ? snap.actus24h : '—';
   if (elAl) elAl.textContent = snap ? snap.paysAlerte : '—';
   if (elSync) {
-    if (!snap) { elSync.textContent = 'Veille pas encore activée sur cet appareil'; }
+    if (!snap) { elSync.textContent = t('auth_sync_none'); }
     else {
       const minAgo = Math.round((Date.now() - snap.ts) / 60000);
-      const txt = minAgo < 1 ? 'à l\'instant' : minAgo < 60 ? 'il y a ' + minAgo + ' min' : 'il y a ' + Math.round(minAgo/60) + ' h';
-      elSync.textContent = 'Dernière synchronisation : ' + txt;
+      const txt = minAgo < 1 ? t('auth_sync_now') : minAgo < 60 ? t('auth_sync_min').replace('{n}', minAgo) : t('auth_sync_hour').replace('{n}', Math.round(minAgo/60));
+      elSync.textContent = t('auth_sync_last') + txt;
     }
   }
 }
