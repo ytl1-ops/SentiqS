@@ -82,6 +82,7 @@ export default function FeedScreen() {
       // Données de démo si API non disponible
       setArticles(DEMO_ARTICLES);
       setAlerts(DEMO_ALERTS);
+      notifyNewCriticalAlerts(DEMO_ALERTS).catch(() => {});
     } finally {
       setLoading(false);
       setRefreshing(false);
