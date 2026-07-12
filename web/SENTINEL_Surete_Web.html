@@ -9739,6 +9739,12 @@ function switchView(name,el){
   if (_lpEl) _lpEl.style.display=(name==='rapports'||name==='params')?'none':'flex';
   if(name==='agenda')    { renderAgenda(); }
   if(name==='dashboard') { renderDashboard(); }
+  // Ouverture de l'onglet Alertes : force un recalcul/repeinture immediat.
+  // Sans cette branche (absente jusqu'ici, contrairement a tous les autres
+  // onglets ci-dessous), la grille/tableau n'etaient repeints qu'au cycle de
+  // collecte RSS suivant — l'utilisateur pouvait donc voir un contenu deja
+  // perime en arrivant sur l'onglet juste apres une actualisation manquee.
+  if(name==='alertes' && typeof recalcAlertes === 'function') { try { recalcAlertes({ silencieux:true }); } catch(_) {} }
   if(name==='analyse' && typeof updSynthese === 'function'){ try { updSynthese(); } catch(_) {} }
   if(name==='params') loadParamsModule();
   if(name==='rapports') peuplerFiltresRapports();
@@ -10044,6 +10050,12 @@ async function init() {
   if (typeof PAYS_INFO !== 'undefined' && typeof calcAlertScore === 'function') {
     Object.keys(PAYS_INFO).forEach(cy => { LAST_NIV_PAR_PAYS[cy] = calcAlertScore(cy).key; });
   }
+  // Alertes (v-alertes) : meme raisonnement que le tableau de bord ci-dessus —
+  // sans cet appel, la grille/tableau d'alertes restait totalement vide (HTML
+  // jamais genere) tant que la premiere collecte RSS n'etait pas terminee,
+  // meme si l'utilisateur ouvrait l'onglet immediatement. recalcAlertes()
+  // fonctionne des l'ouverture (54 pays/PAYS_INFO, sans dependre du flux).
+  if (typeof recalcAlertes === 'function') recalcAlertes({ silencieux: true });
   // Cache local + collecte RSS automatique en arriere-plan
   setTimeout(async()=>{
     try{
@@ -12158,6 +12170,18 @@ function mkBadge(key) {
   return `<span style="padding:3px 9px;border-radius:5px;font-size:9px;font-weight:700;color:#fff;background:${n.col};border:1px solid ${n.border};letter-spacing:.06em;">${n.label}</span>`;
 }
 
+// alertEventTimestamp(e) : horodatage (ms) le plus precis extractible du champ
+// "date" heterogene d'un evenement d'alerte (incident verifie OU signal RSS
+// live). Les dates imprecises ("Juin 2026", "2025-2026", annee seule...),
+// frequentes parmi les incidents verifies de reference (contexte de fond,
+// pas actualite du jour), retournent 0 : elles restent affichees mais ne
+// peuvent jamais passer devant un signal recent et precisement date.
+function alertEventTimestamp(e) {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2})h(\d{2}))?/.exec((e && e.date) || '');
+  if (!m) return 0;
+  return new Date(+m[3], +m[2]-1, +m[1], m[4]?+m[4]:0, m[5]?+m[5]:0).getTime();
+}
+
 // dateDernierIncident(events) : date du plus recent incident/signal d'une liste
 // (formats heterogenes "DD/MM/YYYY" ou "DD/MM/YYYY HHhMM"), pour affichage
 // dans l'en-tete des cartes pays. Corrige un bug d'affichage ou une date figee
@@ -12184,14 +12208,34 @@ async function renderAlertCard(score) {
   const n = score.niv;
   const m = MESURES[score.key];
   const lo = {rouge:0,marron:1,orange:2,jaune:3,vert:4};
-  const sorted = [...score.events].sort((a,b)=>(lo[a.level]||4)-(lo[b.level]||4));
+  // Tri : niveau de gravite d'abord (comme avant), puis — a niveau egal —
+  // l'evenement le plus recent d'abord. Sans ce second critere, un incident
+  // "verifie" fige depuis des semaines (ALERTE_EVENTS) passait toujours avant
+  // un signal RSS du jour de meme niveau, l'ecran donnant l'impression que
+  // les dernieres actualites ne sont jamais prises en compte.
+  const sortedParGravite = [...score.events].sort((a,b) => {
+    const diffNiv = (lo[a.level]||4) - (lo[b.level]||4);
+    return diffNiv !== 0 ? diffNiv : alertEventTimestamp(b) - alertEventTimestamp(a);
+  });
+  // Garde-fou complementaire : meme quand un pays cumule deja 5 incidents
+  // verifies plus graves (rouge/marron), on garantit qu'au moins les 2
+  // signaux RSS live les plus recents restent visibles dans la carte —
+  // sinon l'actualite du jour reste invisible derriere un historique fige.
+  const NB_AFFICHES = 5, NB_LIVE_GARANTIS = 2;
+  const topGravite = sortedParGravite.slice(0, NB_AFFICHES);
+  const cleEv = e => (e.date||'')+'|'+(e.title||'');
+  const clesAffichees = new Set(topGravite.map(cleEv));
+  const liveManquants = sortedParGravite
+    .filter(e => e.live && !clesAffichees.has(cleEv(e)))
+    .slice(0, NB_LIVE_GARANTIS);
+  const sorted = [...topGravite, ...liveManquants];
   const pct = Math.min(100, Math.round(score.total100));
 
   await preTraduireRapport([
-    ...sorted.slice(0,5).map(e => e.title),
+    ...sorted.map(e => e.title),
     ...m.expatries, ...m.locaux, ...m.installations, ...m.vehicules,
   ]);
-  const evHtml = sorted.slice(0,5).map((e, idx) => {
+  const evHtml = sorted.map((e, idx) => {
     const d = NIV[e.level]||NIV.vert;
     const fresh = isWithin12h(e.date);
     const evId = 'alerte-ev-'+score.cy+'-'+idx;
