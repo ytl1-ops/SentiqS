@@ -510,6 +510,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
   color:var(--gr);font-size:9px;font-weight:700;cursor:pointer;text-align:center;white-space:nowrap;}
 .share-fmt:hover{border-color:var(--n)}
 .share-fmt.on{background:var(--n);color:#fff;border-color:var(--n)}
+.share-id-lbl{font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;
+  letter-spacing:.04em;padding:4px 3px 2px;}
 .share-mi{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:5px;
   cursor:pointer;color:var(--t);font-weight:600;white-space:nowrap;}
 .share-mi:hover{background:var(--sf)}
@@ -7262,14 +7264,27 @@ function identitesMarquePerso(m) {
 // partage (pseudo/societe), uniquement si le plan l'autorise et que
 // l'identite active a ete configuree. Chaine vide sinon (aucun changement
 // de comportement pour un compte gratuit).
+// _partageIdentiteChoisie : identite (1/2/3) explicitement choisie pour LE
+// PARTAGE EN COURS depuis le menu de partage (voir toggleShareMenu et le
+// selecteur d'identite qu'il affiche des que plus d'une identite est
+// configuree) — mieux calibre que l'unique reglage "actif" global de
+// Parametres, qui obligeait a changer de page pour signer autrement selon
+// le contact/destinataire. Simple variable (pas un attribut DOM) : reste
+// lisible meme apres la fermeture du menu (closeShareMenu), le temps que
+// l'envoi asynchrone (traduction) se termine. Remise a null par chaque
+// fonction d'envoi a chaque appel — ne "fuit" jamais vers un partage suivant
+// qui ne precise pas d'identite (bulletin, alerte pays...).
+let _partageIdentiteChoisie = null;
 function signatureEnvoiActuelle() {
   if (!fonctionnalitePayante()) return '';
   const { identite1, identite2, identite3, active } = identitesMarquePerso(getMarquePerso());
+  const identites = { 1: identite1, 2: identite2, 3: identite3 };
+  const choix = (_partageIdentiteChoisie && identites[_partageIdentiteChoisie]) ? _partageIdentiteChoisie : active;
   // Nom/pseudo uniquement (demande explicite) : jamais de coordonnee
   // personnelle (telephone/email) dans la signature d'un partage, meme si
   // un contact a ete enregistre par le passe (champ retire du panneau
   // Parametres, valeur eventuellement encore en localStorage mais ignoree ici).
-  const identite = active === 3 ? identite3 : active === 2 ? identite2 : identite1;
+  const identite = identites[choix];
   if (!identite) return '';
   return '\n\n— ' + identite;
 }
@@ -7687,6 +7702,12 @@ async function _partagerImageAvecRepli(blob, nomFichier, texteAlt) {
       }
     } catch (e) {
       if (e && e.name === 'AbortError') return true; // annule par l'utilisateur : ne pas re-proposer le telechargement en plus
+      // Toute AUTRE erreur (ex. NotAllowedError — le delai de traduction/
+      // generation d'image avant cet appel a fait expirer le "geste
+      // utilisateur" requis par certains navigateurs mobiles) ne doit
+      // JAMAIS remonter non interceptee : sans ce catch large, l'appelant
+      // (envoyerActuWhatsapp/Telegram/Email) plantait silencieusement en
+      // plein milieu, avant meme d'essayer son propre canal de repli.
     }
   }
   _telechargerImage(blob, nomFichier);
@@ -7713,6 +7734,45 @@ function _toastRapide(texte, icone) {
   }, 2200);
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  FIABILISATION DES CANAUX DE PARTAGE — bug corrige (persistant, signale sur
+//  plusieurs canaux WhatsApp/Telegram/Email) : chaque fonction d'envoi
+//  attendait la traduction ACTIVE du titre/texte (appel reseau via
+//  traduireAvantPartage/construireContenuPartage) AVANT d'appeler
+//  window.open()/de rediriger vers mailto:. Or la plupart des navigateurs
+//  mobiles (Safari iOS, Chrome recent) n'autorisent l'ouverture d'un nouvel
+//  onglet QUE de façon strictement synchrone dans le geste utilisateur
+//  (le clic) — passe ce delai (meme 100-300ms de traduction), l'appel est
+//  bloque SILENCIEUSEMENT (aucune exception, rien ne se passe), ce qui se
+//  percevait comme un bouton de partage "en panne".
+//
+//  Fix : ouvrir l'onglet cible IMMEDIATEMENT (encore dans le contexte
+//  synchrone du clic, avant tout await), puis le REDIRIGER une fois le
+//  contenu traduit pret. Rediriger un onglet deja ouvert n'exige pas de
+//  geste utilisateur frais, contrairement a une nouvelle ouverture.
+// ═══════════════════════════════════════════════════════════════════════════
+function _ouvrirOngletPartage() {
+  try { return window.open('', '_blank', 'noopener'); } catch (_) { return null; }
+}
+// _redirigerOngletPartage(fenetre, url) : redirige un onglet deja ouvert (voir
+// _ouvrirOngletPartage). Si l'onglet n'a pas pu etre ouvert a l'avance (ou a
+// ete ferme entre-temps), retente une ouverture directe — et si meme celle-ci
+// est bloquee (retourne null/undefined), previent l'utilisateur au lieu de
+// laisser le clic sembler n'avoir rien fait.
+function _redirigerOngletPartage(fenetre, url) {
+  if (fenetre && !fenetre.closed) {
+    try { fenetre.location.href = url; return true; } catch (_) {}
+  }
+  try {
+    const w = window.open(url, '_blank', 'noopener');
+    if (w) return true;
+  } catch (_) {}
+  _toastRapide(LANG === 'en'
+    ? 'Blocked by the browser — allow pop-ups for this site, or use "Copy" instead.'
+    : 'Bloqué par le navigateur — autorisez les popups pour ce site, ou utilisez "Copier".', 'ti-alert-triangle');
+  return false;
+}
+
 // envoyerActuWhatsapp(id, format) : ouvre un onglet wa.me pre-rempli par
 // contact designe (tous, pas de selection au clic — ce sont des contacts
 // deja choisis a l'avance dans Parametres pour recevoir ces alertes). En
@@ -7720,7 +7780,8 @@ function _toastRapide(texte, icone) {
 // directement via le partage natif du systeme quand il est disponible
 // (voir _partagerImageAvecRepli) — wa.me ne peut pas transporter de piece
 // jointe lui-meme ; repli telechargement + jonction manuelle sinon.
-async function envoyerActuWhatsapp(id, format) {
+async function envoyerActuWhatsapp(id, format, identiteIdx) {
+  _partageIdentiteChoisie = identiteIdx || null;
   format = format || 'texte_lien';
   const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
   if (!a) return;
@@ -7732,17 +7793,24 @@ async function envoyerActuWhatsapp(id, format) {
       : 'Aucun contact WhatsApp configuré. Ajoutez-en un dans Paramètres > Contacts WhatsApp.');
     return;
   }
+  // Onglets ouverts MAINTENANT (synchrone, encore dans le geste utilisateur)
+  // — voir _ouvrirOngletPartage. Un par contact, redirige plus bas une fois
+  // le message pret.
+  const onglets = contacts.map(_ouvrirOngletPartage);
   if (format === 'image') {
     const blob = await genererImageActuBlob(a, 'whatsapp');
     const transmiseDirect = await _partagerImageAvecRepli(blob, 'sentinel_' + a.id + '_whatsapp.png', await traduireAvantPartage(a.title));
-    if (transmiseDirect) { enregistrerPartage(a, 'whatsapp', format); return; } // image deja envoyee via le partage natif — pas besoin de wa.me en plus
+    if (transmiseDirect) {
+      onglets.forEach(o => { if (o && !o.closed) o.close(); }); // image deja envoyee via le partage natif — les onglets pre-ouverts pour wa.me ne servent plus
+      enregistrerPartage(a, 'whatsapp', format); return;
+    }
     _toastRapide(LANG === 'en' ? 'Image downloaded — attach it in WhatsApp before sending.' : 'Image téléchargée — joignez-la dans WhatsApp avant d\'envoyer.', 'ti-photo');
   }
   const msg = encodeURIComponent(await construireContenuPartage(a, format));
-  contacts.forEach(c => {
+  contacts.forEach((c, i) => {
     const numero = (c.tel || '').replace(/[^\d]/g, ''); // wa.me exige des chiffres seuls (indicatif inclus, sans +)
-    if (!numero) return;
-    window.open('https://wa.me/' + numero + '?text=' + msg, '_blank', 'noopener');
+    if (!numero) { if (onglets[i] && !onglets[i].closed) onglets[i].close(); return; }
+    _redirigerOngletPartage(onglets[i], 'https://wa.me/' + numero + '?text=' + msg);
   });
   enregistrerPartage(a, 'whatsapp', format);
 }
@@ -7752,7 +7820,8 @@ async function envoyerActuWhatsapp(id, format) {
 // (seul un numero individuel le permet, voir envoyerActuWhatsapp ci-dessus) :
 // le message est donc copie dans le presse-papiers, puis chaque lien
 // d'invitation de groupe enregistre est ouvert — il ne reste qu'a coller.
-async function envoyerActuWhatsappGroupes(id, format) {
+async function envoyerActuWhatsappGroupes(id, format, identiteIdx) {
+  _partageIdentiteChoisie = identiteIdx || null;
   format = format || 'texte_lien';
   const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
   if (!a) return;
@@ -7764,6 +7833,16 @@ async function envoyerActuWhatsappGroupes(id, format) {
       : 'Aucun groupe WhatsApp configuré. Ajoutez-en un dans Paramètres > Contacts WhatsApp.');
     return;
   }
+  // Les liens de groupe sont connus immediatement (pas besoin d'attendre le
+  // contenu traduit) : ouverts ICI, encore dans le geste utilisateur —
+  // voir le commentaire au-dessus de _ouvrirOngletPartage.
+  let ongletsBloques = 0;
+  groupes.forEach(g => { if (g.lien && !window.open(g.lien, '_blank', 'noopener')) ongletsBloques++; });
+  if (ongletsBloques > 0) {
+    _toastRapide(LANG === 'en'
+      ? 'Blocked by the browser — allow pop-ups for this site.'
+      : 'Bloqué par le navigateur — autorisez les popups pour ce site.', 'ti-alert-triangle');
+  }
   if (format === 'image') {
     const blob = await genererImageActuBlob(a, 'whatsapp');
     try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]); }
@@ -7772,7 +7851,6 @@ async function envoyerActuWhatsappGroupes(id, format) {
     const texte = await construireContenuPartage(a, format);
     try { await navigator.clipboard.writeText(texte); } catch (e) {}
   }
-  groupes.forEach(g => { if (g.lien) window.open(g.lien, '_blank', 'noopener'); });
   _toastRapide(LANG === 'en' ? 'Copied — paste it in the WhatsApp group(s) that just opened.' : 'Copié — collez-le dans le(s) groupe(s) WhatsApp qui viennent de s\'ouvrir.', 'ti-copy');
   enregistrerPartage(a, 'whatsapp', format);
 }
@@ -7783,15 +7861,20 @@ async function envoyerActuWhatsappGroupes(id, format) {
 // coller le message. En format 'image', meme mecanisme que WhatsApp/Email :
 // partage natif en priorite (voir _partagerImageAvecRepli), repli
 // telechargement + jonction manuelle sinon.
-async function envoyerActuTelegram(id, format) {
+async function envoyerActuTelegram(id, format, identiteIdx) {
+  _partageIdentiteChoisie = identiteIdx || null;
   format = format || 'texte_lien';
   const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
   if (!a) return;
   if (_verifierLimitePartage('telegram')) return;
+  const onglet = _ouvrirOngletPartage(); // synchrone, avant tout await — voir plus haut
   if (format === 'image') {
     const blob = await genererImageActuBlob(a, 'telegram');
     const transmiseDirect = await _partagerImageAvecRepli(blob, 'sentinel_' + a.id + '_telegram.png', await traduireAvantPartage(a.title));
-    if (transmiseDirect) { enregistrerPartage(a, 'telegram', format); return; } // image deja envoyee via le partage natif — pas besoin de t.me en plus
+    if (transmiseDirect) {
+      if (onglet && !onglet.closed) onglet.close(); // image deja envoyee via le partage natif — pas besoin de t.me en plus
+      enregistrerPartage(a, 'telegram', format); return;
+    }
     _toastRapide(LANG === 'en' ? 'Image downloaded — attach it in Telegram before sending.' : 'Image téléchargée — joignez-la dans Telegram avant d\'envoyer.', 'ti-photo');
   }
   let url;
@@ -7803,7 +7886,7 @@ async function envoyerActuTelegram(id, format) {
   } else {
     url = 'https://t.me/share/url?url=&text=' + encodeURIComponent(await construireContenuPartage(a, format));
   }
-  window.open(url, '_blank', 'noopener');
+  _redirigerOngletPartage(onglet, url);
   enregistrerPartage(a, 'telegram', format);
 }
 
@@ -7812,7 +7895,8 @@ async function envoyerActuTelegram(id, format) {
 // avec un texte pre-rempli (t.me/share/url ouvre le SELECTEUR de Telegram,
 // pas un groupe precis) : copie presse-papiers puis ouverture des liens
 // enregistres.
-async function envoyerActuTelegramGroupes(id, format) {
+async function envoyerActuTelegramGroupes(id, format, identiteIdx) {
+  _partageIdentiteChoisie = identiteIdx || null;
   format = format || 'texte_lien';
   const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
   if (!a) return;
@@ -7824,6 +7908,14 @@ async function envoyerActuTelegramGroupes(id, format) {
       : 'Aucun groupe/canal Telegram configuré. Ajoutez-en un dans Paramètres > Groupes Telegram.');
     return;
   }
+  // Liens connus immediatement : ouverts ICI, encore dans le geste utilisateur.
+  let ongletsBloques = 0;
+  groupes.forEach(g => { if (g.lien && !window.open(g.lien, '_blank', 'noopener')) ongletsBloques++; });
+  if (ongletsBloques > 0) {
+    _toastRapide(LANG === 'en'
+      ? 'Blocked by the browser — allow pop-ups for this site.'
+      : 'Bloqué par le navigateur — autorisez les popups pour ce site.', 'ti-alert-triangle');
+  }
   if (format === 'image') {
     const blob = await genererImageActuBlob(a, 'telegram');
     try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]); }
@@ -7832,7 +7924,6 @@ async function envoyerActuTelegramGroupes(id, format) {
     const texte = await construireContenuPartage(a, format);
     try { await navigator.clipboard.writeText(texte); } catch (e) {}
   }
-  groupes.forEach(g => { if (g.lien) window.open(g.lien, '_blank', 'noopener'); });
   _toastRapide(LANG === 'en' ? 'Copied — paste it in the Telegram group(s)/channel(s) that just opened.' : 'Copié — collez-le dans le(s) groupe(s)/canal(aux) Telegram qui viennent de s\'ouvrir.', 'ti-copy');
   enregistrerPartage(a, 'telegram', format);
 }
@@ -7845,7 +7936,31 @@ async function envoyerActuTelegramGroupes(id, format) {
 // est transmise directement via le partage natif quand il est disponible
 // (voir _partagerImageAvecRepli) — mailto: ne transporte pas de piece
 // jointe lui-meme ; repli telechargement + jonction manuelle sinon.
-async function envoyerActuEmail(id, format) {
+// construireMailtoSecurise(destinataires, sujet, corps) : de nombreux clients
+// mail (Outlook desktop en tete, mais aussi plusieurs apps mobiles) ignorent
+// SILENCIEUSEMENT un lien mailto: trop long (limite pratique ~2000
+// caracteres au total selon le client) — brouillon vide ou email qui ne
+// s'ouvre pas, sans le moindre message d'erreur. Depuis l'ajout du texte
+// integral de l'actu a chaque partage, ce seuil est desormais facilement
+// depasse. Tronque le CORPS (jamais le sujet, deja court) avec un repli
+// explicite vers le lien plutot que de risquer un email cassé.
+const MAILTO_MAX_URL = 1800;
+function construireMailtoSecurise(destinataires, sujet, corps) {
+  const dest = destinataires ? encodeURIComponent(destinataires).replace(/%2C/g, ',') : '';
+  const base = 'mailto:' + dest + '?subject=' + encodeURIComponent(sujet) + '&body=';
+  if ((base + encodeURIComponent(corps)).length <= MAILTO_MAX_URL) return base + encodeURIComponent(corps);
+  const suffixe = LANG === 'en'
+    ? '\n\n[Message truncated — see link above for the full text]'
+    : '\n\n[Message tronqué — voir le lien ci-dessus pour le texte complet]';
+  let corpsFinal = corps;
+  while (corpsFinal.length > 0 && (base + encodeURIComponent(corpsFinal + suffixe)).length > MAILTO_MAX_URL) {
+    corpsFinal = corpsFinal.slice(0, Math.max(0, corpsFinal.length - 200));
+  }
+  return base + encodeURIComponent(corpsFinal + suffixe);
+}
+
+async function envoyerActuEmail(id, format, identiteIdx) {
+  _partageIdentiteChoisie = identiteIdx || null;
   format = format || 'texte_lien';
   const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
   if (!a) return;
@@ -7860,7 +7975,7 @@ async function envoyerActuEmail(id, format) {
     _toastRapide(LANG === 'en' ? 'Image downloaded — attach it to your email.' : 'Image téléchargée — joignez-la à votre email.', 'ti-photo');
   }
   const corps = await construireContenuPartage(a, format);
-  window.location.href = 'mailto:?subject=' + encodeURIComponent(sujet) + '&body=' + encodeURIComponent(corps);
+  window.location.href = construireMailtoSecurise('', sujet, corps);
   enregistrerPartage(a, 'email', format);
 }
 
@@ -7868,7 +7983,8 @@ async function envoyerActuEmail(id, format) {
 // WhatsApp/Telegram, mailto: accepte nativement plusieurs destinataires
 // separes par des virgules : un envoi direct et fonctionnel, sans
 // contournement copier/coller.
-async function envoyerActuEmailGroupes(id, format) {
+async function envoyerActuEmailGroupes(id, format, identiteIdx) {
+  _partageIdentiteChoisie = identiteIdx || null;
   format = format || 'texte_lien';
   const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
   if (!a) return;
@@ -7891,7 +8007,7 @@ async function envoyerActuEmailGroupes(id, format) {
     _toastRapide(LANG === 'en' ? 'Image downloaded — attach it to your email.' : 'Image téléchargée — joignez-la à votre email.', 'ti-photo');
   }
   const corps = await construireContenuPartage(a, format);
-  window.location.href = 'mailto:' + encodeURIComponent(destinataires).replace(/%2C/g, ',') + '?subject=' + encodeURIComponent(sujet) + '&body=' + encodeURIComponent(corps);
+  window.location.href = construireMailtoSecurise(destinataires, sujet, corps);
   enregistrerPartage(a, 'email', format);
 }
 
@@ -7900,7 +8016,8 @@ async function envoyerActuEmailGroupes(id, format) {
 // d'aucune application installee, se colle ensuite n'importe ou (Signal,
 // Teams, SMS, Slack...). En format 'image', copie l'image elle-meme
 // (Clipboard API images, largement supportee) plutot que du texte.
-async function copierActuTexte(id, format) {
+async function copierActuTexte(id, format, identiteIdx) {
+  _partageIdentiteChoisie = identiteIdx || null;
   format = format || 'texte_lien';
   const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
   if (!a) return;
@@ -7950,7 +8067,8 @@ async function copierActuTexte(id, format) {
 // peut relayer le fichier binaire a l'application choisie par l'utilisateur
 // — contrairement a wa.me/t.me/mailto:, qui ne le peuvent pas. Repli sur le
 // presse-papiers (copierActuTexte) si l'API n'est pas supportee.
-async function partagerActuNatif(id, format) {
+async function partagerActuNatif(id, format, identiteIdx) {
+  _partageIdentiteChoisie = identiteIdx || null;
   format = format || 'texte_lien';
   const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
   if (!a) return;
@@ -8018,20 +8136,37 @@ function toggleShareMenu(ev, id) {
   const hasWaGroupes = getWhatsappContacts().some(c => c.type === 'groupe');
   const hasTgGroupes = getTelegramGroupes().length > 0;
   const hasEmGroupes = getEmailGroupes().length > 0;
+  // Choix de l'identite d'envoi POUR CE PARTAGE (voir _partageIdentiteChoisie/
+  // signatureEnvoiActuelle) : mieux calibre que le seul reglage "actif" fixe
+  // de Parametres — n'apparait que si au moins 2 identites sont vraiment
+  // configurees, sinon ce serait une option inutile pour la grande majorite
+  // des comptes (une identite unique, ou aucune).
+  let identiteRow = '';
+  if (fonctionnalitePayante()) {
+    const { identite1, identite2, identite3, active } = identitesMarquePerso(getMarquePerso());
+    const dispo = [[1, identite1], [2, identite2], [3, identite3]].filter(([, v]) => v);
+    if (dispo.length >= 2) {
+      menu.dataset.identite = active;
+      identiteRow = '<div class="share-id-lbl">'+(LANG==='en'?'Sign as':'Signer en tant que')+'</div><div class="share-fmt-row">'+
+        dispo.map(([idx, val]) => '<button type="button" class="share-fmt share-id-btn'+(idx===active?' on':'')+'" onclick="_choisirIdentitePartage(this,'+idx+')" title="'+_apEsc(val)+'">'+_apEsc(val.length>14?val.slice(0,13)+'…':val)+'</button>').join('')+
+      '</div>';
+    }
+  }
   menu.innerHTML =
     '<div class="share-fmt-row">'+
       '<button type="button" class="share-fmt on" onclick="_choisirFormatPartage(this,\'texte_lien\')">'+(LANG==='en'?'Text+link':'Texte+lien')+'</button>'+
       '<button type="button" class="share-fmt" onclick="_choisirFormatPartage(this,\'texte\')">'+(LANG==='en'?'Text only':'Texte seul')+'</button>'+
       '<button type="button" class="share-fmt" onclick="_choisirFormatPartage(this,\'image\')">'+(LANG==='en'?'Image':'Image')+'</button>'+
     '</div>'+
-    '<div class="share-mi" onclick="envoyerActuWhatsapp(\''+id+'\',shareFormatCourant());closeShareMenu()"><i class="ti ti-brand-whatsapp" style="color:#0F4F2A"></i>WhatsApp'+quotaTag('whatsapp')+'</div>'+
-    (hasWaGroupes ? '<div class="share-mi" onclick="envoyerActuWhatsappGroupes(\''+id+'\',shareFormatCourant());closeShareMenu()"><i class="ti ti-users" style="color:#0F4F2A"></i>'+(LANG==='en'?'WhatsApp group':'Groupe WhatsApp')+'</div>' : '')+
-    '<div class="share-mi" onclick="envoyerActuTelegram(\''+id+'\',shareFormatCourant());closeShareMenu()"><i class="ti ti-brand-telegram" style="color:#0284C7"></i>Telegram'+quotaTag('telegram')+'</div>'+
-    (hasTgGroupes ? '<div class="share-mi" onclick="envoyerActuTelegramGroupes(\''+id+'\',shareFormatCourant());closeShareMenu()"><i class="ti ti-users" style="color:#0284C7"></i>'+(LANG==='en'?'Telegram group':'Groupe Telegram')+'</div>' : '')+
-    '<div class="share-mi" onclick="envoyerActuEmail(\''+id+'\',shareFormatCourant());closeShareMenu()"><i class="ti ti-mail" style="color:var(--b)"></i>Email'+quotaTag('email')+'</div>'+
-    (hasEmGroupes ? '<div class="share-mi" onclick="envoyerActuEmailGroupes(\''+id+'\',shareFormatCourant());closeShareMenu()"><i class="ti ti-users" style="color:var(--b)"></i>'+(LANG==='en'?'Email group':'Groupe Email')+'</div>' : '')+
-    '<div class="share-mi" onclick="copierActuTexte(\''+id+'\',shareFormatCourant());closeShareMenu()"><i class="ti ti-copy" style="color:var(--gr)"></i>'+(LANG==='en'?'Copy':'Copier')+quotaTag('copier')+'</div>'+
-    '<div class="share-mi" onclick="partagerActuNatif(\''+id+'\',shareFormatCourant());closeShareMenu()"><i class="ti ti-share-2" style="color:var(--gr)"></i>'+(LANG==='en'?'Other apps…':'Autres applications…')+quotaTag('natif')+'</div>';
+    identiteRow+
+    '<div class="share-mi" onclick="envoyerActuWhatsapp(\''+id+'\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-brand-whatsapp" style="color:#0F4F2A"></i>WhatsApp'+quotaTag('whatsapp')+'</div>'+
+    (hasWaGroupes ? '<div class="share-mi" onclick="envoyerActuWhatsappGroupes(\''+id+'\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-users" style="color:#0F4F2A"></i>'+(LANG==='en'?'WhatsApp group':'Groupe WhatsApp')+'</div>' : '')+
+    '<div class="share-mi" onclick="envoyerActuTelegram(\''+id+'\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-brand-telegram" style="color:#0284C7"></i>Telegram'+quotaTag('telegram')+'</div>'+
+    (hasTgGroupes ? '<div class="share-mi" onclick="envoyerActuTelegramGroupes(\''+id+'\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-users" style="color:#0284C7"></i>'+(LANG==='en'?'Telegram group':'Groupe Telegram')+'</div>' : '')+
+    '<div class="share-mi" onclick="envoyerActuEmail(\''+id+'\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-mail" style="color:var(--b)"></i>Email'+quotaTag('email')+'</div>'+
+    (hasEmGroupes ? '<div class="share-mi" onclick="envoyerActuEmailGroupes(\''+id+'\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-users" style="color:var(--b)"></i>'+(LANG==='en'?'Email group':'Groupe Email')+'</div>' : '')+
+    '<div class="share-mi" onclick="copierActuTexte(\''+id+'\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-copy" style="color:var(--gr)"></i>'+(LANG==='en'?'Copy':'Copier')+quotaTag('copier')+'</div>'+
+    '<div class="share-mi" onclick="partagerActuNatif(\''+id+'\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-share-2" style="color:var(--gr)"></i>'+(LANG==='en'?'Other apps…':'Autres applications…')+quotaTag('natif')+'</div>';
   document.body.appendChild(menu);
 
   // Positionnement sous le bouton (position:fixed -> coordonnees viewport,
@@ -8053,16 +8188,33 @@ function toggleShareMenu(ev, id) {
 // _choisirFormatPartage(btn, fmt) : change le format actif SANS fermer le
 // menu — seule la selection d'un canal (WhatsApp/Telegram/Email/Copier/
 // Autres) declenche le partage et referme le menu.
+// NB : ':not(.share-id-btn)' — le selecteur d'identite (_choisirIdentitePartage
+// ci-dessous) reutilise la classe .share-fmt pour son style visuel ; sans cette
+// exclusion, choisir un FORMAT effacerait aussi la selection d'IDENTITE (et
+// inversement), les deux boutons "actifs" se desactivant mutuellement a tort.
 function _choisirFormatPartage(btn, fmt) {
   const menu = document.getElementById('shareMenuGlobal');
   if (!menu) return;
   menu.dataset.format = fmt;
-  menu.querySelectorAll('.share-fmt').forEach(b => b.classList.remove('on'));
+  menu.querySelectorAll('.share-fmt:not(.share-id-btn)').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
 }
 function shareFormatCourant() {
   const menu = document.getElementById('shareMenuGlobal');
   return (menu && menu.dataset.format) || 'texte_lien';
+}
+// _choisirIdentitePartage(btn, idx) : identite (1/2/3) a utiliser pour CE
+// partage — voir identiteRow dans toggleShareMenu et signatureEnvoiActuelle.
+function _choisirIdentitePartage(btn, idx) {
+  const menu = document.getElementById('shareMenuGlobal');
+  if (!menu) return;
+  menu.dataset.identite = idx;
+  menu.querySelectorAll('.share-id-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+}
+function shareIdentiteCourante() {
+  const menu = document.getElementById('shareMenuGlobal');
+  return (menu && menu.dataset.identite) ? Number(menu.dataset.identite) : null;
 }
 function _closeShareMenuOnOutsideClick(e) {
   const menu = document.getElementById('shareMenuGlobal');
