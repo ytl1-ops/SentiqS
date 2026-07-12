@@ -26,6 +26,13 @@ const MAX_SEEN_TRACKED = 200;
 const CHANNEL_ID = 'alertes-critiques';
 const THREAD_ID = 'sentinel-alertes-critiques';
 const ACCENT_CRITICAL = '#991B1B';
+const ACCENT_HIGH = '#B45309'; // aligne sur Colors.warning utilise ailleurs dans l'app
+
+type Severite = 'critical' | 'high';
+const SEVERITE_META: Record<Severite, { emoji: string; label: string; color: string }> = {
+  critical: { emoji: '🔴', label: 'critique', color: ACCENT_CRITICAL },
+  high:     { emoji: '🟠', label: 'élevée', color: ACCENT_HIGH },
+};
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -86,52 +93,63 @@ function androidTrigger(): Notifications.TimeIntervalTriggerInput | null {
     : null;
 }
 
+async function notifierPourSeverite(nouvelles: SentinelAlert[], sev: Severite): Promise<void> {
+  if (!nouvelles.length) return;
+  const meta = SEVERITE_META[sev];
+  if (nouvelles.length === 1) {
+    const alert = nouvelles[0];
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: `${meta.emoji} Alerte ${meta.label} SENTINEL`,
+        body: alert.title,
+        sound: true,
+        color: meta.color,
+        threadIdentifier: THREAD_ID,
+        ...(Platform.OS === 'android' ? { priority: Notifications.AndroidNotificationPriority.MAX } : {}),
+        data: { alertId: alert.id },
+      },
+      trigger: androidTrigger(),
+    });
+  } else {
+    const apercu = nouvelles.slice(0, 2).map(a => a.title).join(' · ');
+    const reste = nouvelles.length - 2;
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: `${meta.emoji} ${nouvelles.length} nouvelles alertes ${meta.label}s SENTINEL`,
+        body: reste > 0 ? `${apercu} et ${reste} autre${reste > 1 ? 's' : ''}` : apercu,
+        sound: true,
+        color: meta.color,
+        threadIdentifier: THREAD_ID,
+        ...(Platform.OS === 'android' ? { priority: Notifications.AndroidNotificationPriority.MAX } : {}),
+        data: { alertIds: nouvelles.map(a => a.id) },
+      },
+      trigger: androidTrigger(),
+    });
+  }
+}
+
 // notifyNewCriticalAlerts(alerts) : declenche une notification locale pour
-// les alertes de niveau 'critical' jamais notifiees sur cet appareil. Comme
-// Facebook regroupe les evenements simultanes ("Alice et 4 autres ont
-// commente"), plusieurs nouvelles alertes arrivees en meme temps sont
-// regroupees en UNE notification resume plutot que d'en empiler une par
-// alerte. A appeler apres chaque rafraichissement du flux (voir feed.tsx).
+// les alertes de niveau 'critical' ET 'high' jamais notifiees sur cet
+// appareil (etendu sur demande explicite — auparavant 'critical' seul).
+// Comme Facebook regroupe les evenements simultanes ("Alice et 4 autres ont
+// commente"), plusieurs nouvelles alertes de MEME severite arrivees en meme
+// temps sont regroupees en UNE notification resume plutot que d'en empiler
+// une par alerte ; critique et elevee restent notifiees separement (couleur
+// et libelle differents). A appeler apres chaque rafraichissement du flux
+// (voir feed.tsx). La vibration est deja geree au niveau du canal Android
+// (vibrationPattern dans ensureNotificationSetup), pas par appel.
 export async function notifyNewCriticalAlerts(alerts: SentinelAlert[]): Promise<void> {
-  const critiques = alerts.filter(a => a.level === 'critical');
-  if (!critiques.length) return;
+  const pertinentes = alerts.filter(a => a.level === 'critical' || a.level === 'high');
+  if (!pertinentes.length) return;
 
   const seen = await getSeenAlertIds();
-  const nouvelles = critiques.filter(a => !seen.has(a.id));
+  const nouvelles = pertinentes.filter(a => !seen.has(a.id));
   if (!nouvelles.length) return;
 
   const { status } = await Notifications.getPermissionsAsync();
   if (status === 'granted') {
-    if (nouvelles.length === 1) {
-      const alert = nouvelles[0];
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: '🔴 Alerte critique SENTINEL',
-          body: alert.title,
-          sound: true,
-          color: ACCENT_CRITICAL,
-          threadIdentifier: THREAD_ID,
-          ...(Platform.OS === 'android' ? { priority: Notifications.AndroidNotificationPriority.MAX } : {}),
-          data: { alertId: alert.id },
-        },
-        trigger: androidTrigger(),
-      });
-    } else {
-      const apercu = nouvelles.slice(0, 2).map(a => a.title).join(' · ');
-      const reste = nouvelles.length - 2;
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: `🔴 ${nouvelles.length} nouvelles alertes critiques SENTINEL`,
-          body: reste > 0 ? `${apercu} et ${reste} autre${reste > 1 ? 's' : ''}` : apercu,
-          sound: true,
-          color: ACCENT_CRITICAL,
-          threadIdentifier: THREAD_ID,
-          ...(Platform.OS === 'android' ? { priority: Notifications.AndroidNotificationPriority.MAX } : {}),
-          data: { alertIds: nouvelles.map(a => a.id) },
-        },
-        trigger: androidTrigger(),
-      });
-    }
+    await notifierPourSeverite(nouvelles.filter(a => a.level === 'critical'), 'critical');
+    await notifierPourSeverite(nouvelles.filter(a => a.level === 'high'), 'high');
     await bumpBadge(nouvelles.length);
   }
   await markAlertsSeen(nouvelles.map(a => a.id));

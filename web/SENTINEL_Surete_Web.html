@@ -9765,26 +9765,48 @@ async function demanderPermissionNotifWeb() {
 // notifierAlertesCritiquesWeb() : a appeler apres chaque cycle de collecte
 // (voir doCollect). Regroupe plusieurs nouvelles alertes simultanees en une
 // seule notification resume, comme cote mobile.
-function notifierAlertesCritiquesWeb() {
-  if (!('Notification' in window) || Notification.permission !== 'granted') return;
-  const seen = getWebNotifSeenIds();
-  const critiques = (ALL || []).filter(a => a.level === 'crit' && estRecentReel(a) && !seen.has(a.id));
-  if (!critiques.length) return;
+// Meta par niveau de severite — 'crit'/'high' sont les valeurs produites par
+// classify() (voir CK_CRIT/CK_HIGH). 'vibrate' n'a d'effet que sur les
+// navigateurs qui l'honorent pour Notification (Chrome/Android notamment) ;
+// ignore silencieusement ailleurs (Safari, desktop sans vibreur...).
+const SEVERITE_META_WEB = {
+  crit: { emoji: '🔴', label: 'critique', vibrate: [200, 100, 200, 100, 200] },
+  high: { emoji: '🟠', label: 'élevée',  vibrate: [150, 80, 150] },
+};
 
+function notifierParSeveriteWeb(nouvelles, sev) {
+  if (!nouvelles.length) return;
+  const meta = SEVERITE_META_WEB[sev];
   try {
-    if (critiques.length === 1) {
-      const a = critiques[0];
-      new Notification('🔴 Alerte critique SENTINEL', { body: a.title, tag: 'sentinel-' + a.id });
+    if (nouvelles.length === 1) {
+      const a = nouvelles[0];
+      new Notification(`${meta.emoji} Alerte ${meta.label} SENTINEL`, { body: a.title, tag: 'sentinel-' + a.id, vibrate: meta.vibrate });
     } else {
-      const apercu = critiques.slice(0, 2).map(a => a.title).join(' · ');
-      const reste = critiques.length - 2;
-      new Notification(`🔴 ${critiques.length} nouvelles alertes critiques SENTINEL`, {
+      const apercu = nouvelles.slice(0, 2).map(a => a.title).join(' · ');
+      const reste = nouvelles.length - 2;
+      new Notification(`${meta.emoji} ${nouvelles.length} nouvelles alertes ${meta.label}s SENTINEL`, {
         body: reste > 0 ? `${apercu} et ${reste} autre${reste > 1 ? 's' : ''}` : apercu,
-        tag: 'sentinel-groupe-' + Date.now(),
+        tag: 'sentinel-groupe-' + sev + '-' + Date.now(),
+        vibrate: meta.vibrate,
       });
     }
   } catch (_) { /* API indisponible dans ce contexte (ex. iframe) — silencieux */ }
-  markWebNotifSeen(critiques.map(a => a.id));
+}
+
+// notifierAlertesCritiquesWeb() : notifie desormais aussi les alertes de
+// niveau 'high' (elevees), pas seulement 'crit' (demande explicite —
+// auparavant critique seule). Chaque severite est regroupee separement
+// (couleur/vibration/libelle differents), avec vibration (buzz) sur les
+// navigateurs qui la supportent.
+function notifierAlertesCritiquesWeb() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const seen = getWebNotifSeenIds();
+  const pertinentes = (ALL || []).filter(a => (a.level === 'crit' || a.level === 'high') && estRecentReel(a) && !seen.has(a.id));
+  if (!pertinentes.length) return;
+
+  notifierParSeveriteWeb(pertinentes.filter(a => a.level === 'crit'), 'crit');
+  notifierParSeveriteWeb(pertinentes.filter(a => a.level === 'high'), 'high');
+  markWebNotifSeen(pertinentes.map(a => a.id));
 }
 
 // activerProtectionsSecurite() : freins cote client contre la copie/capture
