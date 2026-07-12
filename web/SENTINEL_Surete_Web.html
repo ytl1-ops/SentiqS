@@ -2668,10 +2668,11 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Nom de la marque / société</label>
                 <input type="text" id="marqueNom" placeholder="Ex. Groupe Sûreté SARL" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
               </div>
-              <!-- 2 identites d'envoi possibles (ex. deux cellules/equipes qui partagent
-                   sous des noms differents) : celle marquee "active" ci-dessous est celle
-                   utilisee dans la signature des partages (voir signatureEnvoiActuelle). -->
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
+              <!-- 3 identites d'envoi possibles (ex. plusieurs cellules/equipes qui
+                   partagent sous des noms differents) : celle marquee "active"
+                   ci-dessous est celle utilisee dans la signature des partages
+                   (voir signatureEnvoiActuelle). -->
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:8px">
                 <div>
                   <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Identité d'envoi 1 (pseudo ou société)</label>
                   <input type="text" id="marqueIdentite1" placeholder="Ex. Cellule Sûreté ABC" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px" oninput="renderMarqueIdentiteChoix()">
@@ -2679,6 +2680,10 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <div>
                   <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Identité d'envoi 2 (optionnel)</label>
                   <input type="text" id="marqueIdentite2" placeholder="Ex. Cellule Sûreté Nord" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px" oninput="renderMarqueIdentiteChoix()">
+                </div>
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Identité d'envoi 3 (optionnel)</label>
+                  <input type="text" id="marqueIdentite3" placeholder="Ex. Cellule Sûreté Sud" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px" oninput="renderMarqueIdentiteChoix()">
                 </div>
               </div>
               <div style="margin-bottom:12px">
@@ -7219,16 +7224,18 @@ function nomMarqueActuelle() {
   const m = getMarquePerso();
   return (m.nomMarque || '').trim() || 'SENTINEL SÛRETÉ';
 }
-// identitesMarquePerso(m) : normalise les 2 identites d'envoi possibles +
+// identitesMarquePerso(m) : normalise les 3 identites d'envoi possibles +
 // laquelle est active. Migre en douceur l'ancien champ unique
-// "identitePartage" (avant l'ajout de la 2e identite) vers identite1, pour
-// ne pas perdre la configuration deja enregistree par un client existant.
+// "identitePartage" (avant l'ajout d'identites multiples) vers identite1,
+// pour ne pas perdre la configuration deja enregistree par un client existant.
 function identitesMarquePerso(m) {
   const identite1 = (m.identite1 || m.identitePartage || '').trim();
   const identite2 = (m.identite2 || '').trim();
-  let active = m.identiteActive === 2 ? 2 : 1;
-  if (active === 2 && !identite2) active = 1; // repli si la 2e a ete videe entre-temps
-  return { identite1, identite2, active };
+  const identite3 = (m.identite3 || '').trim();
+  const identites = { 1: identite1, 2: identite2, 3: identite3 };
+  let active = [1, 2, 3].includes(m.identiteActive) ? m.identiteActive : 1;
+  if (!identites[active]) active = 1; // repli si l'identite active a ete videe entre-temps
+  return { identite1, identite2, identite3, active };
 }
 // signatureEnvoiActuelle() : ligne de signature ajoutee en fin de message
 // partage (pseudo/societe), uniquement si le plan l'autorise et que
@@ -7236,12 +7243,12 @@ function identitesMarquePerso(m) {
 // de comportement pour un compte gratuit).
 function signatureEnvoiActuelle() {
   if (!fonctionnalitePayante()) return '';
-  const { identite1, identite2, active } = identitesMarquePerso(getMarquePerso());
+  const { identite1, identite2, identite3, active } = identitesMarquePerso(getMarquePerso());
   // Nom/pseudo uniquement (demande explicite) : jamais de coordonnee
   // personnelle (telephone/email) dans la signature d'un partage, meme si
   // un contact a ete enregistre par le passe (champ retire du panneau
   // Parametres, valeur eventuellement encore en localStorage mais ignoree ici).
-  const identite = active === 2 ? identite2 : identite1;
+  const identite = active === 3 ? identite3 : active === 2 ? identite2 : identite1;
   if (!identite) return '';
   return '\n\n— ' + identite;
 }
@@ -11514,15 +11521,16 @@ function emSupprimerGroupe(index) {
 // planUtilisateurActuel/fonctionnalitePayante/nomMarqueActuelle) ──────────
 function renderMarquePerso() {
   const nomEl = document.getElementById('marqueNom'), id1El = document.getElementById('marqueIdentite1'),
-        id2El = document.getElementById('marqueIdentite2'),
+        id2El = document.getElementById('marqueIdentite2'), id3El = document.getElementById('marqueIdentite3'),
         badgeEl = document.getElementById('marquePlanBadge'),
         upsellEl = document.getElementById('marqueUpsell'), saveBtn = document.getElementById('marqueSaveBtn');
   if (!nomEl) return;
   const m = getMarquePerso();
-  const { identite1, identite2, active } = identitesMarquePerso(m);
+  const { identite1, identite2, identite3, active } = identitesMarquePerso(m);
   nomEl.value = m.nomMarque || '';
   id1El.value = identite1;
   id2El.value = identite2;
+  id3El.value = identite3;
   renderMarqueIdentiteChoix(active);
 
   const payant = fonctionnalitePayante();
@@ -11533,11 +11541,11 @@ function renderMarquePerso() {
     badgeEl.style.color = payant ? '#0F4F2A' : '#7C4A00';
   }
   if (upsellEl) upsellEl.style.display = payant ? 'none' : 'flex';
-  [nomEl, id1El, id2El, document.getElementById('marqueIdentiteActive')].forEach(el => { if (el) { el.disabled = !payant; el.style.opacity = payant ? '1' : '.55'; } });
+  [nomEl, id1El, id2El, id3El, document.getElementById('marqueIdentiteActive')].forEach(el => { if (el) { el.disabled = !payant; el.style.opacity = payant ? '1' : '.55'; } });
   if (saveBtn) saveBtn.disabled = !payant;
 }
 // renderMarqueIdentiteChoix(preferActive) : reconstruit la liste deroulante
-// "Identite utilisee dans les partages" a partir des identites 1/2
+// "Identite utilisee dans les partages" a partir des identites 1/2/3
 // actuellement saisies (meme non encore enregistrees) — appelee a chaque
 // frappe pour que le choix reste toujours coherent avec ce qui est tape.
 function renderMarqueIdentiteChoix(preferActive) {
@@ -11545,12 +11553,14 @@ function renderMarqueIdentiteChoix(preferActive) {
   if (!sel) return;
   const id1 = (document.getElementById('marqueIdentite1').value || '').trim();
   const id2 = (document.getElementById('marqueIdentite2').value || '').trim();
-  const prev = preferActive || (sel.value === '2' ? 2 : 1);
+  const id3 = (document.getElementById('marqueIdentite3').value || '').trim();
+  const prev = preferActive || (sel.value === '3' ? 3 : sel.value === '2' ? 2 : 1);
   const opts = [];
   opts.push(`<option value="1">${id1 ? _apEsc(id1) : 'Identité 1 (non renseignée)'}</option>`);
   if (id2) opts.push(`<option value="2">${_apEsc(id2)}</option>`);
+  if (id3) opts.push(`<option value="3">${_apEsc(id3)}</option>`);
   sel.innerHTML = opts.join('');
-  sel.value = (prev === 2 && id2) ? '2' : '1';
+  sel.value = (prev === 3 && id3) ? '3' : (prev === 2 && id2) ? '2' : '1';
 }
 function pmSaveMarquePerso() {
   // Double verification cote enregistrement (pas seulement l'UI grisee) :
@@ -11560,11 +11570,13 @@ function pmSaveMarquePerso() {
     pmMsg('Fonctionnalité réservée aux plans payants.', 'err', 'marqueMsg');
     return;
   }
+  const activeVal = document.getElementById('marqueIdentiteActive').value;
   saveMarquePerso({
     nomMarque: (document.getElementById('marqueNom').value || '').trim(),
     identite1: (document.getElementById('marqueIdentite1').value || '').trim(),
     identite2: (document.getElementById('marqueIdentite2').value || '').trim(),
-    identiteActive: document.getElementById('marqueIdentiteActive').value === '2' ? 2 : 1,
+    identite3: (document.getElementById('marqueIdentite3').value || '').trim(),
+    identiteActive: activeVal === '3' ? 3 : activeVal === '2' ? 2 : 1,
   });
   pmMsg('Personnalisation enregistrée.', 'ok', 'marqueMsg');
 }
