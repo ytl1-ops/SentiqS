@@ -1609,15 +1609,11 @@ button:not(:disabled){
       <div class="auth-sub">Acces restreint aux responsables surete autorises</div>
       <div class="auth-field">
         <label>Adresse e-mail</label>
-        <input type="email" id="loginEmail" placeholder="votre@email.com" autocomplete="email" oninput="onEmailInput(this.value)">
+        <input type="email" id="loginEmail" placeholder="votre@email.com" autocomplete="email">
       </div>
       <div class="auth-field">
         <label>Code d'acces</label>
         <input type="text" id="loginPass" placeholder="Votre code d&#39;acces (ex: SJPNI2T)" autocomplete="off" style="letter-spacing:.1em;font-weight:700;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key===&#39;Enter&#39;)doLogin()">
-        <div id="codeHint" style="font-size:10px;color:var(--b);margin-top:5px;display:none">
-          <i class="ti ti-info-circle" style="font-size:11px;vertical-align:-1px"></i>
-          Votre code : <strong id="codeHintVal"></strong>
-        </div>
       </div>
       <button class="auth-btn" onclick="doLogin()" id="loginBtn">
         <i class="ti ti-login"></i> Se connecter
@@ -9898,17 +9894,29 @@ function applyRoleMenus(role) {
   if (paramsTab)  paramsTab.style.display  = isAdmin ? 'flex' : 'none';
 }
 
-function makeCode(email) {
-  let h=0; for(const c of email.toLowerCase()) h=(h*31+c.charCodeAt(0))&0xffffffff;
-  return 'S'+Math.abs(h).toString(36).toUpperCase().padStart(6,'0');
+// genAccessCode() : code d'acces reellement aleatoire (crypto.getRandomValues),
+// jamais recalculable a partir de l'email — a la difference de l'ancien
+// makeCode(email), un simple hash deterministe et public qui permettait a
+// quiconque de generer/deviner le code d'un compte (y compris admin) sans
+// jamais passer par l'administrateur. Le code doit desormais toujours etre
+// lu depuis user.code (stocke a la creation), jamais recalcule a la volee.
+function genAccessCode() {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sans 0/O/1/I ambigus
+  const bytes = new Uint8Array(6);
+  crypto.getRandomValues(bytes);
+  return 'S' + Array.from(bytes, b => alphabet[b % alphabet.length]).join('');
 }
 
 function initUsers() {
   let users=getUsers();
   if(!users.find(u=>u.email===ADMIN_EMAIL)){
+    const code=genAccessCode();
     users.push({email:ADMIN_EMAIL,name:'Administrateur SENTINEL',role:'admin',
-      status:'active',createdAt:new Date().toISOString(),lastLogin:null,code:makeCode(ADMIN_EMAIL)});
+      status:'active',createdAt:new Date().toISOString(),lastLogin:null,code});
     saveUsers(users);
+    // Premiere creation du compte admin sur cet appareil : seul moment ou ce
+    // code est affichable, il ne sera plus jamais recalculable ensuite.
+    alert('Compte administrateur cree.\n\nVotre code d\'acces (a conserver, il ne sera plus jamais affiche automatiquement) :\n\n'+code);
   }
 }
 
@@ -9921,27 +9929,22 @@ function doLogin() {
   const users=getUsers();
   let user=users.find(u=>u.email.toLowerCase()===email);
 
-  // Auto-activation : première connexion depuis cet appareil/navigateur.
-  // L'authentification étant 100% locale (sans serveur), un utilisateur ajouté
-  // par l'admin sur SA machine n'existe pas encore ici. On l'active donc à la
-  // volée si le code saisi correspond au code déterministe de son adresse
-  // (celui communiqué par e-mail), ce qui permet de diffuser le fichier +
-  // un code par mail sans étape de synchronisation manuelle.
+  // Aucune auto-activation : un email inconnu doit passer par "Demander un
+  // acces" puis validation de l'administrateur (voir doRegister/addUser).
+  // Avant, un email inconnu + son code recalculable via makeCode(email)
+  // (un simple hash public, sans secret) suffisait a creer un compte actif
+  // instantanement — n'importe qui pouvait donc se donner acces sans jamais
+  // passer par l'administrateur.
   if(!user){
-    if(!/^[^@]+@[^@]+\.[^@]+$/.test(email)){errEl.textContent='Adresse e-mail invalide.';errEl.classList.add('show');return;}
-    if(pass!==makeCode(email)){
-      errEl.textContent='Adresse e-mail non reconnue. Demandez un acces a l\'administrateur.';errEl.classList.add('show');return;}
-    user={email,name:email.split('@')[0],role:'user',status:'active',
-      createdAt:new Date().toISOString(),lastLogin:null,code:makeCode(email)};
-    users.push(user); saveUsers(users);
+    errEl.textContent='Adresse e-mail non reconnue. Demandez un acces a l\'administrateur.';errEl.classList.add('show');return;
   }
 
   if(user.status!=='active'){errEl.textContent='Acces suspendu. Contactez : '+ADMIN_EMAIL;errEl.classList.add('show');return;}
   if(compteGratuitExpire(user)){
     errEl.textContent='Compte gratuit expire (validite 24h). Passez a un plan payant pour continuer — contactez '+ADMIN_EMAIL+'.';
     errEl.classList.add('show');return;}
-  if(pass!==user.code&&pass!==makeCode(email)){
-    errEl.textContent='Code d\'acces incorrect. Votre code : '+user.code;errEl.classList.add('show');return;}
+  if(pass!==user.code){
+    errEl.textContent='Code d\'acces incorrect.';errEl.classList.add('show');return;}
   user.lastLogin=new Date().toISOString(); saveUsers(users);
   saveSession({email:user.email,name:user.name,role:user.role,loginAt:new Date().toISOString()});
   document.getElementById('authOverlay').classList.add('hidden');
@@ -10022,7 +10025,7 @@ function addUser() {
   if(!email||!name){msg.textContent='Email et nom sont requis.';msg.className='admin-msg err';return;}
   const users=getUsers();
   if(users.find(u=>u.email===email)){msg.textContent='Cet utilisateur existe deja.';msg.className='admin-msg err';return;}
-  const code=makeCode(email);
+  const code=genAccessCode();
   users.push({email,name,role,status:'active',createdAt:new Date().toISOString(),lastLogin:null,code});
   saveUsers(users);
   savePending(getPending().filter(p=>p.email!==email));
@@ -10351,7 +10354,7 @@ function pmAddUser() {
   if (!email || !name) { pmMsg('Email et nom sont requis.', 'err', 'pmMsg'); return; }
   const users = getUsers();
   if (users.find(u => u.email === email)) { pmMsg('Cet utilisateur existe deja.', 'err', 'pmMsg'); return; }
-  const code = makeCode(email);
+  const code = genAccessCode();
   users.push({email, name, role, status:'active',
     createdAt: new Date().toISOString(), lastLogin: null, code});
   saveUsers(users);
@@ -10412,7 +10415,8 @@ function pmRejectPending(email) {
 function renderAdminProfile() {
   const session = getSession();
   if (!session) return;
-  const code = makeCode(session.email);
+  const u = getUsers().find(x => x.email === session.email);
+  const code = u ? u.code : '';
   document.getElementById('pmAvatar').textContent = (session.name||session.email).charAt(0).toUpperCase();
   document.getElementById('pmName').textContent   = session.name || 'Administrateur';
   document.getElementById('pmEmail').textContent  = session.email === ADMIN_EMAIL ? _maskEmail(session.email) : session.email;
@@ -11004,8 +11008,9 @@ function _chargerSdkEmailjs() {
   });
   return _emailjsSdkPromise;
 }
-// envoyerCodeActivation(u) : tente l'envoi automatique du code d'acces (voir
-// makeCode) par email au client. Renvoie {ok:true} en cas de succes,
+// envoyerCodeActivation(u) : tente l'envoi automatique du code d'acces deja
+// stocke (u.code, voir genAccessCode) par email au client. Renvoie {ok:true}
+// en cas de succes,
 // {ok:false, raison} sinon (config manquante, echec reseau...) — l'appelant
 // affiche alors le code a l'administrateur pour transmission manuelle,
 // aucune activation ne depend de la reussite de cet envoi.
@@ -11019,7 +11024,7 @@ async function envoyerCodeActivation(u) {
     await emailjs.send(cfg.serviceId, cfg.templateId, {
       to_email: u.email,
       to_name: u.name || u.email,
-      code: makeCode(u.email),
+      code: u.code,
       app_name: 'SENTINEL SÛRETÉ',
     }, cfg.publicKey);
     return { ok: true };
@@ -11042,7 +11047,7 @@ function activerAbonnementEtEnvoyerCode(email, planKey, msgElId) {
   const echeance = new Date(); echeance.setMonth(echeance.getMonth() + 1);
   u.echeance = echeance.toLocaleDateString('fr-FR');
   saveUsers(users);
-  const code = makeCode(u.email);
+  const code = u.code;
   envoyerCodeActivation(u).then(res => {
     if (res.ok) {
       pmMsg('Abonnement activé pour ' + u.email + ' — code d\'activation envoyé par email automatiquement.', 'ok', msgElId);
@@ -11331,29 +11336,20 @@ getFiltered = function() {
 
 
 
-function onEmailInput(email) {
-  const hint    = document.getElementById('codeHint');
-  const hintVal = document.getElementById('codeHintVal');
-  if (!hint || !hintVal) return;
-  const users = getUsers();
-  const user  = users.find(u => u.email.toLowerCase() === email.trim().toLowerCase());
-  if (user) {
-    hintVal.textContent = user.code || makeCode(email.trim().toLowerCase());
-    hint.style.display  = 'block';
-  } else {
-    hint.style.display = 'none';
-  }
-}
 
 function resetLocalStorage() {
-  if(!confirm('Réinitialiser tous les accès et sessions ?\n\nCette action supprime toutes les sessions et recrée le compte admin.\n\nVotre code admin sera : ' + makeCode(ADMIN_EMAIL))) return;
+  const nouveauCode = genAccessCode();
+  if(!confirm('Réinitialiser tous les accès et sessions ?\n\nCette action supprime toutes les sessions et recrée le compte admin.\n\nVotre nouveau code admin sera : ' + nouveauCode)) return;
   localStorage.removeItem('sentinel_auth_v1');
   localStorage.removeItem('sentinel_users_v1');
   localStorage.removeItem('sentinel_pending_v1');
   localStorage.removeItem('sentinel_dl_rights_v1');
   localStorage.removeItem('sentinel_ft_rights_v1');
-  // Recréer le compte admin immédiatement
-  initUsers();
+  // Recréer le compte admin immédiatement avec le code déjà annoncé ci-dessus
+  // (ne pas rappeler initUsers() ici : il générerait un second code aléatoire
+  // différent de celui qu'on vient de montrer).
+  saveUsers([{email:ADMIN_EMAIL,name:'Administrateur SENTINEL',role:'admin',
+    status:'active',createdAt:new Date().toISOString(),lastLogin:null,code:nouveauCode}]);
   // Recharger la page
   window.location.reload();
 }
