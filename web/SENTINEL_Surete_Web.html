@@ -8494,14 +8494,32 @@ async function agentVerifierLien(url) {
     // en erreur ou un timeout d'un proxy rejette sa promesse individuelle
     // pour laisser la chance aux autres proxys, plutot que de conclure a
     // tort a un lien mort sur le premier echec isole.
-    valide = await Promise.any(CORS_PX.map(px =>
-      fetch(px(url), { signal: AbortSignal.timeout(6000) }).then(r => {
+    //
+    // BUG RACINE CORRIGE (liens vers les sources restant casses malgre cet
+    // agent) : le proxy allorigins.win/get renvoie TOUJOURS un statut HTTP
+    // 200 cote PROXY, meme quand la page CIBLE est un vrai 404 — le vrai
+    // statut de la cible est enfoui dans le JSON de reponse
+    // (status.http_code), jamais lu ici auparavant. Comme ce proxy est
+    // rapide et fiable, il "gagnait" tres souvent la course meme pour un
+    // lien source reellement mort, rendant cet agent silencieusement
+    // inoperant pour une bonne part des liens casses qu'il est cense
+    // detecter. Son statut cible doit desormais etre explicitement verifie.
+    valide = await Promise.any(CORS_PX.map(px => {
+      const proxyUrl = px(url);
+      const estEnveloppeJson = proxyUrl.includes('/get?url=');
+      return fetch(proxyUrl, { signal: AbortSignal.timeout(6000) }).then(async r => {
         if (!r.ok) throw new Error('proxy: statut ' + r.status);
+        if (estEnveloppeJson) {
+          const data = await r.json();
+          const code = data && data.status && data.status.http_code;
+          if (code && (code < 200 || code >= 400)) throw new Error('cible: statut ' + code);
+        }
         return true;
-      })
-    ));
+      });
+    }));
   } catch (e) {
-    // AggregateError : tous les proxys ont echoue -> lien considere mort
+    // AggregateError : tous les proxys ont echoue (ou ont confirme un statut
+    // cible en erreur) -> lien considere mort
     valide = false;
   }
   LIEN_VALIDE_CACHE[url] = valide;
