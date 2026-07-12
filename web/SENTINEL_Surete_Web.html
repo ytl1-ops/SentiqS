@@ -2723,6 +2723,51 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
             </div>
           </div>
 
+          <!-- Rappels d'envoi WhatsApp programmes : puisque WhatsApp n'offre
+               aucun moyen, pour un site web, d'envoyer un message/fichier a
+               une heure precise sans un clic humain reel (protection anti-spam
+               des navigateurs, cf. navigator.share/window.open qui exigent un
+               "geste utilisateur"), ce module affiche a l'heure programmee une
+               notification + un bouton "Envoyer maintenant" deja pret (rapport
+               genere, numero et identite pre-remplis) — un seul tap suffit.
+               Necessite l'onglet SENTINEL ouvert au moment du rappel (meme
+               limite que les autres notifications web de l'app, voir
+               demanderPermissionNotifWeb). -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-brand-whatsapp"></i>
+                <div><div class="pm-sec-title">Rappels d'envoi WhatsApp programmes</div>
+                <div class="pm-sec-sub">Notification + bouton d'envoi pret aux heures choisies (onglet SENTINEL ouvert requis)</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px">
+              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
+                A chaque heure programmee, une notification s'affiche avec un bouton "Envoyer maintenant" :
+                un tap genere le rapport de Synthese analytique (PDF) et ouvre la conversation WhatsApp du
+                numero indique, message signe avec l'identite de marque active. Aucun envoi n'a lieu sans
+                ce clic — WhatsApp ne permet pas a un site web d'envoyer un message automatiquement.
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+                <input type="checkbox" id="rappelWaActif" style="width:16px;height:16px;cursor:pointer">
+                <label for="rappelWaActif" style="font-size:12px;font-weight:600;color:var(--t);cursor:pointer">Activer les rappels programmes</label>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Numero WhatsApp (avec indicatif pays)</label>
+                  <input type="text" id="rappelWaNumero" placeholder="Ex. 2250747974398" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                </div>
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Heures (HH:MM, separees par virgule)</label>
+                  <input type="text" id="rappelWaHeures" placeholder="Ex. 06:00, 16:30, 20:30" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <button class="btn-action btn-rest" id="rappelWaSaveBtn" onclick="pmSaveRappelsWhatsapp()"><i class="ti ti-device-floppy"></i> Enregistrer les rappels</button>
+                <span class="pmu-msg" id="rappelWaMsg" style="margin:0"></span>
+              </div>
+            </div>
+          </div>
+
           <!-- ══ GROUPE : ADMINISTRATION DE LA PLATEFORME (suite) ══ -->
           <div class="pm-group-hd">
             <i class="ti ti-shield-cog"></i>
@@ -10166,6 +10211,7 @@ function tick(){
   const n=new Date();
   document.getElementById('tbTime').textContent=n.toLocaleDateString('fr-FR')+' · '+n.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
   ALL.forEach(a=>{a.time=fmtAge(a.pubDate||0);});
+  if (typeof verifierRappelsWhatsappProgrammes === 'function') { try { verifierRappelsWhatsappProgrammes(); } catch(_) {} }
 }
 setInterval(tick,60000);
 // Auto-collect désactivé — collecte manuelle uniquement
@@ -10366,6 +10412,122 @@ function notifierAlertesCritiquesWeb() {
   notifierParSeveriteWeb(pertinentes.filter(a => a.level === 'crit'), 'crit');
   notifierParSeveriteWeb(pertinentes.filter(a => a.level === 'high'), 'high');
   markWebNotifSeen(pertinentes.map(a => a.id));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  RAPPELS D'ENVOI WHATSAPP PROGRAMMES — demande explicite : "envoyer un
+//  rapport d'analyse en PDF a heure fixe, tous les jours, via WhatsApp".
+//  IMPOSSIBLE a faire de facon totalement automatique depuis un site web :
+//  WhatsApp n'expose aucune API publique gratuite pour envoyer un message
+//  (encore moins un fichier) sans un geste utilisateur reel — navigator.share
+//  et window.open sont tous deux bloques par le navigateur s'ils ne sont pas
+//  declenches par un clic direct (protection anti-spam standard). A l'heure
+//  programmee, on affiche donc une notification + un bouton "Envoyer
+//  maintenant" deja pret (rapport genere, numero et texte prerempli) : un
+//  seul tap suffit, aucun envoi silencieux. Necessite l'onglet SENTINEL
+//  ouvert au moment du rappel (meme limite que demanderPermissionNotifWeb).
+// ═══════════════════════════════════════════════════════════════════════════
+const RAPPEL_WA_KEY = 'sentinel_rappels_whatsapp_v1';
+function getRappelsWhatsappConfig() {
+  return _ls(() => JSON.parse(localStorage.getItem(RAPPEL_WA_KEY) || 'null'), null) || {
+    actif: true, numero: '2250747974398', heures: ['06:00', '16:30', '20:30'], dernierRappelParCreneau: {},
+  };
+}
+function saveRappelsWhatsappConfig(cfg) {
+  _ls(() => localStorage.setItem(RAPPEL_WA_KEY, JSON.stringify(cfg)));
+}
+function pmSaveRappelsWhatsapp() {
+  const cfg = getRappelsWhatsappConfig();
+  cfg.actif = document.getElementById('rappelWaActif').checked;
+  cfg.numero = (document.getElementById('rappelWaNumero').value || '').replace(/[^\d]/g, '');
+  cfg.heures = (document.getElementById('rappelWaHeures').value || '')
+    .split(',').map(h => h.trim()).filter(h => /^([01]\d|2[0-3]):[0-5]\d$/.test(h));
+  saveRappelsWhatsappConfig(cfg);
+  const msg = document.getElementById('rappelWaMsg');
+  if (msg) { msg.textContent = 'Enregistre.'; msg.style.color = 'var(--gr)'; setTimeout(() => { msg.textContent = ''; }, 2500); }
+}
+function renderRappelsWhatsappParams() {
+  const cfg = getRappelsWhatsappConfig();
+  const elActif = document.getElementById('rappelWaActif');
+  const elNumero = document.getElementById('rappelWaNumero');
+  const elHeures = document.getElementById('rappelWaHeures');
+  if (elActif) elActif.checked = !!cfg.actif;
+  if (elNumero) elNumero.value = cfg.numero || '';
+  if (elHeures) elHeures.value = (cfg.heures || []).join(', ');
+}
+
+// verifierRappelsWhatsappProgrammes() : appelee chaque minute (voir tick()).
+// Granularite a la minute (HH:MM) + garde-fou "deja notifie aujourd'hui pour
+// ce creneau" pour ne declencher qu'UNE seule fois par heure programmee.
+function verifierRappelsWhatsappProgrammes() {
+  const cfg = getRappelsWhatsappConfig();
+  if (!cfg.actif || !cfg.numero || !(cfg.heures || []).length) return;
+  const now = new Date();
+  const hhmm = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+  if (!cfg.heures.includes(hhmm)) return;
+  const today = now.toISOString().slice(0, 10);
+  cfg.dernierRappelParCreneau = cfg.dernierRappelParCreneau || {};
+  if (cfg.dernierRappelParCreneau[hhmm] === today) return; // deja notifie pour ce creneau aujourd'hui
+  cfg.dernierRappelParCreneau[hhmm] = today;
+  saveRappelsWhatsappConfig(cfg);
+  afficherRappelWhatsappProgramme(hhmm, cfg.numero);
+}
+
+function afficherRappelWhatsappProgramme(hhmm, numero) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    try {
+      const notif = new Notification('⏰ Rappel ' + hhmm + ' — Rapport d\'analyse SENTINEL', {
+        body: 'Tap pour générer et envoyer le rapport via WhatsApp.',
+        tag: 'sentinel-rappel-wa-' + hhmm,
+      });
+      notif.onclick = () => { try { window.focus(); } catch (_) {} };
+    } catch (_) { /* API indisponible dans ce contexte — silencieux */ }
+  }
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+  const id = 'rappelwa_' + Date.now();
+  const el = document.createElement('div');
+  el.id = id;
+  el.style.cssText = 'pointer-events:auto;background:var(--w);border-left:4px solid #0F4F2A;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:12px 14px;cursor:default;transform:translateX(360px);opacity:0;transition:transform .35s ease,opacity .35s ease;max-width:300px;';
+  el.innerHTML =
+    '<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;">'+
+      '<i class="ti ti-brand-whatsapp" style="color:#0F4F2A;font-size:15px;flex-shrink:0"></i>'+
+      '<span style="font-size:11px;font-weight:700;color:var(--t);flex:1;min-width:0;">Rappel ' + hhmm + ' — Rapport d\'analyse</span>'+
+      '<span style="font-size:13px;color:var(--lg);cursor:pointer;flex-shrink:0" onclick="document.getElementById(\''+id+'\').remove()">✕</span>'+
+    '</div>'+
+    '<div style="font-size:10px;color:var(--lg);margin-bottom:8px;">Vers +' + _apEsc(numero) + ' — identité ' + _apEsc(nomMarqueActuelle()) + '</div>'+
+    '<button class="share-trigger" style="width:100%;justify-content:center;" onclick="envoyerRappelWhatsappProgramme(\''+numero+'\',\''+id+'\')"><i class="ti ti-send"></i>Envoyer maintenant</button>';
+  container.appendChild(el);
+  requestAnimationFrame(() => { el.style.transform='translateX(0)'; el.style.opacity='1'; });
+}
+
+// envoyerRappelWhatsappProgramme() : DOIT etre appelee depuis un clic reel
+// (bouton "Envoyer maintenant" ci-dessus) — c'est ce geste utilisateur qui
+// autorise le navigateur a ouvrir la fenetre WhatsApp (voir note en tete de
+// section). Genere le rapport de Synthese analytique (PDF, telecharge sur
+// l'appareil comme tout export) puis ouvre directement la conversation
+// WhatsApp du numero configure avec un message pret, signe de l'identite de
+// marque active. Le PDF n'est pas joint automatiquement au message WhatsApp
+// (wa.me ne le permet pas) — il est deja telecharge, a joindre manuellement,
+// ou via le bouton "Partager ce document" qui apparait juste apres (partage
+// natif avec fichier, cf. afficherPartageDocument/partagerDernierDocument).
+async function envoyerRappelWhatsappProgramme(numero, toastId) {
+  const btn = event ? event.target.closest('button') : null;
+  if (btn && typeof btnSpin === 'function') btnSpin(btn);
+  try {
+    if (typeof exportPDF === 'function') await exportPDF('synthese');
+    const brand = nomMarqueActuelle();
+    const texte = brand + ' — Rapport d\'analyse (Synthèse analytique) du ' +
+      new Date().toLocaleDateString('fr-FR') + ' ' + new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) +
+      '.\n\nLe PDF vient d\'être téléchargé sur cet appareil — joignez-le à ce message (ou utilisez le bouton "Partager ce document" pour un envoi avec fichier joint).';
+    window.open('https://wa.me/' + numero + '?text=' + encodeURIComponent(texte), '_blank', 'noopener');
+  } catch (e) {
+    alert((LANG==='en' ? 'Failed to send: ' : 'Échec de l\'envoi : ') + (e && e.message ? e.message : e));
+  } finally {
+    if (btn && typeof btnReset === 'function') setTimeout(() => btnReset(btn), 600);
+    const toast = toastId ? document.getElementById(toastId) : null;
+    if (toast) { toast.style.transform='translateX(360px)'; toast.style.opacity='0'; setTimeout(()=>toast.remove(),350); }
+  }
 }
 
 // activerProtectionsSecurite() : freins cote client contre la copie/capture
@@ -11409,6 +11571,7 @@ function loadParamsModule() {
   renderReclamationsAdmin();
   renderTraffic();
   if (typeof renderConnexionsSupabase === 'function') renderConnexionsSupabase();
+  if (typeof renderRappelsWhatsappParams === 'function') renderRappelsWhatsappParams();
 }
 
 // ── Connexions récentes (tous appareils, via Supabase) ────────────────────
