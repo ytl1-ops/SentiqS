@@ -109,6 +109,24 @@ export async function signOut() {
   if (error) throw error;
 }
 
+// ── Journal des connexions (visibilité admin, tous appareils) ─
+// Écrit un horodatage de connexion visible par le panneau Administration
+// web, qui n'a pas de session Supabase propre — voir connexions_log
+// (migration 20260712010000). Volontairement best-effort : une écriture
+// échouée (hors-ligne, etc.) ne doit jamais bloquer la connexion.
+export async function logConnexion(profile: { email: string; full_name: string | null; role: string }) {
+  try {
+    await supabase.from('connexions_log').insert({
+      email: profile.email,
+      name: profile.full_name,
+      role: profile.role,
+      platform: 'mobile',
+    });
+  } catch (_e) {
+    // silencieux — le journal de connexion n'est jamais bloquant
+  }
+}
+
 export async function getProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
     .from('profiles')

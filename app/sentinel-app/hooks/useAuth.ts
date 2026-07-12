@@ -1,5 +1,5 @@
 import { useState, useEffect, createContext, useContext } from 'react';
-import { supabase, Profile, Subscription, getCurrentSubscription, getProfile, ADMIN_EMAIL } from '../lib/supabase';
+import { supabase, Profile, Subscription, getCurrentSubscription, getProfile, ADMIN_EMAIL, logConnexion } from '../lib/supabase';
 import { wasLoggedInToday, markLoggedInToday, clearLoginDate } from '../lib/dailySession';
 import type { Session } from '@supabase/supabase-js';
 
@@ -53,14 +53,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       async (event, session) => {
         if (event === 'SIGNED_IN') await markLoggedInToday();
         setSession(session);
-        if (session) await loadUserData(session.user.id);
-        else { setProfile(null); setSubscription(null); setIsLoading(false); }
+        if (session) {
+          const prof = await loadUserData(session.user.id);
+          if (event === 'SIGNED_IN' && prof) logConnexion(prof);
+        } else { setProfile(null); setSubscription(null); setIsLoading(false); }
       }
     );
     return () => authListener.unsubscribe();
   }, []);
 
-  async function loadUserData(userId: string) {
+  async function loadUserData(userId: string): Promise<Profile | null> {
     setIsLoading(true);
     try {
       const [prof, sub] = await Promise.all([
@@ -69,6 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ]);
       setProfile(prof);
       setSubscription(sub);
+      return prof;
     } finally {
       setIsLoading(false);
     }

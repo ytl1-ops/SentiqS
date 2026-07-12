@@ -1586,6 +1586,8 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
   <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.4.0/dist/pdf-lib.min.js" defer></script>
   <!-- SheetJS pour export Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer=""></script>
+  <!-- Supabase JS : journal de connexions partagé avec l'app mobile (voir SENTINEL_SUPABASE_URL) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
 </head>
 <body>
 
@@ -2964,6 +2966,20 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               <div id="trafficBars" style="margin-bottom:14px"></div>
               <div style="font-size:10px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Vues par utilisateur (7 derniers jours)</div>
               <div id="trafficBarsUsers"></div>
+            </div>
+          </div>
+
+          <!-- Connexions recentes (tous appareils, via Supabase) -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-devices"></i>
+                <div><div class="pm-sec-title">Connexions récentes — tous appareils</div>
+                <div class="pm-sec-sub" id="connexionsSub">Qui s'est réellement connecté, web et mobile confondus</div></div>
+              </div>
+              <button class="btn-action btn-rest" style="font-size:10px" onclick="renderConnexionsSupabase()"><i class="ti ti-refresh"></i> Actualiser</button>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px">
+              <div id="connexionsBody" style="font-size:11px;color:var(--lg)">Chargement…</div>
             </div>
           </div>
 
@@ -10169,6 +10185,58 @@ const STORE_KEY   = 'sentinel_auth_v1';
 const USERS_KEY   = 'sentinel_users_v1';
 const PENDING_KEY = 'sentinel_pending_v1';
 
+// ── Journal de connexions Supabase (visibilité admin, tous appareils) ─────
+// L'authentification de cette app web reste volontairement locale
+// (localStorage, voir genAccessCode/doLogin — aucune migration vers un vrai
+// compte Supabase). Mais SANS backend partagé, le panneau Administration ne
+// peut jamais voir qu'un AUTRE utilisateur s'est connecté depuis son propre
+// appareil (chaque localStorage est isolé) — d'où la table connexions_log
+// (voir app/sentinel-app/supabase/migrations/20260712010000_connexions_log.sql,
+// partagée avec l'app mobile qui y écrit aussi). Renseignez ces deux valeurs
+// avec le projet Supabase déjà utilisé par l'app mobile (Paramètres du
+// projet > API sur supabase.com/dashboard) : tant qu'elles restent vides,
+// aucun appel réseau n'est fait et le panneau retombe sur l'affichage local
+// (comme avant).
+const SENTINEL_SUPABASE_URL      = '';
+const SENTINEL_SUPABASE_ANON_KEY = '';
+let _sentinelSupabaseClient = null;
+function getSentinelSupabase() {
+  if (!SENTINEL_SUPABASE_URL || !SENTINEL_SUPABASE_ANON_KEY) return null;
+  if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') return null;
+  if (!_sentinelSupabaseClient) {
+    try { _sentinelSupabaseClient = window.supabase.createClient(SENTINEL_SUPABASE_URL, SENTINEL_SUPABASE_ANON_KEY); }
+    catch (_) { return null; }
+  }
+  return _sentinelSupabaseClient;
+}
+// Ecrit un horodatage de connexion — best-effort, jamais bloquant (une
+// connexion doit toujours reussir meme hors-ligne ou si Supabase n'est pas
+// configure/joignable).
+async function logConnexionSupabase(user) {
+  const client = getSentinelSupabase();
+  if (!client || !user) return;
+  try {
+    await client.from('connexions_log').insert({
+      email: user.email, name: user.name, role: user.role, platform: 'web',
+    });
+  } catch (_) {}
+}
+// Lit les connexions recentes (tous appareils/utilisateurs) pour le panneau
+// Administration. Retourne [] si Supabase n'est pas configure — l'appelant
+// retombe alors sur les donnees locales (lastLogin/trafic), inchangees.
+async function fetchConnexionsRecentes(limit) {
+  const client = getSentinelSupabase();
+  if (!client) return null; // null = non configure (distinct de [] = configure mais vide)
+  try {
+    const { data, error } = await client.from('connexions_log')
+      .select('email,name,role,platform,created_at')
+      .order('created_at', { ascending: false })
+      .limit(limit || 100);
+    if (error) return null;
+    return data || [];
+  } catch (_) { return null; }
+}
+
 // ── Google AdSense (bandeau publicitaire, version gratuite) ───────────────
 // Renseignez ces deux valeurs une fois le compte AdSense créé et approuvé
 // par Google (console.google.com/adsense) : ADSENSE_CLIENT_ID = "Publisher
@@ -10309,6 +10377,7 @@ function doLogin() {
     errEl.textContent=t('err_wrong_code');errEl.classList.add('show');return;}
   user.lastLogin=new Date().toISOString(); saveUsers(users);
   saveSession({email:user.email,name:user.name,role:user.role,loginAt:new Date().toISOString()});
+  if (typeof logConnexionSupabase === 'function') logConnexionSupabase(user);
   document.getElementById('authOverlay').classList.add('hidden');
   document.getElementById('userWrap').style.display='block';
   showUserChip(user);
@@ -10531,6 +10600,7 @@ function checkAuth() {
     document.getElementById('userWrap').style.display='block';
     showUserChip(user);
     applyRoleMenus(user.role);
+    if (typeof logConnexionSupabase === 'function') logConnexionSupabase(user);
     if (!window._appInitialized) { window._appInitialized = true; init(); }
   } else {
     // Aucune session valide : ecran de connexion reel, l'application ne
@@ -10917,6 +10987,48 @@ function loadParamsModule() {
   renderDLStats();
   renderReclamationsAdmin();
   renderTraffic();
+  if (typeof renderConnexionsSupabase === 'function') renderConnexionsSupabase();
+}
+
+// ── Connexions récentes (tous appareils, via Supabase) ────────────────────
+// Contrairement a "Suivi du trafic" ci-dessus (local a cet appareil), ce
+// panneau interroge connexions_log (partagee avec l'app mobile) pour montrer
+// les VRAIES connexions de tous les utilisateurs, quel que soit l'appareil
+// utilise. Retombe sur un message explicite si SENTINEL_SUPABASE_URL/
+// SENTINEL_SUPABASE_ANON_KEY ne sont pas renseignes (voir plus haut).
+async function renderConnexionsSupabase() {
+  const body = document.getElementById('connexionsBody');
+  const sub  = document.getElementById('connexionsSub');
+  if (!body) return;
+  body.textContent = 'Chargement…';
+  const rows = await fetchConnexionsRecentes(50);
+  if (rows === null) {
+    body.innerHTML = '<div style="padding:8px 0;line-height:1.5;">'
+      + 'Non configuré — renseignez <code>SENTINEL_SUPABASE_URL</code> et '
+      + '<code>SENTINEL_SUPABASE_ANON_KEY</code> (même projet Supabase que '
+      + 'l\'app mobile) en tête du script pour activer cette vue partagée '
+      + 'entre tous les appareils. En attendant, seul le trafic local à cet '
+      + 'appareil (ci-dessus) est disponible.</div>';
+    if (sub) sub.textContent = 'Non configuré';
+    return;
+  }
+  if (!rows.length) {
+    body.innerHTML = '<div style="padding:8px 0;">Aucune connexion enregistrée pour l\'instant.</div>';
+    if (sub) sub.textContent = 'Qui s\'est réellement connecté, web et mobile confondus';
+    return;
+  }
+  if (sub) sub.textContent = rows.length + ' connexion(s) récente(s) — mise à jour ' + new Date().toLocaleTimeString('fr-FR');
+  const platIco = { web:'ti-world', mobile:'ti-device-mobile' };
+  body.innerHTML = '<table class="pm-users-table"><thead><tr>'
+    + '<th>Email</th><th>Nom</th><th>Rôle</th><th>Appareil</th><th>Connexion</th>'
+    + '</tr></thead><tbody>' + rows.map(r => {
+      const label = r.email === ADMIN_EMAIL ? _maskEmail(r.email) : r.email;
+      const dt = new Date(r.created_at);
+      return '<tr><td>' + label + '</td><td>' + (r.name||'—') + '</td>'
+        + '<td>' + (r.role||'—') + '</td>'
+        + '<td><i class="ti ' + (platIco[r.platform]||'ti-device-unknown') + '"></i> ' + (r.platform||'—') + '</td>'
+        + '<td style="color:rgba(0,0,0,.4)">' + dt.toLocaleDateString('fr-FR') + ' ' + dt.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) + '</td></tr>';
+    }).join('') + '</tbody></table>';
 }
 
 // ── TARIFICATION & ABONNEMENTS ───────────────────────────────────────────
