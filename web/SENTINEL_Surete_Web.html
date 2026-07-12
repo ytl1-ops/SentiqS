@@ -12627,9 +12627,16 @@ function getLiveAlertEvents(cy) {
 }
 
 // NIV : référentiel visuel des 5 niveaux d'alerte pays (couleurs, libellés).
+// Ordre de gravité SURETE, du plus au moins severe : ROUGE > MARRON > ORANGE
+// > JAUNE > VERT (voir rangOrdre/rangNiv, coherent partout dans l'app).
+// Sous-libelles alignes sur la legende du module Alertes (ROUGE — Situation
+// grave / MARRON — Situation critique...) : "Grave" est le qualificatif du
+// niveau le PLUS eleve (ROUGE), pas de MARRON. Corrige une inversion signalee
+// (les cartes affichaient "Critique" sous ROUGE, en contradiction avec la
+// legende juste au-dessus qui annonce "ROUGE — Situation grave").
 const NIV = {
-  rouge:  {dot:'#8B1A1A', col:'#8B1A1A', border:'#8B1A1A', bg:'#FEF2F2', bgLight:'#FEE2E2', txt:'#7F1D1D', label:'ROUGE',  sous:'Critique'},
-  marron: {dot:'#78350F', col:'#78350F', border:'#78350F', bg:'#FDF4EC', bgLight:'#F3E1CB', txt:'#78350F', label:'MARRON', sous:'Grave'},
+  rouge:  {dot:'#8B1A1A', col:'#8B1A1A', border:'#8B1A1A', bg:'#FEF2F2', bgLight:'#FEE2E2', txt:'#7F1D1D', label:'ROUGE',  sous:'Grave'},
+  marron: {dot:'#78350F', col:'#78350F', border:'#78350F', bg:'#FDF4EC', bgLight:'#F3E1CB', txt:'#78350F', label:'MARRON', sous:'Critique'},
   orange: {dot:'#7C4A00', col:'#7C4A00', border:'#7C4A00', bg:'#FFFBEB', bgLight:'#FEF3C7', txt:'#92400E', label:'ORANGE', sous:'Élevé'},
   jaune:  {dot:'#CA8A04', col:'#CA8A04', border:'#CA8A04', bg:'#FEFCE8', bgLight:'#FEF9C3', txt:'#854D0E', label:'JAUNE',  sous:'Modéré'},
   vert:   {dot:'#0F4F2A', col:'#0F4F2A', border:'#0F4F2A', bg:'#F0FDF4', bgLight:'#DCFCE7', txt:'#065F46', label:'VERT',   sous:'Stable'},
@@ -15523,8 +15530,8 @@ async function exportPDF(type) {
       b.bulletinSection(rl('alertes_titre') + ' — ' + perimetre);
       b.box(LANG==='en'?'READING GUIDE':'GUIDE DE LECTURE', [
         LANG==='en'
-          ? 'Composite score = verified incidents + aggravating factors, out of 100. Levels: RED (critical), BROWN (severe), ORANGE (high), YELLOW (moderate), GREEN (stable).'
-          : 'Score composite = incidents vérifiés + facteurs aggravants, sur 100. Niveaux : ROUGE (critique), MARRON (sévère), ORANGE (élevé), JAUNE (modéré), VERT (stable).',
+          ? 'Composite score = verified incidents + aggravating factors, out of 100. Levels: RED (severe), BROWN (critical), ORANGE (high), YELLOW (moderate), GREEN (stable).'
+          : 'Score composite = incidents vérifiés + facteurs aggravants, sur 100. Niveaux : ROUGE (grave), MARRON (critique), ORANGE (élevé), JAUNE (modéré), VERT (stable).',
       ]);
       b.divider();
       let paysEnErreur = 0;
@@ -16590,8 +16597,8 @@ async function exportWord(type){
       children.push(para(rl('pays_perimetre')(scoresW.length), {color:'6B7280'}));
       children.push(calloutBox(LANG==='en'?'READING GUIDE':'GUIDE DE LECTURE',
         LANG==='en'
-          ? 'Composite score = verified incidents + aggravating factors, out of 100. Levels: RED (critical), BROWN (severe), ORANGE (high), YELLOW (moderate), GREEN (stable).'
-          : 'Score composite = incidents vérifiés + facteurs aggravants, sur 100. Niveaux : ROUGE (critique), MARRON (sévère), ORANGE (élevé), JAUNE (modéré), VERT (stable).',
+          ? 'Composite score = verified incidents + aggravating factors, out of 100. Levels: RED (severe), BROWN (critical), ORANGE (high), YELLOW (moderate), GREEN (stable).'
+          : 'Score composite = incidents vérifiés + facteurs aggravants, sur 100. Niveaux : ROUGE (grave), MARRON (critique), ORANGE (élevé), JAUNE (modéré), VERT (stable).',
         '4B5563'));
       children.push(new Paragraph({spacing:{after:120}}));
 
