@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { getLiveFeed, getActiveAlerts, getEngineStats, type Article, type Alert as SentinelAlert, type Stats } from '../../lib/sentinel-api';
 import { trackArticleRead, getArticleReadCount } from '../../lib/supabase';
-import { ensureNotificationSetup, notifyNewCriticalAlerts } from '../../lib/notifications';
+import { ensureNotificationSetup, notifyNewCriticalAlerts, clearBadge } from '../../lib/notifications';
 import { useAuth } from '../../hooks/useAuth';
 import { Colors, Spacing, Radius } from '../../constants/theme';
 import { format } from 'date-fns';
@@ -56,7 +56,7 @@ export default function FeedScreen() {
   const [articlesRead, setArticlesRead] = useState(0);
 
   useEffect(() => { loadData(); }, [category]);
-  useEffect(() => { ensureNotificationSetup(); }, []);
+  useEffect(() => { ensureNotificationSetup(); clearBadge(); }, []);
   useEffect(() => {
     if (subscription?.started_at && articlesLimit > 0) {
       getArticleReadCount(profile!.id, subscription.started_at).then(setArticlesRead);
