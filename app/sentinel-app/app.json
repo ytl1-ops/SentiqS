@@ -24,7 +24,7 @@
       },
       "package": "com.sentinel.veille",
       "versionCode": 1,
-      "permissions": ["INTERNET", "RECEIVE_BOOT_COMPLETED", "VIBRATE"]
+      "permissions": ["INTERNET", "RECEIVE_BOOT_COMPLETED", "VIBRATE", "POST_NOTIFICATIONS"]
     },
     "web": {
       "bundler": "metro",

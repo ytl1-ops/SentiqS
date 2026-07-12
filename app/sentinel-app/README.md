@@ -18,11 +18,15 @@ sentinel-app/
 │   │   ├── map.tsx              # Carte alertes (plan Starter+)
 │   │   ├── archive.tsx          # Recherche historique (plan Mensuel+)
 │   │   ├── reports.tsx          # Rapports DOCX/PDF (plan Mensuel+)
+│   │   ├── article.tsx          # Détail d'un article
 │   │   └── profile.tsx          # Profil + abonnements + paramètres
+│   ├── notifications.tsx        # Liste des notifications utilisateur
 │   └── admin/index.tsx          # Panneau admin (yorot225@gmail.com)
 ├── lib/
 │   ├── supabase.ts              # Client Supabase + helpers
-│   └── sentinel-api.ts          # Connexion moteur Python SENTINEL
+│   ├── sentinel-api.ts          # Connexion moteur SENTINEL
+│   └── notifications.ts         # Notifications locales (alertes critiques,
+│                                 # écran verrouillé) — voir limites dans le code
 ├── hooks/useAuth.ts             # Hook auth + droits d'accès
 ├── constants/theme.ts           # Couleurs + plans + constantes
 ├── .env.example                 # Variables d'environnement à copier en .env
