@@ -4601,7 +4601,14 @@ let SRC_ST    = {};
 // vide manuellement son stockage local. Repli sur {} en cas d'echec.
 let SRC_HEALTH = _ls(() => JSON.parse(localStorage.getItem('sentinel_src_health')||'{}'), {});
 const SRC_FAIL_THRESHOLD = 3;   // nombre d'échecs consécutifs avant mise en veille
-const SRC_COOLDOWN_MS    = 60 * 60 * 1000; // 1h en ms
+// Cooldown reduit de 1h a 20 min (etait 60*60*1000) : les pays a faible nombre
+// de sources (6-7, ex. Angola/Botswana/Algerie/Gabon/Tunisie) perdaient une
+// part importante de leur couverture pendant une heure entiere des qu'une
+// source echouait 3 fois de suite. 20 min laisse tout de meme passer un
+// cycle de rafraichissement (15 min) avant nouvelle tentative, evitant de
+// re-solliciter une source en permanence, tout en restaurant la couverture
+// des 54 pays bien plus vite qu'avant.
+const SRC_COOLDOWN_MS    = 20 * 60 * 1000; // 20 min en ms
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  AGENT AUDITEUR — filet de sécurité global. Sans lui, une exception non
@@ -5381,14 +5388,36 @@ function detectPaysFromText(titre, contenu, srcCy) {
   // le boilerplate de la source (nom du media = nom du pays repete), qui
   // gonflait artificiellement le score du pays de la source.
   const scores = {};
+  const termesTrouvesPar = {};
   for (const cy in PAYS_DETECT) {
-    let score = 0;
+    let score = 0; const trouves = [];
     for (const terme of PAYS_DETECT[cy]) {
       const poids = (terme.length > 6 ? 3 : 2);
-      if (matchMot(titreL, terme)) score += poids * 2;      // titre : poids double
-      else if (matchMot(contenuL, terme)) score += poids;   // contenu seul : poids simple
+      if (matchMot(titreL, terme)) { score += poids * 2; trouves.push(terme); }      // titre : poids double
+      else if (matchMot(contenuL, terme)) { score += poids; trouves.push(terme); }   // contenu seul : poids simple
     }
-    if (score > 0) scores[cy] = score;
+    if (score > 0) { scores[cy] = score; termesTrouvesPar[cy] = trouves; }
+  }
+  // Correction "faux qualificatif court" — cas signale : un titre boilerplate
+  // du type "Actualités Soudan" (un media SD generique) associe a un contenu
+  // qui parle en realite du Soudan du Sud faisait gagner a SD un score de
+  // titre (poids double) superieur au score de SS tire du contenu, alors que
+  // l'article ne concerne QUE le Soudan du Sud. Le nom court partage
+  // ("soudan" dans "Soudan du Sud", "guinée" dans "Guinée-Bissau"/"Guinée
+  // équatoriale") est un faux positif quand c'est le SEUL terme qui a fait
+  // gagner des points au pays "court" : on l'annule si le texte NON masque
+  // contient bel et bien la variante composee et que le pays compose est
+  // lui-meme detecte.
+  for (const shortTerm in TERMES_AMBIGUS_MASQUES) {
+    const ownerCy = Object.keys(PAYS_DETECT).find(cy => PAYS_DETECT[cy].includes(shortTerm));
+    if (!ownerCy || !scores[ownerCy]) continue;
+    const seulTermeCourt = termesTrouvesPar[ownerCy].length === 1 && termesTrouvesPar[ownerCy][0] === shortTerm;
+    if (!seulTermeCourt) continue;
+    for (const variante of TERMES_AMBIGUS_MASQUES[shortTerm]) {
+      if (!t.includes(variante)) continue;
+      const targetCy = Object.keys(PAYS_DETECT).find(cy => PAYS_DETECT[cy].includes(variante));
+      if (targetCy && scores[targetCy]) { delete scores[ownerCy]; break; }
+    }
   }
   // Detection par ville/commune retiree (demande explicite) : les noms de
   // villes/quartiers restent une source de fragilite pour rattacher un
@@ -6772,17 +6801,16 @@ async function doCollect() {
   let ok=0, err=0, nw=0, done=0;
   const fresh={};
   // BATCH_SIZE agressif : les proxies en course parallèle absorbent la charge.
-  // Releve une seconde fois (etait 8/10/12/15) : une fois bestProxy connu,
-  // chaque source ne fait plus qu'UN seul appel reseau (plus de course entre
-  // proxies), ce qui laisse de la marge pour plus de parallelisme sans
-  // resaturer les proxys CORS publics partages. Combine a la suppression des
-  // sources RSSHub non fonctionnelles (URLs "domaine/latest" qui n'existent
-  // pas cote RSSHub, bloquaient leur lot ~7s avant d'echouer), la collecte
-  // complete des 484 sources est nettement plus rapide.
-  const BATCH_SIZE = bestProxy === 'local' ? 40
-                   : bestProxy === 'rss2json' ? 30
-                   : typeof bestProxy === 'number' ? 25
-                   : 20;
+  // Releve une troisieme fois (x3, etait 20/25/30/40) : chaque lot s'execute
+  // via Promise.all SANS pause entre lots (voir plus bas) — le temps total de
+  // collecte est domine par le nombre de lots successifs, pas par le nombre
+  // de sources. Tripler la taille des lots divise d'autant le nombre de lots,
+  // ce qui triple le debit effectif de la collecte sans changer le nombre
+  // total de requetes reseau emises (juste leur repartition dans le temps).
+  const BATCH_SIZE = bestProxy === 'local' ? 120
+                   : bestProxy === 'rss2json' ? 90
+                   : typeof bestProxy === 'number' ? 75
+                   : 60;
 
   function normaliseTitle(t) {
     return (t||'').toLowerCase().replace(/[^a-z0-9àâéèêëîïôùûüç]/g,' ').replace(/\s+/g,' ').trim().slice(0,80);
@@ -15224,7 +15252,18 @@ async function genererModeEmploiPDF() {
     watermark();
 
     const blob = new Blob([await doc.save()], { type:'application/pdf' });
-    dlFile(blob, 'SENTINEL_SURETE_Mode_Emploi.pdf');
+    // Mode d'emploi = document a CONSULTER, pas a telecharger : ouverture
+    // directe dans un nouvel onglet (visionneuse PDF native du navigateur)
+    // via une URL blob, sans passer par dlFile() (qui declenche un
+    // telechargement automatique .pdf sur le disque).
+    const url = URL.createObjectURL(blob);
+    const w = window.open(url, '_blank');
+    if (!w) {
+      alert(LANG==='en'
+        ? 'Please allow pop-ups to view the user guide.'
+        : 'Autorisez les fenêtres pop-up pour consulter le mode d\'emploi.');
+    }
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
   } catch (e) {
     alert((LANG==='en' ? 'Failed to generate the user guide: ' : 'Échec de la génération du mode d\'emploi : ') + (e && e.message ? e.message : e));
   } finally {
