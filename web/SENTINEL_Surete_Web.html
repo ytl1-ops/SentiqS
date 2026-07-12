@@ -479,6 +479,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .cy-niv-pill{font-size:8px;font-weight:800;padding:1px 6px;border-radius:3px;
   color:#fff;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;
   cursor:pointer;display:inline-flex;align-items:center;gap:3px}
+/* impact-pill : volontairement contours (pas de fond plein comme cy-niv-pill)
+   pour ne jamais se confondre avec le niveau d'alerte pays ou le niveau de
+   gravite de l'actu (rpill) — 3e information distincte, voir _idsImpactParPays. */
+.impact-pill{font-size:8px;font-weight:700;padding:1px 6px;border-radius:3px;
+  color:#9A3412;background:#FFF7ED;border:1px solid #FDBA74;
+  text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;
+  cursor:pointer;display:inline-flex;align-items:center;gap:3px}
 .art-top .survtime{font-family:var(--font-mono);font-size:9.5px;color:var(--lg);
   display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
 .art-top .survtime i{font-size:10px}
@@ -8667,6 +8674,20 @@ async function renderFeed() {
   // affichee dans sa langue source si elle differe de la langue active.
   await preTraduireRapport(arts.flatMap(a => [a.title, a.analysis]));
 
+  // Actus qui COMPTENT actuellement dans le score d'alerte de leur pays
+  // (voir getLiveAlertEvents/calcAlertScore) — distinct du niveau de
+  // gravite propre a l'actu (crit/high/mod/ok) ET du niveau d'alerte
+  // global du pays (cy-niv-pill ci-dessous) : une actu peut etre grave
+  // sans (encore) impacter le score pays (ex. non corroboree), et
+  // inversement. Precalcule une seule fois par pays present dans le Flux
+  // (pas par article) pour rester O(pays) et non O(articles).
+  const _idsImpactParPays = {};
+  new Set(arts.map(a => a.cy)).forEach(cy => {
+    if (cy && cy !== 'INT' && typeof getLiveAlertEvents === 'function') {
+      _idsImpactParPays[cy] = new Set(getLiveAlertEvents(cy).map(e => e.id).filter(Boolean));
+    }
+  });
+
   function renderOneArt(a){
     const ps=gs(a.primary);
     const pl=a.flagged?lp('u'):lp(a.level);
@@ -8694,6 +8715,13 @@ async function renderFeed() {
         '<div class="art-top">'+
           '<span class="flagcy" onclick="event.stopPropagation();ouvrirVuePays(\''+a.cy+'\')">'+cc.flag+' '+cc.name+'</span>'+
           (a.cy && a.cy!=='INT' ? (()=>{ const npy=niveauAlertePays(a.cy); return '<span class="cy-niv-pill" style="background:'+npy.col+'" title="Niveau d\'alerte sûreté du pays (distinct du niveau de cette actu)" onclick="event.stopPropagation();ouvrirVuePays(\''+a.cy+'\')"><i class="ti ti-shield-half" style="font-size:8px"></i>'+npy.label+'</span>'; })() : '')+
+          // Impact-sur-le-score : 3e info distincte (voir _idsImpactParPays plus
+          // haut) — une actu grave n'est pas forcement comptee dans le score du
+          // pays (ex. non corroboree), et une actu comptee n'est pas forcement
+          // grave elle-meme (plafonnee a ORANGE au maximum, voir getLiveAlertEvents).
+          (_idsImpactParPays[a.cy] && _idsImpactParPays[a.cy].has(a.id)
+            ? '<span class="impact-pill" title="Cette actu compte actuellement dans le calcul du niveau d\'alerte du pays (module Alertes)" onclick="event.stopPropagation();ouvrirVuePays(\''+a.cy+'\')"><i class="ti ti-trending-up" style="font-size:8px"></i>Impacte le score pays</span>'
+            : '')+
           '<span class="survtime'+(surv.ancien?' ancien':'')+'"><i class="ti ti-history"></i>'+surv.texte+'</span>'+
           survSuf+
           // Bouton affiche uniquement quand la langue detectee de l'actu differe
@@ -12267,7 +12295,7 @@ function getLiveAlertEvents(cy) {
       // Il est affiché comme ORANGE au maximum pour signaler sans alarmer sans preuve
       const niveauPlafonné = a.level === 'crit' ? 'orange' : NIV_PAR_LEVEL[a.level];
       return {
-        cy: a.cy, date: dateStr, title: a.title,
+        id: a.id, cy: a.cy, date: dateStr, title: a.title,
         level: niveauPlafonné,
         weight: WEIGHT_PAR_LEVEL_LIVE[a.level] || 0,
         src: src + ' (RSS)',
@@ -12524,6 +12552,17 @@ async function renderAlertCard(score) {
   }
 
   const surligne = (typeof GLOBAL_CY_FILTER !== 'undefined' && GLOBAL_CY_FILTER === score.cy);
+  // Derniere actu suivie (TOUT article recu pour ce pays, quel que soit son
+  // niveau/sa fiabilite) — distincte du "Dernier incident verifie" ci-dessous
+  // (score.events, filtre par corroboration/fiabilite pour compter dans le
+  // score). Objectif : que la date affichee reste TOUJOURS actualisee des
+  // qu'une actu arrive sur ce pays, meme quand elle ne franchit pas encore la
+  // barre plus stricte d'un "incident" au sens du score d'alerte.
+  const derniereActuTs = (typeof ALL !== 'undefined' ? ALL : [])
+    .filter(a => a && a.cy === score.cy && a.pubDate)
+    .reduce((max, a) => Math.max(max, a.pubDate), 0);
+  const derniereActuLigne = derniereActuTs
+    ? `<div style="font-size:9px;color:var(--lg);">Dernière actu suivie : ${fmtAge(derniereActuTs)}</div>` : '';
   return `<div id="alerteCard-${score.cy}" style="background:${n.bg};border:1px solid ${n.border};border-radius:10px;overflow:hidden;box-shadow:${surligne?'0 0 0 3px rgba(2,132,199,.5), 0 4px 12px rgba(0,0,0,.12)':'0 1px 3px rgba(0,0,0,.06)'};scroll-margin-top:12px;">
     ${surligne?'<div style="background:var(--b);color:#fff;font-size:9px;font-weight:700;text-align:center;padding:3px;text-transform:uppercase;letter-spacing:.05em;">Filtre pays actif</div>':''}    <!-- EN-TÊTE PAYS -->
     <div style="padding:10px 12px;background:${n.bgLight};display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid ${n.border};">
@@ -12531,7 +12570,8 @@ async function renderAlertCard(score) {
         <span style="font-size:24px;">${pays.flag}</span>
         <div>
           <div style="font-size:13px;font-weight:700;color:var(--t);">${pays.name}</div>
-          <div style="font-size:9px;color:var(--lg);">${pays.capital}${dateDernierIncident(score.events) ? ' — Dernier incident : '+dateDernierIncident(score.events) : ''}</div>
+          <div style="font-size:9px;color:var(--lg);">${pays.capital}${dateDernierIncident(score.events) ? ' — Dernier incident vérifié : '+dateDernierIncident(score.events) : ''}</div>
+          ${derniereActuLigne}
         </div>
       </div>
       <div style="text-align:right;">
