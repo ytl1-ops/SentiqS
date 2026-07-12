@@ -251,14 +251,28 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 /* Bandeau publicitaire (version gratuite) : au-dessus du contenu, present
    quelle que soit la page active. Tant qu'aucun identifiant AdSense reel
    n'est configure (voir ADSENSE_CLIENT_ID/ADSENSE_SLOT_ID), affiche un
-   simple encart "emplacement publicitaire" — aucun script Google charge. */
+   simple encart "emplacement publicitaire" — aucun script Google charge.
+   max-height+overflow:hidden : le body de l'app est en hauteur fixe
+   (height:100vh;overflow:hidden, voir plus haut) sans scroll possible —
+   un bandeau "auto"/full-width-responsive Google peut, sur certains
+   telephones etroits, s'auto-dimensionner bien au-dela de 50px une fois la
+   creative chargee (comportement documente de ce format), poussant tout le
+   reste (barre du haut, navigation, contenu) hors de l'ecran visible sans
+   aucun moyen d'y acceder. Le plafond ici garantit que le bandeau ne peut
+   plus jamais degrader l'utilisabilite de l'appli, quoi que Google injecte
+   a l'interieur. */
 .ad-banner{background:var(--sf);border-bottom:1px solid var(--bd);flex-shrink:0;
   display:flex;align-items:center;justify-content:center;min-height:50px;
+  max-height:60px;overflow:hidden;
   padding:6px 10px;position:relative}
 .ad-banner-tag{position:absolute;top:2px;left:10px;font-size:8px;font-weight:700;
   color:var(--lg);text-transform:uppercase;letter-spacing:.06em}
 .ad-banner-placeholder{font-size:10px;color:var(--lg);text-align:center;
   border:1px dashed var(--bd);border-radius:6px;padding:8px 16px;width:100%;max-width:100%}
+.ad-banner-close{position:absolute;top:2px;right:6px;font-size:13px;line-height:1;
+  color:var(--lg);background:none;border:none;cursor:pointer;padding:4px 6px;
+  border-radius:4px;opacity:.55}
+.ad-banner-close:hover{opacity:1;background:var(--bd)}
 .ntab{padding:10px 14px;font-size:11px;font-weight:700;
   color:rgba(255,255,255,.38);cursor:pointer;border-bottom:2px solid transparent;
   white-space:nowrap;display:flex;align-items:center;gap:5px;
@@ -1940,6 +1954,10 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
   <div class="ad-banner-placeholder" id="adBannerPlaceholder" data-i18n="ad_placeholder">Emplacement publicitaire — Google AdSense non configuré (voir Paramètres)</div>
   <ins class="adsbygoogle" id="adBannerIns" style="display:none;width:100%;max-width:100%;height:50px"
        data-ad-client="" data-ad-slot="" data-ad-format="auto" data-full-width-responsive="true"></ins>
+  <!-- Echappatoire manuelle : si le bandeau gene malgre le plafond CSS
+       ci-dessus (voir ad-banner), l'utilisateur peut le masquer lui-meme,
+       de façon persistante sur cet appareil (voir dismissAdBanner()). -->
+  <button class="ad-banner-close" onclick="dismissAdBanner()" title="Masquer" aria-label="Masquer la bannière">✕</button>
 </div>
 
 <!-- Barre de filtre compacte : remplace les listes verticales Portee/Pays
@@ -5026,10 +5044,33 @@ const PAYS_DETECT = {
 // (ville de Cote d'Ivoire) matchait a tort dans "gunMAN", "chairMAN",
 // "GerMAN", "woMAN"... Utilise des limites Unicode (\p{L}/\p{N}) plutot que
 // \b (qui ne gere pas bien les caracteres accentues en JS).
+// TERMES_AMBIGUS_MASQUES : certains noms de pays courts sont litteralement
+// inclus, mot pour mot, dans le nom compose d'un AUTRE pays — "soudan" dans
+// "Soudan du Sud"/"Sud-Soudan", "guinée"/"guinéen" dans "Guinée-Bissau"/
+// "Guinée équatoriale"/"Bissau-guinéen". Sans traitement, un article sur le
+// Soudan du Sud faisait AUSSI gagner des points au Soudan (et un article sur
+// la Guinée-Bissau/équatoriale en faisait gagner a la Guinée) — source
+// concrete de confusion pays/media signalee. On masque ces variantes
+// composees AVANT de chercher le terme court, pour que "soudan" ne matche
+// plus a l'interieur de "soudan du sud".
+const TERMES_AMBIGUS_MASQUES = {
+  soudan:  ['soudan du sud', 'sud-soudan', 'sud soudan'],
+  guinée:  ['guinée-bissau', 'guinée équatoriale', 'bissau-guinéen', 'bissau-guinéenne'],
+  guinee:  ['guinee-bissau', 'guinee equatoriale', 'bissau-guineen', 'bissau-guineenne'],
+  guinéen: ['bissau-guinéen', 'bissau-guinéenne'],
+  guineen: ['bissau-guineen', 'bissau-guineenne'],
+};
+function masquerTermesComposes(texte, terme) {
+  const masques = TERMES_AMBIGUS_MASQUES[terme];
+  if (!masques) return texte;
+  let t = texte;
+  for (const m of masques) t = t.split(m).join(' '.repeat(m.length));
+  return t;
+}
 function matchMot(texte, terme) {
   const echappe = terme.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   try {
-    return new RegExp('(?:^|[^\\p{L}\\p{N}])' + echappe + '(?:$|[^\\p{L}\\p{N}])', 'iu').test(texte);
+    return new RegExp('(?:^|[^\\p{L}\\p{N}])' + echappe + '(?:$|[^\\p{L}\\p{N}])', 'iu').test(masquerTermesComposes(texte, terme));
   } catch (_) {
     return texte.includes(terme); // repli si le terme contient un caractere problematique pour la regex
   }
@@ -10248,7 +10289,21 @@ async function fetchConnexionsRecentes(limit) {
 const ADSENSE_CLIENT_ID = 'ca-pub-5506503144248267';
 const ADSENSE_SLOT_ID   = '6860837643';
 
+const AD_BANNER_DISMISS_KEY = 'sentinel_ad_banner_dismissed_v1';
+// Echappatoire manuelle (voir bouton ✕ dans le HTML) : masque le bandeau
+// definitivement sur cet appareil si, malgre le plafond CSS (max-height sur
+// .ad-banner), il continue de gener l'utilisation sur certains telephones.
+function dismissAdBanner() {
+  _ls(() => localStorage.setItem(AD_BANNER_DISMISS_KEY, '1'));
+  const el = document.getElementById('adBanner');
+  if (el) el.style.display = 'none';
+}
 function initAdBanner() {
+  if (_ls(() => localStorage.getItem(AD_BANNER_DISMISS_KEY), null) === '1') {
+    const el = document.getElementById('adBanner');
+    if (el) el.style.display = 'none';
+    return;
+  }
   if (!ADSENSE_CLIENT_ID || !ADSENSE_SLOT_ID) return; // encart placeholder deja visible par defaut
   const ins = document.getElementById('adBannerIns');
   const ph  = document.getElementById('adBannerPlaceholder');
