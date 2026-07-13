@@ -3302,6 +3302,18 @@ const SRCS=[
  {id:'linfodrome',n:'Linfodrome',col:'#EA580C',cy:'CI',sc:'national',cat:'politique',score:70,url:'https://linfodrome.com/?s=securite',rss:'https://www.linfodrome.com/feed'},
  {id:'abidjannet',n:'Abidjan.net',col:'#F97316',cy:'CI',sc:'national',cat:'securite',score:75,url:'https://news.abidjan.net/?s=securite',rss:'https://news.abidjan.net/rss/'},
  {id:'fratmat',n:'Fratmat',col:'#EA580C',cy:'CI',sc:'local',cat:'politique',score:68,url:'https://fratmat.info/?s=politique',rss:'https://fratmat.info/feed/'},
+ // Couverture supplementaire Cote d'Ivoire (demande explicite) : feeds Google
+ // News dedies (site:) en complement des feeds natifs koaci/linfodrome/
+ // abidjannet ci-dessus, pour multiplier les angles (politique/economie)
+ // couverts par ces memes medias, plus un feed apanews recentre sur la CI
+ // (les entrees apanews existantes sont taguees INT/regional, jamais CI).
+ {id:'koaci_gn_pol',n:'KOACI — Politique (Google News)',col:'#F97316',cy:'CI',sc:'national',cat:'politique',score:70,url:'https://news.google.com/search?q=site:koaci.com+politique&hl=fr&gl=CI',rss:'https://news.google.com/rss/search?q=site:koaci.com+politique&hl=fr&gl=CI&ceid=CI:fr',rss_method:'Google News RSS'},
+ {id:'koaci_gn_eco',n:'KOACI — Economie (Google News)',col:'#F97316',cy:'CI',sc:'national',cat:'economique',score:68,url:'https://news.google.com/search?q=site:koaci.com+economie&hl=fr&gl=CI',rss:'https://news.google.com/rss/search?q=site:koaci.com+economie&hl=fr&gl=CI&ceid=CI:fr',rss_method:'Google News RSS'},
+ {id:'linfodrome_gn_secu',n:'Linfodrome — Securite (Google News)',col:'#EA580C',cy:'CI',sc:'national',cat:'securite',score:70,url:'https://news.google.com/search?q=site:linfodrome.com+securite&hl=fr&gl=CI',rss:'https://news.google.com/rss/search?q=site:linfodrome.com+securite&hl=fr&gl=CI&ceid=CI:fr',rss_method:'Google News RSS'},
+ {id:'linfodrome_gn_eco',n:'Linfodrome — Economie (Google News)',col:'#EA580C',cy:'CI',sc:'national',cat:'economique',score:66,url:'https://news.google.com/search?q=site:linfodrome.com+economie&hl=fr&gl=CI',rss:'https://news.google.com/rss/search?q=site:linfodrome.com+economie&hl=fr&gl=CI&ceid=CI:fr',rss_method:'Google News RSS'},
+ {id:'abidjannet_gn_pol',n:'Abidjan.net — Politique (Google News)',col:'#F97316',cy:'CI',sc:'national',cat:'politique',score:72,url:'https://news.google.com/search?q=site:abidjan.net+politique&hl=fr&gl=CI',rss:'https://news.google.com/rss/search?q=site:abidjan.net+politique&hl=fr&gl=CI&ceid=CI:fr',rss_method:'Google News RSS'},
+ {id:'abidjannet_gn_eco',n:'Abidjan.net — Economie (Google News)',col:'#F97316',cy:'CI',sc:'national',cat:'economique',score:68,url:'https://news.google.com/search?q=site:abidjan.net+economie&hl=fr&gl=CI',rss:'https://news.google.com/rss/search?q=site:abidjan.net+economie&hl=fr&gl=CI&ceid=CI:fr',rss_method:'Google News RSS'},
+ {id:'apanews_ci',n:'APA News — Cote d\'Ivoire (Google News)',col:'#1B6CA8',cy:'CI',sc:'national',cat:'securite',score:74,url:'https://news.google.com/search?q=site:apanews.net+%22Cote+d%27Ivoire%22&hl=fr&gl=CI',rss:'https://news.google.com/rss/search?q=site:apanews.net+%22Cote+d%27Ivoire%22&hl=fr&gl=CI&ceid=CI:fr',rss_method:'Google News RSS'},
  {id:'seneweb',n:'Seneweb',col:'#16A34A',cy:'SN',sc:'national',cat:'politique',score:78,url:'https://seneweb.com/?s=securite',rss:'https://www.seneweb.com/rss.xml'},
  {id:'pressafrik',n:'Pressafrik',col:'#15803D',cy:'SN',sc:'national',cat:'politique',score:72,url:'https://pressafrik.com/?s=securite',rss:'https://www.pressafrik.com/feed/'},
  {id:'dakaractu',n:'Dakar Actu',col:'#166534',cy:'SN',sc:'local',cat:'politique',score:70,url:'https://dakaractu.com/?s=securite',rss:'https://www.dakaractu.com/rss.xml'},
@@ -3480,6 +3492,11 @@ const SRCS=[
  {id:'ci_korhogo',n:'Korhogo Actualités (CI)',col:'#F97316',cy:'CI',sc:'local',cat:'securite',score:62,url:'https://twitter.com/search?q=Korhogo',rss:'https://news.google.com/rss/search?q=Korhogo+actualite&hl=fr&gl=CI&ceid=CI:fr',rss_method:'Google News RSS'},
  {id:'ci_man',n:'Man/Ouest Montagneux (CI)',col:'#F97316',cy:'CI',sc:'local',cat:'securite',score:60,url:'https://twitter.com/search?q=Man+CotedIvoire',rss:'https://news.google.com/rss/search?q=Man+Cote+Ivoire+securite&hl=fr&gl=CI&ceid=CI:fr',rss_method:'Google News RSS'},
  {id:'ci_abidjan_local',n:'Abidjan Local — Police Secours',col:'#EA580C',cy:'CI',sc:'local',cat:'securite',score:75,url:'https://www.facebook.com/policesecours.ci',rss:'https://news.google.com/rss/search?q=Abidjan+securite+actualite&hl=fr&gl=CI&ceid=CI:fr',rss_method:'Google News RSS'},
+ // Facebook n'offre pas de flux RSS exploitable sans authentification : meme
+ // repli que ci_abidjan_local ci-dessus, requete Google News centree sur le
+ // nom de la page comme proxy de couverture (url conserve le lien Facebook
+ // d'origine pour l'attribution/clic).
+ {id:'eulogefirstmag',n:'Eulogé First Mag (Facebook, CI)',col:'#F97316',cy:'CI',sc:'local',cat:'culture',score:58,url:'https://www.facebook.com/eulogefirstmag',rss:'https://news.google.com/rss/search?q=%22Eulog%C3%A9+First+Mag%22&hl=fr&gl=CI&ceid=CI:fr',rss_method:'Google News RSS'},
  // Burkina Faso — villes intérieures
  {id:'bf_bobo',n:'Bobo-Dioulasso Info (BF)',col:'#92400E',cy:'BF',sc:'local',cat:'securite',score:63,url:'https://twitter.com/search?q=Bobo-Dioulasso',rss:'https://news.google.com/rss/search?q=Bobo+Dioulasso+actualite&hl=fr&gl=BF&ceid=BF:fr',rss_method:'Google News RSS'},
  {id:'bf_koudougou',n:'Koudougou/Centre-Ouest (BF)',col:'#92400E',cy:'BF',sc:'local',cat:'securite',score:60,url:'https://twitter.com/search?q=Koudougou+Burkina',rss:'https://news.google.com/rss/search?q=Koudougou+Burkina&hl=fr&gl=BF&ceid=BF:fr',rss_method:'Google News RSS'},
