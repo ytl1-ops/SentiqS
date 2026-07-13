@@ -1873,7 +1873,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
     </div>
   </div>
   <div class="tb-r">
-    <div class="badge-r" style="background:rgba(74,222,128,.2);border-color:rgba(74,222,128,.4);color:#4ade80"><i class="ti ti-shield-check" style="font-size:9px;vertical-align:-1px"></i> Admin</div>
+    <div class="badge-r" id="tbAdminBadge" style="background:rgba(74,222,128,.2);border-color:rgba(74,222,128,.4);color:#4ade80"><i class="ti ti-shield-check" style="font-size:9px;vertical-align:-1px"></i> Admin</div>
     <div class="live">
       <div class="ldot" id="liveDot"></div>
       <span class="ltxt" id="liveTxt" data-i18n="live_pret">Collecte...</span>
@@ -2007,7 +2007,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
     <!-- FLUX -->
     <div class="view" id="v-flux">
       <div class="tlbr">
-        <div class="srch"><i class="ti ti-search"></i><input type="text" id="artQ" placeholder="Rechercher..." data-i18n-ph="ph_recherche" oninput="renderFeed()"></div>
+        <div class="srch"><i class="ti ti-search"></i><input type="text" id="artQ" placeholder="Rechercher..." data-i18n-ph="ph_recherche" oninput="renderFeedDebounced()"></div>
         <div class="chips">
           <span class="chip on" onclick="setCat(this,&#39;all&#39;)" data-i18n="chip_tout">Tout</span>
           <span class="chip rc" onclick="setCat(this,&#39;crit&#39;)"><i class="ti ti-alert-triangle"></i><span data-i18n="chip_critique">Critique</span></span>
@@ -2084,7 +2084,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <div style="padding:14px;flex-shrink:0;border-bottom:1px solid var(--bd);background:var(--w);">
         <div style="position:relative;margin-bottom:10px;">
           <i class="ti ti-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--lg);font-size:15px;"></i>
-          <input type="text" id="searchQ" placeholder="Rechercher un pays, un evenement, un theme, une source..." oninput="renderRecherche()" style="width:100%;padding:10px 12px 10px 34px;border:1px solid var(--bd);border-radius:8px;font-size:13px;outline:none;">
+          <input type="text" id="searchQ" placeholder="Rechercher un pays, un evenement, un theme, une source..." oninput="renderRechercheDebounced()" style="width:100%;padding:10px 12px 10px 34px;border:1px solid var(--bd);border-radius:8px;font-size:13px;outline:none;">
         </div>
         <div class="tlbr" style="flex-wrap:wrap;">
           <select id="seScope" onchange="setSeScope(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
@@ -2483,16 +2483,280 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         <!-- Hero -->
         <div class="pm-hero">
           <div class="pm-hero-top">
-            <div class="pm-hero-title"><i class="ti ti-settings"></i>Parametres &amp; Administration</div>
+            <div class="pm-hero-title" id="pmHeroTitle"><i class="ti ti-settings"></i>Parametres &amp; Administration</div>
             <button onclick="genererModeEmploiPDF()" title="Ouvrir le mode d'emploi dans un nouvel onglet" style="display:flex;align-items:center;gap:5px;padding:5px 11px;background:rgba(2,132,199,.12);border:1px solid rgba(2,132,199,.4);border-radius:6px;color:#0284C7;font-size:11px;font-weight:700;cursor:pointer;">
               <i class="ti ti-book-2"></i><span data-i18n="menu_mode_emploi">Mode d'emploi (PDF)</span>
             </button>
-            <div class="pm-hero-badge"><i class="ti ti-shield-check"></i>Administrateur</div>
+            <div class="pm-hero-badge" id="pmHeroBadge"><i class="ti ti-shield-check"></i>Administrateur</div>
           </div>
-          <div class="pm-hero-sub">Gestion des acces, droits de telechargement et configuration de la plateforme</div>
+          <div class="pm-hero-sub" id="pmHeroSub">Gestion des acces, droits de telechargement et configuration de la plateforme</div>
         </div>
 
-        <div class="pm-body">
+        <div class="pm-body" id="pmClientArea">
+
+          <!-- ══ GROUPE : MON ESPACE ══ -->
+          <div class="pm-group-hd">
+            <i class="ti ti-user-cog"></i>
+            <div class="pm-group-hd-txt">
+              <div class="pm-group-hd-title">Mon espace</div>
+              <div class="pm-group-hd-sub">Marque, canaux d’envoi, abonnement et statistiques personnelles</div>
+            </div>
+            <div class="pm-group-hd-line"></div>
+          </div>
+
+          <!-- Personnalisation de marque (fonctionnalite payante) -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-writing"></i>
+                <div><div class="pm-sec-title">Personnalisation de marque
+                  <span id="marquePlanBadge" style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:2px;"></span>
+                </div>
+                <div class="pm-sec-sub">Remplace "SENTINEL SÛRETÉ" en en-tête/pied de page des exports et dans les partages</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px">
+              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
+                Remplace "SENTINEL SÛRETÉ" par le nom de votre société dans l'en-tête et le pied de page
+                des documents exportés (PDF, Word, PowerPoint, aperçu impression) et dans les messages
+                WhatsApp/Email partagés. Ajoutez aussi une identité d'envoi (pseudo ou nom de société)
+                qui apparaît en signature de chaque partage — jamais de coordonnée personnelle
+                (téléphone/email) affichée, uniquement un nom.
+              </div>
+              <div id="marqueUpsell" style="display:none;background:var(--al);border:1px solid #FDE68A;border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:#7C4A00;display:flex;align-items:center;gap:8px;">
+                <i class="ti ti-lock" style="font-size:14px;flex-shrink:0"></i>
+                <span>Fonctionnalité réservée aux plans payants (Standard, Professionnel, Entreprise).
+                <a href="javascript:void(0)" onclick="document.getElementById('pricingGrid')?.scrollIntoView({behavior:'smooth'})" style="color:#7C4A00;font-weight:700;text-decoration:underline">Voir les tarifs</a></span>
+              </div>
+              <div style="margin-bottom:12px">
+                <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Nom de la marque / société</label>
+                <input type="text" id="marqueNom" placeholder="Ex. Groupe Sûreté SARL" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+              </div>
+              <!-- 3 identites d'envoi possibles (ex. plusieurs cellules/equipes qui
+                   partagent sous des noms differents) : celle marquee "active"
+                   ci-dessous est celle utilisee dans la signature des partages
+                   (voir signatureEnvoiActuelle). -->
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:8px">
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Identité d'envoi 1 (pseudo ou société)</label>
+                  <input type="text" id="marqueIdentite1" placeholder="Ex. Cellule Sûreté ABC" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px" oninput="renderMarqueIdentiteChoix()">
+                </div>
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Identité d'envoi 2 (optionnel)</label>
+                  <input type="text" id="marqueIdentite2" placeholder="Ex. Cellule Sûreté Nord" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px" oninput="renderMarqueIdentiteChoix()">
+                </div>
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Identité d'envoi 3 (optionnel)</label>
+                  <input type="text" id="marqueIdentite3" placeholder="Ex. Cellule Sûreté Sud" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px" oninput="renderMarqueIdentiteChoix()">
+                </div>
+              </div>
+              <div style="margin-bottom:12px">
+                <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Identité utilisée dans les partages</label>
+                <select id="marqueIdentiteActive" style="width:100%;max-width:280px;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px"></select>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <button class="btn-action btn-rest" id="marqueSaveBtn" onclick="pmSaveMarquePerso()"><i class="ti ti-device-floppy"></i> Enregistrer la personnalisation</button>
+                <span class="pmu-msg" id="marqueMsg" style="margin:0"></span>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Rappels d'envoi WhatsApp programmes : puisque WhatsApp n'offre
+               aucun moyen, pour un site web, d'envoyer un message/fichier a
+               une heure precise sans un clic humain reel (protection anti-spam
+               des navigateurs, cf. navigator.share/window.open qui exigent un
+               "geste utilisateur"), ce module affiche a l'heure programmee une
+               notification + un bouton "Envoyer maintenant" deja pret (rapport
+               genere, numero et identite pre-remplis) — un seul tap suffit.
+               Necessite l'onglet SENTINEL ouvert au moment du rappel (meme
+               limite que les autres notifications web de l'app, voir
+               demanderPermissionNotifWeb). -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-brand-whatsapp"></i>
+                <div><div class="pm-sec-title">Rappels d'envoi WhatsApp programmes</div>
+                <div class="pm-sec-sub">Notification + bouton d'envoi pret aux heures choisies (onglet SENTINEL ouvert requis)</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px">
+              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
+                A chaque heure programmee, une notification s'affiche avec un bouton "Envoyer maintenant" :
+                un tap genere le rapport de Synthese analytique (PDF) et ouvre la conversation WhatsApp du
+                numero indique, message signe avec l'identite de marque active. Aucun envoi n'a lieu sans
+                ce clic — WhatsApp ne permet pas a un site web d'envoyer un message automatiquement.
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+                <input type="checkbox" id="rappelWaActif" style="width:16px;height:16px;cursor:pointer">
+                <label for="rappelWaActif" style="font-size:12px;font-weight:600;color:var(--t);cursor:pointer">Activer les rappels programmes</label>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Numero WhatsApp (avec indicatif pays)</label>
+                  <input type="text" id="rappelWaNumero" placeholder="Ex. 2250747974398" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                </div>
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Heures (HH:MM, separees par virgule)</label>
+                  <input type="text" id="rappelWaHeures" placeholder="Ex. 06:00, 16:30, 20:30" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <button class="btn-action btn-rest" id="rappelWaSaveBtn" onclick="pmSaveRappelsWhatsapp()"><i class="ti ti-device-floppy"></i> Enregistrer les rappels</button>
+                <span class="pmu-msg" id="rappelWaMsg" style="margin:0"></span>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Contacts WhatsApp -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-brand-whatsapp"></i>
+                <div><div class="pm-sec-title">Contacts WhatsApp</div>
+                <div class="pm-sec-sub" id="waContactsCount">0 contact(s)</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px">
+              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
+                Un bouton « WhatsApp » apparaît sur chaque actu du Flux : il ouvre WhatsApp avec un message
+                déjà rédigé (niveau, pays, titre, lien) vers chacun des contacts ci-dessous — gratuit, sans
+                clé API, sans serveur. WhatsApp n'autorisant pas l'envoi automatique sans action de
+                l'utilisateur, le clic final « Envoyer » reste à faire dans WhatsApp.
+                <b>Groupe</b> : WhatsApp ne permet pas de pré-remplir un message vers un groupe existant —
+                le message est copié dans le presse-papiers puis le groupe s'ouvre, il ne reste qu'à coller.
+              </div>
+              <div class="share-fmt-row" style="margin-bottom:10px;max-width:260px">
+                <button type="button" class="share-fmt on" id="waTypeBtnContact" onclick="waBasculerType('contact')">Contact</button>
+                <button type="button" class="share-fmt" id="waTypeBtnGroupe" onclick="waBasculerType('groupe')">Groupe</button>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:12px">
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Nom</label>
+                  <input type="text" id="waContactNom" placeholder="Ex. Directeur Sûreté" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                </div>
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" id="waContactValLbl">Numéro (avec indicatif pays)</label>
+                  <input type="text" id="waContactTel" placeholder="Ex. +225 07 12 34 56 78" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                </div>
+                <div style="display:flex;align-items:flex-end">
+                  <button class="btn-action btn-rest" onclick="waAjouterContact()"><i class="ti ti-plus"></i> Ajouter</button>
+                </div>
+              </div>
+              <span class="pmu-msg" id="waContactMsg"></span>
+              <table class="pm-users-table">
+                <thead><tr><th>Nom</th><th>Type</th><th>Numéro / Lien</th><th>Actions</th></tr></thead>
+                <tbody id="waContactsBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+
+          <!-- Groupes/Canaux Telegram -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-brand-telegram"></i>
+                <div><div class="pm-sec-title">Groupes/Canaux Telegram</div>
+                <div class="pm-sec-sub" id="tgGroupesCount">0 groupe(s)</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px">
+              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
+                Telegram ne permet pas de pré-remplir un message vers un groupe/canal existant depuis un
+                simple lien — le message est copié dans le presse-papiers puis le groupe/canal s'ouvre,
+                il ne reste qu'à coller et envoyer.
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:12px">
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Nom</label>
+                  <input type="text" id="tgGroupeNom" placeholder="Ex. Cellule Sûreté Régionale" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                </div>
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Lien (t.me/...)</label>
+                  <input type="text" id="tgGroupeLien" placeholder="Ex. https://t.me/joinchat/XXXXXXXXXX" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                </div>
+                <div style="display:flex;align-items:flex-end">
+                  <button class="btn-action btn-rest" onclick="tgAjouterGroupe()"><i class="ti ti-plus"></i> Ajouter</button>
+                </div>
+              </div>
+              <span class="pmu-msg" id="tgGroupeMsg"></span>
+              <table class="pm-users-table">
+                <thead><tr><th>Nom</th><th>Lien</th><th>Actions</th></tr></thead>
+                <tbody id="tgGroupesBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+
+          <!-- Groupes Email (listes de diffusion) -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-mail"></i>
+                <div><div class="pm-sec-title">Groupes Email (listes de diffusion)</div>
+                <div class="pm-sec-sub" id="emGroupesCount">0 groupe(s)</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px">
+              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
+                Un groupe email envoie directement à tous les destinataires listés (client mail par
+                défaut, aucune configuration serveur nécessaire).
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:12px">
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Nom</label>
+                  <input type="text" id="emGroupeNom" placeholder="Ex. Comité de crise" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                </div>
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Emails (séparés par des virgules)</label>
+                  <input type="text" id="emGroupeEmails" placeholder="Ex. a@x.com, b@y.com" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                </div>
+                <div style="display:flex;align-items:flex-end">
+                  <button class="btn-action btn-rest" onclick="emAjouterGroupe()"><i class="ti ti-plus"></i> Ajouter</button>
+                </div>
+              </div>
+              <span class="pmu-msg" id="emGroupeMsg"></span>
+              <table class="pm-users-table">
+                <thead><tr><th>Nom</th><th>Emails</th><th>Actions</th></tr></thead>
+                <tbody id="emGroupesBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+
+          <!-- Mon abonnement -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-crown"></i>
+                <div><div class="pm-sec-title">Mon abonnement</div>
+                <div class="pm-sec-sub">Forfait actif et validite de vos droits d'acces</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px" id="monAbonnementBody">Chargement…</div>
+          </div>
+
+          <!-- Mes telechargements -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-download"></i>
+                <div><div class="pm-sec-title">Mes telechargements</div>
+                <div class="pm-sec-sub">Quota de rapports exportables selon votre forfait</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px" id="mesTelechargementsBody">Chargement…</div>
+          </div>
+
+          <!-- Mes connexions -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-history"></i>
+                <div><div class="pm-sec-title">Mes connexions</div>
+                <div class="pm-sec-sub">Historique recent de vos connexions</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px" id="mesConnexionsBody">Chargement…</div>
+          </div>
+
+        </div>
+
+        <div class="pm-body" id="pmAdminOnly">
 
           <!-- ══ GROUPE : ADMINISTRATION DE LA PLATEFORME ══ -->
           <div class="pm-group-hd">
@@ -2667,107 +2931,6 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
             </div>
           </div>
 
-          <!-- Personnalisation de marque (fonctionnalite payante) -->
-          <div class="pm-section">
-            <div class="pm-sec-hd">
-              <div class="pm-sec-hd-l"><i class="ti ti-writing"></i>
-                <div><div class="pm-sec-title">Personnalisation de marque
-                  <span id="marquePlanBadge" style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:2px;"></span>
-                </div>
-                <div class="pm-sec-sub">Remplace "SENTINEL SÛRETÉ" en en-tête/pied de page des exports et dans les partages</div></div>
-              </div>
-            </div>
-            <div class="pm-sec-body" style="padding:14px 16px">
-              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
-                Remplace "SENTINEL SÛRETÉ" par le nom de votre société dans l'en-tête et le pied de page
-                des documents exportés (PDF, Word, PowerPoint, aperçu impression) et dans les messages
-                WhatsApp/Email partagés. Ajoutez aussi une identité d'envoi (pseudo ou nom de société)
-                qui apparaît en signature de chaque partage — jamais de coordonnée personnelle
-                (téléphone/email) affichée, uniquement un nom.
-              </div>
-              <div id="marqueUpsell" style="display:none;background:var(--al);border:1px solid #FDE68A;border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:#7C4A00;display:flex;align-items:center;gap:8px;">
-                <i class="ti ti-lock" style="font-size:14px;flex-shrink:0"></i>
-                <span>Fonctionnalité réservée aux plans payants (Standard, Professionnel, Entreprise).
-                <a href="javascript:void(0)" onclick="document.getElementById('pricingGrid')?.scrollIntoView({behavior:'smooth'})" style="color:#7C4A00;font-weight:700;text-decoration:underline">Voir les tarifs</a></span>
-              </div>
-              <div style="margin-bottom:12px">
-                <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Nom de la marque / société</label>
-                <input type="text" id="marqueNom" placeholder="Ex. Groupe Sûreté SARL" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
-              </div>
-              <!-- 3 identites d'envoi possibles (ex. plusieurs cellules/equipes qui
-                   partagent sous des noms differents) : celle marquee "active"
-                   ci-dessous est celle utilisee dans la signature des partages
-                   (voir signatureEnvoiActuelle). -->
-              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:8px">
-                <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Identité d'envoi 1 (pseudo ou société)</label>
-                  <input type="text" id="marqueIdentite1" placeholder="Ex. Cellule Sûreté ABC" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px" oninput="renderMarqueIdentiteChoix()">
-                </div>
-                <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Identité d'envoi 2 (optionnel)</label>
-                  <input type="text" id="marqueIdentite2" placeholder="Ex. Cellule Sûreté Nord" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px" oninput="renderMarqueIdentiteChoix()">
-                </div>
-                <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Identité d'envoi 3 (optionnel)</label>
-                  <input type="text" id="marqueIdentite3" placeholder="Ex. Cellule Sûreté Sud" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px" oninput="renderMarqueIdentiteChoix()">
-                </div>
-              </div>
-              <div style="margin-bottom:12px">
-                <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Identité utilisée dans les partages</label>
-                <select id="marqueIdentiteActive" style="width:100%;max-width:280px;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px"></select>
-              </div>
-              <div style="display:flex;align-items:center;gap:10px">
-                <button class="btn-action btn-rest" id="marqueSaveBtn" onclick="pmSaveMarquePerso()"><i class="ti ti-device-floppy"></i> Enregistrer la personnalisation</button>
-                <span class="pmu-msg" id="marqueMsg" style="margin:0"></span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Rappels d'envoi WhatsApp programmes : puisque WhatsApp n'offre
-               aucun moyen, pour un site web, d'envoyer un message/fichier a
-               une heure precise sans un clic humain reel (protection anti-spam
-               des navigateurs, cf. navigator.share/window.open qui exigent un
-               "geste utilisateur"), ce module affiche a l'heure programmee une
-               notification + un bouton "Envoyer maintenant" deja pret (rapport
-               genere, numero et identite pre-remplis) — un seul tap suffit.
-               Necessite l'onglet SENTINEL ouvert au moment du rappel (meme
-               limite que les autres notifications web de l'app, voir
-               demanderPermissionNotifWeb). -->
-          <div class="pm-section">
-            <div class="pm-sec-hd">
-              <div class="pm-sec-hd-l"><i class="ti ti-brand-whatsapp"></i>
-                <div><div class="pm-sec-title">Rappels d'envoi WhatsApp programmes</div>
-                <div class="pm-sec-sub">Notification + bouton d'envoi pret aux heures choisies (onglet SENTINEL ouvert requis)</div></div>
-              </div>
-            </div>
-            <div class="pm-sec-body" style="padding:14px 16px">
-              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
-                A chaque heure programmee, une notification s'affiche avec un bouton "Envoyer maintenant" :
-                un tap genere le rapport de Synthese analytique (PDF) et ouvre la conversation WhatsApp du
-                numero indique, message signe avec l'identite de marque active. Aucun envoi n'a lieu sans
-                ce clic — WhatsApp ne permet pas a un site web d'envoyer un message automatiquement.
-              </div>
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-                <input type="checkbox" id="rappelWaActif" style="width:16px;height:16px;cursor:pointer">
-                <label for="rappelWaActif" style="font-size:12px;font-weight:600;color:var(--t);cursor:pointer">Activer les rappels programmes</label>
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-                <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Numero WhatsApp (avec indicatif pays)</label>
-                  <input type="text" id="rappelWaNumero" placeholder="Ex. 2250747974398" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
-                </div>
-                <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Heures (HH:MM, separees par virgule)</label>
-                  <input type="text" id="rappelWaHeures" placeholder="Ex. 06:00, 16:30, 20:30" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
-                </div>
-              </div>
-              <div style="display:flex;align-items:center;gap:10px">
-                <button class="btn-action btn-rest" id="rappelWaSaveBtn" onclick="pmSaveRappelsWhatsapp()"><i class="ti ti-device-floppy"></i> Enregistrer les rappels</button>
-                <span class="pmu-msg" id="rappelWaMsg" style="margin:0"></span>
-              </div>
-            </div>
-          </div>
-
           <!-- ══ GROUPE : ADMINISTRATION DE LA PLATEFORME (suite) ══ -->
           <div class="pm-group-hd">
             <i class="ti ti-shield-cog"></i>
@@ -2880,117 +3043,6 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <button class="btn-action btn-rest" onclick="pmSaveEmailjsCfg()"><i class="ti ti-device-floppy"></i> Enregistrer la configuration EmailJS</button>
                 <span class="pmu-msg" id="emailjsCfgMsg" style="margin:0"></span>
               </div>
-            </div>
-          </div>
-
-          <!-- Contacts WhatsApp -->
-          <div class="pm-section">
-            <div class="pm-sec-hd">
-              <div class="pm-sec-hd-l"><i class="ti ti-brand-whatsapp"></i>
-                <div><div class="pm-sec-title">Contacts WhatsApp</div>
-                <div class="pm-sec-sub" id="waContactsCount">0 contact(s)</div></div>
-              </div>
-            </div>
-            <div class="pm-sec-body" style="padding:14px 16px">
-              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
-                Un bouton « WhatsApp » apparaît sur chaque actu du Flux : il ouvre WhatsApp avec un message
-                déjà rédigé (niveau, pays, titre, lien) vers chacun des contacts ci-dessous — gratuit, sans
-                clé API, sans serveur. WhatsApp n'autorisant pas l'envoi automatique sans action de
-                l'utilisateur, le clic final « Envoyer » reste à faire dans WhatsApp.
-                <b>Groupe</b> : WhatsApp ne permet pas de pré-remplir un message vers un groupe existant —
-                le message est copié dans le presse-papiers puis le groupe s'ouvre, il ne reste qu'à coller.
-              </div>
-              <div class="share-fmt-row" style="margin-bottom:10px;max-width:260px">
-                <button type="button" class="share-fmt on" id="waTypeBtnContact" onclick="waBasculerType('contact')">Contact</button>
-                <button type="button" class="share-fmt" id="waTypeBtnGroupe" onclick="waBasculerType('groupe')">Groupe</button>
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:12px">
-                <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Nom</label>
-                  <input type="text" id="waContactNom" placeholder="Ex. Directeur Sûreté" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
-                </div>
-                <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" id="waContactValLbl">Numéro (avec indicatif pays)</label>
-                  <input type="text" id="waContactTel" placeholder="Ex. +225 07 12 34 56 78" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
-                </div>
-                <div style="display:flex;align-items:flex-end">
-                  <button class="btn-action btn-rest" onclick="waAjouterContact()"><i class="ti ti-plus"></i> Ajouter</button>
-                </div>
-              </div>
-              <span class="pmu-msg" id="waContactMsg"></span>
-              <table class="pm-users-table">
-                <thead><tr><th>Nom</th><th>Type</th><th>Numéro / Lien</th><th>Actions</th></tr></thead>
-                <tbody id="waContactsBody"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Groupes/Canaux Telegram -->
-          <div class="pm-section">
-            <div class="pm-sec-hd">
-              <div class="pm-sec-hd-l"><i class="ti ti-brand-telegram"></i>
-                <div><div class="pm-sec-title">Groupes/Canaux Telegram</div>
-                <div class="pm-sec-sub" id="tgGroupesCount">0 groupe(s)</div></div>
-              </div>
-            </div>
-            <div class="pm-sec-body" style="padding:14px 16px">
-              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
-                Telegram ne permet pas de pré-remplir un message vers un groupe/canal existant depuis un
-                simple lien — le message est copié dans le presse-papiers puis le groupe/canal s'ouvre,
-                il ne reste qu'à coller et envoyer.
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:12px">
-                <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Nom</label>
-                  <input type="text" id="tgGroupeNom" placeholder="Ex. Cellule Sûreté Régionale" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
-                </div>
-                <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Lien (t.me/...)</label>
-                  <input type="text" id="tgGroupeLien" placeholder="Ex. https://t.me/joinchat/XXXXXXXXXX" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
-                </div>
-                <div style="display:flex;align-items:flex-end">
-                  <button class="btn-action btn-rest" onclick="tgAjouterGroupe()"><i class="ti ti-plus"></i> Ajouter</button>
-                </div>
-              </div>
-              <span class="pmu-msg" id="tgGroupeMsg"></span>
-              <table class="pm-users-table">
-                <thead><tr><th>Nom</th><th>Lien</th><th>Actions</th></tr></thead>
-                <tbody id="tgGroupesBody"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Groupes Email (listes de diffusion) -->
-          <div class="pm-section">
-            <div class="pm-sec-hd">
-              <div class="pm-sec-hd-l"><i class="ti ti-mail"></i>
-                <div><div class="pm-sec-title">Groupes Email (listes de diffusion)</div>
-                <div class="pm-sec-sub" id="emGroupesCount">0 groupe(s)</div></div>
-              </div>
-            </div>
-            <div class="pm-sec-body" style="padding:14px 16px">
-              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
-                Un groupe email envoie directement à tous les destinataires listés (client mail par
-                défaut, aucune configuration serveur nécessaire).
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:12px">
-                <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Nom</label>
-                  <input type="text" id="emGroupeNom" placeholder="Ex. Comité de crise" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
-                </div>
-                <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Emails (séparés par des virgules)</label>
-                  <input type="text" id="emGroupeEmails" placeholder="Ex. a@x.com, b@y.com" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
-                </div>
-                <div style="display:flex;align-items:flex-end">
-                  <button class="btn-action btn-rest" onclick="emAjouterGroupe()"><i class="ti ti-plus"></i> Ajouter</button>
-                </div>
-              </div>
-              <span class="pmu-msg" id="emGroupeMsg"></span>
-              <table class="pm-users-table">
-                <thead><tr><th>Nom</th><th>Emails</th><th>Actions</th></tr></thead>
-                <tbody id="emGroupesBody"></tbody>
-              </table>
             </div>
           </div>
 
@@ -8974,7 +9026,25 @@ async function majFlashInfo(force) {
   });
 }
 
+// _renderFeedGen : compteur de generation — renderFeed() est async (traduction
+// reseau avant rendu) et declenchee a chaque frappe dans la recherche. Sans
+// garde, plusieurs appels se chevauchent et RIEN ne garantit que le dernier
+// LANCE soit le dernier a SE TERMINER : un rendu perime pouvait ecraser un
+// rendu plus recent (flash de resultats incorrects, sensation de blocage/
+// bégaiement pendant la saisie). Chaque appel note son numero de generation
+// et abandonne son propre rendu si un appel plus recent a deja demarre.
+// _debounce(fn, ms) : retarde l'execution de fn jusqu'a ce que ms
+// millisecondes se soient ecoulees SANS nouvel appel — evite de relancer un
+// rendu couteux (traduction reseau + reconstruction DOM) a chaque frappe
+// clavier dans un champ de recherche (cause frequente de sensation de
+// blocage/lag pendant la saisie).
+function _debounce(fn, ms) {
+  let t;
+  return function(...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), ms); };
+}
+let _renderFeedGen = 0;
 async function renderFeed() {
+  const _monGen = ++_renderFeedGen;
   const arts=getFiltered();
   const c=document.getElementById('feed');
   // Bandeau tableau de bord pays : construit tot pour s'afficher meme si
@@ -9012,6 +9082,7 @@ async function renderFeed() {
   // Flux — meme regle que le popup, le toast et le ruban : jamais d'actu
   // affichee dans sa langue source si elle differe de la langue active.
   await preTraduireRapport(arts.flatMap(a => [a.title, a.analysis]));
+  if (_monGen !== _renderFeedGen) return; // un rendu plus recent a deja demarre — abandon
 
   // Actus qui COMPTENT actuellement dans le score d'alerte de leur pays
   // (voir getLiveAlertEvents/calcAlertScore) — distinct du niveau de
@@ -9227,14 +9298,20 @@ async function renderFeed() {
   // ── Bandeau tableau de bord pays : deja construit en tete de fonction
   // (dashBanner0), reutilise ici pour le cas "articles trouves". ──
 
+  if (_monGen !== _renderFeedGen) return; // un rendu plus recent a deja demarre — abandon
   // Rendu différé : on vide d'abord le conteneur pour libérer le thread,
   // puis on injecte le HTML au prochain frame disponible du navigateur.
   // Cela évite le gel de l'interface pendant la construction du DOM.
   c.innerHTML = '';
   requestAnimationFrame(() => {
+    if (_monGen !== _renderFeedGen) return; // idem, verifie a nouveau juste avant l'ecriture DOM
     c.innerHTML = dashBanner0 + (html || '<div class="empty"><i class="ti ti-inbox"></i><p>Aucun article</p></div>');
   });
 }
+// Version temporisee pour le champ de recherche (#artQ) uniquement — les
+// autres declencheurs (chips, tri, pays, bouton Actualiser) restent sur
+// renderFeed() direct, un seul clic ne justifiant pas d'attendre.
+const renderFeedDebounced = _debounce(renderFeed, 300);
 
 async function showDet(id) {
   const a=ALL.find(x=>x.id===id); if(!a) return;
@@ -9982,7 +10059,11 @@ const SE_TYPE_META = {
   sources:    { label:'Source',     icon:'ti-antenna',            col:'#0F4F2A' },
 };
 
+// _renderRechercheGen : meme garde anti-course que _renderFeedGen (voir plus
+// haut) — renderRecherche() est aussi async et declenchee a chaque frappe.
+let _renderRechercheGen = 0;
 async function renderRecherche() {
+  const _monGenSe = ++_renderRechercheGen;
   const qEl = document.getElementById('searchQ');
   const q = qEl ? qEl.value.trim() : '';
   const tokens = _seTokenize(q);
@@ -10002,6 +10083,7 @@ async function renderRecherche() {
   // Traduction ACTIVE avant affichage — meme regle que le Flux/popup/ruban :
   // jamais de placeholder "traduction disponible sur demande" ici.
   await preTraduireRapport(results.flatMap(r => [r.title, r.snippet].filter(Boolean)));
+  if (_monGenSe !== _renderRechercheGen) return; // un rendu plus recent a deja demarre — abandon
   cont.innerHTML = results.map(r => {
     const m = SE_TYPE_META[r.type];
     const pys = PAYS_INFO[r.cy];
@@ -10025,6 +10107,8 @@ async function renderRecherche() {
     `</div>`;
   }).join('');
 }
+// Version temporisee pour le champ de recherche (#searchQ) — meme raison que renderFeedDebounced.
+const renderRechercheDebounced = _debounce(renderRecherche, 300);
 
 let fAgZone = 'all', fAgCy = 'all';
 
@@ -10580,6 +10664,33 @@ function activerProtectionsSecurite(user) {
 // NB : l'appel init() a été déplacé en toute fin de script (voir bas de fichier)
 // afin que toutes les constantes déclarées plus loin (ALERTE_EVENTS, FACTEURS_SPECIAUX,
 // etc.) soient initialisées avant le premier rendu — sinon erreur de zone morte temporelle.
+// _demarrerAutoRefresh() : demarre le planning fixe de collecte automatique
+// (15 min, visible ou non) si aucun timer n'est deja actif — factorise les
+// DEUX points d'entree qui devaient auparavant demarrer ce timer (ouverture
+// de l'app, et reactivation manuelle via saveAutoRefreshPref) avec une
+// copie de la meme logique. Un seul point de verite evite que les deux
+// copies divergent au fil des correctifs et que l'actualisation en direct
+// se desynchronise silencieusement de ce qui est reellement teste/deployee.
+function _demarrerAutoRefresh() {
+  if (window._sentinelAutoRefresh) return; // deja demarre — evite un double intervalle
+  window._sentinelAutoRefresh = setInterval(() => {
+    if (typeof doCollect !== 'function') return;
+    // Verifie la preference en temps reel : si l'utilisateur la desactive, on s'arrete
+    if (localStorage.getItem('sentinel_pref_autorefresh') === '0') {
+      clearInterval(window._sentinelAutoRefresh);
+      window._sentinelAutoRefresh = null;
+      return;
+    }
+    const INTERVAL_MIN = 15; // planification fixe : mise a jour toutes les 15 minutes, visible ou non
+    const lastTs = parseInt(localStorage.getItem('sentinel_lastCollectTs') || '0');
+    const elapsed = (Date.now() - lastTs) / 60000;
+    if (elapsed >= INTERVAL_MIN) {
+      localStorage.setItem('sentinel_lastCollectTs', Date.now().toString());
+      doCollect().catch(() => {});
+    }
+  }, 5 * 60 * 1000);
+}
+
 async function init() {
   if (typeof _MEM_SESSION !== 'undefined' && _MEM_SESSION) activerProtectionsSecurite(_MEM_SESSION);
   demanderPermissionNotifWeb();
@@ -10660,24 +10771,8 @@ async function init() {
     const autoRefreshOn = localStorage.getItem('sentinel_pref_autorefresh') !== '0';
     const tglAR = document.getElementById('tglAutoRefresh');
     if (tglAR) tglAR.checked = autoRefreshOn;
-    if (autoRefreshOn && !window._sentinelAutoRefresh) {
-      window._sentinelAutoRefresh = setInterval(()=>{
-        if (typeof doCollect !== 'function') return;
-        // Vérifie la préférence en temps réel : si l'utilisateur la désactive, on s'arrête
-        if (localStorage.getItem('sentinel_pref_autorefresh') === '0') {
-          clearInterval(window._sentinelAutoRefresh);
-          window._sentinelAutoRefresh = null;
-          return;
-        }
-        const visible = !document.hidden;
-        const INTERVAL_MIN = 15; // planification fixe : mise a jour toutes les 15 minutes, visible ou non
-        const lastTs = parseInt(localStorage.getItem('sentinel_lastCollectTs')||'0');
-        const elapsed = (Date.now() - lastTs) / 60000;
-        if (elapsed >= INTERVAL_MIN) {
-          localStorage.setItem('sentinel_lastCollectTs', Date.now().toString());
-          doCollect().catch(()=>{});
-        }
-      }, 5 * 60 * 1000);
+    if (autoRefreshOn) {
+      _demarrerAutoRefresh();
     }
 
     // ── Réouverture de l'application : recalcul immédiat, EN PLUS du planning fixe ──
@@ -10918,10 +11013,22 @@ function applyRoleMenus(role) {
   // celui de son propre appareil, ce controle n'a de sens que pour tester
   // le rendu (usage interne admin).
   const dispSwitch = document.getElementById('dispSwitch');
-  if (adminItem)  adminItem.style.display  = isAdmin ? 'flex' : 'none';
-  if (accessItem) accessItem.style.display = isAdmin ? 'flex' : 'none';
-  if (paramsTab)  paramsTab.style.display  = isAdmin ? 'flex' : 'none';
-  if (dispSwitch) dispSwitch.style.display = isAdmin ? 'flex' : 'none';
+  // Badge "Admin" de la barre du haut : ne doit apparaitre que pour
+  // l'administrateur reel, jamais chez un utilisateur/lecteur.
+  const tbAdminBadge = document.getElementById('tbAdminBadge');
+  // Module Parametres desormais accessible a TOUS les roles (contenu
+  // "Mon espace" commun), mais la section "Administration de la plateforme"
+  // (pmAdminOnly, HTML deja rempli avec les donnees de l'admin) doit rester
+  // physiquement masquee pour un compte non-admin — sinon un client
+  // verrait, ne serait-ce qu'un instant avant le prochain rendu, les
+  // donnees clientele/utilisateurs de la plateforme.
+  const pmAdminOnly  = document.getElementById('pmAdminOnly');
+  if (adminItem)   adminItem.style.display   = isAdmin ? 'flex' : 'none';
+  if (accessItem)  accessItem.style.display  = isAdmin ? 'flex' : 'none';
+  if (paramsTab)   paramsTab.style.display   = 'flex';
+  if (dispSwitch)  dispSwitch.style.display  = isAdmin ? 'flex' : 'none';
+  if (tbAdminBadge) tbAdminBadge.style.display = isAdmin ? 'flex' : 'none';
+  if (pmAdminOnly) pmAdminOnly.style.display = isAdmin ? '' : 'none';
 }
 
 // genAccessCode() : code d'acces reellement aleatoire (crypto.getRandomValues),
@@ -11535,20 +11642,7 @@ function saveAutoRefreshPref(val) {
     }
   } else {
     // Redémarrage immédiat si l'utilisateur réactive
-    if (!window._sentinelAutoRefresh) {
-      window._sentinelAutoRefresh = setInterval(()=>{
-        if (localStorage.getItem('sentinel_pref_autorefresh') === '0') {
-          clearInterval(window._sentinelAutoRefresh); window._sentinelAutoRefresh = null; return;
-        }
-        const visible = !document.hidden;
-        const INTERVAL_MIN = 15; // planification fixe : mise a jour toutes les 15 minutes, visible ou non
-        const lastTs = parseInt(localStorage.getItem('sentinel_lastCollectTs')||'0');
-        if ((Date.now()-lastTs)/60000 >= INTERVAL_MIN) {
-          localStorage.setItem('sentinel_lastCollectTs', Date.now().toString());
-          if (typeof doCollect === 'function') doCollect().catch(()=>{});
-        }
-      }, 5*60*1000);
-    }
+    _demarrerAutoRefresh();
   }
 }
 function resetAllData() {
@@ -11578,7 +11672,27 @@ function pmMsg(txt, type, elId) {
 }
 
 // ── CHARGEMENT DU MODULE PARAMS ───────────────────────────────────────
+// loadParamsModule() : le module Parametres est desormais accessible a TOUS
+// les roles (pas seulement admin), mais avec un contenu different — voir
+// applyRoleMenus (bascule pmAdminOnly/pmClientArea) et adapterHeroParams.
+// "Mon espace" (marque, contacts d'envoi, rappels, abonnement, telechargements,
+// connexions) est commun a tous ; le reste (gestion clientele, tarification,
+// utilisateurs...) reste strictement reserve a l'administrateur.
 function loadParamsModule() {
+  const session = (typeof getSession === 'function') ? getSession() : {};
+  const isAdmin = session.role === 'admin';
+  adapterHeroParams(isAdmin);
+  // "Mon espace" — commun a tous les roles
+  renderWhatsappContacts();
+  renderTelegramGroupes();
+  renderEmailGroupes();
+  renderMarquePerso();
+  if (typeof renderRappelsWhatsappParams === 'function') renderRappelsWhatsappParams();
+  renderMonAbonnement();
+  renderMesTelechargements();
+  renderMesConnexions();
+  if (!isAdmin) return;
+  // "Administration de la plateforme" — reserve a l'administrateur
   initRights();
   renderAdminProfile();
   renderDLRights();
@@ -11591,16 +11705,114 @@ function loadParamsModule() {
   renderClientele();
   renderPaiementsAdmin();
   renderEmailjsCfg();
-  renderWhatsappContacts();
-  renderTelegramGroupes();
-  renderEmailGroupes();
-  renderMarquePerso();
   renderPartageStats();
   renderDLStats();
   renderReclamationsAdmin();
   renderTraffic();
   if (typeof renderConnexionsSupabase === 'function') renderConnexionsSupabase();
-  if (typeof renderRappelsWhatsappParams === 'function') renderRappelsWhatsappParams();
+}
+
+// adapterHeroParams(isAdmin) : le bandeau d'en-tete du module Parametres
+// (titre/sous-titre/badge) differe selon le role — un client ne doit pas
+// voir un badge "Administrateur" ni un sous-titre parlant de configuration
+// de la plateforme.
+function adapterHeroParams(isAdmin) {
+  const title = document.getElementById('pmHeroTitle');
+  const badge = document.getElementById('pmHeroBadge');
+  const sub   = document.getElementById('pmHeroSub');
+  if (title) title.innerHTML = '<i class="ti ti-settings"></i>' + (isAdmin ? 'Parametres &amp; Administration' : 'Mes parametres');
+  if (badge) badge.style.display = isAdmin ? 'flex' : 'none';
+  if (sub) sub.textContent = isAdmin
+    ? 'Gestion des acces, droits de telechargement et configuration de la plateforme'
+    : 'Votre marque, vos canaux d\'envoi, votre abonnement et vos statistiques personnelles';
+}
+
+// renderMonAbonnement() : forfait actif + date de validite des droits
+// d'acces du compte connecte — visible par tous les roles ("Mon espace").
+function renderMonAbonnement() {
+  const el = document.getElementById('monAbonnementBody');
+  if (!el) return;
+  const session = getSession();
+  if (session.email === ADMIN_EMAIL) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--t2)">Compte administrateur — accès illimité, aucune expiration.</div>';
+    return;
+  }
+  const u = getUsers().find(x => x.email === session.email) || {};
+  const planKey = u.plan || 'gratuit';
+  const planInfo = getPricing().find(p => p.key === planKey);
+  const planNom = planInfo ? planInfo.nom : planKey;
+  let expirationLbl, expirationSous;
+  if (u.accesJusquau) {
+    expirationLbl = new Date(u.accesJusquau + 'T23:59:59').toLocaleDateString('fr-FR');
+    expirationSous = 'Date fixée par l\'administrateur';
+  } else if (planKey === 'gratuit') {
+    const limite = u.createdAt ? new Date(new Date(u.createdAt).getTime() + COMPTE_GRATUIT_VALIDITE_MS) : null;
+    expirationLbl = limite ? limite.toLocaleDateString('fr-FR') + ' ' + limite.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '—';
+    expirationSous = 'Essai gratuit (72h à compter de la création du compte)';
+  } else {
+    expirationLbl = u.echeance || '—';
+    expirationSous = 'Prochaine échéance de paiement';
+  }
+  const paiementLbl = {a_jour:'À jour', en_retard:'En retard', impaye:'Impayé'}[u.paiement || 'a_jour'] || 'À jour';
+  el.innerHTML =
+    '<div style="display:flex;gap:24px;flex-wrap:wrap;">' +
+      '<div><div style="font-size:9px;color:var(--lg);text-transform:uppercase;letter-spacing:.05em">Forfait</div><div style="font-size:15px;font-weight:800;color:var(--t);margin-top:2px">' + _apEsc(planNom) + '</div></div>' +
+      '<div><div style="font-size:9px;color:var(--lg);text-transform:uppercase;letter-spacing:.05em">Statut paiement</div><div style="font-size:15px;font-weight:800;color:var(--t);margin-top:2px">' + paiementLbl + '</div></div>' +
+      '<div><div style="font-size:9px;color:var(--lg);text-transform:uppercase;letter-spacing:.05em">Accès valide jusqu\'au</div><div style="font-size:15px;font-weight:800;color:var(--t);margin-top:2px">' + expirationLbl + '</div><div style="font-size:9px;color:var(--lg);margin-top:2px">' + expirationSous + '</div></div>' +
+    '</div>';
+}
+
+// renderMesTelechargements() : quota de telechargements du compte connecte
+// (voir telechargementsRestants — respecte deja u.dlQuotaOverride).
+function renderMesTelechargements() {
+  const el = document.getElementById('mesTelechargementsBody');
+  if (!el) return;
+  const session = getSession();
+  const restant = (typeof telechargementsRestants === 'function') ? telechargementsRestants() : Infinity;
+  const u = getUsers().find(x => x.email === session.email) || {};
+  const planKey = u.plan || 'gratuit';
+  const quotaBase = (u.dlQuotaOverride !== undefined && u.dlQuotaOverride !== null) ? u.dlQuotaOverride : getDLQuotas()[planKey];
+  const utilises = getDLStats().filter(s => s.email === session.email).length;
+  const quotaAffiche = (quotaBase === null || quotaBase === undefined) ? 'Illimité' : quotaBase;
+  const restantAffiche = restant === Infinity ? 'Illimité' : restant;
+  el.innerHTML =
+    '<div style="display:flex;gap:14px;align-items:baseline;">' +
+      '<div style="font-size:26px;font-weight:800;color:var(--b);font-family:var(--font-mono,monospace)">' + utilises + '</div>' +
+      '<div style="font-size:16px;color:var(--lg)">/</div>' +
+      '<div style="font-size:26px;font-weight:800;color:var(--t);font-family:var(--font-mono,monospace)">' + quotaAffiche + '</div>' +
+      '<div style="font-size:9px;color:var(--lg);text-transform:uppercase;align-self:flex-end;margin-bottom:4px">utilisés / quota</div>' +
+    '</div>' +
+    '<div style="font-size:10px;color:var(--lg);margin-top:6px">' + restantAffiche + ' téléchargement(s) restant(s) sur la période en cours.</div>';
+}
+
+// renderMesConnexions() : historique de connexion du compte connecte,
+// filtre sur son propre email (contrairement au panneau admin "Connexions
+// recentes" qui montre tous les utilisateurs).
+async function renderMesConnexions() {
+  const el = document.getElementById('mesConnexionsBody');
+  if (!el) return;
+  const session = getSession();
+  let rows = [];
+  if (typeof fetchConnexionsRecentes === 'function') {
+    try {
+      const all = await fetchConnexionsRecentes(200);
+      if (all) rows = all.filter(r => r.email === session.email);
+    } catch (_) {}
+  }
+  const u = getUsers().find(x => x.email === session.email) || {};
+  if (!rows.length && u.lastLogin) rows = [{ created_at: u.lastLogin, platform: 'web' }];
+  if (!rows.length) { el.innerHTML = '<div style="font-size:11px;color:var(--lg)">Aucune connexion enregistrée.</div>'; return; }
+  el.innerHTML =
+    '<div style="font-size:11px;color:var(--t2);margin-bottom:8px">' + rows.length + ' connexion(s) enregistrée(s)</div>' +
+    '<div style="max-height:180px;overflow-y:auto">' +
+    rows.slice(0, 20).map(r => {
+      const d = new Date(r.created_at);
+      return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:.5px solid var(--bd);font-size:11px;">' +
+        '<span>' + d.toLocaleDateString('fr-FR') + ' · ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) + '</span>' +
+        '<span style="color:var(--lg);text-transform:uppercase;font-size:9px">' + (r.platform || 'web') + '</span>' +
+      '</div>';
+    }).join('') +
+    '</div>';
 }
 
 // ── Connexions récentes (tous appareils, via Supabase) ────────────────────
@@ -15363,11 +15575,12 @@ async function genererModeEmploiPDF() {
     const docId = _meIdDocument(emailUtilisateur);
     const brand = _pdfSafe(nomMarqueActuelle());
 
-    // Filigrane anti-plagiat : lignes diagonales repetees, email + date,
-    // dessinees APRES le contenu de chaque page (voir chaque section
-    // ci-dessous) pour rester lisibles sans jamais masquer le texte.
+    // Filigrane anti-plagiat : lignes diagonales repetees, identifiant de
+    // document + date (jamais l'email en clair — un document peut circuler
+    // hors de l'organisation), dessinees APRES le contenu de chaque page
+    // (voir chaque section ci-dessous) pour rester lisibles sans masquer le texte.
     function watermark() {
-      const txt = _pdfSafe(emailUtilisateur + '  ·  ' + dateStr + '  ·  ' + brand);
+      const txt = _pdfSafe(docId + '  ·  ' + dateStr + '  ·  ' + brand);
       const size = 9;
       for (let row = 0; row < 7; row++) {
         for (let col = 0; col < 3; col++) {
@@ -15417,9 +15630,9 @@ async function genererModeEmploiPDF() {
     b.y = b.y - 118 - 20;
 
     const copyTxt = (LANG==='en'
-      ? 'COPYRIGHT — SENTINEL SÛRETÉ, its code, design and methodology are the exclusive property of its publisher. This document is confidential, generated for '
-      : 'DROITS RÉSERVÉS — SENTINEL SÛRETÉ, son code, son design et sa méthodologie sont la propriété exclusive de son éditeur. Ce document est confidentiel, généré pour ')
-      + emailUtilisateur + (LANG==='en' ? ' on ' : ' le ') + dateStr + '. ' +
+      ? 'COPYRIGHT — SENTINEL SÛRETÉ, its code, design and methodology are the exclusive property of its publisher. This document is confidential, generated on '
+      : 'DROITS RÉSERVÉS — SENTINEL SÛRETÉ, son code, son design et sa méthodologie sont la propriété exclusive de son éditeur. Ce document est confidentiel, généré le ')
+      + dateStr + '. ' +
       (LANG==='en' ? 'Unauthorized reproduction, distribution or resale is prohibited. Document ID: ' : 'Toute reproduction, diffusion ou revente non autorisée est interdite. Identifiant : ') + docId + '.';
     b.wrap(copyTxt, 7.8, fontReg, W-M*2).forEach(line => { b.page.drawText(line, {x:M,y:b.y,size:7.8,font:fontReg,color:MUTED}); b.y -= 11; });
     watermark();
@@ -15517,9 +15730,9 @@ async function genererModeEmploiPDF() {
     b.page.drawRectangle({ x:M, y:b.y-70, width:W-M*2, height:70, color:PAPER, borderColor:LINE, borderWidth:0.6 });
     let ly2 = b.y - 18;
     const legalTxt = (LANG==='en'
-      ? 'INTELLECTUAL PROPERTY — This document and the SENTINEL SÛRETÉ application (code, design, methodology) are protected. Unauthorized copy, redistribution or resale is prohibited and traceable to this copy. Generated for '
-      : 'PROPRIÉTÉ INTELLECTUELLE — Ce document et l\'application SENTINEL SÛRETÉ (code, design, méthodologie) sont protégés. Toute copie, redistribution ou revente non autorisée est interdite et traçable jusqu\'à cet exemplaire. Généré pour ')
-      + emailUtilisateur + (LANG==='en' ? ' — Document ID: ' : ' — Identifiant du document : ') + docId + (LANG==='en' ? ' — Generated on ' : ' — Généré le ') + dateStr + '.';
+      ? 'INTELLECTUAL PROPERTY — This document and the SENTINEL SÛRETÉ application (code, design, methodology) are protected. Unauthorized copy, redistribution or resale is prohibited and traceable to this copy.'
+      : 'PROPRIÉTÉ INTELLECTUELLE — Ce document et l\'application SENTINEL SÛRETÉ (code, design, méthodologie) sont protégés. Toute copie, redistribution ou revente non autorisée est interdite et traçable jusqu\'à cet exemplaire.')
+      + (LANG==='en' ? ' Document ID: ' : ' Identifiant du document : ') + docId + (LANG==='en' ? ' — Generated on ' : ' — Généré le ') + dateStr + '.';
     b.wrap(legalTxt, 8, fontReg, W-M*2-24).forEach(line => { b.page.drawText(line, {x:M+12,y:ly2,size:8,font:fontReg,color:INK}); ly2 -= 11.5; });
     watermark();
 
