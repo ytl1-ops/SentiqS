@@ -12817,10 +12817,16 @@ function setSocialFilter(el) {
 }
 
 // Étendre getFiltered pour le filtre social
+// Bug corrige : filtrait sur a.platform, un champ qui n'existe sur AUCUN
+// article (jamais renseigne par parseRSS/parseJSON — reserve a un tout
+// autre usage, connexions_log web/mobile) — le filtre "Reseaux sociaux"
+// renvoyait donc systematiquement une liste vide. Le champ reellement
+// pose sur chaque article pour signaler une source Twitter/Telegram/
+// Facebook est _isSocial (voir parseRSS/parseJSON/rehydrateArticles).
 const _gf2 = getFiltered;
 getFiltered = function() {
   let arts = _gf2();
-  if (fSocial) arts = arts.filter(a => !!a.platform);
+  if (fSocial) arts = arts.filter(a => !!a._isSocial);
   return arts;
 };
 
