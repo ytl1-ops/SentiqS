@@ -2787,11 +2787,13 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               </div>
             </div>
             <div class="pm-sec-body">
-              <div style="font-size:10px;color:var(--lg);padding:10px 16px 0">Les forfaits et statuts de paiement s'appliquent aux comptes de la section « Gestion des utilisateurs » ci-dessus. Voir « Paiements déclarés » plus bas pour l'encaissement.</div>
-              <table class="pm-users-table">
-                <thead><tr><th>Client</th><th>Email</th><th>Forfait</th><th>Paiement</th><th>Prochaine échéance</th></tr></thead>
+              <div style="font-size:10px;color:var(--lg);padding:10px 16px 0">Les forfaits et statuts de paiement s'appliquent aux comptes de la section « Gestion des utilisateurs » ci-dessus. Voir « Paiements déclarés » plus bas pour l'encaissement. « Accès valide jusqu'au » prolonge ou raccourcit manuellement les droits d'un compte (essai gratuit ou abonnement), indépendamment de la règle automatique.</div>
+              <div style="overflow-x:auto">
+              <table class="pm-users-table" style="min-width:760px">
+                <thead><tr><th>Client</th><th>Email</th><th>Statut</th><th>Forfait</th><th>Paiement</th><th>Accès valide jusqu'au</th><th>Téléchargements</th></tr></thead>
                 <tbody id="clienteleBody"></tbody>
               </table>
+              </div>
               <div style="padding:6px 16px 10px"><span class="pmu-msg" id="clienteleMsg" style="margin:0"></span></div>
             </div>
           </div>
@@ -3937,6 +3939,7 @@ const I18N = {
     err_email_unknown:"Adresse e-mail non reconnue. Demandez un accès à l'administrateur.",
     err_suspended:'Accès suspendu. Contactez : ', err_wrong_code:"Code d'accès incorrect.",
     err_trial_expired:'Compte gratuit expiré (validité 72h). Demandez un nouveau code gratuit ci-dessous, ou passez à un plan payant — contactez ',
+    err_acces_expire:'Accès expiré (durée fixée par l\'administrateur). Contactez : ',
     err_already_registered:'Cette adresse est déjà enregistrée.',
     register_activating:'Activation de votre essai gratuit…', register_activated:'Essai gratuit activé (72h)',
     register_code_sent:'Votre code d\'accès a été envoyé à :', register_code_manual:"Envoi automatique indisponible — notez votre code d'accès :",
@@ -3994,6 +3997,7 @@ const I18N = {
     err_email_unknown:'Email address not recognized. Request access from the administrator.',
     err_suspended:'Access suspended. Contact: ', err_wrong_code:'Incorrect access code.',
     err_trial_expired:'Free account expired (72h validity). Request a new free code below, or switch to a paid plan — contact ',
+    err_acces_expire:'Access expired (duration set by the administrator). Contact: ',
     err_already_registered:'This address is already registered.',
     register_activating:'Activating your free trial…', register_activated:'Free trial activated (72h)',
     register_code_sent:'Your access code has been sent to:', register_code_manual:'Automatic sending unavailable — note your access code:',
@@ -7479,10 +7483,19 @@ function enregistrerTelechargement(name) {
   } catch (e) {}
 }
 function telechargementsRestants() {
-  const plan = (typeof planUtilisateurActuel === 'function') ? planUtilisateurActuel() : 'gratuit';
-  const limite = getDLQuotas()[plan];
-  if (limite === null || limite === undefined) return Infinity;
   const email = (typeof getSession === 'function' ? getSession().email : null) || null;
+  // Quota propre au client (Parametres > Gestion clientele), prioritaire sur
+  // le quota standard du forfait — laisse l'admin ajuster un client precis
+  // sans toucher au quota de tout le forfait.
+  const u = email && typeof getUsers === 'function' ? getUsers().find(x => x.email === email) : null;
+  let limite;
+  if (u && u.dlQuotaOverride !== undefined && u.dlQuotaOverride !== null) {
+    limite = u.dlQuotaOverride;
+  } else {
+    const plan = (typeof planUtilisateurActuel === 'function') ? planUtilisateurActuel() : 'gratuit';
+    limite = getDLQuotas()[plan];
+  }
+  if (limite === null || limite === undefined) return Infinity;
   const n = getDLStats().filter(s => s.email === email).length;
   return Math.max(0, limite - n);
 }
@@ -10857,6 +10870,13 @@ function zonePrioritaireActuelle() {
 const COMPTE_GRATUIT_VALIDITE_MS = 72 * 60 * 60 * 1000;
 function compteGratuitExpire(user) {
   if (!user || user.email === ADMIN_EMAIL) return false;
+  // Prolongation/raccourcissement manuel (Parametres > Gestion clientele >
+  // "Acces valide jusqu'au") : remplace la regle automatique des 72h, dans
+  // les deux sens (extension ou coupure anticipee decidee par l'admin).
+  if (user.accesJusquau) {
+    const limite = new Date(user.accesJusquau + 'T23:59:59');
+    return Date.now() > limite.getTime();
+  }
   if ((user.plan || 'gratuit') !== 'gratuit') return false;
   if (!user.createdAt) return false;
   return (Date.now() - new Date(user.createdAt).getTime()) > COMPTE_GRATUIT_VALIDITE_MS;
@@ -10893,9 +10913,15 @@ function applyRoleMenus(role) {
   const adminItem  = document.getElementById('adminMenuItem');
   const accessItem = document.getElementById('accessMenuItem');
   const paramsTab  = document.getElementById('tabParams');
+  // Forcage d'affichage Web/Mobile (dispSwitch) : reserve a l'admin — un
+  // utilisateur/lecteur n'a pas a forcer un mode d'affichage different de
+  // celui de son propre appareil, ce controle n'a de sens que pour tester
+  // le rendu (usage interne admin).
+  const dispSwitch = document.getElementById('dispSwitch');
   if (adminItem)  adminItem.style.display  = isAdmin ? 'flex' : 'none';
   if (accessItem) accessItem.style.display = isAdmin ? 'flex' : 'none';
   if (paramsTab)  paramsTab.style.display  = isAdmin ? 'flex' : 'none';
+  if (dispSwitch) dispSwitch.style.display = isAdmin ? 'flex' : 'none';
 }
 
 // genAccessCode() : code d'acces reellement aleatoire (crypto.getRandomValues),
@@ -10945,7 +10971,10 @@ function doLogin() {
 
   if(user.status!=='active'){errEl.textContent=t('err_suspended')+ADMIN_EMAIL;errEl.classList.add('show');return;}
   if(compteGratuitExpire(user)){
-    errEl.textContent=t('err_trial_expired')+ADMIN_EMAIL+'.';
+    // Message adapte a la cause reelle du blocage : coupure manuelle (accesJusquau,
+    // voir Gestion clientele) vs regle automatique des 72h d'essai gratuit.
+    const causeManuelle = !!user.accesJusquau;
+    errEl.textContent=t(causeManuelle ? 'err_acces_expire' : 'err_trial_expired')+ADMIN_EMAIL+'.';
     errEl.classList.add('show');return;}
   if(pass!==user.code){
     errEl.textContent=t('err_wrong_code');errEl.classList.add('show');return;}
@@ -11786,22 +11815,58 @@ function pmSavePaymethods() {
 // Reutilise la liste des comptes (getUsers()) — un "client" = un compte —
 // en y ajoutant forfait et statut de paiement (absents par defaut : plan
 // gratuit, paiement a jour).
-function renderClientele() {
+// STATUT_EN_LIGNE_FENETRE_MS : fenetre d'inactivite au-dela de laquelle un
+// compte n'est plus considere "en ligne". Aucun heartbeat/websocket reel
+// dans cette app statique (voir connexions_log) : simple heuristique sur le
+// dernier evenement de connexion connu (Supabase si configure — vision
+// multi-appareils, sinon lastLogin local a cet appareil uniquement).
+const STATUT_EN_LIGNE_FENETRE_MS = 15 * 60 * 1000;
+function _clienteleStatutHTML(dernierTs, source) {
+  if (!dernierTs) return '<span class="stag" style="color:var(--lg)">Jamais connecté</span>';
+  const enLigne = (Date.now() - dernierTs) < STATUT_EN_LIGNE_FENETRE_MS;
+  const quand = new Date(dernierTs).toLocaleString('fr-FR', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+  return enLigne
+    ? '<span class="stag" style="background:rgba(15,79,42,.12);color:#0F4F2A;font-weight:700"><i class="ti ti-circle-filled" style="font-size:7px;color:#4ade80;vertical-align:1px"></i> En ligne</span>'
+    : '<span class="stag" title="'+(source==='supabase'?'Toutes plateformes':'Cet appareil')+'" style="color:var(--lg)">Vu le '+quand+'</span>';
+}
+async function renderClientele() {
   const body = document.getElementById('clienteleBody');
   if (!body) return;
   const users = getUsers();
   const plans = getPricing();
   document.getElementById('clienteleCount').textContent = users.length + ' client(s)';
-  const planOptions = plans.map(p=>'<option value="'+p.key+'">'+p.nom+'</option>').join('');
+  // Dernier evenement de connexion par email — Supabase (toutes plateformes)
+  // si configure, sinon repli sur lastLogin local (cet appareil uniquement).
+  let dernierParEmail = {};
+  let source = 'local';
+  if (typeof fetchConnexionsRecentes === 'function') {
+    try {
+      const rows = await fetchConnexionsRecentes(300);
+      if (rows) {
+        source = 'supabase';
+        rows.forEach(r => {
+          const ts = new Date(r.created_at).getTime();
+          if (!dernierParEmail[r.email] || ts > dernierParEmail[r.email]) dernierParEmail[r.email] = ts;
+        });
+      }
+    } catch (_) {}
+  }
+  const dlQuotas = getDLQuotas();
+  const dlStats = getDLStats();
   body.innerHTML = users.map(u => {
     const plan = u.plan || 'gratuit';
     const paiement = u.paiement || 'a_jour';
-    const echeance = u.echeance || '—';
-    const paiementLbl = {a_jour:'À jour', en_retard:'En retard', impaye:'Impayé'}[paiement] || 'À jour';
-    const paiementCls = {a_jour:'bs-active', en_retard:'bs-nouveau', impaye:'bs-suspend'}[paiement] || 'bs-active';
+    const dernierTs = dernierParEmail[u.email] || (u.lastLogin ? new Date(u.lastLogin).getTime() : null);
+    const accesVal = u.accesJusquau || '';
+    const quotaPlan = dlQuotas[plan];
+    const quotaOverride = (u.dlQuotaOverride !== undefined && u.dlQuotaOverride !== null && u.dlQuotaOverride !== '') ? u.dlQuotaOverride : '';
+    const nUtilises = dlStats.filter(s => s.email === u.email).length;
+    const quotaEffectif = quotaOverride !== '' ? Number(quotaOverride) : quotaPlan;
+    const quotaAffiche = (quotaEffectif === null || quotaEffectif === undefined || isNaN(quotaEffectif)) ? '∞' : quotaEffectif;
     return '<tr>'+
       '<td>'+u.name+'</td>'+
       '<td>'+u.email+'</td>'+
+      '<td>'+_clienteleStatutHTML(dernierTs, source)+'</td>'+
       '<td><select onchange="pmSetClientPlan(\''+u.email+'\',this.value)" style="padding:4px 6px;border:1px solid var(--bd);border-radius:5px;font-size:11px">'+
         plans.map(p=>'<option value="'+p.key+'"'+(p.key===plan?' selected':'')+'>'+p.nom+'</option>').join('')+
       '</select></td>'+
@@ -11810,7 +11875,11 @@ function renderClientele() {
         '<option value="en_retard"'+(paiement==='en_retard'?' selected':'')+'>En retard</option>'+
         '<option value="impaye"'+(paiement==='impaye'?' selected':'')+'>Impayé</option>'+
       '</select></td>'+
-      '<td>'+echeance+'</td>'+
+      '<td><input type="date" value="'+accesVal+'" onchange="pmSetClientAcces(\''+u.email+'\',this.value)" style="padding:4px 6px;border:1px solid var(--bd);border-radius:5px;font-size:11px" title="Laisser vide pour revenir a la regle automatique (72h essai gratuit, ou echeance de paiement)"></td>'+
+      '<td style="display:flex;align-items:center;gap:5px;white-space:nowrap">'+
+        '<input type="number" min="0" placeholder="'+(quotaPlan===null||quotaPlan===undefined?'∞':quotaPlan)+'" value="'+quotaOverride+'" onchange="pmSetClientQuota(\''+u.email+'\',this.value)" style="width:56px;padding:4px 6px;border:1px solid var(--bd);border-radius:5px;font-size:11px" title="Nombre de telechargements autorises pour ce client precisement (remplace le quota du forfait). Vide = quota du forfait.">'+
+        '<span style="font-size:9px;color:var(--lg)">'+nUtilises+'/'+quotaAffiche+' utilisés</span>'+
+      '</td>'+
     '</tr>';
   }).join('');
 }
@@ -11827,6 +11896,29 @@ function pmSetClientPaiement(email, paiement) {
   const u = users.find(x=>x.email===email);
   if (!u) return;
   u.paiement = paiement;
+  saveUsers(users);
+  renderClientele();
+}
+// pmSetClientAcces(email, dateStr) : prolonge (ou raccourcit) manuellement
+// les droits d'acces d'un compte jusqu'a la date choisie — remplace la
+// regle automatique (72h essai gratuit, cf. compteGratuitExpire). Champ vide
+// = retour a la regle automatique.
+function pmSetClientAcces(email, dateStr) {
+  const users = getUsers();
+  const u = users.find(x=>x.email===email);
+  if (!u) return;
+  u.accesJusquau = dateStr || null;
+  saveUsers(users);
+  renderClientele();
+}
+// pmSetClientQuota(email, valeur) : quota de telechargements propre a CE
+// client, prioritaire sur le quota du forfait (voir telechargementsRestants).
+// Vide = retour au quota standard du forfait souscrit.
+function pmSetClientQuota(email, valeur) {
+  const users = getUsers();
+  const u = users.find(x=>x.email===email);
+  if (!u) return;
+  u.dlQuotaOverride = (valeur === '' || valeur === null) ? null : Math.max(0, parseInt(valeur, 10) || 0);
   saveUsers(users);
   renderClientele();
 }
