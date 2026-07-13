@@ -13356,8 +13356,21 @@ async function renderAlertCard(score) {
   const derniereActuTs = (typeof ALL !== 'undefined' ? ALL : [])
     .filter(a => a && a.cy === score.cy && a.pubDate)
     .reduce((max, a) => Math.max(max, a.pubDate), 0);
-  const derniereActuLigne = derniereActuTs
-    ? `<div style="font-size:9px;color:var(--lg);">Dernière actu suivie : ${fmtAge(derniereActuTs)}</div>` : '';
+  // Ligne de fraicheur PRINCIPALE : priorite absolue a la donnee la plus
+  // RECENTE realmente disponible (demande explicite — l'ancien ordre
+  // affichait "Dernier incident verifie" en premier, une date corroboree
+  // qui peut rester des semaines sans bouger pour un pays calme, donnant
+  // l'impression a tort que l'app ne s'actualise jamais alors que la
+  // surveillance tourne bien et que de la veille recente existe). "Dernier
+  // incident verifie/corrobore" (score.events, plus strict — sert au calcul
+  // du niveau d'alerte) reste affiche, mais en second, plus petit, et
+  // explicitement etiquete pour ne pas etre confondu avec la veille en direct.
+  const dateVerifie = dateDernierIncident(score.events);
+  const ligneFraicheur = derniereActuTs
+    ? `<div style="font-size:9px;color:var(--lg);">Dernière actu suivie : <strong style="color:var(--t)">${fmtAge(derniereActuTs)}</strong></div>`
+    : `<div style="font-size:9px;color:var(--lg);">Aucune actu suivie pour l'instant</div>`;
+  const ligneVerifiee = dateVerifie
+    ? `<div style="font-size:8px;color:var(--lg);opacity:.8;">Dernier incident vérifié/corroboré : ${dateVerifie}</div>` : '';
   return `<div id="alerteCard-${score.cy}" style="background:${n.bg};border:1px solid ${n.border};border-radius:10px;overflow:hidden;box-shadow:${surligne?'0 0 0 3px rgba(2,132,199,.5), 0 4px 12px rgba(0,0,0,.12)':'0 1px 3px rgba(0,0,0,.06)'};scroll-margin-top:12px;">
     ${surligne?'<div style="background:var(--b);color:#fff;font-size:9px;font-weight:700;text-align:center;padding:3px;text-transform:uppercase;letter-spacing:.05em;">Filtre pays actif</div>':''}    <!-- EN-TÊTE PAYS -->
     <div style="padding:10px 12px;background:${n.bgLight};display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid ${n.border};">
@@ -13365,8 +13378,9 @@ async function renderAlertCard(score) {
         <span style="font-size:24px;">${pays.flag}</span>
         <div>
           <div style="font-size:13px;font-weight:700;color:var(--t);">${pays.name}</div>
-          <div style="font-size:9px;color:var(--lg);">${pays.capital}${dateDernierIncident(score.events) ? ' — Dernier incident vérifié : '+dateDernierIncident(score.events) : ''}</div>
-          ${derniereActuLigne}
+          <div style="font-size:9px;color:var(--lg);">${pays.capital}</div>
+          ${ligneFraicheur}
+          ${ligneVerifiee}
         </div>
       </div>
       <div style="text-align:right;">
