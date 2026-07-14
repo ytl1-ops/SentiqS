@@ -2266,11 +2266,9 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <span style="font-size:12px;font-weight:700;color:var(--t)">Rapport complet</span>
               </div>
               <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Synthèse + flux + agenda, en un seul document Word.</div>
-              <div style="display:flex;gap:6px;flex-wrap:wrap">
-                <button class="btn-dl btn-dl-word" onclick="exportWord('rapport_complet')"><i class="ti ti-file-text"></i>Word</button>
-                <button class="btn-dl btn-dl-pdf" onclick="exportPDF('rapport_complet')"><i class="ti ti-file-type-pdf"></i>PDF</button>
-                <button class="btn-dl" style="background:#EFF6FF;color:var(--b);border-color:#BFDBFE" onclick="exportPPTX('rapport_complet')"><i class="ti ti-presentation"></i>PowerPoint</button>
-                <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('rapport_complet')"><i class="ti ti-printer"></i>Aperçu impression</button>
+              <div style="display:flex;gap:8px">
+                <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'rapport_complet')"><i class="ti ti-share-2"></i>Partager</button>
+                <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('rapport_complet')" title="Aperçu impression"><i class="ti ti-printer"></i></button>
               </div>
             </div>
 
@@ -2280,13 +2278,9 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <span style="font-size:12px;font-weight:700;color:var(--t)">Flux opérationnel</span>
               </div>
               <div style="font-size:10px;color:var(--lg);margin-bottom:10px" id="dlFluxCount">Articles des dernières 12h.</div>
-              <div style="display:flex;gap:6px;flex-wrap:wrap">
-                <button class="btn-dl btn-dl-word" onclick="exportWord('flux')"><i class="ti ti-file-text"></i>Word</button>
-                <button class="btn-dl btn-dl-pdf" onclick="exportPDF('flux')"><i class="ti ti-file-type-pdf"></i>PDF</button>
-                <button class="btn-dl" style="background:#EFF6FF;color:var(--b);border-color:#BFDBFE" onclick="exportPPTX('flux')"><i class="ti ti-presentation"></i>PowerPoint</button>
-                <button class="btn-dl btn-dl-excel" onclick="exportExcel('flux')"><i class="ti ti-table"></i>Excel</button>
-                <button class="btn-dl btn-dl-csv" onclick="exportCSV('flux')"><i class="ti ti-file-spreadsheet"></i>CSV</button>
-                <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('flux')"><i class="ti ti-printer"></i>Aperçu impression</button>
+              <div style="display:flex;gap:8px">
+                <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'flux')"><i class="ti ti-share-2"></i>Partager</button>
+                <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('flux')" title="Aperçu impression"><i class="ti ti-printer"></i></button>
               </div>
             </div>
 
@@ -2296,11 +2290,9 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <span style="font-size:12px;font-weight:700;color:var(--t)">Synthèse analytique</span>
               </div>
               <div style="font-size:10px;color:var(--lg);margin-bottom:10px" id="dlSyntheseDate">Analyse thématique régionale.</div>
-              <div style="display:flex;gap:6px;flex-wrap:wrap">
-                <button class="btn-dl btn-dl-word" onclick="exportWord('synthese')"><i class="ti ti-file-text"></i>Word</button>
-                <button class="btn-dl btn-dl-pdf" onclick="exportPDF('synthese')"><i class="ti ti-file-type-pdf"></i>PDF</button>
-                <button class="btn-dl" style="background:#EFF6FF;color:var(--b);border-color:#BFDBFE" onclick="exportPPTX('synthese')"><i class="ti ti-presentation"></i>PowerPoint</button>
-                <button class="btn-dl btn-dl-apercu" onclick="apercuSynthese()"><i class="ti ti-printer"></i>Aperçu impression</button>
+              <div style="display:flex;gap:8px">
+                <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'synthese')"><i class="ti ti-share-2"></i>Partager</button>
+                <button class="btn-dl btn-dl-apercu" onclick="apercuSynthese()" title="Aperçu impression"><i class="ti ti-printer"></i></button>
               </div>
             </div>
 
@@ -2310,12 +2302,9 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <span style="font-size:12px;font-weight:700;color:var(--t)">Agenda sûreté</span>
               </div>
               <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Événements en cours et à venir.</div>
-              <div style="display:flex;gap:6px;flex-wrap:wrap">
-                <button class="btn-dl btn-dl-word" onclick="exportWord('agenda')"><i class="ti ti-file-text"></i>Word</button>
-                <button class="btn-dl btn-dl-excel" onclick="exportExcel('agenda')"><i class="ti ti-table"></i>Excel</button>
-                <button class="btn-dl btn-dl-pdf" onclick="exportPDF('agenda')"><i class="ti ti-file-type-pdf"></i>PDF</button>
-                <button class="btn-dl" style="background:#EFF6FF;color:var(--b);border-color:#BFDBFE" onclick="exportPPTX('agenda')"><i class="ti ti-presentation"></i>PowerPoint</button>
-                <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('agenda')"><i class="ti ti-printer"></i>Aperçu impression</button>
+              <div style="display:flex;gap:8px">
+                <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'agenda')"><i class="ti ti-share-2"></i>Partager</button>
+                <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('agenda')" title="Aperçu impression"><i class="ti ti-printer"></i></button>
               </div>
             </div>
 
@@ -2325,11 +2314,8 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <span style="font-size:12px;font-weight:700;color:var(--t)">Matrice des sources</span>
               </div>
               <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Liste des sources suivies et leur fiabilité.</div>
-              <div style="display:flex;gap:6px;flex-wrap:wrap">
-                <button class="btn-dl btn-dl-word" onclick="exportWord('sources')"><i class="ti ti-file-text"></i>Word</button>
-                <button class="btn-dl btn-dl-pdf" onclick="exportPDF('sources')"><i class="ti ti-file-type-pdf"></i>PDF</button>
-                <button class="btn-dl" style="background:#EFF6FF;color:var(--b);border-color:#BFDBFE" onclick="exportPPTX('sources')"><i class="ti ti-presentation"></i>PowerPoint</button>
-                <button class="btn-dl btn-dl-excel" onclick="exportExcel('sources')"><i class="ti ti-table"></i>Excel</button>
+              <div style="display:flex;gap:8px">
+                <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'sources')"><i class="ti ti-share-2"></i>Partager</button>
               </div>
             </div>
 
@@ -2339,11 +2325,9 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <span style="font-size:12px;font-weight:700;color:var(--t)">Alertes pays</span>
               </div>
               <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Fiches pays, niveaux d'alerte, mesures et actualité nationale/régionale.</div>
-              <div style="display:flex;gap:6px;flex-wrap:wrap">
-                <button class="btn-dl btn-dl-word" onclick="exportWord('alertes')"><i class="ti ti-file-text"></i>Word</button>
-                <button class="btn-dl btn-dl-pdf" onclick="exportPDF('alertes')"><i class="ti ti-file-type-pdf"></i>PDF</button>
-                <button class="btn-dl" style="background:#EFF6FF;color:var(--b);border-color:#BFDBFE" onclick="exportPPTX('alertes')"><i class="ti ti-presentation"></i>PowerPoint</button>
-                <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('alertes')"><i class="ti ti-printer"></i>Aperçu impression</button>
+              <div style="display:flex;gap:8px">
+                <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'alertes')"><i class="ti ti-share-2"></i>Partager</button>
+                <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('alertes')" title="Aperçu impression"><i class="ti ti-printer"></i></button>
               </div>
             </div>
           </div>
@@ -14462,6 +14446,12 @@ function nowStr(){
 // Excel/PPTX via un Blob desormais aussi construit plutot que telecharge
 // en direct) : quota et partage post-enregistrement s'appliquent donc a
 // tous les formats sans dupliquer cette logique dans chaque export.
+// _suppressAfficherPartage : evite le toast "Partager ce document" en double
+// quand le partage a deja ete choisi EN AMONT (module Rapports, bouton
+// "Partager" unique — voir toggleShareMenuRapport/envoyerRapportCanal) :
+// l'utilisateur a deja selectionne son canal, inutile de lui reproposer le
+// meme choix juste apres le telechargement.
+let _suppressAfficherPartage = false;
 function dlFile(blob, name){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -14469,7 +14459,7 @@ function dlFile(blob, name){
   setTimeout(()=>URL.revokeObjectURL(url), 1500);
   _dernierDocGenere = { blob, name };
   if (typeof enregistrerTelechargement === 'function') enregistrerTelechargement(name);
-  if (typeof afficherPartageDocument === 'function') afficherPartageDocument(name);
+  if (!_suppressAfficherPartage && typeof afficherPartageDocument === 'function') afficherPartageDocument(name);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -14527,7 +14517,7 @@ async function partagerDernierDocument(ev) {
 // simple lien, cf. note en tete de section).
 function _docShareMessage() {
   const name = _dernierDocGenere ? _dernierDocGenere.name : '';
-  return (LANG==='en' ? 'Document generated: ' : 'Document généré : ') + name + (LANG==='en' ? ' — please attach it from your downloads.' : ' — joignez-le depuis vos téléchargements.');
+  return (LANG==='en' ? 'Document generated: ' : 'Document généré : ') + name + (LANG==='en' ? ' — please attach it from your downloads.' : ' — joignez-le depuis vos téléchargements.') + signatureEnvoiActuelle();
 }
 // Fonctions dediees (plutot que des donnees serialisees dans l'attribut
 // onclick, ex. JSON.stringify) : un contact/groupe peut contenir des
@@ -14589,6 +14579,136 @@ function toggleShareMenuDocument(ev) {
     document.addEventListener('keydown', _closeShareMenuOnEscape);
   }, 0);
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  MODULE RAPPORTS — bouton "Partager" unique par rapport (identite d'envoi +
+//  type de fichier + mode de partage choisis en un seul menu), a la place
+//  des boutons de format separes (Word/PDF/PowerPoint/Excel/CSV) affiches
+//  auparavant. Reutilise le meme composant visuel (.share-menu/.share-mi/
+//  .share-fmt) et le meme choix d'identite (identitesMarquePerso/
+//  _choisirIdentitePartage) que le partage d'une actu (toggleShareMenu) —
+//  seul le contenu du menu (types de fichier au lieu de texte/image) et
+//  l'action finale (generer le document choisi PUIS l'acheminer vers le
+//  canal choisi) different. L'aperçu impression reste un lien separe et
+//  discret sur chaque carte (ce n'est pas un fichier transmissible a un
+//  contact, juste une prevvisualisation locale — hors de propos dans un
+//  menu de PARTAGE).
+// ═══════════════════════════════════════════════════════════════════════════
+const RAPPORT_TYPES = {
+  rapport_complet: { formats: ['word','pdf','pptx'] },
+  flux:            { formats: ['word','pdf','pptx','excel','csv'] },
+  synthese:        { formats: ['word','pdf','pptx'] },
+  agenda:          { formats: ['word','excel','pdf','pptx'] },
+  sources:         { formats: ['word','pdf','pptx','excel'] },
+  alertes:         { formats: ['word','pdf','pptx'] },
+};
+const RAPPORT_FORMAT_LABELS = { word:'Word', pdf:'PDF', pptx:'PowerPoint', excel:'Excel', csv:'CSV' };
+
+function toggleShareMenuRapport(ev, type) {
+  ev.stopPropagation();
+  const cfg = RAPPORT_TYPES[type];
+  if (!cfg) return;
+  const menuExistant = document.getElementById('shareMenuGlobal');
+  const dejaOuvertPourCetId = menuExistant && menuExistant.dataset.actid === 'rapport-'+type;
+  closeShareMenu();
+  if (dejaOuvertPourCetId) return;
+
+  const btn = ev.currentTarget;
+  const menu = document.createElement('div');
+  menu.id = 'shareMenuGlobal';
+  menu.className = 'share-menu';
+  menu.dataset.actid = 'rapport-'+type;
+  menu.dataset.format = cfg.formats[0];
+
+  const formatRow = '<div class="share-id-lbl">'+(LANG==='en'?'File type':'Type de fichier')+'</div><div class="share-fmt-row">'+
+    cfg.formats.map((f,i) => '<button type="button" class="share-fmt'+(i===0?' on':'')+'" onclick="_choisirFormatPartage(this,\''+f+'\')">'+RAPPORT_FORMAT_LABELS[f]+'</button>').join('') +
+  '</div>';
+
+  let identiteRow = '';
+  if (fonctionnalitePayante()) {
+    const { identite1, identite2, identite3, active } = identitesMarquePerso(getMarquePerso());
+    const dispo = [[1, identite1], [2, identite2], [3, identite3]].filter(([, v]) => v);
+    if (dispo.length >= 2) {
+      menu.dataset.identite = active;
+      identiteRow = '<div class="share-id-lbl">'+(LANG==='en'?'Sign as':'Signer en tant que')+'</div><div class="share-fmt-row">'+
+        dispo.map(([idx, val]) => '<button type="button" class="share-fmt share-id-btn'+(idx===active?' on':'')+'" onclick="_choisirIdentitePartage(this,'+idx+')" title="'+_apEsc(val)+'">'+_apEsc(val.length>14?val.slice(0,13)+'…':val)+'</button>').join('')+
+      '</div>';
+    }
+  }
+
+  const hasWaGroupes = getWhatsappContacts().some(c => c.type === 'groupe');
+  menu.innerHTML = formatRow + identiteRow +
+    '<div class="share-mi" onclick="envoyerRapportCanal(\''+type+'\',\'whatsapp\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-brand-whatsapp" style="color:#0F4F2A"></i>WhatsApp</div>'+
+    (hasWaGroupes ? '<div class="share-mi" onclick="envoyerRapportCanal(\''+type+'\',\'whatsapp_groupe\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-users" style="color:#0F4F2A"></i>'+(LANG==='en'?'WhatsApp group':'Groupe WhatsApp')+'</div>' : '')+
+    '<div class="share-mi" onclick="envoyerRapportCanal(\''+type+'\',\'telegram\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-brand-telegram" style="color:#3D6486"></i>Telegram</div>'+
+    '<div class="share-mi" onclick="envoyerRapportCanal(\''+type+'\',\'email\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-mail" style="color:var(--b)"></i>Email</div>'+
+    '<div class="share-mi" onclick="envoyerRapportCanal(\''+type+'\',\'copier\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-copy" style="color:var(--gr)"></i>'+(LANG==='en'?'Copy message':'Copier le message')+'</div>'+
+    '<div class="share-mi" onclick="envoyerRapportCanal(\''+type+'\',\'natif\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-share-2" style="color:var(--gr)"></i>'+(LANG==='en'?'Other apps…':'Autres applications…')+'</div>';
+  document.body.appendChild(menu);
+
+  const rect = btn.getBoundingClientRect();
+  const mw = 210, mh = menu.offsetHeight || 260;
+  let left = Math.min(rect.left, window.innerWidth - mw - 8);
+  let top = rect.bottom + 4;
+  if (top + mh > window.innerHeight) top = rect.top - mh - 4;
+  menu.style.left = Math.max(8, left) + 'px';
+  menu.style.top = Math.max(8, top) + 'px';
+
+  btn.classList.add('on');
+  setTimeout(() => {
+    document.addEventListener('click', _closeShareMenuOnOutsideClick);
+    document.addEventListener('keydown', _closeShareMenuOnEscape);
+  }, 0);
+}
+
+// envoyerRapportCanal(type, canal, format, identiteIdx) : genere le document
+// choisi (format), PUIS l'achemine vers le canal choisi — meme repli que le
+// partage d'un document isole (toggleShareMenuDocument) pour les canaux qui
+// ne peuvent pas transporter de fichier via un simple lien (WhatsApp/
+// Telegram/Email/Copier ouvrent un message pret, le fichier deja telecharge
+// restant a joindre manuellement) ; le partage natif du systeme reste le
+// seul a pouvoir transmettre reellement le fichier en piece jointe.
+async function envoyerRapportCanal(type, canal, format, identiteIdx) {
+  _partageIdentiteChoisie = identiteIdx || null;
+  const cfg = RAPPORT_TYPES[type];
+  if (!cfg) return;
+  format = cfg.formats.includes(format) ? format : cfg.formats[0];
+
+  _suppressAfficherPartage = true;
+  try {
+    if (format === 'word') await exportWord(type);
+    else if (format === 'pdf') await exportPDF(type);
+    else if (format === 'pptx') await exportPPTX(type);
+    else if (format === 'excel') await exportExcel(type);
+    else if (format === 'csv') await exportCSV(type);
+  } finally {
+    _suppressAfficherPartage = false;
+  }
+  if (!_dernierDocGenere) return;
+
+  if (canal === 'natif') {
+    const { blob, name } = _dernierDocGenere;
+    if (navigator.share && navigator.canShare) {
+      try {
+        const file = new File([blob], name, { type: blob.type });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ title: nomMarqueActuelle(), text: name, files: [file] });
+          return;
+        }
+      } catch (e) {
+        if (e && e.name === 'AbortError') return;
+      }
+    }
+    _docCopier(); // repli si le partage natif de fichiers n'est pas supporte ici
+    return;
+  }
+  if (canal === 'whatsapp') _docWhatsappContacts();
+  else if (canal === 'whatsapp_groupe') _docWhatsappGroupes();
+  else if (canal === 'telegram') _docTelegram();
+  else if (canal === 'email') _docEmail();
+  else if (canal === 'copier') _docCopier();
+}
+
 function btnSpin(btn){ if(btn){btn._txt=btn.innerHTML; btn.innerHTML='<i class="ti ti-loader dl-spin"></i>';btn.disabled=true;} }
 function btnReset(btn){ if(btn){btn.innerHTML=btn._txt||btn.innerHTML;btn.disabled=false;} }
 
