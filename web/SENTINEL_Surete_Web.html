@@ -28,31 +28,33 @@
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  /* Palette "Émeraude Vigilance" (rebranding demandé — sortir du bleu marine
-     uniforme). Fond/chrome navy remplacé par un vert foret profond, accent
-     bleu remplace par un emeraude vif (--n/--b), meme identite de marque
-     partout (index.html, rapports exportes PDF/Word/PowerPoint). Le vert de
-     severite (--g, niveau VERT/Stable des Alertes) reste volontairement une
-     teinte DISTINCTE et plus sourde que l'accent de marque --b, pour ne
-     jamais laisser croire qu'un badge "Stable" est juste un bouton de
-     l'interface — les deux verts ne doivent jamais se confondre. Rouge/ambre
-     de severite inchanges (#8B1A1A/#7C4A00), typographie IBM Plex Sans/Mono +
-     Source Serif 4 pour la marque. */
-  --n:#122A20;--b:#1D9A6C;--bl:#EAF6F0;--bb:#B9E3D0;
+  /* Palette "Ardoise Institutionnelle" (2e rebranding — l'emeraude etait lu
+     comme "produit grand public" ; ce bleu-gris sobre, calibre sur le
+     registre des cabinets de renseignement-surete etablis (Control Risks,
+     Verisk Maplecroft), vise un rendu plus factuel et professionnel. Ink
+     --n en slate-navy profond, accent --b en bleu acier confiant. Meme
+     identite de marque partout (index.html, rapports exportes PDF/Word/
+     PowerPoint). Le vert de severite (--g, niveau VERT/Stable des Alertes)
+     n'a plus AUCUN lien de teinte avec l'accent de marque desormais bleu —
+     l'ambiguite "badge de gravite vs bouton d'interface" qui existait avec
+     l'emeraude est structurellement impossible ici. Rouge/ambre de severite
+     inchanges (#8B1A1A/#7C4A00), typographie IBM Plex Sans/Mono + Source
+     Serif 4 pour la marque. */
+  --n:#1E2A38;--b:#3D6486;--bl:#EAF1F6;--bb:#C2D5E1;
   --r:#8B1A1A;--rl:#FEF2F2;--rb:#FECACA;
   --a:#7C4A00;--al:#FFFBEB;--ab:#FDE68A;
   --g:#0F4F2A;--gl:#F0FDF4;--gb:#BBF7D0;
   --gr:#4A5568;--lg:#718096;--bd:#E2E8EF;
   --sf:#F5F8FB;--w:#FFFFFF;--t:#0B1622;--t2:#374151;
   /* Nouvelles variables de design */
-  --nav-bg:#122A20;--nav-border:#204533;--nav-active:#1D9A6C;
-  --topbar-bg:linear-gradient(135deg,#122A20 0%,#1B3F2E 100%);
-  --card-radius:9px;--card-shadow:0 1px 4px rgba(18,42,32,.08);
-  --card-shadow-hover:0 4px 14px rgba(18,42,32,.14);
+  --nav-bg:#1E2A38;--nav-border:#2C4457;--nav-active:#3D6486;
+  --topbar-bg:linear-gradient(135deg,#1E2A38 0%,#24384A 100%);
+  --card-radius:9px;--card-shadow:0 1px 4px rgba(30,42,56,.08);
+  --card-shadow-hover:0 4px 14px rgba(30,42,56,.14);
   --font-body:'IBM Plex Sans',system-ui,sans-serif;
   --font-mono:'IBM Plex Mono',monospace;
   --font-serif:'Source Serif 4',serif;
-  --accent-glow:rgba(29,154,108,.18);
+  --accent-glow:rgba(61,100,134,.18);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 /* width:100% + overflow-x:hidden explicites (pas seulement le comportement
@@ -133,7 +135,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .si-card{background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:12px;display:flex;flex-direction:column;gap:8px}
 .si-section-title{font-size:10px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;display:flex;align-items:center;gap:5px}
 .corr-dim{padding:5px 11px;border:1px solid rgba(255,255,255,.18);border-radius:5px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;transition:background .12s,color .12s}
-.corr-dim.on{background:#1D9A6C;color:#fff;border-color:#1D9A6C}
+.corr-dim.on{background:#3D6486;color:#fff;border-color:#3D6486}
 .corr-dim:hover:not(.on){background:rgba(255,255,255,.1);color:rgba(255,255,255,.8)}
 /* z-index au-dessus de .auth-overlay (9000) : le selecteur de langue doit
    rester utilisable AVANT connexion, pas seulement une fois dans l'app —
@@ -300,7 +302,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 
 /* LEFT */
 .lp{width:210px;flex-shrink:0;background:#2B4660;
-  border-right:1px solid #234D3A;display:flex;flex-direction:column;
+  border-right:1px solid #2E4E63;display:flex;flex-direction:column;
   position:sticky;top:145px;height:calc(100vh - 145px);overflow-y:auto}
 .lp-sec{border-bottom:1px solid #1a2e40}
 .lp-hd{font-size:9px;font-weight:700;color:#3d5a70;text-transform:uppercase;
@@ -424,7 +426,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .art[data-level="ok"]   { border-left:3px solid #0F4F2A; }
 .art{background:var(--w);border-bottom:1px solid var(--bd);padding:10px 12px;
   cursor:pointer;display:flex;gap:9px;transition:background .15s,box-shadow .15s;position:relative;border-left:3px solid transparent}
-.art:hover{background:var(--sf);box-shadow:inset 0 0 0 1px rgba(29,154,108,.12)}
+.art:hover{background:var(--sf);box-shadow:inset 0 0 0 1px rgba(61,100,134,.12)}
 .art.lc2{border-left:3px solid var(--r)}
 .art.lh2{border-left:3px solid var(--a)}
 .art.lm2{border-left:3px solid var(--b)}
@@ -515,7 +517,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .share-trigger:hover,.share-trigger.on{background:var(--b);color:#fff;border-color:var(--b)}
 .share-trigger i{font-size:10px}
 .share-menu{position:fixed;z-index:200000;min-width:190px;background:var(--w);
-  border:1px solid var(--bd);border-radius:8px;box-shadow:0 8px 24px rgba(18,42,32,.18);
+  border:1px solid var(--bd);border-radius:8px;box-shadow:0 8px 24px rgba(30,42,56,.18);
   padding:5px;font-size:12px;}
 .share-fmt-row{display:flex;gap:4px;padding:2px 2px 7px;border-bottom:1px solid var(--bd);margin-bottom:4px;}
 .share-fmt{flex:1;padding:5px 3px;border:1px solid var(--bd);border-radius:5px;background:var(--sf);
@@ -577,7 +579,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
   font-size:11px;font-weight:600;color:var(--gr);cursor:pointer;transition:all .1s}
 .dbt:hover{background:var(--sf)}.dbt i{font-size:12px}
 .dbt.p{background:var(--b);color:#fff;border-color:var(--b)}
-.dbt.p:hover{background:#17A876}
+.dbt.p:hover{background:#2F5D7C}
 
 /* AGENDA */
 .ag-wrap{padding:14px}
@@ -699,7 +701,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
   transition:all .1s}
 .dlb i{font-size:13px}
 .dlp{background:var(--b);color:#fff;border-color:var(--b)}
-.dlp:hover{background:#17A876}
+.dlp:hover{background:#2F5D7C}
 .dls{background:var(--w);color:var(--gr);border-color:var(--bd)}
 .dls:hover{background:var(--sf)}
 .rp-sc{font-size:10px;color:var(--lg);display:flex;align-items:center;
@@ -783,11 +785,11 @@ html.force-mobile .ops-label{display:none}
   .ops-arc{opacity:.4}
 }
 
-.auth-box{position:relative;z-index:2;background:#0d1f30;border:1px solid #234D3A;border-radius:12px;
+.auth-box{position:relative;z-index:2;background:#16212C;border:1px solid #2E4E63;border-radius:12px;
   padding:36px 40px;width:100%;max-width:420px;box-shadow:0 24px 64px rgba(0,0,0,.6)}
 .auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px}
-.auth-logo-ico{width:36px;height:36px;border-radius:8px;background:#1F4433;
-  display:flex;align-items:center;justify-content:center;border:1px solid #17A876}
+.auth-logo-ico{width:36px;height:36px;border-radius:8px;background:#253746;
+  display:flex;align-items:center;justify-content:center;border:1px solid #2F5D7C}
 .auth-logo-n{font-family:var(--font-serif);font-size:19px;font-weight:700;color:#fff;letter-spacing:.02em}
 .auth-logo-s{font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;
   letter-spacing:.06em;margin-top:1px}
@@ -796,8 +798,8 @@ html.force-mobile .ops-label{display:none}
 .auth-field{margin-bottom:14px}
 .auth-field label{display:block;font-size:10px;font-weight:700;
   color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
-.auth-field input{width:100%;padding:10px 13px;background:#0F2A1E;
-  border:1px solid #234D3A;border-radius:7px;color:#fff;font-size:13px;outline:none;
+.auth-field input{width:100%;padding:10px 13px;background:#17232F;
+  border:1px solid #2E4E63;border-radius:7px;color:#fff;font-size:13px;outline:none;
   transition:border-color .15s}
 .auth-field input:focus{border-color:#9CA3AF}
 .auth-field input::placeholder{color:rgba(255,255,255,.2)}
@@ -843,7 +845,7 @@ html.force-mobile .ops-label{display:none}
   padding:20px;overflow-y:auto}
 .admin-panel.hidden{display:none}
 .admin-box{background:var(--w);border:1px solid var(--bd);border-radius:12px;
-  padding:28px 32px;width:100%;max-width:720px;margin:auto;box-shadow:0 24px 64px rgba(18,42,32,.25)}
+  padding:28px 32px;width:100%;max-width:720px;margin:auto;box-shadow:0 24px 64px rgba(30,42,56,.25)}
 .admin-hd{display:flex;align-items:center;justify-content:space-between;
   margin-bottom:24px}
 .admin-title{font-size:16px;font-weight:700;color:var(--t);display:flex;align-items:center;gap:9px}
@@ -868,7 +870,7 @@ html.force-mobile .ops-label{display:none}
 .user-form button{padding:9px 16px;background:var(--b);border:none;border-radius:6px;
   color:#fff;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.04em;
   text-transform:uppercase;white-space:nowrap}
-.user-form button:hover{background:#17A876}
+.user-form button:hover{background:#2F5D7C}
 .users-table{width:100%;border-collapse:collapse}
 .users-table th{font-size:9px;font-weight:700;color:var(--lg);
   text-transform:uppercase;letter-spacing:.07em;padding:7px 10px;text-align:left;
@@ -911,7 +913,7 @@ html.force-mobile .ops-label{display:none}
 .user-name{font-size:10px;color:var(--t2);font-weight:500;
   max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .user-menu{position:absolute;top:calc(100%+6px);right:0;background:var(--w);
-  border:1px solid var(--bd);border-radius:8px;box-shadow:0 8px 24px rgba(18,42,32,.18);
+  border:1px solid var(--bd);border-radius:8px;box-shadow:0 8px 24px rgba(30,42,56,.18);
   z-index:500;min-width:180px;overflow:hidden;display:none}
 .user-menu.open{display:block}
 .user-menu-item{padding:9px 14px;font-size:12px;color:var(--t2);
@@ -979,7 +981,7 @@ html.force-mobile .ops-label{display:none}
 .pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
 .pricing-card{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:16px;
   display:flex;flex-direction:column;gap:8px}
-.pricing-card.featured{border-color:var(--b);box-shadow:0 0 0 2px rgba(29,154,108,.15)}
+.pricing-card.featured{border-color:var(--b);box-shadow:0 0 0 2px rgba(61,100,134,.15)}
 .pricing-card-name{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--t)}
 .pricing-card-price{display:flex;flex-direction:column;gap:3px}
 .pricing-card-price>div{font-size:20px;font-weight:800;color:var(--t);display:flex;align-items:baseline;gap:5px}
@@ -1000,7 +1002,7 @@ html.force-mobile .ops-label{display:none}
 .paymethod-card .pm-detail{width:100%;padding:5px 7px;border:1px solid var(--bd);border-radius:5px;
   font-size:10.5px;font-family:inherit;color:var(--t);background:var(--w);text-align:center}
 /* Reclamations */
-.bs-nouveau{background:rgba(29,154,108,.12);color:#1D9A6C;border:1px solid rgba(29,154,108,.25)}
+.bs-nouveau{background:rgba(61,100,134,.12);color:#3D6486;border:1px solid rgba(61,100,134,.25)}
 .bs-encours{background:rgba(202,138,4,.14);color:#CA8A04;border:1px solid rgba(202,138,4,.28)}
 .bs-resolu{background:rgba(74,222,128,.12);color:#0F4F2A;border:1px solid rgba(74,222,128,.25)}
 /* Suivi du trafic (local a cet appareil, pas de serveur central) */
@@ -1107,7 +1109,7 @@ html.force-mobile .ops-label{display:none}
 .btn-dl-pdf:hover{background:#FEE2E2}
 .btn-dl-csv{background:#FFFBEB;color:#92400E;border-color:#FDE68A}
 .btn-dl-csv:hover{background:#FEF3C7}
-.btn-dl-apercu{background:#F1F4F8;color:#122A20;border-color:#D1D9E0}
+.btn-dl-apercu{background:#F1F4F8;color:#1E2A38;border-color:#D1D9E0}
 .btn-dl-apercu:hover{background:#E7EBEF}
 .dl-sep{width:1px;height:20px;background:var(--bd);margin:0 4px;flex-shrink:0}
 .dl-spin{animation:spin .7s linear infinite}
@@ -1387,7 +1389,7 @@ html.force-web .nav-arrow{display:none !important}
   background:var(--w) !important;
   height:52px;
   border-bottom:1px solid var(--bd) !important;
-  box-shadow:0 1px 3px rgba(18,42,32,.06);
+  box-shadow:0 1px 3px rgba(30,42,56,.06);
 }
 .logo-n{
   font-family:var(--font-serif) !important;
@@ -1403,9 +1405,9 @@ html.force-web .nav-arrow{display:none !important}
   letter-spacing:.06em;
 }
 .logo-ico{
-  background:linear-gradient(135deg,#1D9A6C 0%,#17A876 100%) !important;
+  background:linear-gradient(135deg,#3D6486 0%,#2F5D7C 100%) !important;
   border:none !important;
-  box-shadow:0 0 0 1px rgba(29,154,108,.3);
+  box-shadow:0 0 0 1px rgba(61,100,134,.3);
 }
 
 /* ── Navigation onglets claire ───────────────────────────────────────── */
@@ -1513,19 +1515,19 @@ html.force-web .nav-arrow{display:none !important}
   transition:background .15s, box-shadow .15s !important;
 }
 .actu-btn:hover:not(:disabled){
-  background:rgba(29,154,108,.2) !important;
-  box-shadow:0 0 0 1px rgba(29,154,108,.4);
+  background:rgba(61,100,134,.2) !important;
+  box-shadow:0 0 0 1px rgba(61,100,134,.4);
 }
 
 /* ── Panneau gauche sources ─────────────────────────────────────────── */
 .lp{
   background:linear-gradient(180deg,#0d1e2e 0%,#0a1825 100%) !important;
-  border-right:1px solid rgba(29,154,108,.18) !important;
+  border-right:1px solid rgba(61,100,134,.18) !important;
 }
 .lp-hd{
   font-family:var(--font-body) !important;
   font-size:8.5px !important;
-  color:rgba(29,154,108,.7) !important;
+  color:rgba(61,100,134,.7) !important;
   letter-spacing:.1em !important;
 }
 
@@ -1535,7 +1537,7 @@ html.force-web .nav-arrow{display:none !important}
   border-bottom:1px solid var(--bd) !important;
 }
 .cbar-fill{
-  background:linear-gradient(90deg,#1D9A6C 0%,#4ADE94 100%) !important;
+  background:linear-gradient(90deg,#3D6486 0%,#6FA3C2 100%) !important;
   border-radius:4px;
   transition:width .4s cubic-bezier(.4,0,.2,1);
 }
@@ -1670,9 +1672,9 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
     <div class="auth-logo">
       <div class="auth-logo-ico">
         <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
-          <circle cx="8" cy="8" r="6.5" stroke="#34D399" stroke-width="1.3"></circle>
-          <circle cx="8" cy="8" r="3" stroke="#34D399" stroke-width="1" stroke-dasharray="2 1.5"></circle>
-          <circle cx="8" cy="8" r="1.5" fill="#34D399"></circle>
+          <circle cx="8" cy="8" r="6.5" stroke="#5B8CAD" stroke-width="1.3"></circle>
+          <circle cx="8" cy="8" r="3" stroke="#5B8CAD" stroke-width="1" stroke-dasharray="2 1.5"></circle>
+          <circle cx="8" cy="8" r="1.5" fill="#5B8CAD"></circle>
         </svg>
       </div>
       <div>
@@ -1866,11 +1868,11 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
   <div class="logo">
     <div class="logo-ico">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <circle cx="8" cy="8" r="6.5" stroke="#34D399" stroke-width="1.3"></circle>
-        <circle cx="8" cy="8" r="3" stroke="#34D399" stroke-width="1" stroke-dasharray="2 1.5"></circle>
-        <circle cx="8" cy="8" r="1.5" fill="#34D399"></circle>
-        <line x1="8" y1="1.5" x2="8" y2=".2" stroke="#34D399" stroke-width="1.1"></line>
-        <line x1="15.8" y1="8" x2="14.5" y2="8" stroke="#34D399" stroke-width="1.1"></line>
+        <circle cx="8" cy="8" r="6.5" stroke="#5B8CAD" stroke-width="1.3"></circle>
+        <circle cx="8" cy="8" r="3" stroke="#5B8CAD" stroke-width="1" stroke-dasharray="2 1.5"></circle>
+        <circle cx="8" cy="8" r="1.5" fill="#5B8CAD"></circle>
+        <line x1="8" y1="1.5" x2="8" y2=".2" stroke="#5B8CAD" stroke-width="1.1"></line>
+        <line x1="15.8" y1="8" x2="14.5" y2="8" stroke="#5B8CAD" stroke-width="1.1"></line>
       </svg>
     </div>
     <div>
@@ -1884,7 +1886,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <div class="ldot" id="liveDot"></div>
       <span class="ltxt" id="liveTxt" data-i18n="live_pret">Collecte...</span>
     </div>
-    <div id="globalCyBadge" onclick="clearGlobalCountryFilter()" title="Filtre pays actif sur toute la plateforme — cliquer pour reinitialiser" style="display:none;align-items:center;gap:5px;padding:5px 10px;background:rgba(29,154,108,.25);border:1px solid rgba(29,154,108,.5);border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;"></div>
+    <div id="globalCyBadge" onclick="clearGlobalCountryFilter()" title="Filtre pays actif sur toute la plateforme — cliquer pour reinitialiser" style="display:none;align-items:center;gap:5px;padding:5px 10px;background:rgba(61,100,134,.25);border:1px solid rgba(61,100,134,.5);border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;"></div>
     <div class="disp-switch" id="dispSwitch" title="Forcer l&#39;affichage Web ou Mobile, quel que soit l&#39;écran utilisé">
       <button class="disp-btn" data-disp="web" onclick="setDisplayMode(&#39;web&#39;)" title="Affichage Web (bureau)"><i class="ti ti-device-desktop"></i><span>WEB</span></button>
       <button class="disp-btn" data-disp="mobile" onclick="setDisplayMode(&#39;mobile&#39;)" title="Affichage Mobile"><i class="ti ti-device-mobile"></i><span>MOBILE</span></button>
@@ -2038,7 +2040,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
           <option value="level">Priorite</option>
           <option value="score">Fiabilite</option>
         </select>
-        <button onclick="renderFeed()" title="Rafraichir l'affichage du Flux depuis les donnees deja collectees" style="padding:3px 12px;background:rgba(29,154,108,.12);border:1px solid rgba(29,154,108,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
+        <button onclick="renderFeed()" title="Rafraichir l'affichage du Flux depuis les donnees deja collectees" style="padding:3px 12px;background:rgba(61,100,134,.12);border:1px solid rgba(61,100,134,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
           <i class="ti ti-refresh"></i> Actualiser
         </button>
       </div>
@@ -2111,7 +2113,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
             <option value="politique">Politique</option>
             <option value="economique">Economique</option>
           </select>
-          <button onclick="renderRecherche()" title="Rafraichir les resultats depuis les donnees deja collectees" style="padding:5px 12px;background:rgba(29,154,108,.12);border:1px solid rgba(29,154,108,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
+          <button onclick="renderRecherche()" title="Rafraichir les resultats depuis les donnees deja collectees" style="padding:5px 12px;background:rgba(61,100,134,.12);border:1px solid rgba(61,100,134,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
             <i class="ti ti-refresh"></i> Actualiser
           </button>
           <span style="margin-left:auto;font-size:10px;color:var(--lg);" id="seCount"></span>
@@ -2144,7 +2146,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
           <select id="syCyFilter" onchange="setSyntheseCy(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
             <option value="all">Tous les pays</option>
           </select>
-          <button onclick="updSynthese()" title="Rafraichir la synthese depuis les donnees deja collectees" style="padding:5px 12px;background:rgba(29,154,108,.12);border:1px solid rgba(29,154,108,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
+          <button onclick="updSynthese()" title="Rafraichir la synthese depuis les donnees deja collectees" style="padding:5px 12px;background:rgba(61,100,134,.12);border:1px solid rgba(61,100,134,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
             <i class="ti ti-refresh"></i> Actualiser
           </button>
         </div>
@@ -2193,7 +2195,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               <button class="af" onclick="setAgFilt(this,&#39;planifie&#39;)">Planifie</button>
               <button class="af" onclick="setAgFilt(this,&#39;surveillance&#39;)">Surveillance</button>
               <button class="af" onclick="setAgFilt(this,&#39;acheve&#39;)">Acheve</button>
-              <button onclick="renderAgenda()" style="padding:5px 12px;background:rgba(29,154,108,.12);border:1px solid rgba(29,154,108,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;margin-left:6px;">
+              <button onclick="renderAgenda()" style="padding:5px 12px;background:rgba(61,100,134,.12);border:1px solid rgba(61,100,134,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;margin-left:6px;">
                 <i class="ti ti-refresh"></i> Actualiser
               </button>
             </div>
@@ -2251,7 +2253,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               <option value="mensuel" selected>Mensuel (30 jours)</option>
               <option value="trimestriel">Trimestriel (90 jours)</option>
             </select>
-            <button onclick="updateDLCounts();majLibelleRapport()" title="Rafraichir les compteurs depuis les donnees deja collectees" style="padding:5px 12px;background:rgba(29,154,108,.12);border:1px solid rgba(29,154,108,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
+            <button onclick="updateDLCounts();majLibelleRapport()" title="Rafraichir les compteurs depuis les donnees deja collectees" style="padding:5px 12px;background:rgba(61,100,134,.12);border:1px solid rgba(61,100,134,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
               <i class="ti ti-refresh"></i> Actualiser
             </button>
           </div>
@@ -2442,7 +2444,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
        <div style="font-size:9px;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;">Articles actifs</div>
      </div>
         <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:8px;text-align:center;">
-       <div style="font-family:var(--font-mono,&#39;Roboto Mono&#39;,monospace);font-size:17px;font-weight:700;color:#1D9A6C;line-height:1.1;">14</div>
+       <div style="font-family:var(--font-mono,&#39;Roboto Mono&#39;,monospace);font-size:17px;font-weight:700;color:#3D6486;line-height:1.1;">14</div>
        <div style="font-size:9px;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;">Pays couverts</div>
      </div>
         <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:8px;text-align:center;">
@@ -2466,7 +2468,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <!-- Heatmap des scores par pays -->
       <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:14px;margin-bottom:12px;">
         <div style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:12px;display:flex;align-items:center;gap:6px;">
-          <i class="ti ti-map-2" style="color:#1D9A6C"></i>
+          <i class="ti ti-map-2" style="color:#3D6486"></i>
           Carte de chaleur des risques — Score 0-100 par pays
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px;">
@@ -2492,7 +2494,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         <div class="pm-hero">
           <div class="pm-hero-top">
             <div class="pm-hero-title" id="pmHeroTitle"><i class="ti ti-settings"></i>Parametres &amp; Administration</div>
-            <button onclick="genererModeEmploiPDF()" title="Ouvrir le mode d'emploi dans un nouvel onglet" style="display:flex;align-items:center;gap:5px;padding:5px 11px;background:rgba(29,154,108,.12);border:1px solid rgba(29,154,108,.4);border-radius:6px;color:#1D9A6C;font-size:11px;font-weight:700;cursor:pointer;">
+            <button onclick="genererModeEmploiPDF()" title="Ouvrir le mode d'emploi dans un nouvel onglet" style="display:flex;align-items:center;gap:5px;padding:5px 11px;background:rgba(61,100,134,.12);border:1px solid rgba(61,100,134,.4);border-radius:6px;color:#3D6486;font-size:11px;font-weight:700;cursor:pointer;">
               <i class="ti ti-book-2"></i><span data-i18n="menu_mode_emploi">Mode d'emploi (PDF)</span>
             </button>
             <div class="pm-hero-badge" id="pmHeroBadge"><i class="ti ti-shield-check"></i>Administrateur</div>
@@ -7797,7 +7799,7 @@ function _wrapCanvasText(ctx, texte, maxW) {
 async function genererImageActuBlob(a, canal) {
   const dim = DIMENSIONS_IMAGE_PARTAGE[canal] || DIMENSIONS_IMAGE_PARTAGE.natif;
   const w = dim.w;
-  const NIVEAU_COL = { crit: '#8B1A1A', high: '#7C4A00', mod: '#1D9A6C', ok: '#0F4F2A' };
+  const NIVEAU_COL = { crit: '#8B1A1A', high: '#7C4A00', mod: '#3D6486', ok: '#0F4F2A' };
   const niveauLbl = { crit: 'CRITIQUE', high: 'ÉLEVÉ', mod: 'MODÉRÉ', ok: 'STABLE' }[a.level] || 'INFO';
   const col = NIVEAU_COL[a.level] || '#4B5563';
   const cc = (typeof CYS !== 'undefined' ? CYS.find(x => x.code === a.cy) : null) || { flag: '🌍', name: a.cy };
@@ -7878,8 +7880,8 @@ async function genererImageActuBlob(a, canal) {
 
   // Fond degrade bleu nuit (135deg, memes teintes que --topbar-bg)
   const grad = ctx.createLinearGradient(0, 0, w, h);
-  grad.addColorStop(0, '#122A20');
-  grad.addColorStop(1, '#1B3F2E');
+  grad.addColorStop(0, '#1E2A38');
+  grad.addColorStop(1, '#24384A');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, w, h);
 
@@ -8461,8 +8463,8 @@ function toggleShareMenu(ev, id) {
     identiteRow+
     '<div class="share-mi" onclick="envoyerActuWhatsapp(\''+id+'\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-brand-whatsapp" style="color:#0F4F2A"></i>WhatsApp'+quotaTag('whatsapp')+'</div>'+
     (hasWaGroupes ? '<div class="share-mi" onclick="envoyerActuWhatsappGroupes(\''+id+'\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-users" style="color:#0F4F2A"></i>'+(LANG==='en'?'WhatsApp group':'Groupe WhatsApp')+'</div>' : '')+
-    '<div class="share-mi" onclick="envoyerActuTelegram(\''+id+'\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-brand-telegram" style="color:#1D9A6C"></i>Telegram'+quotaTag('telegram')+'</div>'+
-    (hasTgGroupes ? '<div class="share-mi" onclick="envoyerActuTelegramGroupes(\''+id+'\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-users" style="color:#1D9A6C"></i>'+(LANG==='en'?'Telegram group':'Groupe Telegram')+'</div>' : '')+
+    '<div class="share-mi" onclick="envoyerActuTelegram(\''+id+'\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-brand-telegram" style="color:#3D6486"></i>Telegram'+quotaTag('telegram')+'</div>'+
+    (hasTgGroupes ? '<div class="share-mi" onclick="envoyerActuTelegramGroupes(\''+id+'\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-users" style="color:#3D6486"></i>'+(LANG==='en'?'Telegram group':'Groupe Telegram')+'</div>' : '')+
     '<div class="share-mi" onclick="envoyerActuEmail(\''+id+'\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-mail" style="color:var(--b)"></i>Email'+quotaTag('email')+'</div>'+
     (hasEmGroupes ? '<div class="share-mi" onclick="envoyerActuEmailGroupes(\''+id+'\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-users" style="color:var(--b)"></i>'+(LANG==='en'?'Email group':'Groupe Email')+'</div>' : '')+
     '<div class="share-mi" onclick="copierActuTexte(\''+id+'\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-copy" style="color:var(--gr)"></i>'+(LANG==='en'?'Copy':'Copier')+quotaTag('copier')+'</div>'+
@@ -8701,8 +8703,8 @@ function toggleShareMenuAlerte(ev, cy) {
   menu.innerHTML =
     '<div class="share-mi" onclick="envoyerAlerteWhatsapp(\''+cy+'\');closeShareMenu()"><i class="ti ti-brand-whatsapp" style="color:#0F4F2A"></i>WhatsApp'+quotaTag('whatsapp')+'</div>'+
     (hasWaGroupes ? '<div class="share-mi" onclick="envoyerAlerteWhatsappGroupes(\''+cy+'\');closeShareMenu()"><i class="ti ti-users" style="color:#0F4F2A"></i>'+(LANG==='en'?'WhatsApp group':'Groupe WhatsApp')+'</div>' : '')+
-    '<div class="share-mi" onclick="envoyerAlerteTelegram(\''+cy+'\');closeShareMenu()"><i class="ti ti-brand-telegram" style="color:#1D9A6C"></i>Telegram'+quotaTag('telegram')+'</div>'+
-    (hasTgGroupes ? '<div class="share-mi" onclick="envoyerAlerteTelegramGroupes(\''+cy+'\');closeShareMenu()"><i class="ti ti-users" style="color:#1D9A6C"></i>'+(LANG==='en'?'Telegram group':'Groupe Telegram')+'</div>' : '')+
+    '<div class="share-mi" onclick="envoyerAlerteTelegram(\''+cy+'\');closeShareMenu()"><i class="ti ti-brand-telegram" style="color:#3D6486"></i>Telegram'+quotaTag('telegram')+'</div>'+
+    (hasTgGroupes ? '<div class="share-mi" onclick="envoyerAlerteTelegramGroupes(\''+cy+'\');closeShareMenu()"><i class="ti ti-users" style="color:#3D6486"></i>'+(LANG==='en'?'Telegram group':'Groupe Telegram')+'</div>' : '')+
     '<div class="share-mi" onclick="envoyerAlerteEmail(\''+cy+'\');closeShareMenu()"><i class="ti ti-mail" style="color:var(--b)"></i>Email'+quotaTag('email')+'</div>'+
     (hasEmGroupes ? '<div class="share-mi" onclick="envoyerAlerteEmailGroupes(\''+cy+'\');closeShareMenu()"><i class="ti ti-users" style="color:var(--b)"></i>'+(LANG==='en'?'Email group':'Groupe Email')+'</div>' : '')+
     '<div class="share-mi" onclick="copierAlerteTexte(\''+cy+'\');closeShareMenu()"><i class="ti ti-copy" style="color:var(--gr)"></i>'+(LANG==='en'?'Copy':'Copier')+quotaTag('copier')+'</div>'+
@@ -9874,7 +9876,7 @@ async function renderDashboard() {
       <!-- KPI globaux -->
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-bottom:10px;">
         ${kpiCard(artsActifs.length,'Articles actifs','var(--t)','ti-file-text','articles')}
-        ${kpiCard(nbPays,'Pays couverts','#1D9A6C','ti-world','pays')}
+        ${kpiCard(nbPays,'Pays couverts','#3D6486','ti-world','pays')}
         ${kpiCard(nbCrit,'Critiques','#8B1A1A','ti-alert-triangle','crit')}
         ${kpiCard(nbHigh,'Élevés','#7C4A00','ti-alert-circle','high')}
         ${kpiCard(nbSrcs,'Sources actives','#0F4F2A','ti-antenna','sources')}
@@ -9887,7 +9889,7 @@ async function renderDashboard() {
       <!-- Cartogramme régional des scores par pays -->
       <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:14px;margin-bottom:12px;">
         <div style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:12px;display:flex;align-items:center;gap:6px;">
-          <i class="ti ti-map-2" style="color:#1D9A6C"></i>
+          <i class="ti ti-map-2" style="color:#3D6486"></i>
           Carte régionale des risques — Score 0-100 par pays, regroupés par zone
         </div>
         ${cartogramme()}
@@ -10163,7 +10165,7 @@ function buildRecherche(query, scope, cyFilter, catFilter) {
 }
 
 const SE_TYPE_META = {
-  flux:       { label:'Flux',       icon:'ti-radar-2',            col:'#1D9A6C' },
+  flux:       { label:'Flux',       icon:'ti-radar-2',            col:'#3D6486' },
   historique: { label:'Historique', icon:'ti-history',            col:'#6B7280' },
   agenda:     { label:'Agenda',     icon:'ti-calendar-event',     col:'#7C3AED' },
   alertes:    { label:'Alerte',     icon:'ti-shield-exclamation', col:'#8B1A1A' },
@@ -10290,10 +10292,10 @@ async function renderAgenda() {
 
   const SL={'en-cours':['bc','EN COURS'],'urgent':['bu','URGENT'],'planifie':['bp','PLANIFIE'],'surveillance':['bs','SURVEILLANCE'],'acheve':['ba','ACHEVE']};
   const IC={'haut':'ih','moyen':'im','faible':'if'};
-  const TYP={gouvernemental:['🏛️','Gouvernemental','#1D9A6C'],seminaire:['📋','Seminaire','#4B5563'],
+  const TYP={gouvernemental:['🏛️','Gouvernemental','#3D6486'],seminaire:['📋','Seminaire','#4B5563'],
     colloque:['🎓','Colloque','#4B5563'],sportif:['🏅','Sportif','#0F766E'],concert:['🎵','Concert','#7C3AED'],
     festival:['🎭','Festival','#7C3AED'],foire:['🎪','Foire / Salon','#7C3AED'],securite:['🛡️','Securite','#8B1A1A'],humanitaire:['🤝','Humanitaire','#7C4A00'],
-    politique:['🗳️','Politique','#1D9A6C'],economique:['📊','Economique','#0F4F2A'],sanitaire:['⚕️','Sanitaire','#0E7490'],
+    politique:['🗳️','Politique','#3D6486'],economique:['📊','Economique','#0F4F2A'],sanitaire:['⚕️','Sanitaire','#0E7490'],
     travaux:['🚧','Travaux','#B45309'],manifestation:['📢','Manifestation','#8B1A1A']};
   if(!filt.length){document.getElementById('agTl').innerHTML='<div class="empty"><i class="ti ti-calendar-off"></i><p>Aucun evenement pour ce filtre</p></div>';return;}
   await preTraduireRapport(filt.flatMap(e => [e.title, e.desc, e.reco]));
@@ -10304,7 +10306,7 @@ async function renderAgenda() {
     const ageHFresh = e._detecteAuto ? (Date.now() - _agendaTs(e)) / 3600000 : Infinity;
     const fresh = ageHFresh < 24;
     const freshTag=fresh?'<span style="font-size:8px;font-weight:700;color:#fff;background:#15803D;padding:1px 6px;border-radius:3px;margin-left:6px;">−'+Math.max(1,Math.round(ageHFresh))+'H</span>':'';
-    const autoTag=e._detecteAuto?'<span style="font-size:8px;font-weight:700;color:#1D9A6C;background:#EFF6FF;border:1px solid #BFDBFE;padding:1px 6px;border-radius:3px;margin-left:6px;" title="Detecte automatiquement depuis les flux RSS"><i class="ti ti-robot" style="font-size:9px;"></i> Auto</span>':'';
+    const autoTag=e._detecteAuto?'<span style="font-size:8px;font-weight:700;color:#3D6486;background:#EFF6FF;border:1px solid #BFDBFE;padding:1px 6px;border-radius:3px;margin-left:6px;" title="Detecte automatiquement depuis les flux RSS"><i class="ti ti-robot" style="font-size:9px;"></i> Auto</span>':'';
     const evId = e.id || ('agidx-'+i);
     const ttId = 'evtt-'+evId, dcId = 'evdc-'+evId, rcId = 'evrc-'+evId;
     return '<div class="ev '+e.status+'">'+
@@ -13530,7 +13532,7 @@ async function renderAlertCard(score) {
     : `<div style="font-size:9px;color:var(--lg);">Aucune actu suivie pour l'instant</div>`;
   const ligneVerifiee = dateVerifie
     ? `<div style="font-size:8px;color:var(--lg);opacity:.8;">Dernier incident vérifié/corroboré : ${dateVerifie}</div>` : '';
-  return `<div id="alerteCard-${score.cy}" style="background:${n.bg};border:1px solid ${n.border};border-radius:10px;overflow:hidden;box-shadow:${surligne?'0 0 0 3px rgba(29,154,108,.5), 0 4px 12px rgba(0,0,0,.12)':'0 1px 3px rgba(0,0,0,.06)'};scroll-margin-top:12px;">
+  return `<div id="alerteCard-${score.cy}" style="background:${n.bg};border:1px solid ${n.border};border-radius:10px;overflow:hidden;box-shadow:${surligne?'0 0 0 3px rgba(61,100,134,.5), 0 4px 12px rgba(0,0,0,.12)':'0 1px 3px rgba(0,0,0,.06)'};scroll-margin-top:12px;">
     ${surligne?'<div style="background:var(--b);color:#fff;font-size:9px;font-weight:700;text-align:center;padding:3px;text-transform:uppercase;letter-spacing:.05em;">Filtre pays actif</div>':''}    <!-- EN-TÊTE PAYS -->
     <div style="padding:10px 12px;background:${n.bgLight};display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid ${n.border};">
       <div style="display:flex;align-items:center;gap:9px;cursor:pointer;" onclick="ouvrirVuePays('${score.cy}')">
@@ -14201,7 +14203,7 @@ function ouvrirBulletinPublic() {
   document.getElementById('publicPanelBody').innerHTML = construireBulletinPublicHTML();
   document.getElementById('publicPanelShare').innerHTML =
     '<button class="auth-btn" style="width:auto;flex:1;background:#0F4F2A;margin:0" onclick="partagerBulletinWhatsapp()"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button>'
-    + '<button class="auth-btn" style="width:auto;flex:1;background:#1D9A6C;margin:0" onclick="partagerBulletinTelegram()"><i class="ti ti-brand-telegram"></i> Telegram</button>'
+    + '<button class="auth-btn" style="width:auto;flex:1;background:#3D6486;margin:0" onclick="partagerBulletinTelegram()"><i class="ti ti-brand-telegram"></i> Telegram</button>'
     + '<button class="auth-btn" style="width:auto;flex:1;margin:0" onclick="copierBulletinTexte()"><i class="ti ti-copy"></i> Copier</button>';
   document.getElementById('publicPanel').classList.remove('hidden');
 }
@@ -14549,7 +14551,7 @@ function toggleShareMenuDocument(ev) {
   menu.innerHTML =
     '<div class="share-mi" onclick="_docWhatsappContacts();closeShareMenu()"><i class="ti ti-brand-whatsapp" style="color:#0F4F2A"></i>WhatsApp</div>'+
     (hasWaGroupes ? '<div class="share-mi" onclick="_docWhatsappGroupes();closeShareMenu()"><i class="ti ti-users" style="color:#0F4F2A"></i>'+(LANG==='en'?'WhatsApp group':'Groupe WhatsApp')+'</div>' : '')+
-    '<div class="share-mi" onclick="_docTelegram();closeShareMenu()"><i class="ti ti-brand-telegram" style="color:#1D9A6C"></i>Telegram</div>'+
+    '<div class="share-mi" onclick="_docTelegram();closeShareMenu()"><i class="ti ti-brand-telegram" style="color:#3D6486"></i>Telegram</div>'+
     '<div class="share-mi" onclick="_docEmail();closeShareMenu()"><i class="ti ti-mail" style="color:var(--b)"></i>Email</div>'+
     '<div class="share-mi" onclick="_docCopier();closeShareMenu()"><i class="ti ti-copy" style="color:var(--gr)"></i>'+(LANG==='en'?'Copy message':'Copier le message')+'</div>';
   document.body.appendChild(menu);
@@ -16029,7 +16031,7 @@ async function exportPDF(type) {
       const catDefsPDF = [
         {k:'securite',    lettre:'A', lb:LANG==='en'?'Security situation':'Situation sécuritaire',   col:'#8B1A1A'},
         {k:'humanitaire', lettre:'B', lb:LANG==='en'?'Humanitarian axis':'Axe humanitaire',           col:'#7C4A00'},
-        {k:'politique',   lettre:'C', lb:LANG==='en'?'Political environment':'Environnement politique', col:'#1D9A6C'},
+        {k:'politique',   lettre:'C', lb:LANG==='en'?'Political environment':'Environnement politique', col:'#3D6486'},
         {k:'economique',  lettre:'D', lb:LANG==='en'?'Economic context':'Contexte économique',        col:'#0F4F2A'},
       ];
       let unItemAffichePDF = false;
@@ -16289,7 +16291,7 @@ async function exportPDF(type) {
       const catDefsC = [
         {k:'securite',    lettre:'A', lb:LANG==='en'?'Security situation':'Situation sécuritaire',   col:'#8B1A1A'},
         {k:'humanitaire', lettre:'B', lb:LANG==='en'?'Humanitarian axis':'Axe humanitaire',           col:'#7C4A00'},
-        {k:'politique',   lettre:'C', lb:LANG==='en'?'Political environment':'Environnement politique', col:'#1D9A6C'},
+        {k:'politique',   lettre:'C', lb:LANG==='en'?'Political environment':'Environnement politique', col:'#3D6486'},
         {k:'economique',  lettre:'D', lb:LANG==='en'?'Economic context':'Contexte économique',        col:'#0F4F2A'},
       ];
       let unItemAffichéC = false;
@@ -16442,7 +16444,7 @@ function _apCorrelationCard(s) {
   return '<div style="border:1px solid #D1D9E0;border-radius:4px;padding:12px 14px;break-inside:avoid;">'
     + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">'
     + '<span style="font-weight:700;font-size:13.5px;color:#0B1A27;">#'+_apEsc(s.terme)+'</span>'
-    + '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:#1D9A6C;font-weight:600;">'+s.pays.length+' pays · '+s.articles.length+' art.</span>'
+    + '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:#3D6486;font-weight:600;">'+s.pays.length+' pays · '+s.articles.length+' art.</span>'
     + '</div>'
     + '<div style="font-size:11.5px;color:#6B7280;line-height:1.5;margin-bottom:6px;">'+_apEsc(paysNoms)+'</div>'
     + '<div style="font-size:12px;color:#374151;line-height:1.5;">'+_apEsc(titres)+'</div>'
@@ -16480,7 +16482,7 @@ function _apSocialSection(arts) {
 const AP_CAT_DEFS = [
   {k:'securite',    lettre:'A', lb:'Situation sécuritaire',    col:'#8B1A1A'},
   {k:'humanitaire', lettre:'B', lb:'Axe humanitaire',          col:'#7C4A00'},
-  {k:'politique',   lettre:'C', lb:'Environnement politique',  col:'#1D9A6C'},
+  {k:'politique',   lettre:'C', lb:'Environnement politique',  col:'#3D6486'},
   {k:'economique',  lettre:'D', lb:'Contexte économique',      col:'#0F4F2A'},
 ];
 
@@ -16511,7 +16513,7 @@ function _apToolbar(type) {
   return '<div class="sentinel-toolbar" style="position:sticky;top:0;z-index:10;background:#1E2530;padding:10px 16px;display:flex;gap:8px;align-items:center;justify-content:flex-end;box-shadow:0 2px 10px rgba(0,0,0,.18);">'
     + '<span style="margin-right:auto;color:#9CA3AF;font-family:\'IBM Plex Mono\',monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;">'+(LANG==='en'?'Preview':'Aperçu')+'</span>'
     + '<button onclick="window.print()" style="display:flex;align-items:center;gap:5px;padding:7px 14px;background:#3A4452;border:1px solid #4B5563;border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;">'+(LANG==='en'?'Print':'Imprimer')+'</button>'
-    + '<button onclick="'+appel('exportWord')+'" style="padding:7px 14px;background:#1D9A6C;border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;">Word</button>'
+    + '<button onclick="'+appel('exportWord')+'" style="padding:7px 14px;background:#3D6486;border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;">Word</button>'
     + '<button onclick="'+appel('exportPDF')+'" style="padding:7px 14px;background:#8B1A1A;border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;">PDF</button>'
     + '<button onclick="'+appel('exportPPTX')+'" style="padding:7px 14px;background:#0F4F2A;border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;">PowerPoint</button>'
     + '</div>'
@@ -16534,18 +16536,18 @@ function _apPageWrap(titreSection, sousTitre, statsHTML, bodyHTML, type) {
     + '</style></head><body>'
     + _apToolbar(type)
     + '<div class="sheet">'
-    + '<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #122A20;padding-bottom:10px;margin-bottom:18px;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #1E2A38;padding-bottom:10px;margin-bottom:18px;">'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#6B7280;text-transform:uppercase;">Généré le '+_apEsc(dateGenLong)+'</div>'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#8B1A1A;font-weight:600;text-transform:uppercase;">Usage restreint — responsables sûreté</div>'
     + '</div>'
     + '<div style="text-align:center;margin-bottom:6px;">'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.16em;color:#9CA3AF;text-transform:uppercase;margin-bottom:10px;">'+_apEsc(titreSection)+' — '+_apEsc(perimetre)+'</div>'
-    + '<h1 style="font-family:\'Source Serif 4\',serif;font-weight:800;font-size:40px;letter-spacing:0.01em;color:#122A20;margin:0 0 8px;">'+_apEsc(nomMarqueActuelle())+'</h1>'
+    + '<h1 style="font-family:\'Source Serif 4\',serif;font-weight:800;font-size:40px;letter-spacing:0.01em;color:#1E2A38;margin:0 0 8px;">'+_apEsc(nomMarqueActuelle())+'</h1>'
     + '<div style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:600;font-size:16px;color:#0B1A27;margin-bottom:14px;">'+_apEsc(sousTitre)+'</div>'
     + '</div>'
     + statsHTML
     + bodyHTML
-    + '<div style="margin-top:30px;background:#122A20;color:#FFFFFF;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;font-family:\'IBM Plex Mono\',monospace;font-size:10.5px;">'
+    + '<div style="margin-top:30px;background:#1E2A38;color:#FFFFFF;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;font-family:\'IBM Plex Mono\',monospace;font-size:10.5px;">'
     + '<span style="display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:0.04em;"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="#fff" stroke-width="1.3"/><circle cx="8" cy="8" r="1.5" fill="#fff"/></svg>'+_apEsc(nomMarqueActuelle())+'</span>'
     + '<span style="color:#B9C6D6;">'+_apEsc(dateGenLong)+' UTC</span>'
     + '</div>'
@@ -16557,13 +16559,13 @@ function _apStatsGrid(items) {
   return '<div style="display:grid;grid-template-columns:repeat('+items.length+',1fr);gap:0;margin:26px 0 30px;border-top:1px solid #D1D9E0;border-bottom:1px solid #D1D9E0;padding:18px 0;">'+cols+'</div>';
 }
 function _apSectionBand(titre) {
-  return '<div style="background:#122A20;color:#FFFFFF;padding:10px 14px;font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.03em;margin:26px 0 20px;">'+_apEsc(titre)+'</div>';
+  return '<div style="background:#1E2A38;color:#FFFFFF;padding:10px 14px;font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.03em;margin:26px 0 20px;">'+_apEsc(titre)+'</div>';
 }
 function _apAgendaItem(e) {
   const statutLbl = {'en-cours':'EN COURS','urgent':'URGENT','planifie':'PLANIFIÉ','surveillance':'SURVEILLANCE','acheve':'ACHEVÉ'}[e.status] || (e.status||'').toUpperCase();
   return '<div style="margin-bottom:16px;break-inside:avoid;">'
     + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;">'
-    + '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;font-weight:600;color:#1D9A6C;background:#EFF6FF;padding:2px 7px;border-radius:3px;">'+_apEsc(statutLbl)+'</span>'
+    + '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;font-weight:600;color:#3D6486;background:#EFF6FF;padding:2px 7px;border-radius:3px;">'+_apEsc(statutLbl)+'</span>'
     + '<span style="font-weight:600;font-size:15px;color:#111827;">'+_apEsc(L(e.title))+'</span>'
     + '</div>'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#9CA3AF;">'+_apEsc([e.day,e.month,e.hour].filter(Boolean).join(' '))+(e.cy?' &nbsp;·&nbsp; '+_apEsc(e.cy):'')+'</div>'
@@ -16588,12 +16590,12 @@ async function _buildRapportFluxHTML(arts) {
   const groupes = groupeArticlesParPays(arts);
   let body = _apSectionBand('FLUX OPÉRATIONNEL — ÉVÉNEMENTS DES DERNIÈRES 12 HEURES');
   groupes.forEach(g => {
-    body += '<h2 style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:15px;color:#122A20;border-bottom:1px solid #122A20;padding-bottom:5px;margin:20px 0 12px;">'+_apEsc(g.pays.flag+' '+L(g.pays.name))+'</h2>';
+    body += '<h2 style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:15px;color:#1E2A38;border-bottom:1px solid #1E2A38;padding-bottom:5px;margin:20px 0 12px;">'+_apEsc(g.pays.flag+' '+L(g.pays.name))+'</h2>';
     body += g.items.map(_apArticleItem).join('');
   });
   const stats = _apStatsGrid([
-    {value:arts.length, label:'ARTICLES', color:'#122A20'},
-    {value:groupes.filter(g=>g.cy!=='INT').length, label:'PAYS', color:'#1D9A6C'},
+    {value:arts.length, label:'ARTICLES', color:'#1E2A38'},
+    {value:groupes.filter(g=>g.cy!=='INT').length, label:'PAYS', color:'#3D6486'},
     {value:new Set(arts.map(a=>a.primary)).size, label:'SOURCES', color:'#0F4F2A'},
   ]);
   return _apPageWrap('Flux opérationnel', 'Événements des 12 dernières heures', stats, body, 'flux');
@@ -16601,7 +16603,7 @@ async function _buildRapportFluxHTML(arts) {
 async function _buildRapportAgendaHTML(agenda) {
   await preTraduireRapport(agenda.flatMap(e => [e.title, e.desc]));
   const body = _apSectionBand('AGENDA SÛRETÉ — ÉVÉNEMENTS EN COURS ET À VENIR') + (agenda.length ? agenda.map(_apAgendaItem).join('') : '<div style="font-size:12.5px;color:#6B7280;font-style:italic;">Aucun événement pour ce périmètre.</div>');
-  const stats = _apStatsGrid([{value:agenda.length, label:'ÉVÉNEMENTS', color:'#122A20'}]);
+  const stats = _apStatsGrid([{value:agenda.length, label:'ÉVÉNEMENTS', color:'#1E2A38'}]);
   return _apPageWrap('Agenda sûreté', 'Événements en cours et à venir', stats, body, 'agenda');
 }
 async function _buildRapportAlertesHTML(scores) {
@@ -16609,7 +16611,7 @@ async function _buildRapportAlertesHTML(scores) {
     ...scores.filter(s=>s&&s.pays&&s.pays.name).map(s=>s.pays.name),
   ]);
   const body = _apSectionBand('ALERTES PAYS — NIVEAU COMPOSITE') + (scores.length ? scores.map(_apAlerteItem).join('') : '<div style="font-size:12.5px;color:#6B7280;font-style:italic;">Aucun pays dans ce périmètre.</div>');
-  const stats = _apStatsGrid([{value:scores.length, label:'PAYS', color:'#122A20'}]);
+  const stats = _apStatsGrid([{value:scores.length, label:'PAYS', color:'#1E2A38'}]);
   return _apPageWrap('Alertes pays', 'Niveau composite par pays', stats, body, 'alertes');
 }
 async function _buildRapportCompletHTML(arts, agenda) {
@@ -16639,7 +16641,7 @@ async function _buildRapportCompletHTML(arts, agenda) {
   // PDF/Word), sans re-trier/re-trancher byCat a chaque article verifie.
   const groupes = groupeArticlesParPays(arts.filter(a => !dejaMontres.has(_articleKey(a))));
   groupes.forEach(g => {
-    body += '<h2 style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:15px;color:#122A20;border-bottom:1px solid #122A20;padding-bottom:5px;margin:20px 0 12px;">'+_apEsc(g.pays.flag+' '+L(g.pays.name))+'</h2>';
+    body += '<h2 style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:15px;color:#1E2A38;border-bottom:1px solid #1E2A38;padding-bottom:5px;margin:20px 0 12px;">'+_apEsc(g.pays.flag+' '+L(g.pays.name))+'</h2>';
     body += g.items.map(_apArticleItem).join('');
   });
 
@@ -16649,9 +16651,9 @@ async function _buildRapportCompletHTML(arts, agenda) {
   }
 
   const stats = _apStatsGrid([
-    {value:arts.length, label:'ARTICLES', color:'#122A20'},
+    {value:arts.length, label:'ARTICLES', color:'#1E2A38'},
     {value:arts.filter(a=>a.level==='crit').length, label:'CRITIQUES', color:'#8B1A1A'},
-    {value:new Set(arts.filter(a=>a.cy&&a.cy!=='INT').map(a=>a.cy)).size, label:'PAYS', color:'#1D9A6C'},
+    {value:new Set(arts.filter(a=>a.cy&&a.cy!=='INT').map(a=>a.cy)).size, label:'PAYS', color:'#3D6486'},
     {value:new Set(arts.map(a=>a.primary)).size, label:'SOURCES', color:'#0F4F2A'},
   ]);
   return _apPageWrap('Rapport complet', 'Synthèse, flux et agenda', stats, body, 'rapport_complet');
@@ -16743,31 +16745,31 @@ function _buildRapportSyntheseHTML(arts) {
     + (typeof _apToolbar === 'function' ? _apToolbar('synthese') : '')
     + '<div class="sheet">'
 
-    + '<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #122A20;padding-bottom:10px;margin-bottom:18px;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #1E2A38;padding-bottom:10px;margin-bottom:18px;">'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#6B7280;text-transform:uppercase;">Généré le '+_apEsc(dateGenLong)+' &nbsp;·&nbsp; Créneau '+_apEsc(creneau)+'</div>'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#8B1A1A;font-weight:600;text-transform:uppercase;">Usage restreint — responsables sûreté</div>'
     + '</div>'
 
     + '<div style="text-align:center;margin-bottom:6px;">'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.16em;color:#9CA3AF;text-transform:uppercase;margin-bottom:10px;">Rapport opérationnel — '+_apEsc(perimetre)+'</div>'
-    + '<h1 style="font-family:\'Source Serif 4\',serif;font-weight:800;font-size:40px;letter-spacing:0.01em;color:#122A20;margin:0 0 8px;">'+_apEsc(nomMarqueActuelle())+'</h1>'
+    + '<h1 style="font-family:\'Source Serif 4\',serif;font-weight:800;font-size:40px;letter-spacing:0.01em;color:#1E2A38;margin:0 0 8px;">'+_apEsc(nomMarqueActuelle())+'</h1>'
     + '<div style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:600;font-size:16px;color:#0B1A27;margin-bottom:14px;">Analyse sécuritaire opérationnelle</div>'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#6B7280;">'+SRCS.length+' sources ('+nbSrcsMedia+' médias + '+nbSrcsSociales+' réseaux sociaux) &nbsp;·&nbsp; filtre anti-hallucination &lt;12h &nbsp;·&nbsp; '+arts.length+' articles analysés</div>'
     + '</div>'
 
     + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:26px 0 30px;border-top:1px solid #D1D9E0;border-bottom:1px solid #D1D9E0;padding:18px 0;">'
-    + '<div style="text-align:center;border-right:1px solid #D1D9E0;"><div style="font-family:\'Source Serif 4\',serif;font-weight:700;font-size:32px;color:#122A20;">'+arts.length+'</div><div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.08em;color:#6B7280;margin-top:4px;">ARTICLES</div></div>'
+    + '<div style="text-align:center;border-right:1px solid #D1D9E0;"><div style="font-family:\'Source Serif 4\',serif;font-weight:700;font-size:32px;color:#1E2A38;">'+arts.length+'</div><div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.08em;color:#6B7280;margin-top:4px;">ARTICLES</div></div>'
     + '<div style="text-align:center;border-right:1px solid #D1D9E0;"><div style="font-family:\'Source Serif 4\',serif;font-weight:700;font-size:32px;color:#8B1A1A;">'+nbCritiques+'</div><div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.08em;color:#6B7280;margin-top:4px;">CRITIQUES</div></div>'
-    + '<div style="text-align:center;border-right:1px solid #D1D9E0;"><div style="font-family:\'Source Serif 4\',serif;font-weight:700;font-size:32px;color:#1D9A6C;">'+nbPaysCouverts+'</div><div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.08em;color:#6B7280;margin-top:4px;">PAYS</div></div>'
+    + '<div style="text-align:center;border-right:1px solid #D1D9E0;"><div style="font-family:\'Source Serif 4\',serif;font-weight:700;font-size:32px;color:#3D6486;">'+nbPaysCouverts+'</div><div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.08em;color:#6B7280;margin-top:4px;">PAYS</div></div>'
     + '<div style="text-align:center;"><div style="font-family:\'Source Serif 4\',serif;font-weight:700;font-size:32px;color:#0F4F2A;">'+nbSrcActifs+'</div><div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.08em;color:#6B7280;margin-top:4px;">SOURCES</div></div>'
     + '</div>'
 
-    + '<div style="background:#122A20;color:#FFFFFF;padding:10px 14px;font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.03em;margin-bottom:20px;">I. SYNTHÈSE ANALYTIQUE — SITUATION RÉGIONALE</div>'
+    + '<div style="background:#1E2A38;color:#FFFFFF;padding:10px 14px;font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.03em;margin-bottom:20px;">I. SYNTHÈSE ANALYTIQUE — SITUATION RÉGIONALE</div>'
 
     + sectionsHTML
     + corrHTML
 
-    + '<div style="margin-top:30px;background:#122A20;color:#FFFFFF;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;font-family:\'IBM Plex Mono\',monospace;font-size:10.5px;">'
+    + '<div style="margin-top:30px;background:#1E2A38;color:#FFFFFF;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;font-family:\'IBM Plex Mono\',monospace;font-size:10.5px;">'
     + '<span style="display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:0.04em;"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="#fff" stroke-width="1.3"/><circle cx="8" cy="8" r="1.5" fill="#fff"/></svg>'+_apEsc(nomMarqueActuelle())+'</span>'
     + '<span style="color:#B9C6D6;">'+_apEsc(dateGenLong)+' UTC</span>'
     + '</div>'

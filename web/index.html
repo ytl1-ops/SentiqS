@@ -20,10 +20,10 @@ aucune pub).
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#05080B; --bg2:#070C11; --panel:#0B1611; --panel-b:#16352A; --line:#234D3A; --line2:#16281E;
+  --bg:#05080B; --bg2:#070C11; --panel:#101A22; --panel-b:#1C2E3D; --line:#2E4E63; --line2:#1B2A36;
   --ink:#F5F7FA; --ink2:rgba(245,247,250,.68); --ink3:rgba(245,247,250,.44); --ink4:rgba(245,247,250,.28);
-  --blue:#2FBF8F; --sky:#6EEBB8; --navy:#0F1F17;
-  --red:#8B1A1A; --amber:#7C4A00; --sblue:#1D9A6C; --green:#0F4F2A;
+  --blue:#3D6486; --sky:#7FB2CC; --navy:#16212C;
+  --red:#8B1A1A; --amber:#7C4A00; --sblue:#3D6486; --green:#0F4F2A;
   --serif:'Source Serif 4',serif; --sans:'IBM Plex Sans',sans-serif; --mono:'IBM Plex Mono',monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -48,7 +48,7 @@ img,svg{display:block;max-width:100%}
   transition:background .25s,border-color .25s}
 .nav.scrolled{background:rgba(5,8,11,.86);border-color:var(--line2)}
 .nav-brand{display:flex;align-items:center;gap:10px}
-.nav-ico{width:30px;height:30px;border-radius:7px;background:#1F4433;display:flex;align-items:center;justify-content:center;border:1px solid #17A876;flex-shrink:0}
+.nav-ico{width:30px;height:30px;border-radius:7px;background:#253746;display:flex;align-items:center;justify-content:center;border:1px solid #2F5D7C;flex-shrink:0}
 .nav-word{font-size:14px;font-weight:700;letter-spacing:.06em;color:#fff}
 .nav-links{display:flex;align-items:center;gap:30px}
 .nav-links a{font-size:13px;color:var(--ink3);font-weight:500;transition:color .15s}
@@ -68,13 +68,13 @@ img,svg{display:block;max-width:100%}
 .scene{position:absolute;inset:0;overflow:hidden;z-index:0;pointer-events:none;background:#040608}
 .scene-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .scene-vignette{position:absolute;inset:0;background:radial-gradient(ellipse 80% 65% at 50% 38%,rgba(9,16,24,0) 0%,rgba(4,6,8,.35) 65%,rgba(4,6,8,.7) 100%)}
-@media (prefers-reduced-motion:reduce){.scene-video{display:none}.scene{background:#0E3D2C}}
+@media (prefers-reduced-motion:reduce){.scene-video{display:none}.scene{background:#24384A}}
 
 .hero-inner{position:relative;z-index:2;width:100%;padding:150px 28px 90px}
 .hero-content{max-width:760px;margin:0 auto;text-align:center}
 .hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--navy);color:#fff;
   padding:7px 16px;border-radius:20px;font-family:var(--mono);font-size:11px;font-weight:600;
-  letter-spacing:.14em;text-transform:uppercase;border:1px solid #234D3A}
+  letter-spacing:.14em;text-transform:uppercase;border:1px solid #2E4E63}
 .hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--sky);flex-shrink:0}
 .hero h1{font-family:var(--serif);font-weight:800;font-size:clamp(34px,5.4vw,64px);line-height:1.08;letter-spacing:-.01em;color:#fff;margin:18px 0 20px}
 .hero h1 em{font-style:normal;color:var(--navy);text-shadow:0 1px 14px rgba(255,255,255,.4)}
@@ -94,7 +94,7 @@ img,svg{display:block;max-width:100%}
 .tick-item{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11.5px;color:var(--ink3)}
 .tick-item b{color:var(--ink2);font-weight:600}
 .tick-pill{font-size:9px;font-weight:700;letter-spacing:.05em;padding:1px 6px;border-radius:3px}
-.tick-mod{color:var(--sblue);background:rgba(29,154,108,.16)}
+.tick-mod{color:var(--sblue);background:rgba(61,100,134,.16)}
 .tick-crit{color:#ef6a6a;background:rgba(139,26,26,.22)}
 .tick-ok{color:#4ade80;background:rgba(15,79,42,.28)}
 @media (prefers-reduced-motion:reduce){.ticker-track{animation:none;overflow-x:auto}}
@@ -190,7 +190,7 @@ section{position:relative;padding:110px 0}
 @media (max-width:760px){.plans{grid-template-columns:1fr}}
 
 /* ── FINAL CTA ────────────────────────────────────────────────────── */
-.cta-band{background:linear-gradient(135deg,var(--navy) 0%,#17392A 100%);border-radius:20px;margin:0 28px;
+.cta-band{background:linear-gradient(135deg,var(--navy) 0%,#24384A 100%);border-radius:20px;margin:0 28px;
   padding:70px 40px;text-align:center;position:relative;overflow:hidden}
 .cta-band::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 20%,rgba(58,160,255,.16),transparent 55%)}
 .cta-band-inner{position:relative;z-index:1}
@@ -212,7 +212,7 @@ footer{padding:60px 0 36px;border-top:1px solid var(--line2);margin-top:60px}
 .modal-overlay{position:fixed;inset:0;background:rgba(4,6,8,.86);backdrop-filter:blur(4px);z-index:2000;
   display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s}
 .modal-overlay.open{opacity:1;pointer-events:auto}
-.modal-box{position:relative;background:#16352A;border:1px solid #234D3A;border-radius:14px;padding:34px 38px;
+.modal-box{position:relative;background:#1C2E3D;border:1px solid #2E4E63;border-radius:14px;padding:34px 38px;
   width:100%;max-width:460px;max-height:88vh;overflow-y:auto;box-shadow:0 30px 80px rgba(0,0,0,.6);
   transform:translateY(14px);transition:transform .2s}
 .modal-overlay.open .modal-box{transform:translateY(0)}
@@ -222,7 +222,7 @@ footer{padding:60px 0 36px;border-top:1px solid var(--line2);margin-top:60px}
 .modal-sub{font-size:12px;color:var(--ink3);margin-bottom:24px;line-height:1.55}
 .field{margin-bottom:14px}
 .field label{display:block;font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
-.field input,.field select{width:100%;padding:10px 13px;background:#0F2A1E;border:1px solid #234D3A;border-radius:7px;
+.field input,.field select{width:100%;padding:10px 13px;background:#0F2A1E;border:1px solid #2E4E63;border-radius:7px;
   color:#fff;font-size:13px;font-family:inherit;outline:none;transition:border-color .15s}
 .field input:focus,.field select:focus{border-color:var(--blue)}
 .field input::placeholder{color:rgba(255,255,255,.22)}
@@ -237,7 +237,7 @@ footer{padding:60px 0 36px;border-top:1px solid var(--line2);margin-top:60px}
 .modal-success .ico{width:52px;height:52px;border-radius:50%;background:rgba(15,79,42,.3);border:1px solid #1f7a45;
   display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:24px;color:#4ade80}
 .code-box{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:.14em;color:#fff;
-  background:#0F2A1E;border:1px solid #234D3A;border-radius:8px;padding:14px;margin:16px 0;text-align:center}
+  background:#0F2A1E;border:1px solid #2E4E63;border-radius:8px;padding:14px;margin:16px 0;text-align:center}
 </style>
 </head>
 <body>
@@ -246,9 +246,9 @@ footer{padding:60px 0 36px;border-top:1px solid var(--line2);margin-top:60px}
 <nav class="nav" id="nav">
   <a class="nav-brand" href="#top">
     <div class="nav-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <circle cx="8" cy="8" r="6.5" stroke="#34D399" stroke-width="1.3"/>
-      <circle cx="8" cy="8" r="3" stroke="#34D399" stroke-width="1" stroke-dasharray="2 1.5"/>
-      <circle cx="8" cy="8" r="1.5" fill="#34D399"/>
+      <circle cx="8" cy="8" r="6.5" stroke="#5B8CAD" stroke-width="1.3"/>
+      <circle cx="8" cy="8" r="3" stroke="#5B8CAD" stroke-width="1" stroke-dasharray="2 1.5"/>
+      <circle cx="8" cy="8" r="1.5" fill="#5B8CAD"/>
     </svg></div>
     <span class="nav-word">SENTINEL SÛRETÉ</span>
   </a>
@@ -323,7 +323,7 @@ footer{padding:60px 0 36px;border-top:1px solid var(--line2);margin-top:60px}
           <div><div class="mock-art-t">Affrontements signalés près de la frontière nord</div><div class="mock-meta">Mali — Gao · il y a 4 min</div></div></div>
         <div class="mock-art"><span class="mock-pill" style="color:#e0a030;background:rgba(124,74,0,.28)">ÉLEVÉ</span>
           <div><div class="mock-art-t">Mouvement social annoncé dans le secteur portuaire</div><div class="mock-meta">Kenya — Mombasa · il y a 11 min</div></div></div>
-        <div class="mock-art"><span class="mock-pill" style="color:#4ADE94;background:rgba(29,154,108,.22)">MODÉRÉ</span>
+        <div class="mock-art"><span class="mock-pill" style="color:#6FA3C2;background:rgba(61,100,134,.22)">MODÉRÉ</span>
           <div><div class="mock-art-t">Hausse des prix alimentaires constatée sur plusieurs marchés</div><div class="mock-meta">Sénégal — Dakar (estimé) · il y a 22 min</div></div></div>
         <div class="mock-art"><span class="mock-pill" style="color:#4ade80;background:rgba(15,79,42,.3)">STABLE</span>
           <div><div class="mock-art-t">Reprise normale du trafic aérien après incident mineur</div><div class="mock-meta">Afrique du Sud — Johannesburg · il y a 38 min</div></div></div>
@@ -376,7 +376,7 @@ footer{padding:60px 0 36px;border-top:1px solid var(--line2);margin-top:60px}
 
     <div class="feat-row rev rv">
       <div class="feat-text">
-        <span class="feat-tag" style="color:#4ADE94;background:rgba(29,154,108,.18)">Rapports & exports</span>
+        <span class="feat-tag" style="color:#6FA3C2;background:rgba(61,100,134,.18)">Rapports & exports</span>
         <h3>Un document diffusable, en un clic.</h3>
         <p>Synthèse analytique, flux opérationnel, agenda sûreté ou rapport complet — générés directement depuis les données collectées, filtrés par zone ou par pays.</p>
         <ul class="feat-list">
@@ -410,7 +410,7 @@ footer{padding:60px 0 36px;border-top:1px solid var(--line2);margin-top:60px}
           <div><div class="mock-art-t">Concertation régionale — recommandations de la société civile</div><div class="mock-meta">Côte d'Ivoire — Abidjan · débuté il y a 3h</div></div></div>
         <div class="mock-art"><span class="mock-pill" style="color:#e0a030;background:rgba(124,74,0,.28)">TRAVAUX</span>
           <div><div class="mock-art-t">Fermeture programmée du pont frontalier pour rénovation</div><div class="mock-meta">Bénin — Frontière Nigeria · à venir</div></div></div>
-        <div class="mock-art"><span class="mock-pill" style="color:#4ADE94;background:rgba(29,154,108,.22)">À VENIR</span>
+        <div class="mock-art"><span class="mock-pill" style="color:#6FA3C2;background:rgba(61,100,134,.22)">À VENIR</span>
           <div><div class="mock-art-t">Sommet régional sur la sécurité transfrontalière</div><div class="mock-meta">Burkina Faso — Ouagadougou · dans 2 jours</div></div></div>
       </div>
     </div>
@@ -519,9 +519,9 @@ footer{padding:60px 0 36px;border-top:1px solid var(--line2);margin-top:60px}
     <div class="foot-top">
       <div class="foot-brand">
         <div class="nav-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <circle cx="8" cy="8" r="6.5" stroke="#34D399" stroke-width="1.3"/>
-          <circle cx="8" cy="8" r="3" stroke="#34D399" stroke-width="1" stroke-dasharray="2 1.5"/>
-          <circle cx="8" cy="8" r="1.5" fill="#34D399"/>
+          <circle cx="8" cy="8" r="6.5" stroke="#5B8CAD" stroke-width="1.3"/>
+          <circle cx="8" cy="8" r="3" stroke="#5B8CAD" stroke-width="1" stroke-dasharray="2 1.5"/>
+          <circle cx="8" cy="8" r="1.5" fill="#5B8CAD"/>
         </svg></div>
         <div>
           <div style="font-size:13px;font-weight:700;color:#fff">SENTINEL SÛRETÉ</div>
