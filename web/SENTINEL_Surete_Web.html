@@ -14595,14 +14595,156 @@ function toggleShareMenuDocument(ev) {
 //  menu de PARTAGE).
 // ═══════════════════════════════════════════════════════════════════════════
 const RAPPORT_TYPES = {
-  rapport_complet: { formats: ['word','pdf','pptx'] },
-  flux:            { formats: ['word','pdf','pptx','excel','csv'] },
-  synthese:        { formats: ['word','pdf','pptx'] },
-  agenda:          { formats: ['word','excel','pdf','pptx'] },
-  sources:         { formats: ['word','pdf','pptx','excel'] },
-  alertes:         { formats: ['word','pdf','pptx'] },
+  rapport_complet: { formats: ['word','pdf','pptx','image'] },
+  flux:            { formats: ['word','pdf','pptx','excel','csv','image'] },
+  synthese:        { formats: ['word','pdf','pptx','image'] },
+  agenda:          { formats: ['word','excel','pdf','pptx','image'] },
+  sources:         { formats: ['word','pdf','pptx','excel','image'] },
+  alertes:         { formats: ['word','pdf','pptx','image'] },
 };
-const RAPPORT_FORMAT_LABELS = { word:'Word', pdf:'PDF', pptx:'PowerPoint', excel:'Excel', csv:'CSV' };
+const RAPPORT_FORMAT_LABELS = { word:'Word', pdf:'PDF', pptx:'PowerPoint', excel:'Excel', csv:'CSV', image:(LANG==='en'?'Image':'Image') };
+const RAPPORT_TITRES = {
+  rapport_complet: LANG==='en' ? 'Full report' : 'Rapport complet',
+  flux:            LANG==='en' ? 'Operational feed' : 'Flux opérationnel',
+  synthese:        LANG==='en' ? 'Analytical summary' : 'Synthèse analytique',
+  agenda:          LANG==='en' ? 'Security agenda' : 'Agenda sûreté',
+  sources:         LANG==='en' ? 'Source matrix' : 'Matrice des sources',
+  alertes:         LANG==='en' ? 'Country alerts' : 'Alertes pays',
+};
+
+// calculerStatsRapportImage(type) : 2-4 chiffres cles pour la carte-image de
+// synthese d'un rapport, calcules a partir des memes donnees que l'export
+// texte correspondant (getExportData/calcAlertScore/SRCS) — jamais de
+// chiffre invente.
+function calculerStatsRapportImage(type) {
+  const L1 = LANG==='en' ? {art:'Articles',crit:'Critical',high:'High',cy:'Countries',src:'Sources',ev:'Events',red:'Red',brown:'Brown',orange:'Orange'}
+                         : {art:'Articles',crit:'Critiques',high:'Élevés',cy:'Pays',src:'Sources',ev:'Événements',red:'Rouge',brown:'Marron',orange:'Orange'};
+  if (type === 'flux' || type === 'rapport_complet') {
+    const arts = getExportData();
+    return [
+      { n: arts.length, l: L1.art },
+      { n: arts.filter(a=>a.level==='crit').length, l: L1.crit },
+      { n: arts.filter(a=>a.level==='high').length, l: L1.high },
+      { n: new Set(arts.map(a=>a.cy)).size, l: L1.cy },
+    ];
+  }
+  if (type === 'synthese') {
+    const arts = getExportData();
+    return [
+      { n: arts.filter(a=>a.level==='crit').length, l: L1.crit },
+      { n: arts.filter(a=>a.level==='high').length, l: L1.high },
+      { n: new Set(arts.map(a=>a.primary)).size, l: L1.src },
+    ];
+  }
+  if (type === 'agenda') {
+    const detectes = (typeof ALL !== 'undefined' ? ALL : []).filter(a => a._estAgenda && estAgendaRecent(a));
+    const n = (typeof AGENDA !== 'undefined' ? AGENDA.length : 0) + detectes.length;
+    return [ { n, l: L1.ev } ];
+  }
+  if (type === 'sources') {
+    return [ { n: (typeof SRCS !== 'undefined' ? SRCS.length : 0), l: L1.src } ];
+  }
+  if (type === 'alertes') {
+    const scores = Object.keys(PAYS_INFO).map(cy => calcAlertScore(cy));
+    return [
+      { n: scores.filter(s=>s.key==='rouge').length, l: L1.red },
+      { n: scores.filter(s=>s.key==='marron').length, l: L1.brown },
+      { n: scores.filter(s=>s.key==='orange').length, l: L1.orange },
+    ];
+  }
+  return [];
+}
+
+// genererImageRapportBlob(type, canal) : carte-image de synthese d'un
+// rapport (titre, perimetre, chiffres cles) — meme identite visuelle que
+// genererImageActuBlob (fond degrade --topbar-bg, marque en tete, accent
+// colore), mais mise en page fixe (pas de long texte a faire tenir) : titre
+// + perimetre + rangee de chiffres cles.
+async function genererImageRapportBlob(type, canal) {
+  const dim = DIMENSIONS_IMAGE_PARTAGE[canal] || DIMENSIONS_IMAGE_PARTAGE.natif;
+  const w = dim.w;
+  const titre = RAPPORT_TITRES[type] || 'Rapport';
+  const perimetreEl = document.getElementById('rpLibellePerimetre');
+  const perimetre = (perimetreEl ? perimetreEl.textContent : '').replace(/^Périmètre\s*:\s*/i,'') || (LANG==='en'?'All zones, all countries':'Toutes zones, tous pays');
+  const stats = calculerStatsRapportImage(type);
+  const tileH = stats.length ? Math.round(w * 0.16) : 0;
+
+  // Hauteur calculee a partir du contenu REELLEMENT dessine (marque + accent
+  // + titre + perimetre + rangee de chiffres + pied de page), plutot qu'une
+  // hauteur fixe qui laissait le pied de page chevaucher les tuiles de
+  // chiffres des qu'un rapport avait des statistiques a afficher.
+  const yApresStats = Math.round(w*0.09) + Math.round(w*0.038) + Math.round(w*0.06) + Math.round(w*0.088) + Math.round(w*0.09) + tileH;
+  const zonePied = Math.round(w * 0.14);
+  const h = Math.min(dim.maxH, Math.max(dim.minH, yApresStats + zonePied));
+
+  const cv = document.createElement('canvas');
+  cv.width = w; cv.height = h;
+  const ctx = cv.getContext('2d');
+  const pad = Math.round(w * 0.06);
+
+  const grad = ctx.createLinearGradient(0, 0, w, h);
+  grad.addColorStop(0, '#1E2A38'); grad.addColorStop(1, '#24384A');
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
+
+  const haloR = w * 0.42;
+  const haloGrad = ctx.createRadialGradient(w * 0.92, h * 0.95, 0, w * 0.92, h * 0.95, haloR);
+  haloGrad.addColorStop(0, '#3D648633'); haloGrad.addColorStop(1, '#3D648600');
+  ctx.fillStyle = haloGrad;
+  ctx.beginPath(); ctx.arc(w * 0.92, h * 0.95, haloR, 0, Math.PI * 2); ctx.fill();
+
+  ctx.textBaseline = 'top';
+  let y = Math.round(w * 0.09);
+  ctx.fillStyle = '#7DD3FC';
+  ctx.font = '700 ' + Math.round(w * 0.026) + 'px "IBM Plex Mono", monospace';
+  ctx.fillText(nomMarqueActuelle().toUpperCase(), pad, y);
+  y += Math.round(w * 0.038);
+
+  ctx.fillStyle = '#3D6486';
+  ctx.fillRect(pad, y, Math.round(w * 0.09), 3);
+  y += Math.round(w * 0.06);
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = '800 ' + Math.round(w * 0.058) + 'px "Source Serif 4", Georgia, serif';
+  ctx.fillText(titre, pad, y);
+  y += Math.round(w * 0.088);
+
+  ctx.fillStyle = '#C7D3DF';
+  ctx.font = '600 ' + Math.round(w * 0.026) + 'px "IBM Plex Sans", sans-serif';
+  ctx.fillText(perimetre, pad, y);
+  y += Math.round(w * 0.09);
+
+  if (stats.length) {
+    const gap = Math.round(w * 0.03);
+    const tileW = (w - pad * 2 - (stats.length - 1) * gap) / stats.length;
+    stats.forEach((s, i) => {
+      const x = pad + i * (tileW + gap);
+      ctx.strokeStyle = 'rgba(255,255,255,.2)';
+      ctx.lineWidth = 1;
+      _roundRectCanvas(ctx, x, y, tileW, tileH, 8);
+      ctx.stroke();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '800 ' + Math.round(w * 0.044) + 'px "IBM Plex Mono", monospace';
+      ctx.fillText(String(s.n), x + Math.round(w * 0.022), y + Math.round(w * 0.024));
+      ctx.fillStyle = '#8CA0B8';
+      ctx.font = '600 ' + Math.round(w * 0.017) + 'px "IBM Plex Sans", sans-serif';
+      ctx.fillText(s.l.toUpperCase(), x + Math.round(w * 0.022), y + tileH - Math.round(w * 0.032));
+    });
+  }
+
+  ctx.strokeStyle = 'rgba(255,255,255,.14)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad, h - Math.round(w * 0.09));
+  ctx.lineTo(w - pad, h - Math.round(w * 0.09));
+  ctx.stroke();
+
+  ctx.fillStyle = '#8CA0B8';
+  ctx.font = '500 ' + Math.round(w * 0.02) + 'px "IBM Plex Mono", monospace';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText(nowStr(), pad, h - Math.round(w * 0.05));
+
+  return new Promise(resolve => cv.toBlob(resolve, 'image/png'));
+}
 
 function toggleShareMenuRapport(ev, type) {
   ev.stopPropagation();
@@ -14624,16 +14766,21 @@ function toggleShareMenuRapport(ev, type) {
     cfg.formats.map((f,i) => '<button type="button" class="share-fmt'+(i===0?' on':'')+'" onclick="_choisirFormatPartage(this,\''+f+'\')">'+RAPPORT_FORMAT_LABELS[f]+'</button>').join('') +
   '</div>';
 
+  // Ligne d'identite d'envoi : TOUJOURS presente dans le menu Rapports
+  // (demande explicite), contrairement au partage d'une actu qui la masque
+  // tant que moins de 2 identites sont configurees — un rapport partage au
+  // nom d'une organisation doit toujours pouvoir preciser qui l'envoie,
+  // meme avec une seule identite configuree (repli sur le nom de marque
+  // actuel si aucune n'est encore renseignee, pour ne jamais afficher une
+  // ligne vide).
   let identiteRow = '';
-  if (fonctionnalitePayante()) {
+  {
     const { identite1, identite2, identite3, active } = identitesMarquePerso(getMarquePerso());
-    const dispo = [[1, identite1], [2, identite2], [3, identite3]].filter(([, v]) => v);
-    if (dispo.length >= 2) {
-      menu.dataset.identite = active;
-      identiteRow = '<div class="share-id-lbl">'+(LANG==='en'?'Sign as':'Signer en tant que')+'</div><div class="share-fmt-row">'+
-        dispo.map(([idx, val]) => '<button type="button" class="share-fmt share-id-btn'+(idx===active?' on':'')+'" onclick="_choisirIdentitePartage(this,'+idx+')" title="'+_apEsc(val)+'">'+_apEsc(val.length>14?val.slice(0,13)+'…':val)+'</button>').join('')+
-      '</div>';
-    }
+    const dispo = [[1, identite1 || nomMarqueActuelle()], [2, identite2], [3, identite3]].filter(([, v]) => v);
+    menu.dataset.identite = active;
+    identiteRow = '<div class="share-id-lbl">'+(LANG==='en'?'Sign as':'Signer en tant que')+'</div><div class="share-fmt-row">'+
+      dispo.map(([idx, val]) => '<button type="button" class="share-fmt share-id-btn'+(idx===active?' on':'')+'" onclick="_choisirIdentitePartage(this,'+idx+')" title="'+_apEsc(val)+'">'+_apEsc(val.length>14?val.slice(0,13)+'…':val)+'</button>').join('')+
+    '</div>';
   }
 
   const hasWaGroupes = getWhatsappContacts().some(c => c.type === 'groupe');
@@ -14673,6 +14820,45 @@ async function envoyerRapportCanal(type, canal, format, identiteIdx) {
   const cfg = RAPPORT_TYPES[type];
   if (!cfg) return;
   format = cfg.formats.includes(format) ? format : cfg.formats[0];
+
+  // Format "image" : carte-image de synthese (voir genererImageRapportBlob),
+  // pas un fichier bureautique — traite a part car aucun exportXxx() ne s'y
+  // applique. Meme logique de transport que les autres formats : le
+  // partage natif (fichier joint) et le presse-papiers peuvent transporter
+  // l'image directement, les canaux bases sur une URL (WhatsApp/Telegram/
+  // Email) ne peuvent pas — telechargement + message pret a la place.
+  if (format === 'image') {
+    const nomFichier = 'sentinel_rapport_' + type + '.png';
+    const blob = await genererImageRapportBlob(type, canal === 'natif' ? 'natif' : (canal === 'whatsapp' || canal === 'whatsapp_groupe' ? 'whatsapp' : canal === 'telegram' ? 'telegram' : canal === 'email' ? 'mail' : 'natif'));
+    if (canal === 'natif') {
+      const transmiseDirect = await _partagerImageAvecRepli(blob, nomFichier, RAPPORT_TITRES[type]);
+      if (!transmiseDirect) {
+        _telechargerImage(blob, nomFichier);
+        _toastRapide(LANG==='en' ? 'Image downloaded (file sharing unsupported here)' : 'Image téléchargée (partage de fichier non pris en charge ici)', 'ti-download');
+      }
+      return;
+    }
+    if (canal === 'copier') {
+      try {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        _toastRapide(LANG==='en' ? 'Image copied to clipboard' : 'Image copiée dans le presse-papiers', 'ti-check');
+      } catch (e) {
+        _telechargerImage(blob, nomFichier);
+        _toastRapide(LANG==='en' ? 'Image downloaded (clipboard image unsupported here)' : 'Image téléchargée (presse-papiers image non pris en charge ici)', 'ti-download');
+      }
+      return;
+    }
+    // whatsapp / whatsapp_groupe / telegram / email : aucun de ces canaux ne
+    // peut transporter un fichier via un simple lien — telecharger, puis
+    // ouvrir le canal avec un message pret invitant a joindre l'image.
+    _telechargerImage(blob, nomFichier);
+    _dernierDocGenere = { blob, name: nomFichier };
+    if (canal === 'whatsapp') _docWhatsappContacts();
+    else if (canal === 'whatsapp_groupe') _docWhatsappGroupes();
+    else if (canal === 'telegram') _docTelegram();
+    else if (canal === 'email') _docEmail();
+    return;
+  }
 
   _suppressAfficherPartage = true;
   try {
