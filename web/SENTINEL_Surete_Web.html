@@ -7165,7 +7165,16 @@ async function doCollect() {
       try {
         if (barEl) barEl.textContent = 'Finalisation : reprise de ' + srcsManquantes.length +
           ' source(s) pour couvrir ' + paysManquants.length + ' pays manquant(s)...';
-        // Reprise ciblee, sequentielle et douce (ne pas ressaturer le reseau)
+        // Reprise ciblee, sequentielle et douce (ne pas ressaturer le reseau).
+        // Cette passe peut porter sur des dizaines, voire des centaines de
+        // sources (pays manquants apres le lot principal) et tourne en
+        // sequentiel — potentiellement plusieurs minutes. Sans rafraichissement
+        // intermediaire, une actu deja recuperee ici (et deja cliquable via un
+        // toast, capture directement) restait invisible en Flux/Alertes tout
+        // le temps que cette passe entiere se terminait : meme defaut que le
+        // lot principal, corrige de la meme facon (rafraichissement periodique
+        // au lieu d'attendre la toute fin de doCollect()).
+        let repriseDone = 0;
         for (const src of srcsManquantes) {
           try {
             const result = await proxyFetch(src.rss);
@@ -7175,6 +7184,18 @@ async function doCollect() {
             recordSrcOk(src.id);
           } catch(e) {
             recordSrcFail(src.id, e && e.message ? e.message : 'reprise echouee');
+          }
+          repriseDone++;
+          if (repriseDone % 10 === 0 || repriseDone === srcsManquantes.length) {
+            reconcilierDatesPremiereVue(fresh);
+            const mapRep={}; ALL.forEach(a=>mapRep[a.id]=a); Object.assign(mapRep, fresh);
+            const partialRep = Object.values(mapRep).filter(a=>estRecentReel(a));
+            if (partialRep.length > ALL.length) {
+              ALL = partialRep; renderFeed(); updStats();
+              if (typeof recalcAlertes === 'function') recalcAlertes({ silencieux:true });
+              if (typeof renderDashboard === 'function' && document.getElementById('dashContent')) renderDashboard();
+              if (typeof updSynthese === 'function') updSynthese();
+            }
           }
         }
         // Re-fusionner apres la reprise ciblee
