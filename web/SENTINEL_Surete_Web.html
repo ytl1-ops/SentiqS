@@ -18,6 +18,21 @@
 <meta name="google-adsense-account" content="ca-pub-5506503144248267">
 
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- Content-Security-Policy — audit de securite : limite les scripts/styles/
+     connexions/medias aux domaines effectivement utilises par l'app (CDN des
+     exports, Google Fonts, Supabase, traduction, proxys CORS de collecte
+     RSS). 'unsafe-inline' reste necessaire pour script-src/style-src : toute
+     l'app est un seul fichier avec un <script> inline unique et des
+     centaines d'attributs onclick — les retirer serait une refonte separee,
+     hors perimetre ici. Cette CSP bloque neanmoins le chargement de scripts
+     EXTERNES non listes (ex. si une faille permettait d'injecter
+     <script src="https://domaine-inconnu">), en complement de
+     l'echappement HTML applique au contenu des flux RSS (voir escHtml()). -->
+<!-- frame-ancestors volontairement absent : ignore par les navigateurs quand
+     livre via une balise <meta> (uniquement valable en en-tete HTTP) —
+     Firebase Hosting fixe deja X-Frame-Options:DENY en en-tete reel, voir
+     firebase.json. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://translate.googleapis.com https://api.mymemory.translated.net https://lingva.ml https://translate.plausibility.cloud https://lingva.garudalinux.org https://api.rss2json.com https://api.allorigins.win https://api.codetabs.com https://proxy.cors.sh https://test.cors.workers.dev https://corsproxy.org https://thingproxy.freeboard.io https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self';">
 <title>SENTINEL SÛRETÉ — Veille sûreté Afrique (54 pays)</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net/">
 <link rel="preconnect" href="https://api.rss2json.com/">
@@ -7529,6 +7544,21 @@ function renderGeo() {
 // ── FEED ─────────────────────────────────────────────────────────────────────
 function gs(id){return SRCS.find(s=>s.id===id)||{n:id,col:'#4A5568',url:'#'};}
 
+// escHtml(str) — audit de securite : les titres/analyses d'actu proviennent
+// de ~200 flux RSS/JSON externes non fiables et sont concatenes tels quels
+// dans des chaines HTML affectees a innerHTML (Flux, detail, Agenda,
+// Alertes, Corridors, popups...). Une source malveillante ou compromise
+// pourrait y injecter du HTML/JS actif (ex. un titre contenant un tag
+// &lt;img onerror=...&gt; une fois les entites decodees par
+// _decodeEntitesHTML). Point d'echappement unique a appeler sur tout champ
+// d'origine externe juste avant insertion dans une chaine HTML — n'affecte
+// jamais a.title/a.analysis eux-memes (recherche, exports, canvas, partages
+// texte continuent de recevoir le texte brut, comme avant).
+function escHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 // ── Anti-404 : convertit un lien de recherche interne en recherche Google ──
 // sur le domaine du site, garantie de ne jamais produire d'erreur 404 ──────
 function safeUrl(rawUrl, fallbackQuery) {
@@ -9200,7 +9230,7 @@ async function renderToast(a) {
     '<div style="display:flex;gap:10px;">'+
       vignette+
       '<div style="flex:1;min-width:0;">'+
-        '<div style="font-size:13.5px;font-weight:800;color:var(--t);line-height:1.32;margin-bottom:5px;" id="'+id+'-tt">'+L(a.title)+'</div>'+
+        '<div style="font-size:13.5px;font-weight:800;color:var(--t);line-height:1.32;margin-bottom:5px;" id="'+id+'-tt">'+escHtml(L(a.title))+'</div>'+
         '<div style="font-size:9.5px;color:var(--lg);display:flex;align-items:center;gap:4px;flex-wrap:wrap;">'+
           (ps && sourcesVisibles() ? '<span style="font-weight:700;color:'+ps.col+';">'+ps.n+'</span><span>·</span>' : '')+
           '<i class="ti ti-clock" style="font-size:10px"></i> Vient d etre publie · '+(fmtAge(a.pubDate)||'a l instant')+
@@ -9302,7 +9332,7 @@ async function majFlashInfo(force) {
     const col = TT_NIV_COL[a.level] || '#4B5563';
     const lb = TT_NIV_LB[a.level] || 'INFO';
     const ttKey = 'tt-'+a.id;
-    const shown = L(a.title);
+    const shown = escHtml(L(a.title));
     const d = a.pubDate ? new Date(a.pubDate) : null;
     const dateTxt = d ? d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'}) : '—';
     const heureTxt = d ? d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '—';
@@ -9451,8 +9481,8 @@ async function renderFeed() {
           (detectLangue(a.title)!==LANG ? '<button class="tr-btn" id="trbtn-'+a.id+'" onclick="event.stopPropagation();retraduireActu(\''+a.id+'\')" title="'+(LANG==='en'?'Translate now':'Traduire maintenant')+'"><i class="ti ti-language"></i>'+(LANG==='en'?'Translate':'Traduire')+'</button>' : '')+
         '</div>'+
         // ── Contenu editorial : remonte au-dessus du reste des badges ──
-        '<div class="atit" id="trt-'+a.id+'">'+L(a.title)+'</div>'+
-        '<div class="asum" id="tra-'+a.id+'">'+L(a.analysis)+'</div>'+
+        '<div class="atit" id="trt-'+a.id+'">'+escHtml(L(a.title))+'</div>'+
+        '<div class="asum" id="tra-'+a.id+'">'+escHtml(L(a.analysis))+'</div>'+
         // ── Meta secondaire : portee, ville, categorie, source RSS, sentiment, viralite ──
         '<div class="meta2">'+
           '<span class="stag">'+(scl[a.sc]||'Regional')+'</span>'+
@@ -9665,7 +9695,7 @@ async function showDet(id) {
   })() : '';
   const detTraduireDispo = detectLangue(a.title)!==LANG || detectLangue(a.analysis||'')!==LANG;
   panel.innerHTML=
-    '<div class="dh"><div class="dt" id="dettt-'+a.id+'">'+L(a.title)+'</div>'+
+    '<div class="dh"><div class="dt" id="dettt-'+a.id+'">'+escHtml(L(a.title))+'</div>'+
     (detTraduireDispo ? '<button class="tr-btn" id="dettrbtn-'+a.id+'" style="flex-shrink:0;margin-right:6px" onclick="event.stopPropagation();retraduireActu(\''+a.id+'\')" title="'+(LANG==='en'?'Translate now':'Traduire maintenant')+'"><i class="ti ti-language"></i>'+(LANG==='en'?'Translate':'Traduire')+'</button>' : '')+
     '<div class="dc" onclick="document.getElementById(\'detPanel\').className=\'det\'"><i class="ti ti-x"></i></div></div>'+
     confHtml+
@@ -9687,7 +9717,7 @@ async function showDet(id) {
     // Sans lien de source (utilisateur non-admin), l'analyse complete est
     // affichee (au lieu d'un extrait de 280 caracteres renvoyant vers le
     // site d'origine) : l'actu doit se suffire a elle-meme.
-    '<div class="dan" id="detan-'+a.id+'">'+(sourcesVisibles() ? extraitLoyal(L(a.analysis), EXTRAIT_MAX_CARACTERES) : L(a.analysis))+'</div>'+
+    '<div class="dan" id="detan-'+a.id+'">'+escHtml(sourcesVisibles() ? extraitLoyal(L(a.analysis), EXTRAIT_MAX_CARACTERES) : L(a.analysis))+'</div>'+
     (sourcesVisibles()
       ? '<div style="font-size:8px;color:var(--lg);padding:6px 0 0;font-style:italic;border-top:.5px solid var(--bd);margin-top:8px;">Extrait à fin de veille (usage loyal). Contenu et droits appartenant à la source citée. Consulter l\'article complet sur le site d\'origine.</div>'
       : '')+
@@ -9797,7 +9827,7 @@ async function showKpiDrill(kind) {
     return `<div onclick="closeKpiDrill();showDet('${a.id}');switchView('flux',document.querySelector('.ntab[onclick*=flux]'))" style="padding:9px 0;border-bottom:.5px solid var(--bd);cursor:pointer;display:flex;gap:8px;align-items:flex-start;">
       <span style="width:6px;height:6px;border-radius:50%;background:${lvlMeta.col};flex-shrink:0;margin-top:5px;"></span>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="${trId}">${L(a.title)}</div>
+        <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="${trId}">${escHtml(L(a.title))}</div>
         <div style="font-size:9px;color:var(--lg);margin-top:2px;">${pays.flag} ${pays.name} · ${a.time||''}</div>
       </div>
       <span style="font-size:8px;font-weight:700;color:#fff;background:${lvlMeta.col};padding:2px 6px;border-radius:3px;flex-shrink:0;">${lvlMeta.lb}</span>
@@ -9971,7 +10001,7 @@ async function renderPanelATraiter(cyFiltre, zoneFiltre) {
           <span style="width:6px;height:6px;border-radius:50%;background:${LVL_COL[a.level]||'#4B5563'};flex-shrink:0;margin-top:5px;"></span>
           <div style="flex:1;min-width:0;cursor:pointer;" onclick="showDet('${a.id}');switchView('flux',document.querySelector('.ntab[onclick*=flux]'))">
             <div style="font-size:9px;color:var(--lg);font-weight:600;">${pays.flag} ${pays.name} · ${LVL_LB[a.level]||'INFO'} · ${surv.texte}</div>
-            <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.35;" id="atrait-${a.id}">${L(a.title)}</div>
+            <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.35;" id="atrait-${a.id}">${escHtml(L(a.title))}</div>
           </div>
           <button onclick="event.stopPropagation();marquerArticleTraite('${a.id}')" title="Marquer comme traité" style="flex-shrink:0;background:none;border:1px solid var(--bd);border-radius:5px;padding:3px 7px;font-size:9px;color:var(--lg);cursor:pointer;">
             <i class="ti ti-check"></i>
@@ -10199,10 +10229,10 @@ async function updSynthese() {
       const cc=CYS.find(x=>x.code===a.cy)||{flag:'🌍',name:a.cy};
       const geo=detectGeo(a.cy, a.title+' '+(a.analysis||''));
       const villeTxt=geo.ville?(' · '+geo.ville+(geo.estime?' (estime)':'')):'';
-      const analyseL=L(a.analysis);
+      const analyseL=escHtml(L(a.analysis));
       html+='<div class="sy-ar">'+
         '<div class="sy-lvl '+lc+'"><i class="ti '+lic(a.level)+'"></i>'+lt+' — '+cc.flag+' '+cc.name+villeTxt+' — '+catFr(a.cat)+'</div>'+
-        '<div class="sy-tt2" id="sytt-'+a.id+'">'+L(a.title)+'</div>'+
+        '<div class="sy-tt2" id="sytt-'+a.id+'">'+escHtml(L(a.title))+'</div>'+
         '<div style="font-size:9px;color:var(--lg);font-weight:600;margin:2px 0 4px;"><i class="ti ti-clock" style="font-size:9px;vertical-align:-1px"></i> Publie le '+fmtFull(a.pubDate)+' ('+fmtAge(a.pubDate)+')'+((a.pubDate&&(Date.now()-a.pubDate)<12*3600000)?' <span style="font-size:8px;font-weight:700;color:#fff;background:#15803D;padding:1px 6px;border-radius:3px;">−12H</span>':'')+'</div>'+
         '<div class="sy-bd" id="sybd-'+a.id+'">'+analyseL.slice(0,280)+(analyseL.length>280?'...':'')+'</div>'+
         '<div class="sy-sr">'+
@@ -10434,8 +10464,8 @@ async function renderRecherche() {
         (lvl ? `<span style="font-size:8px;font-weight:700;padding:1px 6px;border-radius:3px;background:${lvl.bg};color:${lvl.col};">${lvl.label}</span>` : '') +
         (r.dateLabel ? `<span style="margin-left:auto;font-size:9px;color:var(--lg);"><i class="ti ti-clock" style="font-size:10px"></i> ${r.dateLabel}</span>` : '') +
       `</div>` +
-      `<div style="font-size:12px;font-weight:700;color:var(--t);line-height:1.35;" id="setr-${_seEsc(r.type+'_'+r.id)}">${_seHighlight(L(r.title), tokens)}</div>` +
-      (r.snippet ? `<div style="font-size:10.5px;color:var(--t2);margin-top:3px;line-height:1.4;" id="sesnip-${_seEsc(r.type+'_'+r.id)}">${_seHighlight(extraitLoyal(L(r.snippet), 160), tokens)}</div>` : '') +
+      `<div style="font-size:12px;font-weight:700;color:var(--t);line-height:1.35;" id="setr-${_seEsc(r.type+'_'+r.id)}">${_seHighlight(escHtml(L(r.title)), tokens)}</div>` +
+      (r.snippet ? `<div style="font-size:10.5px;color:var(--t2);margin-top:3px;line-height:1.4;" id="sesnip-${_seEsc(r.type+'_'+r.id)}">${_seHighlight(escHtml(extraitLoyal(L(r.snippet), 160)), tokens)}</div>` : '') +
     `</div>`;
   }).join('');
 }
@@ -10531,8 +10561,8 @@ async function renderAgenda() {
     return '<div class="ev '+e.status+'">'+
       '<div class="ev-dt"><div class="ev-d">'+e.day+'</div><div class="ev-m">'+e.month+'</div>'+(e.hour?'<div class="ev-h" style="font-size:9px;color:var(--lg);font-weight:600;margin-top:2px;">'+e.hour+'</div>':'')+'</div>'+
       '<div class="ev-bd">'+
-        '<div class="ev-tp"><div class="ev-tt"><span id="'+ttId+'">'+L(e.title)+'</span>'+typBadge+freshTag+autoTag+'</div><span class="ev-bg '+sl[0]+'">'+sl[1]+'</span></div>'+
-        '<div class="ev-dc" id="'+dcId+'">'+L(e.desc)+'</div>'+
+        '<div class="ev-tp"><div class="ev-tt"><span id="'+ttId+'">'+escHtml(L(e.title))+'</span>'+typBadge+freshTag+autoTag+'</div><span class="ev-bg '+sl[0]+'">'+sl[1]+'</span></div>'+
+        '<div class="ev-dc" id="'+dcId+'">'+escHtml(L(e.desc))+'</div>'+
         '<div class="ev-mt">'+
           '<span class="ev-cy"'+(resolveAgendaCy(e.cy)?' style="cursor:pointer" onclick="ouvrirVuePays(\''+resolveAgendaCy(e.cy)+'\')"':'')+'><i class="ti ti-map-pin" style="font-size:10px"></i>'+e.cy+'</span>'+
           '<span class="ev-ip '+IC[e.impact]+'">Impact '+e.impact.toUpperCase()+'</span>'+
@@ -10541,7 +10571,7 @@ async function renderAgenda() {
                       '<span class="ev-sc"><i class="ti ti-cpu"></i>'+e.src+'</span>')
             : '')+
         '</div>'+
-        (e.reco?'<div class="ev-rc"><i class="ti ti-chevron-right" style="color:var(--b);font-size:10px;vertical-align:-1px"></i> <span id="'+rcId+'">'+L(e.reco)+'</span></div>':'')+
+        (e.reco?'<div class="ev-rc"><i class="ti ti-chevron-right" style="color:var(--b);font-size:10px;vertical-align:-1px"></i> <span id="'+rcId+'">'+escHtml(L(e.reco))+'</span></div>':'')+
       '</div>'+
     '</div>';
   }).join('');
@@ -10655,7 +10685,7 @@ function renderCorridors() {
       '<div class="al"><span class="rpill ' + pl[0] + '">' + pl[1] + '</span></div>' +
       '<div class="ab">' +
         '<div class="art-top"><span class="flagcy">' + cc.flag + ' ' + cc.name + '</span><span class="survtime"><i class="ti ti-history"></i>' + fmtAge(a.pubDate || 0) + '</span></div>' +
-        '<div class="atit">' + L(a.title) + '</div>' +
+        '<div class="atit">' + escHtml(L(a.title)) + '</div>' +
       '</div></div>';
   }).join('');
 }
@@ -13893,7 +13923,7 @@ async function renderAlertCard(score) {
       <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${d.dot};flex-shrink:0;margin-top:4px;"></span>
       <div style="flex:1;min-width:0;">
         <div style="font-size:9px;color:var(--lg);font-weight:600;">${e.date}${freshTag}${liveTag}</div>
-        <div id="${evId}" style="font-size:10px;color:var(--t);line-height:1.35;font-weight:${e.level==='rouge'||e.level==='marron'?'700':'400'}">${L(e.title)}</div>
+        <div id="${evId}" style="font-size:10px;color:var(--t);line-height:1.35;font-weight:${e.level==='rouge'||e.level==='marron'?'700':'400'}">${escHtml(L(e.title))}</div>
         ${sourcesVisibles() ? `<div style="font-size:8px;color:var(--lg);margin-top:1px;">${e.src}</div>` : ''}
       </div>
     </div>`;
@@ -13912,7 +13942,7 @@ async function renderAlertCard(score) {
       </div>
       ${items.map((it,idx)=>{const mId='mes-'+score.cy+'-'+catKey+'-'+idx;return `<div style="display:flex;gap:6px;padding:3px 0;border-bottom:.5px solid var(--bd);">
         <i class="ti ti-check" style="font-size:10px;color:${n.col};flex-shrink:0;margin-top:2px;"></i>
-        <span id="${mId}" style="font-size:10px;color:var(--t2);line-height:1.4;">${L(it)}</span>
+        <span id="${mId}" style="font-size:10px;color:var(--t2);line-height:1.4;">${escHtml(L(it))}</span>
       </div>`;}).join('')}
     </div>`;
   }
@@ -14016,8 +14046,8 @@ async function renderAlertTable(scores) {
       <td style="padding:7px 10px;"><div style="padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700;color:#fff;background:${n.col};display:inline-block;">${n.label} — ${n.sous}</div></td>
       <td style="padding:7px 10px;font-size:11px;font-weight:700;color:${n.col};">${s.total100}</td>
       <td style="padding:7px 10px;font-size:10px;color:var(--t2);">${s.events.length}</td>
-      <td style="padding:7px 10px;font-size:9px;color:var(--t2);">${L(m.expatries[0])}</td>
-      <td style="padding:7px 10px;font-size:9px;color:var(--t2);">${L(m.installations[0])}</td>
+      <td style="padding:7px 10px;font-size:9px;color:var(--t2);">${escHtml(L(m.expatries[0]))}</td>
+      <td style="padding:7px 10px;font-size:9px;color:var(--t2);">${escHtml(L(m.installations[0]))}</td>
       <td style="padding:7px 10px;font-size:9px;color:var(--lg);">${new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'})} ${new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</td>
     </tr>`;
   }).join('');
@@ -14176,14 +14206,14 @@ async function ouvrirVuePays(cy) {
 
   const htmlActus = actus.length ? actus.map(a => `
     <div style="padding:7px 0;border-bottom:.5px solid var(--bd);cursor:pointer;" onclick="showDet('${a.id}');document.getElementById('vuePaysOverlay').remove();switchView('flux',document.querySelector('.ntab[onclick*=flux]'));">
-      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="vpa-${a.id}">${L(a.title)}</div>
+      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="vpa-${a.id}">${escHtml(L(a.title))}</div>
       ${sourcesVisibles() ? `<div style="font-size:9px;color:var(--lg);margin-top:2px;">${(a.crosses||[])[0] || ''}</div>` : ''}
       ${(()=>{ const s=fmtSurvenance(a); if (s.inconnue) return `<div style="font-size:8.5px;color:#B45309;font-weight:700;margin-top:1px;">Survenance : ${s.texte} (à vérifier)</div>`; return s.ancien ? `<div style="font-size:8.5px;color:#8B1A1A;font-weight:700;margin-top:1px;">⚠ Survenance : ${s.texte} (plus de 12h)</div>` : `<div style="font-size:8.5px;color:var(--lg);margin-top:1px;">Survenance : ${s.texte}</div>`; })()}
     </div>`).join('') : '<div style="font-size:11px;color:var(--lg);font-style:italic;padding:6px 0;">Aucun article recent</div>';
 
   const htmlRegio = regionaux.length ? regionaux.map(a => `
     <div style="padding:7px 0;border-bottom:.5px solid var(--bd);">
-      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="vpr-${a.id}">${L(a.title)}</div>
+      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="vpr-${a.id}">${escHtml(L(a.title))}</div>
       ${sourcesVisibles() ? `<div style="font-size:9px;color:var(--lg);margin-top:2px;">${a.srcName || a.srcId || ''}</div>` : ''}
     </div>`).join('') : '';
 
@@ -14194,7 +14224,7 @@ async function ouvrirVuePays(cy) {
       <span style="width:6px;height:6px;border-radius:50%;background:${d.dot};flex-shrink:0;margin-top:5px;"></span>
       <div style="flex:1;min-width:0;">
         <div style="font-size:9px;color:var(--lg);font-weight:600;">${e.date}</div>
-        <div style="font-size:11px;color:var(--t);line-height:1.4;" id="${trId}">${L(e.title)}</div>
+        <div style="font-size:11px;color:var(--t);line-height:1.4;" id="${trId}">${escHtml(L(e.title))}</div>
         ${sourcesVisibles() ? `<div style="font-size:9px;color:var(--lg);">${e.src}</div>` : ''}
       </div>
     </div>`;
@@ -14211,7 +14241,7 @@ async function ouvrirVuePays(cy) {
     return `
     <div style="padding:7px 0;border-bottom:.5px solid var(--bd);">
       <div style="font-size:9px;color:var(--lg);font-weight:600;">${e.day} ${e.month} ${e.hour || ''} — ${e.status.toUpperCase()}</div>
-      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="${trId}">${L(e.title)}</div>
+      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="${trId}">${escHtml(L(e.title))}</div>
     </div>`;
   }).join('') : '';
 
@@ -14243,7 +14273,7 @@ async function ouvrirVuePays(cy) {
     </div>` : ''}
     ${social.arts.slice(0,5).map(a => `
     <div style="padding:6px 0;border-bottom:.5px solid var(--bd);cursor:pointer;" onclick="showDet('${a.id}');document.getElementById('vuePaysOverlay').remove();switchView('flux',document.querySelector('.ntab[onclick*=flux]'));">
-      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="vps-${a.id}">${L(a.title)}</div>
+      <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="vps-${a.id}">${escHtml(L(a.title))}</div>
       <div style="font-size:9px;color:var(--lg);margin-top:2px;">${a._srcBadge?a._srcBadge.label:'Reseau social'} · ${a.time||''}</div>
     </div>`).join('')}
   ` : '';
@@ -14463,7 +14493,7 @@ async function renderAlerteChronologie() {
             <span style="font-size:10px;color:var(--lg);">${pys.flag} ${pys.name}</span>
             <span style="margin-left:auto;font-size:9px;color:var(--lg);">${it.ts ? new Date(it.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : ''}</span>
           </div>
-          <div style="font-size:12px;font-weight:600;color:var(--t);line-height:1.35;" id="${trId}">${L(it.title)}</div>
+          <div style="font-size:12px;font-weight:600;color:var(--t);line-height:1.35;" id="${trId}">${escHtml(L(it.title))}</div>
           ${(sourcesVisibles() && it.src) ? `<div style="font-size:9.5px;color:var(--lg);margin-top:2px;"><i class="ti ti-antenna" style="font-size:10px"></i> ${it.src}</div>` : ''}
         </div>
       </div>`;

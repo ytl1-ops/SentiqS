@@ -13,6 +13,10 @@ aucune pub).
 -->
 <meta name="google-adsense-account" content="ca-pub-5506503144248267">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- Content-Security-Policy — voir SENTINEL_Surete_Web.html pour le detail
+     du raisonnement. Page plus simple : ne charge que ses propres assets
+     (assets/hero.mp4, poster) et Google Fonts. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self';">
 <title>SENTINEL SÛRETÉ — Renseignement sûreté pour l'Afrique, en temps réel</title>
 <meta name="description" content="SENTINEL SÛRETÉ croise en continu des centaines de sources africaines (médias et réseaux sociaux) pour transformer le bruit médiatique en décisions de sûreté exploitables. 54 pays, filtre anti-hallucination &lt;12h, rapports Word/PDF/PowerPoint.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
