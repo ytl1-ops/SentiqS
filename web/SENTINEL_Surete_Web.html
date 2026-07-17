@@ -4846,12 +4846,21 @@ const CORRIDORS_PAR_ZONE = {
       {nom:'Cotonou',cy:'BJ'}, {nom:'Parakou',cy:'BJ'}, {nom:'Niamey',cy:'NE'} ] },
     { id:'lag-abj', nom:'Lagos – Abidjan (côtier)', villes:[
       {nom:'Lagos',cy:'NG'}, {nom:'Cotonou',cy:'BJ'}, {nom:'Lomé',cy:'TG'}, {nom:'Accra',cy:'GH'}, {nom:'Abidjan',cy:'CI'} ] },
+    // Zone maritime : le Golfe de Guinée est le principal foyer mondial de
+    // piraterie maritime (attaques de navires, detournements, enlevements
+    // d'equipages contre rancon) — distinct des corridors routiers cotiers
+    // ci-dessus, voir MARITIME_SECURITE_KW.
+    { id:'golfe-guinee-maritime', nom:'Golfe de Guinée (zone maritime)', type:'maritime', villes:[
+      {nom:'Eaux du Nigeria',cy:'NG'}, {nom:'Eaux du Bénin',cy:'BJ'}, {nom:'Eaux du Togo',cy:'TG'},
+      {nom:'Eaux de Côte d\'Ivoire',cy:'CI'}, {nom:'Eaux du Cameroun',cy:'CM'}, {nom:'Eaux de Guinée équatoriale',cy:'GQ'} ] },
   ],
   ao_cotiere: [
     { id:'dkr-conakry', nom:'Dakar – Bissau – Conakry', villes:[
       {nom:'Dakar',cy:'SN'}, {nom:'Bissau',cy:'GW'}, {nom:'Conakry',cy:'GN'} ] },
     { id:'conakry-monrovia', nom:'Conakry – Freetown – Monrovia', villes:[
       {nom:'Conakry',cy:'GN'}, {nom:'Freetown',cy:'SL'}, {nom:'Monrovia',cy:'LR'} ] },
+    { id:'ao-atlantique-maritime', nom:'Façade atlantique Sénégal – Guinée (zone maritime)', type:'maritime', villes:[
+      {nom:'Eaux du Sénégal',cy:'SN'}, {nom:'Eaux de Guinée-Bissau',cy:'GW'}, {nom:'Eaux de Guinée',cy:'GN'}, {nom:'Eaux du Cap-Vert',cy:'CV'} ] },
   ],
   afrique_centrale: [
     { id:'douala-ndj', nom:"Douala – N'Djaména", villes:[
@@ -4864,6 +4873,10 @@ const CORRIDORS_PAR_ZONE = {
       {nom:'Djibouti',cy:'DJ'}, {nom:'Dire Dawa',cy:'ET'}, {nom:'Addis-Abeba',cy:'ET'} ] },
     { id:'mombasa-nairobi-kampala', nom:'Corridor Nord : Mombasa – Nairobi – Kampala', villes:[
       {nom:'Mombasa',cy:'KE'}, {nom:'Nairobi',cy:'KE'}, {nom:'Kampala',cy:'UG'} ] },
+    // Zone maritime : golfe d'Aden / bassin somalien — deuxieme grand foyer
+    // historique de piraterie maritime (route commerciale Suez-ocean Indien).
+    { id:'golfe-aden-maritime', nom:"Golfe d'Aden — bassin somalien (zone maritime)", type:'maritime', villes:[
+      {nom:'Eaux de Djibouti',cy:'DJ'}, {nom:'Eaux somaliennes',cy:'SO'}, {nom:'Eaux du Kenya',cy:'KE'} ] },
   ],
   grands_lacs: [
     { id:'kampala-kigali-buja', nom:'Kampala – Kigali – Bujumbura', villes:[
@@ -4876,12 +4889,16 @@ const CORRIDORS_PAR_ZONE = {
       {nom:'Beira',cy:'MZ'}, {nom:'Harare',cy:'ZW'}, {nom:'Lusaka',cy:'ZM'} ] },
     { id:'walvis-bay', nom:'Corridor de Walvis Bay', villes:[
       {nom:'Walvis Bay',cy:'NA'}, {nom:'Gaborone',cy:'BW'}, {nom:'Johannesburg',cy:'ZA'} ] },
+    { id:'canal-mozambique-maritime', nom:'Canal du Mozambique (zone maritime)', type:'maritime', villes:[
+      {nom:'Eaux du Mozambique',cy:'MZ'}, {nom:'Eaux de Madagascar',cy:'MG'}, {nom:'Eaux des Comores',cy:'KM'} ] },
   ],
   afrique_nord: [
     { id:'trans-maghreb', nom:'Corridor Trans-Maghrébin', villes:[
       {nom:'Casablanca',cy:'MA'}, {nom:'Alger',cy:'DZ'}, {nom:'Tunis',cy:'TN'}, {nom:'Tripoli',cy:'LY'} ] },
     { id:'rabat-nouakchott', nom:'Rabat – Nouakchott', villes:[
       {nom:'Rabat',cy:'MA'}, {nom:'Dakhla',cy:'MA'}, {nom:'Nouakchott',cy:'MR'} ] },
+    { id:'mediterranee-maritime', nom:'Façade méditerranéenne (zone maritime)', type:'maritime', villes:[
+      {nom:'Eaux du Maroc',cy:'MA'}, {nom:'Eaux d\'Algérie',cy:'DZ'}, {nom:'Eaux de Tunisie',cy:'TN'}, {nom:'Eaux de Libye',cy:'LY'} ] },
   ],
 };
 
@@ -4901,9 +4918,36 @@ const CORRIDOR_SECURITE_KW = [
   'braquage','vol a main armee','vol à main armée','vol de vehicule','vol de véhicule','carjacking',
   'agression','agresse ','agressee','agressé','agressée',
 ];
-function articleEstSecuriteCorridor(a) {
+// MARITIME_SECURITE_KW : equivalent de CORRIDOR_SECURITE_KW pour les
+// corridors de type 'maritime' (zones de navigation, pas des axes routiers)
+// — cible la piraterie et les actes de violence en mer plutot que la
+// criminalite routiere, qui n'a pas de sens pour une zone maritime.
+const MARITIME_SECURITE_KW = [
+  'piraterie','piraterie maritime','pirate','pirates','acte de piraterie','acte de piraterie maritime',
+  'attaque de navire','attaque en mer','navire attaque','navire attaqué','bateau attaque','bateau attaqué',
+  'detournement de navire','détournement de navire','vaisseau detourne','vaisseau détourné',
+  'enlevement de marins','enlèvement de marins','marins enleves','marins enlevés','equipage enleve','équipage enlevé','equipage kidnappe','équipage kidnappé',
+  'vol de cargaison','cargaison volee','cargaison volée','pillage de navire',
+  "prise d'otage en mer","prise d'otage maritime",
+  'tanker attaque','tanker attaqué','petrolier attaque','pétrolier attaqué','cargo attaque','cargo attaqué',
+  'skiff','embarcation pirate','rancon maritime','rançon maritime','abordage pirate',
+];
+// MARITIME_CONTEXTE_KW : signale un contexte clairement maritime (navire,
+// port, en mer...). CORRIDOR_SECURITE_KW contient des mots generiques
+// ("attaque", "vol", "agression") qui matchent aussi bien un braquage
+// routier qu'un acte de piraterie en mer — sans ce garde-fou, un fait
+// maritime (ex. "des pirates attaquent un petrolier au large de Lagos")
+// s'ajouterait a tort au niveau d'alerte d'un corridor TERRESTRE partageant
+// le meme pays. Un corridor terrestre n'accepte donc un match generique que
+// si le texte n'evoque pas explicitement ce contexte maritime.
+const MARITIME_CONTEXTE_KW = ['navire','bateau','pétrolier','petrolier','cargo','tanker','marin ','marins','équipage','equipage','piraterie','en mer','au large de','vaisseau'];
+function articleEstSecuriteCorridor(a, corridor) {
   if (!a) return false;
   const t = (L(a.title||'') + ' ' + L(a.analysis||'')).toLowerCase();
+  if (corridor && corridor.type === 'maritime') {
+    return MARITIME_SECURITE_KW.some(k => t.includes(k));
+  }
+  if (MARITIME_CONTEXTE_KW.some(k => t.includes(k))) return false;
   return CORRIDOR_SECURITE_KW.some(k => t.includes(k));
 }
 // Fenetre volontairement plus large (7 jours) que la fenetre d'affichage de
@@ -4917,7 +4961,7 @@ function calcNiveauCorridor(corridor) {
   const seuil = Date.now() - NIVEAU_CORRIDOR_FENETRE_MS;
   const paysCorridor = new Set(corridor.villes.map(v => v.cy));
   const faits = (typeof ALL !== 'undefined' ? ALL : []).filter(a =>
-    a && paysCorridor.has(a.cy) && (a.pubDate || 0) >= seuil && articleEstSecuriteCorridor(a)
+    a && paysCorridor.has(a.cy) && (a.pubDate || 0) >= seuil && articleEstSecuriteCorridor(a, corridor)
   ).sort((a, b) => (b.pubDate || 0) - (a.pubDate || 0)); // plus recent en premier — "faits marquants"
   const nbCrit = faits.filter(a => a.level === 'crit').length;
   const nbHigh = faits.filter(a => a.level === 'high').length;
@@ -10786,7 +10830,7 @@ function renderCorridorsApercu() {
   const detailEl = document.getElementById('corDetailWrap');
   if (titreEl) titreEl.childNodes[0].nodeValue = 'Corridors de référence ';
   if (badgeEl) badgeEl.innerHTML = '';
-  if (sousTitreEl) sousTitreEl.textContent = "Vue d'ensemble de tous les corridors surveillés · du plus stable au plus critique · niveau recoupé sur les actualités sécuritaires (attaques, coupeurs de route, vols, agressions) des 7 derniers jours.";
+  if (sousTitreEl) sousTitreEl.textContent = "Vue d'ensemble de tous les corridors surveillés (terrestres et maritimes ⚓) · du plus stable au plus critique · niveau recoupé sur les actualités sécuritaires (attaques, coupeurs de route, vols, agressions — ou piraterie, attaques de navires, détournements, enlèvements de marins pour les zones maritimes) des 7 derniers jours.";
   if (detailEl) detailEl.style.display = 'none';
   if (apercuEl) apercuEl.style.display = '';
   if (!apercuEl) return;
@@ -10809,10 +10853,13 @@ function renderCorridorsApercu() {
       const col = NIVEAU_CORRIDOR_COULEUR[niveau] || 'var(--b)';
       const zoneNom = (ZONES_GEO[c.zc] || {}).nom || c.zc;
       const lignes = apercuFaitsMarquants(resume, 2);
+      const estMaritime = c.type === 'maritime';
       return '<div class="acard" onclick="ouvrirCorridorDepuisApercu(\'' + c.zc + '\',\'' + c.id + '\')" ' +
         'style="cursor:pointer;padding:12px;border-top:3px solid ' + col + ';display:flex;flex-direction:column;gap:6px">' +
           '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">' +
-            '<span style="font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em">' + escHtml(zoneNom) + '</span>' +
+            '<span style="font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:4px">' +
+              (estMaritime ? '<i class="ti ti-anchor" title="Zone maritime"></i>' : '') + escHtml(zoneNom) +
+            '</span>' +
             '<span class="rpill ' + pl[0] + '">' + pl[1] + '</span>' +
           '</div>' +
           '<div style="font-size:13px;font-weight:700;color:var(--t)">' + escHtml(c.nom) + '</div>' +
@@ -10855,10 +10902,12 @@ function renderCorridorsDetail() {
   const resume = resumeCorridor(corridor);
   const niv = resume;
   const pl = lp(niv.niveau);
-  if (titreEl) titreEl.childNodes[0].nodeValue = 'Corridor de référence — ' + corridor.nom + ' ';
+  const estMaritimeEnTete = corridor.type === 'maritime';
+  if (titreEl) titreEl.childNodes[0].nodeValue = 'Corridor de référence — ' + (estMaritimeEnTete ? '⚓ ' : '') + corridor.nom + ' ';
   if (badgeEl) badgeEl.innerHTML = '<span class="rpill ' + pl[0] + '">' + pl[1] + '</span>';
+  const motsRecoupes = estMaritimeEnTete ? 'piraterie, attaques de navires, détournements, enlèvements de marins' : 'attaques, coupeurs de route, vols, agressions';
   if (sousTitreEl) sousTitreEl.textContent = (ZONES_GEO[fCorZone] || {}).nom + ' · ' + corridor.villes.map(v => v.nom).join(' → ') +
-    ' · ' + (niv.count > 0 ? niv.count + ' fait(s) sécuritaire(s) recoupé(s) (attaques, coupeurs de route, vols, agressions) sur 7 jours' : 'aucun fait sécuritaire recoupé sur 7 jours');
+    ' · ' + (niv.count > 0 ? niv.count + ' fait(s) sécuritaire(s) recoupé(s) (' + motsRecoupes + ') sur 7 jours' : 'aucun fait sécuritaire recoupé sur 7 jours');
 
   if (faitsEl) {
     const lignes = apercuFaitsMarquants(resume, 4);
@@ -10904,15 +10953,18 @@ function renderCorridorsDetail() {
       '<span style="font-size:11px;color:var(--lg);margin-top:4px">Aucun évènement sur ce corridor pour la fenêtre et les filtres sélectionnés.</span></div>';
     return;
   }
+  const estMaritime = corridor.type === 'maritime';
   listEl.innerHTML = evenements.map(a => {
     const cc = CYS.find(x => x.code === a.cy) || { flag: '🌍', name: a.cy };
     const pl = lp(a.level);
-    const estSecRoute = articleEstSecuriteCorridor(a);
+    const estSecRecoupe = articleEstSecuriteCorridor(a, corridor);
+    const tagTitre = estMaritime ? 'Recoupé : sécurité maritime (piraterie/attaque de navire/détournement/enlèvement)' : 'Recoupé : sécurité routière (attaque/coupeurs de route/vol/agression)';
+    const tagTxt = estMaritime ? 'MER' : 'ROUTE';
     return '<div class="art l' + a.level.charAt(0) + '2" data-level="' + a.level + '" onclick="showDet(\'' + a.id + '\')">' +
       '<div class="al"><span class="rpill ' + pl[0] + '">' + pl[1] + '</span></div>' +
       '<div class="ab">' +
         '<div class="art-top"><span class="flagcy">' + cc.flag + ' ' + cc.name + '</span>' +
-          (estSecRoute ? '<span class="rpill rc2" title="Recoupé : sécurité routière (attaque/coupeurs de route/vol/agression)">ROUTE</span>' : '') +
+          (estSecRecoupe ? '<span class="rpill rc2" title="' + tagTitre + '">' + tagTxt + '</span>' : '') +
           '<span class="survtime"><i class="ti ti-history"></i>' + fmtAge(a.pubDate || 0) + '</span></div>' +
         '<div class="atit">' + escHtml(L(a.title)) + '</div>' +
       '</div></div>';
