@@ -2879,6 +2879,28 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
             </div>
           </div>
 
+          <!-- Sauvegarde & restauration -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-database-export"></i>
+                <div><div class="pm-sec-title">Sauvegarde &amp; restauration des donnees</div>
+                <div class="pm-sec-sub">Utilisateurs, tarifs et paiements declares — stockes uniquement dans ce navigateur</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px">
+              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
+                Ces donnees vivent uniquement dans le stockage local de ce navigateur : un cache vide, un
+                changement d'appareil ou une reinstallation les efface definitivement. Telechargez une
+                sauvegarde reguliere et conservez-la en lieu sur (email, cle USB, cloud).
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+                <button class="btn-action btn-rest" onclick="exporterDonneesAdmin()"><i class="ti ti-download"></i> Telecharger une sauvegarde (JSON)</button>
+                <button class="btn-action btn-rest" onclick="document.getElementById('pmRestoreFile').click()"><i class="ti ti-upload"></i> Restaurer depuis un fichier</button>
+                <input type="file" id="pmRestoreFile" accept="application/json" style="display:none" onchange="importerDonneesAdmin(this)">
+              </div>
+            </div>
+          </div>
+
           <!-- Droits de téléchargement -->
           <div class="pm-section">
             <div class="pm-sec-hd">
@@ -12225,6 +12247,45 @@ function copyText(txt) {
   }).catch(() => {
     prompt('Copiez ce code :', txt);
   });
+}
+
+// ── SAUVEGARDE & RESTAURATION DES DONNEES ADMIN ───────────────────────
+// L'app est 100% cote client (localStorage) : un navigateur reinitialise
+// ou un cache efface = perte totale des comptes/tarifs/paiements declares.
+// Ce mecanisme permet a l'admin de conserver une copie hors-ligne.
+function _backupKeys() { return [USERS_KEY, PRICING_KEY, PAIEMENTS_KEY]; }
+function exporterDonneesAdmin() {
+  const data = { app: 'SENTINEL SURETE', exportedAt: new Date().toISOString(), version: 1, data: {} };
+  _backupKeys().forEach(k => { const v = localStorage.getItem(k); if (v !== null) { try { data.data[k] = JSON.parse(v); } catch(_) {} } });
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'sentinel-sauvegarde-' + new Date().toISOString().slice(0,10) + '.json'; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+  pmMsg('Sauvegarde telechargee (utilisateurs, tarifs, paiements declares).', 'ok', 'pmMsg');
+}
+function importerDonneesAdmin(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      const payload = parsed && parsed.data;
+      if (!payload || typeof payload !== 'object') throw new Error('format non reconnu');
+      const found = _backupKeys().filter(k => payload[k] !== undefined);
+      if (!found.length) throw new Error('aucune donnee SENTINEL reconnue dans ce fichier');
+      if (!confirm('Restaurer cette sauvegarde va REMPLACER les donnees actuelles (' + found.length + ' categorie(s) : utilisateurs / tarifs / paiements declares). Cette action est irreversible. Continuer ?')) return;
+      found.forEach(k => localStorage.setItem(k, JSON.stringify(payload[k])));
+      pmMsg('Sauvegarde restauree. Rechargement de l\'application...', 'ok', 'pmMsg');
+      setTimeout(() => location.reload(), 1200);
+    } catch (e) {
+      pmMsg('Fichier de sauvegarde invalide : ' + e.message, 'err', 'pmMsg');
+    } finally {
+      input.value = '';
+    }
+  };
+  reader.readAsText(file);
 }
 
 // ── PARAMETRES PLATEFORME ─────────────────────────────────────────────
