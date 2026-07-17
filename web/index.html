@@ -693,16 +693,23 @@ function closeSignup() {
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSignup(); });
 
 // ── Account creation — writes to the SAME localStorage store as the main
-// app (sentinel_users_v1 / makeCode()), so a freshly-created account logs
-// straight into SENTINEL_Surete_Web.html with the generated code, no admin
-// approval step. Kept intentionally separate from the app's existing
-// "Demander un accès" flow (which still requires admin validation for
-// users who prefer/need manual review).
+// app (sentinel_users_v1), so a freshly-created account logs straight into
+// SENTINEL_Surete_Web.html with the generated code, no admin approval step.
+// Kept intentionally separate from the app's existing "Demander un accès"
+// flow (which still requires admin validation for users who prefer/need
+// manual review).
 const USERS_KEY = 'sentinel_users_v1';
-function makeCode(email) {
-  let h = 0;
-  for (const c of email.toLowerCase()) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
-  return 'S' + Math.abs(h).toString(36).toUpperCase().padStart(6, '0');
+// makeCode() — audit de securite : generait auparavant un hash deterministe
+// de l'email (aucun secret, aucun alea) — n'importe qui connaissant l'adresse
+// email d'un client pouvait recalculer son code d'acces et se connecter a sa
+// place, sans jamais voir l'ecran de succes. Remplace par un vrai code
+// aleatoire (meme generateur que genAccessCode() cote application), montre
+// une seule fois a la creation du compte, comme prevu a l'origine.
+function makeCode() {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sans 0/O/1/I ambigus
+  const bytes = new Uint8Array(6);
+  crypto.getRandomValues(bytes);
+  return 'S' + Array.from(bytes, b => alphabet[b % alphabet.length]).join('');
 }
 function getUsers() { try { return JSON.parse(localStorage.getItem(USERS_KEY) || '[]'); } catch (e) { return []; } }
 function saveUsers(u) { try { localStorage.setItem(USERS_KEY, JSON.stringify(u)); } catch (e) {} }
@@ -731,7 +738,7 @@ function submitSignup() {
     return;
   }
 
-  const code = makeCode(email);
+  const code = makeCode();
   // planSouhaite : le forfait choisi sur cette page — n'active PAS le forfait
   // payant lui-meme (u.plan reste 'gratuit' tant qu'un admin n'a pas verifie
   // le paiement, voir fonctionnalitePayante() cote application), il sert

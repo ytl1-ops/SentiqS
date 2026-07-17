@@ -11589,9 +11589,24 @@ function genAccessCode() {
   return 'S' + Array.from(bytes, b => alphabet[b % alphabet.length]).join('');
 }
 
+// SETUP_ADMIN_TOKEN — audit de securite : initUsers() tournait auparavant
+// SANS CONDITION a chaque chargement de page (via checkAuth()), donc TOUT
+// nouveau visiteur/appareil/navigateur recevait automatiquement un compte
+// admin actif avec son code affiche en clair dans une alerte — n'importe qui
+// pouvait ainsi devenir administrateur en ouvrant simplement la page une
+// premiere fois. Sans backend pour emettre un vrai jeton a usage unique, ce
+// jeton statique reste techniquement lisible par quelqu'un de determine a
+// lire le code source, mais retire l'exposition automatique et garantie a
+// tout visiteur, qui etait le vrai probleme. Lien de configuration initiale
+// (a n'utiliser que sur un nouvel appareil du proprietaire, jamais partage) :
+// SENTINEL_Surete_Web.html#setup-j156RYJc085bNcHIles62bGND1qV4OOE
+const SETUP_ADMIN_TOKEN = 'j156RYJc085bNcHIles62bGND1qV4OOE';
 function initUsers() {
   let users=getUsers();
   if(!users.find(u=>u.email===ADMIN_EMAIL)){
+    // Ne cree le compte admin que si la page a ete chargee via le lien de
+    // configuration initiale ci-dessus — jamais au chargement normal.
+    if (location.hash !== '#setup-'+SETUP_ADMIN_TOKEN) return;
     const code=genAccessCode();
     users.push({email:ADMIN_EMAIL,name:'Administrateur SENTINEL',role:'admin',
       status:'active',createdAt:new Date().toISOString(),lastLogin:null,code});
@@ -11599,6 +11614,8 @@ function initUsers() {
     // Premiere creation du compte admin sur cet appareil : seul moment ou ce
     // code est affichable, il ne sera plus jamais recalculable ensuite.
     alert('Compte administrateur cree.\n\nVotre code d\'acces (a conserver, il ne sera plus jamais affiche automatiquement) :\n\n'+code);
+    // Efface le jeton de l'URL/historique une fois utilise.
+    history.replaceState(null, '', location.pathname + location.search);
   }
 }
 
