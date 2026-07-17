@@ -797,8 +797,14 @@ html.force-mobile .ops-label{display:none}
    sur mobile) et leur affichage y faisait deborder le bandeau superieur,
    poussant "Actualiser" hors champ. Restent visibles sur un ecran large
    (desktop), y compris en previsualisation .force-mobile, pour permettre
-   d'en sortir. */
-@media (max-width:760px){.disp-switch{display:none}}
+   d'en sortir.
+   !important indispensable : applyRoleMenus() fixe dispSwitch.style.display
+   en JS (inline) pour les administrateurs, ce qui sans !important gagnait
+   toujours sur cette regle de media query et laissait les boutons visibles
+   meme sur un veritable telephone admin — debordement horizontal de tout
+   le bandeau superieur (et, via scrollIntoView lors d'un changement
+   d'onglet, de la page entiere). */
+@media (max-width:760px){.disp-switch{display:none !important}}
 @media (prefers-reduced-motion:reduce){
   .ops-globe-wrap,.ops-node,.ops-arc,.ops-scan{animation:none !important}
   .ops-node{opacity:.7}
@@ -973,7 +979,14 @@ html.force-mobile .ops-label{display:none}
 .pm-sec-hd-l i{font-size:16px;color:var(--b)}
 .pm-sec-title{font-size:12px;font-weight:700;color:var(--t);text-transform:uppercase;letter-spacing:.04em}
 .pm-sec-sub{font-size:10px;color:var(--lg);margin-top:1px}
-.pm-sec-body{padding:16px}
+/* overflow-x:auto : les tableaux d'administration (utilisateurs, clientele,
+   paiements...) ont plus de colonnes que ce qu'un ecran mobile peut
+   afficher sans compression illisible. Sans ce defilement horizontal
+   propre au conteneur, le tableau le plus large forcait toute la page a
+   deborder de la largeur de l'ecran (mise en page cassee, contenu coupe
+   des deux cotes) au lieu de rester confine et defilable a l'interieur
+   de sa propre section. */
+.pm-sec-body{padding:16px;overflow-x:auto}
 /* Droits de telechargement */
 .dl-rights-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
 .dl-right-card{border:1px solid var(--bd);border-radius:8px;padding:14px;
