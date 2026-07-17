@@ -10741,7 +10741,7 @@ function peuplerCorridorsDeLaZone() {
   const selCor = document.getElementById('corCorridorFilter');
   if (!selCor) return;
   const liste = CORRIDORS_PAR_ZONE[fCorZone] || [];
-  selCor.innerHTML = liste.map(c => '<option value="' + c.id + '">' + c.nom + '</option>').join('');
+  selCor.innerHTML = liste.map(c => '<option value="' + c.id + '">' + (c.type === 'maritime' ? '⚓ ' : '') + c.nom + '</option>').join('');
   if (!liste.some(c => c.id === fCorId)) fCorId = liste[0] ? liste[0].id : null;
   selCor.value = fCorId || '';
 }
@@ -10822,6 +10822,48 @@ function ligneFaitApercu(item) {
 // calcNiveauCorridor / CORRIDOR_SECURITE_KW), ses faits marquants et ses
 // actualites recentes — trie du VERT (stable) au ROUGE (critique) pour une
 // lecture de risque immediate avant meme d'avoir choisi un corridor precis.
+function carteCorridorApercu(resume) {
+  const { c, niveau, count } = resume;
+  const pl = lp(niveau);
+  const col = NIVEAU_CORRIDOR_COULEUR[niveau] || 'var(--b)';
+  const zoneNom = (ZONES_GEO[c.zc] || {}).nom || c.zc;
+  const lignes = apercuFaitsMarquants(resume, 2);
+  const estMaritime = c.type === 'maritime';
+  return '<div class="acard" onclick="ouvrirCorridorDepuisApercu(\'' + c.zc + '\',\'' + c.id + '\')" ' +
+    'style="cursor:pointer;padding:12px;border-top:3px solid ' + col + ';display:flex;flex-direction:column;gap:6px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">' +
+        '<span style="font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:4px">' +
+          (estMaritime ? '<i class="ti ti-anchor" title="Zone maritime"></i>' : '') + escHtml(zoneNom) +
+        '</span>' +
+        '<span class="rpill ' + pl[0] + '">' + pl[1] + '</span>' +
+      '</div>' +
+      '<div style="font-size:13px;font-weight:700;color:var(--t)">' + escHtml(c.nom) + '</div>' +
+      '<div style="font-size:10px;color:var(--lg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escHtml(c.villes.map(v => v.nom).join(' → ')) + '</div>' +
+      '<div style="font-size:10px;color:' + col + ';font-weight:700;margin-top:2px">' +
+        (count > 0 ? count + ' fait(s) sécuritaire(s) recoupé(s) · 7 jours' : 'Aucun fait sécuritaire recoupé · 7 jours') +
+      '</div>' +
+      (lignes.length ? '<div style="display:flex;flex-direction:column;gap:2px;margin-top:2px;padding-top:6px;border-top:1px dashed var(--bd)">' + lignes.map(ligneFaitApercu).join('') + '</div>' : '') +
+    '</div>';
+}
+
+function sectionCorridorsApercu(titre, iconClass, resumes) {
+  if (!resumes.length) return '';
+  return '<div style="margin-bottom:16px">' +
+    '<div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--t);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--bd)">' +
+      '<i class="ti ' + iconClass + '"></i>' + escHtml(titre) + ' <span style="color:var(--lg);font-weight:600">(' + resumes.length + ')</span>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px">' +
+      resumes.map(carteCorridorApercu).join('') +
+    '</div>' +
+  '</div>';
+}
+
+// renderCorridorsApercu() : affiche TOUS les corridors, SEPARES en deux
+// sections (terrestres puis maritimes ⚓) — un corridor routier et une zone
+// maritime ne se comparent pas de la meme facon (mots-cles, nature du
+// risque), les melanger dans une seule grille triee par niveau brouillait
+// la lecture. Chaque section reste triee du VERT (stable) au ROUGE
+// (critique).
 function renderCorridorsApercu() {
   const titreEl = document.getElementById('corTitreCorridor');
   const sousTitreEl = document.getElementById('corSousTitre');
@@ -10830,7 +10872,7 @@ function renderCorridorsApercu() {
   const detailEl = document.getElementById('corDetailWrap');
   if (titreEl) titreEl.childNodes[0].nodeValue = 'Corridors de référence ';
   if (badgeEl) badgeEl.innerHTML = '';
-  if (sousTitreEl) sousTitreEl.textContent = "Vue d'ensemble de tous les corridors surveillés (terrestres et maritimes ⚓) · du plus stable au plus critique · niveau recoupé sur les actualités sécuritaires (attaques, coupeurs de route, vols, agressions — ou piraterie, attaques de navires, détournements, enlèvements de marins pour les zones maritimes) des 7 derniers jours.";
+  if (sousTitreEl) sousTitreEl.textContent = "Vue d'ensemble des corridors terrestres et des zones maritimes ⚓, séparés · chaque section triée du plus stable au plus critique · niveau recoupé sur les actualités sécuritaires (attaques, coupeurs de route, vols, agressions — ou piraterie, attaques de navires, détournements, enlèvements de marins pour les zones maritimes) des 7 derniers jours.";
   if (detailEl) detailEl.style.display = 'none';
   if (apercuEl) apercuEl.style.display = '';
   if (!apercuEl) return;
@@ -10839,38 +10881,19 @@ function renderCorridorsApercu() {
   for (const zc in CORRIDORS_PAR_ZONE) {
     (CORRIDORS_PAR_ZONE[zc] || []).forEach(c => tousCorridors.push(Object.assign({ zc }, c)));
   }
-  const cartes = tousCorridors
+  const trieVertRouge = (liste) => liste
     .map(c => Object.assign({ c }, resumeCorridor(c)))
     .sort((a, b) => {
       const r = NIVEAU_CORRIDOR_RANG[a.niveau] - NIVEAU_CORRIDOR_RANG[b.niveau];
       return r !== 0 ? r : a.count - b.count;
     });
 
-  apercuEl.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-bottom:14px">' +
-    cartes.map((resume) => {
-      const { c, niveau, count } = resume;
-      const pl = lp(niveau);
-      const col = NIVEAU_CORRIDOR_COULEUR[niveau] || 'var(--b)';
-      const zoneNom = (ZONES_GEO[c.zc] || {}).nom || c.zc;
-      const lignes = apercuFaitsMarquants(resume, 2);
-      const estMaritime = c.type === 'maritime';
-      return '<div class="acard" onclick="ouvrirCorridorDepuisApercu(\'' + c.zc + '\',\'' + c.id + '\')" ' +
-        'style="cursor:pointer;padding:12px;border-top:3px solid ' + col + ';display:flex;flex-direction:column;gap:6px">' +
-          '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">' +
-            '<span style="font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:4px">' +
-              (estMaritime ? '<i class="ti ti-anchor" title="Zone maritime"></i>' : '') + escHtml(zoneNom) +
-            '</span>' +
-            '<span class="rpill ' + pl[0] + '">' + pl[1] + '</span>' +
-          '</div>' +
-          '<div style="font-size:13px;font-weight:700;color:var(--t)">' + escHtml(c.nom) + '</div>' +
-          '<div style="font-size:10px;color:var(--lg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escHtml(c.villes.map(v => v.nom).join(' → ')) + '</div>' +
-          '<div style="font-size:10px;color:' + col + ';font-weight:700;margin-top:2px">' +
-            (count > 0 ? count + ' fait(s) sécuritaire(s) recoupé(s) · 7 jours' : 'Aucun fait sécuritaire recoupé · 7 jours') +
-          '</div>' +
-          (lignes.length ? '<div style="display:flex;flex-direction:column;gap:2px;margin-top:2px;padding-top:6px;border-top:1px dashed var(--bd)">' + lignes.map(ligneFaitApercu).join('') + '</div>' : '') +
-        '</div>';
-    }).join('') +
-  '</div>';
+  const terrestres = trieVertRouge(tousCorridors.filter(c => c.type !== 'maritime'));
+  const maritimes   = trieVertRouge(tousCorridors.filter(c => c.type === 'maritime'));
+
+  apercuEl.innerHTML =
+    sectionCorridorsApercu('Corridors terrestres', 'ti-route', terrestres) +
+    sectionCorridorsApercu('Zones maritimes', 'ti-anchor', maritimes);
 }
 
 // renderCorridorsDetail() : detail d'UN corridor selectionne (stepper etape
