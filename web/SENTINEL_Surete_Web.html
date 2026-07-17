@@ -3051,6 +3051,51 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
             <div class="pm-group-hd-line"></div>
           </div>
 
+          <!-- Paramétrage des corridors -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-route"></i>
+                <div><div class="pm-sec-title">Paramétrage des corridors</div>
+                <div class="pm-sec-sub" id="corPersoCount">0 corridor(s) personnalisé(s)</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px">
+              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
+                Ajoutez vos propres parcours et corridors — routiers ou maritimes — en plus de ceux fournis par défaut. Chaque corridor est rattaché à une région et regroupe des étapes (villes ou façades maritimes), chacune associée à un pays parmi les 54 pays suivis.
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Nom du corridor</label>
+                  <input type="text" id="corPersoNom" placeholder="Ex. Abidjan – Bouaké – Korhogo" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px;box-sizing:border-box">
+                </div>
+                <div>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Région</label>
+                  <select id="corPersoZone" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px"></select>
+                </div>
+              </div>
+              <div style="margin-bottom:12px">
+                <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Type</label>
+                <select id="corPersoType" style="padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                  <option value="terrestre">Terrestre (parcours routier)</option>
+                  <option value="maritime">Maritime (zone de navigation)</option>
+                </select>
+              </div>
+              <div style="margin-bottom:10px">
+                <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:5px">Étapes du corridor</label>
+                <div id="corPersoEtapes"></div>
+                <button class="btn-action btn-rest" style="margin-top:4px" onclick="corPersoAjouterEtape()"><i class="ti ti-plus"></i> Ajouter une étape</button>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <button class="btn-action btn-rest" onclick="corPersoAjouterCorridor()"><i class="ti ti-device-floppy"></i> Créer le corridor</button>
+                <span class="pmu-msg" id="corPersoMsg" style="margin:0"></span>
+              </div>
+              <table class="pm-users-table" style="margin-top:14px">
+                <thead><tr><th>Nom</th><th>Région</th><th>Type</th><th>Étapes</th><th>Actions</th></tr></thead>
+                <tbody id="corPersoBody"></tbody>
+              </table>
+            </div>
+          </div>
+
           <!-- Gestion clientèle -->
           <div class="pm-section">
             <div class="pm-sec-hd">
@@ -4901,6 +4946,24 @@ const CORRIDORS_PAR_ZONE = {
       {nom:'Eaux du Maroc',cy:'MA'}, {nom:'Eaux d\'Algérie',cy:'DZ'}, {nom:'Eaux de Tunisie',cy:'TN'}, {nom:'Eaux de Libye',cy:'LY'} ] },
   ],
 };
+
+// CORRIDORS_PERSO_KEY : corridors/parcours ajoutes par l'admin depuis
+// Paramètres & Administration (voir "Paramétrage des corridors") — jamais
+// melanges directement dans la constante CORRIDORS_PAR_ZONE (par defaut,
+// figee dans le code) ; corridorsEffectifs() fusionne les deux a la volee,
+// et c'est CETTE fonction que tout le module Corridor doit appeler, jamais
+// CORRIDORS_PAR_ZONE seule, pour que les corridors personnalises
+// apparaissent partout (vue d'ensemble, filtres, detail).
+const CORRIDORS_PERSO_KEY = 'sentinel_corridors_perso_v1';
+function getCorridorsPerso()  { return _ls(()=>JSON.parse(localStorage.getItem(CORRIDORS_PERSO_KEY)||'[]'),[]); }
+function saveCorridorsPerso(l){ _ls(()=>localStorage.setItem(CORRIDORS_PERSO_KEY, JSON.stringify(l))); }
+function corridorsEffectifs() {
+  const perso = getCorridorsPerso();
+  const fusion = {};
+  for (const zc in CORRIDORS_PAR_ZONE) fusion[zc] = CORRIDORS_PAR_ZONE[zc].slice();
+  perso.forEach(c => { (fusion[c.zc] = fusion[c.zc] || []).push(c); });
+  return fusion;
+}
 
 // CORRIDOR_SECURITE_KW : mots-cles recoupes pour calculer le NIVEAU D'ALERTE
 // de chaque corridor — cible specifiquement les faits qui menacent la
@@ -10740,8 +10803,8 @@ function peuplerFiltresCorridors() {
 function peuplerCorridorsDeLaZone() {
   const selCor = document.getElementById('corCorridorFilter');
   if (!selCor) return;
-  const liste = CORRIDORS_PAR_ZONE[fCorZone] || [];
-  selCor.innerHTML = liste.map(c => '<option value="' + c.id + '">' + (c.type === 'maritime' ? '⚓ ' : '') + c.nom + '</option>').join('');
+  const liste = corridorsEffectifs()[fCorZone] || [];
+  selCor.innerHTML = liste.map(c => '<option value="' + escHtml(c.id) + '">' + (c.type === 'maritime' ? '⚓ ' : '') + escHtml(c.nom) + '</option>').join('');
   if (!liste.some(c => c.id === fCorId)) fCorId = liste[0] ? liste[0].id : null;
   selCor.value = fCorId || '';
 }
@@ -10877,9 +10940,10 @@ function renderCorridorsApercu() {
   if (apercuEl) apercuEl.style.display = '';
   if (!apercuEl) return;
 
+  const effectifs = corridorsEffectifs();
   const tousCorridors = [];
-  for (const zc in CORRIDORS_PAR_ZONE) {
-    (CORRIDORS_PAR_ZONE[zc] || []).forEach(c => tousCorridors.push(Object.assign({ zc }, c)));
+  for (const zc in effectifs) {
+    (effectifs[zc] || []).forEach(c => tousCorridors.push(Object.assign({ zc }, c)));
   }
   const trieVertRouge = (liste) => liste
     .map(c => Object.assign({ c }, resumeCorridor(c)))
@@ -10906,7 +10970,8 @@ function renderCorridorsDetail() {
   const detailEl = document.getElementById('corDetailWrap');
   if (apercuEl) apercuEl.style.display = 'none';
   if (detailEl) detailEl.style.display = '';
-  const corridor = (CORRIDORS_PAR_ZONE[fCorZone] || []).find(c => c.id === fCorId) || (CORRIDORS_PAR_ZONE[fCorZone] || [])[0];
+  const _corridorsZone = corridorsEffectifs()[fCorZone] || [];
+  const corridor = _corridorsZone.find(c => c.id === fCorId) || _corridorsZone[0];
   const titreEl = document.getElementById('corTitreCorridor');
   const sousTitreEl = document.getElementById('corSousTitre');
   const badgeEl = document.getElementById('corNiveauBadge');
@@ -10964,8 +11029,8 @@ function renderCorridorsDetail() {
           '<div class="cor-node' + (n > 0 ? ' on' : '') + '">' + n + '</div>' +
           (i < corridor.villes.length - 1 ? '<div class="cor-line"></div>' : '') +
         '</div>' +
-        '<div class="cor-city">' + v.nom + '</div>' +
-        '<div class="cor-cy">' + ((PAYS_INFO[v.cy] || {}).flag || '') + ' ' + v.cy + '</div>' +
+        '<div class="cor-city">' + escHtml(v.nom) + '</div>' +
+        '<div class="cor-cy">' + ((PAYS_INFO[v.cy] || {}).flag || '') + ' ' + escHtml(v.cy) + '</div>' +
       '</div>';
     }).join('');
   }
@@ -10998,6 +11063,110 @@ const renderCorridorsDebounced = _debounce(function () {
   fCorQ = document.getElementById('corQ').value;
   renderCorridors();
 }, 300);
+
+// ── PARAMÉTRAGE DES CORRIDORS (admin) ───────────────────────────────────
+// Formulaire "Paramètres & Administration" permettant d'identifier des
+// parcours et corridors specifiques (pays, regions) sans toucher au code —
+// voir CORRIDORS_PERSO_KEY / corridorsEffectifs() plus haut.
+let _corPersoEtapesTmp = [{ nom: '', cy: '' }];
+
+function peuplerCorPersoZoneSelect() {
+  const sel = document.getElementById('corPersoZone');
+  if (!sel || sel.options.length) return;
+  for (const zc in ZONES_GEO) {
+    const opt = document.createElement('option');
+    opt.value = zc; opt.textContent = ZONES_GEO[zc].nom;
+    sel.appendChild(opt);
+  }
+}
+
+function corPersoAjouterEtape() {
+  _corPersoEtapesTmp.push({ nom: '', cy: '' });
+  renderCorPersoEtapes();
+}
+function corPersoSupprimerEtape(i) {
+  if (_corPersoEtapesTmp.length <= 1) return;
+  _corPersoEtapesTmp.splice(i, 1);
+  renderCorPersoEtapes();
+}
+function corPersoMajEtape(i, champ, val) {
+  if (_corPersoEtapesTmp[i]) _corPersoEtapesTmp[i][champ] = val;
+}
+
+function renderCorPersoEtapes() {
+  const el = document.getElementById('corPersoEtapes');
+  if (!el || typeof PAYS_INFO === 'undefined') return;
+  const paysOptions = Object.keys(PAYS_INFO)
+    .sort((a, b) => PAYS_INFO[a].name.localeCompare(PAYS_INFO[b].name))
+    .map(cy => '<option value="' + cy + '">' + PAYS_INFO[cy].flag + ' ' + escHtml(PAYS_INFO[cy].name) + '</option>').join('');
+  el.innerHTML = _corPersoEtapesTmp.map((e, i) =>
+    '<div style="display:flex;gap:6px;margin-bottom:5px;align-items:center">' +
+      '<input type="text" value="' + escHtml(e.nom || '') + '" placeholder="Nom de l\'étape (ville / zone)" oninput="corPersoMajEtape(' + i + ',\'nom\',this.value)" style="flex:1;padding:5px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;box-sizing:border-box">' +
+      '<select onchange="corPersoMajEtape(' + i + ',\'cy\',this.value)" style="padding:5px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px"><option value="">Pays…</option>' + paysOptions + '</select>' +
+      (_corPersoEtapesTmp.length > 1 ? '<button onclick="corPersoSupprimerEtape(' + i + ')" title="Supprimer l\'étape" style="background:none;border:none;color:var(--r);cursor:pointer;font-size:14px;padding:2px 4px"><i class="ti ti-trash"></i></button>' : '') +
+    '</div>'
+  ).join('');
+  // Le reset innerHTML perd la selection des <select> — la restaurer.
+  _corPersoEtapesTmp.forEach((e, i) => {
+    const sel = el.children[i] && el.children[i].querySelector('select');
+    if (sel && e.cy) sel.value = e.cy;
+  });
+}
+
+function corPersoAjouterCorridor() {
+  const nomEl = document.getElementById('corPersoNom');
+  const nom = (nomEl.value || '').trim();
+  const zc = document.getElementById('corPersoZone').value;
+  const type = document.getElementById('corPersoType').value;
+  const etapes = _corPersoEtapesTmp.filter(e => (e.nom || '').trim() && e.cy);
+  if (!nom) { pmMsg('Le nom du corridor est requis.', 'err', 'corPersoMsg'); return; }
+  if (!zc) { pmMsg('Choisissez une région.', 'err', 'corPersoMsg'); return; }
+  if (!etapes.length) { pmMsg('Ajoutez au moins une étape avec un nom et un pays.', 'err', 'corPersoMsg'); return; }
+  const perso = getCorridorsPerso();
+  const id = 'perso-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  perso.push({ id, nom, zc, type, perso: true, villes: etapes.map(e => ({ nom: e.nom.trim(), cy: e.cy })) });
+  saveCorridorsPerso(perso);
+  nomEl.value = '';
+  _corPersoEtapesTmp = [{ nom: '', cy: '' }];
+  renderCorPersoEtapes();
+  renderCorPersoListe();
+  pmMsg('Corridor « ' + escHtml(nom) + ' » ajouté.', 'ok', 'corPersoMsg');
+  // Si le module Corridors est deja ouvert, refleter immediatement l'ajout
+  // dans la vue d'ensemble plutot que d'attendre une reouverture d'onglet.
+  if (typeof corridorVueApercu !== 'undefined' && document.getElementById('v-corridors') && document.getElementById('v-corridors').classList.contains('on')) {
+    corridorVueApercu = true;
+    renderCorridors();
+  }
+}
+
+function corPersoSupprimerCorridor(id) {
+  if (!confirm('Supprimer ce corridor personnalisé ?')) return;
+  saveCorridorsPerso(getCorridorsPerso().filter(c => c.id !== id));
+  renderCorPersoListe();
+}
+
+function renderCorPersoListe() {
+  const body = document.getElementById('corPersoBody');
+  const countEl = document.getElementById('corPersoCount');
+  if (!body) return;
+  const perso = getCorridorsPerso();
+  if (countEl) countEl.textContent = perso.length + ' corridor(s) personnalisé(s)';
+  body.innerHTML = !perso.length
+    ? '<tr><td colspan="5" style="text-align:center;color:var(--lg);padding:14px">Aucun corridor personnalisé pour le moment.</td></tr>'
+    : perso.map(c => '<tr>' +
+        '<td>' + escHtml(c.nom) + '</td>' +
+        '<td>' + escHtml((ZONES_GEO[c.zc] || {}).nom || c.zc) + '</td>' +
+        '<td>' + (c.type === 'maritime' ? '⚓ Maritime' : 'Terrestre') + '</td>' +
+        '<td>' + escHtml(c.villes.map(v => v.nom).join(' → ')) + '</td>' +
+        '<td><button class="btn-action btn-del" onclick="corPersoSupprimerCorridor(\'' + c.id + '\')">Supprimer</button></td>' +
+      '</tr>').join('');
+}
+
+function initCorridorsPerso() {
+  peuplerCorPersoZoneSelect();
+  renderCorPersoEtapes();
+  renderCorPersoListe();
+}
 
 // ── CONTROLES ─────────────────────────────────────────────────────────────────
 function setCy(c) { applyGlobalCountryFilter(c); if (window.innerWidth<=760) toggleLP(false); }
@@ -12662,6 +12831,7 @@ function loadParamsModule() {
   renderFeatureRights();
   pmRenderUsers();
   pmRenderPending();
+  if (typeof initCorridorsPerso === 'function') initCorridorsPerso();
   renderPricing();
   renderDLQuotas();
   renderPaymethods();
