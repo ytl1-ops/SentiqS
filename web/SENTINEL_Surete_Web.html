@@ -1651,7 +1651,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
 
 <!-- ═══ CONTENEUR NOTIFICATIONS POPUP — flottant sur toute l'application ═══ -->
 <div id="toastContainer" style="position:fixed;top:58px;right:14px;z-index:9999;
-  display:flex;flex-direction:column;gap:8px;max-width:340px;pointer-events:none;"></div>
+  display:flex;flex-direction:column;gap:10px;max-width:400px;pointer-events:none;"></div>
 
 <!-- Badge analyse IA en cours -->
 <div id="ia-badge" style="display:none;position:fixed;bottom:14px;right:14px;z-index:9998;
@@ -7162,7 +7162,11 @@ async function doCollect() {
           newInThisSrc.push(a);
         }
       });
-      newInThisSrc.filter(a => estRecentReel(a)).slice(0,2).forEach(a => pushToast(a));
+      // Plafond releve (2 -> 4 par source) : popups plus frequents, pour
+      // davantage d'actus fraiches (pas seulement critiques/elevees) —
+      // demande explicite d'un rendu plus visible/accrocheur, façon
+      // notifications d'actualite grand public.
+      newInThisSrc.filter(a => estRecentReel(a)).slice(0,4).forEach(a => pushToast(a));
       SRC_ST[src.id] = {ok:true, cnt:arts.length};
       recordSrcOk(src.id);
       ok++;
@@ -7356,9 +7360,10 @@ async function doCollect() {
     b.style.display='inline';
     b.textContent=nw>99?'99+':nw;
     // Si trop de toasts en file (premiere collecte massive), on plafonne et resume
-    if (toastQueue.length > 8) {
-      const overflow = toastQueue.length - 5;
-      toastQueue = toastQueue.slice(0, 5);
+    // (seuil releve : popups plus frequents desormais, voir collectOne)
+    if (toastQueue.length > 14) {
+      const overflow = toastQueue.length - 8;
+      toastQueue = toastQueue.slice(0, 8);
       const summaryEl = document.createElement('div');
       const sid = 'toast_summary_' + Date.now();
       summaryEl.id = sid;
@@ -9136,6 +9141,11 @@ function processToastQueue() {
   renderToast(a);
 }
 
+// renderToast(a) : carte popup façon "notification d'actualite grand public"
+// (vignette + titre en gras + source), plus grande, plus longtemps affichee
+// et plus frequente que la version precedente (voir collectOne/pushToast) —
+// demande explicite d'un rendu plus visible/accrocheur pour davantage
+// d'actus fraiches, pas seulement critiques/elevees.
 async function renderToast(a) {
   const container = document.getElementById('toastContainer');
   if (!container) { toastShowing = false; processToastQueue(); return; }
@@ -9146,35 +9156,51 @@ async function renderToast(a) {
 
   const m = levelMeta(a.level);
   const cc = CYS.find(x=>x.code===a.cy) || {flag:'🌍', name:a.cy};
+  const ps = (typeof gs === 'function') ? gs(a.primary) : null;
   const id = 'toast_' + a.id + '_' + Date.now();
+  const vignette = (a._media && a._media.img)
+    ? '<div style="width:58px;height:58px;flex-shrink:0;border-radius:8px;overflow:hidden;background:var(--sf);">'+
+        '<img src="'+a._media.img+'" alt="" loading="lazy" onerror="this.parentElement.style.display=\'none\'" style="width:100%;height:100%;object-fit:cover;display:block;">'+
+      '</div>'
+    : '';
 
   const el = document.createElement('div');
   el.id = id;
-  el.style.cssText = 'pointer-events:auto;background:var(--w);border-left:4px solid '+m.col+
-    ';border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:12px 14px;cursor:pointer;'+
-    'transform:translateX(360px);opacity:0;transition:transform .35s ease,opacity .35s ease;';
+  el.style.cssText = 'pointer-events:auto;background:'+m.bg+';border-left:5px solid '+m.col+
+    ';border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.24);padding:13px 15px;cursor:pointer;'+
+    'transform:translateX(400px) scale(.96);opacity:0;transition:transform .35s cubic-bezier(.2,.8,.3,1),opacity .35s ease;';
   el.onclick = () => { switchView('flux', document.querySelector('.ntab')); showDet(a.id); dismissToast(id); };
 
   el.innerHTML =
-    '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;">'+
-      '<span style="background:'+m.col+';color:#fff;font-size:8px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:.04em;">'+
-        '<i class="ti '+m.icon+'" style="font-size:9px;vertical-align:-1px"></i> '+m.label+
+    '<div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;">'+
+      '<span style="width:6px;height:6px;border-radius:50%;background:'+m.col+';animation:blink 1.4s infinite;flex-shrink:0;"></span>'+
+      '<span style="background:'+m.col+';color:#fff;font-size:9px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:.04em;">'+
+        '<i class="ti '+m.icon+'" style="font-size:10px;vertical-align:-1px"></i> '+m.label+
       '</span>'+
-      '<span style="font-size:10px;color:var(--lg);font-weight:600;">'+cc.flag+' '+cc.name+'</span>'+
-      '<span style="margin-left:auto;font-size:13px;color:var(--lg);cursor:pointer;" onclick="event.stopPropagation();dismissToastManual(\''+id+'\')">✕</span>'+
+      '<span style="font-size:10.5px;color:var(--t2);font-weight:600;">'+cc.flag+' '+cc.name+'</span>'+
+      '<span style="margin-left:auto;font-size:15px;color:var(--lg);cursor:pointer;padding:2px 4px;" onclick="event.stopPropagation();dismissToastManual(\''+id+'\')">✕</span>'+
     '</div>'+
-    '<div style="font-size:12px;font-weight:700;color:var(--t);line-height:1.35;margin-bottom:3px;" id="'+id+'-tt">'+L(a.title)+'</div>'+
-    '<div style="font-size:9px;color:var(--lg);display:flex;align-items:center;gap:4px;">'+
-      '<i class="ti ti-clock" style="font-size:10px"></i> Vient d etre publie · '+(fmtAge(a.pubDate)||'a l instant')+
+    '<div style="display:flex;gap:10px;">'+
+      vignette+
+      '<div style="flex:1;min-width:0;">'+
+        '<div style="font-size:13.5px;font-weight:800;color:var(--t);line-height:1.32;margin-bottom:5px;" id="'+id+'-tt">'+L(a.title)+'</div>'+
+        '<div style="font-size:9.5px;color:var(--lg);display:flex;align-items:center;gap:4px;flex-wrap:wrap;">'+
+          (ps ? '<span style="font-weight:700;color:'+ps.col+';">'+ps.n+'</span><span>·</span>' : '')+
+          '<i class="ti ti-clock" style="font-size:10px"></i> Vient d etre publie · '+(fmtAge(a.pubDate)||'a l instant')+
+        '</div>'+
+      '</div>'+
     '</div>';
 
   container.appendChild(el);
   requestAnimationFrame(() => {
-    el.style.transform = 'translateX(0)';
+    el.style.transform = 'translateX(0) scale(1)';
     el.style.opacity = '1';
   });
 
-  const lifespan = (a.level === 'crit') ? 9000 : 6000;
+  // Duree d'affichage allongee (popup plus visible, on lui laisse le temps
+  // d'etre remarque et lu avant de disparaitre) : 18s critique, 13s eleve,
+  // 9s pour le reste (contre 9s/6s auparavant).
+  const lifespan = (a.level === 'crit') ? 18000 : (a.level === 'high') ? 13000 : 9000;
   setTimeout(() => dismissToast(id), lifespan);
 }
 
