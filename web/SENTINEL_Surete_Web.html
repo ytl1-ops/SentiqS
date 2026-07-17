@@ -2122,7 +2122,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
             <option value="historique">Historique</option>
             <option value="agenda">Agenda</option>
             <option value="alertes">Alertes verifiees</option>
-            <option value="sources">Sources</option>
+            <option value="sources" id="seScopeSources">Sources</option>
           </select>
           <select id="seCy" onchange="setSeCy(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
             <option value="all">Tous les pays</option>
@@ -2367,12 +2367,12 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               </div>
             </div>
 
-            <div class="acard" style="padding:14px">
+            <div class="acard" id="acardSources" style="padding:14px;display:none">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
                 <i class="ti ti-list-check" style="font-size:16px;color:var(--b)"></i>
                 <span style="font-size:12px;font-weight:700;color:var(--t)">Matrice des sources</span>
               </div>
-              <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Liste des sources suivies et leur fiabilité.</div>
+              <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Liste des sources suivies et leur fiabilité. Réservé à l'administration.</div>
               <div style="display:flex;gap:8px">
                 <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'sources')"><i class="ti ti-share-2"></i>Partager</button>
               </div>
@@ -5208,7 +5208,9 @@ function parseJSON(d, src) {
 
     return {
       id, title,
-      analysis: desc || 'Voir sur ' + src.n + '.',
+      // Repli generique (sans nom de source, voir sourcesVisibles) quand le
+      // flux ne fournit aucune description exploitable.
+      analysis: desc || 'Resume non disponible pour cette actualite.',
       url: link, srcs: [src.id], primary: src.id,
       cy: cyReel || src.cy, sc: (cyReel === 'INT') ? 'regional' : ((cyReel && cyReel !== src.cy) ? 'national' : src.sc), cat, level: lvl,
       score: src.score, pubDate: pubTs, time: fmtAge(pubTs),
@@ -6861,7 +6863,9 @@ function parseRSS(xml, src) {
 
     res.push({
       id, title,
-      analysis: desc || 'Voir sur '+src.n+'.',
+      // Repli generique (sans nom de source, voir sourcesVisibles) quand le
+      // flux ne fournit aucune description exploitable.
+      analysis: desc || 'Resume non disponible pour cette actualite.',
       url: link, srcs:[src.id], primary:src.id,
       cy:(cyReel || src.cy), sc:((cyReel === 'INT') ? 'regional' : ((cyReel && cyReel !== src.cy) ? 'national' : src.sc)), cat, level:lvl,
       score:src.score, pubDate:pubTs, time:fmtAge(pubTs),
@@ -9185,7 +9189,7 @@ async function renderToast(a) {
       '<div style="flex:1;min-width:0;">'+
         '<div style="font-size:13.5px;font-weight:800;color:var(--t);line-height:1.32;margin-bottom:5px;" id="'+id+'-tt">'+L(a.title)+'</div>'+
         '<div style="font-size:9.5px;color:var(--lg);display:flex;align-items:center;gap:4px;flex-wrap:wrap;">'+
-          (ps ? '<span style="font-weight:700;color:'+ps.col+';">'+ps.n+'</span><span>·</span>' : '')+
+          (ps && sourcesVisibles() ? '<span style="font-weight:700;color:'+ps.col+';">'+ps.n+'</span><span>·</span>' : '')+
           '<i class="ti ti-clock" style="font-size:10px"></i> Vient d etre publie · '+(fmtAge(a.pubDate)||'a l instant')+
         '</div>'+
       '</div>'+
@@ -9391,7 +9395,10 @@ async function renderFeed() {
     const pl=a.flagged?lp('u'):lp(a.level);
     const cc=CYS.find(x=>x.code===a.cy)||{flag:'🌍',name:a.cy};
     const scl={local:'Local',national:'National',regional:'Regional'};
-    const chips=(a.srcs||[a.primary]).slice(0,3).map(sid=>{
+    // Sources masquees pour les utilisateurs non-admin (voir sourcesVisibles) :
+    // aucun nom/lien de source dans les modules de lecture, l'actu doit se
+    // comprendre par son propre texte (titre + analyse).
+    const chips = sourcesVisibles() ? (a.srcs||[a.primary]).slice(0,3).map(sid=>{
       const s=gs(sid);
       // Lien direct vers la depeche pour la source primaire (celle dont on a
       // capture le lien exact a la collecte) ; page de la source pour les
@@ -9400,14 +9407,17 @@ async function renderFeed() {
       return '<a href="'+safeUrl(lien, s.n+' actualite')+'" target="_blank" class="slink" onclick="event.stopPropagation()">'+
              '<span class="dot" style="background:'+s.col+'"></span>'+s.n+
              '<i class="ti ti-external-link"></i></a>';
-    }).join('');
+    }).join('') : '';
     const isnew=NEW_IDS.has(a.id)?' new-art':'';
     const surv=fmtSurvenance(a);
     const survSuf = surv.inconnue ? '<span class="meta-neutre" style="margin-left:2px;">à vérifier</span>'
                   : (surv.ancien ? ' ⚠ +12h' : '');
+    const sico = sourcesVisibles()
+      ? '<div class="sico" style="background:'+ps.col+'">'+ps.n.slice(0,2).toUpperCase()+'</div>'
+      : '<div class="sico" style="background:'+levelMeta(a.level).col+'"><i class="ti ti-news" style="font-size:13px;color:#fff;"></i></div>';
     return '<div class="art l'+a.level.charAt(0)+'2'+isnew+'" data-level="'+a.level+'" onclick="showDet(\''+a.id+'\')">'+
       '<div class="al"><span class="rpill '+pl[0]+'">'+pl[1]+'</span>'+
-      '<div class="sico" style="background:'+ps.col+'">'+ps.n.slice(0,2).toUpperCase()+'</div></div>'+
+      sico+'</div>'+
       '<div class="ab">'+
         // ── Ligne meta prioritaire : pays + heure de survenance (mono), avant tout le reste ──
         '<div class="art-top">'+
@@ -9611,12 +9621,15 @@ async function showDet(id) {
   const pl=a.flagged?lp('u'):lp(a.level);
   const bc=lbg(a.level);
   const bgC=a.level==='crit'?'#FEF2F2':a.level==='high'?'#FFFBEB':'#EFF6FF';
-  const srcHtml=(a.srcs||[a.primary]).map(sid=>{
+  // Sources (nom + lien vers le site d'origine) masquees pour les
+  // utilisateurs non-admin (voir sourcesVisibles) : l'actu doit se
+  // comprendre par son propre texte, sans avoir a cliquer vers la source.
+  const srcHtml = sourcesVisibles() ? (a.srcs||[a.primary]).map(sid=>{
     const s=gs(sid);
     const lien = (sid === a.primary) ? articleLienDirect(a) : s.url;
     return '<a href="'+safeUrl(lien, s.n+' actualite')+'" target="_blank"><span class="dot" style="background:'+s.col+'"></span>'+
            s.n+'<i class="ti ti-external-link" style="font-size:9px;margin-left:2px"></i></a>';
-  }).join('');
+  }).join('') : '';
   const lienDirectDispo = (typeof articleADesLiensDirects === 'function') && articleADesLiensDirects(a);
   const panel=document.getElementById('detPanel');
   panel.className='det op';
@@ -9650,18 +9663,27 @@ async function showDet(id) {
     '</div>'+
     '<div class="det-pubdate"><i class="ti ti-calendar-time"></i><strong>Publié :</strong> '+fmtFull(a.pubDate)+'</div>'+
     (()=>{ const s=fmtSurvenance(a); const suf = s.inconnue ? ' <span style="font-size:9px;">(à vérifier)</span>' : (s.ancien?' <span style="font-size:9px;">⚠ plus de 12h</span>':''); return '<div class="det-pubdate" style="'+(s.ancien?'color:#8B1A1A;font-weight:700;':'')+'"><i class="ti ti-history"></i><strong>Survenance estimée :</strong> '+s.texte+suf+'</div>'; })()+
-    '<div class="dsrcs"><span style="font-size:9px;font-weight:700;color:var(--gr);text-transform:uppercase;letter-spacing:.05em">Sources :</span>'+srcHtml+'</div>'+
-    '<div style="font-size:8px;color:var(--lg);padding:4px 0 0;font-style:italic;">'+
-      (lienDirectDispo
-        ? 'Le lien ci-dessus mene directement a la depeche source.'
-        : 'Aucun lien direct vers cette depeche precise n\'a ete trouve a la collecte : le lien mene vers la page de recherche ou de categorie du site source.')+
-    '</div>'+
-    '<div class="dan" id="detan-'+a.id+'">'+extraitLoyal(L(a.analysis), EXTRAIT_MAX_CARACTERES)+'</div>'+
-    '<div style="font-size:8px;color:var(--lg);padding:6px 0 0;font-style:italic;border-top:.5px solid var(--bd);margin-top:8px;">Extrait à fin de veille (usage loyal). Contenu et droits appartenant à la source citée. Consulter l\'article complet sur le site d\'origine.</div>'+
+    (sourcesVisibles() ?
+      '<div class="dsrcs"><span style="font-size:9px;font-weight:700;color:var(--gr);text-transform:uppercase;letter-spacing:.05em">Sources :</span>'+srcHtml+'</div>'+
+      '<div style="font-size:8px;color:var(--lg);padding:4px 0 0;font-style:italic;">'+
+        (lienDirectDispo
+          ? 'Le lien ci-dessus mene directement a la depeche source.'
+          : 'Aucun lien direct vers cette depeche precise n\'a ete trouve a la collecte : le lien mene vers la page de recherche ou de categorie du site source.')+
+      '</div>'
+    : '')+
+    // Sans lien de source (utilisateur non-admin), l'analyse complete est
+    // affichee (au lieu d'un extrait de 280 caracteres renvoyant vers le
+    // site d'origine) : l'actu doit se suffire a elle-meme.
+    '<div class="dan" id="detan-'+a.id+'">'+(sourcesVisibles() ? extraitLoyal(L(a.analysis), EXTRAIT_MAX_CARACTERES) : L(a.analysis))+'</div>'+
+    (sourcesVisibles()
+      ? '<div style="font-size:8px;color:var(--lg);padding:6px 0 0;font-style:italic;border-top:.5px solid var(--bd);margin-top:8px;">Extrait à fin de veille (usage loyal). Contenu et droits appartenant à la source citée. Consulter l\'article complet sur le site d\'origine.</div>'
+      : '')+
     (a.recos?.length?'<div class="drec"><div class="drec-hd"><i class="ti ti-chevron-right"></i>Actions recommandees</div>'+
       a.recos.map(r=>'<div class="rli">'+r+'</div>').join('')+'</div>':'')+
     '<div class="dact">'+
-      '<a href="'+safeUrl(articleLienDirect(a), a.title)+'" target="_blank" class="dbt p"><i class="ti ti-external-link"></i>'+(lienDirectDispo ? 'Lire l\'article complet' : 'Rechercher sur '+ps.n)+'</a>'+
+      (sourcesVisibles()
+        ? '<a href="'+safeUrl(articleLienDirect(a), a.title)+'" target="_blank" class="dbt p"><i class="ti ti-external-link"></i>'+(lienDirectDispo ? 'Lire l\'article complet' : 'Rechercher sur '+ps.n)+'</a>'
+        : '')+
       '<button class="dbt" onclick="toggleShareMenu(event,\''+a.id+'\')"><i class="ti ti-share-2"></i>'+(LANG==='en'?'Share':'Partager')+'</button>'+
       '<div class="dbt" style="margin-left:auto" onclick="document.getElementById(\'detPanel\').className=\'det\'"><i class="ti ti-x"></i>Fermer</div>'+
     '</div>';
@@ -9794,18 +9816,24 @@ async function showKpiDrill(kind) {
           : `<span style="font-size:10px;color:var(--lg);">${s.n} article${s.n>1?'s':''}</span>`}
       </div>`).join('') : '<div style="padding:16px;text-align:center;color:var(--lg);font-size:11px;">Aucun pays.</div>';
   } else if (kind==='sources') {
-    const bySrc = {};
-    artsActifs.forEach(a=>{ const k=a.primary||'?'; bySrc[k]=(bySrc[k]||0)+1; });
-    const list = Object.keys(bySrc).map(id=>({id,n:bySrc[id]})).sort((a,b)=>b.n-a.n);
+    // Detail par source reserve aux administrateurs (voir sourcesVisibles) —
+    // le KPI en tete de tableau de bord reste un simple compte, visible de tous.
     title = 'Sources actives (moins de 12h)'; icon = 'ti-antenna';
-    rows = list.length ? list.map(s=>{
-      const src = SRCS.find(x=>x.id===s.id);
-      return `<div style="padding:9px 0;border-bottom:.5px solid var(--bd);display:flex;align-items:center;gap:8px;">
-        <span style="width:9px;height:9px;border-radius:50%;background:${src?src.col:'#9CA3AF'};flex-shrink:0;"></span>
-        <div style="flex:1;"><div style="font-size:12px;font-weight:600;color:var(--t);">${src?src.n:s.id}</div></div>
-        <span style="font-size:10px;color:var(--lg);">${s.n} article${s.n>1?'s':''}</span>
-      </div>`;
-    }).join('') : '<div style="padding:16px;text-align:center;color:var(--lg);font-size:11px;">Aucune source.</div>';
+    if (!sourcesVisibles()) {
+      rows = '<div style="padding:16px;text-align:center;color:var(--lg);font-size:11px;">Détail réservé à l\'administration.</div>';
+    } else {
+      const bySrc = {};
+      artsActifs.forEach(a=>{ const k=a.primary||'?'; bySrc[k]=(bySrc[k]||0)+1; });
+      const list = Object.keys(bySrc).map(id=>({id,n:bySrc[id]})).sort((a,b)=>b.n-a.n);
+      rows = list.length ? list.map(s=>{
+        const src = SRCS.find(x=>x.id===s.id);
+        return `<div style="padding:9px 0;border-bottom:.5px solid var(--bd);display:flex;align-items:center;gap:8px;">
+          <span style="width:9px;height:9px;border-radius:50%;background:${src?src.col:'#9CA3AF'};flex-shrink:0;"></span>
+          <div style="flex:1;"><div style="font-size:12px;font-weight:600;color:var(--t);">${src?src.n:s.id}</div></div>
+          <span style="font-size:10px;color:var(--lg);">${s.n} article${s.n>1?'s':''}</span>
+        </div>`;
+      }).join('') : '<div style="padding:16px;text-align:center;color:var(--lg);font-size:11px;">Aucune source.</div>';
+    }
   }
 
   let overlay = document.getElementById('kpiDrillOverlay');
@@ -10164,8 +10192,9 @@ async function updSynthese() {
         '<div class="sy-tt2" id="sytt-'+a.id+'">'+L(a.title)+'</div>'+
         '<div style="font-size:9px;color:var(--lg);font-weight:600;margin:2px 0 4px;"><i class="ti ti-clock" style="font-size:9px;vertical-align:-1px"></i> Publie le '+fmtFull(a.pubDate)+' ('+fmtAge(a.pubDate)+')'+((a.pubDate&&(Date.now()-a.pubDate)<12*3600000)?' <span style="font-size:8px;font-weight:700;color:#fff;background:#15803D;padding:1px 6px;border-radius:3px;">−12H</span>':'')+'</div>'+
         '<div class="sy-bd" id="sybd-'+a.id+'">'+analyseL.slice(0,280)+(analyseL.length>280?'...':'')+'</div>'+
-        '<div class="sy-sr"><a href="'+safeUrl(articleLienDirect(a), ps.n+' actualite')+'" target="_blank" class="ssrc">'+
-          '<span class="dot" style="background:'+ps.col+'"></span>'+ps.n+'<i class="ti ti-external-link"></i></a>'+
+        '<div class="sy-sr">'+
+          (sourcesVisibles() ? '<a href="'+safeUrl(articleLienDirect(a), ps.n+' actualite')+'" target="_blank" class="ssrc">'+
+          '<span class="dot" style="background:'+ps.col+'"></span>'+ps.n+'<i class="ti ti-external-link"></i></a>' : '')+
           '<button class="share-trigger" onclick="toggleShareMenu(event,\''+a.id+'\')" title="'+(LANG==='en'?'Share':'Partager')+'"><i class="ti ti-share-2"></i>'+(LANG==='en'?'Share':'Partager')+'</button>'+
           '<span class="ss-sc '+sc+'">'+a.score+'%</span></div>'+
       '</div>';
@@ -10320,11 +10349,13 @@ function buildRecherche(query, scope, cyFilter, catFilter) {
       const score = _seScore(tokens, e.title, e.src, '', 0);
       if (!score) return;
       const lvlKey = {rouge:'crit',marron:'high',orange:'high',jaune:'mod',vert:'ok'}[e.level] || 'mod';
-      out.push({ type:'alertes', score, title:e.title, snippet:e.src||'', cy:e.cy, cat:null, level:lvlKey,
+      out.push({ type:'alertes', score, title:e.title, snippet: sourcesVisibles() ? (e.src||'') : '', cy:e.cy, cat:null, level:lvlKey,
         dateLabel: e.date||'', ts:0, id:'al_'+idx });
     });
   }
-  if (inScope('sources')) {
+  // Portee "sources" (recherche dans le registre des sources) : reservee
+  // aux administrateurs, voir sourcesVisibles.
+  if (inScope('sources') && sourcesVisibles()) {
     SRCS.forEach(s => {
       if (cyFilter !== 'all' && s.cy !== cyFilter) return;
       if (catFilter !== 'all' && s.cat !== catFilter) return;
@@ -10492,8 +10523,10 @@ async function renderAgenda() {
         '<div class="ev-mt">'+
           '<span class="ev-cy"'+(resolveAgendaCy(e.cy)?' style="cursor:pointer" onclick="ouvrirVuePays(\''+resolveAgendaCy(e.cy)+'\')"':'')+'><i class="ti ti-map-pin" style="font-size:10px"></i>'+e.cy+'</span>'+
           '<span class="ev-ip '+IC[e.impact]+'">Impact '+e.impact.toUpperCase()+'</span>'+
-          (e.surl?'<a href="'+safeUrl(e.surl,e.src)+'" target="_blank" class="ev-sc"><i class="ti ti-external-link"></i>'+e.src+'</a>':
-                  '<span class="ev-sc"><i class="ti ti-cpu"></i>'+e.src+'</span>')+
+          (sourcesVisibles()
+            ? (e.surl?'<a href="'+safeUrl(e.surl,e.src)+'" target="_blank" class="ev-sc"><i class="ti ti-external-link"></i>'+e.src+'</a>':
+                      '<span class="ev-sc"><i class="ti ti-cpu"></i>'+e.src+'</span>')
+            : '')+
         '</div>'+
         (e.reco?'<div class="ev-rc"><i class="ti ti-chevron-right" style="color:var(--b);font-size:10px;vertical-align:-1px"></i> <span id="'+rcId+'">'+L(e.reco)+'</span></div>':'')+
       '</div>'+
@@ -10744,26 +10777,32 @@ setInterval(()=>{
 async function runDiagnostic() {
   const testUrl = 'https://www.france24.com/fr/afrique/rss';
 
-  // ── Panneau de santé des sources ─────────────────────────────────────────
-  const failingSrcs = SRCS.filter(s => {
-    const h = SRC_HEALTH[s.id];
-    return h && h.fails >= SRC_FAIL_THRESHOLD;
-  });
-  const inCooldown = failingSrcs.filter(s => {
-    const h = SRC_HEALTH[s.id];
-    return h && (Date.now() - h.lastFail) < SRC_COOLDOWN_MS;
-  });
-  const healthSummary = failingSrcs.length
-    ? `<div style="background:#FEF9C3;border:1px solid #A38900;border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:#6B5900;">
-        <strong>${inCooldown.length} source${inCooldown.length>1?'s':''} en veille</strong> (${SRC_FAIL_THRESHOLD} echecs consecutifs ou plus) :<br>
-        ${inCooldown.slice(0,8).map(s=>{
-          const h = SRC_HEALTH[s.id] || {};
-          return `<div style="margin:3px 0;"><span style="display:inline-block;background:#FFF;border:1px solid #A38900;border-radius:3px;padding:1px 6px;font-weight:700;">${s.n}</span> <span style="opacity:.8;">— ${h.lastReason||'raison inconnue'}</span></div>`;
-        }).join('')}
-        <br>
-        <button onclick="SRC_HEALTH={};localStorage.removeItem('sentinel_src_health');this.textContent='Réinitialisé';" style="padding:4px 10px;background:#A38900;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:10px;font-weight:700;">Réinitialiser la santé des sources</button>
-      </div>`
-    : `<div style="background:#DCFCE7;border:1px solid #15803D;border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:11px;color:#14532D;">Toutes les sources sont actives — aucune mise en veille.</div>`;
+  // ── Panneau de santé des sources — noms de sources individuelles,
+  // reserve aux administrateurs (voir sourcesVisibles). Les autres
+  // utilisateurs ne voient que le diagnostic des services de collecte
+  // (proxies) ci-dessous, qui ne cite aucune source editoriale.
+  let healthSummary = '';
+  if (sourcesVisibles()) {
+    const failingSrcs = SRCS.filter(s => {
+      const h = SRC_HEALTH[s.id];
+      return h && h.fails >= SRC_FAIL_THRESHOLD;
+    });
+    const inCooldown = failingSrcs.filter(s => {
+      const h = SRC_HEALTH[s.id];
+      return h && (Date.now() - h.lastFail) < SRC_COOLDOWN_MS;
+    });
+    healthSummary = failingSrcs.length
+      ? `<div style="background:#FEF9C3;border:1px solid #A38900;border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:#6B5900;">
+          <strong>${inCooldown.length} source${inCooldown.length>1?'s':''} en veille</strong> (${SRC_FAIL_THRESHOLD} echecs consecutifs ou plus) :<br>
+          ${inCooldown.slice(0,8).map(s=>{
+            const h = SRC_HEALTH[s.id] || {};
+            return `<div style="margin:3px 0;"><span style="display:inline-block;background:#FFF;border:1px solid #A38900;border-radius:3px;padding:1px 6px;font-weight:700;">${s.n}</span> <span style="opacity:.8;">— ${h.lastReason||'raison inconnue'}</span></div>`;
+          }).join('')}
+          <br>
+          <button onclick="SRC_HEALTH={};localStorage.removeItem('sentinel_src_health');this.textContent='Réinitialisé';" style="padding:4px 10px;background:#A38900;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:10px;font-weight:700;">Réinitialiser la santé des sources</button>
+        </div>`
+      : `<div style="background:#DCFCE7;border:1px solid #15803D;border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:11px;color:#14532D;">Toutes les sources sont actives — aucune mise en veille.</div>`;
+  }
 
   const proxies = [
     { nom: 'rss2json.com', type: 'json', fn: () => RSS2JSON(testUrl) },
@@ -11404,6 +11443,16 @@ function getSession()  { return _MEM_SESSION || {email:ADMIN_EMAIL, name:'Admini
 function saveSession(s){ _MEM_SESSION=s; _ls(()=>localStorage.setItem(STORE_KEY,JSON.stringify(s))); }
 function clearSession(){ _MEM_SESSION=null; _ls(()=>localStorage.removeItem(STORE_KEY)); }
 
+// sourcesVisibles() : les noms/liens de source ne s'affichent nulle part
+// dans les modules de lecture (Flux, Alertes, Agenda, Synthese, Recherche,
+// Rapports, popups, tableau de bord...) — seuls les administrateurs les
+// voient (interface admin/diagnostic). Point d'entree unique pour ce
+// controle : un futur parametrage plus fin remplacera ce simple test de
+// role sans avoir a toucher chaque module individuellement.
+function sourcesVisibles() {
+  try { return getSession().role === 'admin'; } catch(_) { return false; }
+}
+
 // ── Zone prioritaire (choisie a l'ecran de connexion) ─────────────────────
 // Objectif : la collecte (doCollect) traite en premier — et sans jamais
 // sauter une source recemment en echec — les pays de la zone choisie
@@ -11503,6 +11552,15 @@ function applyRoleMenus(role) {
   if (dispSwitch)  dispSwitch.style.display  = isAdmin ? 'flex' : 'none';
   if (tbAdminBadge) tbAdminBadge.style.display = isAdmin ? 'flex' : 'none';
   if (pmAdminOnly) pmAdminOnly.style.display = isAdmin ? '' : 'none';
+  // Sources des actus : noms/liens masques dans tous les modules de lecture
+  // pour les non-administrateurs (voir sourcesVisibles) — ici, les 2 points
+  // d'entree qui necessitent d'etre masques/affiches une fois au niveau du
+  // DOM plutot qu'a chaque rendu (le reste est gere directement dans les
+  // fonctions de rendu concernees).
+  const acardSources = document.getElementById('acardSources');
+  if (acardSources) acardSources.style.display = isAdmin ? '' : 'none';
+  const seScopeSources = document.getElementById('seScopeSources');
+  if (seScopeSources) seScopeSources.style.display = isAdmin ? '' : 'none';
 }
 
 // genAccessCode() : code d'acces reellement aleatoire (crypto.getRandomValues),
@@ -13797,7 +13855,7 @@ async function renderAlertCard(score) {
       <div style="flex:1;min-width:0;">
         <div style="font-size:9px;color:var(--lg);font-weight:600;">${e.date}${freshTag}${liveTag}</div>
         <div id="${evId}" style="font-size:10px;color:var(--t);line-height:1.35;font-weight:${e.level==='rouge'||e.level==='marron'?'700':'400'}">${L(e.title)}</div>
-        <div style="font-size:8px;color:var(--lg);margin-top:1px;">${e.src}</div>
+        ${sourcesVisibles() ? `<div style="font-size:8px;color:var(--lg);margin-top:1px;">${e.src}</div>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -14080,14 +14138,14 @@ async function ouvrirVuePays(cy) {
   const htmlActus = actus.length ? actus.map(a => `
     <div style="padding:7px 0;border-bottom:.5px solid var(--bd);cursor:pointer;" onclick="showDet('${a.id}');document.getElementById('vuePaysOverlay').remove();switchView('flux',document.querySelector('.ntab[onclick*=flux]'));">
       <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="vpa-${a.id}">${L(a.title)}</div>
-      <div style="font-size:9px;color:var(--lg);margin-top:2px;">${(a.crosses||[])[0] || ''}</div>
+      ${sourcesVisibles() ? `<div style="font-size:9px;color:var(--lg);margin-top:2px;">${(a.crosses||[])[0] || ''}</div>` : ''}
       ${(()=>{ const s=fmtSurvenance(a); if (s.inconnue) return `<div style="font-size:8.5px;color:#B45309;font-weight:700;margin-top:1px;">Survenance : ${s.texte} (à vérifier)</div>`; return s.ancien ? `<div style="font-size:8.5px;color:#8B1A1A;font-weight:700;margin-top:1px;">⚠ Survenance : ${s.texte} (plus de 12h)</div>` : `<div style="font-size:8.5px;color:var(--lg);margin-top:1px;">Survenance : ${s.texte}</div>`; })()}
     </div>`).join('') : '<div style="font-size:11px;color:var(--lg);font-style:italic;padding:6px 0;">Aucun article recent</div>';
 
   const htmlRegio = regionaux.length ? regionaux.map(a => `
     <div style="padding:7px 0;border-bottom:.5px solid var(--bd);">
       <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="vpr-${a.id}">${L(a.title)}</div>
-      <div style="font-size:9px;color:var(--lg);margin-top:2px;">${a.srcName || a.srcId || ''}</div>
+      ${sourcesVisibles() ? `<div style="font-size:9px;color:var(--lg);margin-top:2px;">${a.srcName || a.srcId || ''}</div>` : ''}
     </div>`).join('') : '';
 
   const htmlIncidents = incidents.length ? incidents.map((e,i) => {
@@ -14098,7 +14156,7 @@ async function ouvrirVuePays(cy) {
       <div style="flex:1;min-width:0;">
         <div style="font-size:9px;color:var(--lg);font-weight:600;">${e.date}</div>
         <div style="font-size:11px;color:var(--t);line-height:1.4;" id="${trId}">${L(e.title)}</div>
-        <div style="font-size:9px;color:var(--lg);">${e.src}</div>
+        ${sourcesVisibles() ? `<div style="font-size:9px;color:var(--lg);">${e.src}</div>` : ''}
       </div>
     </div>`;
   }).join('') : '';
@@ -14367,7 +14425,7 @@ async function renderAlerteChronologie() {
             <span style="margin-left:auto;font-size:9px;color:var(--lg);">${it.ts ? new Date(it.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : ''}</span>
           </div>
           <div style="font-size:12px;font-weight:600;color:var(--t);line-height:1.35;" id="${trId}">${L(it.title)}</div>
-          ${it.src ? `<div style="font-size:9.5px;color:var(--lg);margin-top:2px;"><i class="ti ti-antenna" style="font-size:10px"></i> ${it.src}</div>` : ''}
+          ${(sourcesVisibles() && it.src) ? `<div style="font-size:9.5px;color:var(--lg);margin-top:2px;"><i class="ti ti-antenna" style="font-size:10px"></i> ${it.src}</div>` : ''}
         </div>
       </div>`;
   }).join('');
@@ -15336,7 +15394,10 @@ async function exportExcel(type){
       // Traduction vers la langue active avant construction du classeur —
       // aucune actu dans une autre langue que FR (ou EN) ne doit apparaitre.
       await preTraduireRapport(arts.flatMap(a=>[a.title,a.analysis]));
-      const header=['Niveau','Pays','Ville','Portée','Titre','Analyse opérationnelle','Catégorie','Fiabilité (%)','Source','Lien','Publié il y a'];
+      // Colonnes Source/Lien reservees aux administrateurs (voir sourcesVisibles)
+      const header=['Niveau','Pays','Ville','Portée','Titre','Analyse opérationnelle','Catégorie','Fiabilité (%)']
+        .concat(sourcesVisibles() ? ['Source','Lien'] : [])
+        .concat(['Publié il y a']);
       const rows=arts.map(a=>{
         const geo=detectGeo(a.cy, a.title+' '+(a.analysis||''));
         const villeTxt=geo.ville?(geo.ville+(geo.estime?' (estimé)':'')):'';
@@ -15344,13 +15405,14 @@ async function exportExcel(type){
           lvlFr(a.level), a.cy||'', villeTxt, a.sc||'',
           L(a.title), L(a.analysis)||'',
           catFr(a.cat), a.score||'',
-          srcName(a.primary), articleLienDirect(a),
-          a.time||''
-        ];
+        ].concat(sourcesVisibles() ? [srcName(a.primary), articleLienDirect(a)] : [])
+         .concat([a.time||'']);
       });
       const ws=XLSX.utils.aoa_to_sheet([header,...rows]);
       // Largeurs colonnes
-      ws['!cols']=[{wch:12},{wch:7},{wch:16},{wch:10},{wch:45},{wch:70},{wch:13},{wch:10},{wch:18},{wch:40},{wch:10}];
+      ws['!cols']=[{wch:12},{wch:7},{wch:16},{wch:10},{wch:45},{wch:70},{wch:13},{wch:10}]
+        .concat(sourcesVisibles() ? [{wch:18},{wch:40}] : [])
+        .concat([{wch:10}]);
       // Style en-tête
       const rng=XLSX.utils.decode_range(ws['!ref']);
       for(let c=rng.s.c;c<=rng.e.c;c++){
@@ -15371,7 +15433,8 @@ async function exportExcel(type){
       XLSX.utils.book_append_sheet(wb, ws2, 'Agenda sûreté');
     }
 
-    if(type==='sources'||type==='rapport_complet'){
+    // Matrice des sources reservee aux administrateurs (voir sourcesVisibles)
+    if((type==='sources'||type==='rapport_complet') && sourcesVisibles()){
       const header3=['Source','Pays','Portée','Catégorie','Fiabilité','Flux RSS'];
       const rows3=getExportSources().map(s=>[s.n, s.cy, s.sc, catFr(s.cat), s.score+'%', s.rss]);
       const ws3=XLSX.utils.aoa_to_sheet([header3,...rows3]);
@@ -15412,15 +15475,17 @@ async function exportCSV(type){
     // actu dans une autre langue que FR (ou EN) ne doit apparaitre.
     await preTraduireRapport(arts.flatMap(a=>[a.title,a.analysis]));
     const esc=v=>('"'+(String(v||'').replace(/"/g,'""'))+'"');
+    // Colonnes Source/Lien reservees aux administrateurs (voir sourcesVisibles)
     const lines=[
-      ['Niveau','Pays','Ville','Portée','Titre','Analyse','Catégorie','Fiabilité','Source','Lien','Age'].map(esc).join(','),
+      ['Niveau','Pays','Ville','Portée','Titre','Analyse','Catégorie','Fiabilité']
+        .concat(sourcesVisibles() ? ['Source','Lien'] : []).concat(['Age']).map(esc).join(','),
       ...arts.map(a=>{
         const geo=detectGeo(a.cy, a.title+' '+(a.analysis||''));
         const villeTxt=geo.ville?(geo.ville+(geo.estime?' (estimé)':'')):'';
         return [
-          lvlFr(a.level),a.cy,villeTxt,a.sc,L(a.title),L(a.analysis)||'',
-          catFr(a.cat),a.score,srcName(a.primary),articleLienDirect(a),a.time
-        ].map(esc).join(',');
+          lvlFr(a.level),a.cy,villeTxt,a.sc,L(a.title),L(a.analysis)||'',catFr(a.cat),a.score
+        ].concat(sourcesVisibles() ? [srcName(a.primary),articleLienDirect(a)] : [])
+         .concat([a.time]).map(esc).join(',');
       })
     ];
     const blob=new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
@@ -15617,7 +15682,8 @@ async function exportPPTX(type) {
     const evenementsFlux = arts.slice().sort((x,y)=>(y.pubDate||0)-(x.pubDate||0)).slice(0,60);
     const incFlux   = type==='flux' && evenementsFlux.length;
     const srcsPPTX  = getExportSources();
-    const incSources = type==='sources' && srcsPPTX.length;
+    // Matrice des sources reservee aux administrateurs (voir sourcesVisibles)
+    const incSources = type==='sources' && srcsPPTX.length && sourcesVisibles();
 
     // Traduction vers la langue active avant construction des diapositives —
     // aucune actu dans une autre langue que FR (ou EN) ne doit apparaitre.
@@ -15785,9 +15851,9 @@ async function exportPPTX(type) {
         const cyNivP1 = _cyNivTexteEtCouleur(a.cy);
         circle(s, 0.6, y+0.06, 0.16, col);
         s.addText([
-          {text:(pays.flag||'')+' '+pays.name+'  ·  '+(a.time||'')+(cyNivP1?'  ·  '+cyNivP1.texte:'')+'  ·  ', options:{fontSize:10,color:MUTED,fontFace:'IBM Plex Sans'}},
-          {text:srcName(a.primary), options:{fontSize:10,color:'1B5FA8',underline:{style:'sng'},fontFace:'IBM Plex Sans',hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}},
-        ], {x:0.95,y:y-0.08,w:11.6,h:0.3});
+          {text:(pays.flag||'')+' '+pays.name+'  ·  '+(a.time||'')+(cyNivP1?'  ·  '+cyNivP1.texte:''), options:{fontSize:10,color:MUTED,fontFace:'IBM Plex Sans'}},
+        ].concat(sourcesVisibles() ? [{text:'  ·  '+srcName(a.primary), options:{fontSize:10,color:'1B5FA8',underline:{style:'sng'},fontFace:'IBM Plex Sans',hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}}] : []),
+        {x:0.95,y:y-0.08,w:11.6,h:0.3});
         s.addText(L(a.title)||'', {x:0.95,y:y+0.18,w:11.6,h:0.55,fontSize:13,bold:true,color:INK,fontFace:'IBM Plex Sans'});
       });
     }
@@ -15814,9 +15880,9 @@ async function exportPPTX(type) {
             s.addText(L(a.title)||'', {x:1.7,y:y-0.06,w:10.9,h:0.55,fontSize:12,bold:true,color:INK,fontFace:'IBM Plex Sans'});
             const cyNivP2 = _cyNivTexteEtCouleur(a.cy);
             s.addText([
-              {text:pays.name+(a._ville?' — '+a._ville:'')+'  ·  '+(a.time||'')+(cyNivP2?'  ·  '+cyNivP2.texte:'')+'  ·  ', options:{fontSize:9,color:MUTED,fontFace:'IBM Plex Sans'}},
-              {text:srcName(a.primary), options:{fontSize:9,color:'1B5FA8',underline:{style:'sng'},fontFace:'IBM Plex Sans',hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}},
-            ], {x:1.7,y:y+0.44,w:10.9,h:0.3});
+              {text:pays.name+(a._ville?' — '+a._ville:'')+'  ·  '+(a.time||'')+(cyNivP2?'  ·  '+cyNivP2.texte:''), options:{fontSize:9,color:MUTED,fontFace:'IBM Plex Sans'}},
+            ].concat(sourcesVisibles() ? [{text:'  ·  '+srcName(a.primary), options:{fontSize:9,color:'1B5FA8',underline:{style:'sng'},fontFace:'IBM Plex Sans',hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}}] : []),
+            {x:1.7,y:y+0.44,w:10.9,h:0.3});
           });
         }
       });
@@ -15839,9 +15905,9 @@ async function exportPPTX(type) {
           const dateTxt = a.pubDate ? new Date(a.pubDate).toLocaleDateString('fr-FR')+' '+new Date(a.pubDate).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '';
           const cyNivP3 = _cyNivTexteEtCouleur(a.cy);
           s.addText([
-            {text:'['+dateTxt+']  '+(pays.flag||'')+' '+pays.name+'  ·  '+lvlFr(a.level).toUpperCase()+(cyNivP3?'  ·  '+cyNivP3.texte:'')+'  ·  ', options:{fontSize:8.5,bold:true,color:MUTED,fontFace:'IBM Plex Mono'}},
-            {text:srcName(a.primary), options:{fontSize:8.5,bold:true,color:'1B5FA8',underline:{style:'sng'},fontFace:'IBM Plex Mono',hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}},
-          ], {x:0.85,y:y-0.06,w:11.7,h:0.22});
+            {text:'['+dateTxt+']  '+(pays.flag||'')+' '+pays.name+'  ·  '+lvlFr(a.level).toUpperCase()+(cyNivP3?'  ·  '+cyNivP3.texte:''), options:{fontSize:8.5,bold:true,color:MUTED,fontFace:'IBM Plex Mono'}},
+          ].concat(sourcesVisibles() ? [{text:'  ·  '+srcName(a.primary), options:{fontSize:8.5,bold:true,color:'1B5FA8',underline:{style:'sng'},fontFace:'IBM Plex Mono',hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}}] : []),
+          {x:0.85,y:y-0.06,w:11.7,h:0.22});
           s.addText(L(a.title)||'', {x:0.85,y:y+0.13,w:11.7,h:0.3,fontSize:11,color:INK,fontFace:'IBM Plex Sans'});
         });
       }
@@ -15857,7 +15923,7 @@ async function exportPPTX(type) {
         circle(s, 0.6, y+0.08, 0.16, sentCol);
         s.addText(p.pays.flag+' '+L(p.pays.name)+'  ·  '+p.sujets.map(x=>x.label).join(', ')+'  ·  '+p.date, {x:0.95,y:y-0.05,w:11.6,h:0.3,fontSize:10,bold:true,color:BLUE,fontFace:'IBM Plex Sans'});
         s.addText(L(p.resume), {x:0.95,y:y+0.22,w:11.6,h:0.5,fontSize:10.5,color:INK,fontFace:'IBM Plex Sans'});
-        s.addText('Source : '+p.source+' · Fiabilité : '+p.fiabilite, {x:0.95,y:y+0.68,w:11.6,h:0.25,fontSize:8,italic:true,color:MUTED,fontFace:'IBM Plex Sans'});
+        s.addText((sourcesVisibles() ? 'Source : '+p.source+' · ' : '')+'Fiabilité : '+p.fiabilite, {x:0.95,y:y+0.68,w:11.6,h:0.25,fontSize:8,italic:true,color:MUTED,fontFace:'IBM Plex Sans'});
       });
     }
 
@@ -16317,7 +16383,8 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
       // Lien source cliquable (annotation Link, voir b.addLink) — reutilise
       // articleLienDirect(a)/safeUrl comme le Flux/Excel/CSV/Word/PPTX, pour
       // ne jamais dupliquer/diverger la logique primaire vs corroborante.
-      if (typeof articleLienDirect==='function' && typeof safeUrl==='function' && typeof srcName==='function') {
+      // Reserve aux administrateurs (voir sourcesVisibles).
+      if (sourcesVisibles() && typeof articleLienDirect==='function' && typeof safeUrl==='function' && typeof srcName==='function') {
         const lienUrl = safeUrl(articleLienDirect(a), srcName(a.primary));
         const srcTxt = _pdfSafe('   ·   '+(LANG==='en'?'Source: ':'Source : ')+srcName(a.primary));
         b.page.drawText(srcTxt, {x:xCursor, y:b.y, size:8, font:fontReg, color:BLUE});
@@ -16698,7 +16765,7 @@ async function exportPDF(type) {
         b.bulletinSection(LANG==='en'?'Social Networks':'Réseaux Sociaux');
         b.sub('BUZZ — Volume & activité', TI_BLUE);
         b.para(socialArts.length+' publications — '+posP+' positives, '+negP+' négatives, '+(socialArts.length-posP-negP)+' neutres.', {size:9});
-        if (chainesP.length) b.para('Chaînes actives : '+chainesP.map(c=>c.nom+' ('+c.n+')').join(' · '), {size:8.5, color:rgb(0.42,0.46,0.5)});
+        if (sourcesVisibles() && chainesP.length) b.para('Chaînes actives : '+chainesP.map(c=>c.nom+' ('+c.n+')').join(' · '), {size:8.5, color:rgb(0.42,0.46,0.5)});
         b.y -= 4;
 
         b.sub('TENDANCE — Thèmes émergents', TI_CYAN);
@@ -17098,7 +17165,7 @@ function _apSocialSection(arts) {
   let html = '<h2 style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:16px;color:#4B5563;border-bottom:2px solid #4B5563;padding-bottom:6px;margin:26px 0 14px;">E. Réseaux sociaux — Buzz, tendance, risque</h2>';
   html += bandeau('BUZZ — VOLUME & ACTIVITÉ', '#0066FF');
   html += '<div style="font-size:12.5px;color:#374151;line-height:1.55;margin-bottom:6px;">'+socialArts.length+' publications — '+pos+' positives, '+neg+' négatives, '+(socialArts.length-pos-neg)+' neutres.</div>';
-  if (chaines.length) html += '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:#6B7280;">Chaînes actives : '+_apEsc(chaines.map(c=>c.nom+' ('+c.n+')').join(' · '))+'</div>';
+  if (sourcesVisibles() && chaines.length) html += '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:#6B7280;">Chaînes actives : '+_apEsc(chaines.map(c=>c.nom+' ('+c.n+')').join(' · '))+'</div>';
   html += bandeau('TENDANCE — THÈMES ÉMERGENTS', '#0086A0');
   html += '<div style="font-size:12.5px;color:#374151;line-height:1.55;">'+(termes.length ? _apEsc(termes.map(t=>t.terme).join(', ')) : 'Pas assez de volume pour dégager une tendance.')+'</div>';
   html += bandeau('RISQUE — ALERTES & MENACES', '#8B1A1A');
@@ -17454,10 +17521,12 @@ async function exportWord(type){
     // Lien source cliquable (docx.js ExternalHyperlink) — reutilise
     // articleLienDirect(a)/safeUrl deja utilises dans le Flux/Excel/CSV,
     // pour ne jamais dupliquer/diverger la logique primaire vs corroborante.
-    const lienSourceRun=(a)=>new ExternalHyperlink({
+    // Reserve aux administrateurs (voir sourcesVisibles) : run vide sinon
+    // (un ExternalHyperlink attend un tableau non vide de children).
+    const lienSourceRun=(a)=> sourcesVisibles() ? new ExternalHyperlink({
       link: safeUrl(articleLienDirect(a), srcName(a.primary)),
       children:[new TextRun({text:(LANG==='en'?'Source: ':'Source : ')+srcName(a.primary),size:16,italic:true,color:'1B5FA8',underline:{},font:'IBM Plex Mono'})],
-    });
+    }) : new TextRun({text:''});
 
     const arts=getExportData();
     const now=new Date();
@@ -17765,7 +17834,7 @@ async function exportWord(type){
         children.push(sectionBar('BUZZ — Volume & activité', TI_BLUE));
         children.push(para(socialArts.length+' publications analysées ('+(plateformesW.join(', ')||'Telegram')+') — '+posW+' positives, '+negW+' négatives, '+(socialArts.length-posW-negW)+' neutres.'));
         const chainesW = getChainesActives(socialArts, 5);
-        if(chainesW.length){
+        if(sourcesVisibles() && chainesW.length){
           children.push(para('Chaînes les plus actives : '+chainesW.map(c=>c.nom+' ('+c.n+' publication'+(c.n>1?'s':'')+(c.crit?', dont '+c.crit+' critique/élevé':'')+')').join(' · ')+'.', {color:'374151'}));
         }
 
@@ -17788,7 +17857,7 @@ async function exportWord(type){
             children.push(para(L(p.resume), {color:'374151'}));
             children.push(new Paragraph({
               children:[new TextRun({
-                text:'Source : '+p.source+' · '+p.date+'  ·  Sentiment : '+p.sentiment+'  ·  Criticité : '+p.criticite+'  ·  Fiabilité : '+p.fiabilite,
+                text:(sourcesVisibles() ? 'Source : '+p.source+' · ' : '')+p.date+'  ·  Sentiment : '+p.sentiment+'  ·  Criticité : '+p.criticite+'  ·  Fiabilité : '+p.fiabilite,
                 size:17, italic:true, color:'9CA3AF'
               })], spacing:{after:20}
             }));
