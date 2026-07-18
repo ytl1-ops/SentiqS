@@ -2052,6 +2052,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
     <div class="ntab" data-view="analyse" onclick="switchView(&#39;analyse&#39;,this)"><i class="ti ti-chart-dots"></i><span data-i18n="nav_analyse">Synthèse</span></div>
     <div class="ntab" id="tabAgenda" data-view="agenda" onclick="switchView(&#39;agenda&#39;,this)"><i class="ti ti-calendar-event"></i><span data-i18n="nav_agenda">Agenda</span></div>
     <div class="ntab" id="tabCorridors" data-view="corridors" onclick="switchView(&#39;corridors&#39;,this)"><i class="ti ti-route"></i><span data-i18n="nav_corridors">Corridors</span></div>
+    <div class="ntab" id="tabGeopolitique" data-view="geopolitique" onclick="switchView(&#39;geopolitique&#39;,this)"><i class="ti ti-world"></i><span data-i18n="nav_geopolitique">Géopolitique</span></div>
     <div class="ntab" data-view="rapports" onclick="switchView(&#39;rapports&#39;,this)"><i class="ti ti-download"></i><span data-i18n="nav_rapports">Rapports</span></div>
     <div class="ntab" id="tabAlertes" data-view="alertes" onclick="switchView(&#39;alertes&#39;,this)"><i class="ti ti-shield-exclamation"></i><span data-i18n="nav_alertes">Alertes</span></div>
     <div class="ntab on" data-view="dashboard" onclick="switchView(&#39;dashboard&#39;,this)"><i class="ti ti-layout-dashboard"></i><span>Tableau de bord</span></div>
@@ -2362,6 +2363,30 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         </div>
       </div>
       <div class="view-note"><i class="ti ti-info-circle"></i><span data-i18n="note_corridors">Corridor de référence : suit les évènements le long des principaux corridors logistiques et transfrontaliers, étape par étape — configurable par zone.</span></div>
+    </div>
+
+    <div class="view" id="v-geopolitique">
+      <div style="overflow-y:auto;flex:1">
+        <div class="ag-wrap">
+          <div class="ag-hdr">
+            <div>
+              <div class="ag-tt" id="geoTitre" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">Géopolitique <span id="geoNiveauBadge"></span></div>
+              <div class="ag-sb" id="geoSousTitre">Analyses géopolitiques par pays et leur impact sur la sûreté — fenêtre de 14 jours, du plus critique au plus stable.</div>
+            </div>
+          </div>
+          <div id="geoApercu"></div>
+          <div id="geoDetailWrap" style="display:none">
+            <div class="tlbr" style="flex-shrink:0;margin-bottom:8px;flex-wrap:wrap;">
+              <button onclick="retourApercuGeopolitique()" title="Revenir à la vue d'ensemble de tous les pays" style="padding:5px 12px;background:var(--sf);border:1px solid var(--bd);border-radius:5px;color:var(--t);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
+                <i class="ti ti-arrow-left"></i> Vue d'ensemble
+              </button>
+            </div>
+            <div id="geoAnalyse"></div>
+            <div id="geoFaitsListe"></div>
+          </div>
+        </div>
+      </div>
+      <div class="view-note"><i class="ti ti-info-circle"></i><span data-i18n="note_geopolitique">Géopolitique : analyses générées à partir des développements diplomatiques, militaires et régionaux détectés dans le flux, avec leur impact estimé sur la sûreté du pays — jamais générées par une IA externe, uniquement à partir des données collectées.</span></div>
     </div>
 
     <div class="view" id="v-rapports">
@@ -4191,7 +4216,7 @@ const I18N = {
     menu_mode_emploi:"Mode d'emploi (PDF)",
     proxy_title:'Collecte RSS automatique — Cliquez Actualiser',
     cbar_lbl:'Collecte RSS', cbar_init:'Collecte en parallèle : Malijet... (15/195)',
-    nav_flux:'Flux', nav_analyse:'Synthèse', nav_agenda:'Agenda', nav_corridors:'Corridors', nav_rapports:'Rapports',
+    nav_flux:'Flux', nav_analyse:'Synthèse', nav_agenda:'Agenda', nav_corridors:'Corridors', nav_geopolitique:'Géopolitique', nav_rapports:'Rapports',
     nav_alertes:'Alertes', nav_recherche:'Recherche',
     chip_tout:'Tout', chip_critique:'Critique', chip_eleve:'Élevé', chip_securite:'Sécurité',
     ph_recherche:'Rechercher...',
@@ -4202,6 +4227,7 @@ const I18N = {
     note_analyse:'Synthèse : rapport analytique thématique généré automatiquement à partir du Flux, filtrable par zone ou par pays.',
     note_agenda:'Agenda : événements en cours, à venir et échéances de sûreté, classés par statut et par zone.',
     note_corridors:'Corridor de référence : suit les évènements le long des principaux corridors logistiques et transfrontaliers, étape par étape — configurable par zone.',
+    note_geopolitique:'Géopolitique : analyses générées à partir des développements diplomatiques, militaires et régionaux détectés dans le flux, avec leur impact estimé sur la sûreté du pays — jamais générées par une IA externe, uniquement à partir des données collectées.',
     note_rapports:'Rapports : génère des documents Word, PDF, PowerPoint, Excel et CSV à partir des données collectées, filtrés par périmètre.',
     note_alertes:'Alertes : niveau de risque calculé automatiquement par pays, consultable en grille ou en chronologie des incidents.',
     note_dashboard:'Tableau de bord : vision d\'ensemble en temps réel des 54 pays d\'Afrique, scores de risque et zones de tension.',
@@ -4250,7 +4276,7 @@ const I18N = {
     menu_mode_emploi:'User guide (PDF)',
     proxy_title:'Automatic RSS collection — Click Refresh',
     cbar_lbl:'RSS Collection', cbar_init:'Parallel collection: Malijet... (15/195)',
-    nav_flux:'Feed', nav_analyse:'Synthesis', nav_agenda:'Agenda', nav_corridors:'Corridors', nav_rapports:'Reports',
+    nav_flux:'Feed', nav_analyse:'Synthesis', nav_agenda:'Agenda', nav_corridors:'Corridors', nav_geopolitique:'Geopolitics', nav_rapports:'Reports',
     nav_alertes:'Alerts', nav_recherche:'Search',
     chip_tout:'All', chip_critique:'Critical', chip_eleve:'High', chip_securite:'Security',
     ph_recherche:'Search...',
@@ -4261,6 +4287,7 @@ const I18N = {
     note_analyse:'Summary: thematic analytical report automatically generated from the Feed, filterable by zone or country.',
     note_agenda:'Agenda: ongoing and upcoming security events and deadlines, classified by status and zone.',
     note_corridors:'Reference corridor: tracks events along major logistics and cross-border corridors, waypoint by waypoint — configurable by zone.',
+    note_geopolitique:'Geopolitics: analyses generated from diplomatic, military and regional developments detected in the feed, with their estimated impact on country safety — never generated by external AI, only from collected data.',
     note_rapports:'Reports: generate Word, PDF, PowerPoint, Excel and CSV documents from collected data, filtered by scope.',
     note_alertes:'Alerts: risk level automatically computed per country, viewable as a grid or as an incident timeline.',
     note_dashboard:'Dashboard: real-time overview of all 54 African countries, risk scores and tension zones.',
@@ -5110,6 +5137,134 @@ function resumeCorridor(corridor) {
     .filter(a => a && paysCorridor.has(a.cy) && (a.pubDate || 0) >= seuilRecent && !idsFaits.has(a.id))
     .sort((a, b) => (b.pubDate || 0) - (a.pubDate || 0));
   return Object.assign({}, niv, { actuRecentes });
+}
+
+// ── GÉOPOLITIQUE ─────────────────────────────────────────────────────────
+// Module d'analyses géopolitiques : détection de développements diplomatiques,
+// militaires et régionaux dans le flux réellement collecté (mots-clés,
+// jamais un appel a une IA externe — voir enrichArticleIA plus haut, qui
+// rappelle explicitement qu'embarquer une cle API dans ce fichier statique
+// cote client ne serait pas sur), avec pour chaque theme un texte d'IMPACT
+// SURETE PAYS pre-redige qui explicite le lien entre le developpement
+// geopolitique detecte et le risque securitaire qu'il fait peser sur le pays.
+const GEOPOLITIQUE_THEMES = {
+  retrait_troupes: {
+    label: 'Retrait de troupes étrangères', niveau: 'high',
+    kw: ['retrait des troupes','retrait militaire','depart des troupes','fin de la presence militaire','depart des forces francaises','retrait des forces','depart de la base militaire','fermeture de la base militaire','evacuation des troupes'],
+    impact: "Le retrait d'un contingent étranger peut créer un vide sécuritaire temporaire sur les zones jusque-là couvertes par ce contingent (transferts d'équipements, réorganisation des forces locales) — vigilance accrue recommandée durant la période de transition.",
+  },
+  presence_militaire_etrangere: {
+    label: 'Présence militaire étrangère', niveau: 'mod',
+    kw: ['base militaire','deploiement de troupes','envoi de troupes','forces etrangeres','contingent etranger','accord de defense','cooperation militaire','instructeurs militaires','mercenaires','groupe wagner','africa corps','soldats etrangers'],
+    impact: "L'implantation ou le renforcement d'une présence militaire étrangère modifie l'équilibre sécuritaire local et peut susciter des tensions diplomatiques ou une contestation interne — à suivre pour ses effets sur la posture sécuritaire du pays hôte.",
+  },
+  sanctions_embargo: {
+    label: 'Sanctions / embargo', niveau: 'high',
+    kw: ['sanctions economiques','embargo','gel des avoirs','suspension de l\'aide','suspension des echanges','fermeture des frontieres','isolement diplomatique','sanctions cedeao','sanctions internationales','sanctions ciblees'],
+    impact: "Des sanctions ou un embargo fragilisent l'économie et l'approvisionnement du pays — un facteur d'instabilité sociale (pénuries, tensions, criminalité économique) qui peut se répercuter directement sur la sûreté.",
+  },
+  rupture_diplomatique: {
+    label: 'Rupture / crise diplomatique', niveau: 'high',
+    kw: ['rupture diplomatique','expulsion de l\'ambassadeur','rappel de l\'ambassadeur','fermeture de l\'ambassade','crise diplomatique','relations rompues','persona non grata','rappelle son ambassadeur'],
+    impact: "Une rupture ou une dégradation des relations diplomatiques bilatérales peut entraîner des mesures de rétorsion (économiques, consulaires, sécuritaires) et fragiliser la coopération sécuritaire existante avec ce partenaire.",
+  },
+  coup_junte: {
+    label: 'Coup d\'État / transition militaire', niveau: 'crit',
+    kw: ['coup d\'etat','tentative de coup d\'etat','putsch','junte militaire','junte au pouvoir','president dechu','gouvernement renverse','pouvoir militaire de transition','conseil militaire de transition'],
+    impact: "Un coup d'État ou une transition militaire s'accompagne typiquement d'une période d'instabilité aiguë (couvre-feu, fermeture de frontières, suspension des institutions, risque de contre-coup) — niveau de vigilance sécuritaire maximal.",
+  },
+  ingerence: {
+    label: 'Ingérence / influence étrangère', niveau: 'mod',
+    kw: ['ingerence etrangere','desinformation etrangere','campagne d\'influence','ingerence russe','ingerence occidentale','ingerence chinoise','manipulation de l\'information'],
+    impact: "Une ingérence étrangère avérée ou dénoncée peut alimenter la défiance envers les institutions et être instrumentalisée localement — un terreau propice aux tensions sociales et à la contestation.",
+  },
+  sommet_accord: {
+    label: 'Sommet / accord bilatéral', niveau: 'ok',
+    kw: ['sommet bilateral','visite officielle','accord de cooperation','signature d\'un accord','sommet diplomatique','visite d\'etat','traite bilateral'],
+    impact: "Un rapprochement diplomatique ou un accord bilatéral tend à renforcer la coopération (dont la coopération sécuritaire) — développement positif à noter dans le suivi géopolitique du pays.",
+  },
+  organisation_regionale: {
+    label: 'Organisation régionale (CEDEAO, UA...)', niveau: 'mod',
+    kw: ['cedeao','uemoa','union africaine','sadc','ceeac','suspension de la cedeao','sommet de la cedeao','communaute est-africaine','sommet de l\'union africaine'],
+    impact: "Une décision ou une tension impliquant une organisation régionale (suspension, médiation, sommet) reconfigure les alliances et les leviers de pression disponibles — un facteur à intégrer dans l'analyse de la stabilité régionale du pays.",
+  },
+};
+
+// GEOPOLITIQUE_FENETRE_MS : fenêtre volontairement large (14 jours, contre 7
+// jours pour les Corridors) — un développement géopolitique (sanctions,
+// rupture diplomatique...) reste pertinent pour l'analyse plus longtemps
+// qu'un fait sécuritaire ponctuel sur un axe routier.
+const GEOPOLITIQUE_FENETRE_MS = 14 * 24 * 60 * 60 * 1000;
+
+// detecterThemesGeopolitiques(a) : liste des identifiants de themes
+// GEOPOLITIQUE_THEMES detectes dans le titre + l'analyse d'un article — meme
+// principe que articleEstSecuriteCorridor (normalisation des accents,
+// correspondance sur des locutions completes, independant de a.cat).
+function detecterThemesGeopolitiques(a) {
+  if (!a) return [];
+  const t = normaliserAccents((L(a.title||'') + ' ' + L(a.analysis||'')).toLowerCase());
+  const themes = [];
+  for (const id in GEOPOLITIQUE_THEMES) {
+    if (GEOPOLITIQUE_THEMES[id].kw.some(k => t.includes(k))) themes.push(id);
+  }
+  return themes;
+}
+
+function articleEstGeopolitique(a) {
+  return detecterThemesGeopolitiques(a).length > 0;
+}
+
+// calcImpactGeopolitique(cy) : recoupe, pour UN pays, tous les articles
+// geopolitiques des GEOPOLITIQUE_FENETRE_MS derniers jours et en deduit un
+// niveau global (le plus severe des themes detectes) — plusieurs themes
+// distincts detectes simultanement renforcent ce niveau d'un cran,
+// l'accumulation de signaux geopolitiques distincts etant en elle-meme un
+// signal (meme logique que calcNiveauCorridor, qui recoupe des faits plutot
+// que d'en prendre un seul isolement).
+function calcImpactGeopolitique(cy) {
+  const seuil = Date.now() - GEOPOLITIQUE_FENETRE_MS;
+  const faits = (typeof ALL !== 'undefined' ? ALL : [])
+    .filter(a => a && a.cy === cy && (a.pubDate || 0) >= seuil)
+    .map(a => ({ a, themes: detecterThemesGeopolitiques(a) }))
+    .filter(x => x.themes.length > 0)
+    .sort((x, y) => (y.a.pubDate || 0) - (x.a.pubDate || 0));
+
+  const themesUniques = new Set();
+  faits.forEach(f => f.themes.forEach(t => themesUniques.add(t)));
+
+  const rang = { ok: 0, mod: 1, high: 2, crit: 3 };
+  let niveau = 'ok';
+  themesUniques.forEach(tid => {
+    const n = GEOPOLITIQUE_THEMES[tid].niveau;
+    if (rang[n] > rang[niveau]) niveau = n;
+  });
+  if (niveau !== 'crit' && themesUniques.size >= 3) niveau = (niveau === 'high') ? 'crit' : 'high';
+
+  return { niveau, faits, themes: [...themesUniques] };
+}
+
+// genererAnalyseGeopolitique(cy, impact) : assemble, pour chaque theme
+// detecte, son texte d'impact-sûreté pré-rédigé — jamais de texte genere
+// dynamiquement par une IA, uniquement l'assemblage de textes fixes
+// declenches par la detection de mots-cles (voir GEOPOLITIQUE_THEMES).
+function genererAnalyseGeopolitique(cy, impact) {
+  const nomPays = (typeof PAYS_INFO !== 'undefined' && PAYS_INFO[cy]) ? PAYS_INFO[cy].name : cy;
+  if (!impact.themes.length) {
+    return '<div class="empty"><i class="ti ti-world"></i><p>AUCUN DÉVELOPPEMENT GÉOPOLITIQUE DÉTECTÉ</p>' +
+      '<span style="font-size:11px;color:var(--lg);margin-top:4px">Aucun signal diplomatique, militaire ou régional identifié pour ' + escHtml(nomPays) + ' sur les 14 derniers jours.</span></div>';
+  }
+  return impact.themes.map(tid => {
+    const th = GEOPOLITIQUE_THEMES[tid];
+    const col = (typeof NIVEAU_CORRIDOR_COULEUR !== 'undefined' && NIVEAU_CORRIDOR_COULEUR[th.niveau]) || 'var(--b)';
+    const pl = lp(th.niveau);
+    return '<div class="acard" style="padding:10px 12px;margin-bottom:8px;border-left:3px solid ' + col + '">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">' +
+        '<span style="font-size:12px;font-weight:700;color:var(--t)">' + escHtml(th.label) + '</span>' +
+        '<span class="rpill ' + pl[0] + '">' + pl[1] + '</span>' +
+      '</div>' +
+      '<div style="font-size:11px;color:var(--lg);line-height:1.5">' + escHtml(th.impact) + '</div>' +
+    '</div>';
+  }).join('');
 }
 
 const DEMO=[]; // Donnees de demonstration retirees : le flux ne contient que de vraies donnees collectees.
@@ -11123,6 +11278,138 @@ const renderCorridorsDebounced = _debounce(function () {
   renderCorridors();
 }, 300);
 
+// ── GÉOPOLITIQUE — rendu ────────────────────────────────────────────────
+// geoVueApercu : vue d'ensemble de TOUS les pays presentant un developpement
+// geopolitique detecte, affichee par defaut — bascule a false uniquement
+// quand l'utilisateur choisit un pays precis (meme principe que
+// corridorVueApercu).
+let geoVueApercu = true;
+let fGeoCy = null;
+
+function renderGeopolitique() {
+  if (geoVueApercu) renderGeopolitiqueApercu();
+  else renderGeopolitiqueDetail();
+}
+
+function ouvrirGeopolitiquePays(cy) {
+  fGeoCy = cy;
+  geoVueApercu = false;
+  renderGeopolitique();
+}
+
+function retourApercuGeopolitique() {
+  geoVueApercu = true;
+  renderGeopolitique();
+}
+
+function carteGeopolitiqueApercu(item) {
+  const { cy, impact } = item;
+  const info = (typeof PAYS_INFO !== 'undefined' && PAYS_INFO[cy]) || {};
+  const pl = lp(impact.niveau);
+  const col = (typeof NIVEAU_CORRIDOR_COULEUR !== 'undefined' && NIVEAU_CORRIDOR_COULEUR[impact.niveau]) || 'var(--b)';
+  const dernierFait = impact.faits[0];
+  return '<div class="acard" onclick="ouvrirGeopolitiquePays(\'' + cy + '\')" ' +
+    'style="cursor:pointer;padding:12px;border-top:3px solid ' + col + ';display:flex;flex-direction:column;gap:6px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">' +
+        '<span style="font-size:13px;font-weight:700;color:var(--t)">' + (info.flag || '🌍') + ' ' + escHtml(info.name || cy) + '</span>' +
+        '<span class="rpill ' + pl[0] + '">' + pl[1] + '</span>' +
+      '</div>' +
+      '<div style="font-size:10px;color:var(--lg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' +
+        escHtml(impact.themes.map(t => GEOPOLITIQUE_THEMES[t].label).join(' · ')) +
+      '</div>' +
+      (dernierFait ? '<div style="font-size:10px;color:var(--t);line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-top:6px;border-top:1px dashed var(--bd)" title="' + escHtml(L(dernierFait.a.title)) + '">• ' +
+        escHtml(extraitLoyal(L(dernierFait.a.title), 58)) + ' <span style="color:var(--lg)">· ' + fmtAge(dernierFait.a.pubDate || 0) + '</span></div>' : '') +
+  '</div>';
+}
+
+// renderGeopolitiqueApercu() : affiche uniquement les pays presentant au
+// moins un developpement geopolitique detecte (module d'analyse/briefing,
+// pas une couverture exhaustive des 54 pays comme les Corridors) — trie du
+// plus critique au plus stable, priorite de lecture pour un briefing.
+function renderGeopolitiqueApercu() {
+  const titreEl = document.getElementById('geoTitre');
+  const sousTitreEl = document.getElementById('geoSousTitre');
+  const badgeEl = document.getElementById('geoNiveauBadge');
+  const apercuEl = document.getElementById('geoApercu');
+  const detailEl = document.getElementById('geoDetailWrap');
+  if (titreEl) titreEl.childNodes[0].nodeValue = 'Géopolitique ';
+  if (badgeEl) badgeEl.innerHTML = '';
+  if (sousTitreEl) sousTitreEl.textContent = "Pays avec développements géopolitiques détectés (diplomatie, présence militaire, sanctions, transitions...) sur 14 jours, du plus critique au plus stable.";
+  if (detailEl) detailEl.style.display = 'none';
+  if (apercuEl) apercuEl.style.display = '';
+  if (!apercuEl || typeof PAYS_INFO === 'undefined') return;
+
+  const rang = { ok: 0, mod: 1, high: 2, crit: 3 };
+  const items = Object.keys(PAYS_INFO)
+    .map(cy => ({ cy, impact: calcImpactGeopolitique(cy) }))
+    .filter(item => item.impact.themes.length > 0)
+    .sort((a, b) => {
+      const r = rang[b.impact.niveau] - rang[a.impact.niveau];
+      return r !== 0 ? r : b.impact.faits.length - a.impact.faits.length;
+    });
+
+  if (!items.length) {
+    apercuEl.innerHTML = '<div class="empty"><i class="ti ti-world"></i><p>AUCUN DÉVELOPPEMENT GÉOPOLITIQUE DÉTECTÉ</p>' +
+      '<span style="font-size:11px;color:var(--lg);margin-top:4px">Aucun signal diplomatique, militaire ou régional identifié dans le flux sur les 14 derniers jours.</span></div>';
+    return;
+  }
+  apercuEl.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px">' +
+    items.map(carteGeopolitiqueApercu).join('') +
+  '</div>';
+}
+
+// renderGeopolitiqueDetail() : analyse geopolitique complete d'UN pays
+// selectionne (themes detectes + texte d'impact-surete par theme) suivie des
+// articles source qui l'alimentent — meme structure que renderCorridorsDetail.
+function renderGeopolitiqueDetail() {
+  const apercuEl = document.getElementById('geoApercu');
+  const detailEl = document.getElementById('geoDetailWrap');
+  if (apercuEl) apercuEl.style.display = 'none';
+  if (detailEl) detailEl.style.display = '';
+  const titreEl = document.getElementById('geoTitre');
+  const sousTitreEl = document.getElementById('geoSousTitre');
+  const badgeEl = document.getElementById('geoNiveauBadge');
+  const analyseEl = document.getElementById('geoAnalyse');
+  const faitsEl = document.getElementById('geoFaitsListe');
+  const cy = fGeoCy;
+  const info = (cy && typeof PAYS_INFO !== 'undefined' && PAYS_INFO[cy]) || null;
+  if (!cy || !info) {
+    if (titreEl) titreEl.childNodes[0].nodeValue = 'Géopolitique ';
+    if (badgeEl) badgeEl.innerHTML = '';
+    if (sousTitreEl) sousTitreEl.textContent = 'Aucun pays sélectionné.';
+    if (analyseEl) analyseEl.innerHTML = '';
+    if (faitsEl) faitsEl.innerHTML = '';
+    return;
+  }
+  const impact = calcImpactGeopolitique(cy);
+  const pl = lp(impact.niveau);
+  if (titreEl) titreEl.childNodes[0].nodeValue = 'Géopolitique — ' + (info.flag || '') + ' ' + info.name + ' ';
+  if (badgeEl) badgeEl.innerHTML = '<span class="rpill ' + pl[0] + '">' + pl[1] + '</span>';
+  if (sousTitreEl) sousTitreEl.textContent = impact.themes.length
+    ? impact.themes.length + ' développement(s) géopolitique(s) distinct(s) détecté(s) sur 14 jours.'
+    : 'Aucun développement géopolitique détecté sur 14 jours.';
+
+  if (analyseEl) analyseEl.innerHTML = genererAnalyseGeopolitique(cy, impact);
+
+  if (faitsEl) {
+    if (!impact.faits.length) {
+      faitsEl.innerHTML = '';
+    } else {
+      faitsEl.innerHTML = '<div style="font-size:10px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin:12px 0 8px">Articles source</div>' +
+        impact.faits.map(f => {
+          const a = f.a;
+          const plA = lp(a.level);
+          return '<div class="art l' + a.level.charAt(0) + '2" data-level="' + a.level + '" onclick="showDet(\'' + a.id + '\')">' +
+            '<div class="al"><span class="rpill ' + plA[0] + '">' + plA[1] + '</span></div>' +
+            '<div class="ab">' +
+              '<div class="art-top"><span class="survtime"><i class="ti ti-history"></i>' + fmtAge(a.pubDate || 0) + '</span></div>' +
+              '<div class="atit">' + escHtml(L(a.title)) + '</div>' +
+            '</div></div>';
+        }).join('');
+    }
+  }
+}
+
 // ── PARAMÉTRAGE DES CORRIDORS (admin) ───────────────────────────────────
 // Formulaire "Paramètres & Administration" permettant d'identifier des
 // parcours et corridors specifiques (pays, regions) sans toucher au code —
@@ -11306,6 +11593,7 @@ function switchView(name,el){
   if (_lpEl) _lpEl.style.display=(name==='rapports'||name==='params')?'none':'flex';
   if(name==='agenda')    { renderAgenda(); }
   if(name==='corridors') { corridorVueApercu = true; renderCorridors(); }
+  if(name==='geopolitique') { geoVueApercu = true; renderGeopolitique(); }
   if(name==='dashboard') { renderDashboard(); }
   // Ouverture de l'onglet Alertes : force un recalcul/repeinture immediat.
   // Sans cette branche (absente jusqu'ici, contrairement a tous les autres
