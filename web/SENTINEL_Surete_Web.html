@@ -2886,6 +2886,27 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
             </div>
           </div>
 
+          <!-- Masquage des sources — controle dedie et bien visible, en tete
+               de l'administration : pilote la MEME donnee que la ligne
+               "Sources visibles" du tableau "Droits d'acces par
+               fonctionnalite" plus bas (meme fonction toggleFTRole, aucun
+               etat duplique) — juste une deuxieme surface, plus facile a
+               trouver, pour le meme reglage. -->
+          <div class="pm-section" style="border:1.5px solid var(--bb);">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-eye-off" style="color:var(--b)"></i>
+                <div><div class="pm-sec-title">Masquage des sources</div>
+                <div class="pm-sec-sub">Le nom et le lien de chaque source sont masqués par défaut pour tous les comptes non-administrateurs, dans tous les modules</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px">
+              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
+                Vous (Admin) voyez toujours les sources. Activez ci-dessous, rôle par rôle, si un autre type de compte doit lui aussi les voir — sinon elles restent invisibles partout (Flux, Alertes, Agenda, Recherche, Synthèse, Rapports, exports, notifications, Tableau de bord).
+              </div>
+              <div id="masquageSourcesBody" style="display:flex;flex-direction:column;gap:10px"></div>
+            </div>
+          </div>
+
           <!-- Sauvegarde & restauration -->
           <div class="pm-section">
             <div class="pm-sec-hd">
@@ -12640,7 +12661,33 @@ function toggleFTRole(featId, role, checked) {
   else { rights[featId] = rights[featId].filter(r => r !== role); }
   if (!rights[featId].includes('admin')) rights[featId].push('admin');
   saveFTRights(rights);
+  // Deux surfaces d'affichage pointent sur la meme donnee (f_sources) : le
+  // tableau "Droits d'acces par fonctionnalite" ET le bloc dedie
+  // "Masquage des sources" — les reafficher toutes les deux quel que soit
+  // l'endroit ou le clic a eu lieu, pour qu'elles restent synchronisees.
+  renderFeatureRights();
+  if (typeof renderMasquageSources === 'function') renderMasquageSources();
   pmMsg('Droits mis a jour.', 'ok', 'pmMsg');
+}
+
+// renderMasquageSources() : bloc dedie, bien visible en tete de
+// l'administration, pour le meme reglage que la ligne "Sources visibles"
+// du tableau "Droits d'acces par fonctionnalite" plus bas — sans lui, ce
+// reglage etait facile a manquer, noye parmi 8 autres lignes de droits.
+function renderMasquageSources() {
+  const el = document.getElementById('masquageSourcesBody');
+  if (!el) return;
+  const allowed = ((typeof getFTRights === 'function' ? getFTRights() : null) || {})['f_sources'] || ['admin'];
+  const ligne = (role, label) => {
+    const checked = allowed.includes(role);
+    return '<label class="tgl" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--sf);border:1px solid var(--bd);border-radius:8px;cursor:pointer">' +
+      '<input type="checkbox" ' + (checked ? 'checked' : '') + ' onchange="toggleFTRole(\'f_sources\',\'' + role + '\',this.checked)">' +
+      '<div class="tgl-sw"></div>' +
+      '<span style="font-size:12px;font-weight:700;color:var(--t)">' + label + '</span>' +
+      '<span style="font-size:10px;color:' + (checked ? 'var(--g)' : 'var(--lg)') + ';font-weight:700;margin-left:auto">' + (checked ? 'Sources visibles' : 'Sources masquées') + '</span>' +
+    '</label>';
+  };
+  el.innerHTML = ligne('user', 'Comptes Utilisateur') + ligne('reader', 'Comptes Lecteur');
 }
 
 // ── TABLEAU UTILISATEURS (module params) ─────────────────────────────
@@ -12872,6 +12919,7 @@ function loadParamsModule() {
   renderAdminProfile();
   renderDLRights();
   renderFeatureRights();
+  if (typeof renderMasquageSources === 'function') renderMasquageSources();
   pmRenderUsers();
   pmRenderPending();
   if (typeof initCorridorsPerso === 'function') initCorridorsPerso();
