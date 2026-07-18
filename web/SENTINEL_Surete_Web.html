@@ -3061,7 +3061,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
             </div>
             <div class="pm-sec-body" style="padding:14px 16px">
               <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
-                Ajoutez vos propres parcours et corridors — routiers ou maritimes — en plus de ceux fournis par défaut. Chaque corridor est rattaché à une région et regroupe des étapes (villes ou façades maritimes), chacune associée à un pays parmi les 54 pays suivis.
+                Ajoutez vos propres parcours et corridors — routiers ou maritimes — en plus de ceux fournis par défaut. Chaque corridor est rattaché à une région et regroupe des étapes (villes ou façades maritimes), chacune associée à un pays parmi les 54 pays suivis. Le tableau ci-dessous liste TOUS les corridors (par défaut et personnalisés) avec leur niveau d'alerte sûreté actuel, du plus critique au plus stable.
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
                 <div>
@@ -3090,7 +3090,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <span class="pmu-msg" id="corPersoMsg" style="margin:0"></span>
               </div>
               <table class="pm-users-table" style="margin-top:14px">
-                <thead><tr><th>Nom</th><th>Région</th><th>Type</th><th>Étapes</th><th>Actions</th></tr></thead>
+                <thead><tr><th>Nom</th><th>Région</th><th>Type</th><th>Niveau</th><th>Étapes</th><th>Actions</th></tr></thead>
                 <tbody id="corPersoBody"></tbody>
               </table>
             </div>
@@ -11145,21 +11145,42 @@ function corPersoSupprimerCorridor(id) {
   renderCorPersoListe();
 }
 
+// renderCorPersoListe() : liste TOUS les corridors effectifs (par defaut +
+// personnalises), avec leur niveau d'alerte surete actuel (meme calcul que
+// le module Corridors — voir calcNiveauCorridor) — permet a l'admin de
+// superviser l'ensemble depuis Parametres sans repasser par l'onglet
+// Corridors. Tri du plus critique au plus stable (table de supervision,
+// contrairement a la vue d'ensemble publique qui va du vert au rouge).
+// Seuls les corridors personnalises sont supprimables ; ceux par defaut
+// restent en lecture seule (modifiables uniquement dans le code source).
 function renderCorPersoListe() {
   const body = document.getElementById('corPersoBody');
   const countEl = document.getElementById('corPersoCount');
   if (!body) return;
   const perso = getCorridorsPerso();
-  if (countEl) countEl.textContent = perso.length + ' corridor(s) personnalisé(s)';
-  body.innerHTML = !perso.length
-    ? '<tr><td colspan="5" style="text-align:center;color:var(--lg);padding:14px">Aucun corridor personnalisé pour le moment.</td></tr>'
-    : perso.map(c => '<tr>' +
-        '<td>' + escHtml(c.nom) + '</td>' +
-        '<td>' + escHtml((ZONES_GEO[c.zc] || {}).nom || c.zc) + '</td>' +
-        '<td>' + (c.type === 'maritime' ? '⚓ Maritime' : 'Terrestre') + '</td>' +
-        '<td>' + escHtml(c.villes.map(v => v.nom).join(' → ')) + '</td>' +
-        '<td><button class="btn-action btn-del" onclick="corPersoSupprimerCorridor(\'' + c.id + '\')">Supprimer</button></td>' +
-      '</tr>').join('');
+  const effectifs = corridorsEffectifs();
+  const tous = [];
+  for (const zc in effectifs) (effectifs[zc] || []).forEach(c => tous.push(Object.assign({ zc }, c)));
+  const lignes = tous
+    .map(c => Object.assign({ c }, calcNiveauCorridor(c)))
+    .sort((a, b) => NIVEAU_CORRIDOR_RANG[b.niveau] - NIVEAU_CORRIDOR_RANG[a.niveau]);
+
+  if (countEl) countEl.textContent = tous.length + ' corridor(s) au total · ' + perso.length + ' personnalisé(s)';
+  body.innerHTML = !lignes.length
+    ? '<tr><td colspan="6" style="text-align:center;color:var(--lg);padding:14px">Aucun corridor.</td></tr>'
+    : lignes.map(({ c, niveau }) => {
+        const pl = lp(niveau);
+        return '<tr>' +
+          '<td>' + escHtml(c.nom) + '</td>' +
+          '<td>' + escHtml((ZONES_GEO[c.zc] || {}).nom || c.zc) + '</td>' +
+          '<td>' + (c.type === 'maritime' ? '⚓ Maritime' : 'Terrestre') + '</td>' +
+          '<td><span class="rpill ' + pl[0] + '">' + pl[1] + '</span></td>' +
+          '<td>' + escHtml(c.villes.map(v => v.nom).join(' → ')) + '</td>' +
+          '<td>' + (c.perso
+            ? '<button class="btn-action btn-del" onclick="corPersoSupprimerCorridor(\'' + c.id + '\')">Supprimer</button>'
+            : '<span style="font-size:10px;color:var(--lg)">Par défaut</span>') + '</td>' +
+        '</tr>';
+      }).join('');
 }
 
 function initCorridorsPerso() {
