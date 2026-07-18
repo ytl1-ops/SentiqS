@@ -1,6 +1,6 @@
 name: Collecte planifiée (cache partagé)
 
-# Déclenche une collecte RSS réelle toutes les ~15 minutes via un navigateur
+# Déclenche une collecte RSS réelle toutes les ~30 minutes via un navigateur
 # headless pointé sur l'application déployée, et publie le résultat dans le
 # cache partagé Supabase (collecte_partagee) — voir scripts/collecte-planifiee.js
 # et checkCollectorSession() dans web/SENTINEL_Surete_Web.html.
@@ -11,12 +11,19 @@ name: Collecte planifiée (cache partagé)
 # relançait une collecte complète des ~495 sources depuis SON PROPRE
 # navigateur — d'où l'impression de "collecte à chaque lancement".
 #
+# Cadence à 30 min (pas 15) : le premier run réel a montré que les proxys
+# CORS partagés (allorigins, corsproxy.org...) rate-limitent lourdement une
+# rafale de ~495 requêtes concentrées depuis UNE SEULE IP — un cycle plus
+# espacé laisse le temps à ce throttling de se dissiper entre deux runs
+# (voir scripts/collecte-planifiee.js, qui publie de toute façon un
+# instantané partiel si la collecte n'a pas fini à temps).
+#
 # Ne nécessite aucun secret supplémentaire : la cible est l'URL publique
 # déployée, et le jeton de session collecteur est lu directement depuis le
 # fichier source (COLLECTOR_TOKEN), jamais dupliqué ici.
 on:
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '*/30 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -25,7 +32,7 @@ permissions:
 jobs:
   collecte:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 

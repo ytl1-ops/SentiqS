@@ -12295,15 +12295,16 @@ async function fetchConnexionsRecentes(limit) {
 // comportement actuel, inchange).
 const COLLECTE_PARTAGEE_ID = 'global';
 // Fenetre alignee sur le job de collecte PLANIFIE (voir
-// .github/workflows/collecte-planifiee.yml, toutes les ~15 min via
+// .github/workflows/collecte-planifiee.yml, toutes les ~30 min via
 // checkCollectorSession) qui republie ce cache regulierement, independamment
-// du trafic reel — 20 min laisse une marge confortable au-dela du cycle de
-// 15 min (execution du job elle-meme, delais reseau occasionnels) sans
-// jamais faire retomber un visiteur normal sur sa propre collecte complete
-// des ~495 sources tant que le job tourne correctement. Si Supabase ou le
-// job planifie sont indisponibles, l'app retombe silencieusement sur son
-// ancien comportement (collecte cote client), inchange.
-const COLLECTE_PARTAGEE_FRAICHEUR_MS = 20 * 60 * 1000;
+// du trafic reel — 40 min laisse une marge confortable au-dela du cycle de
+// 30 min (execution du job elle-meme, delais reseau occasionnels, y compris
+// une collecte PARTIELLE si les proxys CORS partages sont rate-limites ce
+// jour-la) sans jamais faire retomber un visiteur normal sur sa propre
+// collecte complete des ~495 sources tant que le job tourne correctement.
+// Si Supabase ou le job planifie sont indisponibles, l'app retombe
+// silencieusement sur son ancien comportement (collecte cote client), inchange.
+const COLLECTE_PARTAGEE_FRAICHEUR_MS = 40 * 60 * 1000;
 // Lit le cache partage le plus recent. Retourne null si Supabase n'est
 // pas configure/joignable, si la table n'existe pas encore (migration non
 // appliquee), si aucune ligne n'existe, OU si la ligne existante est trop

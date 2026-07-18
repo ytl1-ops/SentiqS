@@ -28,7 +28,19 @@ const path = require('path');
 
 const TARGET_URL = process.env.SENTINEL_URL || 'https://sentinel-surete.web.app/SENTINEL_Surete_Web.html';
 const HTML_PATH = process.env.SENTINEL_HTML_PATH || path.join(__dirname, '..', 'web', 'SENTINEL_Surete_Web.html');
-const COLLECT_TIMEOUT_MS = 6 * 60 * 1000; // ~495 sources par lots de 30-60 : large marge
+// Premier run réel (18/07) : les proxys CORS partagés (allorigins,
+// corsproxy.org, codetabs...) renvoient énormément de 429 (rate-limit) face
+// à une rafale de ~495 requêtes concentrées depuis UNE SEULE IP (le runner
+// GitHub Actions) — un pattern que ces services voient probablement comme
+// un abus, contrairement au trafic organique de vrais visiteurs, réparti
+// sur des milliers d'IP différentes. Une fois ce throttling déclenché, le
+// débit s'effondre (~1 source toutes les 5-8s au lieu de lots de 30-60 en
+// parallèle) : boucler sur les ~495 sources peut alors prendre bien plus de
+// 6 min. D'où COLLECT_TIMEOUT_MS large ET la publication du résultat
+// PARTIEL au lieu d'un échec sec (voir plus bas) — ALL est déjà mis à jour
+// progressivement par doCollect() toutes les 20 sources terminées, un
+// instantané partiel reste largement utile pour le cache partagé.
+const COLLECT_TIMEOUT_MS = 8 * 60 * 1000;
 
 function lireTokenDepuisSource() {
   const html = fs.readFileSync(HTML_PATH, 'utf8');
@@ -61,33 +73,45 @@ function lireTokenDepuisSource() {
     console.log('Session collecteur établie.');
 
     // Orchestration explicite (voir checkCollectorSession, volontairement
-    // minimal côté client) : detectProxy() -> doCollect() ->
-    // publierCollectePartagee(ALL, true). force=true ignore le garde-fou
-    // "déjà publié récemment" — indispensable puisque ce job tourne plus
-    // souvent que la fenêtre de fraîcheur (voir COLLECTE_PARTAGEE_FRAICHEUR_MS).
+    // minimal côté client) : detectProxy() -> doCollect(). Ne PAS chaîner
+    // publierCollectePartagee() à l'intérieur de cet evaluate : si
+    // doCollect() n'a pas fini dans les temps (rate-limit proxy, voir plus
+    // haut), on veut quand même publier l'instantané PARTIEL déjà présent
+    // dans ALL plutôt que de tout perdre sur un timeout.
     const collecte = page.evaluate(async () => {
       await detectProxy();
       await doCollect();
-      if (typeof publierCollectePartagee !== 'function') {
-        return { ok: false, raison: 'publierCollectePartagee indisponible (Supabase non chargé ?)' };
-      }
-      await publierCollectePartagee(ALL, true);
-      return { ok: true, nbArticles: ALL.length, bestProxy: String(bestProxy) };
     });
-    // Garde-fou explicite : doCollect() est déjà borné en interne (délais
-    // réseau par source), mais un blocage inattendu ne doit jamais laisser
-    // le job tourner indéfiniment (au-delà du timeout-minutes du workflow,
-    // qui tuerait le runner sans ce message clair dans les logs).
-    const resultat = await Promise.race([
-      collecte,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Délai dépassé (' + (COLLECT_TIMEOUT_MS/60000) + ' min) pendant la collecte')), COLLECT_TIMEOUT_MS)),
-    ]);
+    let collecteComplete = true;
+    try {
+      await Promise.race([
+        collecte,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), COLLECT_TIMEOUT_MS)),
+      ]);
+    } catch (e) {
+      collecteComplete = false;
+      console.log('Collecte non terminée sous ' + (COLLECT_TIMEOUT_MS / 60000) + ' min (proxys probablement rate-limités) — publication du résultat PARTIEL déjà accumulé.');
+      // La collecte continue en tâche de fond dans la page tant que le
+      // navigateur reste ouvert (Promise.race n'annule pas le perdant) —
+      // sans effet indésirable puisqu'on ferme le navigateur juste après
+      // avoir lu/publié l'instantané courant de ALL.
+    }
+
+    const resultat = await page.evaluate(async () => {
+      if (!Array.isArray(ALL) || !ALL.length) return { ok: false, raison: 'Aucun article dans ALL' };
+      if (typeof publierCollectePartagee !== 'function') return { ok: false, raison: 'publierCollectePartagee indisponible (Supabase non chargé ?)' };
+      await publierCollectePartagee(ALL, true);
+      return { ok: true, nbArticles: ALL.length, bestProxy: String(typeof bestProxy !== 'undefined' ? bestProxy : '?') };
+    });
 
     if (!resultat.ok) {
       console.error('Échec :', resultat.raison);
       process.exitCode = 1;
     } else {
-      console.log('Collecte publiée avec succès —', resultat.nbArticles, 'articles (proxy:', resultat.bestProxy + ').');
+      console.log(
+        (collecteComplete ? 'Collecte complète publiée avec succès — ' : 'Collecte PARTIELLE publiée avec succès — ') +
+        resultat.nbArticles + ' articles (proxy: ' + resultat.bestProxy + ').'
+      );
     }
   } catch (e) {
     console.error('Erreur pendant la collecte planifiée :', e && e.message ? e.message : e);
