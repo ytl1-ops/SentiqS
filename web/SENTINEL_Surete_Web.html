@@ -1750,8 +1750,8 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         <input type="email" id="loginEmail" placeholder="votre@email.com" autocomplete="email">
       </div>
       <div class="auth-field">
-        <label data-i18n="login_code_label">Mot de passe</label>
-        <input type="password" id="loginPass" placeholder="Votre mot de passe" data-i18n-ph="ph_login_code" autocomplete="current-password" onkeydown="if(event.key===&#39;Enter&#39;)doLogin()">
+        <label data-i18n="login_code_label">Code d'accès</label>
+        <input type="text" id="loginPass" placeholder="Votre code d&#39;accès (ex: SJPNI2T)" data-i18n-ph="ph_login_code" autocomplete="off" style="letter-spacing:.1em;font-weight:700;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key===&#39;Enter&#39;)doLogin()">
       </div>
       <div class="auth-field">
         <label data-i18n="login_zone_prio_label">Zone prioritaire (optionnel)</label>
@@ -1766,34 +1766,18 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <div class="auth-err" id="loginErr"></div>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         <div class="auth-link" style="flex:1"><span data-i18n="login_first_time">Premiere connexion ?</span> <span onclick="showRegisterForm()" data-i18n="login_request_access">Demander un acces</span></div>
-        <div class="auth-link"><span onclick="showForgotPasswordForm()" data-i18n="login_reset">Mot de passe oublié ?</span></div>
+        <div class="auth-link"><span onclick="showForgotPasswordForm()" data-i18n="login_reset">Code d'accès oublié ?</span></div>
       </div>
-    </div>
-    <div id="setPasswordForm" style="display:none">
-      <div class="auth-title">Définissez votre mot de passe</div>
-      <div class="auth-sub">Choisissez un mot de passe personnel — il remplace le code temporaire qui vous a été transmis.</div>
-      <div class="auth-field">
-        <label>Nouveau mot de passe</label>
-        <input type="password" id="spNewPass" placeholder="8 caractères minimum" autocomplete="new-password">
-      </div>
-      <div class="auth-field">
-        <label>Confirmer le mot de passe</label>
-        <input type="password" id="spConfirmPass" placeholder="Retapez le mot de passe" autocomplete="new-password" onkeydown="if(event.key===&#39;Enter&#39;)soumettreNouveauMotDePasse()">
-      </div>
-      <button class="auth-btn" onclick="soumettreNouveauMotDePasse()" id="setPasswordBtn">
-        <i class="ti ti-lock"></i> Valider mon mot de passe
-      </button>
-      <div class="auth-err" id="setPasswordErr"></div>
     </div>
     <div id="forgotPasswordForm" style="display:none">
-      <div class="auth-title">Mot de passe oublié</div>
-      <div class="auth-sub">Recevez un code de réinitialisation par e-mail.</div>
+      <div class="auth-title">Code d'accès oublié</div>
+      <div class="auth-sub">Recevez un nouveau code d'accès par e-mail.</div>
       <div class="auth-field">
         <label>Adresse e-mail</label>
         <input type="email" id="fpEmail" placeholder="votre@email.com" autocomplete="email" onkeydown="if(event.key===&#39;Enter&#39;)demanderReinitialisationMdp()">
       </div>
       <button class="auth-btn" onclick="demanderReinitialisationMdp()" id="forgotPasswordBtn">
-        <i class="ti ti-mail"></i> Envoyer le code de réinitialisation
+        <i class="ti ti-mail"></i> Envoyer un nouveau code
       </button>
       <div class="auth-err" id="forgotPasswordErr"></div>
       <div class="auth-sub" id="forgotPasswordMsg" style="margin-top:10px;color:var(--t2)"></div>
@@ -1820,14 +1804,6 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <div class="auth-field">
         <label data-i18n="register_org_label">Organisation / Fonction</label>
         <input type="text" id="regOrg" placeholder="Ex : DSI - Entreprise XYZ" data-i18n-ph="ph_reg_org">
-      </div>
-      <div class="auth-field">
-        <label>Mot de passe</label>
-        <input type="password" id="regPass" placeholder="8 caractères minimum" autocomplete="new-password">
-      </div>
-      <div class="auth-field">
-        <label>Confirmer le mot de passe</label>
-        <input type="password" id="regPassConfirm" placeholder="Retapez le mot de passe" autocomplete="new-password">
       </div>
       <button class="auth-btn" onclick="doRegister()" id="registerBtn">
         <i class="ti ti-send"></i> <span data-i18n="register_btn">Envoyer la demande</span>
@@ -2926,7 +2902,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
             <div class="pm-sec-hd">
               <div class="pm-sec-hd-l"><i class="ti ti-user-circle"></i>
                 <div><div class="pm-sec-title">Votre profil administrateur</div>
-                <div class="pm-sec-sub">Informations de connexion et mot de passe</div></div>
+                <div class="pm-sec-sub">Informations de connexion et code d'acces</div></div>
               </div>
             </div>
             <div class="pm-sec-body">
@@ -2939,7 +2915,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <span class="badge-role br-admin" style="font-size:10px">Admin</span>
               </div>
               <div style="margin-top:12px">
-                <div class="profile-code-lbl">Votre mot de passe personnel</div>
+                <div class="profile-code-lbl">Votre code d'acces personnel</div>
                 <div class="profile-code-box">
                   <div>
                     <div class="profile-code-val" id="pmCode">SJPNI2T</div>
@@ -3045,7 +3021,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               <table class="pm-users-table">
                 <thead><tr>
                   <th>Email</th><th>Nom</th><th>Role</th>
-                  <th>Statut</th><th>Mot de passe</th><th>Derniere connexion</th><th>Actions</th>
+                  <th>Statut</th><th>Code d'acces</th><th>Derniere connexion</th><th>Actions</th>
                 </tr></thead>
                 <tbody id="pmUsersBody"><tr><td>yo•••••@gmail.com</td><td>Administrateur SENTINEL</td><td><span class="badge-role br-admin">Admin</span></td><td><span class="badge-status bs-active">Actif</span></td><td><span style="font-family:monospace;font-size:12px;font-weight:700;color:var(--b)">SJPNI2T</span><button class="copy-btn" style="margin-left:6px;padding:3px 8px" onclick="copyText(&#39;SJPNI2T&#39;)" title="Copier le code"><i class="ti ti-copy"></i></button></td><td style="color:rgba(0,0,0,.4)">29/06/2026</td><td style="display:flex;gap:5px;flex-wrap:wrap;align-items:center"><span style="font-size:10px;color:var(--lg)">Compte principal</span></td></tr><tr><td>stephanekouame221@gmail.com</td><td>KOUAME YAO STEPHANE</td><td><span class="badge-role br-user">Utilisateur</span></td><td><span class="badge-status bs-active">Actif</span></td><td><span style="font-family:monospace;font-size:12px;font-weight:700;color:var(--b)">S7XN9EM</span><button class="copy-btn" style="margin-left:6px;padding:3px 8px" onclick="copyText(&#39;S7XN9EM&#39;)" title="Copier le code"><i class="ti ti-copy"></i></button></td><td style="color:rgba(0,0,0,.4)">Jamais</td><td style="display:flex;gap:5px;flex-wrap:wrap;align-items:center"><button class="btn-action btn-rev" onclick="pmToggleStatus(&#39;stephanekouame221@gmail.com&#39;)">Suspendre</button><button class="btn-action btn-del" onclick="pmDeleteUser(&#39;stephanekouame221@gmail.com&#39;)">Supprimer</button></td></tr></tbody>
               </table>
@@ -3258,7 +3234,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
             </div>
             <div class="pm-sec-body" style="padding:14px 16px">
               <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
-                Envoi automatique (activation de compte, mot de passe oublié) via
+                Envoi automatique (activation de compte, code d'accès oublié) via
                 <a href="https://www.emailjs.com/" target="_blank" rel="noopener">EmailJS</a> — un service gratuit conçu
                 pour l'envoi d'emails depuis une page statique, sans serveur. Créez un compte, un service email et un
                 modèle avec les variables <code>{{to_email}}</code>, <code>{{to_name}}</code>, <code>{{code}}</code>,
@@ -4246,9 +4222,9 @@ const I18N = {
     auth_logo_sub:"Veille sûreté · 54 pays d'Afrique",
     auth_stat_pays:'Pays sous veille', auth_stat_actus:'Actus /24h', auth_stat_alertes:'Pays en alerte',
     login_title:'Connexion', login_sub:'Accès restreint aux responsables sûreté autorisés',
-    login_email_label:'Adresse e-mail', login_code_label:"Mot de passe", login_btn:'Se connecter',
-    login_first_time:'Première connexion ?', login_request_access:'Demander un accès', login_reset:'Mot de passe oublié ?',
-    ph_login_code:"Votre mot de passe",
+    login_email_label:'Adresse e-mail', login_code_label:"Code d'accès", login_btn:'Se connecter',
+    login_first_time:'Première connexion ?', login_request_access:'Demander un accès', login_reset:"Code d'accès oublié ?",
+    ph_login_code:"Votre code d'accès (ex: SJPNI2T)",
     login_zone_prio_label:'Zone prioritaire (optionnel)',
     login_zone_prio_help:'La collecte démarre par les pays de cette zone (ex. Golfe de Guinée) et les couvre plus en profondeur, pour renseigner en priorité tous leurs modules (Alertes, Tableau de bord, Agenda...).',
     register_title:"Demande d'accès", register_sub:'Accès immédiat, aucune validation requise.',
@@ -4260,7 +4236,7 @@ const I18N = {
     public_bulletin:'Bulletin public gratuit', public_methodo:'Méthodologie & sources',
     err_fields_required:'Veuillez remplir tous les champs.', err_invalid_email:'Adresse e-mail invalide.',
     err_email_unknown:"Adresse e-mail non reconnue. Demandez un accès à l'administrateur.",
-    err_suspended:'Accès suspendu. Contactez : ', err_wrong_code:"Mot de passe incorrect.",
+    err_suspended:'Accès suspendu. Contactez : ', err_wrong_code:"Code d'accès incorrect.",
     err_trial_expired:'Compte gratuit expiré (validité 72h). Demandez un nouveau code gratuit ci-dessous, ou passez à un plan payant — contactez ',
     err_acces_expire:'Accès expiré (durée fixée par l\'administrateur). Contactez : ',
     err_already_registered:'Cette adresse est déjà enregistrée.',
@@ -4306,9 +4282,9 @@ const I18N = {
     auth_logo_sub:'Security monitoring · 54 African countries',
     auth_stat_pays:'Countries monitored', auth_stat_actus:'News /24h', auth_stat_alertes:'Countries on alert',
     login_title:'Log in', login_sub:'Access restricted to authorized security officers',
-    login_email_label:'Email address', login_code_label:'Password', login_btn:'Log in',
-    login_first_time:'First time here?', login_request_access:'Request access', login_reset:'Forgot password?',
-    ph_login_code:'Your password',
+    login_email_label:'Email address', login_code_label:'Access code', login_btn:'Log in',
+    login_first_time:'First time here?', login_request_access:'Request access', login_reset:'Forgot access code?',
+    ph_login_code:'Your access code (e.g. SJPNI2T)',
     login_zone_prio_label:'Priority zone (optional)',
     login_zone_prio_help:'Collection starts with the countries in this zone (e.g. Gulf of Guinea) and covers them more thoroughly, to populate all their modules first (Alerts, Dashboard, Agenda...).',
     register_title:'Access request', register_sub:'Immediate access, no approval required.',
@@ -4320,7 +4296,7 @@ const I18N = {
     public_bulletin:'Free public bulletin', public_methodo:'Methodology & sources',
     err_fields_required:'Please fill in all fields.', err_invalid_email:'Invalid email address.',
     err_email_unknown:'Email address not recognized. Request access from the administrator.',
-    err_suspended:'Access suspended. Contact: ', err_wrong_code:'Incorrect password.',
+    err_suspended:'Access suspended. Contact: ', err_wrong_code:'Incorrect access code.',
     err_trial_expired:'Free account expired (72h validity). Request a new free code below, or switch to a paid plan — contact ',
     err_acces_expire:'Access expired (duration set by the administrator). Contact: ',
     err_already_registered:'This address is already registered.',
@@ -12367,7 +12343,7 @@ async function publierCollectePartagee(articles) {
 // ecrivent QUE le localStorage du navigateur COURANT. Un administrateur
 // configurant EmailJS depuis son propre poste ne rendait donc l'envoi
 // automatique fonctionnel QUE sur CE poste — tout autre visiteur (activation
-// de compte, "mot de passe oublie"...), y compris l'administrateur lui-meme
+// de compte, "code d'acces oublie"...), y compris l'administrateur lui-meme
 // sur un autre appareil, tombait systematiquement sur "EmailJS non
 // configure" : aucun email n'etait JAMAIS reellement transmis, quelle que
 // soit la configuration deja enregistree ailleurs. Ces identifiants sont
@@ -12669,42 +12645,19 @@ function initUsers() {
     if (location.hash !== '#setup-'+SETUP_ADMIN_TOKEN) return;
     const code=genAccessCode();
     users.push({email:ADMIN_EMAIL,name:'Administrateur SENTINEL',role:'admin',
-      status:'active',createdAt:new Date().toISOString(),lastLogin:null,code,doitDefinirMdp:true});
+      status:'active',createdAt:new Date().toISOString(),lastLogin:null,code});
     saveUsers(users);
     // Premiere creation du compte admin sur cet appareil : seul moment ou ce
-    // code est affichable, il ne sera plus jamais recalculable ensuite. Code
-    // TEMPORAIRE : la premiere connexion demandera de definir un mot de
-    // passe personnel (doitDefinirMdp), "chacun" y compris l'administrateur.
-    alert('Compte administrateur cree.\n\nVotre code temporaire (a usage unique, saisissez-le a la connexion pour definir votre mot de passe personnel) :\n\n'+code);
+    // code est affichable, il ne sera plus jamais recalculable ensuite.
+    alert('Compte administrateur cree.\n\nVotre code d\'acces (a conserver, il ne sera plus jamais affiche automatiquement) :\n\n'+code);
     // Efface le jeton de l'URL/historique une fois utilise.
     history.replaceState(null, '', location.pathname + location.search);
   }
 }
 
-// migrerVersMotsDePassePersonnels() : migration UNE SEULE FOIS par appareil
-// (drapeau localStorage) — les comptes crees AVANT ce changement avaient un
-// code systeme genere, jamais choisi par l'utilisateur. "Chacun validera
-// son propre mot de passe" s'applique donc aussi RETROACTIVEMENT a tous les
-// comptes deja existants, pas seulement aux nouveaux — sans re-redemander a
-// un compte qui a deja defini son mot de passe personnel depuis (test
-// explicite sur doitDefinirMdp===undefined, jamais ecrase une seconde fois).
-function migrerVersMotsDePassePersonnels() {
-  if (localStorage.getItem('sentinel_migration_mdp_v1') === '1') return;
-  const users = getUsers();
-  let modifie = false;
-  users.forEach(u => { if (u.doitDefinirMdp === undefined) { u.doitDefinirMdp = true; modifie = true; } });
-  if (modifie) saveUsers(users);
-  localStorage.setItem('sentinel_migration_mdp_v1', '1');
-}
-
-// _pendingSetPasswordEmail : compte authentifie (code temporaire correct)
-// mais qui doit encore definir son mot de passe personnel avant que la
-// session ne s'ouvre vraiment — voir doitDefinirMdp.
-let _pendingSetPasswordEmail = null;
-
 function doLogin() {
   const email=document.getElementById('loginEmail').value.trim().toLowerCase();
-  const pass =document.getElementById('loginPass').value;
+  const pass =document.getElementById('loginPass').value.trim().toUpperCase();
   const errEl=document.getElementById('loginErr');
   errEl.classList.remove('show');
   if(!email||!pass){errEl.textContent=t('err_fields_required');errEl.classList.add('show');return;}
@@ -12731,51 +12684,9 @@ function doLogin() {
   if(pass!==user.code){
     errEl.textContent=t('err_wrong_code');errEl.classList.add('show');return;}
 
-  // Code temporaire (compte cree par un administrateur, migration depuis
-  // l'ancien systeme de codes generes, ou reinitialisation recente) :
-  // impose la definition d'un mot de passe personnel AVANT d'ouvrir la
-  // session, plutot que de laisser l'utilisateur continuer indefiniment
-  // avec un code qu'il n'a jamais choisi lui-meme.
-  if (user.doitDefinirMdp) {
-    _pendingSetPasswordEmail = user.email;
-    document.getElementById('loginForm').style.display='none';
-    document.getElementById('registerForm').style.display='none';
-    document.getElementById('forgotPasswordForm').style.display='none';
-    document.getElementById('setPasswordForm').style.display='block';
-    document.getElementById('spNewPass').value=''; document.getElementById('spConfirmPass').value='';
-    document.getElementById('setPasswordErr').classList.remove('show');
-    return;
-  }
-
   finaliserConnexion(user, users);
 }
 
-// soumettreNouveauMotDePasse() : etape forcee (doitDefinirMdp) apres une
-// authentification reussie avec un code temporaire — remplace ce code par
-// le mot de passe personnel choisi par l'utilisateur, puis ouvre la
-// session normalement (finaliserConnexion, identique au chemin direct).
-function soumettreNouveauMotDePasse() {
-  const errEl = document.getElementById('setPasswordErr');
-  errEl.classList.remove('show');
-  const users = getUsers();
-  const user = users.find(u => u.email === _pendingSetPasswordEmail);
-  if (!user) { errEl.textContent = 'Session expirée, reconnectez-vous.'; errEl.classList.add('show'); showLoginForm(); return; }
-  const pass = document.getElementById('spNewPass').value;
-  const confirm = document.getElementById('spConfirmPass').value;
-  const validation = _validerMotDePasse(pass, confirm);
-  if (!validation.ok) { errEl.textContent = validation.err; errEl.classList.add('show'); return; }
-  user.code = pass;
-  user.doitDefinirMdp = false;
-  saveUsers(users);
-  _pendingSetPasswordEmail = null;
-  document.getElementById('setPasswordForm').style.display='none';
-  finaliserConnexion(user, users);
-}
-
-// finaliserConnexion(user, users) : partie commune a une connexion directe
-// (mot de passe deja personnel) et a une connexion apres definition forcee
-// du mot de passe — un seul endroit pour ouvrir reellement la session,
-// evite toute divergence entre les deux chemins.
 function finaliserConnexion(user, users) {
   user.lastLogin=new Date().toISOString();
   // Zone prioritaire choisie a l'ecran de connexion (voir doCollect) — suit le
@@ -12809,21 +12720,20 @@ function finaliserConnexion(user, users) {
 function showForgotPasswordForm() {
   document.getElementById('loginForm').style.display='none';
   document.getElementById('registerForm').style.display='none';
-  document.getElementById('setPasswordForm').style.display='none';
   document.getElementById('forgotPasswordForm').style.display='block';
   document.getElementById('fpEmail').value='';
   document.getElementById('forgotPasswordErr').classList.remove('show');
   document.getElementById('forgotPasswordMsg').textContent='';
 }
 
-// demanderReinitialisationMdp() : "mot de passe oublie", par e-mail — genere
-// un code temporaire et l'envoie via EmailJS (envoyerCodeActivation, deja
+// demanderReinitialisationMdp() : "code d'acces oublie", par e-mail — genere
+// un nouveau code et l'envoie via EmailJS (envoyerCodeActivation, deja
 // utilise pour l'activation des comptes). Le compte n'est modifie QUE si
-// l'envoi reussit reellement : si EmailJS echoue/n'est pas configure, le mot
-// de passe actuel de l'utilisateur reste inchange plutot que de le
-// verrouiller hors de son compte sans jamais lui transmettre le nouveau
-// code. Message final volontairement identique que le compte existe ou non
-// (n'expose pas quelles adresses sont enregistrees).
+// l'envoi reussit reellement : si EmailJS echoue/n'est pas configure,
+// l'ancien code de l'utilisateur reste valide plutot que de le verrouiller
+// hors de son compte sans jamais lui transmettre le nouveau code. Message
+// final volontairement identique que le compte existe ou non (n'expose pas
+// quelles adresses sont enregistrees).
 async function demanderReinitialisationMdp() {
   const email = document.getElementById('fpEmail').value.trim().toLowerCase();
   const errEl = document.getElementById('forgotPasswordErr');
@@ -12833,7 +12743,7 @@ async function demanderReinitialisationMdp() {
 
   const btn = document.getElementById('forgotPasswordBtn');
   if (btn) btn.disabled = true;
-  const messageGenerique = 'Si un compte existe avec cette adresse, un e-mail avec un code de réinitialisation vient de vous être envoyé.';
+  const messageGenerique = 'Si un compte existe avec cette adresse, un e-mail avec un nouveau code d\'accès vient de vous être envoyé.';
 
   const users = getUsers();
   const user = users.find(u => u.email.toLowerCase() === email);
@@ -12851,7 +12761,6 @@ async function demanderReinitialisationMdp() {
     return;
   }
   user.code = nouveauCode;
-  user.doitDefinirMdp = true;
   saveUsers(users);
   msgEl.textContent = messageGenerique;
 }
@@ -12883,38 +12792,25 @@ function showUserChip(user) {
 function toggleUserMenu(e){if(e)e.stopPropagation();document.getElementById('userMenu').classList.toggle('open');}
 document.addEventListener('click',()=>{const m=document.getElementById('userMenu');if(m)m.classList.remove('open');});
 
-function showRegisterForm(){document.getElementById('loginForm').style.display='none';document.getElementById('registerForm').style.display='block';document.getElementById('setPasswordForm').style.display='none';document.getElementById('forgotPasswordForm').style.display='none';}
-function showLoginForm(){document.getElementById('loginForm').style.display='block';document.getElementById('registerForm').style.display='none';document.getElementById('setPasswordForm').style.display='none';document.getElementById('forgotPasswordForm').style.display='none';if(typeof remplirSelectZonePrioritaireLogin==='function')remplirSelectZonePrioritaireLogin();}
-
-// _validerMotDePasse(pass, confirm) : regle commune a tous les points de
-// creation/definition de mot de passe (inscription publique, demande
-// d'acces en libre-service, definition forcee a la premiere connexion,
-// reinitialisation) — un seul endroit a ajuster si la politique change.
-const MDP_LONGUEUR_MIN = 8;
-function _validerMotDePasse(pass, confirm) {
-  if (!pass || pass.length < MDP_LONGUEUR_MIN) return { ok:false, err:'Le mot de passe doit contenir au moins '+MDP_LONGUEUR_MIN+' caracteres.' };
-  if (pass !== confirm) return { ok:false, err:'Les deux mots de passe ne correspondent pas.' };
-  return { ok:true };
-}
+function showRegisterForm(){document.getElementById('loginForm').style.display='none';document.getElementById('registerForm').style.display='block';document.getElementById('forgotPasswordForm').style.display='none';}
+function showLoginForm(){document.getElementById('loginForm').style.display='block';document.getElementById('registerForm').style.display='none';document.getElementById('forgotPasswordForm').style.display='none';if(typeof remplirSelectZonePrioritaireLogin==='function')remplirSelectZonePrioritaireLogin();}
 
 // doRegister() : essai gratuit en libre-service, active immediatement, sans
 // validation manuelle de l'administrateur. Reste borne : role 'user' fixe
 // (jamais admin), 72h de validite (COMPTE_GRATUIT_VALIDITE_MS,
-// compteGratuitExpire). L'utilisateur choisit et valide lui-meme son mot de
-// passe des l'inscription (au lieu de recevoir un code genere) — voir
-// user.code, toujours le champ de stockage du secret de connexion.
+// compteGratuitExpire), code d'acces reellement aleatoire (genAccessCode,
+// jamais recalculable depuis l'email) envoye automatiquement par email si
+// EmailJS est configure (envoyerCodeActivation), sinon affiche a l'ecran en
+// repli. Le compte reste visible dans le tableau Utilisateurs de l'admin
+// pour audit, meme si aucune action de sa part n'est requise pour l'activer.
 function doRegister() {
   const name =document.getElementById('regName').value.trim();
   const email=document.getElementById('regEmail').value.trim().toLowerCase();
   const org  =document.getElementById('regOrg').value.trim();
-  const pass = document.getElementById('regPass').value;
-  const passConfirm = document.getElementById('regPassConfirm').value;
   const errEl=document.getElementById('registerErr');
   errEl.classList.remove('show');
-  if(!name||!email||!org||!pass||!passConfirm){errEl.textContent=t('err_fields_required');errEl.classList.add('show');return;}
+  if(!name||!email||!org){errEl.textContent=t('err_fields_required');errEl.classList.add('show');return;}
   if(!/^[^@]+@[^@]+\.[^@]+$/.test(email)){errEl.textContent=t('err_invalid_email');errEl.classList.add('show');return;}
-  const validation = _validerMotDePasse(pass, passConfirm);
-  if (!validation.ok) { errEl.textContent = validation.err; errEl.classList.add('show'); return; }
 
   const users=getUsers();
   const existing=users.find(u=>u.email===email);
@@ -12925,25 +12821,37 @@ function doRegister() {
   if(existing && !compteGratuitExpire(existing)){
     errEl.textContent=t('err_already_registered');errEl.classList.add('show');return;}
 
+  const code=genAccessCode();
   let user;
   if(existing){
     existing.name=name; existing.organisation=org; existing.role='user';
     existing.status='active'; existing.plan='gratuit';
-    existing.createdAt=new Date().toISOString(); existing.code=pass; existing.doitDefinirMdp=false;
+    existing.createdAt=new Date().toISOString(); existing.code=code;
     user=existing;
   } else {
     user={email,name,role:'user',status:'active',plan:'gratuit',organisation:org,
-      createdAt:new Date().toISOString(),lastLogin:null,code:pass,doitDefinirMdp:false};
+      createdAt:new Date().toISOString(),lastLogin:null,code};
     users.push(user);
   }
   saveUsers(users);
 
   document.getElementById('registerForm').innerHTML=
     '<div style="text-align:center;padding:20px 0">'+
-    '<i class="ti ti-circle-check" style="font-size:48px;color:#15803D;display:block;margin-bottom:14px"></i>'+
-    '<div style="font-size:14px;font-weight:700;color:var(--t);margin-bottom:8px">'+t('register_activated')+'</div>'+
-    '<div style="font-size:12px;color:var(--lg);line-height:1.6">Connectez-vous avec l\'adresse et le mot de passe que vous venez de définir.</div>'+
-    '<div style="margin-top:16px"><span style="color:var(--b);cursor:pointer" onclick="showLoginForm()">'+t('register_go_login')+'</span></div></div>';
+    '<i class="ti ti-loader-2" style="font-size:32px;color:var(--lg);display:block;margin-bottom:14px"></i>'+
+    '<div style="font-size:13px;color:var(--t2)">'+t('register_activating')+'</div></div>';
+
+  envoyerCodeActivation(user).then(res => {
+    const detail = res.ok
+      ? t('register_code_sent')+'<br><b style="color:var(--t2)">'+escHtml(email)+'</b>'
+      : t('register_code_manual')+'<br>'
+        +'<b style="color:var(--t);font-family:monospace;font-size:15px;letter-spacing:.08em">'+escHtml(code)+'</b>';
+    document.getElementById('registerForm').innerHTML=
+      '<div style="text-align:center;padding:20px 0">'+
+      '<i class="ti ti-circle-check" style="font-size:48px;color:#15803D;display:block;margin-bottom:14px"></i>'+
+      '<div style="font-size:14px;font-weight:700;color:var(--t);margin-bottom:8px">'+t('register_activated')+'</div>'+
+      '<div style="font-size:12px;color:var(--lg);line-height:1.6">'+detail+'</div>'+
+      '<div style="margin-top:16px"><span style="color:var(--b);cursor:pointer" onclick="showLoginForm()">'+t('register_go_login')+'</span></div></div>';
+  });
 }
 
 function addUser() {
@@ -12955,16 +12863,13 @@ function addUser() {
   if(!email||!name){msg.textContent='Email et nom sont requis.';msg.className='admin-msg err';return;}
   const users=getUsers();
   if(users.find(u=>u.email===email)){msg.textContent='Cet utilisateur existe deja.';msg.className='admin-msg err';return;}
-  // Code TEMPORAIRE : l'admin ne choisit pas le mot de passe de
-  // l'utilisateur — celui-ci definit son propre mot de passe personnel des
-  // sa premiere connexion avec ce code (doitDefinirMdp, voir doLogin()).
   const code=genAccessCode();
-  users.push({email,name,role,status:'active',createdAt:new Date().toISOString(),lastLogin:null,code,doitDefinirMdp:true});
+  users.push({email,name,role,status:'active',createdAt:new Date().toISOString(),lastLogin:null,code});
   saveUsers(users);
   savePending(getPending().filter(p=>p.email!==email));
   document.getElementById('newUserEmail').value='';
   document.getElementById('newUserName').value='';
-  msg.innerHTML='<b>Acces accorde.</b> Code temporaire pour '+email+' : <b>'+code+'</b> — A communiquer par e-mail. L\'utilisateur devra definir son propre mot de passe a sa premiere connexion.';
+  msg.innerHTML='<b>Acces accorde.</b> Code d\'acces pour '+escHtml(email)+' : <b>'+escHtml(code)+'</b> — A communiquer par e-mail a l\'utilisateur.';
   msg.className='admin-msg ok';
   renderUsersTable(); renderPendingTable(); renderAdminStats();
 }
@@ -13048,7 +12953,6 @@ function checkAuth() {
   // interne mais l'ecran de connexion resterait affiche en francais.
   setLang(LANG);
   initUsers();
-  if (typeof migrerVersMotsDePassePersonnels === 'function') migrerVersMotsDePassePersonnels();
   // Instantane public (compteur + bulletin) : lu independamment de l'etat de
   // connexion, voir sauvegarderInstantanePublic/renderAuthStats.
   if (typeof renderAuthStats === 'function') renderAuthStats();
@@ -13323,7 +13227,7 @@ async function pmRenderUsers() {
       '<td><span class="badge-status ' + (u.status==='active'?'bs-active':'bs-suspend') + '">' +
         (u.status==='active'?'Actif':'Suspendu') + '</span></td>' +
       '<td><span style="font-family:monospace;font-size:12px;font-weight:700;color:var(--b)">' + escHtml(u.code) + '</span>' +
-        '<button class="copy-btn" style="margin-left:6px;padding:3px 8px" data-email="' + escHtml(u.email) + '" onclick="copierMotDePasseUtilisateur(this.dataset.email)" title="Copier le code"><i class="ti ti-copy"></i></button></td>' +
+        '<button class="copy-btn" style="margin-left:6px;padding:3px 8px" data-email="' + escHtml(u.email) + '" onclick="copierCodeUtilisateur(this.dataset.email)" title="Copier le code"><i class="ti ti-copy"></i></button></td>' +
       '<td>' + _clienteleStatutHTML(dernierTs, source) + '</td>' +
       '<td style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">' +
         (isA ? '<span style="font-size:10px;color:var(--lg)">Compte principal</span>' :
@@ -13340,17 +13244,14 @@ function pmAddUser() {
   if (!email || !name) { pmMsg('Email et nom sont requis.', 'err', 'pmMsg'); return; }
   const users = getUsers();
   if (users.find(u => u.email === email)) { pmMsg('Cet utilisateur existe deja.', 'err', 'pmMsg'); return; }
-  // Code TEMPORAIRE : l'admin ne choisit pas le mot de passe de
-  // l'utilisateur — celui-ci definit son propre mot de passe personnel des
-  // sa premiere connexion avec ce code (doitDefinirMdp, voir doLogin()).
   const code = genAccessCode();
   users.push({email, name, role, status:'active',
-    createdAt: new Date().toISOString(), lastLogin: null, code, doitDefinirMdp: true});
+    createdAt: new Date().toISOString(), lastLogin: null, code});
   saveUsers(users);
   savePending(getPending().filter(p => p.email !== email));
   document.getElementById('pmNewEmail').value = '';
   document.getElementById('pmNewName').value  = '';
-  pmMsg('<b>Acces accorde.</b> Code temporaire pour ' + email + ' : <b>' + code + '</b> — l\'utilisateur devra definir son propre mot de passe a sa premiere connexion.', 'ok', 'pmMsg');
+  pmMsg('<b>Acces accorde.</b> Code d\'acces pour ' + escHtml(email) + ' : <b>' + escHtml(code) + '</b>', 'ok', 'pmMsg');
   pmRenderUsers(); pmRenderPending(); renderClientele();
 }
 
@@ -13418,23 +13319,19 @@ function copyAdminCode() {
 }
 function copyText(txt) {
   navigator.clipboard.writeText(txt).then(() => {
-    // escHtml : pmMsg() ecrit en innerHTML — txt peut desormais etre un mot
-    // de passe choisi librement par un utilisateur (plus un simple code
-    // genere a partir d'un alphabet restreint), donc potentiellement
-    // porteur de balises HTML si laisse brut ici.
+    // escHtml : defense en profondeur — pmMsg() ecrit en innerHTML.
     pmMsg('Code copie dans le presse-papier : ' + escHtml(txt), 'ok', 'pmMsg');
   }).catch(() => {
     prompt('Copiez ce code :', txt);
   });
 }
-// copierMotDePasseUtilisateur(email) : indirection utilisee par les boutons
+// copierCodeUtilisateur(email) : indirection utilisee par les boutons
 // "Copier" des tableaux d'administration — evite d'interpoler directement
-// un mot de passe (texte libre, peut contenir des guillemets) dans un
-// attribut onclick="copyText('...')" , ce qui permettrait sinon d'en sortir
-// et d'injecter du JS. Le bouton ne porte que l'email (attribut data-email,
+// le code dans un attribut onclick="copyText('...')" (defense en
+// profondeur). Le bouton ne porte que l'email (attribut data-email,
 // echappe normalement) ; la valeur reelle est relue depuis le stockage au
 // moment du clic.
-function copierMotDePasseUtilisateur(email) {
+function copierCodeUtilisateur(email) {
   const u = getUsers().find(x => x.email === email);
   if (u) copyText(u.code);
 }
