@@ -2055,6 +2055,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
     <div class="ntab" id="tabAgenda" data-view="agenda" onclick="switchView(&#39;agenda&#39;,this)"><i class="ti ti-calendar-event"></i><span data-i18n="nav_agenda">Agenda</span></div>
     <div class="ntab" id="tabCorridors" data-view="corridors" onclick="switchView(&#39;corridors&#39;,this)"><i class="ti ti-route"></i><span data-i18n="nav_corridors">Corridors</span></div>
     <div class="ntab" id="tabGeopolitique" data-view="geopolitique" onclick="switchView(&#39;geopolitique&#39;,this)"><i class="ti ti-world"></i><span data-i18n="nav_geopolitique">Géopolitique</span></div>
+    <div class="ntab" id="tabAssistant" data-view="assistant" onclick="switchView(&#39;assistant&#39;,this)"><i class="ti ti-message-chatbot"></i><span data-i18n="nav_assistant">Assistant IA</span></div>
     <div class="ntab" data-view="rapports" onclick="switchView(&#39;rapports&#39;,this)"><i class="ti ti-download"></i><span data-i18n="nav_rapports">Rapports</span></div>
     <div class="ntab" id="tabAlertes" data-view="alertes" onclick="switchView(&#39;alertes&#39;,this)"><i class="ti ti-shield-exclamation"></i><span data-i18n="nav_alertes">Alertes</span></div>
     <div class="ntab on" data-view="dashboard" onclick="switchView(&#39;dashboard&#39;,this)"><i class="ti ti-layout-dashboard"></i><span>Tableau de bord</span></div>
@@ -2389,6 +2390,25 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         </div>
       </div>
       <div class="view-note"><i class="ti ti-info-circle"></i><span data-i18n="note_geopolitique">Géopolitique : analyses générées à partir des développements diplomatiques, militaires et régionaux détectés dans le flux, avec leur impact estimé sur la sûreté du pays — jamais générées par une IA externe, uniquement à partir des données collectées.</span></div>
+    </div>
+
+    <div class="view" id="v-assistant">
+      <div style="overflow-y:auto;flex:1;padding:16px">
+        <div style="max-width:760px;margin:0 auto">
+          <div style="margin-bottom:14px">
+            <div style="font-size:15px;font-weight:700;color:var(--t)" data-i18n="assistant_titre">Assistant IA</div>
+            <div style="font-size:11px;color:var(--lg);margin-top:2px" data-i18n="assistant_sous_titre">Posez une question sur la situation sûreté — les réponses s'appuient uniquement sur les articles réellement collectés, avec leurs sources citées.</div>
+          </div>
+          <div id="assistantHistorique" style="display:flex;flex-direction:column;gap:12px;margin-bottom:14px"></div>
+          <div id="assistantEtatVide" style="text-align:center;padding:30px 0;color:var(--lg);font-size:12px" data-i18n="assistant_vide">Aucune question posée pour le moment.</div>
+          <div style="display:flex;gap:8px;position:sticky;bottom:0;background:var(--bg);padding-top:8px">
+            <input type="text" id="assistantInput" data-i18n-ph="assistant_ph" placeholder="Ex. Quelle est la situation sécuritaire au Mali cette semaine ?" style="flex:1;padding:10px 12px;border:1px solid var(--bd);border-radius:8px;font-size:13px" onkeydown="if(event.key==='Enter'){event.preventDefault();poserQuestionAssistant();}">
+            <button class="btn-action btn-rest" id="assistantBtn" onclick="poserQuestionAssistant()"><i class="ti ti-send"></i> <span data-i18n="assistant_demander">Demander</span></button>
+          </div>
+          <div id="assistantErr" class="admin-msg err" style="display:none;margin-top:8px"></div>
+        </div>
+      </div>
+      <div class="view-note"><i class="ti ti-info-circle"></i><span data-i18n="note_assistant">Assistant IA : réponses générées par un modèle Claude (Anthropic) à partir des articles collectés — jamais de connaissance générale non confirmée par ces articles. Vérifiez toujours les sources citées avant toute décision opérationnelle.</span></div>
     </div>
 
     <div class="view" id="v-rapports">
@@ -4222,7 +4242,7 @@ const I18N = {
     proxy_title:'Collecte RSS automatique — Cliquez Actualiser',
     cbar_lbl:'Collecte RSS', cbar_init:'Collecte en parallèle : Malijet... (15/195)',
     nav_flux:'Flux', nav_analyse:'Synthèse', nav_agenda:'Agenda', nav_corridors:'Corridors', nav_geopolitique:'Géopolitique', nav_rapports:'Rapports',
-    nav_alertes:'Alertes', nav_recherche:'Recherche',
+    nav_alertes:'Alertes', nav_recherche:'Recherche', nav_assistant:'Assistant IA',
     chip_tout:'Tout', chip_critique:'Critique', chip_eleve:'Élevé', chip_securite:'Sécurité',
     ph_recherche:'Rechercher...',
     flashinfo_lbl:'FLASH INFO',
@@ -4233,6 +4253,9 @@ const I18N = {
     note_agenda:'Agenda : événements en cours, à venir et échéances de sûreté, classés par statut et par zone.',
     note_corridors:'Corridor de référence : suit les évènements le long des principaux corridors logistiques et transfrontaliers, étape par étape — configurable par zone.',
     note_geopolitique:'Géopolitique : analyses générées à partir des développements diplomatiques, militaires et régionaux détectés dans le flux, avec leur impact estimé sur la sûreté du pays — jamais générées par une IA externe, uniquement à partir des données collectées.',
+    assistant_titre:'Assistant IA', assistant_sous_titre:"Posez une question sur la situation sûreté — les réponses s'appuient uniquement sur les articles réellement collectés, avec leurs sources citées.",
+    assistant_vide:'Aucune question posée pour le moment.', assistant_ph:'Ex. Quelle est la situation sécuritaire au Mali cette semaine ?', assistant_demander:'Demander',
+    note_assistant:'Assistant IA : réponses générées par un modèle Claude (Anthropic) à partir des articles collectés — jamais de connaissance générale non confirmée par ces articles. Vérifiez toujours les sources citées avant toute décision opérationnelle.',
     note_rapports:'Rapports : génère des documents Word, PDF, PowerPoint, Excel et CSV à partir des données collectées, filtrés par périmètre.',
     note_alertes:'Alertes : niveau de risque calculé automatiquement par pays, consultable en grille ou en chronologie des incidents.',
     note_dashboard:'Tableau de bord : vision d\'ensemble en temps réel des 54 pays d\'Afrique, scores de risque et zones de tension.',
@@ -4282,7 +4305,7 @@ const I18N = {
     proxy_title:'Automatic RSS collection — Click Refresh',
     cbar_lbl:'RSS Collection', cbar_init:'Parallel collection: Malijet... (15/195)',
     nav_flux:'Feed', nav_analyse:'Synthesis', nav_agenda:'Agenda', nav_corridors:'Corridors', nav_geopolitique:'Geopolitics', nav_rapports:'Reports',
-    nav_alertes:'Alerts', nav_recherche:'Search',
+    nav_alertes:'Alerts', nav_recherche:'Search', nav_assistant:'AI Assistant',
     chip_tout:'All', chip_critique:'Critical', chip_eleve:'High', chip_securite:'Security',
     ph_recherche:'Search...',
     flashinfo_lbl:'BREAKING NEWS',
@@ -4293,6 +4316,9 @@ const I18N = {
     note_agenda:'Agenda: ongoing and upcoming security events and deadlines, classified by status and zone.',
     note_corridors:'Reference corridor: tracks events along major logistics and cross-border corridors, waypoint by waypoint — configurable by zone.',
     note_geopolitique:'Geopolitics: analyses generated from diplomatic, military and regional developments detected in the feed, with their estimated impact on country safety — never generated by external AI, only from collected data.',
+    assistant_titre:'AI Assistant', assistant_sous_titre:'Ask a question about the security situation — answers rely only on articles actually collected, with their sources cited.',
+    assistant_vide:'No question asked yet.', assistant_ph:'E.g. What is the security situation in Mali this week?', assistant_demander:'Ask',
+    note_assistant:'AI Assistant: answers generated by a Claude model (Anthropic) from collected articles only — never general knowledge unconfirmed by these articles. Always verify cited sources before any operational decision.',
     note_rapports:'Reports: generate Word, PDF, PowerPoint, Excel and CSV documents from collected data, filtered by scope.',
     note_alertes:'Alerts: risk level automatically computed per country, viewable as a grid or as an incident timeline.',
     note_dashboard:'Dashboard: real-time overview of all 54 African countries, risk scores and tension zones.',
@@ -12050,6 +12076,7 @@ function _demarrerAutoRefresh() {
         localStorage.setItem('sentinel_lastCollectTs', Date.now().toString());
         doCollect().then(() => {
           if (typeof publierCollectePartagee === 'function') publierCollectePartagee(ALL);
+          if (typeof publierArticlesRagPartages === 'function') publierArticlesRagPartages(ALL);
         }).catch(() => {});
       }
     }
@@ -12174,6 +12201,7 @@ async function init() {
         await doCollect();
         // Publie le resultat pour les prochains visiteurs (best-effort).
         if (typeof publierCollectePartagee === 'function') publierCollectePartagee(ALL);
+        if (typeof publierArticlesRagPartages === 'function') publierArticlesRagPartages(ALL);
       } catch(e){
         // Si la collecte echoue totalement, le filet pre-charge reste affiche
         document.getElementById('stbarLeft').textContent='Veille en direct indisponible · Donnees de reference affichees · Reessayez avec Actualiser';
@@ -12403,6 +12431,109 @@ async function publierCollectePartagee(articles, force) {
     });
     if (error) console.warn('SENTINEL — publierCollectePartagee a echoue :', error.message || error);
   } catch (e) { console.warn('SENTINEL — publierCollectePartagee a echoue :', e && e.message ? e.message : e); }
+}
+
+// ── Index de recherche pour l'Assistant IA (RAG, Supabase, table
+// articles_rag) ────────────────────────────────────────────────────────
+// Alimente une table NORMALISEE (colonnes indexables) a partir des memes
+// articles que collecte_partagee (tableau JSONB, pas cherchable en plein
+// texte) — voir poserQuestionAssistant()/supabase/functions/rag-ask, qui
+// lit cette table pour repondre aux questions des utilisateurs en
+// s'appuyant UNIQUEMENT sur des articles reellement collectes. Best-
+// effort, jamais bloquant (memes principe que publierCollectePartagee) ;
+// necessite la migration 20260718030000_articles_rag.sql, sinon echoue
+// silencieusement sans affecter le reste de l'application.
+// Plafonne aux ARTICLES_RAG_MAX_PAR_APPEL plus recents : suffisant pour
+// la recherche plein texte (les articles plus anciens sont de toute
+// facon purges cote serveur, voir purger_articles_rag_perimes) et evite
+// un upsert de plusieurs centaines de lignes a chaque cycle.
+const ARTICLES_RAG_MAX_PAR_APPEL = 300;
+async function publierArticlesRagPartages(articles) {
+  const client = getSentinelSupabase();
+  if (!client || !Array.isArray(articles) || !articles.length) return;
+  try {
+    const lignes = articles
+      .slice()
+      .sort((a, b) => (b.pubDate || 0) - (a.pubDate || 0))
+      .slice(0, ARTICLES_RAG_MAX_PAR_APPEL)
+      .map(a => ({
+        id: a.id, title: (a.title || '').slice(0, 300),
+        summary: (a.analysis || '').slice(0, 1000),
+        source: srcName(a.primary), link: a.url || null,
+        cy: a.cy || null, category: a.cat || null,
+        pub_date: a.pubDate ? new Date(a.pubDate).toISOString() : null,
+        updated_at: new Date().toISOString(),
+      }))
+      .filter(l => l.id && l.title);
+    if (!lignes.length) return;
+    const { error } = await client.from('articles_rag').upsert(lignes);
+    if (error) console.warn('SENTINEL — publierArticlesRagPartages a echoue :', error.message || error);
+  } catch (e) { console.warn('SENTINEL — publierArticlesRagPartages a echoue :', e && e.message ? e.message : e); }
+}
+
+// poserQuestionAssistant() : interroge la fonction Edge rag-ask (voir
+// supabase/functions/rag-ask) avec la question saisie par l'utilisateur —
+// authentification requise (jeton de LA session en cours, jamais la cle
+// anon seule, voir _ouvrirSessionDepuisSupabase/checkAuth). La reponse
+// s'appuie exclusivement sur les articles reellement collectes (retrieval
+// cote fonction Edge) : jamais de connaissance generale non confirmee.
+let _assistantEnCours = false;
+async function poserQuestionAssistant() {
+  if (_assistantEnCours) return;
+  const input = document.getElementById('assistantInput');
+  const question = (input.value || '').trim();
+  const errEl = document.getElementById('assistantErr');
+  errEl.style.display = 'none';
+  if (!question) return;
+  const client = getSentinelSupabase();
+  if (!client) { errEl.textContent = 'Service indisponible pour le moment.'; errEl.style.display = 'block'; return; }
+  const { data: { session } } = await client.auth.getSession();
+  if (!session) { errEl.textContent = 'Reconnectez-vous pour utiliser l\'assistant.'; errEl.style.display = 'block'; return; }
+
+  _assistantEnCours = true;
+  const btn = document.getElementById('assistantBtn');
+  if (btn) btn.disabled = true;
+  input.value = '';
+  document.getElementById('assistantEtatVide').style.display = 'none';
+  const hist = document.getElementById('assistantHistorique');
+  const idBloc = 'assistant_' + Date.now();
+  hist.insertAdjacentHTML('beforeend',
+    '<div id="' + idBloc + '" style="border:1px solid var(--bd);border-radius:10px;padding:12px 14px;background:var(--sf)">' +
+    '<div style="font-size:12px;font-weight:700;color:var(--t);margin-bottom:8px"><i class="ti ti-message-2"></i> ' + escHtml(question) + '</div>' +
+    '<div class="rep" style="font-size:12px;color:var(--t2);display:flex;align-items:center;gap:6px"><i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Recherche dans les articles collectés…</div>' +
+    '</div>');
+  hist.scrollTop = hist.scrollHeight;
+
+  try {
+    const resp = await fetch(SENTINEL_SUPABASE_URL + '/functions/v1/rag-ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token, 'apikey': SENTINEL_SUPABASE_ANON_KEY },
+      body: JSON.stringify({ question }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    const bloc = document.getElementById(idBloc);
+    if (!resp.ok || data.error) {
+      if (bloc) bloc.querySelector('.rep').innerHTML = '<span style="color:var(--r,#dc2626)"><i class="ti ti-alert-triangle"></i> ' + escHtml(data.error || 'Erreur inattendue.') + '</span>';
+      return;
+    }
+    const admin = sourcesVisibles();
+    const sourcesHtml = (data.sources || []).length
+      ? '<div style="margin-top:10px;display:flex;flex-direction:column;gap:5px">' +
+        (data.sources || []).map(s => admin
+          ? '<a href="' + escHtml(s.link || '#') + '" target="_blank" rel="noopener" style="font-size:10.5px;color:var(--lg);text-decoration:none;display:flex;gap:5px;align-items:baseline"><span style="color:var(--b);font-weight:700">[' + s.n + ']</span><span>' + escHtml(s.title) + ' — ' + escHtml(s.source || '') + '</span></a>'
+          : '<div style="font-size:10.5px;color:var(--lg)"><span style="color:var(--b);font-weight:700">[' + s.n + ']</span> ' + escHtml(s.title) + '</div>'
+        ).join('') + '</div>'
+      : '';
+    if (bloc) bloc.querySelector('.rep').outerHTML =
+      '<div class="rep" style="font-size:12.5px;color:var(--t);line-height:1.6;white-space:pre-wrap">' + escHtml(data.answer || '') + '</div>' + sourcesHtml;
+  } catch (e) {
+    const bloc = document.getElementById(idBloc);
+    if (bloc) bloc.querySelector('.rep').innerHTML = '<span style="color:var(--r,#dc2626)"><i class="ti ti-alert-triangle"></i> Erreur réseau — réessayez.</span>';
+  } finally {
+    _assistantEnCours = false;
+    if (btn) btn.disabled = false;
+    hist.scrollTop = hist.scrollHeight;
+  }
 }
 
 // ── Configuration EmailJS PARTAGEE (Supabase, table config_partagee) ──────

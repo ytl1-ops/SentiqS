@@ -101,6 +101,11 @@ function lireTokenDepuisSource() {
       if (!Array.isArray(ALL) || !ALL.length) return { ok: false, raison: 'Aucun article dans ALL' };
       if (typeof publierCollectePartagee !== 'function') return { ok: false, raison: 'publierCollectePartagee indisponible (Supabase non chargé ?)' };
       await publierCollectePartagee(ALL, true);
+      // Alimente aussi l'index de recherche de l'Assistant IA (RAG) — best-
+      // effort, ne doit jamais faire echouer la publication du cache
+      // principal si absent/en echec (voir articles_rag, migration
+      // 20260718030000).
+      if (typeof publierArticlesRagPartages === 'function') { try { await publierArticlesRagPartages(ALL); } catch (_) {} }
       return { ok: true, nbArticles: ALL.length, bestProxy: String(typeof bestProxy !== 'undefined' ? bestProxy : '?') };
     });
 
