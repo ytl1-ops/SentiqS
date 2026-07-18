@@ -12003,12 +12003,21 @@ function clearSession(){ _MEM_SESSION=null; _ls(()=>localStorage.removeItem(STOR
 
 // sourcesVisibles() : les noms/liens de source ne s'affichent nulle part
 // dans les modules de lecture (Flux, Alertes, Agenda, Synthese, Recherche,
-// Rapports, popups, tableau de bord...) — seuls les administrateurs les
-// voient (interface admin/diagnostic). Point d'entree unique pour ce
-// controle : un futur parametrage plus fin remplacera ce simple test de
-// role sans avoir a toucher chaque module individuellement.
+// Rapports, popups, tableau de bord...) — masquees par defaut chez tout
+// role autre qu'admin. Point d'entree unique pour ce controle : pilote par
+// la fonctionnalite "Sources visibles" (f_sources) du tableau "Droits
+// d'acces par fonctionnalite" (Parametres & Administration), au lieu d'un
+// simple test de role fige — l'admin peut y reactiver la visibilite pour
+// user/reader au cas par cas, sans toucher chaque module individuellement.
 function sourcesVisibles() {
-  try { return getSession().role === 'admin'; } catch(_) { return false; }
+  try {
+    const session = getSession();
+    if (!session) return false;
+    if (session.role === 'admin') return true; // l'admin garde toujours acces
+    const rights = (typeof getFTRights === 'function') ? getFTRights() : null;
+    const allowed = (rights && rights['f_sources']) || ['admin'];
+    return allowed.includes(session.role);
+  } catch(_) { return false; }
 }
 
 // ── Zone prioritaire (choisie a l'ecran de connexion) ─────────────────────
@@ -12489,6 +12498,12 @@ const FEATURES = [
   { id:'f_params',     name:'Module Parametres',        sub:'Gestion des acces et configuration',         roles:['admin'] },
   { id:'f_collect',    name:'Actualisation RSS',        sub:'Declencher la collecte des flux',             roles:['admin','user'] },
   { id:'f_dl_all',     name:'Tous les telechargements', sub:'Acces illimite a tous les rapports',         roles:['admin'] },
+  // Sources visibles : nom/lien de la source dans TOUS les modules (Flux,
+  // Alertes, Agenda, Recherche, Synthese, Rapports, exports, toast,
+  // Tableau de bord — voir sourcesVisibles()). Masque par defaut chez tout
+  // role autre qu'admin (roles:['admin']) — l'admin peut le reactiver au
+  // cas par cas via les memes cases a cocher que les autres fonctionnalites.
+  { id:'f_sources',    name:'Sources visibles',         sub:'Afficher le nom et le lien de la source dans tous les modules', roles:['admin'] },
 ];
 
 const KEY_DL = 'sentinel_dl_rights_v1';
@@ -12515,8 +12530,15 @@ function getFTRights() {
   if (_MEM_FT) return _MEM_FT;
   const saved = _ls(() => JSON.parse(localStorage.getItem(KEY_FT) || 'null'), null);
   if (saved) { _MEM_FT = saved; return _MEM_FT; }
+  // Tant qu'aucun droit n'a ete configure par l'admin, chaque fonctionnalite
+  // retombe sur SES PROPRES roles par defaut (f.roles) — pas un acces total
+  // uniforme pour tous : sinon une fonctionnalite declaree admin-only
+  // (f_params, f_dl_all, f_sources...) resterait ouverte a tous les roles
+  // tant que l'admin n'a jamais rien modifie dans ce tableau, ce qui
+  // contredit sa propre definition et, pour f_sources, le masquage des
+  // sources par defaut chez tout role autre qu'admin.
   const d = {};
-  FEATURES.forEach(f => { d[f.id] = ['admin','user','reader']; });
+  FEATURES.forEach(f => { d[f.id] = f.roles.slice(); });
   _MEM_FT = d;
   return _MEM_FT;
 }
