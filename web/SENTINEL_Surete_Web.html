@@ -3202,6 +3202,25 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
             </div>
           </div>
 
+          <!-- Diagnostic collecte RSS par pays -->
+          <div class="pm-section">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-activity-heartbeat"></i>
+                <div><div class="pm-sec-title">Diagnostic collecte RSS par pays</div>
+                <div class="pm-sec-sub" id="proxyDiagCount">Aucune donnée pour le moment</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body" style="padding:14px 16px">
+              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
+                Taux de succès des services de collecte (proxys CORS) par pays — un même proxy échoue souvent de façon inégale selon le pays visé (rate-limiting côté proxy appliqué par lots). L'application priorise automatiquement, pour chaque pays, le proxy historiquement le plus fiable. Seuls les pays avec au moins une donnée s'affichent ; ce tableau se construit progressivement au fil des collectes.
+              </div>
+              <table class="pm-users-table">
+                <thead><tr><th>Pays</th><th>Meilleur service</th><th>Taux de succès</th><th>Dernier échec</th></tr></thead>
+                <tbody id="proxyDiagBody"></tbody>
+              </table>
+            </div>
+          </div>
+
           <!-- Gestion clientèle -->
           <div class="pm-section">
             <div class="pm-sec-hd">
@@ -5443,9 +5462,55 @@ async function detectProxy() {
   return false;
 }
 
+// ── Sante des proxies CORS PAR PAYS ─────────────────────────────────────
+// Complement a SRC_HEALTH (par SOURCE individuelle) : un meme proxy CORS
+// partage echoue souvent de facon TRES INEGALE selon le pays reellement
+// vise par la requete (rate-limiting/blocage cote proxy applique par lots,
+// pas uniformement — cas signale : pour l'Egypte, rss2json/cors.sh/
+// allorigins/cors.workers.dev/thingproxy renvoyaient tous des erreurs
+// (429/503/408/400) au meme moment ou codetabs et corsproxy.org
+// repondaient 200 normalement). Sans ce suivi, TOUTES les sources de la
+// collecte utilisent le MEME "meilleur proxy" global (bestProxy), qui
+// peut tres bien etre le pire choix pour un pays donne a un instant T.
+const PROXY_HEALTH_PAYS_KEY = 'sentinel_proxy_health_pays_v1';
+let PROXY_HEALTH_PAYS = _ls(() => JSON.parse(localStorage.getItem(PROXY_HEALTH_PAYS_KEY) || '{}'), {});
+// Cooldown court : le temps qu'un proxy rate-limite pour un pays se
+// degage, sans pour autant l'exclure definitivement (les rate-limits
+// partages fluctuent au fil de la journee).
+const PROXY_COOLDOWN_PAYS_MS = 10 * 60 * 1000;
+function recordProxyResultPays(cy, proxyIdx, ok, raison) {
+  if (!cy || proxyIdx === null || proxyIdx === undefined || typeof proxyIdx !== 'number') return;
+  const key = cy + ':' + proxyIdx;
+  const prev = PROXY_HEALTH_PAYS[key] || { ok: 0, fail: 0, lastFail: 0, lastRaison: null };
+  if (ok) prev.ok++;
+  else { prev.fail++; prev.lastFail = Date.now(); prev.lastRaison = raison || prev.lastRaison; }
+  PROXY_HEALTH_PAYS[key] = prev;
+  _ls(() => localStorage.setItem(PROXY_HEALTH_PAYS_KEY, JSON.stringify(PROXY_HEALTH_PAYS)));
+}
+// meilleurProxyPourPays(cy) : proxy (index CORS_PX) au meilleur taux de
+// succes RECENT pour ce pays precis — null si aucune donnee suffisante
+// (moins de 2 tentatives), si le taux de succes reste faible (<50%), ou si
+// le dernier echec est trop recent (probable rate-limit encore actif).
+function meilleurProxyPourPays(cy) {
+  if (!cy) return null;
+  let meilleur = null, meilleurTaux = -1;
+  for (let i = 0; i < CORS_PX.length; i++) {
+    const h = PROXY_HEALTH_PAYS[cy + ':' + i];
+    if (!h) continue;
+    const total = h.ok + h.fail;
+    if (total < 2) continue;
+    if (h.lastFail && h.fail > h.ok && (Date.now() - h.lastFail) < PROXY_COOLDOWN_PAYS_MS) continue;
+    const taux = h.ok / total;
+    if (taux > meilleurTaux) { meilleurTaux = taux; meilleur = i; }
+  }
+  return meilleurTaux >= 0.5 ? meilleur : null;
+}
+
 // ── FETCH UNIVERSEL — sans proxy local requis ────────────────────────────────
 // Retourne {type:'json', data:Object} ou {type:'xml', data:String}
-async function proxyFetch(rssUrl) {
+// cy (optionnel) : pays de la source demandee — active la priorisation
+// dynamique par pays (meilleurProxyPourPays) en plus du bestProxy global.
+async function proxyFetch(rssUrl, cy) {
   // Timeout réduit à 7s (vs 12s avant) : élimine les attentes inutiles sur
   // sources hors ligne tout en laissant le temps aux flux légitimes de répondre.
   const T = 7000;
@@ -5463,17 +5528,17 @@ async function proxyFetch(rssUrl) {
     const path = rssUrl.replace(/^https?:\/\/rsshub\.app/, '');
     const urls = RSSHUB_MIRRORS.map(m => m + path);
     // Course : premier miroir qui répond valablement l'emporte
-    const result = await Promise.any(urls.map(u => proxyFetchOne(u, T))).catch(() => null);
+    const result = await Promise.any(urls.map(u => proxyFetchOne(u, T, cy))).catch(() => null);
     if (result) return result;
     throw new Error('Les ' + RSSHUB_MIRRORS.length + ' miroirs RSSHub ont échoué (délai dépassé ou blocage CORS) : ' + rssUrl);
   }
 
-  const r = await proxyFetchOne(rssUrl, T);
+  const r = await proxyFetchOne(rssUrl, T, cy);
   if (r) return r;
   throw new Error('Collecte impossible pour ' + rssUrl);
 }
 
-async function proxyFetchOne(rssUrl, T) {
+async function proxyFetchOne(rssUrl, T, cy) {
   T = T || 7000;
   let lastReason = 'Aucun service de collecte n\'a répondu';
   // 1. rss2json.com en priorité si déjà sélectionné
@@ -5489,33 +5554,65 @@ async function proxyFetchOne(rssUrl, T) {
     } catch (e) { lastReason = e.name === 'TimeoutError' ? 'rss2json.com : délai dépassé (7s)' : 'rss2json.com : ' + (e.message || 'échec réseau/CORS'); }
   }
 
+  // 1b. Priorisation dynamique PAR PAYS (voir meilleurProxyPourPays) : un
+  // proxy historiquement fiable pour CE pays precis, essaye avant le
+  // bestProxy GLOBAL (qui peut etre optimal en moyenne mais defaillant
+  // pour ce pays a cet instant — cas signale : Egypte).
+  const proxyPrefPays = meilleurProxyPourPays(cy);
+  if (typeof proxyPrefPays === 'number' && proxyPrefPays !== bestProxy) {
+    try {
+      const r = await fetch(CORS_PX[proxyPrefPays](rssUrl), { signal: AbortSignal.timeout(T) });
+      if (!r.ok) { recordProxyResultPays(cy, proxyPrefPays, false, 'HTTP ' + r.status); }
+      else {
+        let txt = await r.text();
+        if (txt.trim().startsWith('{') && txt.includes('"contents"')) {
+          try { const w = JSON.parse(txt); if (w?.contents) txt = w.contents; } catch(_) {}
+        }
+        if (txt && txt.length > 100 && (txt.includes('<item') || txt.includes('<entry') || txt.includes('<feed') || txt.includes('<?xml'))) {
+          recordProxyResultPays(cy, proxyPrefPays, true);
+          return { type: 'xml', data: txt };
+        }
+        recordProxyResultPays(cy, proxyPrefPays, false, 'contenu invalide/vide');
+      }
+    } catch (e) { recordProxyResultPays(cy, proxyPrefPays, false, e && e.name === 'TimeoutError' ? 'délai dépassé' : (e && e.message) || 'échec réseau'); }
+  }
+
   // 2. Proxies CORS — tester par paires en parallèle pour réduire la latence.
   // Si bestProxy est connu, on l'essaie seul en premier (évite les requêtes inutiles).
   if (typeof bestProxy === 'number') {
     try {
       const r   = await fetch(CORS_PX[bestProxy](rssUrl), { signal: AbortSignal.timeout(T) });
-      let txt = await r.text();
-      if (txt.trim().startsWith('{') && txt.includes('"contents"')) {
-        try { const w = JSON.parse(txt); if (w?.contents) txt = w.contents; } catch(_) {}
+      if (!r.ok) { recordProxyResultPays(cy, bestProxy, false, 'HTTP ' + r.status); }
+      else {
+        let txt = await r.text();
+        if (txt.trim().startsWith('{') && txt.includes('"contents"')) {
+          try { const w = JSON.parse(txt); if (w?.contents) txt = w.contents; } catch(_) {}
+        }
+        if (txt && txt.length > 100 && (txt.includes('<item') || txt.includes('<entry') || txt.includes('<feed') || txt.includes('<?xml'))) {
+          recordProxyResultPays(cy, bestProxy, true);
+          return { type: 'xml', data: txt };
+        }
+        recordProxyResultPays(cy, bestProxy, false, 'contenu invalide/vide');
       }
-      if (txt && txt.length > 100 && (txt.includes('<item') || txt.includes('<entry') || txt.includes('<feed') || txt.includes('<?xml'))) {
-        return { type: 'xml', data: txt };
-      }
-    } catch (_) {}
+    } catch (e) { recordProxyResultPays(cy, bestProxy, false, e && e.name === 'TimeoutError' ? 'délai dépassé' : (e && e.message) || 'échec réseau'); }
   }
 
-  // 3. Tester tous les proxies restants en parallèle (course)
-  const others = CORS_PX.map((fn, i) => i).filter(i => i !== bestProxy);
+  // 3. Tester tous les proxies restants en parallèle (course) — seul le
+  // GAGNANT est journalisé par pays (les perdants d'une course parallele
+  // n'ont pas de resultat individuel exploitable sans ralentir la course
+  // elle-meme avec un Promise.allSettled).
+  const others = CORS_PX.map((fn, i) => i).filter(i => i !== bestProxy && i !== proxyPrefPays);
   const winner = await Promise.any(
     others.map(idx =>
       fetch(CORS_PX[idx](rssUrl), { signal: AbortSignal.timeout(T) })
-        .then(r => r.text())
+        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
         .then(txt => {
           if (txt.trim().startsWith('{') && txt.includes('"contents"')) {
             try { const w = JSON.parse(txt); if (w?.contents) txt = w.contents; } catch(_) {}
           }
           if (txt && txt.length > 100 && (txt.includes('<item') || txt.includes('<entry') || txt.includes('<feed') || txt.includes('<?xml'))) {
             if (typeof bestProxy !== 'number') bestProxy = idx;
+            recordProxyResultPays(cy, idx, true);
             return { type: 'xml', data: txt };
           }
           throw new Error('contenu invalide');
@@ -7669,7 +7766,7 @@ async function doCollect() {
   async function collectOne(src) {
     SRC_ST[src.id]='load';
     try {
-      const result = await proxyFetch(src.rss);
+      const result = await proxyFetch(src.rss, src.cy);
       const arts   = result.type === 'json' ? parseJSON(result.data, src) : parseRSS(result.data, src);
       let newInThisSrc = [];
       arts.forEach(a => {
@@ -7811,7 +7908,7 @@ async function doCollect() {
         let repriseDone = 0;
         for (const src of srcsManquantes) {
           try {
-            const result = await proxyFetch(src.rss);
+            const result = await proxyFetch(src.rss, src.cy);
             const arts = result.type === 'json' ? parseJSON(result.data, src) : parseRSS(result.data, src);
             arts.forEach(a => { fresh[a.id] = a; });
             SRC_ST[src.id] = {ok:true, cnt:arts.length};
@@ -11639,6 +11736,49 @@ function initCorridorsPerso() {
   peuplerCorPersoZoneSelect();
   renderCorPersoEtapes();
   renderCorPersoListe();
+  renderDiagnosticProxyPays();
+}
+
+// renderDiagnosticProxyPays() : rend visible pour l'administrateur le suivi
+// PROXY_HEALTH_PAYS (voir recordProxyResultPays/meilleurProxyPourPays,
+// proxyFetchOne) — sans cette vue, ce suivi resterait un simple journal
+// silencieux dans localStorage, invisible et donc inexploitable pour
+// diagnostiquer une couverture pays deficiente (cas signale : Egypte).
+function renderDiagnosticProxyPays() {
+  const body = document.getElementById('proxyDiagBody');
+  const countEl = document.getElementById('proxyDiagCount');
+  if (!body) return;
+  const proxyNoms = ['allorigins-raw', 'codetabs', 'allorigins-get', 'cors.sh', 'cors.workers', 'corsproxy.org', 'thingproxy'];
+  // Regroupe les entrees "cy:proxyIdx" par pays.
+  const parPays = {};
+  Object.keys(PROXY_HEALTH_PAYS).forEach(cle => {
+    const sep = cle.lastIndexOf(':');
+    if (sep === -1) return;
+    const cy = cle.slice(0, sep), idx = parseInt(cle.slice(sep + 1), 10);
+    if (!parPays[cy]) parPays[cy] = [];
+    parPays[cy].push(Object.assign({ idx }, PROXY_HEALTH_PAYS[cle]));
+  });
+  const pays = Object.keys(parPays).sort();
+  if (countEl) countEl.textContent = pays.length ? pays.length + ' pays avec des données de collecte' : 'Aucune donnée pour le moment';
+  if (!pays.length) {
+    body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--lg);padding:14px">Aucune donnée pour le moment — se construit au fil des collectes.</td></tr>';
+    return;
+  }
+  body.innerHTML = pays.map(cy => {
+    const entrees = parPays[cy].map(e => Object.assign({ taux: (e.ok + e.fail) ? e.ok / (e.ok + e.fail) : 0 }, e));
+    entrees.sort((a, b) => b.taux - a.taux);
+    const meilleur = entrees[0];
+    const dernierEchec = entrees.reduce((plus, e) => (e.lastFail > (plus ? plus.lastFail : 0)) ? e : plus, null);
+    const pays_ = (typeof PAYS_INFO !== 'undefined' && PAYS_INFO[cy]) || { flag: '🌍', name: cy };
+    const tauxPct = Math.round(meilleur.taux * 100);
+    const col = tauxPct >= 70 ? '#0F4F2A' : tauxPct >= 40 ? '#CA8A04' : '#8B1A1A';
+    return '<tr>' +
+      '<td>' + pays_.flag + ' ' + escHtml(pays_.name || cy) + '</td>' +
+      '<td>' + escHtml(proxyNoms[meilleur.idx] || ('proxy ' + meilleur.idx)) + '</td>' +
+      '<td><span style="color:' + col + ';font-weight:700">' + tauxPct + '%</span> <span style="color:var(--lg);font-size:9px">(' + meilleur.ok + '/' + (meilleur.ok + meilleur.fail) + ')</span></td>' +
+      '<td style="font-size:10px;color:var(--lg)">' + (dernierEchec && dernierEchec.lastFail ? escHtml(dernierEchec.lastRaison || 'échec') + ' · ' + new Date(dernierEchec.lastFail).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '—') + '</td>' +
+    '</tr>';
+  }).join('');
 }
 
 // ── CONTROLES ─────────────────────────────────────────────────────────────────
