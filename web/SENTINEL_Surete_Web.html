@@ -155,11 +155,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 /* z-index au-dessus de .auth-overlay (9000) : le selecteur de langue doit
    rester utilisable AVANT connexion, pas seulement une fois dans l'app —
    corrige un bouton visible mais bloque par l'overlay (clics interceptes). */
-.lang-switch{display:flex;border:1px solid rgba(255,255,255,.2);border-radius:5px;overflow:hidden;flex-shrink:0;position:relative;z-index:9001}
-.lang-btn{background:transparent;border:none;color:rgba(255,255,255,.5);font-size:10px;font-weight:700;
+.lang-switch{display:flex;border:1px solid var(--bd);border-radius:5px;overflow:hidden;flex-shrink:0;position:relative;z-index:9001}
+.lang-btn{background:transparent;border:none;color:var(--lg);font-size:10px;font-weight:700;
   padding:5px 10px;cursor:pointer;letter-spacing:.05em;transition:background .12s,color .12s}
-.lang-btn.on{background:rgba(156,163,175,.25);color:#fff}
-.lang-btn:hover:not(.on){color:rgba(255,255,255,.85)}
+.lang-btn.on{background:var(--bl);color:var(--b)}
+.lang-btn:hover:not(.on){color:var(--t2)}
 .disp-switch{display:flex;border:1px solid var(--bd);border-radius:5px;overflow:hidden;flex-shrink:0}
 .disp-btn{background:transparent;border:none;color:var(--lg);font-size:12px;
   padding:5px 8px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:background .12s,color .12s}
@@ -763,48 +763,50 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
    mobile) l'auth-box (champs + zone prioritaire + stats + liens publics)
    peut depasser la hauteur visible : il faut pouvoir defiler pour
    atteindre le bouton "Se connecter" et les champs du bas. */
-.auth-overlay{position:fixed;inset:0;background:rgba(5,12,20,.97);
+.auth-overlay{position:fixed;inset:0;background:var(--sf);
   z-index:9000;display:flex;align-items:center;justify-content:center;
   overflow-y:auto;-webkit-overflow-scrolling:touch;padding:32px 16px}
 .auth-overlay.hidden{display:none}
 
 /* ═══ SCÈNE D'ACCUEIL — centre d'opérations (écran de connexion) ══════════
-   Esthétique inspirée des interfaces de renseignement/data-ops (sombre,
-   grille, réseau global) : globe filaire, nœuds pulsants représentant les
-   pays sous veille, arcs de connexion animés façon "flux de données" entre
-   signaux corrélés, balayage radar, grille HUD. Purement décoratif
+   Esthétique inspirée des interfaces de renseignement/data-ops (globe
+   filaire, nœuds pulsants représentant les pays sous veille, arcs de
+   connexion animés façon "flux de données" entre signaux corrélés,
+   balayage radar, grille HUD) — recolorée dans la palette "Ardoise
+   Institutionnelle" claire commune à tous les modules de l'app (voir :root),
+   plutôt qu'un theme sombre isole propre a cet ecran. Purement décoratif
    (aria-hidden), n'intercepte aucun clic (pointer-events:none). Aucun
    asset ni design de tiers repris : uniquement des formes géométriques
    (cercles/ellipses/lignes) generées et animées en CSS/SVG. */
-.skyline-scene{position:absolute;inset:0;overflow:hidden;z-index:0;pointer-events:none;background:#040608}
-.ops-grid{position:absolute;inset:0;opacity:.5;
+.skyline-scene{position:absolute;inset:0;overflow:hidden;z-index:0;pointer-events:none;background:var(--sf)}
+.ops-grid{position:absolute;inset:0;opacity:.6;
   background-image:
-    linear-gradient(rgba(120,170,220,.05) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(120,170,220,.05) 1px,transparent 1px);
+    linear-gradient(rgba(61,100,134,.07) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(61,100,134,.07) 1px,transparent 1px);
   background-size:34px 34px}
 .ops-vignette{position:absolute;inset:0;
-  background:radial-gradient(ellipse 75% 65% at 50% 42%,rgba(9,16,24,0) 0%,rgba(4,6,8,.55) 68%,rgba(4,6,8,.92) 100%)}
+  background:radial-gradient(ellipse 75% 65% at 50% 42%,rgba(245,248,251,0) 0%,rgba(226,232,239,.5) 68%,rgba(210,219,229,.85) 100%)}
 .ops-globe-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   animation:opsBreathe 46s ease-in-out infinite alternate}
 @keyframes opsBreathe{0%{transform:scale(1) translateY(0)}100%{transform:scale(1.05) translateY(-1.2%)}}
 .ops-svg{width:min(120vh,1400px);height:min(120vh,1400px);overflow:visible}
-.ops-globe-line{fill:none;stroke:rgba(130,180,230,.24);stroke-width:1}
-.ops-node{fill:#7dd3fc;animation-name:opsNodePulse;animation-iteration-count:infinite;animation-timing-function:ease-in-out}
+.ops-globe-line{fill:none;stroke:rgba(61,100,134,.28);stroke-width:1}
+.ops-node{fill:#3D6486;animation-name:opsNodePulse;animation-iteration-count:infinite;animation-timing-function:ease-in-out}
 @keyframes opsNodePulse{0%,100%{opacity:.35;r:2.4}50%{opacity:1;r:4}}
-.ops-arc{fill:none;stroke:#3aa0ff;stroke-width:1.1;opacity:.55;stroke-dasharray:5 9;
+.ops-arc{fill:none;stroke:#3D6486;stroke-width:1.1;opacity:.5;stroke-dasharray:5 9;
   animation-name:opsFlow;animation-iteration-count:infinite;animation-timing-function:linear}
 @keyframes opsFlow{to{stroke-dashoffset:-140}}
 .ops-scan{position:absolute;left:0;right:0;height:140px;
-  background:linear-gradient(180deg,rgba(58,160,255,0) 0%,rgba(58,160,255,.09) 50%,rgba(58,160,255,0) 100%);
+  background:linear-gradient(180deg,rgba(61,100,134,0) 0%,rgba(61,100,134,.08) 50%,rgba(61,100,134,0) 100%);
   animation:opsScan 9s ease-in-out infinite}
 @keyframes opsScan{0%{top:-140px}100%{top:100%}}
 .ops-label{position:absolute;font-family:var(--font-mono,'Roboto Mono',monospace);
-  font-size:10px;font-weight:600;color:rgba(150,195,235,.55);letter-spacing:.12em;text-transform:uppercase}
+  font-size:10px;font-weight:600;color:var(--lg);letter-spacing:.12em;text-transform:uppercase}
 .ops-label.tl{top:20px;left:20px}
 .ops-label.tr{top:20px;right:20px;text-align:right}
 .ops-label.bl{bottom:20px;left:20px}
 .ops-label.br{bottom:20px;right:20px;text-align:right}
-.ops-label .ops-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:#4ade80;margin-right:5px;animation:blink 1.4s infinite}
+.ops-label .ops-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:#15803D;margin-right:5px;animation:blink 1.4s infinite}
 @media (max-width:760px){html:not(.force-web) .ops-label{display:none}}
 html.force-mobile .ops-label{display:none}
 /* Boutons WEB/MOBILE : masques sur un ecran reellement etroit (telephone),
@@ -826,35 +828,35 @@ html.force-mobile .ops-label{display:none}
   .ops-arc{opacity:.4}
 }
 
-.auth-box{position:relative;z-index:2;background:#16212C;border:1px solid #2E4E63;border-radius:12px;
-  padding:36px 40px;width:100%;max-width:420px;box-shadow:0 24px 64px rgba(0,0,0,.6)}
+.auth-box{position:relative;z-index:2;background:var(--w);border:1px solid var(--bd);border-radius:12px;
+  padding:36px 40px;width:100%;max-width:420px;box-shadow:0 24px 64px rgba(30,42,56,.16)}
 .auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px}
-.auth-logo-ico{width:36px;height:36px;border-radius:8px;background:#253746;
-  display:flex;align-items:center;justify-content:center;border:1px solid #2F5D7C}
-.auth-logo-n{font-family:var(--font-serif);font-size:19px;font-weight:700;color:#fff;letter-spacing:.02em}
-.auth-logo-s{font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;
+.auth-logo-ico{width:36px;height:36px;border-radius:8px;background:var(--bl);
+  display:flex;align-items:center;justify-content:center;border:1px solid var(--b)}
+.auth-logo-n{font-family:var(--font-serif);font-size:19px;font-weight:700;color:var(--n);letter-spacing:.02em}
+.auth-logo-s{font-size:9px;color:var(--lg);text-transform:uppercase;
   letter-spacing:.06em;margin-top:1px}
-.auth-title{font-size:14px;font-weight:700;color:#fff;margin-bottom:4px}
-.auth-sub{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:24px;line-height:1.5}
+.auth-title{font-size:14px;font-weight:700;color:var(--t);margin-bottom:4px}
+.auth-sub{font-size:11px;color:var(--lg);margin-bottom:24px;line-height:1.5}
 .auth-field{margin-bottom:14px}
 .auth-field label{display:block;font-size:10px;font-weight:700;
-  color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
-.auth-field input{width:100%;padding:10px 13px;background:#17232F;
-  border:1px solid #2E4E63;border-radius:7px;color:#fff;font-size:13px;outline:none;
+  color:var(--lg);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.auth-field input{width:100%;padding:10px 13px;background:var(--w);
+  border:1px solid var(--bd);border-radius:7px;color:var(--t);font-size:13px;outline:none;
   transition:border-color .15s}
-.auth-field input:focus{border-color:#9CA3AF}
-.auth-field input::placeholder{color:rgba(255,255,255,.2)}
-.auth-btn{width:100%;padding:11px;background:#4B5563;border:none;border-radius:7px;
+.auth-field input:focus{border-color:var(--b)}
+.auth-field input::placeholder{color:#A0AEC0}
+.auth-btn{width:100%;padding:11px;background:var(--b);border:none;border-radius:7px;
   color:#fff;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.04em;
   text-transform:uppercase;transition:background .15s;margin-top:6px}
-.auth-btn:hover{background:#155090}
+.auth-btn:hover{background:#2F5D7C}
 .auth-btn:disabled{opacity:.5;cursor:not-allowed}
-.auth-err{font-size:11px;color:#ff8080;background:rgba(139,26,26,.2);
-  border:1px solid rgba(220,60,60,.3);border-radius:5px;padding:8px 12px;
+.auth-err{font-size:11px;color:var(--r);background:var(--rl);
+  border:1px solid var(--rb);border-radius:5px;padding:8px 12px;
   margin-top:10px;display:none}
 .auth-err.show{display:block}
-.auth-link{text-align:center;margin-top:16px;font-size:11px;color:rgba(255,255,255,.35)}
-.auth-link span{color:#9CA3AF;cursor:pointer}
+.auth-link{text-align:center;margin-top:16px;font-size:11px;color:var(--lg)}
+.auth-link span{color:var(--b);cursor:pointer}
 .auth-link span:hover{text-decoration:underline}
 
 /* ── Instantané public (preuve sociale sur l'ecran de connexion) ────────
@@ -865,19 +867,19 @@ html.force-mobile .ops-label{display:none}
    (choix delibere, voir checkAuth) ; seul le DERNIER instantane connu est
    visible avant connexion. */
 .auth-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
-  margin:-6px 0 20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08)}
+  margin:-6px 0 20px;padding-top:16px;border-top:1px solid var(--bd)}
 .auth-stats .as-item{text-align:center}
 .auth-stats .as-n{font-family:var(--font-mono,'Roboto Mono',monospace);font-size:18px;
-  font-weight:700;color:#7dd3fc;font-variant-numeric:tabular-nums;line-height:1.1}
-.auth-stats .as-l{font-size:8px;color:rgba(255,255,255,.4);text-transform:uppercase;
+  font-weight:700;color:var(--b);font-variant-numeric:tabular-nums;line-height:1.1}
+.auth-stats .as-l{font-size:8px;color:var(--lg);text-transform:uppercase;
   letter-spacing:.05em;margin-top:3px;line-height:1.35}
-.auth-stats-sync{font-size:9px;color:rgba(255,255,255,.3);text-align:center;
+.auth-stats-sync{font-size:9px;color:var(--lg);text-align:center;
   margin:-14px 0 20px}
 .auth-public-links{display:flex;gap:14px;justify-content:center;margin-top:16px;
-  flex-wrap:wrap;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
-.auth-public-links span{font-size:10.5px;color:#9CA3AF;cursor:pointer;
+  flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--bd)}
+.auth-public-links span{font-size:10.5px;color:var(--t2);cursor:pointer;
   display:inline-flex;align-items:center;gap:4px}
-.auth-public-links span:hover{color:#fff}
+.auth-public-links span:hover{color:var(--b)}
 #publicPanel{z-index:9500}
 
 /* ── ADMIN PANEL ─────────────────────────────────────────────────── */
@@ -1730,9 +1732,9 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         <div class="auth-logo-s" data-i18n="auth_logo_sub">Veille sûreté · 54 pays d'Afrique</div>
       </div>
     </div>
-    <div style="font-size:10px;color:rgba(255,255,255,.4);text-align:center;margin:-4px 0 14px;line-height:1.5;">
+    <div style="font-size:10px;color:var(--lg);text-align:center;margin:-4px 0 14px;line-height:1.5;">
       Plateforme d'aide à la décision pour responsables sûreté<br>
-      <span style="opacity:.7">Security intelligence platform for risk & security managers</span>
+      <span style="opacity:.8">Security intelligence platform for risk & security managers</span>
     </div>
     <div class="auth-stats" id="authStats">
       <div class="as-item"><div class="as-n" id="asPays">54</div><div class="as-l" data-i18n="auth_stat_pays">Pays sous veille</div></div>
@@ -1754,7 +1756,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <div class="auth-field">
         <label data-i18n="login_zone_prio_label">Zone prioritaire (optionnel)</label>
         <select id="loginZonePrioritaire"></select>
-        <div style="font-size:9px;color:rgba(255,255,255,.4);margin-top:3px;line-height:1.4" data-i18n="login_zone_prio_help">
+        <div style="font-size:9px;color:var(--lg);margin-top:3px;line-height:1.4" data-i18n="login_zone_prio_help">
           La collecte démarre par les pays de cette zone (ex. Golfe de Guinée) et les couvre plus en profondeur, pour renseigner en priorité tous leurs modules (Alertes, Tableau de bord, Agenda...).
         </div>
       </div>
@@ -1764,7 +1766,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <div class="auth-err" id="loginErr"></div>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         <div class="auth-link" style="flex:1"><span data-i18n="login_first_time">Premiere connexion ?</span> <span onclick="showRegisterForm()" data-i18n="login_request_access">Demander un acces</span></div>
-        <div class="auth-link"><span onclick="showForgotPasswordForm()" style="color:rgba(255,255,255,.5)" data-i18n="login_reset">Mot de passe oublié ?</span></div>
+        <div class="auth-link"><span onclick="showForgotPasswordForm()" data-i18n="login_reset">Mot de passe oublié ?</span></div>
       </div>
     </div>
     <div id="setPasswordForm" style="display:none">
@@ -1794,16 +1796,16 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         <i class="ti ti-mail"></i> Envoyer le code de réinitialisation
       </button>
       <div class="auth-err" id="forgotPasswordErr"></div>
-      <div class="auth-sub" id="forgotPasswordMsg" style="margin-top:10px;color:#9CA3AF"></div>
+      <div class="auth-sub" id="forgotPasswordMsg" style="margin-top:10px;color:var(--t2)"></div>
       <div class="auth-link" style="margin-top:10px;text-align:center"><span onclick="showLoginForm()">← Retour à la connexion</span></div>
     </div>
     <div id="registerForm" style="display:none">
       <div class="auth-title" data-i18n="register_title">Demande d'acces</div>
       <div class="auth-sub" data-i18n="register_sub">Acces immediat, aucune validation requise.</div>
-      <div style="display:flex;gap:8px;align-items:flex-start;background:rgba(255,184,77,.1);border:1px solid rgba(255,184,77,.25);border-radius:8px;padding:10px 12px;margin-bottom:14px">
-        <i class="ti ti-clock" style="font-size:14px;color:#ffb84d;flex-shrink:0;margin-top:1px"></i>
-        <div style="font-size:11px;color:rgba(255,255,255,.65);line-height:1.5">
-          <span data-i18n="register_trial_pre">Essai gratuit valable</span> <b style="color:#ffb84d"><span data-i18n="register_trial_hours">72 heures</span></b>
+      <div style="display:flex;gap:8px;align-items:flex-start;background:var(--al);border:1px solid var(--ab);border-radius:8px;padding:10px 12px;margin-bottom:14px">
+        <i class="ti ti-clock" style="font-size:14px;color:var(--a);flex-shrink:0;margin-top:1px"></i>
+        <div style="font-size:11px;color:var(--t2);line-height:1.5">
+          <span data-i18n="register_trial_pre">Essai gratuit valable</span> <b style="color:var(--a)"><span data-i18n="register_trial_hours">72 heures</span></b>
           <span data-i18n="register_trial_post">a compter de l'activation. Passe ce delai, vous pourrez redemander un nouveau code gratuit avec la meme adresse, ou passer a un plan payant.</span>
         </div>
       </div>
@@ -3256,13 +3258,14 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
             </div>
             <div class="pm-sec-body" style="padding:14px 16px">
               <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
-                Dès que l'administrateur confirme un paiement déclaré (ci-dessus), le code d'accès du client
-                (identique à celui utilisé pour la connexion) est envoyé automatiquement par email via
+                Envoi automatique (activation de compte, mot de passe oublié) via
                 <a href="https://www.emailjs.com/" target="_blank" rel="noopener">EmailJS</a> — un service gratuit conçu
                 pour l'envoi d'emails depuis une page statique, sans serveur. Créez un compte, un service email et un
                 modèle avec les variables <code>{{to_email}}</code>, <code>{{to_name}}</code>, <code>{{code}}</code>,
                 <code>{{app_name}}</code>, puis renseignez les identifiants ci-dessous. Sans configuration, le code
                 reste affiché à l'administrateur pour transmission manuelle — rien ne bloque.
+                <b>Cette configuration est désormais partagée</b> (enregistrée une seule fois ici, elle active l'envoi
+                automatique pour tous les visiteurs de l'application, pas seulement ce poste).
               </div>
               <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:12px">
                 <div>
@@ -3278,9 +3281,13 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                   <input type="text" id="ejPublicKey" placeholder="Clé publique EmailJS" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
               </div>
-              <div style="display:flex;align-items:center;gap:10px">
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
                 <button class="btn-action btn-rest" onclick="pmSaveEmailjsCfg()"><i class="ti ti-device-floppy"></i> Enregistrer la configuration EmailJS</button>
                 <span class="pmu-msg" id="emailjsCfgMsg" style="margin:0"></span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--bd)">
+                <input type="email" id="ejTestEmail" placeholder="votre@email.com" style="flex:1;min-width:180px;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                <button class="btn-action" id="ejTestBtn" onclick="pmTesterEnvoiEmailjs()" style="border-color:var(--bd);color:var(--t2)"><i class="ti ti-send"></i> Tester l'envoi</button>
               </div>
             </div>
           </div>
@@ -12354,6 +12361,55 @@ async function publierCollectePartagee(articles) {
     if (error) console.warn('SENTINEL — publierCollectePartagee a echoue :', error.message || error);
   } catch (e) { console.warn('SENTINEL — publierCollectePartagee a echoue :', e && e.message ? e.message : e); }
 }
+
+// ── Configuration EmailJS PARTAGEE (Supabase, table config_partagee) ──────
+// BUG CORRIGE : getEmailjsCfg()/saveEmailjsCfg() (plus bas) ne lisent/
+// ecrivent QUE le localStorage du navigateur COURANT. Un administrateur
+// configurant EmailJS depuis son propre poste ne rendait donc l'envoi
+// automatique fonctionnel QUE sur CE poste — tout autre visiteur (activation
+// de compte, "mot de passe oublie"...), y compris l'administrateur lui-meme
+// sur un autre appareil, tombait systematiquement sur "EmailJS non
+// configure" : aucun email n'etait JAMAIS reellement transmis, quelle que
+// soit la configuration deja enregistree ailleurs. Ces identifiants sont
+// concus par EmailJS pour etre exposes cote client (memes compromis
+// d'exposition que collecte_partagee/connexions_log, voir plus haut) : les
+// stocker dans Supabase les rend disponibles a TOUS les navigateurs.
+// Necessite la migration
+// app/sentinel-app/supabase/migrations/20260718010000_config_partagee.sql
+// (a appliquer manuellement — tant qu'elle ne l'est pas, ces fonctions
+// echouent silencieusement et l'app retombe sur son comportement actuel).
+const CONFIG_PARTAGEE_ID = 'global';
+// Lit la configuration EmailJS partagee. Retourne null si Supabase n'est
+// pas configure/joignable, si la table n'existe pas encore (migration non
+// appliquee), ou si aucune configuration valide (les 3 champs) n'a encore
+// ete enregistree par un administrateur.
+async function lireConfigEmailjsPartagee() {
+  const client = getSentinelSupabase();
+  if (!client) return null;
+  try {
+    const { data, error } = await client.from('config_partagee')
+      .select('emailjs').eq('id', CONFIG_PARTAGEE_ID).maybeSingle();
+    if (error) { console.warn('SENTINEL — lireConfigEmailjsPartagee a echoue :', error.message || error); return null; }
+    const cfg = data && data.emailjs;
+    if (!cfg || !cfg.serviceId || !cfg.templateId || !cfg.publicKey) return null;
+    return cfg;
+  } catch (e) { console.warn('SENTINEL — lireConfigEmailjsPartagee a echoue :', e && e.message ? e.message : e); return null; }
+}
+// Publie la configuration EmailJS pour tous les visiteurs — appelee par
+// pmSaveEmailjsCfg() en plus de l'enregistrement local habituel.
+// Best-effort, jamais bloquant (l'enregistrement local reste effectif meme
+// si Supabase est indisponible).
+async function publierConfigEmailjsPartagee(cfg) {
+  const client = getSentinelSupabase();
+  if (!client) return;
+  try {
+    const { error } = await client.from('config_partagee').upsert({
+      id: CONFIG_PARTAGEE_ID, emailjs: cfg, updated_at: new Date().toISOString(),
+    });
+    if (error) console.warn('SENTINEL — publierConfigEmailjsPartagee a echoue :', error.message || error);
+  } catch (e) { console.warn('SENTINEL — publierConfigEmailjsPartagee a echoue :', e && e.message ? e.message : e); }
+}
+
 // _appliquerArticlesPartages(articles) : applique un jeu d'articles deja
 // collectes AILLEURS (cache partage Supabase) a l'etat de cette session —
 // factorise entre init() et le cycle d'auto-refresh (_demarrerAutoRefresh),
@@ -12884,10 +12940,10 @@ function doRegister() {
 
   document.getElementById('registerForm').innerHTML=
     '<div style="text-align:center;padding:20px 0">'+
-    '<i class="ti ti-circle-check" style="font-size:48px;color:#4ade80;display:block;margin-bottom:14px"></i>'+
-    '<div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:8px">'+t('register_activated')+'</div>'+
-    '<div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.6">Connectez-vous avec l\'adresse et le mot de passe que vous venez de définir.</div>'+
-    '<div style="margin-top:16px"><span style="color:#9CA3AF;cursor:pointer" onclick="showLoginForm()">'+t('register_go_login')+'</span></div></div>';
+    '<i class="ti ti-circle-check" style="font-size:48px;color:#15803D;display:block;margin-bottom:14px"></i>'+
+    '<div style="font-size:14px;font-weight:700;color:var(--t);margin-bottom:8px">'+t('register_activated')+'</div>'+
+    '<div style="font-size:12px;color:var(--lg);line-height:1.6">Connectez-vous avec l\'adresse et le mot de passe que vous venez de définir.</div>'+
+    '<div style="margin-top:16px"><span style="color:var(--b);cursor:pointer" onclick="showLoginForm()">'+t('register_go_login')+'</span></div></div>';
 }
 
 function addUser() {
@@ -13936,14 +13992,52 @@ function renderEmailjsCfg() {
   if (a) a.value = cfg.serviceId || '';
   if (b) b.value = cfg.templateId || '';
   if (c) c.value = cfg.publicKey || '';
+  const t = document.getElementById('ejTestEmail');
+  if (t && !t.value && typeof _MEM_SESSION !== 'undefined' && _MEM_SESSION && _MEM_SESSION.email) t.value = _MEM_SESSION.email;
 }
 function pmSaveEmailjsCfg() {
-  saveEmailjsCfg({
+  const cfg = {
     serviceId:  (document.getElementById('ejServiceId').value||'').trim(),
     templateId: (document.getElementById('ejTemplateId').value||'').trim(),
     publicKey:  (document.getElementById('ejPublicKey').value||'').trim(),
-  });
-  pmMsg('Configuration EmailJS enregistrée.', 'ok', 'emailjsCfgMsg');
+  };
+  saveEmailjsCfg(cfg);
+  // Publie egalement vers Supabase (config_partagee) : sans cela, cette
+  // configuration ne fonctionnerait que sur CE poste (voir
+  // lireConfigEmailjsPartagee/envoyerCodeActivation) — best-effort, jamais
+  // bloquant, l'enregistrement local ci-dessus reste effectif dans tous les cas.
+  const partage = (cfg.serviceId && cfg.templateId && cfg.publicKey && typeof publierConfigEmailjsPartagee === 'function');
+  if (partage) publierConfigEmailjsPartagee(cfg);
+  pmMsg('Configuration EmailJS enregistrée' + (partage ? ' — désormais active pour tous les visiteurs, pas seulement ce poste.' : '.'), 'ok', 'emailjsCfgMsg');
+}
+// pmTesterEnvoiEmailjs() : envoie un e-mail de test a l'adresse saisie, avec
+// la configuration actuellement saisie dans le formulaire (pas forcement
+// deja enregistree) — permet a l'administrateur de verifier immediatement
+// que l'envoi fonctionne reellement, sans devoir passer par le flux complet
+// d'activation ou de "mot de passe oublie".
+async function pmTesterEnvoiEmailjs() {
+  const cfg = {
+    serviceId:  (document.getElementById('ejServiceId').value||'').trim(),
+    templateId: (document.getElementById('ejTemplateId').value||'').trim(),
+    publicKey:  (document.getElementById('ejPublicKey').value||'').trim(),
+  };
+  const dest = (document.getElementById('ejTestEmail').value || '').trim();
+  if (!cfg.serviceId || !cfg.templateId || !cfg.publicKey) { pmMsg('Renseignez les 3 identifiants EmailJS avant de tester.', 'err', 'emailjsCfgMsg'); return; }
+  if (!dest || !/^[^@]+@[^@]+\.[^@]+$/.test(dest)) { pmMsg('Adresse e-mail de test invalide.', 'err', 'emailjsCfgMsg'); return; }
+  const btn = document.getElementById('ejTestBtn');
+  if (btn) btn.disabled = true;
+  pmMsg('Envoi du test en cours…', 'ok', 'emailjsCfgMsg');
+  try {
+    await _chargerSdkEmailjs();
+    await emailjs.send(cfg.serviceId, cfg.templateId, {
+      to_email: dest, to_name: dest, code: 'TEST-' + Math.random().toString(36).slice(2, 8).toUpperCase(), app_name: 'SENTINEL SÛRETÉ',
+    }, cfg.publicKey);
+    pmMsg('E-mail de test envoyé à ' + escHtml(dest) + ' — vérifiez la boîte de réception (et les indésirables).', 'ok', 'emailjsCfgMsg');
+  } catch (e) {
+    pmMsg('Échec de l\'envoi de test : ' + escHtml((e && e.message) || 'erreur inconnue') + '. Vérifiez le Service ID / Template ID / Public Key et la configuration du modèle EmailJS.', 'err', 'emailjsCfgMsg');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 }
 
 // ── Contacts WhatsApp (voir envoyerActuWhatsapp/whatsappMessageActu) ──────
@@ -14228,7 +14322,16 @@ function _chargerSdkEmailjs() {
 // affiche alors le code a l'administrateur pour transmission manuelle,
 // aucune activation ne depend de la reussite de cet envoi.
 async function envoyerCodeActivation(u) {
-  const cfg = getEmailjsCfg();
+  let cfg = getEmailjsCfg();
+  // Rien en local sur CE navigateur : tente la configuration PARTAGEE
+  // (voir lireConfigEmailjsPartagee plus haut) avant d'abandonner — sans ce
+  // repli, seul le poste ayant explicitement enregistre la configuration
+  // pouvait jamais envoyer un email reel. Mise en cache local au passage,
+  // pour eviter un aller-retour reseau a chaque envoi depuis ce navigateur.
+  if (!cfg.serviceId || !cfg.templateId || !cfg.publicKey) {
+    const partagee = await lireConfigEmailjsPartagee();
+    if (partagee) { cfg = partagee; saveEmailjsCfg(cfg); }
+  }
   if (!cfg.serviceId || !cfg.templateId || !cfg.publicKey) {
     return { ok: false, raison: 'EmailJS non configuré' };
   }
