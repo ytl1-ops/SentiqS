@@ -12294,11 +12294,16 @@ async function fetchConnexionsRecentes(limit) {
 // pas, ces fonctions echouent silencieusement et l'app retombe sur son
 // comportement actuel, inchange).
 const COLLECTE_PARTAGEE_ID = 'global';
-// Fenetre volontairement un peu plus large que COLLECTE_RECENTE_MS (4 min,
-// par navigateur) : ce cache sert TOUS les visiteurs a la fois, pas un
-// seul — une fraicheur legerement moins stricte reste largement
-// suffisante pour un flux "< 12h" et reduit davantage la charge globale.
-const COLLECTE_PARTAGEE_FRAICHEUR_MS = 5 * 60 * 1000;
+// Fenetre alignee sur le job de collecte PLANIFIE (voir
+// .github/workflows/collecte-planifiee.yml, toutes les ~15 min via
+// checkCollectorSession) qui republie ce cache regulierement, independamment
+// du trafic reel — 20 min laisse une marge confortable au-dela du cycle de
+// 15 min (execution du job elle-meme, delais reseau occasionnels) sans
+// jamais faire retomber un visiteur normal sur sa propre collecte complete
+// des ~495 sources tant que le job tourne correctement. Si Supabase ou le
+// job planifie sont indisponibles, l'app retombe silencieusement sur son
+// ancien comportement (collecte cote client), inchange.
+const COLLECTE_PARTAGEE_FRAICHEUR_MS = 20 * 60 * 1000;
 // Lit le cache partage le plus recent. Retourne null si Supabase n'est
 // pas configure/joignable, si la table n'existe pas encore (migration non
 // appliquee), si aucune ligne n'existe, OU si la ligne existante est trop
@@ -12325,12 +12330,21 @@ async function lireCollectePartagee() {
 // jamais retarder l'affichage local). Verifie d'abord qu'une publication
 // recente n'existe pas deja, pour eviter une rafale d'ecritures identiques
 // si plusieurs navigateurs terminent leur collecte au meme moment.
-async function publierCollectePartagee(articles) {
+// force=true (utilise UNIQUEMENT par le job de collecte planifie, voir
+// checkCollectorSession/.github/workflows/collecte-planifiee.yml) ignore ce
+// garde-fou : ce job tourne deliberement plus souvent (~15 min) que la
+// fenetre de fraicheur (COLLECTE_PARTAGEE_FRAICHEUR_MS, 20 min) pour garder
+// une marge de securite — sans "force", sa propre publication serait
+// silencieusement ignoree a chaque cycle des le deuxieme, puisque le cache
+// qu'il vient de publier lui-meme la fois precedente serait toujours "frais".
+async function publierCollectePartagee(articles, force) {
   const client = getSentinelSupabase();
   if (!client || !Array.isArray(articles) || !articles.length) return;
   try {
-    const { data } = await client.from('collecte_partagee').select('updated_at').eq('id', COLLECTE_PARTAGEE_ID).maybeSingle();
-    if (data && data.updated_at && (Date.now() - new Date(data.updated_at).getTime()) < COLLECTE_PARTAGEE_FRAICHEUR_MS) return;
+    if (!force) {
+      const { data } = await client.from('collecte_partagee').select('updated_at').eq('id', COLLECTE_PARTAGEE_ID).maybeSingle();
+      if (data && data.updated_at && (Date.now() - new Date(data.updated_at).getTime()) < COLLECTE_PARTAGEE_FRAICHEUR_MS) return;
+    }
     const { error } = await client.from('collecte_partagee').upsert({
       id: COLLECTE_PARTAGEE_ID, articles, updated_at: new Date().toISOString(),
     });
@@ -12667,6 +12681,41 @@ function initUsers() {
   history.replaceState(null, '', location.pathname + location.search);
 }
 
+// ── COLLECTEUR PLANIFIE (job GitHub Actions) ──────────────────────────────
+// COLLECTOR_TOKEN : jeton distinct de SETUP_ADMIN_TOKEN, reserve au job
+// planifie (voir .github/workflows/collecte-planifiee.yml) qui maintient le
+// cache partage (collecte_partagee) frais pour TOUS les visiteurs sans
+// dependre du trafic reel — auparavant, le cache n'etait alimente que par
+// hasard, au gre des visiteurs qui declenchaient eux-memes une collecte ;
+// des qu'il expirait (5 min a l'origine), le prochain visiteur relancait
+// une collecte complete des ~495 sources depuis SON PROPRE navigateur. Ce
+// jeton etablit une session synthetique en LECTURE SEULE (role 'reader',
+// jamais admin, jamais ecrite dans sentinel_users_v1) — n'affecte et ne
+// regenere JAMAIS le compte administrateur reel (voir SETUP_ADMIN_TOKEN,
+// distinct et reserve au proprietaire), et ne cree aucune trace dans le
+// tableau "Utilisateurs enregistres". Meme modele de confiance que
+// SETUP_ADMIN_TOKEN : jeton fixe dans ce fichier public, la protection
+// repose sur le fait qu'il ne soit ni devine ni partage, pas sur un secret
+// reellement inaccessible (aucun backend pour emettre un jeton a usage
+// unique dans une appli 100% statique cote client).
+const COLLECTOR_TOKEN = 'JXk1Gy1f8SBkYpS36UpvqqrMy7fyzxW';
+// Volontairement minimal : n'appelle PAS init() (rendu des modules, cache
+// IndexedDB, planning d'auto-refresh...) — inutile pour un run headless qui
+// ne fait que declencher UNE collecte puis publier son resultat. Le script
+// du job (.github/workflows/collecte-planifiee.yml) orchestre lui-meme
+// explicitement detectProxy() -> doCollect() -> publierCollectePartagee(ALL,
+// true) une fois cette session etablie, pour un comportement previsible
+// (pas de dependance sur la logique de decision "cache deja frais ?" de
+// init(), qui doit au contraire toujours etre contournee ici).
+function checkCollectorSession() {
+  if (location.hash !== '#collecteur-'+COLLECTOR_TOKEN) return false;
+  _MEM_SESSION = {email:'collecteur@sentinel.interne', name:'Agent de collecte planifiee', role:'reader', loginAt:new Date().toISOString()};
+  document.getElementById('authOverlay').classList.add('hidden');
+  document.getElementById('userWrap').style.display='none';
+  history.replaceState(null, '', location.pathname + location.search);
+  return true;
+}
+
 function doLogin() {
   const email=document.getElementById('loginEmail').value.trim().toLowerCase();
   const pass =document.getElementById('loginPass').value.trim().toUpperCase();
@@ -12964,6 +13013,10 @@ function checkAuth() {
   // ecrit en francais : sans cet appel, LANG suivrait le bon choix en
   // interne mais l'ecran de connexion resterait affiche en francais.
   setLang(LANG);
+  // Job de collecte planifie (voir checkCollectorSession) : contourne
+  // entierement l'ecran de connexion et le compte admin, retourne avant
+  // toute autre logique si le jeton correspond.
+  if (typeof checkCollectorSession === 'function' && checkCollectorSession()) return;
   initUsers();
   // Instantane public (compteur + bulletin) : lu independamment de l'etat de
   // connexion, voir sauvegarderInstantanePublic/renderAuthStats.

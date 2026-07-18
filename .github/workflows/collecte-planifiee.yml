@@ -1,0 +1,44 @@
+name: Collecte planifiée (cache partagé)
+
+# Déclenche une collecte RSS réelle toutes les ~15 minutes via un navigateur
+# headless pointé sur l'application déployée, et publie le résultat dans le
+# cache partagé Supabase (collecte_partagee) — voir scripts/collecte-planifiee.js
+# et checkCollectorSession() dans web/SENTINEL_Surete_Web.html.
+#
+# Objectif : garder ce cache quasi toujours frais, INDÉPENDAMMENT du trafic
+# réel de visiteurs. Auparavant, seul un visiteur qui déclenchait lui-même
+# une collecte l'alimentait ; dès qu'il expirait, le prochain visiteur
+# relançait une collecte complète des ~495 sources depuis SON PROPRE
+# navigateur — d'où l'impression de "collecte à chaque lancement".
+#
+# Ne nécessite aucun secret supplémentaire : la cible est l'URL publique
+# déployée, et le jeton de session collecteur est lu directement depuis le
+# fichier source (COLLECTOR_TOKEN), jamais dupliqué ici.
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  collecte:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Installer Playwright + Chromium
+        run: |
+          npm install playwright@1
+          npx playwright install --with-deps chromium
+
+      - name: Lancer la collecte planifiée
+        env:
+          SENTINEL_URL: https://sentinel-surete.web.app/SENTINEL_Surete_Web.html
+        run: node scripts/collecte-planifiee.js
