@@ -578,7 +578,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .det{background:var(--w);border-top:2px solid var(--b);padding:15px;display:none}
 .det.op{display:block}
 .dh{display:flex;justify-content:space-between;align-items:flex-start;
-  gap:10px;margin-bottom:8px}
+  gap:10px;margin:-15px -15px 8px -15px;padding:15px;
+  position:sticky;top:0;background:var(--w);z-index:2;border-bottom:1px solid var(--bd)}
 .dt{font-size:14px;font-weight:700;color:var(--t);line-height:1.4;flex:1}
 .dc{width:26px;height:26px;border-radius:5px;border:1px solid var(--bd);
   display:flex;align-items:center;justify-content:center;cursor:pointer;
@@ -2183,7 +2184,6 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
           </span>
         </div>
       </div>
-      <div class="det" id="detPanel"><div class="dh"><div class="dt">Burkina Faso — Evaluation mission humanitaire dans le Soum reportee sine die</div><div class="dc" onclick="document.getElementById(&#39;detPanel&#39;).className=&#39;det&#39;"><i class="ti ti-x"></i></div></div><div class="dlvl" style="background:#FEF2F2;border-left:4px solid #8B1A1A;color:#8B1A1A"><i class="ti ti-alert-triangle"></i><strong>CRITIQUE</strong> — <span class="rtg rm">80%</span></div><div class="det-pubdate"><i class="ti ti-calendar-time"></i><strong>Publié :</strong> lun. 6 juillet à 12:18 UTC+0</div><div class="dsrcs"><span style="font-size:9px;font-weight:700;color:var(--gr);text-transform:uppercase;letter-spacing:.05em">Sources :</span><a href="https://wakatsera.com/?s=sahel" target="_blank"><span class="dot" style="background:#92400E"></span>Wakat Sera<i class="ti ti-external-link" style="font-size:9px;margin-left:2px"></i></a><a href="https://reliefweb.int/updates?search=west+africa&amp;source=13" target="_blank"><span class="dot" style="background:#166534"></span>ReliefWeb<i class="ti ti-external-link" style="font-size:9px;margin-left:2px"></i></a></div><div style="font-size:8px;color:var(--lg);padding:4px 0 0;font-style:italic;">Les liens menent vers la page de recherche ou de categorie du site source. SENTINEL ne dispose pas du lien direct vers la depeche individuelle.</div><div class="dan">Wakat Sera rapporte une tentative d organisation d une mission d evaluation humanitaire dans la province du Soum. La mission a ete reportee sine die faute d acces securise.</div><div class="drec"><div class="drec-hd"><i class="ti ti-chevron-right"></i>Actions recommandees</div><div class="rli">Province du Soum : aucune mission de terrain sans autorisation et escorte adaptee.</div></div><div class="dact"><a href="https://www.google.com/search?q=site%3Awakatsera.com%20sahel" target="_blank" class="dbt p"><i class="ti ti-external-link"></i>Rechercher sur Wakat Sera</a><div class="dbt" style="margin-left:auto" onclick="document.getElementById(&#39;detPanel&#39;).className=&#39;det&#39;"><i class="ti ti-x"></i>Fermer</div></div></div>
       <div class="view-note"><i class="ti ti-info-circle"></i><span data-i18n="note_flux">Flux opérationnel : actualités vérifiées des 12 dernières heures, triables et filtrables par pays, catégorie et niveau d'alerte.</span></div>
     </div>
 
@@ -10048,8 +10048,22 @@ async function showDet(id) {
            s.n+'<i class="ti ti-external-link" style="font-size:9px;margin-left:2px"></i></a>';
   }).join('') : '';
   const lienDirectDispo = (typeof articleADesLiensDirects === 'function') && articleADesLiensDirects(a);
-  const panel=document.getElementById('detPanel');
-  panel.className='det op';
+  // Overlay plein ecran cree dynamiquement (meme principe que
+  // vuePaysOverlay) plutot qu'un panneau statique imbrique dans #v-flux —
+  // corrige au passage un bug latent : appele depuis un AUTRE module
+  // (Geopolitique, Recherche...), l'ancien panneau statique restait
+  // invisible tant que #v-flux n'etait pas la vue active (display:none sur
+  // un ancetre masque tout descendant, quel que soit son propre style).
+  let overlay = document.getElementById('detOverlay');
+  if (overlay) overlay.remove();
+  overlay = document.createElement('div');
+  overlay.id = 'detOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:var(--w);z-index:100000;overflow-y:auto;';
+  document.body.appendChild(overlay);
+  const panel = document.createElement('div');
+  panel.className = 'det op';
+  panel.style.cssText = 'display:block;max-width:820px;margin:0 auto;';
+  overlay.appendChild(panel);
   const confHtml = (typeof confBadge === 'function' && a._conf) ? (() => {
     const c = a._conf;
     const lbl = CONF_LABELS[c.statut];
@@ -10071,7 +10085,7 @@ async function showDet(id) {
   panel.innerHTML=
     '<div class="dh"><div class="dt" id="dettt-'+a.id+'">'+escHtml(L(a.title))+'</div>'+
     (detTraduireDispo ? '<button class="tr-btn" id="dettrbtn-'+a.id+'" style="flex-shrink:0;margin-right:6px" onclick="event.stopPropagation();retraduireActu(\''+a.id+'\')" title="'+(LANG==='en'?'Translate now':'Traduire maintenant')+'"><i class="ti ti-language"></i>'+(LANG==='en'?'Translate':'Traduire')+'</button>' : '')+
-    '<div class="dc" onclick="document.getElementById(\'detPanel\').className=\'det\'"><i class="ti ti-x"></i></div></div>'+
+    '<div class="dc" onclick="document.getElementById(\'detOverlay\').remove()"><i class="ti ti-x"></i></div></div>'+
     confHtml+
     '<div class="dlvl" style="background:'+bgC+';border-left:4px solid '+bc+';color:'+bc+'">'+
       '<i class="ti '+lic(a.level)+'"></i><strong>'+pl[1]+'</strong>'+
@@ -10102,9 +10116,9 @@ async function showDet(id) {
         ? '<a href="'+safeUrl(articleLienDirect(a), a.title)+'" target="_blank" class="dbt p"><i class="ti ti-external-link"></i>'+(lienDirectDispo ? 'Lire l\'article complet' : 'Rechercher sur '+ps.n)+'</a>'
         : '')+
       '<button class="dbt" onclick="toggleShareMenu(event,\''+a.id+'\')"><i class="ti ti-share-2"></i>'+(LANG==='en'?'Share':'Partager')+'</button>'+
-      '<div class="dbt" style="margin-left:auto" onclick="document.getElementById(\'detPanel\').className=\'det\'"><i class="ti ti-x"></i>Fermer</div>'+
+      '<div class="dbt" style="margin-left:auto" onclick="document.getElementById(\'detOverlay\').remove()"><i class="ti ti-x"></i>Fermer</div>'+
     '</div>';
-  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+  overlay.scrollTop = 0;
 }
 
 // ── STATS ────────────────────────────────────────────────────────────────────
@@ -15662,7 +15676,7 @@ async function ouvrirVuePays(cy) {
   if (overlay) overlay.remove();
   overlay = document.createElement('div');
   overlay.id = 'vuePaysOverlay';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(11,26,39,.72);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;';
+  overlay.style.cssText = 'position:fixed;inset:0;background:var(--w);z-index:100000;';
 
   const section = (titre, icone, count, contenuHtml) => contenuHtml ? `
     <div style="margin-bottom:16px;">
@@ -15747,8 +15761,8 @@ async function ouvrirVuePays(cy) {
   ` : '';
 
   overlay.innerHTML = `
-    <div style="background:#fff;border-radius:12px;max-width:720px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.4);">
-      <div style="background:var(--w);color:var(--t);border-bottom:1px solid var(--bd);padding:16px 20px;border-radius:12px 12px 0 0;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:2;">
+    <div style="background:#fff;width:100%;height:100%;max-width:none;max-height:none;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.4);">
+      <div style="background:var(--w);color:var(--t);border-bottom:1px solid var(--bd);padding:16px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:2;">
         <span style="font-size:30px;">${pays.flag}</span>
         <div style="flex:1;">
           <div style="font-size:16px;font-weight:800;">${pays.name}</div>
@@ -15758,6 +15772,7 @@ async function ouvrirVuePays(cy) {
           <div style="padding:4px 11px;border-radius:5px;font-size:10px;font-weight:700;color:#fff;background:${niv.col};">${niv.label}</div>
           <div style="font-size:9px;color:var(--lg);margin-top:3px;">Score ${score.total100}/100</div>
         </div>` : ''}
+        <button onclick="toggleShareMenuAlerte(event,'${cy}')" style="padding:7px 12px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;color:var(--t);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;margin-left:8px;"><i class="ti ti-share-2"></i>${LANG==='en'?'Share':'Partager'}</button>
         <span onclick="document.getElementById('vuePaysOverlay').remove()" style="cursor:pointer;font-size:22px;line-height:1;margin-left:8px;color:var(--lg);">&times;</span>
       </div>
       ${score ? (() => { const ligne = pastilleCouvertureFaible(derniereActuTsPays(cy), dateDernierIncident(score.events)); return ligne ? `<div style="padding:8px 20px 0 20px;">${ligne}</div>` : ''; })() : ''}
