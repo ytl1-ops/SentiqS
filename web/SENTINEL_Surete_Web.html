@@ -16005,6 +16005,43 @@ function dateDernierIncident(events) {
   return pad(plusRecent.getDate())+'/'+pad(plusRecent.getMonth()+1)+'/'+plusRecent.getFullYear();
 }
 
+// derniereActuTsPays(cy) : horodatage (ms) de l'actu la PLUS RECENTE
+// reellement collectee pour ce pays (TOUT article de ALL, quel que soit son
+// niveau/sa fiabilite) — 0 si aucune. Extrait en fonction reutilisable
+// (auparavant inline dans renderAlertCard uniquement) pour que le meme
+// signal de fraicheur reelle serve aussi a qualifier le score/badge affiche
+// (voir AUCUNE_ACTU_SEUIL_MS/pastilleCouvertureFaible ci-dessous) et la
+// colonne "MAJ" du tableau (renderAlertTable), qui affichait auparavant
+// systematiquement l'heure de rendu de la page — jamais la fraicheur reelle
+// des donnees du pays.
+function derniereActuTsPays(cy) {
+  return (typeof ALL !== 'undefined' ? ALL : [])
+    .filter(a => a && a.cy === cy && a.pubDate)
+    .reduce((max, a) => Math.max(max, a.pubDate), 0);
+}
+
+// AUCUNE_ACTU_SEUIL_MS : au-dela de ce delai sans la moindre actu captee
+// pour un pays, le score/badge affiche — qui peut rester eleve uniquement
+// grace aux incidents de reference DOCUMENTES de ALERTE_EVENTS (reels,
+// sources, mais parfois anciens de plusieurs semaines et JAMAIS decroissants
+// dans le temps par conception, cf. calcAlertScore) — ne peut plus etre
+// presente comme "a jour" sans le signaler explicitement. Corrige la
+// contradiction remontee : "Aucune actu suivie pour l'instant" affiche a
+// cote d'un score/badge et d'une date d'incident qui semblent pourtant
+// frais. Ne modifie JAMAIS le score lui-meme (les incidents documentes
+// restent une reference legitime) — ajoute seulement la transparence
+// manquante sur ce qu'il represente reellement.
+const AUCUNE_ACTU_SEUIL_MS = 7*24*60*60*1000;
+
+function pastilleCouvertureFaible(derniereActuTs, dateVerifie) {
+  const perimee = !derniereActuTs || (Date.now() - derniereActuTs) > AUCUNE_ACTU_SEUIL_MS;
+  if (!perimee) return '';
+  return `<div style="font-size:9px;color:#92400E;background:#FEF3C7;border:1px solid #FDE68A;border-radius:4px;padding:3px 6px;margin-top:4px;display:flex;align-items:flex-start;gap:4px;line-height:1.35;">
+    <i class="ti ti-info-circle" style="font-size:11px;flex-shrink:0;margin-top:1px;"></i>
+    <span>Score basé sur des incidents de référence documentés${dateVerifie ? ' (dernier confirmé : ' + dateVerifie + ')' : ''} — aucune actualité fraîche captée récemment sur ce pays, pas de confirmation en temps réel.</span>
+  </div>`;
+}
+
 async function renderAlertCard(score) {
   const pays = PAYS_INFO[score.cy];
   if (!pays) return '';
@@ -16082,9 +16119,7 @@ async function renderAlertCard(score) {
   // score). Objectif : que la date affichee reste TOUJOURS actualisee des
   // qu'une actu arrive sur ce pays, meme quand elle ne franchit pas encore la
   // barre plus stricte d'un "incident" au sens du score d'alerte.
-  const derniereActuTs = (typeof ALL !== 'undefined' ? ALL : [])
-    .filter(a => a && a.cy === score.cy && a.pubDate)
-    .reduce((max, a) => Math.max(max, a.pubDate), 0);
+  const derniereActuTs = derniereActuTsPays(score.cy);
   // Ligne de fraicheur PRINCIPALE : priorite absolue a la donnee la plus
   // RECENTE realmente disponible (demande explicite — l'ancien ordre
   // affichait "Dernier incident verifie" en premier, une date corroboree
@@ -16100,6 +16135,7 @@ async function renderAlertCard(score) {
     : `<div style="font-size:9px;color:var(--lg);">Aucune actu suivie pour l'instant</div>`;
   const ligneVerifiee = dateVerifie
     ? `<div style="font-size:8px;color:var(--lg);opacity:.8;">Dernier incident vérifié/corroboré : ${dateVerifie}</div>` : '';
+  const ligneCouverture = pastilleCouvertureFaible(derniereActuTs, dateVerifie);
   return `<div id="alerteCard-${score.cy}" style="background:${n.bg};border:1px solid ${n.border};border-radius:10px;overflow:hidden;box-shadow:${surligne?'0 0 0 3px rgba(61,100,134,.5), 0 4px 12px rgba(0,0,0,.12)':'0 1px 3px rgba(0,0,0,.06)'};scroll-margin-top:12px;">
     ${surligne?'<div style="background:var(--b);color:#fff;font-size:9px;font-weight:700;text-align:center;padding:3px;text-transform:uppercase;letter-spacing:.05em;">Filtre pays actif</div>':''}    <!-- EN-TÊTE PAYS -->
     <div style="padding:10px 12px;background:${n.bgLight};display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid ${n.border};">
@@ -16118,6 +16154,7 @@ async function renderAlertCard(score) {
         <div style="font-size:10px;font-weight:700;color:${n.col};margin-top:2px;">Score : ${score.total100}/100</div>
       </div>
     </div>
+    ${ligneCouverture ? `<div style="padding:6px 12px 0 12px;background:${n.bgLight};">${ligneCouverture}</div>` : ''}
     <!-- BARRE SCORE -->
     <div style="height:5px;background:var(--bd);">
       <div style="height:100%;width:${pct}%;background:${n.col};transition:width .5s;"></div>
@@ -16168,6 +16205,15 @@ async function renderAlertTable(scores) {
     const n = s.niv;
     const m = MESURES[s.key];
     const bg = i%2===0?'var(--sf)':'var(--w)';
+    // Colonne MAJ : fraicheur REELLE des donnees du pays (derniere actu
+    // captee dans ALL), jamais l'heure de rendu de la page — afficher
+    // systematiquement "maintenant" ici, quel que soit l'etat reel de la
+    // collecte pour ce pays, etait exactement la source de la contradiction
+    // remontee (score/etat qui parait a jour meme quand la collecte n'a
+    // rien capte de recent pour ce pays).
+    const derniereActuTsLigne = derniereActuTsPays(s.cy);
+    const majTxt = derniereActuTsLigne ? fmtAge(derniereActuTsLigne) : 'Aucune actu captée';
+    const majPerimee = !derniereActuTsLigne || (Date.now() - derniereActuTsLigne) > AUCUNE_ACTU_SEUIL_MS;
     return `<tr style="background:${bg};cursor:pointer;" onclick="ouvrirVuePays('${s.cy}')" onmouseover="this.style.background='var(--bl)'" onmouseout="this.style.background='${bg}'">
       <td style="padding:7px 10px;font-size:11px;font-weight:700;color:var(--t);">${pays.flag} ${pays.name}</td>
       <td style="padding:7px 10px;font-size:10px;color:var(--t2);">${pays.capital}</td>
@@ -16176,7 +16222,7 @@ async function renderAlertTable(scores) {
       <td style="padding:7px 10px;font-size:10px;color:var(--t2);">${s.events.length}</td>
       <td style="padding:7px 10px;font-size:9px;color:var(--t2);">${escHtml(L(m.expatries[0]))}</td>
       <td style="padding:7px 10px;font-size:9px;color:var(--t2);">${escHtml(L(m.installations[0]))}</td>
-      <td style="padding:7px 10px;font-size:9px;color:var(--lg);">${new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'})} ${new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</td>
+      <td style="padding:7px 10px;font-size:9px;color:${majPerimee?'#92400E':'var(--lg)'};" title="${majPerimee?'Aucune actualité fraîche captée récemment pour ce pays':'Dernière actu captée pour ce pays'}">${majPerimee?'<i class="ti ti-alert-triangle" style="font-size:9px"></i> ':''}${majTxt}</td>
     </tr>`;
   }).join('');
 
@@ -16420,6 +16466,7 @@ async function ouvrirVuePays(cy) {
         </div>` : ''}
         <span onclick="document.getElementById('vuePaysOverlay').remove()" style="cursor:pointer;font-size:22px;line-height:1;margin-left:8px;color:var(--lg);">&times;</span>
       </div>
+      ${score ? (() => { const ligne = pastilleCouvertureFaible(derniereActuTsPays(cy), dateDernierIncident(score.events)); return ligne ? `<div style="padding:8px 20px 0 20px;">${ligne}</div>` : ''; })() : ''}
       <div style="padding:18px 20px;">
         ${section('Actualites — module Flux', 'ti-news', actus.length, htmlActus)}
         ${section('Reseaux sociaux', 'ti-social', social?social.arts.length:0, htmlSocial)}
