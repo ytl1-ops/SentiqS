@@ -11172,7 +11172,7 @@ function renderAgendaCalendrierHtml(filt, SL, IC, TYP) {
   }
 
   const entete = JOURS_SEMAINE_ABBR.map(j => '<div class="ag-cal-entete">' + j + '</div>').join('');
-  const grille =
+  const nav =
     '<div class="ag-cal-nav" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px;">' +
       '<div style="display:flex;align-items:center;gap:3px;">' +
         '<button onclick="agendaAnneePrecedente()" title="Année précédente" style="padding:5px 7px;background:var(--sf);border:1px solid var(--bd);border-radius:5px;color:var(--t);cursor:pointer;font-weight:700;">«</button>' +
@@ -11186,20 +11186,24 @@ function renderAgendaCalendrierHtml(filt, SL, IC, TYP) {
         '<button onclick="agendaAnneeSuivante()" title="Année suivante" style="padding:5px 7px;background:var(--sf);border:1px solid var(--bd);border-radius:5px;color:var(--t);cursor:pointer;font-weight:700;">»</button>' +
       '</div>' +
     '</div>' +
-    '<div style="display:flex;justify-content:flex-end;margin-bottom:10px;">' + _agendaGranulariteToggleHtml() + '</div>' +
-    '<div class="ag-cal-grille">' + entete + cellules.join('') + '</div>';
+    '<div style="display:flex;justify-content:flex-end;margin-bottom:10px;">' + _agendaGranulariteToggleHtml() + '</div>';
+  const grille = '<div class="ag-cal-grille">' + entete + cellules.join('') + '</div>';
 
+  // Panneau du jour selectionne : affiche ENTRE la navigation et la grille
+  // (demande explicite "juste au-dessus du calendrier") — auparavant sous la
+  // grille, ce qui obligeait a faire defiler tout le mois pour voir le
+  // detail d'un jour clique, en particulier genant sur mobile.
   const jourSelEvs = fAgJourSel ? (parJour[fAgJourSel] || []) : [];
   const panneauJour = fAgJourSel
-    ? '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--bd);">' +
+    ? '<div style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--bd);">' +
         '<div style="font-size:10px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">' +
           (jourSelEvs.length ? jourSelEvs.length + ' evenement(s) le ' + fAgJourSel.split('-').reverse().join('/') : 'Aucun evenement ce jour') +
         '</div>' +
         jourSelEvs.map((e, i) => ligneAgendaHtml(e, i, SL, IC, TYP)).join('') +
       '</div>'
-    : '<div style="text-align:center;color:var(--lg);font-size:11px;font-style:italic;margin-top:14px;padding-top:12px;border-top:1px solid var(--bd);">Cliquez sur un jour marque pour voir le detail des evenements.</div>';
+    : '';
 
-  return grille + panneauJour;
+  return nav + panneauJour + grille;
 }
 
 // _agendaGranulariteToggleHtml() : bascule Mois/Année partagee par les deux
