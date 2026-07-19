@@ -11048,12 +11048,17 @@ function renderAgendaCalendrierHtml(filt, SL, IC, TYP) {
   const { y, m } = _moisAffiche();
 
   // Regroupe les evenements par jour ('YYYY-MM-DD', calcule depuis _agendaTs).
+  // Vue Calendrier : toujours par date de DEBUT (demarrage), y compris a
+  // l'interieur d'une meme journee (heure croissante) — contrairement a la
+  // vue Liste qui priorise le statut (urgent en tete), la vue Calendrier
+  // doit rester strictement chronologique.
   const parJour = {};
   filt.forEach(e => {
     const d = new Date(_agendaTs(e));
     const cle = d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' + String(d.getUTCDate()).padStart(2, '0');
     (parJour[cle] = parJour[cle] || []).push(e);
   });
+  Object.keys(parJour).forEach(cle => parJour[cle].sort((a, b) => (a.hour || '').localeCompare(b.hour || '')));
 
   // Grille Lundi -> Dimanche : decalage entre le 1er du mois (getDay(), 0=Dim)
   // et la position Lundi-first attendue par JOURS_SEMAINE_ABBR.
