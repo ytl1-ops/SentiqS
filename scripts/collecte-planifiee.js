@@ -25,6 +25,8 @@
 const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
+const { USER_AGENT } = require('./lib/fetch-respectueux');
+const { creerIntercepteur } = require('./lib/interception-proxy-directe');
 
 // Firebase Hosting retire (sentinel-surete.web.app ne recoit plus de
 // deploiement) — GitHub Pages est desormais l'hebergement reel.
@@ -51,16 +53,26 @@ function lireTokenDepuisSource() {
   return m[1];
 }
 
+// Interception des proxys CORS publics → fetch direct et respectueux (voir
+// scripts/lib/interception-proxy-directe.js pour le détail et le
+// raisonnement complet). Transparente pour le code client, filet de
+// sécurité automatique (route.continue()) si le fetch direct échoue.
+const { interceptionProxyDirecte, stats: statsInterception } = creerIntercepteur();
+
 (async () => {
   const token = lireTokenDepuisSource();
   const url = TARGET_URL + '#collecteur-' + token;
   console.log('SENTINEL collecte planifiée — cible :', TARGET_URL);
 
   const browser = await chromium.launch({ args: ['--no-sandbox'] });
-  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  // User-Agent identifiable pour CE job (voir scripts/lib/fetch-respectueux.js)
+  // — le chargement de la page elle-même s'identifie donc aussi clairement,
+  // cohérent avec l'esprit "respectueux" de l'ensemble du job.
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 }, userAgent: USER_AGENT });
   const erreursPage = [];
   page.on('pageerror', e => erreursPage.push(e.message));
   page.on('console', msg => { if (msg.type() === 'warning' || msg.type() === 'error') console.log('  [page]', msg.text()); });
+  await page.route('**/*', interceptionProxyDirecte);
 
   try {
     await page.goto(url, { waitUntil: 'load', timeout: 60000 });
@@ -132,6 +144,12 @@ function lireTokenDepuisSource() {
       if (typeof publierAgendaPartagee === 'function') { try { await publierAgendaPartagee(ALL); } catch (_) {} }
       return { ok: true, nbArticles: pub.nbArticles, bestProxy: String(typeof bestProxy !== 'undefined' ? bestProxy : '?') };
     });
+
+    console.log(
+      'Interception directe (voir scripts/lib/fetch-respectueux.js) : ' +
+      statsInterception.direct_ok + '/' + statsInterception.intercepte + ' requêtes proxy servies directement, ' +
+      statsInterception.repli_proxy + ' repli sur le vrai proxy.'
+    );
 
     if (!resultat.ok) {
       console.error('Échec :', resultat.raison);
