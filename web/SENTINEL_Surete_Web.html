@@ -611,19 +611,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
   text-transform:uppercase}
 .af.on{background:var(--bl);border-color:var(--b);color:var(--b)}
 
-/* ── CORRIDOR DE RÉFÉRENCE — stepper des villes-étapes ─────────────── */
-.cor-stepper{display:flex;align-items:flex-start;gap:0;overflow-x:auto;
-  background:var(--w);border:1px solid var(--bd);border-radius:8px;
-  padding:16px 18px;margin-bottom:12px}
-.cor-step{display:flex;flex-direction:column;align-items:center;min-width:92px;flex-shrink:0}
-.cor-step-row{display:flex;align-items:center;width:100%}
-.cor-node{width:34px;height:34px;border-radius:50%;border:2px solid var(--bd);
-  background:var(--sf);display:flex;align-items:center;justify-content:center;
-  font-size:12px;font-weight:800;color:var(--lg);flex-shrink:0}
-.cor-node.on{border-color:var(--r);background:var(--rl);color:var(--r)}
-.cor-line{flex:1;height:2px;background:var(--bd);margin:0 -2px}
-.cor-city{font-size:10.5px;font-weight:700;color:var(--t);margin-top:6px;text-align:center}
-.cor-cy{font-size:9px;color:var(--lg)}
 .ev{display:flex;gap:11px;padding:9px 12px;background:var(--w);
   border:1px solid var(--bd);border-radius:7px;margin-bottom:6px}
 .ev.en-cours{border-left:4px solid #4ade80}
@@ -2053,9 +2040,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
     <div class="ntab" id="tabRecherche" data-view="recherche" onclick="switchView(&#39;recherche&#39;,this)"><i class="ti ti-search"></i><span data-i18n="nav_recherche">Recherche</span></div>
     <div class="ntab" data-view="analyse" onclick="switchView(&#39;analyse&#39;,this)"><i class="ti ti-chart-dots"></i><span data-i18n="nav_analyse">Synthèse</span></div>
     <div class="ntab" id="tabAgenda" data-view="agenda" onclick="switchView(&#39;agenda&#39;,this)"><i class="ti ti-calendar-event"></i><span data-i18n="nav_agenda">Agenda</span></div>
-    <div class="ntab" id="tabCorridors" data-view="corridors" onclick="switchView(&#39;corridors&#39;,this)"><i class="ti ti-route"></i><span data-i18n="nav_corridors">Corridors</span></div>
     <div class="ntab" id="tabGeopolitique" data-view="geopolitique" onclick="switchView(&#39;geopolitique&#39;,this)"><i class="ti ti-world"></i><span data-i18n="nav_geopolitique">Géopolitique</span></div>
-    <div class="ntab" id="tabAssistant" data-view="assistant" onclick="switchView(&#39;assistant&#39;,this)"><i class="ti ti-message-chatbot"></i><span data-i18n="nav_assistant">Assistant IA</span></div>
     <div class="ntab" data-view="rapports" onclick="switchView(&#39;rapports&#39;,this)"><i class="ti ti-download"></i><span data-i18n="nav_rapports">Rapports</span></div>
     <div class="ntab" id="tabAlertes" data-view="alertes" onclick="switchView(&#39;alertes&#39;,this)"><i class="ti ti-shield-exclamation"></i><span data-i18n="nav_alertes">Alertes</span></div>
     <div class="ntab on" data-view="dashboard" onclick="switchView(&#39;dashboard&#39;,this)"><i class="ti ti-layout-dashboard"></i><span>Tableau de bord</span></div>
@@ -2323,53 +2308,6 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <div class="view-note"><i class="ti ti-info-circle"></i><span data-i18n="note_agenda">Agenda : événements en cours, à venir et échéances de sûreté, classés par statut et par zone.</span></div>
     </div>
 
-    <div class="view" id="v-corridors">
-      <div style="overflow-y:auto;flex:1">
-        <div class="ag-wrap">
-          <div class="ag-hdr">
-            <div>
-              <div class="ag-tt" id="corTitreCorridor" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">Corridors de référence <span id="corNiveauBadge"></span></div>
-              <div class="ag-sb" id="corSousTitre">Vue d'ensemble de tous les corridors surveillés — niveau recoupé sur les actualités sécuritaires (attaques, coupeurs de route, vols, agressions).</div>
-            </div>
-          </div>
-          <div id="corApercu"></div>
-          <div id="corDetailWrap" style="display:none">
-            <div class="tlbr" style="flex-shrink:0;margin-bottom:8px;flex-wrap:wrap;">
-              <button onclick="retourApercuCorridors()" title="Revenir a la vue d'ensemble de tous les corridors" style="padding:5px 12px;background:var(--sf);border:1px solid var(--bd);border-radius:5px;color:var(--t);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
-                <i class="ti ti-arrow-left"></i> Vue d'ensemble
-              </button>
-              <span style="font-size:11px;font-weight:700;color:var(--t);display:flex;align-items:center;gap:5px;"><i class="ti ti-filter" style="font-size:14px"></i>Filtrer</span>
-              <select id="corZoneFilter" onchange="setCorridorZone(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);"></select>
-              <select id="corCorridorFilter" onchange="setCorridorId(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);max-width:260px;"></select>
-              <select id="corFenetreFilter" onchange="setCorridorFenetre(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
-                <option value="24">24 heures</option>
-                <option value="72" selected>72 heures</option>
-                <option value="168">7 jours</option>
-                <option value="720">30 jours</option>
-              </select>
-              <button onclick="renderCorridors()" title="Rafraichir depuis les donnees deja collectees" style="padding:5px 12px;background:rgba(61,100,134,.12);border:1px solid rgba(61,100,134,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
-                <i class="ti ti-refresh"></i> Actualiser
-              </button>
-            </div>
-            <div class="srch" style="margin-bottom:8px;"><i class="ti ti-search"></i><input type="text" id="corQ" placeholder="Rechercher sur ce corridor..." oninput="renderCorridorsDebounced()"></div>
-            <div class="chips" id="corChips" style="margin-bottom:10px;">
-              <span class="chip on" onclick="setCorCat(this,'all')">Tout</span>
-              <span class="chip" onclick="setCorCat(this,'securite')">Securite</span>
-              <span class="chip" onclick="setCorCat(this,'humanitaire')">Humanitaire</span>
-              <span class="chip" onclick="setCorCat(this,'politique')">Politique</span>
-              <span class="chip" onclick="setCorCat(this,'economique')">Economique</span>
-            </div>
-            <div id="corStepper" class="cor-stepper"></div>
-            <div id="corDetailLegende" style="margin-bottom:10px"></div>
-            <div id="corFaitsMarquants"></div>
-            <div id="corMesures"></div>
-            <div id="corList"></div>
-          </div>
-        </div>
-      </div>
-      <div class="view-note"><i class="ti ti-info-circle"></i><span data-i18n="note_corridors">Corridor de référence : suit les évènements le long des principaux corridors logistiques et transfrontaliers, étape par étape — configurable par zone.</span></div>
-    </div>
-
     <div class="view" id="v-geopolitique">
       <div style="overflow-y:auto;flex:1">
         <div class="ag-wrap">
@@ -2393,25 +2331,6 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         </div>
       </div>
       <div class="view-note"><i class="ti ti-info-circle"></i><span data-i18n="note_geopolitique">Géopolitique : analyses générées à partir des développements diplomatiques, militaires et régionaux détectés dans le flux, avec leur impact estimé sur la sûreté du pays — jamais générées par une IA externe, uniquement à partir des données collectées.</span></div>
-    </div>
-
-    <div class="view" id="v-assistant">
-      <div style="overflow-y:auto;flex:1;padding:16px">
-        <div style="max-width:760px;margin:0 auto">
-          <div style="margin-bottom:14px">
-            <div style="font-size:15px;font-weight:700;color:var(--t)" data-i18n="assistant_titre">Assistant IA</div>
-            <div style="font-size:11px;color:var(--lg);margin-top:2px" data-i18n="assistant_sous_titre">Posez une question sur la situation sûreté — les réponses s'appuient uniquement sur les articles réellement collectés, avec leurs sources citées.</div>
-          </div>
-          <div id="assistantHistorique" style="display:flex;flex-direction:column;gap:12px;margin-bottom:14px"></div>
-          <div id="assistantEtatVide" style="text-align:center;padding:30px 0;color:var(--lg);font-size:12px" data-i18n="assistant_vide">Aucune question posée pour le moment.</div>
-          <div style="display:flex;gap:8px;position:sticky;bottom:0;background:var(--bg);padding-top:8px">
-            <input type="text" id="assistantInput" data-i18n-ph="assistant_ph" placeholder="Ex. Quelle est la situation sécuritaire au Mali cette semaine ?" style="flex:1;padding:10px 12px;border:1px solid var(--bd);border-radius:8px;font-size:13px" onkeydown="if(event.key==='Enter'){event.preventDefault();poserQuestionAssistant();}">
-            <button class="btn-action btn-rest" id="assistantBtn" onclick="poserQuestionAssistant()"><i class="ti ti-send"></i> <span data-i18n="assistant_demander">Demander</span></button>
-          </div>
-          <div id="assistantErr" class="admin-msg err" style="display:none;margin-top:8px"></div>
-        </div>
-      </div>
-      <div class="view-note"><i class="ti ti-info-circle"></i><span data-i18n="note_assistant">Assistant IA : réponses générées par un modèle Claude (Anthropic) à partir des articles collectés — jamais de connaissance générale non confirmée par ces articles. Vérifiez toujours les sources citées avant toute décision opérationnelle.</span></div>
     </div>
 
     <div class="view" id="v-rapports">
@@ -2540,7 +2459,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
           </div>
         </div>
         <div id="alerteVueGrille">
-        <!-- Légende niveaux (voir renderLegendeNiveaux(), reutilisee a l'identique par le module Corridor) -->
+        <!-- Légende niveaux (voir renderLegendeNiveaux()) -->
         <div id="alerteLegende" style="margin-bottom:14px"></div>
         <!-- Grille pays -->
         <div id="alerteGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-bottom:20px;"></div>
@@ -3151,53 +3070,6 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               <div class="pm-group-hd-sub">Clientèle, paiements, contacts et statistiques — communs à tous les abonnements</div>
             </div>
             <div class="pm-group-hd-line"></div>
-          </div>
-
-          <!-- Paramétrage des corridors -->
-          <div class="pm-section">
-            <div class="pm-sec-hd">
-              <div class="pm-sec-hd-l"><i class="ti ti-route"></i>
-                <div><div class="pm-sec-title">Paramétrage des corridors</div>
-                <div class="pm-sec-sub" id="corPersoCount">0 corridor(s) personnalisé(s)</div></div>
-              </div>
-            </div>
-            <div class="pm-sec-body" style="padding:14px 16px">
-              <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
-                Ajoutez vos propres parcours et corridors — routiers ou maritimes — en plus de ceux fournis par défaut. Chaque corridor est rattaché à une région et regroupe des étapes (villes ou façades maritimes), chacune associée à un pays parmi les 54 pays suivis. Le tableau ci-dessous liste TOUS les corridors (par défaut et personnalisés) avec leur niveau d'alerte sûreté actuel, du plus critique au plus stable.
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-                <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Nom du corridor</label>
-                  <input type="text" id="corPersoNom" placeholder="Ex. Abidjan – Bouaké – Korhogo" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px;box-sizing:border-box">
-                </div>
-                <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Région</label>
-                  <select id="corPersoZone" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px"></select>
-                </div>
-              </div>
-              <div style="margin-bottom:12px">
-                <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Type</label>
-                <select id="corPersoType" style="padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
-                  <option value="terrestre">Terrestre (parcours routier)</option>
-                  <option value="maritime">Maritime (zone de navigation)</option>
-                  <option value="ferroviaire">Ferroviaire (ligne de chemin de fer)</option>
-                  <option value="aerien">Aérien (axe de connexion aéroportuaire)</option>
-                </select>
-              </div>
-              <div style="margin-bottom:10px">
-                <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:5px">Étapes du corridor</label>
-                <div id="corPersoEtapes"></div>
-                <button class="btn-action btn-rest" style="margin-top:4px" onclick="corPersoAjouterEtape()"><i class="ti ti-plus"></i> Ajouter une étape</button>
-              </div>
-              <div style="display:flex;align-items:center;gap:10px">
-                <button class="btn-action btn-rest" onclick="corPersoAjouterCorridor()"><i class="ti ti-device-floppy"></i> Créer le corridor</button>
-                <span class="pmu-msg" id="corPersoMsg" style="margin:0"></span>
-              </div>
-              <table class="pm-users-table" style="margin-top:14px">
-                <thead><tr><th>Nom</th><th>Région</th><th>Type</th><th>Niveau</th><th>Étapes</th><th>Actions</th></tr></thead>
-                <tbody id="corPersoBody"></tbody>
-              </table>
-            </div>
           </div>
 
           <!-- Diagnostic collecte RSS par pays -->
@@ -4259,8 +4131,8 @@ const I18N = {
     menu_mode_emploi:"Mode d'emploi (PDF)",
     proxy_title:'Collecte RSS automatique — Cliquez Actualiser',
     cbar_lbl:'Collecte RSS', cbar_init:'Collecte en parallèle : Malijet... (15/195)',
-    nav_flux:'Flux', nav_analyse:'Synthèse', nav_agenda:'Agenda', nav_corridors:'Corridors', nav_geopolitique:'Géopolitique', nav_rapports:'Rapports',
-    nav_alertes:'Alertes', nav_recherche:'Recherche', nav_assistant:'Assistant IA',
+    nav_flux:'Flux', nav_analyse:'Synthèse', nav_agenda:'Agenda', nav_geopolitique:'Géopolitique', nav_rapports:'Rapports',
+    nav_alertes:'Alertes', nav_recherche:'Recherche',
     chip_tout:'Tout', chip_critique:'Critique', chip_eleve:'Élevé', chip_securite:'Sécurité',
     ph_recherche:'Rechercher...',
     flashinfo_lbl:'FLASH INFO',
@@ -4269,11 +4141,7 @@ const I18N = {
     note_recherche:'Recherche : retrouvez un pays, un événement, un thème ou une source dans l\'ensemble des données collectées par SENTINEL.',
     note_analyse:'Synthèse : rapport analytique thématique généré automatiquement à partir du Flux, filtrable par zone ou par pays.',
     note_agenda:'Agenda : événements en cours, à venir et échéances de sûreté, classés par statut et par zone.',
-    note_corridors:'Corridor de référence : suit les évènements le long des principaux corridors logistiques et transfrontaliers, étape par étape — configurable par zone.',
     note_geopolitique:'Géopolitique : analyses générées à partir des développements diplomatiques, militaires et régionaux détectés dans le flux, avec leur impact estimé sur la sûreté du pays — jamais générées par une IA externe, uniquement à partir des données collectées.',
-    assistant_titre:'Assistant IA', assistant_sous_titre:"Posez une question sur la situation sûreté — les réponses s'appuient uniquement sur les articles réellement collectés, avec leurs sources citées.",
-    assistant_vide:'Aucune question posée pour le moment.', assistant_ph:'Ex. Quelle est la situation sécuritaire au Mali cette semaine ?', assistant_demander:'Demander',
-    note_assistant:'Assistant IA : réponses générées par un modèle Claude (Anthropic) à partir des articles collectés — jamais de connaissance générale non confirmée par ces articles. Vérifiez toujours les sources citées avant toute décision opérationnelle.',
     note_rapports:'Rapports : génère des documents Word, PDF, PowerPoint, Excel et CSV à partir des données collectées, filtrés par périmètre.',
     note_alertes:'Alertes : niveau de risque calculé automatiquement par pays, consultable en grille ou en chronologie des incidents.',
     note_dashboard:'Tableau de bord : vision d\'ensemble en temps réel des 54 pays d\'Afrique, scores de risque et zones de tension.',
@@ -4322,8 +4190,8 @@ const I18N = {
     menu_mode_emploi:'User guide (PDF)',
     proxy_title:'Automatic RSS collection — Click Refresh',
     cbar_lbl:'RSS Collection', cbar_init:'Parallel collection: Malijet... (15/195)',
-    nav_flux:'Feed', nav_analyse:'Synthesis', nav_agenda:'Agenda', nav_corridors:'Corridors', nav_geopolitique:'Geopolitics', nav_rapports:'Reports',
-    nav_alertes:'Alerts', nav_recherche:'Search', nav_assistant:'AI Assistant',
+    nav_flux:'Feed', nav_analyse:'Synthesis', nav_agenda:'Agenda', nav_geopolitique:'Geopolitics', nav_rapports:'Reports',
+    nav_alertes:'Alerts', nav_recherche:'Search',
     chip_tout:'All', chip_critique:'Critical', chip_eleve:'High', chip_securite:'Security',
     ph_recherche:'Search...',
     flashinfo_lbl:'BREAKING NEWS',
@@ -4332,11 +4200,7 @@ const I18N = {
     note_recherche:'Search: find a country, event, theme or source across all data collected by SENTINEL.',
     note_analyse:'Summary: thematic analytical report automatically generated from the Feed, filterable by zone or country.',
     note_agenda:'Agenda: ongoing and upcoming security events and deadlines, classified by status and zone.',
-    note_corridors:'Reference corridor: tracks events along major logistics and cross-border corridors, waypoint by waypoint — configurable by zone.',
     note_geopolitique:'Geopolitics: analyses generated from diplomatic, military and regional developments detected in the feed, with their estimated impact on country safety — never generated by external AI, only from collected data.',
-    assistant_titre:'AI Assistant', assistant_sous_titre:'Ask a question about the security situation — answers rely only on articles actually collected, with their sources cited.',
-    assistant_vide:'No question asked yet.', assistant_ph:'E.g. What is the security situation in Mali this week?', assistant_demander:'Ask',
-    note_assistant:'AI Assistant: answers generated by a Claude model (Anthropic) from collected articles only — never general knowledge unconfirmed by these articles. Always verify cited sources before any operational decision.',
     note_rapports:'Reports: generate Word, PDF, PowerPoint, Excel and CSV documents from collected data, filtered by scope.',
     note_alertes:'Alerts: risk level automatically computed per country, viewable as a grid or as an incident timeline.',
     note_dashboard:'Dashboard: real-time overview of all 54 African countries, risk scores and tension zones.',
@@ -5005,333 +4869,6 @@ const CY_TO_ZONE = {
   MA:'afrique_nord', DZ:'afrique_nord', TN:'afrique_nord', LY:'afrique_nord', EG:'afrique_nord',
 };
 
-// CORRIDORS_PAR_ZONE : module Corridor de référence — corridors logistiques
-// et transfrontaliers surveillés, regroupés par zone (ZONES_GEO). Chaque
-// corridor liste ses villes-étapes ; le pays de chaque étape sert à
-// rattacher les actus du Flux (ALL[].cy) à cette étape. Configurable par
-// zone : plusieurs corridors par zone, jamais un itinéraire unique figé.
-const CORRIDORS_PAR_ZONE = {
-  sahel: [
-    { id:'abj-ouaga', nom:'Abidjan – Ouagadougou', villes:[
-      {nom:'Abidjan',cy:'CI'}, {nom:'Ouangolodougou',cy:'CI'}, {nom:'Ouagadougou',cy:'BF'} ] },
-    { id:'dkr-bko', nom:'Dakar – Bamako', villes:[
-      {nom:'Dakar',cy:'SN'}, {nom:'Tambacounda',cy:'SN'}, {nom:'Kayes',cy:'ML'}, {nom:'Bamako',cy:'ML'} ] },
-    { id:'lom-ouaga-niam', nom:'Lomé – Ouagadougou – Niamey', villes:[
-      {nom:'Lomé',cy:'TG'}, {nom:'Ouagadougou',cy:'BF'}, {nom:'Niamey',cy:'NE'} ] },
-    // Sitarail : ligne ferroviaire reelle et en exploitation depuis 1994,
-    // reliant le port d'Abidjan au Burkina Faso enclave (memes villes-etapes
-    // que le corridor routier abj-ouaga ci-dessus, mode different).
-    { id:'sitarail-abj-ouaga', nom:'Sitarail — Abidjan – Ouagadougou (rail)', type:'ferroviaire', villes:[
-      {nom:'Abidjan',cy:'CI'}, {nom:'Ouangolodougou',cy:'CI'}, {nom:'Bobo-Dioulasso',cy:'BF'}, {nom:'Ouagadougou',cy:'BF'} ] },
-    // Dakar-Bamako (ex-Dakar-Niger) : ligne historique, desormais limitee
-    // (service voyageurs local Kayes-Bamako repris en 2023 ; trafic
-    // international/fret suspendu depuis 2018) — projet de modernisation en
-    // cours (DBF, Senegal-Mali). Conservee comme corridor de reference malgre
-    // son exploitation restreinte : un axe logistique historique majeur du
-    // Sahel, dont la reactivation reste suivie.
-    { id:'dkr-bko-rail', nom:'Dakar – Bamako (rail, service limité)', type:'ferroviaire', villes:[
-      {nom:'Dakar',cy:'SN'}, {nom:'Tambacounda',cy:'SN'}, {nom:'Kayes',cy:'ML'}, {nom:'Bamako',cy:'ML'} ] },
-  ],
-  golfe_guinee: [
-    { id:'tema-ouaga', nom:'Tema – Ouagadougou', villes:[
-      {nom:'Tema',cy:'GH'}, {nom:'Kumasi',cy:'GH'}, {nom:'Bobo-Dioulasso',cy:'BF'}, {nom:'Ouagadougou',cy:'BF'} ] },
-    { id:'cot-niam', nom:'Cotonou – Niamey', villes:[
-      {nom:'Cotonou',cy:'BJ'}, {nom:'Parakou',cy:'BJ'}, {nom:'Niamey',cy:'NE'} ] },
-    { id:'lag-abj', nom:'Lagos – Abidjan (côtier)', villes:[
-      {nom:'Lagos',cy:'NG'}, {nom:'Cotonou',cy:'BJ'}, {nom:'Lomé',cy:'TG'}, {nom:'Accra',cy:'GH'}, {nom:'Abidjan',cy:'CI'} ] },
-    // Zone maritime : le Golfe de Guinée est le principal foyer mondial de
-    // piraterie maritime (attaques de navires, detournements, enlevements
-    // d'equipages contre rancon) — distinct des corridors routiers cotiers
-    // ci-dessus, voir MARITIME_SECURITE_KW.
-    { id:'golfe-guinee-maritime', nom:'Golfe de Guinée (zone maritime)', type:'maritime', villes:[
-      {nom:'Eaux du Nigeria',cy:'NG'}, {nom:'Eaux du Bénin',cy:'BJ'}, {nom:'Eaux du Togo',cy:'TG'},
-      {nom:'Eaux de Côte d\'Ivoire',cy:'CI'}, {nom:'Eaux du Cameroun',cy:'CM'}, {nom:'Eaux de Guinée équatoriale',cy:'GQ'} ] },
-    // Axe aerien cotier reel, dessert par les compagnies regionales
-    // (Air Côte d'Ivoire, ASKY...) entre les principaux hubs du golfe de
-    // Guinee — relie les memes capitales que le corridor routier lag-abj.
-    { id:'golfe-guinee-aerien', nom:'Abidjan – Accra – Lomé – Cotonou – Lagos (axe aérien)', type:'aerien', villes:[
-      {nom:'Abidjan',cy:'CI'}, {nom:'Accra',cy:'GH'}, {nom:'Lomé',cy:'TG'}, {nom:'Cotonou',cy:'BJ'}, {nom:'Lagos',cy:'NG'} ] },
-  ],
-  ao_cotiere: [
-    { id:'dkr-conakry', nom:'Dakar – Bissau – Conakry', villes:[
-      {nom:'Dakar',cy:'SN'}, {nom:'Bissau',cy:'GW'}, {nom:'Conakry',cy:'GN'} ] },
-    { id:'conakry-monrovia', nom:'Conakry – Freetown – Monrovia', villes:[
-      {nom:'Conakry',cy:'GN'}, {nom:'Freetown',cy:'SL'}, {nom:'Monrovia',cy:'LR'} ] },
-    { id:'ao-atlantique-maritime', nom:'Façade atlantique Sénégal – Guinée (zone maritime)', type:'maritime', villes:[
-      {nom:'Eaux du Sénégal',cy:'SN'}, {nom:'Eaux de Guinée-Bissau',cy:'GW'}, {nom:'Eaux de Guinée',cy:'GN'}, {nom:'Eaux du Cap-Vert',cy:'CV'} ] },
-    // Axe aerien cotier entre les capitales de la facade atlantique —
-    // memes villes que dkr-conakry/conakry-monrovia, desservies par les
-    // compagnies regionales (Air Sénégal, ASKY...).
-    { id:'ao-cotiere-aerien', nom:'Dakar – Conakry – Freetown – Monrovia (axe aérien)', type:'aerien', villes:[
-      {nom:'Dakar',cy:'SN'}, {nom:'Conakry',cy:'GN'}, {nom:'Freetown',cy:'SL'}, {nom:'Monrovia',cy:'LR'} ] },
-  ],
-  afrique_centrale: [
-    { id:'douala-ndj', nom:"Douala – N'Djaména", villes:[
-      {nom:'Douala',cy:'CM'}, {nom:'Ngaoundéré',cy:'CM'}, {nom:"N'Djaména",cy:'TD'} ] },
-    { id:'pnr-brz-bgi', nom:'Pointe-Noire – Brazzaville – Bangui', villes:[
-      {nom:'Pointe-Noire',cy:'CG'}, {nom:'Brazzaville',cy:'CG'}, {nom:'Bangui',cy:'CF'} ] },
-    // Camrail : ligne ferroviaire reelle en exploitation, seule liaison
-    // ferree structurante du pays, relie le port de Douala au nord enclave
-    // (memes villes que douala-ndj, mode different — le tronçon vers
-    // N'Djamena reste routier, la ligne s'arrete a Ngaoundere).
-    { id:'camrail-douala-ngaoundere', nom:'Camrail — Douala – Yaoundé – Ngaoundéré (rail)', type:'ferroviaire', villes:[
-      {nom:'Douala',cy:'CM'}, {nom:'Yaoundé',cy:'CM'}, {nom:'Ngaoundéré',cy:'CM'} ] },
-    { id:'afrique-centrale-aerien', nom:'Douala – Brazzaville – Kinshasa – Bangui (axe aérien)', type:'aerien', villes:[
-      {nom:'Douala',cy:'CM'}, {nom:'Brazzaville',cy:'CG'}, {nom:'Kinshasa',cy:'CD'}, {nom:'Bangui',cy:'CF'} ] },
-  ],
-  corne_afrique: [
-    { id:'dji-addis', nom:'Djibouti – Addis-Abeba', villes:[
-      {nom:'Djibouti',cy:'DJ'}, {nom:'Dire Dawa',cy:'ET'}, {nom:'Addis-Abeba',cy:'ET'} ] },
-    { id:'mombasa-nairobi-kampala', nom:'Corridor Nord : Mombasa – Nairobi – Kampala', villes:[
-      {nom:'Mombasa',cy:'KE'}, {nom:'Nairobi',cy:'KE'}, {nom:'Kampala',cy:'UG'} ] },
-    // Addis Ababa-Djibouti Railway : premiere ligne electrifiee
-    // transfrontaliere d'Afrique, en exploitation depuis 2018 (memes
-    // villes-etapes que dji-addis, mode different) — axe logistique majeur
-    // pour l'Ethiopie enclavee.
-    { id:'aadr-dji-addis', nom:'Addis-Abeba – Djibouti (rail électrifié)', type:'ferroviaire', villes:[
-      {nom:'Addis-Abeba',cy:'ET'}, {nom:'Dire Dawa',cy:'ET'}, {nom:'Djibouti',cy:'DJ'} ] },
-    // Nairobi-Mombasa SGR : ligne a ecartement standard en exploitation
-    // depuis 2017/2018, principal axe ferroviaire du Kenya.
-    { id:'sgr-mombasa-nairobi', nom:'SGR — Mombasa – Nairobi (rail)', type:'ferroviaire', villes:[
-      {nom:'Mombasa',cy:'KE'}, {nom:'Nairobi',cy:'KE'} ] },
-    // Hub aerien Ethiopian Airlines (Addis-Abeba), principal reseau de
-    // connectivite aerienne de la region.
-    { id:'corne-afrique-aerien', nom:'Addis-Abeba – Djibouti – Nairobi (axe aérien)', type:'aerien', villes:[
-      {nom:'Addis-Abeba',cy:'ET'}, {nom:'Djibouti',cy:'DJ'}, {nom:'Nairobi',cy:'KE'} ] },
-    // Zone maritime : golfe d'Aden / bassin somalien — deuxieme grand foyer
-    // historique de piraterie maritime (route commerciale Suez-ocean Indien).
-    { id:'golfe-aden-maritime', nom:"Golfe d'Aden — bassin somalien (zone maritime)", type:'maritime', villes:[
-      {nom:'Eaux de Djibouti',cy:'DJ'}, {nom:'Eaux somaliennes',cy:'SO'}, {nom:'Eaux du Kenya',cy:'KE'} ] },
-  ],
-  grands_lacs: [
-    { id:'kampala-kigali-buja', nom:'Kampala – Kigali – Bujumbura', villes:[
-      {nom:'Kampala',cy:'UG'}, {nom:'Kigali',cy:'RW'}, {nom:'Bujumbura',cy:'BI'} ] },
-    { id:'dar-kigali', nom:'Dar es-Salaam – Kigali', villes:[
-      {nom:'Dar es-Salaam',cy:'TZ'}, {nom:'Kigoma',cy:'TZ'}, {nom:'Kigali',cy:'RW'} ] },
-    // SGR tanzanien (Corridor central) : premier troncon Dar es-Salaam –
-    // Dodoma en exploitation depuis 2024/2025, premiere etape d'un projet
-    // devant a terme rejoindre le Rwanda/Burundi — pas encore de liaison
-    // ferree continue jusqu'a Kigali/Bujumbura a ce stade.
-    { id:'sgr-tz-dar-dodoma', nom:'SGR Tanzanie — Dar es-Salaam – Dodoma (rail, corridor central)', type:'ferroviaire', villes:[
-      {nom:'Dar es-Salaam',cy:'TZ'}, {nom:'Dodoma',cy:'TZ'} ] },
-    // Hub aerien regional (Kenya Airways/RwandAir), meme trace que le
-    // corridor routier kampala-kigali-buja.
-    { id:'grands-lacs-aerien', nom:'Nairobi – Kampala – Kigali – Bujumbura (axe aérien)', type:'aerien', villes:[
-      {nom:'Nairobi',cy:'KE'}, {nom:'Kampala',cy:'UG'}, {nom:'Kigali',cy:'RW'}, {nom:'Bujumbura',cy:'BI'} ] },
-  ],
-  afrique_australe: [
-    { id:'beira', nom:'Corridor de Beira', villes:[
-      {nom:'Beira',cy:'MZ'}, {nom:'Harare',cy:'ZW'}, {nom:'Lusaka',cy:'ZM'} ] },
-    { id:'walvis-bay', nom:'Corridor de Walvis Bay', villes:[
-      {nom:'Walvis Bay',cy:'NA'}, {nom:'Gaborone',cy:'BW'}, {nom:'Johannesburg',cy:'ZA'} ] },
-    // Ligne de Machipanda (corridor de Beira) : rehabilitee en 2025
-    // (300+ ponts renforces, signalisation modernisee), relie le port de
-    // Beira a la frontiere zimbabweenne — CFM exploite desormais aussi le
-    // troncon zimbabween jusqu'a Nyazura.
-    { id:'machipanda-beira-harare', nom:'Ligne de Machipanda — Beira – Harare (rail)', type:'ferroviaire', villes:[
-      {nom:'Beira',cy:'MZ'}, {nom:'Harare',cy:'ZW'} ] },
-    // Corridor de Maputo (rail) : pleinement operationnel, ~10 millions de
-    // tonnes de fret par an (chrome, sucre, conteneurs) entre Maputo et
-    // l'Afrique du Sud.
-    { id:'maputo-corridor-rail', nom:'Corridor de Maputo (rail)', type:'ferroviaire', villes:[
-      {nom:'Maputo',cy:'MZ'}, {nom:'Johannesburg',cy:'ZA'} ] },
-    // TAZARA : ligne historique Tanzanie-Zambie, projet de revitalisation en
-    // cours — axe ferroviaire de reference reliant l'interieur zambien au
-    // port de Dar es-Salaam, alternative aux corridors sud-africains.
-    { id:'tazara', nom:'TAZARA — Dar es-Salaam – Kapiri Mposhi (rail)', type:'ferroviaire', villes:[
-      {nom:'Dar es-Salaam',cy:'TZ'}, {nom:'Kapiri Mposhi',cy:'ZM'} ] },
-    { id:'afrique-australe-aerien', nom:'Johannesburg – Harare – Lusaka – Maputo (axe aérien)', type:'aerien', villes:[
-      {nom:'Johannesburg',cy:'ZA'}, {nom:'Harare',cy:'ZW'}, {nom:'Lusaka',cy:'ZM'}, {nom:'Maputo',cy:'MZ'} ] },
-    { id:'canal-mozambique-maritime', nom:'Canal du Mozambique (zone maritime)', type:'maritime', villes:[
-      {nom:'Eaux du Mozambique',cy:'MZ'}, {nom:'Eaux de Madagascar',cy:'MG'}, {nom:'Eaux des Comores',cy:'KM'} ] },
-  ],
-  afrique_nord: [
-    { id:'trans-maghreb', nom:'Corridor Trans-Maghrébin', villes:[
-      {nom:'Casablanca',cy:'MA'}, {nom:'Alger',cy:'DZ'}, {nom:'Tunis',cy:'TN'}, {nom:'Tripoli',cy:'LY'} ] },
-    { id:'rabat-nouakchott', nom:'Rabat – Nouakchott', villes:[
-      {nom:'Rabat',cy:'MA'}, {nom:'Dakhla',cy:'MA'}, {nom:'Nouakchott',cy:'MR'} ] },
-    // Ligne ferroviaire Trans-Maghrebine : reseau existant reliant deja
-    // partiellement Casablanca-Alger-Tunis, en cours de modernisation
-    // majeure (electrification, signalisation — projet ~4 Md USD,
-    // rehabilitation par pays echelonnee jusqu'en 2035) — objectif :
-    // ramener le trajet Casablanca-Tunis de 48h a moins de 25h.
-    { id:'trans-maghreb-rail', nom:'Ligne Trans-Maghrébine — Casablanca – Alger – Tunis (rail)', type:'ferroviaire', villes:[
-      {nom:'Casablanca',cy:'MA'}, {nom:'Alger',cy:'DZ'}, {nom:'Tunis',cy:'TN'} ] },
-    // Hub aerien RAM (Casablanca), principale porte d'entree aerienne du
-    // Maghreb vers l'Afrique subsaharienne et l'Europe.
-    { id:'afrique-nord-aerien', nom:'Casablanca – Alger – Tunis – Tripoli (axe aérien)', type:'aerien', villes:[
-      {nom:'Casablanca',cy:'MA'}, {nom:'Alger',cy:'DZ'}, {nom:'Tunis',cy:'TN'}, {nom:'Tripoli',cy:'LY'} ] },
-    { id:'mediterranee-maritime', nom:'Façade méditerranéenne (zone maritime)', type:'maritime', villes:[
-      {nom:'Eaux du Maroc',cy:'MA'}, {nom:'Eaux d\'Algérie',cy:'DZ'}, {nom:'Eaux de Tunisie',cy:'TN'}, {nom:'Eaux de Libye',cy:'LY'} ] },
-  ],
-};
-
-// CORRIDORS_PERSO_KEY : corridors/parcours ajoutes par l'admin depuis
-// Paramètres & Administration (voir "Paramétrage des corridors") — jamais
-// melanges directement dans la constante CORRIDORS_PAR_ZONE (par defaut,
-// figee dans le code) ; corridorsEffectifs() fusionne les deux a la volee,
-// et c'est CETTE fonction que tout le module Corridor doit appeler, jamais
-// CORRIDORS_PAR_ZONE seule, pour que les corridors personnalises
-// apparaissent partout (vue d'ensemble, filtres, detail).
-const CORRIDORS_PERSO_KEY = 'sentinel_corridors_perso_v1';
-function getCorridorsPerso()  { return _ls(()=>JSON.parse(localStorage.getItem(CORRIDORS_PERSO_KEY)||'[]'),[]); }
-function saveCorridorsPerso(l){ _ls(()=>localStorage.setItem(CORRIDORS_PERSO_KEY, JSON.stringify(l))); }
-function corridorsEffectifs() {
-  const perso = getCorridorsPerso();
-  const fusion = {};
-  for (const zc in CORRIDORS_PAR_ZONE) fusion[zc] = CORRIDORS_PAR_ZONE[zc].slice();
-  perso.forEach(c => { (fusion[c.zc] = fusion[c.zc] || []).push(c); });
-  return fusion;
-}
-
-// CORRIDOR_SECURITE_KW : mots-cles recoupes pour calculer le NIVEAU D'ALERTE
-// de chaque corridor — cible specifiquement les faits qui menacent la
-// securite d'un deplacement/transport le long de l'itineraire (attaques,
-// coupeurs de route, vols, agressions), plutot que l'ensemble generique de
-// la categorie "securite" (qui couvre aussi la politique, le terrorisme
-// ideologique, etc. sans lien direct avec le risque de circuler sur ce
-// corridor). "Coupeurs de route" (bandits armes qui rançonnent/attaquent
-// les vehicules sur les axes routiers) est un risque routier majeur au
-// Sahel/Afrique de l'Ouest, distinct des autres formes de criminalite.
-const CORRIDOR_SECURITE_KW = [
-  'attaque','attentat','assaut','embuscade',
-  'coupeur de route','coupeurs de route','coupeur de routes','coupeurs de routes',
-  'bandit arme','bandits armes','bandit armé','bandits armés',
-  'braquage','vol a main armee','vol à main armée','vol de vehicule','vol de véhicule','carjacking',
-  'agression','agresse ','agressee','agressé','agressée',
-];
-// MARITIME_SECURITE_KW : equivalent de CORRIDOR_SECURITE_KW pour les
-// corridors de type 'maritime' (zones de navigation, pas des axes routiers)
-// — cible la piraterie et les actes de violence en mer plutot que la
-// criminalite routiere, qui n'a pas de sens pour une zone maritime.
-const MARITIME_SECURITE_KW = [
-  'piraterie','piraterie maritime','pirate','pirates','acte de piraterie','acte de piraterie maritime',
-  'attaque de navire','attaque en mer','navire attaque','navire attaqué','bateau attaque','bateau attaqué',
-  'detournement de navire','détournement de navire','vaisseau detourne','vaisseau détourné',
-  'enlevement de marins','enlèvement de marins','marins enleves','marins enlevés','equipage enleve','équipage enlevé','equipage kidnappe','équipage kidnappé',
-  'vol de cargaison','cargaison volee','cargaison volée','pillage de navire',
-  "prise d'otage en mer","prise d'otage maritime",
-  'tanker attaque','tanker attaqué','petrolier attaque','pétrolier attaqué','cargo attaque','cargo attaqué',
-  'skiff','embarcation pirate','rancon maritime','rançon maritime','abordage pirate',
-];
-// MARITIME_CONTEXTE_KW : signale un contexte clairement maritime (navire,
-// port, en mer...). CORRIDOR_SECURITE_KW contient des mots generiques
-// ("attaque", "vol", "agression") qui matchent aussi bien un braquage
-// routier qu'un acte de piraterie en mer — sans ce garde-fou, un fait
-// maritime (ex. "des pirates attaquent un petrolier au large de Lagos")
-// s'ajouterait a tort au niveau d'alerte d'un corridor TERRESTRE partageant
-// le meme pays. Un corridor terrestre n'accepte donc un match generique que
-// si le texte n'evoque pas explicitement ce contexte maritime.
-const MARITIME_CONTEXTE_KW = ['navire','bateau','pétrolier','petrolier','cargo','tanker','marin ','marins','équipage','equipage','piraterie','en mer','au large de','vaisseau'];
-
-// FERROVIAIRE_SECURITE_KW : equivalent de CORRIDOR_SECURITE_KW pour les
-// corridors de type 'ferroviaire' — cible les incidents propres au rail
-// (sabotage de voie, attaque de train, deraillement provoque, interruption
-// du trafic) plutot que la criminalite routiere generique, qui n'a pas de
-// sens pour une ligne de chemin de fer.
-const FERROVIAIRE_SECURITE_KW = [
-  'sabotage de voie', 'sabotage de la voie ferree', 'sabotage de la voie ferrée', 'voie ferree sabotee', 'voie ferrée sabotée',
-  'attaque de train', 'attaque du train', 'train attaque', 'train attaqué', 'attentat contre un train', 'attentat contre le train',
-  'deraillement provoque', 'déraillement provoqué', 'deraillement suspect', 'déraillement suspect',
-  'interruption du trafic ferroviaire', 'trafic ferroviaire suspendu', 'ligne ferroviaire fermee', 'ligne ferroviaire fermée',
-  'vol de fret ferroviaire', 'pillage de wagon', 'pillage de wagons', 'braquage de train',
-  'prise d\'otage a bord d\'un train', 'prise d\'otage dans un train',
-];
-// AERIEN_SECURITE_KW : equivalent pour les corridors de type 'aerien' —
-// cible les incidents affectant la circulation aerienne elle-meme
-// (fermeture d'espace aerien, tir sur un avion, detournement, attaque
-// d'aeroport) plutot que la criminalite au sol.
-const AERIEN_SECURITE_KW = [
-  'espace aerien ferme', 'espace aérien fermé', 'fermeture de l\'espace aerien', 'fermeture de l\'espace aérien',
-  'interdiction de survol', 'survol interdit', 'zone aerienne a risque', 'zone aérienne à risque',
-  'detournement d\'avion', 'détournement d\'avion', 'avion detourne', 'avion détourné',
-  'tir sur un avion', 'avion vise par des tirs', 'avion visé par des tirs', 'missile sol-air', 'attaque contre un aeroport', 'attaque contre un aéroport',
-  'aeroport ferme', 'aéroport fermé', 'aeroport attaque', 'aéroport attaqué', 'piste bombardee', 'piste bombardée',
-  'vol suspendu', 'vols suspendus', 'compagnie aerienne suspend', 'compagnie aérienne suspend',
-];
-// CORRIDOR_TYPE_META : referentiel visuel unique des 4 types de corridor
-// (icone, libelle, mots-cles securite recoupes affiches a l'utilisateur) —
-// point d'entree UNIQUE reutilise par tout l'affichage du module Corridor
-// (vue d'ensemble, detail, tableau admin) pour que les 4 types restent
-// presentes de facon coherente partout, sans dupliquer cette logique a
-// chaque endroit.
-const CORRIDOR_TYPE_META = {
-  terrestre:   { icon: 'ti-truck', label: 'Terrestre', motsRecoupes: 'attaques, coupeurs de route, vols, agressions' },
-  maritime:    { icon: 'ti-anchor', label: 'Maritime', motsRecoupes: 'piraterie, attaques de navires, détournements, enlèvements de marins' },
-  ferroviaire: { icon: 'ti-train', label: 'Ferroviaire', motsRecoupes: 'sabotages de voie, attaques de train, déraillements provoqués' },
-  aerien:      { icon: 'ti-plane', label: 'Aérien', motsRecoupes: "fermetures d'espace aérien, détournements, attaques d'aéroport" },
-};
-function corridorTypeMeta(corridor) { return CORRIDOR_TYPE_META[(corridor && corridor.type) || 'terrestre']; }
-
-function articleEstSecuriteCorridor(a, corridor) {
-  if (!a) return false;
-  const t = (L(a.title||'') + ' ' + L(a.analysis||'')).toLowerCase();
-  const type = corridor && corridor.type;
-  if (type === 'maritime') return MARITIME_SECURITE_KW.some(k => t.includes(k));
-  if (type === 'ferroviaire') return FERROVIAIRE_SECURITE_KW.some(k => t.includes(k));
-  if (type === 'aerien') return AERIEN_SECURITE_KW.some(k => t.includes(k));
-  if (MARITIME_CONTEXTE_KW.some(k => t.includes(k))) return false;
-  return CORRIDOR_SECURITE_KW.some(k => t.includes(k));
-}
-// Fenetre volontairement plus large (7 jours) que la fenetre d'affichage de
-// la liste d'evenements (72h par defaut, ajustable) : un niveau d'alerte de
-// corridor qui basculerait au vert des la moindre accalmie de quelques
-// heures donnerait une fausse impression de securite retablie. La liste
-// detaillee, elle, reste pilotee par le filtre fCorFenetre choisi par
-// l'utilisateur.
-const NIVEAU_CORRIDOR_FENETRE_MS = 7 * 24 * 60 * 60 * 1000;
-// calcNiveauCorridor(corridor) : niveau d'alerte du corridor UNIFIE sur le
-// meme referentiel a 5 niveaux que les fiches pays (NIV/getNivKey/MESURES,
-// voir calcAlertScore) plutot qu'une echelle separee a 4 niveaux propre au
-// corridor — coherence totale entre "score du Ghana" et "score du corridor
-// Tema-Ouagadougou" qui traverse le Ghana. Score du corridor = MOYENNE des
-// scores bruts (avant mise a l'echelle /100) des pays qu'il traverse,
-// reutilisant integralement calcAlertScore (incidents verifies + signaux
-// live + facteurs aggravants deja calibres et testes par pays) plutot que
-// de reinventer un calcul specifique au corridor. `faits`/`count` (articles
-// recoupes sur les mots-cles securite du corridor, fenetre 7 jours) restent
-// calcules a part : signal complementaire de couverture recente propre au
-// trajet, affiche a cote du niveau desormais unifie.
-function calcNiveauCorridor(corridor) {
-  const seuil = Date.now() - NIVEAU_CORRIDOR_FENETRE_MS;
-  const paysCorridor = new Set(corridor.villes.map(v => v.cy));
-  const faits = (typeof ALL !== 'undefined' ? ALL : []).filter(a =>
-    a && paysCorridor.has(a.cy) && a._cyConfiance !== 'repli_source' && (a.pubDate || 0) >= seuil && articleEstSecuriteCorridor(a, corridor)
-  ).sort((a, b) => (b.pubDate || 0) - (a.pubDate || 0)); // plus recent en premier — "faits marquants"
-
-  const scoresPays = Array.from(paysCorridor).filter(Boolean).map(cy => calcAlertScore(cy));
-  const totalMoyen = scoresPays.length ? scoresPays.reduce((s, sc) => s + sc.total, 0) / scoresPays.length : 0;
-  const total100 = Math.min(99.9, Math.round(1000 * (1 - Math.exp(-totalMoyen / ASYMPTOTE_K))) / 10);
-  const key = getNivKey(totalMoyen);
-  const niv = NIV[key];
-
-  return { key, niv, total: totalMoyen, total100, scoresPays, count: faits.length, faits };
-}
-
-// resumeCorridor(corridor) : calcNiveauCorridor() + actualites recentes
-// generales (toutes categories, 72h) pour ce corridor, hors doublons deja
-// comptes comme "faits marquants" — permet d'afficher un contenu utile meme
-// sur un corridor STABLE (aucun fait securitaire recoupe) plutot qu'une
-// carte vide.
-const CORRIDOR_ACTU_RECENTE_FENETRE_MS = 72 * 60 * 60 * 1000;
-// resumeCorridor : les "actualites recentes" (contrairement aux "faits
-// marquants" ci-dessus, deja filtres par mots-cles securite) affichent
-// N'IMPORTE QUEL sujet du pays concerne — sans le garde-fou _cyConfiance,
-// un article totalement hors-sujet (aucun pays africain cite, simplement
-// retombe par defaut sur le pays de la source, ex. une tribune generique
-// republiee sur la page Ghana d'un agregateur mais parlant en realite
-// d'un autre pays/continent) s'afficherait comme "actualite du Ghana" a
-// tort. Voir _detecterPaysCoeur/_cyConfiance.
-function resumeCorridor(corridor) {
-  const niv = calcNiveauCorridor(corridor);
-  const paysCorridor = new Set(corridor.villes.map(v => v.cy));
-  const seuilRecent = Date.now() - CORRIDOR_ACTU_RECENTE_FENETRE_MS;
-  const idsFaits = new Set(niv.faits.map(a => a.id));
-  const actuRecentes = (typeof ALL !== 'undefined' ? ALL : [])
-    .filter(a => a && paysCorridor.has(a.cy) && a._cyConfiance !== 'repli_source' && (a.pubDate || 0) >= seuilRecent && !idsFaits.has(a.id))
-    .sort((a, b) => (b.pubDate || 0) - (a.pubDate || 0));
-  return Object.assign({}, niv, { actuRecentes });
-}
 
 // ── GÉOPOLITIQUE ─────────────────────────────────────────────────────────
 // Module d'analyses géopolitiques : détection de développements diplomatiques,
@@ -5341,6 +4878,13 @@ function resumeCorridor(corridor) {
 // cote client ne serait pas sur), avec pour chaque theme un texte d'IMPACT
 // SURETE PAYS pre-redige qui explicite le lien entre le developpement
 // geopolitique detecte et le risque securitaire qu'il fait peser sur le pays.
+
+// NIVEAU_GEOPOLITIQUE_COULEUR : couleur de mise en avant (bordure des cartes
+// de la vue d'ensemble) selon le niveau geopolitique le plus severe detecte
+// pour un pays (voir calcImpactGeopolitique/carteGeopolitiqueApercu) — echelle
+// propre au module Geopolitique (crit/high/mod/ok), independante du
+// referentiel NIV a 5 niveaux utilise par le module Alertes.
+const NIVEAU_GEOPOLITIQUE_COULEUR = { crit: 'var(--r)', high: 'var(--a)', mod: 'var(--b)', ok: 'var(--g)' };
 const GEOPOLITIQUE_THEMES = {
   retrait_troupes: {
     label: 'Retrait de troupes étrangères', niveau: 'high',
@@ -5424,16 +4968,15 @@ function renderGeoPublications() {
     '</div>';
 }
 
-// GEOPOLITIQUE_FENETRE_MS : fenêtre volontairement large (14 jours, contre 7
-// jours pour les Corridors) — un développement géopolitique (sanctions,
-// rupture diplomatique...) reste pertinent pour l'analyse plus longtemps
-// qu'un fait sécuritaire ponctuel sur un axe routier.
+// GEOPOLITIQUE_FENETRE_MS : fenêtre volontairement large (14 jours) — un
+// développement géopolitique (sanctions, rupture diplomatique...) reste
+// pertinent pour l'analyse plus longtemps qu'un fait sécuritaire ponctuel.
 const GEOPOLITIQUE_FENETRE_MS = 14 * 24 * 60 * 60 * 1000;
 
 // detecterThemesGeopolitiques(a) : liste des identifiants de themes
-// GEOPOLITIQUE_THEMES detectes dans le titre + l'analyse d'un article — meme
-// principe que articleEstSecuriteCorridor (normalisation des accents,
-// correspondance sur des locutions completes, independant de a.cat).
+// GEOPOLITIQUE_THEMES detectes dans le titre + l'analyse d'un article
+// (normalisation des accents, correspondance sur des locutions completes,
+// independant de a.cat).
 function detecterThemesGeopolitiques(a) {
   if (!a) return [];
   const t = normaliserAccents((L(a.title||'') + ' ' + L(a.analysis||'')).toLowerCase());
@@ -5453,8 +4996,7 @@ function articleEstGeopolitique(a) {
 // niveau global (le plus severe des themes detectes) — plusieurs themes
 // distincts detectes simultanement renforcent ce niveau d'un cran,
 // l'accumulation de signaux geopolitiques distincts etant en elle-meme un
-// signal (meme logique que calcNiveauCorridor, qui recoupe des faits plutot
-// que d'en prendre un seul isolement).
+// signal, plutot que d'en prendre un seul isolement.
 function calcImpactGeopolitique(cy) {
   const seuil = Date.now() - GEOPOLITIQUE_FENETRE_MS;
   const faits = (typeof ALL !== 'undefined' ? ALL : [])
@@ -6367,10 +5909,9 @@ function estContenuCulturel(t) {
 // aucun pays africain cite, aucun mot-cle hors-perimetre non plus (le
 // texte ne nomme pas explicitement "Canada"/"Québec"), le pays de la
 // source (GH) etait donc retenu par defaut, a tort. confiant=false permet
-// aux vues "actualites recentes PAR PAYS" (ex. module Corridor, voir
-// resumeCorridor) d'exclure ce genre de faux rattachement, sans toucher
-// aux autres usages (Flux general, ou tout de meme afficher l'article
-// reste legitime) — voir _cyConfiance sur l'article.
+// aux vues "actualites recentes PAR PAYS" d'exclure ce genre de faux
+// rattachement, sans toucher aux autres usages (Flux general, ou tout de
+// meme afficher l'article reste legitime) — voir _cyConfiance sur l'article.
 function _detecterPaysCoeur(titre, contenu, srcCy) {
   const titreL = (titre || '').toLowerCase();
   const contenuL = (contenu || '').toLowerCase();
@@ -11328,344 +10869,10 @@ async function renderAgenda() {
   requestAnimationFrame(() => { agEl.innerHTML = agHtml; });
 }
 
-// ── CORRIDOR DE RÉFÉRENCE ───────────────────────────────────────────────────
-// Module de suivi des corridors logistiques/transfrontaliers surveillés
-// (CORRIDORS_PAR_ZONE, voir plus haut), configurable par zone : listes de
-// choix zone -> corridor (jamais un itinéraire unique figé). Chaque etape
-// (ville) est rattachee aux actus du Flux (ALL) par son pays.
-let fCorZone = 'sahel', fCorId = CORRIDORS_PAR_ZONE.sahel[0].id, fCorFenetre = 72, fCorCat = 'all', fCorQ = '';
-// corridorVueApercu : vue d'ensemble de TOUS les corridors (toutes zones),
-// avec niveau d'alerte recoupe, affichee par defaut AVANT toute selection —
-// bascule a false uniquement quand l'utilisateur choisit un corridor precis.
-let corridorVueApercu = true;
-
-function peuplerFiltresCorridors() {
-  const selZone = document.getElementById('corZoneFilter');
-  if (!selZone || selZone.options.length) return;
-  for (const zc in ZONES_GEO) {
-    const opt = document.createElement('option');
-    opt.value = zc; opt.textContent = ZONES_GEO[zc].nom;
-    selZone.appendChild(opt);
-  }
-  selZone.value = fCorZone;
-  peuplerCorridorsDeLaZone();
-}
-
-function peuplerCorridorsDeLaZone() {
-  const selCor = document.getElementById('corCorridorFilter');
-  if (!selCor) return;
-  const liste = corridorsEffectifs()[fCorZone] || [];
-  const ICONE_TEXTE_TYPE = { maritime: '⚓ ', ferroviaire: '🚆 ', aerien: '✈ ', terrestre: '' };
-  selCor.innerHTML = liste.map(c => '<option value="' + escHtml(c.id) + '">' + (ICONE_TEXTE_TYPE[c.type] || '') + escHtml(c.nom) + '</option>').join('');
-  if (!liste.some(c => c.id === fCorId)) fCorId = liste[0] ? liste[0].id : null;
-  selCor.value = fCorId || '';
-}
-
-function setCorridorZone(zc) {
-  fCorZone = zc;
-  peuplerCorridorsDeLaZone();
-  renderCorridors();
-}
-
-function setCorridorId(id) {
-  fCorId = id;
-  renderCorridors();
-}
-
-function setCorridorFenetre(h) {
-  fCorFenetre = parseInt(h, 10) || 72;
-  renderCorridors();
-}
-
-function setCorCat(el, cat) {
-  fCorCat = cat;
-  document.querySelectorAll('#corChips .chip').forEach(c => c.classList.remove('on'));
-  if (el) el.classList.add('on');
-  renderCorridors();
-}
-
-// renderCorridors() : simple aiguillage — vue d'ensemble (tous les
-// corridors, niveaux d'alerte recoupes) tant que rien n'est selectionne,
-// detail (stepper + liste d'evenements) une fois un corridor choisi. Tous
-// les points d'entree existants (filtres, recherche, bouton Actualiser,
-// switchView) continuent d'appeler renderCorridors() sans changement.
-function renderCorridors() {
-  if (corridorVueApercu) renderCorridorsApercu();
-  else renderCorridorsDetail();
-}
-
-function ouvrirCorridorDepuisApercu(zc, id) {
-  fCorZone = zc;
-  fCorId = id;
-  corridorVueApercu = false;
-  renderCorridors();
-}
-
-function retourApercuCorridors() {
-  corridorVueApercu = true;
-  renderCorridors();
-}
-
-const NIVEAU_CORRIDOR_COULEUR = { crit: 'var(--r)', high: 'var(--a)', mod: 'var(--b)', ok: 'var(--g)' };
-// Hierarchie du VERT (stable) au ROUGE (critique) — rang croissant avec la
-// gravite, utilise pour trier la vue d'ensemble dans cet ordre (du plus
-// calme au plus alarmant), demande explicitement.
-const NIVEAU_CORRIDOR_RANG = { ok: 0, mod: 1, high: 2, crit: 3 };
-
-// apercuFaitsMarquants(resume, max) : jusqu'a `max` lignes de contenu pour
-// une carte — priorite aux faits securitaires recoupes ("faits marquants"),
-// completes si besoin par les actualites recentes generales du corridor
-// ("actu recentes"), pour qu'une carte STABLE affiche tout de meme du
-// contenu utile plutot qu'une case vide.
-function apercuFaitsMarquants(resume, max) {
-  const items = [];
-  resume.faits.forEach(a => { if (items.length < max) items.push({ a, marquant: true }); });
-  resume.actuRecentes.forEach(a => { if (items.length < max) items.push({ a, marquant: false }); });
-  return items;
-}
-
-function ligneFaitApercu(item) {
-  const titre = escHtml(extraitLoyal(L(item.a.title), 58));
-  const puce = item.marquant ? '⚠' : '•';
-  return '<div style="font-size:10px;color:var(--t);line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + titre + '">' +
-    puce + ' ' + titre + ' <span style="color:var(--lg)">· ' + fmtAge(item.a.pubDate || 0) + '</span>' +
-  '</div>';
-}
-
-// renderCorridorsApercu() : affiche TOUS les corridors (toutes zones
-// confondues), chacun avec son niveau d'alerte recoupe (voir
-// calcNiveauCorridor / CORRIDOR_SECURITE_KW), ses faits marquants et ses
-// actualites recentes — trie du VERT (stable) au ROUGE (critique) pour une
-// lecture de risque immediate avant meme d'avoir choisi un corridor precis.
-function carteCorridorApercu(resume) {
-  const { c, key, count, total100 } = resume;
-  const n = NIV[key];
-  const col = n.col;
-  const zoneNom = (ZONES_GEO[c.zc] || {}).nom || c.zc;
-  const lignes = apercuFaitsMarquants(resume, 2);
-  const meta = corridorTypeMeta(c);
-  return '<div class="acard" onclick="ouvrirCorridorDepuisApercu(\'' + c.zc + '\',\'' + c.id + '\')" ' +
-    'style="cursor:pointer;padding:12px;border-top:3px solid ' + col + ';display:flex;flex-direction:column;gap:6px">' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">' +
-        '<span style="font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:4px">' +
-          '<i class="ti ' + meta.icon + '" title="' + meta.label + '"></i>' + escHtml(zoneNom) +
-        '</span>' +
-        mkBadge(key) +
-      '</div>' +
-      '<div style="font-size:13px;font-weight:700;color:var(--t)">' + escHtml(c.nom) + '</div>' +
-      '<div style="font-size:10px;color:var(--lg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escHtml(c.villes.map(v => v.nom).join(' → ')) + '</div>' +
-      '<div style="font-size:10px;color:' + col + ';font-weight:700;margin-top:2px">' +
-        'Score : ' + total100 + '/100 · ' + (count > 0 ? count + ' fait(s) sécuritaire(s) recoupé(s) · 7 jours' : 'aucun fait sécuritaire recoupé · 7 jours') +
-      '</div>' +
-      (lignes.length ? '<div style="display:flex;flex-direction:column;gap:2px;margin-top:2px;padding-top:6px;border-top:1px dashed var(--bd)">' + lignes.map(ligneFaitApercu).join('') + '</div>' : '') +
-    '</div>';
-}
-
-function sectionCorridorsApercu(titre, iconClass, resumes) {
-  if (!resumes.length) return '';
-  return '<div style="margin-bottom:16px">' +
-    '<div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--t);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--bd)">' +
-      '<i class="ti ' + iconClass + '"></i>' + escHtml(titre) + ' <span style="color:var(--lg);font-weight:600">(' + resumes.length + ')</span>' +
-    '</div>' +
-    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px">' +
-      resumes.map(carteCorridorApercu).join('') +
-    '</div>' +
-  '</div>';
-}
-
-// renderCorridorsApercu() : affiche TOUS les corridors, SEPARES en deux
-// sections (terrestres puis maritimes ⚓) — un corridor routier et une zone
-// maritime ne se comparent pas de la meme facon (mots-cles, nature du
-// risque), les melanger dans une seule grille triee par niveau brouillait
-// la lecture. Chaque section reste triee du VERT (stable) au ROUGE
-// (critique).
-function renderCorridorsApercu() {
-  const titreEl = document.getElementById('corTitreCorridor');
-  const sousTitreEl = document.getElementById('corSousTitre');
-  const badgeEl = document.getElementById('corNiveauBadge');
-  const apercuEl = document.getElementById('corApercu');
-  const detailEl = document.getElementById('corDetailWrap');
-  if (titreEl) titreEl.childNodes[0].nodeValue = 'Corridors de référence ';
-  if (badgeEl) badgeEl.innerHTML = '';
-  if (sousTitreEl) sousTitreEl.textContent = "Vue d'ensemble des corridors terrestres, ferroviaires, aériens et des zones maritimes, séparés par mode · chaque section triée du plus stable au plus critique · niveau recoupé sur les incidents propres à chaque mode (voir légende ci-dessous) des 7 derniers jours.";
-  if (detailEl) detailEl.style.display = 'none';
-  if (apercuEl) apercuEl.style.display = '';
-  if (!apercuEl) return;
-
-  const effectifs = corridorsEffectifs();
-  const tousCorridors = [];
-  for (const zc in effectifs) {
-    (effectifs[zc] || []).forEach(c => tousCorridors.push(Object.assign({ zc }, c)));
-  }
-  // Rang du referentiel unifie NIV (vert=stable en premier, rouge=critique
-  // en dernier) — coherent avec le meme ordre utilise pour les fiches pays.
-  const rangCorridorVertRouge = { vert: 0, jaune: 1, orange: 2, marron: 3, rouge: 4 };
-  const trieVertRouge = (liste) => liste
-    .map(c => Object.assign({ c }, resumeCorridor(c)))
-    .sort((a, b) => {
-      const r = rangCorridorVertRouge[a.key] - rangCorridorVertRouge[b.key];
-      return r !== 0 ? r : a.count - b.count;
-    });
-
-  const parType = t => tousCorridors.filter(c => (c.type || 'terrestre') === t);
-
-  apercuEl.innerHTML =
-    renderLegendeNiveaux() +
-    sectionCorridorsApercu('Corridors terrestres', CORRIDOR_TYPE_META.terrestre.icon, trieVertRouge(parType('terrestre'))) +
-    sectionCorridorsApercu('Corridors ferroviaires', CORRIDOR_TYPE_META.ferroviaire.icon, trieVertRouge(parType('ferroviaire'))) +
-    sectionCorridorsApercu('Corridors aériens', CORRIDOR_TYPE_META.aerien.icon, trieVertRouge(parType('aerien'))) +
-    sectionCorridorsApercu('Zones maritimes', CORRIDOR_TYPE_META.maritime.icon, trieVertRouge(parType('maritime')));
-}
-
-// renderCorridorsDetail() : detail d'UN corridor selectionne (stepper etape
-// par etape + liste d'evenements filtrable) — ancien comportement de
-// renderCorridors(), inchange, avec en plus le badge de niveau d'alerte
-// recoupe dans l'en-tete et un marqueur sur les faits qui l'alimentent.
-function renderCorridorsDetail() {
-  peuplerFiltresCorridors();
-  const apercuEl = document.getElementById('corApercu');
-  const detailEl = document.getElementById('corDetailWrap');
-  if (apercuEl) apercuEl.style.display = 'none';
-  if (detailEl) detailEl.style.display = '';
-  const _corridorsZone = corridorsEffectifs()[fCorZone] || [];
-  const corridor = _corridorsZone.find(c => c.id === fCorId) || _corridorsZone[0];
-  const titreEl = document.getElementById('corTitreCorridor');
-  const sousTitreEl = document.getElementById('corSousTitre');
-  const badgeEl = document.getElementById('corNiveauBadge');
-  const stepperEl = document.getElementById('corStepper');
-  const listEl = document.getElementById('corList');
-  const faitsEl = document.getElementById('corFaitsMarquants');
-  if (!corridor) {
-    if (titreEl) titreEl.childNodes[0].nodeValue = 'Corridor de référence ';
-    if (badgeEl) badgeEl.innerHTML = '';
-    if (sousTitreEl) sousTitreEl.textContent = 'Aucun corridor défini pour cette zone.';
-    if (stepperEl) stepperEl.innerHTML = '';
-    if (faitsEl) faitsEl.innerHTML = '';
-    if (listEl) listEl.innerHTML = '';
-    return;
-  }
-  const resume = resumeCorridor(corridor);
-  const niv = resume;
-  const n = NIV[niv.key];
-  const tMeta = corridorTypeMeta(corridor);
-  if (titreEl) titreEl.childNodes[0].nodeValue = 'Corridor de référence — ' + corridor.nom + ' ';
-  if (badgeEl) badgeEl.innerHTML = mkBadge(niv.key) + ' <span style="font-size:10px;font-weight:700;color:' + n.col + ';margin-left:4px">Score : ' + niv.total100 + '/100</span>' +
-    ' <span style="font-size:9px;font-weight:700;color:var(--lg);margin-left:6px;text-transform:uppercase;letter-spacing:.05em"><i class="ti ' + tMeta.icon + '"></i> ' + tMeta.label + '</span>';
-  const motsRecoupes = tMeta.motsRecoupes;
-  if (sousTitreEl) sousTitreEl.textContent = (ZONES_GEO[fCorZone] || {}).nom + ' · ' + corridor.villes.map(v => v.nom).join(' → ') +
-    ' · ' + (niv.count > 0 ? niv.count + ' fait(s) sécuritaire(s) recoupé(s) (' + motsRecoupes + ') sur 7 jours' : 'aucun fait sécuritaire recoupé sur 7 jours');
-
-  const legendeDetailEl = document.getElementById('corDetailLegende');
-  if (legendeDetailEl) legendeDetailEl.innerHTML = renderLegendeNiveaux();
-
-  if (faitsEl) {
-    const lignes = apercuFaitsMarquants(resume, 4);
-    faitsEl.innerHTML = !lignes.length ? '' :
-      '<div class="acard" style="padding:10px 12px;margin-bottom:10px;border-left:3px solid ' + n.col + '">' +
-        '<div style="font-size:10px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Faits marquants &amp; actualités récentes</div>' +
-        '<div style="display:flex;flex-direction:column;gap:4px">' + lignes.map(item =>
-          '<div style="font-size:11px;color:var(--t);cursor:pointer" onclick="showDet(\'' + item.a.id + '\')" title="Voir le détail">' +
-            (item.marquant ? '⚠ ' : '• ') + escHtml(extraitLoyal(L(item.a.title), 90)) +
-            ' <span style="color:var(--lg);font-size:10px">· ' + fmtAge(item.a.pubDate || 0) + '</span>' +
-          '</div>'
-        ).join('') + '</div>' +
-      '</div>';
-  }
-
-  // Mesures de protection : SPECIFIQUES au contexte corridor/transit
-  // (MESURES_CORRIDOR, voir plus haut) plutot que les mesures generiques de
-  // fiche PAYS (MESURES) — un corridor n'est pas un pays : ce qui compte,
-  // c'est le trajet (coupeurs de route, piraterie, sabotage de voie,
-  // fermeture d'espace aerien selon le type), pas la vie quotidienne sur
-  // place. Le NIVEAU affiche (niv.key) reste le meme referentiel unifie
-  // ROUGE/MARRON/ORANGE/JAUNE/VERT que les fiches pays — seul le CONTENU
-  // des mesures change selon corridor.type.
-  const mesuresEl = document.getElementById('corMesures');
-  if (mesuresEl) {
-    const m = (MESURES_CORRIDOR[corridor.type] || MESURES_CORRIDOR.terrestre)[niv.key];
-    const catMesure = (titre, icone, items) =>
-      '<div style="margin-bottom:8px">' +
-        '<div style="font-size:9px;font-weight:700;color:' + n.col + ';text-transform:uppercase;letter-spacing:.07em;display:flex;align-items:center;gap:5px;margin-bottom:4px">' +
-          '<i class="ti ' + icone + '" style="font-size:11px"></i>' + titre +
-        '</div>' +
-        items.map(it => '<div style="display:flex;gap:6px;padding:2px 0"><i class="ti ti-check" style="font-size:10px;color:' + n.col + ';flex-shrink:0;margin-top:2px"></i><span style="font-size:10px;color:var(--t2);line-height:1.4">' + escHtml(L(it)) + '</span></div>').join('') +
-      '</div>';
-    mesuresEl.innerHTML =
-      '<div class="acard" style="padding:10px 12px;margin-bottom:10px;border-left:3px solid ' + n.col + '">' +
-        '<div style="font-size:10px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Mesures de protection — axe ' + tMeta.label.toLowerCase() + ' — niveau ' + n.label + '</div>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
-          catMesure(t('mes_expat'), 'ti-user-shield', m.expatries) +
-          catMesure(t('mes_locaux'), 'ti-users', m.locaux) +
-          catMesure(t('mes_install'), 'ti-building', m.installations) +
-          catMesure(t('mes_vehic'), 'ti-car', m.vehicules) +
-        '</div>' +
-      '</div>';
-  }
-
-  const seuil = Date.now() - fCorFenetre * 3600000;
-  const paysCorridor = new Set(corridor.villes.map(v => v.cy));
-  const q = (fCorQ || '').toLowerCase();
-  const evenements = (ALL || []).filter(a =>
-    paysCorridor.has(a.cy) &&
-    (a.pubDate || 0) >= seuil &&
-    (fCorCat === 'all' || a.cat === fCorCat) &&
-    (!q || L(a.title).toLowerCase().includes(q))
-  ).sort((a, b) => (b.pubDate || 0) - (a.pubDate || 0));
-
-  if (stepperEl) {
-    stepperEl.innerHTML = corridor.villes.map((v, i) => {
-      const n = evenements.filter(e => e.cy === v.cy).length;
-      return '<div class="cor-step">' +
-        '<div class="cor-step-row">' +
-          '<div class="cor-node' + (n > 0 ? ' on' : '') + '">' + n + '</div>' +
-          (i < corridor.villes.length - 1 ? '<div class="cor-line"></div>' : '') +
-        '</div>' +
-        '<div class="cor-city">' + escHtml(v.nom) + '</div>' +
-        '<div class="cor-cy">' + ((PAYS_INFO[v.cy] || {}).flag || '') + ' ' + escHtml(v.cy) + '</div>' +
-      '</div>';
-    }).join('');
-  }
-
-  if (!listEl) return;
-  if (!evenements.length) {
-    listEl.innerHTML = '<div class="empty"><i class="ti ti-inbox"></i><p>AUCUN FAIT DANS CETTE FENÊTRE</p>' +
-      '<span style="font-size:11px;color:var(--lg);margin-top:4px">Aucun évènement sur ce corridor pour la fenêtre et les filtres sélectionnés.</span></div>';
-    return;
-  }
-  const TAG_PAR_TYPE = {
-    maritime: { titre: 'Recoupé : sécurité maritime (piraterie/attaque de navire/détournement/enlèvement)', txt: 'MER' },
-    ferroviaire: { titre: 'Recoupé : sécurité ferroviaire (sabotage/attaque de train/déraillement)', txt: 'RAIL' },
-    aerien: { titre: "Recoupé : sécurité aérienne (fermeture d'espace aérien/détournement/attaque d'aéroport)", txt: 'AIR' },
-    terrestre: { titre: 'Recoupé : sécurité routière (attaque/coupeurs de route/vol/agression)', txt: 'ROUTE' },
-  };
-  const tagCorridor = TAG_PAR_TYPE[corridor.type] || TAG_PAR_TYPE.terrestre;
-  listEl.innerHTML = evenements.map(a => {
-    const cc = CYS.find(x => x.code === a.cy) || { flag: '🌍', name: a.cy };
-    const pl = lp(a.level);
-    const estSecRecoupe = articleEstSecuriteCorridor(a, corridor);
-    const tagTitre = tagCorridor.titre;
-    const tagTxt = tagCorridor.txt;
-    return '<div class="art l' + a.level.charAt(0) + '2" data-level="' + a.level + '" onclick="showDet(\'' + a.id + '\')">' +
-      '<div class="al"><span class="rpill ' + pl[0] + '">' + pl[1] + '</span></div>' +
-      '<div class="ab">' +
-        '<div class="art-top"><span class="flagcy">' + cc.flag + ' ' + cc.name + '</span>' +
-          (estSecRecoupe ? '<span class="rpill rc2" title="' + tagTitre + '">' + tagTxt + '</span>' : '') +
-          '<span class="survtime"><i class="ti ti-history"></i>' + fmtAge(a.pubDate || 0) + '</span></div>' +
-        '<div class="atit">' + escHtml(L(a.title)) + '</div>' +
-      '</div></div>';
-  }).join('');
-}
-
-const renderCorridorsDebounced = _debounce(function () {
-  fCorQ = document.getElementById('corQ').value;
-  renderCorridors();
-}, 300);
-
 // ── GÉOPOLITIQUE — rendu ────────────────────────────────────────────────
 // geoVueApercu : vue d'ensemble de TOUS les pays presentant un developpement
 // geopolitique detecte, affichee par defaut — bascule a false uniquement
-// quand l'utilisateur choisit un pays precis (meme principe que
-// corridorVueApercu).
+// quand l'utilisateur choisit un pays precis.
 let geoVueApercu = true;
 let fGeoCy = null;
 
@@ -11690,7 +10897,7 @@ function carteGeopolitiqueApercu(item) {
   const { cy, impact } = item;
   const info = (typeof PAYS_INFO !== 'undefined' && PAYS_INFO[cy]) || {};
   const pl = lp(impact.niveau);
-  const col = (typeof NIVEAU_CORRIDOR_COULEUR !== 'undefined' && NIVEAU_CORRIDOR_COULEUR[impact.niveau]) || 'var(--b)';
+  const col = NIVEAU_GEOPOLITIQUE_COULEUR[impact.niveau] || 'var(--b)';
   const dernierFait = impact.faits[0];
   return '<div class="acard" onclick="ouvrirGeopolitiquePays(\'' + cy + '\')" ' +
     'style="cursor:pointer;padding:12px;border-top:3px solid ' + col + ';display:flex;flex-direction:column;gap:6px">' +
@@ -11708,8 +10915,8 @@ function carteGeopolitiqueApercu(item) {
 
 // renderGeopolitiqueApercu() : affiche uniquement les pays presentant au
 // moins un developpement geopolitique detecte (module d'analyse/briefing,
-// pas une couverture exhaustive des 54 pays comme les Corridors) — trie du
-// plus critique au plus stable, priorite de lecture pour un briefing.
+// pas une couverture exhaustive des 54 pays) — trie du plus critique au
+// plus stable, priorite de lecture pour un briefing.
 function renderGeopolitiqueApercu() {
   const titreEl = document.getElementById('geoTitre');
   const sousTitreEl = document.getElementById('geoSousTitre');
@@ -11744,7 +10951,7 @@ function renderGeopolitiqueApercu() {
 
 // renderGeopolitiqueDetail() : analyse geopolitique complete d'UN pays
 // selectionne (themes detectes + texte d'impact-surete par theme) suivie des
-// articles source qui l'alimentent — meme structure que renderCorridorsDetail.
+// articles source qui l'alimentent.
 function renderGeopolitiqueDetail() {
   const apercuEl = document.getElementById('geoApercu');
   const detailEl = document.getElementById('geoDetailWrap');
@@ -11792,132 +10999,6 @@ function renderGeopolitiqueDetail() {
         }).join('');
     }
   }
-}
-
-// ── PARAMÉTRAGE DES CORRIDORS (admin) ───────────────────────────────────
-// Formulaire "Paramètres & Administration" permettant d'identifier des
-// parcours et corridors specifiques (pays, regions) sans toucher au code —
-// voir CORRIDORS_PERSO_KEY / corridorsEffectifs() plus haut.
-let _corPersoEtapesTmp = [{ nom: '', cy: '' }];
-
-function peuplerCorPersoZoneSelect() {
-  const sel = document.getElementById('corPersoZone');
-  if (!sel || sel.options.length) return;
-  for (const zc in ZONES_GEO) {
-    const opt = document.createElement('option');
-    opt.value = zc; opt.textContent = ZONES_GEO[zc].nom;
-    sel.appendChild(opt);
-  }
-}
-
-function corPersoAjouterEtape() {
-  _corPersoEtapesTmp.push({ nom: '', cy: '' });
-  renderCorPersoEtapes();
-}
-function corPersoSupprimerEtape(i) {
-  if (_corPersoEtapesTmp.length <= 1) return;
-  _corPersoEtapesTmp.splice(i, 1);
-  renderCorPersoEtapes();
-}
-function corPersoMajEtape(i, champ, val) {
-  if (_corPersoEtapesTmp[i]) _corPersoEtapesTmp[i][champ] = val;
-}
-
-function renderCorPersoEtapes() {
-  const el = document.getElementById('corPersoEtapes');
-  if (!el || typeof PAYS_INFO === 'undefined') return;
-  const paysOptions = Object.keys(PAYS_INFO)
-    .sort((a, b) => PAYS_INFO[a].name.localeCompare(PAYS_INFO[b].name))
-    .map(cy => '<option value="' + cy + '">' + PAYS_INFO[cy].flag + ' ' + escHtml(PAYS_INFO[cy].name) + '</option>').join('');
-  el.innerHTML = _corPersoEtapesTmp.map((e, i) =>
-    '<div style="display:flex;gap:6px;margin-bottom:5px;align-items:center">' +
-      '<input type="text" value="' + escHtml(e.nom || '') + '" placeholder="Nom de l\'étape (ville / zone)" oninput="corPersoMajEtape(' + i + ',\'nom\',this.value)" style="flex:1;padding:5px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;box-sizing:border-box">' +
-      '<select onchange="corPersoMajEtape(' + i + ',\'cy\',this.value)" style="padding:5px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px"><option value="">Pays…</option>' + paysOptions + '</select>' +
-      (_corPersoEtapesTmp.length > 1 ? '<button onclick="corPersoSupprimerEtape(' + i + ')" title="Supprimer l\'étape" style="background:none;border:none;color:var(--r);cursor:pointer;font-size:14px;padding:2px 4px"><i class="ti ti-trash"></i></button>' : '') +
-    '</div>'
-  ).join('');
-  // Le reset innerHTML perd la selection des <select> — la restaurer.
-  _corPersoEtapesTmp.forEach((e, i) => {
-    const sel = el.children[i] && el.children[i].querySelector('select');
-    if (sel && e.cy) sel.value = e.cy;
-  });
-}
-
-function corPersoAjouterCorridor() {
-  const nomEl = document.getElementById('corPersoNom');
-  const nom = (nomEl.value || '').trim();
-  const zc = document.getElementById('corPersoZone').value;
-  const type = document.getElementById('corPersoType').value;
-  const etapes = _corPersoEtapesTmp.filter(e => (e.nom || '').trim() && e.cy);
-  if (!nom) { pmMsg('Le nom du corridor est requis.', 'err', 'corPersoMsg'); return; }
-  if (!zc) { pmMsg('Choisissez une région.', 'err', 'corPersoMsg'); return; }
-  if (!etapes.length) { pmMsg('Ajoutez au moins une étape avec un nom et un pays.', 'err', 'corPersoMsg'); return; }
-  const perso = getCorridorsPerso();
-  const id = 'perso-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  perso.push({ id, nom, zc, type, perso: true, villes: etapes.map(e => ({ nom: e.nom.trim(), cy: e.cy })) });
-  saveCorridorsPerso(perso);
-  nomEl.value = '';
-  _corPersoEtapesTmp = [{ nom: '', cy: '' }];
-  renderCorPersoEtapes();
-  renderCorPersoListe();
-  pmMsg('Corridor « ' + escHtml(nom) + ' » ajouté.', 'ok', 'corPersoMsg');
-  // Si le module Corridors est deja ouvert, refleter immediatement l'ajout
-  // dans la vue d'ensemble plutot que d'attendre une reouverture d'onglet.
-  if (typeof corridorVueApercu !== 'undefined' && document.getElementById('v-corridors') && document.getElementById('v-corridors').classList.contains('on')) {
-    corridorVueApercu = true;
-    renderCorridors();
-  }
-}
-
-function corPersoSupprimerCorridor(id) {
-  if (!confirm('Supprimer ce corridor personnalisé ?')) return;
-  saveCorridorsPerso(getCorridorsPerso().filter(c => c.id !== id));
-  renderCorPersoListe();
-}
-
-// renderCorPersoListe() : liste TOUS les corridors effectifs (par defaut +
-// personnalises), avec leur niveau d'alerte surete actuel (meme calcul que
-// le module Corridors — voir calcNiveauCorridor) — permet a l'admin de
-// superviser l'ensemble depuis Parametres sans repasser par l'onglet
-// Corridors. Tri du plus critique au plus stable (table de supervision,
-// contrairement a la vue d'ensemble publique qui va du vert au rouge).
-// Seuls les corridors personnalises sont supprimables ; ceux par defaut
-// restent en lecture seule (modifiables uniquement dans le code source).
-function renderCorPersoListe() {
-  const body = document.getElementById('corPersoBody');
-  const countEl = document.getElementById('corPersoCount');
-  if (!body) return;
-  const perso = getCorridorsPerso();
-  const effectifs = corridorsEffectifs();
-  const tous = [];
-  for (const zc in effectifs) (effectifs[zc] || []).forEach(c => tous.push(Object.assign({ zc }, c)));
-  const rangCorridorAdmin = { rouge: 0, marron: 1, orange: 2, jaune: 3, vert: 4 };
-  const lignes = tous
-    .map(c => Object.assign({ c }, calcNiveauCorridor(c)))
-    .sort((a, b) => rangCorridorAdmin[a.key] - rangCorridorAdmin[b.key]);
-
-  if (countEl) countEl.textContent = tous.length + ' corridor(s) au total · ' + perso.length + ' personnalisé(s)';
-  body.innerHTML = !lignes.length
-    ? '<tr><td colspan="6" style="text-align:center;color:var(--lg);padding:14px">Aucun corridor.</td></tr>'
-    : lignes.map(({ c, key, total100 }) => {
-        return '<tr>' +
-          '<td>' + escHtml(c.nom) + '</td>' +
-          '<td>' + escHtml((ZONES_GEO[c.zc] || {}).nom || c.zc) + '</td>' +
-          '<td><i class="ti ' + corridorTypeMeta(c).icon + '"></i> ' + corridorTypeMeta(c).label + '</td>' +
-          '<td>' + mkBadge(key) + ' <span style="font-size:9px;color:var(--lg)">' + total100 + '/100</span></td>' +
-          '<td>' + escHtml(c.villes.map(v => v.nom).join(' → ')) + '</td>' +
-          '<td>' + (c.perso
-            ? '<button class="btn-action btn-del" onclick="corPersoSupprimerCorridor(\'' + c.id + '\')">Supprimer</button>'
-            : '<span style="font-size:10px;color:var(--lg)">Par défaut</span>') + '</td>' +
-        '</tr>';
-      }).join('');
-}
-
-function initCorridorsPerso() {
-  peuplerCorPersoZoneSelect();
-  renderCorPersoEtapes();
-  renderCorPersoListe();
-  renderDiagnosticProxyPays();
 }
 
 // renderDiagnosticProxyPays() : rend visible pour l'administrateur le suivi
@@ -12019,7 +11100,6 @@ function switchView(name,el){
   const _lpEl = document.getElementById('lp');
   if (_lpEl) _lpEl.style.display=(name==='rapports'||name==='params')?'none':'flex';
   if(name==='agenda')    { renderAgenda(); }
-  if(name==='corridors') { corridorVueApercu = true; renderCorridors(); }
   if(name==='geopolitique') { geoVueApercu = true; renderGeopolitique(); }
   if(name==='dashboard') { renderDashboard(); }
   // Ouverture de l'onglet Alertes : force un recalcul/repeinture immediat.
@@ -12829,16 +11909,18 @@ async function publierCollectePartagee(articles, force) {
   } catch (e) { console.warn('SENTINEL — publierCollectePartagee a echoue :', e && e.message ? e.message : e); }
 }
 
-// ── Index de recherche pour l'Assistant IA (RAG, Supabase, table
-// articles_rag) ────────────────────────────────────────────────────────
+// ── Index RAG (Supabase, table articles_rag) ─────────────────────────────
 // Alimente une table NORMALISEE (colonnes indexables) a partir des memes
 // articles que collecte_partagee (tableau JSONB, pas cherchable en plein
-// texte) — voir poserQuestionAssistant()/supabase/functions/rag-ask, qui
-// lit cette table pour repondre aux questions des utilisateurs en
-// s'appuyant UNIQUEMENT sur des articles reellement collectes. Best-
-// effort, jamais bloquant (memes principe que publierCollectePartagee) ;
-// necessite la migration 20260718030000_articles_rag.sql, sinon echoue
-// silencieusement sans affecter le reste de l'application.
+// texte) — table backend consommee par la fonction Edge rag-ask
+// (supabase/functions/rag-ask). Le module client "Assistant IA" qui
+// l'interrogeait a ete retire de l'application ; cette synchronisation
+// reste volontairement active (backend Supabase laisse en l'etat, non
+// demantele) au cas ou la fonction Edge serait de nouveau exposee plus
+// tard. Best-effort, jamais bloquant (meme principe que
+// publierCollectePartagee) ; necessite la migration
+// 20260718030000_articles_rag.sql, sinon echoue silencieusement sans
+// affecter le reste de l'application.
 // Plafonne aux ARTICLES_RAG_MAX_PAR_APPEL plus recents : suffisant pour
 // la recherche plein texte (les articles plus anciens sont de toute
 // facon purges cote serveur, voir purger_articles_rag_perimes) et evite
@@ -12865,80 +11947,6 @@ async function publierArticlesRagPartages(articles) {
     const { error } = await client.from('articles_rag').upsert(lignes);
     if (error) console.warn('SENTINEL — publierArticlesRagPartages a echoue :', error.message || error);
   } catch (e) { console.warn('SENTINEL — publierArticlesRagPartages a echoue :', e && e.message ? e.message : e); }
-}
-
-// poserQuestionAssistant() : interroge la fonction Edge rag-ask (voir
-// supabase/functions/rag-ask) avec la question saisie par l'utilisateur —
-// authentification requise (jeton de LA session en cours, jamais la cle
-// anon seule, voir _ouvrirSessionDepuisSupabase/checkAuth). La reponse
-// s'appuie exclusivement sur les articles reellement collectes (retrieval
-// cote fonction Edge) : jamais de connaissance generale non confirmee.
-let _assistantEnCours = false;
-async function poserQuestionAssistant() {
-  if (_assistantEnCours) return;
-  const input = document.getElementById('assistantInput');
-  const question = (input.value || '').trim();
-  const errEl = document.getElementById('assistantErr');
-  errEl.style.display = 'none';
-  if (!question) return;
-  const client = getSentinelSupabase();
-  if (!client) { errEl.textContent = 'Service indisponible pour le moment.'; errEl.style.display = 'block'; return; }
-  const { data: { session } } = await client.auth.getSession();
-  if (!session) { errEl.textContent = 'Reconnectez-vous pour utiliser l\'assistant.'; errEl.style.display = 'block'; return; }
-
-  _assistantEnCours = true;
-  const btn = document.getElementById('assistantBtn');
-  if (btn) btn.disabled = true;
-  input.value = '';
-  document.getElementById('assistantEtatVide').style.display = 'none';
-  const hist = document.getElementById('assistantHistorique');
-  const idBloc = 'assistant_' + Date.now();
-  hist.insertAdjacentHTML('beforeend',
-    '<div id="' + idBloc + '" style="border:1px solid var(--bd);border-radius:10px;padding:12px 14px;background:var(--sf)">' +
-    '<div style="font-size:12px;font-weight:700;color:var(--t);margin-bottom:8px"><i class="ti ti-message-2"></i> ' + escHtml(question) + '</div>' +
-    '<div class="rep" style="font-size:12px;color:var(--t2);display:flex;align-items:center;gap:6px"><i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Recherche dans les articles collectés…</div>' +
-    '</div>');
-  hist.scrollTop = hist.scrollHeight;
-
-  try {
-    const resp = await fetch(SENTINEL_SUPABASE_URL + '/functions/v1/rag-ask', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token, 'apikey': SENTINEL_SUPABASE_ANON_KEY },
-      body: JSON.stringify({ question }),
-    });
-    const data = await resp.json().catch(() => ({}));
-    const bloc = document.getElementById(idBloc);
-    if (!resp.ok || data.error) {
-      if (bloc) bloc.querySelector('.rep').innerHTML = '<span style="color:var(--r,#dc2626)"><i class="ti ti-alert-triangle"></i> ' + escHtml(data.error || 'Erreur inattendue.') + '</span>';
-      return;
-    }
-    const admin = sourcesVisibles();
-    const sourcesHtml = (data.sources || []).length
-      ? '<div style="margin-top:10px;display:flex;flex-direction:column;gap:5px">' +
-        (data.sources || []).map(s => admin
-          ? '<a href="' + escHtml(s.link || '#') + '" target="_blank" rel="noopener" style="font-size:10.5px;color:var(--lg);text-decoration:none;display:flex;gap:5px;align-items:baseline"><span style="color:var(--b);font-weight:700">[' + s.n + ']</span><span>' + escHtml(s.title) + ' — ' + escHtml(s.source || '') + '</span></a>'
-          : '<div style="font-size:10.5px;color:var(--lg)"><span style="color:var(--b);font-weight:700">[' + s.n + ']</span> ' + escHtml(s.title) + '</div>'
-        ).join('') + '</div>'
-      : '';
-    // verifie===false : l'agent anti-hallucination (voir verifierReponse
-    // cote fonction Edge) a detecte, meme apres une tentative de
-    // correction automatique, des affirmations non confirmees par les
-    // articles sources — la reponse reste affichee (transparence totale,
-    // jamais masquee) mais avec un avertissement explicite plutot que de
-    // laisser croire a une fiabilite non garantie.
-    const avertissementHtml = (data.verifie === false)
-      ? '<div style="margin-top:8px;padding:6px 9px;border-radius:6px;background:#FFFBEB;border:1px solid #FDE68A;font-size:10.5px;color:#92400E;display:flex;gap:5px;align-items:flex-start"><i class="ti ti-alert-triangle" style="margin-top:1px"></i><span>Vérification automatique : certains éléments de cette réponse n\'ont pas pu être confirmés par les articles sources' + ((data.problemesVerification || []).length ? (' (' + escHtml(data.problemesVerification.join('; ')) + ')') : '') + ' — à recouper avant toute décision.</span></div>'
-      : '';
-    if (bloc) bloc.querySelector('.rep').outerHTML =
-      '<div class="rep" style="font-size:12.5px;color:var(--t);line-height:1.6;white-space:pre-wrap">' + escHtml(data.answer || '') + '</div>' + avertissementHtml + sourcesHtml;
-  } catch (e) {
-    const bloc = document.getElementById(idBloc);
-    if (bloc) bloc.querySelector('.rep').innerHTML = '<span style="color:var(--r,#dc2626)"><i class="ti ti-alert-triangle"></i> Erreur réseau — réessayez.</span>';
-  } finally {
-    _assistantEnCours = false;
-    if (btn) btn.disabled = false;
-    hist.scrollTop = hist.scrollHeight;
-  }
 }
 
 // ── Configuration EmailJS PARTAGEE (Supabase, table config_partagee) ──────
@@ -14282,7 +13290,7 @@ function loadParamsModule() {
   refreshUsersDepuisSupabase().then(() => { pmRenderUsers(); renderClientele(); });
   pmRenderUsers();
   pmRenderPending();
-  if (typeof initCorridorsPerso === 'function') initCorridorsPerso();
+  if (typeof renderDiagnosticProxyPays === 'function') renderDiagnosticProxyPays();
   renderPricing();
   renderDLQuotas();
   renderPaymethods();
@@ -15686,10 +14694,9 @@ const NIV = {
   vert:   {dot:'#0F4F2A', col:'#0F4F2A', border:'#0F4F2A', bg:'#F0FDF4', bgLight:'#DCFCE7', txt:'#065F46', label:'VERT',   sous:'Stable',   descr:'Situation normale'},
 };
 // renderLegendeNiveaux() : legende UNIQUE des 5 niveaux d'alerte (couleur +
-// libelle + signification), reutilisee A L'IDENTIQUE par le module Alertes
-// (fiches pays, #alerteLegende) et le module Corridor (#corApercu) — un seul
-// point de verite pour cette legende plutot qu'une copie HTML figee par
-// module, qui aurait fini par diverger silencieusement.
+// libelle + signification), reutilisee par le module Alertes (fiches pays,
+// #alerteLegende) — un seul point de verite pour cette legende plutot
+// qu'une copie HTML figee, qui aurait fini par diverger silencieusement.
 function renderLegendeNiveaux() {
   return '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
     Object.keys(NIV).map(k => {
@@ -15764,146 +14771,6 @@ const MESURES = {
     locaux:      ['Fonctionnement normal', 'Aucune mesure particulière', 'Suivi de routine'],
     installations:['Fonctionnement normal', 'Sécurité standard maintenue', 'Aucune action requise'],
     vehicules:   ['Circulation normale', 'Aucune restriction', 'Prudence routière habituelle'],
-  },
-};
-
-// MESURES_CORRIDOR : mesures de protection SPECIFIQUES au contexte
-// transit/corridor, distinctes de MESURES (fiches PAYS) — un corridor
-// n'est pas un pays : les risques et les gestes qui comptent sont ceux du
-// TRAJET lui-meme (coupeurs de route sur un axe terrestre, piraterie en
-// mer, sabotage de voie sur un axe ferroviaire, fermeture d'espace aerien
-// sur un axe aerien), pas la vie quotidienne sur place. Meme forme que
-// MESURES (4 categories x 5 niveaux) pour reutiliser le meme rendu
-// (catMesure), mais un jeu de contenu par TYPE de corridor
-// (terrestre/maritime/ferroviaire/aerien).
-const MESURES_CORRIDOR = {
-  terrestre: {
-    rouge: {
-      expatries:   ['Suspension immédiate de tout trajet sur cet axe', "Repli vers l'étape la plus proche déjà atteinte", 'Contact référent sécurité avant tout mouvement'],
-      locaux:      ['Convois immobilisés jusqu\'à nouvel ordre', 'Coordination avec les forces de sécurité locales', 'Suivi GPS temps réel obligatoire si mouvement impératif'],
-      installations:['Points de contrôle et postes-frontières sous haute vigilance', 'Repli sur le point d\'étape sécurisé le plus proche', 'Vérification renforcée avant franchissement'],
-      vehicules:   ['Aucun convoi routier sans escorte armée', 'Trajet alternatif ou report total recommandé', 'Véhicules blindés/discrets si départ impératif'],
-    },
-    marron: {
-      expatries:   ['Trajets limités aux étapes essentielles du corridor', 'Départs groupés uniquement, jamais isolés', 'Signalement du départ et de l\'arrivée à chaque étape'],
-      locaux:      ['Vigilance renforcée aux abords des coupeurs de route connus', 'Convois accompagnés recommandés', 'Point de situation avant chaque tronçon'],
-      installations:['Contrôle renforcé aux postes-frontières et péages', 'Vérification des itinéraires alternatifs de repli', 'Stock carburant/eau pour imprévu sur le trajet'],
-      vehicules:   ['Déplacement en convoi groupé exigé', 'Éviter les tronçons identifiés à risque (nuit notamment)', 'Suivi de trajet partagé avec un référent'],
-    },
-    orange: {
-      expatries:   ['Trajets de jour uniquement sur cet axe', 'Éviter les tronçons signalés en alerte récente', "Informer un référent de l'horaire de trajet"],
-      locaux:      ['Surveillance accrue des points sensibles du corridor', 'Itinéraires alternatifs anticipés en cas de blocage', 'Contact maintenu avec les autorités locales de l\'axe'],
-      installations:['Contrôles maintenus aux étapes et postes-frontières', 'Procédures d\'urgence du corridor revues', 'Communication sur l\'état de l\'axe partagée'],
-      vehicules:   ['Prudence accrue sur les tronçons secondaires', 'Véhicules peu identifiables recommandés', 'Plein de carburant avant chaque tronçon'],
-    },
-    jaune: {
-      expatries:   ['Trajets normaux, vigilance standard sur l\'axe', 'Suivi de l\'actualité sécuritaire du corridor', 'Éviter les arrêts non prévus en zone isolée'],
-      locaux:      ['Suivi de routine de la situation sur l\'axe', 'Sensibilisation maintenue sur les points sensibles connus', 'Aucune restriction particulière de trajet'],
-      installations:['Postes-frontières et étapes en fonctionnement normal', 'Contrôles d\'accès habituels', 'Veille informationnelle continue sur l\'axe'],
-      vehicules:   ['Circulation normale sur le corridor', 'Consignes de prudence routière habituelles', 'Aucune restriction d\'itinéraire'],
-    },
-    vert: {
-      expatries:   ['Aucune restriction sur cet axe', 'Trajet normal, vigilance passive', 'Veille informationnelle standard'],
-      locaux:      ['Fonctionnement normal du corridor', 'Aucune mesure particulière', 'Suivi de routine'],
-      installations:['Postes-frontières et étapes en fonctionnement normal', 'Sécurité standard maintenue', 'Aucune action requise'],
-      vehicules:   ['Circulation normale', 'Aucune restriction d\'itinéraire', 'Prudence routière habituelle'],
-    },
-  },
-  maritime: {
-    rouge: {
-      expatries:   ['Suspension immédiate de toute traversée sur cette zone', 'Report ou déroutement vers un port sûr', 'Contact armateur/agent maritime avant tout mouvement'],
-      locaux:      ['Équipages en état de vigilance piraterie maximale (BMP en vigueur)', 'Coordination avec les forces navales présentes dans la zone', 'Citadelle prête, exercice anti-piraterie effectué'],
-      installations:['Ports et zones de mouillage sous haute vigilance', 'Escale dans le port sûr le plus proche si nécessaire', 'Vérification renforcée avant chaque escale'],
-      vehicules:   ['Aucun transit sans convoi escorté/zone de transit sécurisée (ex. corridor IRTC)', 'Vitesse maximale et manœuvres anti-abordage en zone à risque', 'Déroutement recommandé si praticable'],
-    },
-    marron: {
-      expatries:   ['Traversées limitées aux liaisons essentielles', 'Transit par la route maritime recommandée (couloirs surveillés)', 'Signalement systématique de position (AIS/rapport de situation)'],
-      locaux:      ['Vigilance renforcée dans les zones à risque de piraterie/vol à main armée', 'Veille radar/visuelle 24h renforcée', 'Point de situation avant chaque segment de la traversée'],
-      installations:['Contrôle renforcé à l\'entrée des ports et rades', 'Vérification des procédures d\'urgence anti-piraterie', 'Équipements de citadelle et alarme vérifiés'],
-      vehicules:   ['Transit groupé/en convoi recommandé si disponible', 'Éviter le mouillage prolongé en zone signalée à risque', 'Suivi de position partagé avec l\'armateur'],
-    },
-    orange: {
-      expatries:   ['Traversées de jour privilégiées si le trafic le permet', 'Éviter les zones de mouillage signalées à risque', 'Informer l\'agent maritime de l\'horaire de transit'],
-      locaux:      ['Surveillance radar/visuelle accrue dans la zone', 'Itinéraire alternatif anticipé en cas d\'incident signalé', 'Contact maintenu avec les autorités portuaires locales'],
-      installations:['Contrôles d\'accès portuaires maintenus', 'Procédures anti-piraterie revues', 'Communication sur l\'état de la zone partagée à bord'],
-      vehicules:   ['Vigilance accrue en zone secondaire de navigation', 'Éclairage réduit la nuit en zone sensible si pertinent', 'Plein de soutage avant transit prolongé'],
-    },
-    jaune: {
-      expatries:   ['Traversées normales, vigilance standard', 'Suivi des bulletins sécurité maritime (BMP/MSCHOA)', 'Éviter les mouillages non prévus en zone isolée'],
-      locaux:      ['Suivi de routine de la situation dans la zone', 'Sensibilisation équipage maintenue', 'Aucune restriction particulière de route maritime'],
-      installations:['Ports en fonctionnement normal', 'Contrôles d\'accès habituels', 'Veille informationnelle maritime continue'],
-      vehicules:   ['Navigation normale sur la zone', 'Consignes de prudence maritime habituelles', 'Aucune restriction de route'],
-    },
-    vert: {
-      expatries:   ['Aucune restriction sur cette zone', 'Traversée normale, vigilance passive', 'Veille informationnelle standard'],
-      locaux:      ['Fonctionnement normal de la zone maritime', 'Aucune mesure particulière', 'Suivi de routine'],
-      installations:['Ports en fonctionnement normal', 'Sécurité standard maintenue', 'Aucune action requise'],
-      vehicules:   ['Navigation normale', 'Aucune restriction de route', 'Prudence maritime habituelle'],
-    },
-  },
-  ferroviaire: {
-    rouge: {
-      expatries:   ['Suspension immédiate des trajets sur cette ligne', 'Repli vers la gare la plus proche déjà atteinte', 'Contact référent sécurité avant tout mouvement'],
-      locaux:      ['Circulation ferroviaire suspendue ou fortement restreinte', 'Coordination avec l\'exploitant et les forces de sécurité', 'Suivi des annonces officielles de l\'exploitant ferroviaire'],
-      installations:['Gares et voies sous haute vigilance, inspection renforcée', 'Repli sur la gare sécurisée la plus proche', 'Vérification renforcée avant tout embarquement'],
-      vehicules:   ['Aucun trajet sans confirmation de sécurisation de la ligne', 'Trajet alternatif (route/aérien) recommandé si disponible', 'Éviter les trajets de nuit sur la ligne concernée'],
-    },
-    marron: {
-      expatries:   ['Trajets limités aux liaisons essentielles de la ligne', 'Privilégier les trains à horaires réguliers/surveillés', 'Signalement du départ et de l\'arrivée à chaque gare d\'étape'],
-      locaux:      ['Vigilance renforcée aux abords des tronçons isolés', 'Contrôle renforcé des accès en gare', 'Point de situation avant chaque trajet'],
-      installations:['Contrôle renforcé dans les gares principales et de correspondance', 'Vérification des plans de repli en cas d\'incident sur la voie', 'Inspection de voie renforcée sur les tronçons sensibles'],
-      vehicules:   ['Trajets groupés recommandés', 'Éviter les tronçons/horaires identifiés à risque', 'Suivi de trajet partagé avec un référent'],
-    },
-    orange: {
-      expatries:   ['Trajets de jour privilégiés sur cette ligne', 'Éviter les tronçons signalés en alerte récente', 'Informer un référent de l\'horaire de trajet'],
-      locaux:      ['Surveillance accrue des gares et tronçons sensibles', 'Itinéraire alternatif anticipé en cas de perturbation', 'Contact maintenu avec l\'exploitant ferroviaire local'],
-      installations:['Contrôles d\'accès en gare maintenus', 'Procédures d\'urgence de la ligne revues', 'Communication sur l\'état de la ligne partagée'],
-      vehicules:   ['Prudence accrue sur les tronçons peu fréquentés', 'Bagages et effets personnels sous surveillance constante', 'Vérification des horaires avant départ'],
-    },
-    jaune: {
-      expatries:   ['Trajets normaux, vigilance standard', 'Suivi de l\'actualité sécuritaire de la ligne', 'Éviter les arrêts prolongés en gare isolée'],
-      locaux:      ['Suivi de routine de la situation sur la ligne', 'Sensibilisation maintenue sur les points sensibles connus', 'Aucune restriction particulière de trajet'],
-      installations:['Gares en fonctionnement normal', 'Contrôles d\'accès habituels', 'Veille informationnelle continue sur la ligne'],
-      vehicules:   ['Circulation ferroviaire normale', 'Consignes de prudence habituelles', 'Aucune restriction de trajet'],
-    },
-    vert: {
-      expatries:   ['Aucune restriction sur cette ligne', 'Trajet normal, vigilance passive', 'Veille informationnelle standard'],
-      locaux:      ['Fonctionnement normal de la ligne', 'Aucune mesure particulière', 'Suivi de routine'],
-      installations:['Gares en fonctionnement normal', 'Sécurité standard maintenue', 'Aucune action requise'],
-      vehicules:   ['Circulation ferroviaire normale', 'Aucune restriction de trajet', 'Prudence habituelle'],
-    },
-  },
-  aerien: {
-    rouge: {
-      expatries:   ['Suspension immédiate des vols sur cet axe si espace aérien concerné', 'Report vers un aéroport alternatif hors zone', 'Contact compagnie/référent sécurité avant tout déplacement'],
-      locaux:      ['Suivi impératif des NOTAM et fermetures d\'espace aérien en vigueur', 'Coordination avec l\'autorité aéroportuaire et la compagnie', 'Plan de repli aéroportuaire activé si nécessaire'],
-      installations:['Aéroports sous haute vigilance, contrôles renforcés', 'Repli sur l\'aéroport sécurisé alternatif le plus proche', 'Vérification renforcée avant tout embarquement'],
-      vehicules:   ['Aucun vol sans confirmation de l\'ouverture de l\'espace aérien', 'Routage alternatif recommandé si disponible', 'Suivi temps réel du statut des vols (NOTAM/compagnie)'],
-    },
-    marron: {
-      expatries:   ['Vols limités aux liaisons essentielles de l\'axe', 'Privilégier les compagnies avec suivi sécurité confirmé', 'Signalement du vol (numéro, horaire) à un référent'],
-      locaux:      ['Vigilance renforcée sur les correspondances dans la zone', 'Vérification du statut de l\'aéroport avant départ', 'Point de situation avant chaque vol'],
-      installations:['Contrôle renforcé dans les aéroports de la zone', 'Vérification des procédures d\'urgence/déroutement', 'Suivi des NOTAM et restrictions d\'espace aérien'],
-      vehicules:   ['Vols directs privilégiés (éviter correspondances en zone sensible)', 'Éviter les créneaux/aéroports identifiés à risque', 'Suivi de vol partagé avec un référent'],
-    },
-    orange: {
-      expatries:   ['Vols aux horaires réguliers privilégiés', 'Éviter les aéroports secondaires signalés en alerte', 'Informer un référent de l\'horaire et du numéro de vol'],
-      locaux:      ['Surveillance accrue du statut des aéroports de la zone', 'Vol alternatif anticipé en cas de restriction d\'espace aérien', 'Contact maintenu avec la compagnie/l\'agent local'],
-      installations:['Contrôles d\'accès aéroportuaires maintenus', 'Procédures d\'urgence de l\'axe revues', 'Communication sur l\'état de l\'espace aérien partagée'],
-      vehicules:   ['Vérification des NOTAM avant chaque vol', 'Marge de temps supplémentaire prévue en correspondance', 'Bagages et effets sous surveillance constante'],
-    },
-    jaune: {
-      expatries:   ['Vols normaux, vigilance standard', 'Suivi de l\'actualité sécuritaire de l\'axe aérien', 'Éviter les escales prolongées non prévues'],
-      locaux:      ['Suivi de routine des NOTAM de la zone', 'Sensibilisation maintenue sur les aéroports sensibles connus', 'Aucune restriction particulière de vol'],
-      installations:['Aéroports en fonctionnement normal', 'Contrôles d\'accès habituels', 'Veille informationnelle continue sur l\'espace aérien'],
-      vehicules:   ['Trafic aérien normal sur l\'axe', 'Consignes de prudence habituelles', 'Aucune restriction de routage'],
-    },
-    vert: {
-      expatries:   ['Aucune restriction sur cet axe aérien', 'Vol normal, vigilance passive', 'Veille informationnelle standard'],
-      locaux:      ['Fonctionnement normal de l\'axe aérien', 'Aucune mesure particulière', 'Suivi de routine'],
-      installations:['Aéroports en fonctionnement normal', 'Sécurité standard maintenue', 'Aucune action requise'],
-      vehicules:   ['Trafic aérien normal', 'Aucune restriction de routage', 'Prudence habituelle'],
-    },
   },
 };
 
