@@ -29,10 +29,23 @@
      <script src="https://domaine-inconnu">), en complement de
      l'echappement HTML applique au contenu des flux RSS (voir escHtml()). -->
 <!-- frame-ancestors volontairement absent : ignore par les navigateurs quand
-     livre via une balise <meta> (uniquement valable en en-tete HTTP) —
-     Firebase Hosting fixe deja X-Frame-Options:DENY en en-tete reel, voir
-     firebase.json. -->
+     livre via une balise <meta> (uniquement valable en en-tete HTTP), donc
+     sans effet ici de toute facon. Hebergement Firebase (qui fixait
+     X-Frame-Options:DENY en en-tete HTTP reel) retire — seul GitHub Pages
+     sert desormais le site, et GitHub Pages ne permet pas de personnaliser
+     les en-tetes de reponse : X-Frame-Options n'est plus applique. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://translate.googleapis.com https://api.mymemory.translated.net https://lingva.ml https://translate.plausibility.cloud https://lingva.garudalinux.org https://api.rss2json.com https://api.allorigins.win https://api.codetabs.com https://proxy.cors.sh https://test.cors.workers.dev https://corsproxy.org https://thingproxy.freeboard.io https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self';">
+<!-- Anti-clickjacking en JS : GitHub Pages (seul hebergeur desormais, voir
+     plus haut) ne permet pas de fixer l'en-tete HTTP X-Frame-Options —
+     cette protection compense en sortant la page de tout iframe cross-
+     origin des le chargement, avant meme le rendu du contenu. -->
+<script>
+try {
+  if (window.top !== window.self) { window.top.location = window.self.location; }
+} catch (e) {
+  document.documentElement.style.display = 'none';
+}
+</script>
 <title>SENTINEL SÛRETÉ — Veille sûreté Afrique (54 pays)</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net/">
 <link rel="preconnect" href="https://api.rss2json.com/">
