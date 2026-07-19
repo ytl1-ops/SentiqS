@@ -7822,28 +7822,15 @@ async function doCollect() {
     }
   }
 
-  renderFeed();
-  updStats();
-  updSynthese();
-  renderSrcLeg();
-  // Mise a jour de TOUS les modules a chaque collecte (couverture 54 pays)
-  if (typeof renderAgenda === 'function') renderAgenda();
-  if (typeof renderGeo === 'function') renderGeo();
-  if (typeof renderCyList === 'function') renderCyList();
-  if (typeof renderDashboard === 'function' && document.getElementById('dashContent')) renderDashboard();
-  if (typeof updSynthese === 'function') updSynthese();
-  if (typeof peuplerFiltresSynthese === 'function') peuplerFiltresSynthese();
-  if (typeof peuplerFiltresAgenda === 'function') peuplerFiltresAgenda();
-  if (typeof peuplerFiltresRapports === 'function') peuplerFiltresRapports();
-  // Actualisation automatique des niveaux d'alerte et des mesures de protection
-  if (typeof recalcAlertes === 'function') recalcAlertes({ silencieux:true });
-  // Planifier l'enrichissement IA des nouveaux articles collectés
+  // Coordination de la mise a jour de TOUS les modules (couverture 54
+  // pays) — voir synchroniserTousLesModules(), meme mecanisme reutilise
+  // par _appliquerArticlesPartages() (cache partage) pour eliminer toute
+  // divergence entre les deux voies d'alimentation en donnees.
+  synchroniserTousLesModules();
+  // Planifier l'enrichissement IA des nouveaux articles collectés —
+  // specifique a une collecte reseau fraiche (ALL vient de changer
+  // reellement ici), pas partage avec le cache partage.
   if (typeof planifierAnalyseIA === 'function') planifierAnalyseIA(ALL);
-  // Mise a jour du ruban Flash Info — throttlee en interne a 3h (voir majFlashInfo)
-  if (typeof majFlashInfo === 'function') majFlashInfo();
-  // Notification navigateur pour les nouvelles alertes critiques (marche
-  // meme onglet en arriere-plan, voir notifierAlertesCritiquesWeb)
-  if (typeof notifierAlertesCritiquesWeb === 'function') notifierAlertesCritiquesWeb();
   // Agent de verification des liens source (arriere-plan, non bloquant) :
   // corrige silencieusement les liens deja casses avant que l'utilisateur
   // ne clique dessus. Delai de 2s pour laisser le reseau de la collecte
@@ -11660,7 +11647,7 @@ setInterval(tick,60000);
 setInterval(()=>{
   const before=ALL.length;
   ALL=ALL.filter(a => estRecentReel(a) || (a._estAgenda && estAgendaRecent(a)));
-  if(ALL.length!==before){ renderFeed(); updStats(); updSynthese(); if (typeof renderAgenda==='function' && document.getElementById('agTl')) { try { renderAgenda(); } catch(_) {} } }
+  if(ALL.length!==before && typeof synchroniserTousLesModules === 'function') synchroniserTousLesModules();
 }, 30*60*1000);
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
@@ -12662,6 +12649,39 @@ async function publierConfigEmailjsPartagee(cfg) {
   } catch (e) { console.warn('SENTINEL — publierConfigEmailjsPartagee a echoue :', e && e.message ? e.message : e); }
 }
 
+// synchroniserTousLesModules() : chef d'orchestre UNIQUE de la mise a jour
+// coordonnee de TOUS les modules qui dependent de ALL (Flux, Agenda,
+// Geopolitique, Tableau de bord, Alertes, Synthese, Rapports, liste
+// pays/filtres...). A appeler a CHAQUE fois que l'etat partage change,
+// quelle que soit la voie d'alimentation : collecte reseau fraiche
+// (doCollect()), cache partage Supabase (_appliquerArticlesPartages()), ou
+// purge periodique des articles expires.
+//
+// Remplace plusieurs listes PARTIELLES et DIVERGENTES de renderXxx()
+// dupliquees a differents endroits du fichier — la plus grave : le cache
+// partage (devenu le chemin le PLUS FREQUENT pour la majorite des
+// visiteurs depuis la fusion du cache, voir publierCollectePartagee)
+// oubliait de rafraichir Agenda, Geopolitique, la liste des pays et les
+// filtres, qui restaient perimes jusqu'a ce que l'utilisateur quitte
+// l'onglet puis y revienne — un module pouvait afficher un instantane de
+// donnees different de celui d'un autre module ouvert au meme moment.
+function synchroniserTousLesModules() {
+  renderFeed();
+  updStats();
+  updSynthese();
+  if (typeof renderSrcLeg === 'function') renderSrcLeg();
+  if (typeof renderAgenda === 'function') renderAgenda();
+  if (typeof renderGeo === 'function') renderGeo();
+  if (typeof renderCyList === 'function') renderCyList();
+  if (typeof renderDashboard === 'function' && document.getElementById('dashContent')) renderDashboard();
+  if (typeof peuplerFiltresSynthese === 'function') peuplerFiltresSynthese();
+  if (typeof peuplerFiltresAgenda === 'function') peuplerFiltresAgenda();
+  if (typeof peuplerFiltresRapports === 'function') peuplerFiltresRapports();
+  if (typeof recalcAlertes === 'function') recalcAlertes({ silencieux: true });
+  if (typeof majFlashInfo === 'function') majFlashInfo();
+  if (typeof notifierAlertesCritiquesWeb === 'function') notifierAlertesCritiquesWeb();
+}
+
 // _appliquerArticlesPartages(articles) : applique un jeu d'articles deja
 // collectes AILLEURS (cache partage Supabase) a l'etat de cette session —
 // factorise entre init() et le cycle d'auto-refresh (_demarrerAutoRefresh),
@@ -12675,10 +12695,7 @@ function _appliquerArticlesPartages(articles) {
   dbPut(ALL);
   dbMeta('lastCollect', Date.now());
   localStorage.setItem('sentinel_lastCollectTs', Date.now().toString());
-  renderFeed(); updStats(); updSynthese();
-  if (typeof majFlashInfo === 'function') majFlashInfo();
-  if (typeof recalcAlertes === 'function') recalcAlertes({ silencieux: true });
-  if (typeof renderDashboard === 'function' && document.getElementById('dashContent')) renderDashboard();
+  synchroniserTousLesModules();
 }
 
 // dernieresConnexionsParEmail() : point d'entree UNIQUE et PARTAGE pour la
