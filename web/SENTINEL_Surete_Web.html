@@ -661,6 +661,17 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .ev-rc{font-size:11px;color:var(--b);font-style:italic;
   border-top:1px dashed var(--bb);margin-top:5px;padding-top:5px;line-height:1.5}
 
+/* ── AGENDA — vue Calendrier ────────────────────────────────────────── */
+.ag-cal-grille{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.ag-cal-entete{text-align:center;font-size:9px;font-weight:700;color:var(--lg);
+  text-transform:uppercase;letter-spacing:.04em;padding-bottom:4px}
+.ag-cal-cell{min-height:56px;border:1px solid var(--bd);border-radius:6px;
+  background:var(--w);padding:5px;text-align:center;transition:background .15s}
+.ag-cal-cell.vide{border:none;background:transparent}
+.ag-cal-cell.avec-evenements{background:var(--sf)}
+.ag-cal-cell.avec-evenements:hover{background:var(--bl)}
+.ag-cal-cell.selectionne{border-color:var(--b);box-shadow:0 0 0 1px var(--b)}
+
 /* SYNTHESE */
 .sy-wrap{padding:15px;max-width:820px;margin:0 auto}
 .sy-cv{background:var(--w);
@@ -2287,6 +2298,14 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               <button onclick="renderAgenda()" style="padding:5px 12px;background:rgba(61,100,134,.12);border:1px solid rgba(61,100,134,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;margin-left:6px;">
                 <i class="ti ti-refresh"></i> Actualiser
               </button>
+              <div style="display:flex;border:1px solid var(--bd);border-radius:5px;overflow:hidden;margin-left:6px;">
+                <button id="agVueListeBtn" onclick="setAgendaVue(&#39;liste&#39;)" title="Vue liste" style="padding:5px 10px;background:var(--b);border:none;color:#fff;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
+                  <i class="ti ti-list"></i> Liste
+                </button>
+                <button id="agVueCalBtn" onclick="setAgendaVue(&#39;calendrier&#39;)" title="Vue calendrier" style="padding:5px 10px;background:var(--sf);border:none;border-left:1px solid var(--bd);color:var(--t2);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
+                  <i class="ti ti-calendar"></i> Calendrier
+                </button>
+              </div>
             </div>
           </div>
           <div class="tlbr" style="flex-shrink:0;margin-bottom:8px;">
@@ -2311,10 +2330,12 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               <option value="securite">Securite</option>
               <option value="humanitaire">Humanitaire</option>
               <option value="politique">Politique</option>
+              <option value="election">Election</option>
               <option value="economique">Economique</option>
               <option value="sanitaire">Sanitaire</option>
             </select>
           </div>
+          <div id="agCal" style="display:none"></div>
           <div class="tl" id="agTl"></div>
         </div>
       </div>
@@ -6067,6 +6088,19 @@ const EVENT_PLANIFIE_KW = {
                   'séance plénière', 'conseil économique et social', 'cese',
                   'assemblée nationale', 'assemblée générale', 'réunion plénière',
                   'sommet', 'conférence', 'congrès', 'forum'],
+  // Election/scrutin/referendum : fenetre a haut risque securitaire
+  // (mobilisation, tensions, parfois violences) pour un module Agenda a
+  // vocation surete — absent jusqu'ici alors que "gouvernemental" couvre
+  // deja les sommets/conferences. Distinct de gouvernemental pour un badge
+  // et un filtre dedies (voir TYP.election, renderAgenda()).
+  election:      ['election presidentielle', 'élection présidentielle', 'election legislative',
+                  'élection législative', 'election locale', 'élection locale',
+                  'election municipale', 'élection municipale', 'election regionale',
+                  'élection régionale', 'referendum', 'référendum', 'scrutin', 'jour du vote',
+                  'campagne electorale', 'campagne électorale', 'resultats electoraux',
+                  'résultats électoraux', 'commission electorale', 'commission électorale',
+                  'bureau de vote', 'bureaux de vote', 'second tour', 'premier tour',
+                  'election presidentielle anticipee', 'élection présidentielle anticipée'],
   // Manifestations, marches de protestation, greves, mobilisations sociales :
   // demande explicite de l'utilisateur (module Agenda "vide de sens" faute
   // de detecter ces evenements). Reste distinct de CK_HIGH (classify()) qui
@@ -6189,7 +6223,11 @@ function recoAgendaAuto(agendaType) {
 // articleVersAgenda(a) : convertit un article detecte comme evenement
 // planifie en entree affichable dans le module Agenda (meme forme que les
 // entrees AGENDA curees manuellement), marquee comme detectee automatiquement.
-function articleVersAgenda(a) {
+// srcOverride : nom de source deja resolu, utilise lors de la
+// reconstruction d'une entree a partir d'une ligne agenda_partagee (voir
+// ligneAgendaPartageeVersEntree) — la ligne persistee stocke le nom deja
+// resolu (comme articles_rag.source), pas l'id de source primary d'origine.
+function articleVersAgenda(a, srcOverride) {
   const MOIS_ABBR = ['Jan','Fev','Mar','Avr','Mai','Jun','Jul','Aou','Sep','Oct','Nov','Dec'];
   const d = new Date(a.pubDate || Date.now());
   const texteComplet = a.title+' '+(a.analysis||'');
@@ -6200,13 +6238,14 @@ function articleVersAgenda(a) {
   // tort a "faible".
   const impactPlancher = (a._agendaType === 'travaux' || a._agendaType === 'manifestation') ? 'moyen' : null;
   return {
+    id: a.id,
     day: String(d.getDate()).padStart(2,'0'), month: MOIS_ABBR[d.getMonth()], year: String(d.getFullYear()),
     hour: d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),
     title: a.title, desc: extraitLoyal(a.analysis, 220),
     status: detecterStatutAgenda(texteComplet, a.level, a.pubDate),
     type: a._agendaType || 'securite', cy: a.cy,
     impact: impactPlancher || (a.level==='crit'?'haut':a.level==='high'?'moyen':'faible'),
-    surl: a.url, src: srcName(a.primary), reco: recoAgendaAuto(a._agendaType), _detecteAuto: true, _ts: a.pubDate || Date.now(),
+    surl: a.url, src: srcOverride || srcName(a.primary), reco: recoAgendaAuto(a._agendaType), _detecteAuto: true, _ts: a.pubDate || Date.now(),
   };
 }
 
@@ -10816,13 +10855,23 @@ async function renderAgenda() {
 
   // Evenements detectes automatiquement dans les flux (colloque, seminaire,
   // concert, conseil des ministres, senat, CESE...) — fusionnes avec l'agenda
-  // cure manuellement. Seuls les articles reellement recents (<12h) sont pris
-  // en compte pour ne pas dupliquer indefiniment les memes annonces.
+  // cure manuellement. `detectes` : encore presents dans ALL (donc <12h,
+  // cf. estRecentReel qui gouverne ALL) — la source la plus fraiche et la
+  // plus complete. `detectesPartages` : agenda_partagee (voir plus haut,
+  // agent AGENDA) — memes evenements mais persistes independamment du sort
+  // de l'article dans ALL, seul moyen d'atteindre reellement la fenetre de
+  // 7 jours voulue (AGENDA_MAX_AGE) sur les 54 pays plutot que de perdre
+  // toute detection au bout de 12h. Dedoublonnes par id : un evenement
+  // encore frais localement n'est jamais compte deux fois.
   const detectes = (ALL||[])
     .filter(a => a._estAgenda && estAgendaRecent(a))
     .map(a => articleVersAgenda(a));
+  const idsDetectesLocaux = new Set(detectes.map(e => e.id).filter(Boolean));
+  const partages = (typeof agendaPartageeMisAJour === 'function') ? await agendaPartageeMisAJour() : [];
+  const detectesPartages = (partages || []).filter(e => !idsDetectesLocaux.has(e.id));
+  const tousDetectes = [...detectes, ...detectesPartages];
 
-  let filt = fAg==='all' ? [...AGENDA, ...detectes] : [...AGENDA, ...detectes].filter(e=>e.status===fAg);
+  let filt = fAg==='all' ? [...AGENDA, ...tousDetectes] : [...AGENDA, ...tousDetectes].filter(e=>e.status===fAg);
   filt = trierAgenda(filt);
   let libelleZone = 'Toutes zones';
 
@@ -10839,47 +10888,278 @@ async function renderAgenda() {
   const titreEl = document.getElementById('agTitreZone');
   if (titreEl) titreEl.textContent = 'Agenda surete — ' + libelleZone;
   const cntEl = document.getElementById('agTotalCount');
-  if (cntEl) cntEl.textContent = (AGENDA.length+detectes.length)+' evenement'+((AGENDA.length+detectes.length)>1?'s':'');
+  if (cntEl) cntEl.textContent = (AGENDA.length+tousDetectes.length)+' evenement'+((AGENDA.length+tousDetectes.length)>1?'s':'');
 
   const SL={'en-cours':['bc','EN COURS'],'urgent':['bu','URGENT'],'planifie':['bp','PLANIFIE'],'surveillance':['bs','SURVEILLANCE'],'acheve':['ba','ACHEVE']};
   const IC={'haut':'ih','moyen':'im','faible':'if'};
   const TYP={gouvernemental:['🏛️','Gouvernemental','#3D6486'],seminaire:['📋','Seminaire','#4B5563'],
     colloque:['🎓','Colloque','#4B5563'],sportif:['🏅','Sportif','#0F766E'],concert:['🎵','Concert','#7C3AED'],
     festival:['🎭','Festival','#7C3AED'],foire:['🎪','Foire / Salon','#7C3AED'],securite:['🛡️','Securite','#8B1A1A'],humanitaire:['🤝','Humanitaire','#7C4A00'],
-    politique:['🗳️','Politique','#3D6486'],economique:['📊','Economique','#0F4F2A'],sanitaire:['⚕️','Sanitaire','#0E7490'],
+    politique:['🗳️','Politique','#3D6486'],election:['🗳️','Election','#8B1A1A'],economique:['📊','Economique','#0F4F2A'],sanitaire:['⚕️','Sanitaire','#0E7490'],
     travaux:['🚧','Travaux','#B45309'],manifestation:['📢','Manifestation','#8B1A1A']};
-  if(!filt.length){document.getElementById('agTl').innerHTML='<div class="empty"><i class="ti ti-calendar-off"></i><p>Aucun evenement pour ce filtre</p></div>';return;}
-  await preTraduireRapport(filt.flatMap(e => [e.title, e.desc, e.reco]));
-  const agHtml = filt.map((e,i)=>{
-    const sl=SL[e.status]||SL.planifie;
-    const typ = TYP[e.type||'securite']||TYP.securite;
-    const typBadge = '<span style="font-size:8px;font-weight:700;padding:1px 6px;border-radius:3px;margin-left:5px;color:'+typ[2]+';background:'+typ[2]+'1A;border:1px solid '+typ[2]+'44;">'+typ[0]+' '+typ[1]+'</span>';
-    const ageHFresh = e._detecteAuto ? (Date.now() - _agendaTs(e)) / 3600000 : Infinity;
-    const fresh = ageHFresh < 24;
-    const freshTag=fresh?'<span style="font-size:8px;font-weight:700;color:#fff;background:#15803D;padding:1px 6px;border-radius:3px;margin-left:6px;">−'+Math.max(1,Math.round(ageHFresh))+'H</span>':'';
-    const autoTag=e._detecteAuto?'<span style="font-size:8px;font-weight:700;color:#3D6486;background:#EFF6FF;border:1px solid #BFDBFE;padding:1px 6px;border-radius:3px;margin-left:6px;" title="Detecte automatiquement depuis les flux RSS"><i class="ti ti-robot" style="font-size:9px;"></i> Auto</span>':'';
-    const evId = e.id || ('agidx-'+i);
-    const ttId = 'evtt-'+evId, dcId = 'evdc-'+evId, rcId = 'evrc-'+evId;
-    return '<div class="ev '+e.status+'">'+
-      '<div class="ev-dt"><div class="ev-d">'+e.day+'</div><div class="ev-m">'+e.month+'</div>'+(e.hour?'<div class="ev-h" style="font-size:9px;color:var(--lg);font-weight:600;margin-top:2px;">'+e.hour+'</div>':'')+'</div>'+
-      '<div class="ev-bd">'+
-        '<div class="ev-tp"><div class="ev-tt"><span id="'+ttId+'">'+escHtml(L(e.title))+'</span>'+typBadge+freshTag+autoTag+'</div><span class="ev-bg '+sl[0]+'">'+sl[1]+'</span></div>'+
-        '<div class="ev-dc" id="'+dcId+'">'+escHtml(L(e.desc))+'</div>'+
-        '<div class="ev-mt">'+
-          '<span class="ev-cy"'+(resolveAgendaCy(e.cy)?' style="cursor:pointer" onclick="ouvrirVuePays(\''+resolveAgendaCy(e.cy)+'\')"':'')+'><i class="ti ti-map-pin" style="font-size:10px"></i>'+e.cy+'</span>'+
-          '<span class="ev-ip '+IC[e.impact]+'">Impact '+e.impact.toUpperCase()+'</span>'+
-          (sourcesVisibles()
-            ? (e.surl?'<a href="'+safeUrl(e.surl,e.src)+'" target="_blank" class="ev-sc"><i class="ti ti-external-link"></i>'+e.src+'</a>':
-                      '<span class="ev-sc"><i class="ti ti-cpu"></i>'+e.src+'</span>')
-            : '')+
-        '</div>'+
-        (e.reco?'<div class="ev-rc"><i class="ti ti-chevron-right" style="color:var(--b);font-size:10px;vertical-align:-1px"></i> <span id="'+rcId+'">'+escHtml(L(e.reco))+'</span></div>':'')+
-      '</div>'+
-    '</div>';
-  }).join('');
   const agEl = document.getElementById('agTl');
+  const calEl = document.getElementById('agCal');
+  if (!filt.length && !agendaVueCalendrier) {
+    agEl.innerHTML = '<div class="empty"><i class="ti ti-calendar-off"></i><p>Aucun evenement pour ce filtre</p></div>';
+    return;
+  }
+  await preTraduireRapport(filt.flatMap(e => [e.title, e.desc, e.reco]));
+
+  if (agendaVueCalendrier) {
+    agEl.style.display = 'none';
+    calEl.style.display = '';
+    calEl.innerHTML = agendaVueAnnee ? renderAgendaAnneeHtml(filt, SL, IC, TYP) : renderAgendaCalendrierHtml(filt, SL, IC, TYP);
+    return;
+  }
+  agEl.style.display = '';
+  calEl.style.display = 'none';
+  const agHtml = filt.length
+    ? filt.map((e, i) => ligneAgendaHtml(e, i, SL, IC, TYP)).join('')
+    : '<div class="empty"><i class="ti ti-calendar-off"></i><p>Aucun evenement pour ce filtre</p></div>';
   agEl.innerHTML = '';
   requestAnimationFrame(() => { agEl.innerHTML = agHtml; });
+}
+
+// ligneAgendaHtml(e, i, SL, IC, TYP) : rendu HTML d'UNE entree agenda —
+// extrait de renderAgenda() pour etre reutilise a l'identique par la vue
+// Calendrier (panneau "evenements du jour selectionne", voir
+// renderAgendaCalendrierHtml) sans dupliquer ce template.
+function ligneAgendaHtml(e, i, SL, IC, TYP) {
+  const sl = SL[e.status] || SL.planifie;
+  const typ = TYP[e.type || 'securite'] || TYP.securite;
+  const typBadge = '<span style="font-size:8px;font-weight:700;padding:1px 6px;border-radius:3px;margin-left:5px;color:' + typ[2] + ';background:' + typ[2] + '1A;border:1px solid ' + typ[2] + '44;">' + typ[0] + ' ' + typ[1] + '</span>';
+  const ageHFresh = e._detecteAuto ? (Date.now() - _agendaTs(e)) / 3600000 : Infinity;
+  const fresh = ageHFresh < 24;
+  const freshTag = fresh ? '<span style="font-size:8px;font-weight:700;color:#fff;background:#15803D;padding:1px 6px;border-radius:3px;margin-left:6px;">−' + Math.max(1, Math.round(ageHFresh)) + 'H</span>' : '';
+  const autoTag = e._detecteAuto ? '<span style="font-size:8px;font-weight:700;color:#3D6486;background:#EFF6FF;border:1px solid #BFDBFE;padding:1px 6px;border-radius:3px;margin-left:6px;" title="Detecte automatiquement depuis les flux RSS"><i class="ti ti-robot" style="font-size:9px;"></i> Auto</span>' : '';
+  const evId = e.id || ('agidx-' + i);
+  const ttId = 'evtt-' + evId, dcId = 'evdc-' + evId, rcId = 'evrc-' + evId;
+  return '<div class="ev ' + e.status + '">' +
+    '<div class="ev-dt"><div class="ev-d">' + e.day + '</div><div class="ev-m">' + e.month + '</div>' + (e.hour ? '<div class="ev-h" style="font-size:9px;color:var(--lg);font-weight:600;margin-top:2px;">' + e.hour + '</div>' : '') + '</div>' +
+    '<div class="ev-bd">' +
+      '<div class="ev-tp"><div class="ev-tt"><span id="' + ttId + '">' + escHtml(L(e.title)) + '</span>' + typBadge + freshTag + autoTag + '</div><span class="ev-bg ' + sl[0] + '">' + sl[1] + '</span></div>' +
+      '<div class="ev-dc" id="' + dcId + '">' + escHtml(L(e.desc)) + '</div>' +
+      '<div class="ev-mt">' +
+        '<span class="ev-cy"' + (resolveAgendaCy(e.cy) ? ' style="cursor:pointer" onclick="ouvrirVuePays(\'' + resolveAgendaCy(e.cy) + '\')"' : '') + '><i class="ti ti-map-pin" style="font-size:10px"></i>' + e.cy + '</span>' +
+        '<span class="ev-ip ' + IC[e.impact] + '">Impact ' + e.impact.toUpperCase() + '</span>' +
+        (sourcesVisibles()
+          ? (e.surl ? '<a href="' + safeUrl(e.surl, e.src) + '" target="_blank" class="ev-sc"><i class="ti ti-external-link"></i>' + e.src + '</a>' :
+                      '<span class="ev-sc"><i class="ti ti-cpu"></i>' + e.src + '</span>')
+          : '') +
+      '</div>' +
+      (e.reco ? '<div class="ev-rc"><i class="ti ti-chevron-right" style="color:var(--b);font-size:10px;vertical-align:-1px"></i> <span id="' + rcId + '">' + escHtml(L(e.reco)) + '</span></div>' : '') +
+    '</div>' +
+  '</div>';
+}
+
+// ── Vue Calendrier de l'Agenda ────────────────────────────────────────────
+// agendaVueCalendrier : bascule Liste (par defaut) / Calendrier — voir
+// setAgendaVue(). fAgMoisAffiche : mois affiche par la grille (0-indexe,
+// {y,m}) — null = mois courant (recalcule a chaque ouverture). fAgJourSel :
+// jour selectionne dans la grille ('YYYY-MM-DD') pour afficher le detail
+// des evenements de ce jour sous la grille — null = aucune selection.
+// agendaVueAnnee : a l'interieur de la vue Calendrier, bascule Mois (grille
+// d'un seul mois, par defaut) / Annee (tous les evenements de l'annee
+// affichee, groupes Passes/A venir — demande explicite : "affiche tous les
+// anciens evenements planifies de l'annee, raisonne par annees").
+let agendaVueCalendrier = false;
+let agendaVueAnnee = false;
+let fAgMoisAffiche = null;
+let fAgJourSel = null;
+
+function setAgendaVue(mode) {
+  agendaVueCalendrier = (mode === 'calendrier');
+  const bL = document.getElementById('agVueListeBtn'), bC = document.getElementById('agVueCalBtn');
+  if (bL && bC) {
+    bL.style.background = agendaVueCalendrier ? 'var(--sf)' : 'var(--b)';
+    bL.style.color = agendaVueCalendrier ? 'var(--t2)' : '#fff';
+    bC.style.background = agendaVueCalendrier ? 'var(--b)' : 'var(--sf)';
+    bC.style.color = agendaVueCalendrier ? '#fff' : 'var(--t2)';
+  }
+  if (!agendaVueCalendrier) fAgJourSel = null;
+  renderAgenda();
+}
+
+function _moisAffiche() {
+  if (fAgMoisAffiche) return fAgMoisAffiche;
+  const n = new Date();
+  return { y: n.getFullYear(), m: n.getMonth() };
+}
+function agendaMoisPrecedent() {
+  const c = _moisAffiche();
+  fAgMoisAffiche = c.m === 0 ? { y: c.y - 1, m: 11 } : { y: c.y, m: c.m - 1 };
+  fAgJourSel = null;
+  renderAgenda();
+}
+function agendaMoisSuivant() {
+  const c = _moisAffiche();
+  fAgMoisAffiche = c.m === 11 ? { y: c.y + 1, m: 0 } : { y: c.y, m: c.m + 1 };
+  fAgJourSel = null;
+  renderAgenda();
+}
+function agendaMoisCourant() {
+  fAgMoisAffiche = null;
+  fAgJourSel = null;
+  renderAgenda();
+}
+function setAgendaJour(cle) {
+  fAgJourSel = (fAgJourSel === cle) ? null : cle;
+  renderAgenda();
+}
+// agendaAnneePrecedente()/agendaAnneeSuivante() : saut d'une annee entiere
+// (utilisable aussi bien depuis la vue Mois que la vue Annee) — conserve le
+// mois affiche, change seulement l'annee.
+function agendaAnneePrecedente() {
+  const c = _moisAffiche();
+  fAgMoisAffiche = { y: c.y - 1, m: c.m };
+  fAgJourSel = null;
+  renderAgenda();
+}
+function agendaAnneeSuivante() {
+  const c = _moisAffiche();
+  fAgMoisAffiche = { y: c.y + 1, m: c.m };
+  fAgJourSel = null;
+  renderAgenda();
+}
+function setAgendaGranulariteCalendrier(g) {
+  agendaVueAnnee = (g === 'annee');
+  const bM = document.getElementById('agGranMoisBtn'), bA = document.getElementById('agGranAnneeBtn');
+  if (bM && bA) {
+    bM.style.background = agendaVueAnnee ? 'transparent' : 'var(--bl)';
+    bM.style.color = agendaVueAnnee ? 'var(--lg)' : 'var(--b)';
+    bA.style.background = agendaVueAnnee ? 'var(--bl)' : 'transparent';
+    bA.style.color = agendaVueAnnee ? 'var(--b)' : 'var(--lg)';
+  }
+  fAgJourSel = null;
+  renderAgenda();
+}
+
+const MOIS_NOMS_LONGS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const JOURS_SEMAINE_ABBR = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+
+// renderAgendaCalendrierHtml(filt, SL, IC, TYP) : grille mensuelle (mois
+// affiche, voir fAgMoisAffiche) — chaque jour affiche jusqu'a 3 pastilles
+// colorees par niveau de statut (memes couleurs que les badges SL de la vue
+// liste), "+N" si davantage. Clic sur un jour : panneau detaille sous la
+// grille avec les evenements de ce jour (meme rendu que la vue liste, voir
+// ligneAgendaHtml — pas de duplication de template).
+function renderAgendaCalendrierHtml(filt, SL, IC, TYP) {
+  const COULEUR_STATUT = { 'urgent':'#8B1A1A', 'en-cours':'#15803D', 'planifie':'#3D6486', 'surveillance':'#B45309', 'acheve':'#9CA3AF' };
+  const { y, m } = _moisAffiche();
+
+  // Regroupe les evenements par jour ('YYYY-MM-DD', calcule depuis _agendaTs).
+  const parJour = {};
+  filt.forEach(e => {
+    const d = new Date(_agendaTs(e));
+    const cle = d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' + String(d.getUTCDate()).padStart(2, '0');
+    (parJour[cle] = parJour[cle] || []).push(e);
+  });
+
+  // Grille Lundi -> Dimanche : decalage entre le 1er du mois (getDay(), 0=Dim)
+  // et la position Lundi-first attendue par JOURS_SEMAINE_ABBR.
+  const premierDuMois = new Date(y, m, 1);
+  const nbJoursMois = new Date(y, m + 1, 0).getDate();
+  const decalage = (premierDuMois.getDay() + 6) % 7; // 0 = Lundi
+  const aujourdhui = new Date();
+  const cleAujourdhui = aujourdhui.getFullYear() + '-' + String(aujourdhui.getMonth() + 1).padStart(2, '0') + '-' + String(aujourdhui.getDate()).padStart(2, '0');
+
+  const cellules = [];
+  for (let i = 0; i < decalage; i++) cellules.push('<div class="ag-cal-cell vide"></div>');
+  for (let jour = 1; jour <= nbJoursMois; jour++) {
+    const cle = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(jour).padStart(2, '0');
+    const evs = parJour[cle] || [];
+    const estAujourdhui = cle === cleAujourdhui;
+    const estSelectionne = cle === fAgJourSel;
+    const pastilles = evs.slice(0, 3).map(e => '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + (COULEUR_STATUT[e.status] || COULEUR_STATUT.planifie) + ';margin:1px;"></span>').join('');
+    const surplus = evs.length > 3 ? '<div style="font-size:8px;color:var(--lg);font-weight:700;">+' + (evs.length - 3) + '</div>' : '';
+    cellules.push(
+      '<div class="ag-cal-cell' + (evs.length ? ' avec-evenements' : '') + (estSelectionne ? ' selectionne' : '') + '"' +
+        (evs.length ? ' onclick="setAgendaJour(\'' + cle + '\')" style="cursor:pointer"' : '') + '>' +
+        '<div style="font-size:11px;font-weight:' + (estAujourdhui ? '800' : '600') + ';color:' + (estAujourdhui ? 'var(--b)' : 'var(--t)') + ';' + (estAujourdhui ? 'text-decoration:underline;' : '') + '">' + jour + '</div>' +
+        '<div style="display:flex;flex-wrap:wrap;justify-content:center;margin-top:2px;min-height:8px;">' + pastilles + '</div>' +
+        surplus +
+      '</div>'
+    );
+  }
+
+  const entete = JOURS_SEMAINE_ABBR.map(j => '<div class="ag-cal-entete">' + j + '</div>').join('');
+  const grille =
+    '<div class="ag-cal-nav" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px;">' +
+      '<div style="display:flex;align-items:center;gap:3px;">' +
+        '<button onclick="agendaAnneePrecedente()" title="Année précédente" style="padding:5px 7px;background:var(--sf);border:1px solid var(--bd);border-radius:5px;color:var(--t);cursor:pointer;font-weight:700;">«</button>' +
+        '<button onclick="agendaMoisPrecedent()" title="Mois précédent" style="padding:5px 7px;background:var(--sf);border:1px solid var(--bd);border-radius:5px;color:var(--t);cursor:pointer;"><i class="ti ti-chevron-left"></i></button>' +
+      '</div>' +
+      '<div style="font-size:13px;font-weight:700;color:var(--t);display:flex;align-items:center;gap:8px;">' + MOIS_NOMS_LONGS[m] + ' ' + y +
+        (fAgMoisAffiche ? '<button onclick="agendaMoisCourant()" style="font-size:9px;font-weight:700;color:var(--b);background:var(--bl);border:1px solid var(--bb);border-radius:4px;padding:2px 6px;cursor:pointer;">Aujourd\'hui</button>' : '') +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:3px;">' +
+        '<button onclick="agendaMoisSuivant()" title="Mois suivant" style="padding:5px 7px;background:var(--sf);border:1px solid var(--bd);border-radius:5px;color:var(--t);cursor:pointer;"><i class="ti ti-chevron-right"></i></button>' +
+        '<button onclick="agendaAnneeSuivante()" title="Année suivante" style="padding:5px 7px;background:var(--sf);border:1px solid var(--bd);border-radius:5px;color:var(--t);cursor:pointer;font-weight:700;">»</button>' +
+      '</div>' +
+    '</div>' +
+    '<div style="display:flex;justify-content:flex-end;margin-bottom:10px;">' + _agendaGranulariteToggleHtml() + '</div>' +
+    '<div class="ag-cal-grille">' + entete + cellules.join('') + '</div>';
+
+  const jourSelEvs = fAgJourSel ? (parJour[fAgJourSel] || []) : [];
+  const panneauJour = fAgJourSel
+    ? '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--bd);">' +
+        '<div style="font-size:10px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">' +
+          (jourSelEvs.length ? jourSelEvs.length + ' evenement(s) le ' + fAgJourSel.split('-').reverse().join('/') : 'Aucun evenement ce jour') +
+        '</div>' +
+        jourSelEvs.map((e, i) => ligneAgendaHtml(e, i, SL, IC, TYP)).join('') +
+      '</div>'
+    : '<div style="text-align:center;color:var(--lg);font-size:11px;font-style:italic;margin-top:14px;padding-top:12px;border-top:1px solid var(--bd);">Cliquez sur un jour marque pour voir le detail des evenements.</div>';
+
+  return grille + panneauJour;
+}
+
+// _agendaGranulariteToggleHtml() : bascule Mois/Année partagee par les deux
+// vues (renderAgendaCalendrierHtml/renderAgendaAnneeHtml) — un seul point
+// de verite pour ce controle, jamais deux copies HTML susceptibles de
+// diverger. Voir setAgendaGranulariteCalendrier().
+function _agendaGranulariteToggleHtml() {
+  return '<div style="display:flex;border:1px solid var(--bd);border-radius:5px;overflow:hidden;">' +
+    '<button id="agGranMoisBtn" onclick="setAgendaGranulariteCalendrier(\'mois\')" style="padding:3px 9px;background:' + (agendaVueAnnee ? 'transparent' : 'var(--bl)') + ';border:none;color:' + (agendaVueAnnee ? 'var(--lg)' : 'var(--b)') + ';font-size:9px;font-weight:700;cursor:pointer;">Mois</button>' +
+    '<button id="agGranAnneeBtn" onclick="setAgendaGranulariteCalendrier(\'annee\')" style="padding:3px 9px;background:' + (agendaVueAnnee ? 'var(--bl)' : 'transparent') + ';border:none;border-left:1px solid var(--bd);color:' + (agendaVueAnnee ? 'var(--b)' : 'var(--lg)') + ';font-size:9px;font-weight:700;cursor:pointer;">Année</button>' +
+  '</div>';
+}
+
+// renderAgendaAnneeHtml(filt, SL, IC, TYP) : vue "raisonnee par annee" —
+// demande explicite : afficher TOUS les anciens evenements planifies de
+// l'annee, pas seulement le mois courant. Regroupe tous les evenements de
+// l'annee affichee (fAgMoisAffiche.y ou annee courante) en deux sections
+// chronologiques : Passes (les plus recents d'abord, pour retrouver
+// facilement ce qui vient de se produire) et A venir (les plus proches
+// d'abord). Reutilise ligneAgendaHtml — meme rendu que la vue liste et le
+// panneau jour de la vue Mois, aucune duplication de template.
+function renderAgendaAnneeHtml(filt, SL, IC, TYP) {
+  const { y } = _moisAffiche();
+  const maintenant = Date.now();
+  const evsAnnee = filt.filter(e => new Date(_agendaTs(e)).getUTCFullYear() === y);
+  const passes = evsAnnee.filter(e => _agendaTs(e) < maintenant).sort((a, b) => _agendaTs(b) - _agendaTs(a));
+  const aVenir = evsAnnee.filter(e => _agendaTs(e) >= maintenant).sort((a, b) => _agendaTs(a) - _agendaTs(b));
+
+  const nav =
+    '<div class="ag-cal-nav" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">' +
+      '<button onclick="agendaAnneePrecedente()" title="Année précédente" style="padding:5px 10px;background:var(--sf);border:1px solid var(--bd);border-radius:5px;color:var(--t);cursor:pointer;"><i class="ti ti-chevron-left"></i></button>' +
+      '<div style="font-size:16px;font-weight:800;color:var(--t);">' + y + '</div>' +
+      '<button onclick="agendaAnneeSuivante()" title="Année suivante" style="padding:5px 10px;background:var(--sf);border:1px solid var(--bd);border-radius:5px;color:var(--t);cursor:pointer;"><i class="ti ti-chevron-right"></i></button>' +
+    '</div>' +
+    '<div style="display:flex;justify-content:flex-end;margin-bottom:14px;">' + _agendaGranulariteToggleHtml() + '</div>';
+
+  const section = (titre, icone, couleur, liste) =>
+    '<div style="margin-bottom:16px;">' +
+      '<div style="font-size:10px;font-weight:700;color:' + couleur + ';text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--bd);padding-bottom:6px;">' +
+        '<i class="ti ' + icone + '"></i>' + titre + '<span style="margin-left:auto;font-weight:600;color:var(--t2);">' + liste.length + '</span>' +
+      '</div>' +
+      (liste.length
+        ? liste.map((e, i) => ligneAgendaHtml(e, i, SL, IC, TYP)).join('')
+        : '<div style="text-align:center;color:var(--lg);font-size:11px;font-style:italic;padding:10px 0;">Aucun événement</div>') +
+    '</div>';
+
+  return nav +
+    section('Événements passés de ' + y, 'ti-history', 'var(--lg)', passes) +
+    section('Événements à venir en ' + y, 'ti-calendar-event', 'var(--b)', aVenir);
 }
 
 // ── GÉOPOLITIQUE — rendu ────────────────────────────────────────────────
@@ -11566,6 +11846,7 @@ function _demarrerAutoRefresh() {
         doCollect().then(() => {
           if (typeof publierCollectePartagee === 'function') publierCollectePartagee(ALL);
           if (typeof publierArticlesRagPartages === 'function') publierArticlesRagPartages(ALL);
+          if (typeof publierAgendaPartagee === 'function') publierAgendaPartagee(ALL);
         }).catch(() => {});
       }
     }
@@ -11691,6 +11972,7 @@ async function init() {
         // Publie le resultat pour les prochains visiteurs (best-effort).
         if (typeof publierCollectePartagee === 'function') publierCollectePartagee(ALL);
         if (typeof publierArticlesRagPartages === 'function') publierArticlesRagPartages(ALL);
+        if (typeof publierAgendaPartagee === 'function') publierAgendaPartagee(ALL);
       } catch(e){
         // Si la collecte echoue totalement, le filet pre-charge reste affiche
         document.getElementById('stbarLeft').textContent='Veille en direct indisponible · Donnees de reference affichees · Reessayez avec Actualiser';
@@ -11960,6 +12242,100 @@ async function publierArticlesRagPartages(articles) {
     const { error } = await client.from('articles_rag').upsert(lignes);
     if (error) console.warn('SENTINEL — publierArticlesRagPartages a echoue :', error.message || error);
   } catch (e) { console.warn('SENTINEL — publierArticlesRagPartages a echoue :', e && e.message ? e.message : e); }
+}
+
+// ── Agent AGENDA — persistance partagee (Supabase, table agenda_partagee) ──
+// PROBLEME CORRIGE : la detection automatique d'evenements agenda
+// (EVENT_PLANIFIE_KW/typeEvenementDetecte, deja appliquee sans distinction
+// geographique aux 54 pays a chaque collecte) fonctionnait, mais ses
+// resultats etaient invisibles au-dela de 12h : renderAgenda() ne fusionne
+// que les entrees encore presentes dans ALL (a._estAgenda && estAgendaRecent,
+// fenetre voulue de 7 jours, cf. AGENDA_MAX_AGE), or ALL lui-meme est purge
+// des articles de plus de 12h (estRecentReel) vers HISTORIQUE, qui ne
+// conserve PAS les champs necessaires (_estAgenda/_agendaType/analysis,
+// voir archiverHistorique) pour reconstruire une entree agenda. Un
+// evenement detecte le lundi avait donc totalement disparu du module des
+// le mardi apres-midi, quel que soit le nombre de collectes effectuees
+// depuis — la fenetre de 7 jours n'etait jamais reellement atteignable.
+// Cette table persiste chaque evenement detecte INDEPENDAMMENT du sort de
+// l'article source dans ALL, meme principe que articles_rag pour le RAG :
+// alimentee juste apres une collecte reussie (voir les deux points d'appel
+// aupres de publierCollectePartagee/publierArticlesRagPartages, et
+// scripts/collecte-planifiee.js pour le job planifie toutes les ~30 min qui
+// couvre a lui seul les 54 pays sans dependre qu'un visiteur ait la page
+// ouverte). Best-effort, jamais bloquant ; necessite la migration
+// 20260719000000_agenda_partagee.sql, sinon echoue silencieusement.
+const AGENDA_PARTAGEE_MAX_PAR_APPEL = 200;
+async function publierAgendaPartagee(articles) {
+  const client = getSentinelSupabase();
+  if (!client || !Array.isArray(articles) || !articles.length) return;
+  try {
+    const lignes = articles
+      .filter(a => a && a._estAgenda && typeof estAgendaRecent === 'function' && estAgendaRecent(a))
+      .slice()
+      .sort((a, b) => (b.pubDate || 0) - (a.pubDate || 0))
+      .slice(0, AGENDA_PARTAGEE_MAX_PAR_APPEL)
+      .map(a => ({
+        id: a.id, title: (a.title || '').slice(0, 300),
+        texte: (a.analysis || '').slice(0, 1000),
+        agenda_type: a._agendaType || 'securite', niveau: a.level || null,
+        cy: a.cy || null, source: srcName(a.primary), link: a.url || null,
+        pub_date: a.pubDate ? new Date(a.pubDate).toISOString() : null,
+        updated_at: new Date().toISOString(),
+      }))
+      .filter(l => l.id && l.title);
+    if (!lignes.length) return;
+    const { error } = await client.from('agenda_partagee').upsert(lignes);
+    if (error) console.warn('SENTINEL — publierAgendaPartagee a echoue :', error.message || error);
+  } catch (e) { console.warn('SENTINEL — publierAgendaPartagee a echoue :', e && e.message ? e.message : e); }
+}
+
+// ligneAgendaPartageeVersEntree(row) : reconstruit une entree affichable
+// (meme forme que articleVersAgenda) a partir d'une ligne persistee —
+// reutilise articleVersAgenda() plutot que de dupliquer la logique de
+// date/statut/impact (un seul point de verite, jamais deux calculs
+// susceptibles de diverger). Le statut est ainsi TOUJOURS recalcule a la
+// lecture (via detecterStatutAgenda, sensible a l'age reel), pas fige au
+// moment de l'ecriture — un evenement ecrit "en-cours" bascule bien tout
+// seul en "acheve" 24h plus tard, meme sans nouvelle collecte le concernant.
+function ligneAgendaPartageeVersEntree(row) {
+  const pseudoArticle = {
+    id: row.id, title: row.title, analysis: row.texte || '',
+    level: row.niveau || 'mod', _agendaType: row.agenda_type,
+    cy: row.cy, url: row.link,
+    pubDate: row.pub_date ? new Date(row.pub_date).getTime() : 0,
+  };
+  return articleVersAgenda(pseudoArticle, row.source);
+}
+
+async function lireAgendaPartagee() {
+  const client = getSentinelSupabase();
+  if (!client) return null;
+  try {
+    const seuil = new Date(Date.now() - AGENDA_MAX_AGE).toISOString();
+    const { data, error } = await client.from('agenda_partagee')
+      .select('id,title,texte,agenda_type,niveau,cy,source,link,pub_date')
+      .gt('pub_date', seuil).order('pub_date', { ascending: false }).limit(500);
+    if (error) { console.warn('SENTINEL — lireAgendaPartagee a echoue :', error.message || error); return null; }
+    if (!Array.isArray(data)) return null;
+    return data.map(ligneAgendaPartageeVersEntree);
+  } catch (e) { console.warn('SENTINEL — lireAgendaPartagee a echoue :', e && e.message ? e.message : e); return null; }
+}
+
+// Cache court (5 min) pour eviter un aller-retour reseau a CHAQUE appel de
+// renderAgenda() (tabulation, filtre change, tick d'auto-refresh...) — le
+// bouton "Actualiser" reste efficace car AGENDA_PARTAGEE_CACHE_MS est bien
+// plus court que l'intervalle du job planifie (~30 min) : un simple aller-
+// retour utilisateur suffit a revoir des donnees fraiches en pratique.
+let _agendaPartageeCache = null;
+let _agendaPartageeCacheTs = 0;
+const AGENDA_PARTAGEE_CACHE_MS = 5 * 60 * 1000;
+async function agendaPartageeMisAJour() {
+  if (_agendaPartageeCache && (Date.now() - _agendaPartageeCacheTs) < AGENDA_PARTAGEE_CACHE_MS) return _agendaPartageeCache;
+  const lus = await lireAgendaPartagee();
+  _agendaPartageeCache = lus || _agendaPartageeCache || [];
+  _agendaPartageeCacheTs = Date.now();
+  return _agendaPartageeCache;
 }
 
 // ── Configuration EmailJS PARTAGEE (Supabase, table config_partagee) ──────

@@ -106,6 +106,14 @@ function lireTokenDepuisSource() {
       // principal si absent/en echec (voir articles_rag, migration
       // 20260718030000).
       if (typeof publierArticlesRagPartages === 'function') { try { await publierArticlesRagPartages(ALL); } catch (_) {} }
+      // Persiste les evenements Agenda detectes automatiquement (agent
+      // AGENDA, voir agenda_partagee/migration 20260719000000) —
+      // best-effort, meme raisonnement que le RAG ci-dessus. C'est ce job
+      // planifie (toutes les ~30 min, sans dependre qu'un visiteur ait la
+      // page ouverte) qui couvre effectivement les 54 pays de facon fiable :
+      // sans lui, un evenement detecte reste invisible des que l'article
+      // source sort de ALL (12h), quel que soit le trafic reel de visiteurs.
+      if (typeof publierAgendaPartagee === 'function') { try { await publierAgendaPartagee(ALL); } catch (_) {} }
       return { ok: true, nbArticles: ALL.length, bestProxy: String(typeof bestProxy !== 'undefined' ? bestProxy : '?') };
     });
 
