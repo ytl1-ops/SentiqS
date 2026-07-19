@@ -26,7 +26,9 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
 
-const TARGET_URL = process.env.SENTINEL_URL || 'https://sentinel-surete.web.app/SENTINEL_Surete_Web.html';
+// Firebase Hosting retire (sentinel-surete.web.app ne recoit plus de
+// deploiement) — GitHub Pages est desormais l'hebergement reel.
+const TARGET_URL = process.env.SENTINEL_URL || 'https://ytl1-ops.github.io/SENTINEL-SURETE/SENTINEL_Surete_Web.html';
 const HTML_PATH = process.env.SENTINEL_HTML_PATH || path.join(__dirname, '..', 'web', 'SENTINEL_Surete_Web.html');
 // Premier run réel (18/07) : les proxys CORS partagés (allorigins,
 // corsproxy.org, codetabs...) renvoient énormément de 429 (rate-limit) face

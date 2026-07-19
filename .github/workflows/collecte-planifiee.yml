@@ -47,5 +47,11 @@ jobs:
 
       - name: Lancer la collecte planifiée
         env:
-          SENTINEL_URL: https://sentinel-surete.web.app/SENTINEL_Surete_Web.html
+          # Firebase Hosting retire (voir suppression du workflow
+          # firebase-hosting-deploy.yml) — GitHub Pages est desormais
+          # l'unique hebergement reellement mis a jour a chaque push.
+          # L'ancienne cible sentinel-surete.web.app ne recoit plus aucun
+          # deploiement depuis ce changement et aurait fini par servir une
+          # version figee/perimee de l'app a ce job planifie.
+          SENTINEL_URL: https://ytl1-ops.github.io/SENTINEL-SURETE/SENTINEL_Surete_Web.html
         run: node scripts/collecte-planifiee.js
