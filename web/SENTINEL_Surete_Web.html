@@ -761,6 +761,23 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
   letter-spacing:.04em;text-transform:uppercase}
 .stbar a{color:var(--t2)}
 .view{display:none}.view.on{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+
+/* ── Module en plein ecran (clic sur un onglet du menu) ────────────────────
+   Masque le "chrome" (en-tete, bandeau collecte, flash info, pub, barre de
+   statut) — .nav-wrap et .layout sont deplaces (pas clones, pour conserver
+   IDs/listeners) dans #modulePleinEcranOverlay, voir ouvrirModulePleinEcran. */
+body.plein-ecran-module > .tb,
+body.plein-ecran-module > .proxy-bar,
+body.plein-ecran-module > .cbar,
+body.plein-ecran-module > .flashinfo,
+body.plein-ecran-module > .ad-banner,
+body.plein-ecran-module > .compact-filters,
+body.plein-ecran-module > .stbar { display:none !important; }
+#modulePleinEcranOverlay{position:fixed;inset:0;z-index:100000;background:var(--w);
+  display:flex;flex-direction:column;overflow:hidden}
+#modulePleinEcranHdr{display:flex;align-items:center;gap:10px;padding:9px 14px;
+  border-bottom:1px solid var(--bd);flex-shrink:0;background:var(--w)}
+#modulePleinEcranCorps{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
 /* Ligne de bas d'interface expliquant le role du module — un enfant flex
    supplementaire en fin de .view (flex-shrink:0), toujours visible sous le
    contenu scrollable, jamais a l'interieur de celui-ci. */
@@ -2062,15 +2079,15 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
 <div class="nav-wrap">
   <button class="nav-arrow nav-arrow-l" onclick="navScrollModule(-1)" aria-label="Module précédent" title="Module précédent"><i class="ti ti-chevron-left"></i></button>
   <div class="nav" id="navTabs">
-    <div class="ntab" data-view="flux" onclick="switchView(&#39;flux&#39;,this)"><i class="ti ti-radar-2"></i><span data-i18n="nav_flux">Flux</span><span class="nbadge" id="nbadge" style="display: none;">0</span></div>
-    <div class="ntab" id="tabRecherche" data-view="recherche" onclick="switchView(&#39;recherche&#39;,this)"><i class="ti ti-search"></i><span data-i18n="nav_recherche">Recherche</span></div>
-    <div class="ntab" data-view="analyse" onclick="switchView(&#39;analyse&#39;,this)"><i class="ti ti-chart-dots"></i><span data-i18n="nav_analyse">Synthèse</span></div>
-    <div class="ntab" id="tabAgenda" data-view="agenda" onclick="switchView(&#39;agenda&#39;,this)"><i class="ti ti-calendar-event"></i><span data-i18n="nav_agenda">Agenda</span></div>
-    <div class="ntab" id="tabGeopolitique" data-view="geopolitique" onclick="switchView(&#39;geopolitique&#39;,this)"><i class="ti ti-world"></i><span data-i18n="nav_geopolitique">Géopolitique</span></div>
-    <div class="ntab" data-view="rapports" onclick="switchView(&#39;rapports&#39;,this)"><i class="ti ti-download"></i><span data-i18n="nav_rapports">Rapports</span></div>
-    <div class="ntab" id="tabAlertes" data-view="alertes" onclick="switchView(&#39;alertes&#39;,this)"><i class="ti ti-shield-exclamation"></i><span data-i18n="nav_alertes">Alertes</span></div>
-    <div class="ntab on" data-view="dashboard" onclick="switchView(&#39;dashboard&#39;,this)"><i class="ti ti-layout-dashboard"></i><span>Tableau de bord</span></div>
-    <div class="ntab" id="tabParams" data-view="params" onclick="switchView(&#39;params&#39;,this)" style="display:none"><i class="ti ti-settings"></i><span>Parametres</span></div>
+    <div class="ntab" data-view="flux" onclick="ouvrirModulePleinEcran(&#39;flux&#39;,this)"><i class="ti ti-radar-2"></i><span data-i18n="nav_flux">Flux</span><span class="nbadge" id="nbadge" style="display: none;">0</span></div>
+    <div class="ntab" id="tabRecherche" data-view="recherche" onclick="ouvrirModulePleinEcran(&#39;recherche&#39;,this)"><i class="ti ti-search"></i><span data-i18n="nav_recherche">Recherche</span></div>
+    <div class="ntab" data-view="analyse" onclick="ouvrirModulePleinEcran(&#39;analyse&#39;,this)"><i class="ti ti-chart-dots"></i><span data-i18n="nav_analyse">Synthèse</span></div>
+    <div class="ntab" id="tabAgenda" data-view="agenda" onclick="ouvrirModulePleinEcran(&#39;agenda&#39;,this)"><i class="ti ti-calendar-event"></i><span data-i18n="nav_agenda">Agenda</span></div>
+    <div class="ntab" id="tabGeopolitique" data-view="geopolitique" onclick="ouvrirModulePleinEcran(&#39;geopolitique&#39;,this)"><i class="ti ti-world"></i><span data-i18n="nav_geopolitique">Géopolitique</span></div>
+    <div class="ntab" data-view="rapports" onclick="ouvrirModulePleinEcran(&#39;rapports&#39;,this)"><i class="ti ti-download"></i><span data-i18n="nav_rapports">Rapports</span></div>
+    <div class="ntab" id="tabAlertes" data-view="alertes" onclick="ouvrirModulePleinEcran(&#39;alertes&#39;,this)"><i class="ti ti-shield-exclamation"></i><span data-i18n="nav_alertes">Alertes</span></div>
+    <div class="ntab on" data-view="dashboard" onclick="ouvrirModulePleinEcran(&#39;dashboard&#39;,this)"><i class="ti ti-layout-dashboard"></i><span>Tableau de bord</span></div>
+    <div class="ntab" id="tabParams" data-view="params" onclick="ouvrirModulePleinEcran(&#39;params&#39;,this)" style="display:none"><i class="ti ti-settings"></i><span>Parametres</span></div>
   </div>
   <button class="nav-arrow nav-arrow-r" onclick="navScrollModule(1)" aria-label="Module suivant" title="Module suivant"><i class="ti ti-chevron-right"></i></button>
 </div>
@@ -11521,6 +11538,80 @@ function switchView(name,el){
   if (typeof logTraffic === 'function') logTraffic(name);
 }
 
+// ── Module en plein ecran (clic sur un onglet du menu) ─────────────────────
+// Demande explicite : au clic sur un onglet (Flux, Agenda, Alertes...), le
+// module occupe TOUT l'ecran (meme principe que les fiches article/pays/
+// alerte — fond plein, bord a bord, bouton Fermer + Partager) au lieu de
+// rester confine sous l'en-tete/bandeau collecte/pub. .nav-wrap et .layout
+// sont DEPLACES (pas clones : cloner dupliquerait des IDs comme #agTl,
+// casserait tous les document.getElementById existants) dans l'overlay, puis
+// restaures a leur emplacement d'origine a la fermeture — voir les
+// placeholders ci-dessous. Reste actif en changeant d'onglet DEPUIS
+// l'interieur (nav-wrap reste utilisable, deplace avec .layout) : seule la
+// premiere entree cree l'overlay, les clics suivants mettent juste a jour le
+// contenu deja en place.
+let _modulePleinEcranActif = false;
+let _modulePleinEcranCourant = null;
+const MODULE_PLEIN_ECRAN_NOMS = {
+  flux:'Flux', recherche:'Recherche', analyse:'Synthèse', agenda:'Agenda',
+  geopolitique:'Géopolitique', rapports:'Rapports', alertes:'Alertes',
+  dashboard:'Tableau de bord', params:'Paramètres',
+};
+function ouvrirModulePleinEcran(name, el) {
+  switchView(name, el);
+  _modulePleinEcranCourant = name;
+  if (!_modulePleinEcranActif) {
+    _modulePleinEcranActif = true;
+    document.body.classList.add('plein-ecran-module');
+    const overlay = document.createElement('div');
+    overlay.id = 'modulePleinEcranOverlay';
+    overlay.innerHTML =
+      '<div id="modulePleinEcranHdr">' +
+        '<span onclick="fermerModulePleinEcran()" style="cursor:pointer;font-size:24px;line-height:1;color:var(--t2);padding:2px 6px;" title="Fermer (Echap)"><i class="ti ti-x"></i></span>' +
+        '<div style="flex:1;font-size:13px;font-weight:700;color:var(--t);" id="modulePleinEcranTitre"></div>' +
+        '<button onclick="partagerModulePleinEcran()" style="padding:6px 13px;background:var(--b);border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;"><i class="ti ti-share-2"></i> Partager</button>' +
+      '</div>' +
+      '<div id="modulePleinEcranCorps"></div>';
+    document.body.appendChild(overlay);
+    const navWrap = document.querySelector('body > .nav-wrap');
+    const layout = document.querySelector('body > .layout');
+    const corps = document.getElementById('modulePleinEcranCorps');
+    const navPh = document.createElement('div'); navPh.id = 'navWrapPlaceholder'; navPh.style.display = 'none';
+    navWrap.parentNode.insertBefore(navPh, navWrap);
+    const layoutPh = document.createElement('div'); layoutPh.id = 'layoutPlaceholder'; layoutPh.style.display = 'none';
+    layout.parentNode.insertBefore(layoutPh, layout);
+    corps.appendChild(navWrap);
+    corps.appendChild(layout);
+    document.addEventListener('keydown', _fermerModulePleinEcranEscape);
+  }
+  const titreEl = document.getElementById('modulePleinEcranTitre');
+  if (titreEl) titreEl.textContent = MODULE_PLEIN_ECRAN_NOMS[name] || name;
+}
+function fermerModulePleinEcran() {
+  const overlay = document.getElementById('modulePleinEcranOverlay');
+  if (!overlay) return;
+  const navWrap = document.getElementById('modulePleinEcranCorps').querySelector('.nav-wrap');
+  const layout = document.getElementById('modulePleinEcranCorps').querySelector('.layout');
+  const navPh = document.getElementById('navWrapPlaceholder');
+  const layoutPh = document.getElementById('layoutPlaceholder');
+  if (navWrap && navPh) { navPh.parentNode.insertBefore(navWrap, navPh); navPh.remove(); }
+  if (layout && layoutPh) { layoutPh.parentNode.insertBefore(layout, layoutPh); layoutPh.remove(); }
+  overlay.remove();
+  document.body.classList.remove('plein-ecran-module');
+  document.removeEventListener('keydown', _fermerModulePleinEcranEscape);
+  _modulePleinEcranActif = false;
+  _modulePleinEcranCourant = null;
+}
+function _fermerModulePleinEcranEscape(e) { if (e.key === 'Escape') fermerModulePleinEcran(); }
+function partagerModulePleinEcran() {
+  const titre = 'SENTINEL SÛRETÉ — ' + (MODULE_PLEIN_ECRAN_NOMS[_modulePleinEcranCourant] || '');
+  const url = location.href.split('#')[0];
+  if (navigator.share) { navigator.share({ title: titre, url: url }).catch(() => {}); return; }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(() => { if (typeof _toastRapide === 'function') _toastRapide('Lien copié dans le presse-papiers', 'ti-check'); }).catch(() => {});
+  }
+}
+
 // navScrollModule(dir) : passe au module precedent (dir=-1) ou suivant
 // (dir=1) dans l'ordre de la barre de navigation, avec retour au debut/fin
 // (cyclique) — boutons flèches affichés uniquement sur mobile, pour changer
@@ -11535,7 +11626,7 @@ function navScrollModule(dir) {
   let idx = tabs.findIndex(t => t.classList.contains('on'));
   if (idx === -1) idx = 0;
   const next = tabs[(idx + dir + tabs.length) % tabs.length];
-  switchView(next.dataset.view, next);
+  ouvrirModulePleinEcran(next.dataset.view, next);
 }
 
 // ── HORLOGE & AUTO-REFRESH ────────────────────────────────────────────────────
