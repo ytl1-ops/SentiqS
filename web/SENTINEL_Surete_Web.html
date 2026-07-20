@@ -10647,7 +10647,7 @@ async function renderPanelATraiter(cyFiltre, zoneFiltre) {
   </div>`;
 }
 
-async function renderDashboard() {
+function setDashCartoMode(m) { window.dashCartoMode = m; if (typeof renderDashboard === 'function') renderDashboard(); } async function renderDashboard() {
   const el = document.getElementById('dashContent');
   if (!el) return;
 
@@ -10686,7 +10686,7 @@ async function renderDashboard() {
   // "En tension" = tout ce qui n'est pas Stable/Modere (orange, marron, rouge)
   const enTension = scores.filter(s=>s.key==='orange'||s.key==='marron'||s.key==='rouge');
 
-  const cv = (n,f) => { try { return (getComputedStyle(document.documentElement).getPropertyValue(n).trim())||f; } catch(_) { return f; } }; const scoreColor = s => ({rouge:cv('--r','#8B1A1A'),marron:cv('--m','#78350F'),orange:cv('--a','#7C4A00'),jaune:cv('--j','#CA8A04'),vert:cv('--g','#0F4F2A')}[s.key]) || (NIV[s.key] ? NIV[s.key].col : '#0F4F2A');
+  const cv = (n,f) => { try { return (getComputedStyle(document.documentElement).getPropertyValue(n).trim())||f; } catch(_) { return f; } }; const scoreColor = s => ({rouge:cv('--r','#8B1A1A'),marron:cv('--m','#78350F'),orange:cv('--a','#7C4A00'),jaune:cv('--j','#CA8A04'),vert:cv('--g','#0F4F2A')}[s.key]) || (NIV[s.key] ? NIV[s.key].col : '#0F4F2A'); const cartoMode = window.dashCartoMode || 'grid';
 
   // Cartes KPI reduites de ~45% en hauteur (padding/police resserres, voir
   // demande) : le bandeau du haut du Tableau de bord occupait trop de place
@@ -10705,7 +10705,7 @@ async function renderDashboard() {
   // milieu-haut, bande cotiere/centrale/grands lacs au milieu, Afrique
   // australe (+ iles ocean Indien) en bas). Remplace la simple grille
   // plate par une vraie lecture geospatiale, cliquable par pays.
-  const cartogramme = () => {
+  const radarView = () => { const zoneOrder = ['afrique_nord','sahel','corne_afrique','ao_cotiere','golfe_guinee','afrique_centrale','grands_lacs','afrique_australe']; const parZone = {}; scores.forEach(s => { const z = CY_TO_ZONE[s.cy] || 'autre'; (parZone[z] = parZone[z]||[]).push(s); }); const cx = 250, cy0 = 250, rMax = 210, rMin = 30; const sectorW = 360 / zoneOrder.length; const toXY = (angleDeg, r) => { const a = (angleDeg - 90) * Math.PI / 180; return [cx + r*Math.cos(a), cy0 + r*Math.sin(a)]; }; const bandColor = {rouge:cv('--r','#8B1A1A'), marron:cv('--m','#78350F'), orange:cv('--a','#7C4A00'), jaune:cv('--j','#CA8A04'), vert:cv('--g','#0F4F2A')}; const bands = [{pct:100,key:'rouge'},{pct:80,key:'marron'},{pct:60,key:'orange'},{pct:40,key:'jaune'},{pct:20,key:'vert'}]; const rings = bands.map(b => { const r = rMin + (b.pct/100)*(rMax-rMin); return `<circle cx="${cx}" cy="${cy0}" r="${r}" fill="${bandColor[b.key]}" fill-opacity="0.14" stroke="${bandColor[b.key]}" stroke-opacity="0.5" stroke-width="1"/>`; }).join(''); const spokes = zoneOrder.map((z,i) => { const angle = i*sectorW; const [x,y] = toXY(angle, rMax); return `<line x1="${cx}" y1="${cy0}" x2="${x}" y2="${y}" stroke="var(--bd)" stroke-width="1"/>`; }).join(''); const labels = zoneOrder.map((z,i) => { const angle = i*sectorW + sectorW/2; const [x,y] = toXY(angle, rMax+16); const nom = (ZONES_GEO[z]||{}).nom || z; return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="7.5" font-weight="700" fill="var(--lg)" style="text-transform:uppercase;letter-spacing:.03em;">${nom}</text>`; }).join(''); const dots = zoneOrder.map((z,zi) => { const list = (parZone[z]||[]).slice().sort((a,b)=>a.pays.name.localeCompare(b.pays.name)); const baseAngle = zi*sectorW; return list.map((s,i) => { const frac = (i+1)/(list.length+1); const angle = baseAngle + frac*sectorW; const r = rMin + (Math.min(s.score,100)/100)*(rMax-rMin); const [x,y] = toXY(angle, r); const col = scoreColor(s); return `<circle cx="${x}" cy="${y}" r="5" fill="${col}" stroke="var(--w)" stroke-width="1.2" style="cursor:pointer;" onclick="ouvrirVuePays('${s.cy}')"><title>${s.pays.name} — ${s.score}/100</title></circle>`; }).join(''); }).join(''); const legend = [{l:'Stable',c:bandColor.vert},{l:'Modéré',c:bandColor.jaune},{l:'Tendu',c:bandColor.orange},{l:'Critique',c:bandColor.marron},{l:'Grave',c:bandColor.rouge}].map(it => `<span style="display:flex;align-items:center;gap:4px;font-size:9px;color:var(--lg);"><span style="width:8px;height:8px;border-radius:50%;background:${it.c};display:inline-block;"></span>${it.l}</span>`).join(''); return `<div style="position:relative;width:100%;max-width:520px;margin:0 auto;"><div style="position:absolute;inset:0;border-radius:50%;overflow:hidden;pointer-events:none;"><div class="radar-sweep"></div></div><svg viewBox="0 0 500 500" style="width:100%;height:auto;display:block;position:relative;">${rings}${spokes}${dots}${labels}<circle cx="${cx}" cy="${cy0}" r="3" fill="var(--lg)"/></svg></div><div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:10px;">${legend}</div><style>@keyframes radarSweepSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}.radar-sweep{position:absolute;inset:0;background:conic-gradient(from 0deg, ${bandColor.vert}77, transparent 25deg, transparent 360deg);border-radius:50%;animation:radarSweepSpin 5s linear infinite;transform-origin:50% 50%;}</style>`; }; const cartogramme = () => {
     const parZone = {};
     scores.forEach(s => { const z = CY_TO_ZONE[s.cy] || 'autre'; (parZone[z] = parZone[z]||[]).push(s); });
     const zoneArea = {
@@ -10771,9 +10771,9 @@ async function renderDashboard() {
       <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:14px;margin-bottom:12px;">
         <div style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:12px;display:flex;align-items:center;gap:6px;">
           <i class="ti ti-map-2" style="color:#2C5AAE"></i>
-          Carte régionale des risques — Score 0-100 par pays, regroupés par zone
+          ${cartoMode==='radar' ? 'Vue radar — pays par zone et niveau de risque' : 'Carte régionale des risques — Score 0-100 par pays, regroupés par zone'}<span style="margin-left:auto;display:flex;gap:4px;"><button onclick="setDashCartoMode('grid')" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:5px;border:1px solid var(--bd);cursor:pointer;background:${cartoMode==='grid'?'var(--b)':'var(--sf)'};color:${cartoMode==='grid'?'#fff':'var(--lg)'};">Cartogramme</button><button onclick="setDashCartoMode('radar')" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:5px;border:1px solid var(--bd);cursor:pointer;background:${cartoMode==='radar'?'var(--b)':'var(--sf)'};color:${cartoMode==='radar'?'#fff':'var(--lg)'};">Radar</button></span>
         </div>
-        ${cartogramme()}
+        ${cartoMode==='radar' ? radarView() : cartogramme()}
       </div>
 
       <!-- Zones de risque -->
