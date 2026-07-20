@@ -913,7 +913,15 @@ html.force-mobile .ops-label{display:none}
 #publicPanel{z-index:9500}
 
 /* ── ADMIN PANEL ─────────────────────────────────────────────────── */
-.admin-panel{position:fixed;inset:0;background:rgba(5,12,20,.97);
+/* Trame "verre depoli" (teinte de marque --n a opacite moderee + flou du
+   fond) plutot qu'un fond quasi noir (rgba(5,12,20,.97), 97% opaque) —
+   cet ecran, tres frequent pour un administrateur (Utilisateurs,
+   Reclamations, Paiements), tranchait durement avec le reste de l'appli,
+   entierement sur fond clair. Le flou garde le contexte visible en
+   arriere-plan (coherent avec l'esthetique "plateforme premium" plutot
+   qu'un mur opaque) tout en assurant la meme lisibilite du panneau. */
+.admin-panel{position:fixed;inset:0;background:rgba(30,42,56,.5);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
   z-index:8000;display:flex;align-items:flex-start;justify-content:center;
   padding:20px;overflow-y:auto}
 .admin-panel.hidden{display:none}
@@ -10295,7 +10303,7 @@ async function showKpiDrill(kind) {
   if (overlay) overlay.remove();
   overlay = document.createElement('div');
   overlay.id = 'kpiDrillOverlay';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(11,26,39,.72);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(30,42,56,.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;';
   overlay.onclick = (e) => { if (e.target === overlay) closeKpiDrill(); };
   overlay.innerHTML = `<div style="background:#fff;border-radius:12px;max-width:560px;width:100%;max-height:82vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.4);">
     <div style="background:var(--w);color:var(--t);border-bottom:1px solid var(--bd);padding:14px 18px;border-radius:12px 12px 0 0;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:2;">
@@ -11697,7 +11705,7 @@ async function runDiagnostic() {
   if (overlay) overlay.remove();
   overlay = document.createElement('div');
   overlay.id = 'diagOverlay';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(11,26,39,.75);z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(30,42,56,.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;';
   overlay.innerHTML = '<div style="background:#fff;border-radius:12px;max-width:520px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.4);">'
     + '<div style="background:var(--w);color:var(--t);border-bottom:1px solid var(--bd);padding:14px 18px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between;">'
     + '<span style="font-size:14px;font-weight:700;"><i class="ti ti-stethoscope" style="color:var(--b)"></i> Diagnostic des services de collecte</span>'
