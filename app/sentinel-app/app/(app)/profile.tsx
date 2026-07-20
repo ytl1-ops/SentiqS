@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ScrollView,
-  Alert, Switch, ActivityIndicator,
+  Alert, Switch, ActivityIndicator, TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,12 +11,43 @@ import { Colors, Spacing, Radius, PLANS_CONFIG } from '../../constants/theme';
 import { startTrial } from '../../lib/supabase';
 import { format, differenceInDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { getRappelsWhatsappConfig, enregistrerEtProgrammerRappels } from '../../lib/rappelsWhatsapp';
 
 export default function ProfileScreen() {
   const { profile, subscription, isAdmin, signOut, refreshSubscription } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [notifs, setNotifs] = useState(true);
+
+  // Rappels d'envoi WhatsApp programmes — equivalent mobile natif de la
+  // section de meme nom cote web (voir lib/rappelsWhatsapp.ts).
+  const [rappelActif, setRappelActif] = useState(false);
+  const [rappelNumero, setRappelNumero] = useState('');
+  const [rappelHeures, setRappelHeures] = useState('');
+  const [rappelMsg, setRappelMsg] = useState('');
+  const [rappelSaving, setRappelSaving] = useState(false);
+
+  useEffect(() => {
+    getRappelsWhatsappConfig().then(cfg => {
+      setRappelActif(cfg.actif);
+      setRappelNumero(cfg.numero);
+      setRappelHeures(cfg.heures.join(', '));
+    });
+  }, []);
+
+  async function handleSaveRappels() {
+    setRappelSaving(true);
+    try {
+      const cfg = await enregistrerEtProgrammerRappels({ actif: rappelActif, numero: rappelNumero, heures: rappelHeures });
+      setRappelHeures(cfg.heures.join(', '));
+      setRappelMsg(cfg.actif && cfg.heures.length ? 'Rappels programmés.' : 'Enregistré.');
+    } catch (e: any) {
+      setRappelMsg('Échec : ' + (e?.message || String(e)));
+    } finally {
+      setRappelSaving(false);
+      setTimeout(() => setRappelMsg(''), 2500);
+    }
+  }
 
   async function handleSignOut() {
     Alert.alert('Déconnexion', 'Voulez-vous vous déconnecter ?', [
@@ -154,6 +185,57 @@ export default function ProfileScreen() {
           )}
         </View>
 
+        {/* Rappels d'envoi WhatsApp programmés */}
+        <Text style={s.sectionTitle}>Rappels d'envoi WhatsApp programmés</Text>
+        <View style={s.settingsCard}>
+          <Text style={s.rappelIntro}>
+            Aux heures choisies, une notification propose de générer le rapport de Synthèse
+            analytique et de l'envoyer via WhatsApp — le fichier est joint réellement (partage
+            natif) si l'appareil le permet, sinon la conversation s'ouvre avec un message prêt
+            et le PDF déjà téléchargé, à joindre manuellement.
+          </Text>
+          <View style={s.settingRow}>
+            <Ionicons name="logo-whatsapp" size={18} color={Colors.success} />
+            <Text style={s.settingLabel}>Activer les rappels</Text>
+            <Switch
+              value={rappelActif}
+              onValueChange={setRappelActif}
+              trackColor={{ true: Colors.primary }}
+              style={{ marginLeft: 'auto' }}
+            />
+          </View>
+          <View style={[s.rappelField, { borderTopWidth: 0.5, borderTopColor: Colors.border }]}>
+            <Text style={s.rappelLabel}>Numéro WhatsApp (avec indicatif pays)</Text>
+            <TextInput
+              style={s.rappelInput}
+              value={rappelNumero}
+              onChangeText={setRappelNumero}
+              placeholder="Ex. 2250747974398"
+              placeholderTextColor={Colors.textMuted}
+              keyboardType="phone-pad"
+            />
+          </View>
+          <View style={[s.rappelField, { borderTopWidth: 0.5, borderTopColor: Colors.border }]}>
+            <Text style={s.rappelLabel}>Heures (HH:MM, séparées par virgule)</Text>
+            <TextInput
+              style={s.rappelInput}
+              value={rappelHeures}
+              onChangeText={setRappelHeures}
+              placeholder="Ex. 06:00, 16:30, 20:30"
+              placeholderTextColor={Colors.textMuted}
+            />
+          </View>
+          <TouchableOpacity style={s.rappelSaveBtn} onPress={handleSaveRappels} disabled={rappelSaving}>
+            {rappelSaving ? <ActivityIndicator color="#fff" size="small" /> : (
+              <>
+                <Ionicons name="save-outline" size={15} color="#fff" />
+                <Text style={s.rappelSaveTxt}>Enregistrer les rappels</Text>
+              </>
+            )}
+          </TouchableOpacity>
+          {!!rappelMsg && <Text style={s.rappelMsg}>{rappelMsg}</Text>}
+        </View>
+
         <TouchableOpacity style={s.signOutBtn} onPress={handleSignOut}>
           <Ionicons name="log-out-outline" size={18} color={Colors.danger} />
           <Text style={s.signOutTxt}>Déconnexion</Text>
@@ -207,4 +289,11 @@ const s = StyleSheet.create({
   settingVal: { fontSize: 12, color: Colors.textSecond },
   signOutBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 14, padding: 13, backgroundColor: Colors.dangerBg, borderRadius: Radius.md },
   signOutTxt: { fontSize: 14, fontWeight: '500', color: Colors.danger },
+  rappelIntro: { fontSize: 11, color: Colors.textSecond, lineHeight: 16, padding: 13 },
+  rappelField: { padding: 13 },
+  rappelLabel: { fontSize: 10, color: Colors.textMuted, marginBottom: 5, textTransform: 'uppercase', letterSpacing: 0.4 },
+  rappelInput: { borderWidth: 0.5, borderColor: Colors.border, borderRadius: Radius.sm, paddingHorizontal: 10, paddingVertical: 8, fontSize: 13, color: Colors.text, backgroundColor: Colors.surface },
+  rappelSaveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, margin: 13, marginTop: 3, padding: 11, backgroundColor: Colors.success, borderRadius: Radius.md },
+  rappelSaveTxt: { fontSize: 13, fontWeight: '600', color: '#fff' },
+  rappelMsg: { fontSize: 11, color: Colors.textSecond, textAlign: 'center', paddingBottom: 10 },
 });
