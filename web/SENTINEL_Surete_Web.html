@@ -99,6 +99,22 @@ body{font-family:var(--font-body);
 a{text-decoration:none;color:inherit}
 button{cursor:pointer;font-family:inherit}
 
+/* Profondeur des cartes — --card-shadow/--card-shadow-hover existaient deja
+   dans :root mais n'etaient quasiment jamais appliques (cartes a plat, juste
+   une bordure 1px) : un vrai defaut visuel pour un rendu "premium". Regle
+   consolidee unique plutot que de dupliquer le box-shadow dans chacune des
+   ~15 classes de carte eparpillees dans la feuille de style. */
+.si-card,.eq-device-card,.rp-card,.auth-box,.admin-box,.astat,.dl-right-card,
+.pricing-card,.paymethod-card,.traffic-kpi,.rp-ent-card,.pm-section{
+  box-shadow:var(--card-shadow);
+}
+.si-card,.eq-device-card,.paymethod-card,.traffic-kpi,.rp-ent-card,.pricing-card{
+  transition:box-shadow .15s ease,transform .15s ease;
+}
+.si-card:hover,.eq-device-card:hover,.paymethod-card:hover,.traffic-kpi:hover,.rp-ent-card:hover,.pricing-card:hover{
+  box-shadow:var(--card-shadow-hover);transform:translateY(-1px);
+}
+
 /* Defilement tactile fluide (indispensable sur iOS Safari pour un scroll
    tactile fiable dans les zones a overflow-y:auto) */
 [style*="overflow-y:auto"],[style*="overflow-y: auto"],.view.on{
@@ -878,9 +894,11 @@ html.force-mobile .ops-label{display:none}
 .auth-field input::placeholder{color:#A0AEC0}
 .auth-btn{width:100%;padding:11px;background:var(--b);border:none;border-radius:7px;
   color:#fff;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.04em;
-  text-transform:uppercase;transition:background .15s;margin-top:6px}
-.auth-btn:hover{background:#2F5D7C}
-.auth-btn:disabled{opacity:.5;cursor:not-allowed}
+  text-transform:uppercase;transition:background .15s,box-shadow .15s,transform .12s;margin-top:6px;
+  box-shadow:0 2px 6px rgba(44,90,174,.3)}
+.auth-btn:hover{background:#234780;box-shadow:0 4px 12px rgba(44,90,174,.4);transform:translateY(-1px)}
+.auth-btn:active{transform:translateY(0)}
+.auth-btn:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;transform:none}
 .auth-err{font-size:11px;color:var(--r);background:var(--rl);
   border:1px solid var(--rb);border-radius:5px;padding:8px 12px;
   margin-top:10px;display:none}
@@ -1665,10 +1683,15 @@ select,input[type="text"]{
 
 /* ── Transitions globales sur les éléments interactifs ──────────────── */
 .acard{
+  box-shadow:var(--card-shadow) !important;
   transition:box-shadow .18s, transform .12s !important;
 }
 .acard:hover{
   box-shadow:var(--card-shadow-hover) !important;
+  transform:translateY(-1px);
+}
+.carto-tile:hover{
+  box-shadow:0 3px 8px rgba(22,35,58,.16);
   transform:translateY(-1px);
 }
 button:not(:disabled){
@@ -2578,27 +2601,27 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <div style="flex:1;overflow-y:auto;padding:8px 14px;background:var(--sf);" id="dashContent">
       <!-- KPI globaux -->
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-bottom:10px;">
-        <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:8px;text-align:center;">
+        <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:8px;text-align:center;box-shadow:var(--card-shadow);">
        <div style="font-family:var(--font-mono,&#39;Roboto Mono&#39;,monospace);font-size:17px;font-weight:700;color:var(--t);line-height:1.1;">19</div>
        <div style="font-size:9px;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;">Articles actifs</div>
      </div>
-        <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:8px;text-align:center;">
+        <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:8px;text-align:center;box-shadow:var(--card-shadow);">
        <div style="font-family:var(--font-mono,&#39;Roboto Mono&#39;,monospace);font-size:17px;font-weight:700;color:#2C5AAE;line-height:1.1;">14</div>
        <div style="font-size:9px;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;">Pays couverts</div>
      </div>
-        <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:8px;text-align:center;">
+        <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:8px;text-align:center;box-shadow:var(--card-shadow);">
        <div style="font-family:var(--font-mono,&#39;Roboto Mono&#39;,monospace);font-size:17px;font-weight:700;color:#8B1A1A;line-height:1.1;">2</div>
        <div style="font-size:9px;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;">Critiques</div>
      </div>
-        <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:8px;text-align:center;">
+        <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:8px;text-align:center;box-shadow:var(--card-shadow);">
        <div style="font-family:var(--font-mono,&#39;Roboto Mono&#39;,monospace);font-size:17px;font-weight:700;color:#7C4A00;line-height:1.1;">5</div>
        <div style="font-size:9px;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;">Élevés</div>
      </div>
-        <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:8px;text-align:center;">
+        <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:8px;text-align:center;box-shadow:var(--card-shadow);">
        <div style="font-family:var(--font-mono,&#39;Roboto Mono&#39;,monospace);font-size:17px;font-weight:700;color:#0F4F2A;line-height:1.1;">17</div>
        <div style="font-size:9px;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;">Sources actives</div>
      </div>
-        <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:8px;text-align:center;">
+        <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:8px;text-align:center;box-shadow:var(--card-shadow);">
        <div style="font-family:var(--font-mono,&#39;Roboto Mono&#39;,monospace);font-size:17px;font-weight:700;color:#CA8A04;line-height:1.1;">0</div>
        <div style="font-size:9px;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;">Pays en tension</div>
      </div>
@@ -10508,7 +10531,7 @@ async function renderDashboard() {
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:4px;">
           ${liste.map(s => {
             const col = scoreColor(s);
-            return `<div onclick="ouvrirVuePays('${s.cy}')" title="${s.pays.name} — ${s.score}/100" style="cursor:pointer;padding:5px 6px;border-radius:5px;background:${col}14;border:1px solid ${col}44;${GLOBAL_CY_FILTER===s.cy?`box-shadow:0 0 0 2px ${col};`:''}">
+            return `<div class="carto-tile" onclick="ouvrirVuePays('${s.cy}')" title="${s.pays.name} — ${s.score}/100" style="cursor:pointer;padding:5px 6px;border-radius:5px;background:${col}14;border:1px solid ${col}44;transition:transform .12s,box-shadow .12s;${GLOBAL_CY_FILTER===s.cy?`box-shadow:0 0 0 2px ${col};`:''}">
               <div style="font-size:9.5px;font-weight:700;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.pays.flag} ${s.pays.name}</div>
               <div style="font-family:var(--font-mono,'Roboto Mono',monospace);font-size:9px;font-weight:700;color:${col};">${s.score}</div>
             </div>`;
