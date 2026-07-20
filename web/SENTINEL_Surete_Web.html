@@ -2376,7 +2376,6 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               <option value="sportif">Sportif</option>
               <option value="concert">Concert</option>
               <option value="festival">Festival</option>
-              <option value="securite">Securite</option>
               <option value="humanitaire">Humanitaire</option>
               <option value="politique">Politique</option>
               <option value="election">Election</option>
@@ -2753,9 +2752,12 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
             <div class="pm-sec-body" style="padding:14px 16px">
               <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
                 A chaque heure programmee, une notification s'affiche avec un bouton "Envoyer maintenant" :
-                un tap genere le rapport de Synthese analytique (PDF) et ouvre la conversation WhatsApp du
-                numero indique, message signe avec l'identite de marque active. Aucun envoi n'a lieu sans
-                ce clic — WhatsApp ne permet pas a un site web d'envoyer un message automatiquement.
+                un tap genere le rapport de Synthese analytique (PDF) puis l'envoie — sur mobile, via le
+                partage natif du systeme, le PDF est directement joint au message WhatsApp du numero
+                indique (identite de marque active) ; sur ordinateur (partage de fichier indisponible),
+                WhatsApp Web s'ouvre avec un message pret et le PDF deja telecharge, a joindre manuellement.
+                Aucun envoi n'a lieu sans ce clic — WhatsApp ne permet pas a un site web d'envoyer un
+                message automatiquement.
               </div>
               <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
                 <input type="checkbox" id="rappelWaActif" style="width:16px;height:16px;cursor:pointer">
@@ -6223,6 +6225,10 @@ const EVENT_PLANIFIE_KW = {
   // Liste elargie aux formulations courantes de la presse (pas seulement
   // les tournures administratives), sinon quasiment aucun article ne
   // matchait jamais en pratique.
+  // Formulations supplementaires (francophones courantes + anglophones,
+  // presse Nigeria/Ghana/Afrique de l'Est notamment) : la liste initiale
+  // (tournures administratives francaises) captait encore trop peu
+  // d'articles reels en pratique sur l'ensemble des 54 pays.
   travaux:       ['travaux routiers', "travaux d'infrastructure", 'travaux de réhabilitation',
                   'travaux de voirie', 'travaux de construction', 'grands travaux', 'chantier de',
                   'lancement des travaux', 'démarrage des travaux', 'début des travaux',
@@ -6234,7 +6240,15 @@ const EVENT_PLANIFIE_KW = {
                   'coupure de circulation', 'circulation perturbée', 'circulation interrompue',
                   'route impraticable', 'pont impraticable', 'bac hors service', 'traversier hors service',
                   'chaussée endommagée', 'pont effondré', 'glissement de terrain', 'route coupée',
-                  'route inondée', 'axe routier bloqué', 'bouchon monstre', 'embouteillage géant'],
+                  'route inondée', 'axe routier bloqué', 'bouchon monstre', 'embouteillage géant',
+                  'travaux de bitumage', 'bitumage de la route', 'pavage de la route',
+                  'interdiction de circulation', 'restriction de circulation', 'route en réfection',
+                  'pont en réparation', 'passage temporairement fermé', 'itinéraire de déviation',
+                  'road closure', 'road closed', 'bridge closure', 'bridge closed',
+                  'airport closure', 'airport closed', 'border closure', 'border closed',
+                  'road construction', 'road rehabilitation', 'road maintenance works',
+                  'traffic diversion', 'traffic disruption', 'commissioning of the road',
+                  'flyover construction', 'highway construction', 'road project launch'],
 };
 
 // estEvenementPlanifie(texte) : vrai si le texte correspond a un evenement
@@ -11964,27 +11978,46 @@ function afficherRappelWhatsappProgramme(hhmm, numero) {
 
 // envoyerRappelWhatsappProgramme() : DOIT etre appelee depuis un clic reel
 // (bouton "Envoyer maintenant" ci-dessus) — c'est ce geste utilisateur qui
-// autorise le navigateur a ouvrir la fenetre WhatsApp (voir note en tete de
-// section). Genere le rapport de Synthese analytique (PDF, telecharge sur
-// l'appareil comme tout export) puis ouvre directement la conversation
-// WhatsApp du numero configure avec un message pret, signe de l'identite de
-// marque active. Le PDF n'est pas joint automatiquement au message WhatsApp
-// (wa.me ne le permet pas) — il est deja telecharge, a joindre manuellement,
-// ou via le bouton "Partager ce document" qui apparait juste apres (partage
-// natif avec fichier, cf. afficherPartageDocument/partagerDernierDocument).
+// autorise le navigateur a ouvrir le partage/la fenetre WhatsApp (voir note
+// en tete de section). Genere le rapport de Synthese analytique (PDF,
+// telecharge sur l'appareil comme tout export) puis tente D'ABORD le partage
+// natif avec fichier (navigator.share/canShare) : sur mobile, WhatsApp
+// apparait comme cible directe dans la feuille de partage du systeme et
+// recoit REELEMENT le PDF en piece jointe — pas seulement un texte. Ancien
+// comportement (bug signale) : ouvrait toujours wa.me avec un texte
+// pre-rempli, meme quand le partage de fichier etait disponible, forcant a
+// joindre le PDF manuellement a chaque fois. wa.me reste utilise uniquement
+// en repli (desktop, ou partage de fichiers non supporte par le navigateur) —
+// c'est une limite reelle de ce protocole, qui ne permet jamais de joindre un
+// fichier via un simple lien.
 async function envoyerRappelWhatsappProgramme(numero, toastId) {
   const btn = event ? event.target.closest('button') : null;
   if (btn && typeof btnSpin === 'function') btnSpin(btn);
+  const suppressAvant = _suppressAfficherPartage;
+  _suppressAfficherPartage = true; // le toast "Partager ce document" standard ferait doublon avec celui du rappel — le partage est gere directement ci-dessous
   try {
     if (typeof exportPDF === 'function') await exportPDF('synthese');
     const brand = nomMarqueActuelle();
-    const texte = brand + ' — Rapport d\'analyse (Synthèse analytique) du ' +
-      new Date().toLocaleDateString('fr-FR') + ' ' + new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) +
-      '.\n\nLe PDF vient d\'être téléchargé sur cet appareil — joignez-le à ce message (ou utilisez le bouton "Partager ce document" pour un envoi avec fichier joint).';
+    const dateTxt = new Date().toLocaleDateString('fr-FR') + ' ' + new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+    if (_dernierDocGenere && navigator.share && navigator.canShare) {
+      try {
+        const { blob, name } = _dernierDocGenere;
+        const file = new File([blob], name, { type: blob.type });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ title: brand, text: brand + ' — Rapport d\'analyse (Synthèse analytique) du ' + dateTxt, files: [file] });
+          return;
+        }
+      } catch (e) {
+        if (e && e.name === 'AbortError') return; // partage annule par l'utilisateur — pas un echec
+      }
+    }
+    const texte = brand + ' — Rapport d\'analyse (Synthèse analytique) du ' + dateTxt +
+      '.\n\nLe PDF vient d\'être téléchargé sur cet appareil — joignez-le à ce message.';
     window.open('https://wa.me/' + numero + '?text=' + encodeURIComponent(texte), '_blank', 'noopener');
   } catch (e) {
     alert((LANG==='en' ? 'Failed to send: ' : 'Échec de l\'envoi : ') + (e && e.message ? e.message : e));
   } finally {
+    _suppressAfficherPartage = suppressAvant;
     if (btn && typeof btnReset === 'function') setTimeout(() => btnReset(btn), 600);
     const toast = toastId ? document.getElementById(toastId) : null;
     if (toast) { toast.style.transform='translateX(360px)'; toast.style.opacity='0'; setTimeout(()=>toast.remove(),350); }
