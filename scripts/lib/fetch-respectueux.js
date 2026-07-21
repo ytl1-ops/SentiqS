@@ -27,7 +27,7 @@
 //     jamais les autres).
 // ============================================================
 
-const USER_AGENT = 'SentinelSureteBot/1.0 (+https://ytl1-ops.github.io/SENTINEL-SURETE; veille de surete pour 54 pays d Afrique, usage non commercial; contact: yorot225@gmail.com)';
+const USER_AGENT = 'SentiqSBot/1.0 (+https://ytl1-ops.github.io/SentiqS; veille de surete pour 54 pays d Afrique, usage non commercial; contact: yorot225@gmail.com)';
 
 const DELAI_MIN_PAR_DOMAINE_MS = 1500;
 const TIMEOUT_MS = 10000;
