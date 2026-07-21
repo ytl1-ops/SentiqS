@@ -3,7 +3,7 @@ name: Collecte planifiée (cache partagé)
 # Déclenche une collecte RSS réelle toutes les ~30 minutes via un navigateur
 # headless pointé sur l'application déployée, et publie le résultat dans le
 # cache partagé Supabase (collecte_partagee) — voir scripts/collecte-planifiee.js
-# et checkCollectorSession() dans web/SENTINEL_Surete_Web.html.
+# et checkCollectorSession() dans web/SentiqS_Web.html.
 #
 # Objectif : garder ce cache quasi toujours frais, INDÉPENDAMMENT du trafic
 # réel de visiteurs. Auparavant, seul un visiteur qui déclenchait lui-même
@@ -53,5 +53,5 @@ jobs:
           # L'ancienne cible sentinel-surete.web.app ne recoit plus aucun
           # deploiement depuis ce changement et aurait fini par servir une
           # version figee/perimee de l'app a ce job planifie.
-          SENTINEL_URL: https://ytl1-ops.github.io/SENTINEL-SURETE/SENTINEL_Surete_Web.html
+          SENTINEL_URL: https://ytl1-ops.github.io/SentiqS/SentiqS_Web.html
         run: node scripts/collecte-planifiee.js
