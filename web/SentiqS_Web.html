@@ -4978,6 +4978,65 @@ const PAYS_INFO = {
   ZW:{flag:'🇿🇼',name:'Zimbabwe',capital:'Harare'},
 };
 
+     const FCDO_SLUG = {
+       AO:'angola', BF:'burkina-faso', BI:'burundi', BJ:'benin', BW:'botswana',
+       CD:'democratic-republic-of-congo', CF:'central-african-republic', CG:'congo',
+       CI:'cote-d-ivoire', CM:'cameroon', CV:'cape-verde', DJ:'djibouti', DZ:'algeria',
+       EG:'egypt', ER:'eritrea', ET:'ethiopia', GA:'gabon', GH:'ghana', GM:'the-gambia',
+       GN:'guinea', GQ:'equatorial-guinea', GW:'guinea-bissau', KE:'kenya', KM:'comoros',
+       LR:'liberia', LS:'lesotho', LY:'libya', MA:'morocco', MG:'madagascar', ML:'mali',
+       MR:'mauritania', MU:'mauritius', MW:'malawi', MZ:'mozambique', NA:'namibia',
+       NE:'niger', NG:'nigeria', RW:'rwanda', SC:'seychelles', SD:'sudan', SL:'sierra-leone',
+       SN:'senegal', SO:'somalia', SS:'south-sudan', ST:'sao-tome-and-principe', SZ:'eswatini',
+       TD:'chad', TG:'togo', TN:'tunisia', TZ:'tanzania', UG:'uganda', ZA:'south-africa',
+       ZM:'zambia', ZW:'zimbabwe'
+     };
+
+     const FCDO_CACHE_MS = 12 * 60 * 60 * 1000;
+     async function fetchFCDOAdvice(cy) {
+       const slug = FCDO_SLUG[cy];
+       if (!slug) return null;
+       const cacheKey = 'sq_fcdo_' + cy;
+       try {
+         const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+         if (cached && (Date.now() - cached.ts) < FCDO_CACHE_MS) return cached.data;
+       } catch(e) {}
+       const url = 'https://www.gov.uk/foreign-travel-advice/' + slug + '.atom';
+       try {
+         const res = await proxyFetch(url, cy);
+         if (!res) return null;
+         let date = null, resume = null;
+         if (res.type === 'json' && res.data && res.data.items && res.data.items.length) {
+           const it = res.data.items[0];
+           date = it.pubDate || null;
+           resume = (it.description || it.title || '').replace(/<[^>]+>/g, '').trim().slice(0, 400);
+     } else if (res.type === 'xml' && res.data) {
+           const doc = new DOMParser().parseFromString(res.data, 'text/xml');
+           const entry = doc.querySelector('entry');
+           if (entry) {
+             const upd = entry.querySelector('updated');
+             date = upd ? upd.textContent : null;
+             const sum = entry.querySelector('summary') || entry.querySelector('title');
+             resume = sum ? sum.textContent.replace(/<[^>]+>/g, '').trim().slice(0, 400) : null;
+           }
+         }
+         const data = { date, resume, url: 'https://www.gov.uk/foreign-travel-advice/' + slug };
+         try { localStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), data })); } catch(e) {}
+         return data;
+       } catch(e) {
+         return null;
+     }
+     }
+
+     const POSTURE_NIVEAU = {
+       rouge: "Deplacement non essentiel deconseille. Activer le protocole de crise et le plan de continuite. Reevaluer les operations locales avec la fonction surete.",
+       marron: "Deplacement a differer sauf necessite imperieuse. Renforcer les mesures de protection et briefer les equipes presentes sur place.",
+       orange: "Deplacement possible sous conditions renforcees. Prevoir un briefing securite prealable et un point de contact local.",
+       jaune: "Vigilance renforcee recommandee. Suivre l'evolution de la situation avant tout deplacement ou engagement local.",
+       vert: "Situation stable. Maintenir une veille de routine et les procedures standard de securite."
+     };
+     
+
 // infoPays(cy) : renvoie {flag, name} pour l'affichage. Gere le code special
 // 'INT' (articles hors perimetre national : sport international, actualite
 // hors Afrique) comme "International", au lieu du fallback brut "🌍 INT" peu
@@ -16244,7 +16303,17 @@ async function ouvrirVuePays(cy) {
   overlay.id = 'vuePaysOverlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:var(--w);z-index:100000;';
 
-  const section = (titre, icone, count, contenuHtml) => contenuHtml ? `
+  const postureTexte = (score && score.key && POSTURE_NIVEAU[score.key])
+         ? POSTURE_NIVEAU[score.key]
+         : "Analyse en cours : aucune posture generique disponible pour ce niveau.";
+     const htmlBriefing = `
+         <div id="fcdoBox-${cy}" style="font-size:11px;color:var(--lg);padding:6px 0;">Chargement de l'avis officiel du Foreign Office (FCDO)...</div>
+         <div style="padding:10px 0 2px 10px;border-left:3px solid ${niv ? niv.col : '#999'};margin-top:6px;">
+           <div style="font-size:12.5px;color:var(--t);line-height:1.5;">${escHtml(postureTexte)}</div>
+           <div style="font-size:10px;color:var(--lg);margin-top:8px;font-style:italic;">Ne constitue ni un conseil juridique, ni un conseil financier ou d'investissement.</div>
+     </div>`;
+     
+     const section = (titre, icone, count, contenuHtml) => contenuHtml ? `
     <div style="margin-bottom:16px;">
       <div style="font-size:10px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--bd);padding-bottom:6px;">
         <i class="ti ${icone}"></i>${titre}<span style="margin-left:auto;font-weight:600;color:var(--t2);">${count}</span>
@@ -16343,7 +16412,8 @@ async function ouvrirVuePays(cy) {
       </div>
       ${score ? (() => { const ligne = pastilleCouvertureFaible(derniereActuTsPays(cy), dateDernierIncident(score.events)); return ligne ? `<div style="padding:8px 20px 0 20px;">${ligne}</div>` : ''; })() : ''}
       <div style="padding:18px 20px;">
-        ${section('Actualites — module Flux', 'ti-news', actus.length, htmlActus)}
+        ${section('Briefing Executif et Conformite', 'ti-briefcase', '', htmlBriefing)}
+     ${section('Actualites — module Flux', 'ti-news', actus.length, htmlActus)}
         ${section('Reseaux sociaux', 'ti-social', social?social.arts.length:0, htmlSocial)}
         ${section('Veille regionale', 'ti-map-pin', regionaux.length, htmlRegio)}
         ${section('Incidents et alertes surete', 'ti-shield-exclamation', incidents.length, htmlIncidents + htmlFacteurs)}
@@ -16367,6 +16437,24 @@ async function ouvrirVuePays(cy) {
     </div>`;
 
   document.body.appendChild(overlay);
+
+     fetchFCDOAdvice(cy).then(data => {
+       const box = document.getElementById('fcdoBox-' + cy);
+       if (!box) return;
+       if (data && (data.date || data.resume)) {
+         const dateTxt = data.date ? new Date(data.date).toLocaleDateString('fr-FR') : 'date inconnue';
+         box.innerHTML = `
+           <div style="font-size:10px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.06em;">Avis officiel FCDO (Royaume-Uni) - mis a jour le ${dateTxt}</div>
+           <div style="font-size:11.5px;color:var(--t);margin-top:4px;line-height:1.5;">${escHtml(data.resume || '')}</div>
+           <a href="${data.url}" target="_blank" rel="noopener" style="font-size:10.5px;color:var(--acc, #2563eb);">Avis complet sur gov.uk</a>`;
+       } else {
+         box.innerHTML = '<div style="font-size:11px;color:var(--lg);">Avis officiel FCDO indisponible pour le moment.</div>';
+       }
+     }).catch(() => {
+       const box = document.getElementById('fcdoBox-' + cy);
+       if (box) box.innerHTML = '<div style="font-size:11px;color:var(--lg);">Avis officiel FCDO indisponible pour le moment.</div>';
+     });
+     
 
   // ── Evolution 24h/7j/30j — remplissage asynchrone (lecture IndexedDB) ────
   if (social && social.arts.length && typeof getSocialEvolution === 'function') {
