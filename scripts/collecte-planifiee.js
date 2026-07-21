@@ -1,5 +1,5 @@
 // ============================================================
-// SENTINEL — Job de collecte planifiée (voir
+// SentiqS — Job de collecte planifiée (voir
 // .github/workflows/collecte-planifiee.yml)
 //
 // Déclenche UNE collecte réelle (~495 sources RSS) via un navigateur
@@ -11,13 +11,13 @@
 // visiteur relançait une collecte complète depuis SON PROPRE navigateur.
 //
 // Réutilise entièrement le moteur de collecte déjà écrit et testé côté
-// client (SENTINEL_Surete_Web.html) plutôt que de le réimplémenter en
+// client (SentiqS_Web.html) plutôt que de le réimplémenter en
 // Node/Deno — élimine tout risque de divergence entre deux implémentations
 // du même parsing RSS/classification/déduplication.
 //
 // Authentification : établit une session synthétique en LECTURE SEULE via
 // COLLECTOR_TOKEN (#collecteur-<jeton>, voir checkCollectorSession() dans
-// SENTINEL_Surete_Web.html) — distincte du compte administrateur réel,
+// SentiqS_Web.html) — distincte du compte administrateur réel,
 // jamais écrite dans sentinel_users_v1, ne regénère ni ne modifie jamais le
 // code d'accès de l'admin.
 // ============================================================
@@ -30,8 +30,8 @@ const { creerIntercepteur } = require('./lib/interception-proxy-directe');
 
 // Firebase Hosting retire (sentinel-surete.web.app ne recoit plus de
 // deploiement) — GitHub Pages est desormais l'hebergement reel.
-const TARGET_URL = process.env.SENTINEL_URL || 'https://ytl1-ops.github.io/SENTINEL-SURETE/SENTINEL_Surete_Web.html';
-const HTML_PATH = process.env.SENTINEL_HTML_PATH || path.join(__dirname, '..', 'web', 'SENTINEL_Surete_Web.html');
+const TARGET_URL = process.env.SENTINEL_URL || 'https://ytl1-ops.github.io/SentiqS/SentiqS_Web.html';
+const HTML_PATH = process.env.SENTINEL_HTML_PATH || path.join(__dirname, '..', 'web', 'SentiqS_Web.html');
 // Premier run réel (18/07) : les proxys CORS partagés (allorigins,
 // corsproxy.org, codetabs...) renvoient énormément de 429 (rate-limit) face
 // à une rafale de ~495 requêtes concentrées depuis UNE SEULE IP (le runner
@@ -62,7 +62,7 @@ const { interceptionProxyDirecte, stats: statsInterception } = creerIntercepteur
 (async () => {
   const token = lireTokenDepuisSource();
   const url = TARGET_URL + '#collecteur-' + token;
-  console.log('SENTINEL collecte planifiée — cible :', TARGET_URL);
+  console.log('SentiqS collecte planifiée — cible :', TARGET_URL);
 
   const browser = await chromium.launch({ args: ['--no-sandbox'] });
   // User-Agent identifiable pour CE job (voir scripts/lib/fetch-respectueux.js)
