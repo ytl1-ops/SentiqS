@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ytl1-ops.github.io/SentiqS/sitemap.xml
