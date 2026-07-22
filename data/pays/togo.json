@@ -1,0 +1,64 @@
+{
+  "iso2": "TG",
+  "slug": "togo",
+  "name": "Togo",
+  "namePrep": "au Togo",
+  "region": "Afrique de l'Ouest",
+  "capital": "Lome",
+  "datePublished": "2026-07-22",
+  "dateModified": "2026-07-22",
+  "metaDescription": "Situation securitaire au Togo : region des Savanes, frontieres et alertes en temps reel avec l'application SentiqS.",
+  "keywords": "Togo securite, risque pays Togo, veille geopolitique Lome Savanes, surete entreprise Afrique de l'Ouest, SentiqS",
+  "summary": "Le Togo reste largement stable au sud, avec Lome comme centre economique et portuaire majeur. Le principal point de vigilance concerne le Nord du pays : la region des Savanes est placee sous etat d'urgence depuis 2022 en raison d'attaques de groupes armes provenant du Burkina Faso, et la zone des triples frontieres (Burkina-Togo-Benin et Burkina-Togo-Ghana) est formellement deconseillee.",
+  "threats": {
+    "terrorism": {
+      "title": "Menace Terroriste Frontaliere (Nord)",
+      "text": "Depuis novembre 2021, la frontiere nord du Togo est le theatre d'attaques de groupes armes terroristes ayant fait des morts parmi les forces de securite. La region des Savanes est sous etat d'urgence, prolonge jusqu'en mars 2027, et les deplacements y sont soumis a autorisation prealable du ministere des Armees. La zone des triples frontieres avec le Burkina Faso est formellement deconseillee."
+    },
+    "crime": {
+      "title": "Delinquance et Cybercriminalite",
+      "text": "Des vols avec ou sans violence sont regulierement signales, notamment le soir sur le front de mer de Lome, qu'il est recommande d'eviter apres le coucher du soleil. Une recrudescence de la cybercriminalite (hameconnage, escroquerie sentimentale) est egalement constatee."
+    },
+    "infra": {
+      "title": "Risques Transport et Maritime",
+      "text": "Les routes secondaires deviennent difficilement praticables en saison des pluies et la circulation de nuit est deconseillee en raison d'une signalisation limitee. La piraterie maritime dans le golfe de Guinee rend la navigation de plaisance deconseillee au large des cotes togolaises."
+    }
+  },
+  "neighbors": [
+    {
+      "name": "Ghana",
+      "slug": "ghana",
+      "available": true
+    },
+    {
+      "name": "Burkina Faso",
+      "slug": "burkina-faso",
+      "available": true
+    },
+    {
+      "name": "Benin",
+      "slug": "benin",
+      "available": false
+    }
+  ],
+  "alertsSample": [
+    {
+      "tag": "SURETE",
+      "text": "Renforcement du dispositif militaire signale dans la region des Savanes, pres de la frontiere avec le Burkina Faso.",
+      "time": "Il y a 7h"
+    },
+    {
+      "tag": "SOCIAL",
+      "text": "Vigilance recommandee en soiree sur le front de mer de Lome.",
+      "time": "Il y a 12h"
+    },
+    {
+      "tag": "INFRA",
+      "text": "Route secondaire signalee difficilement praticable dans le nord du pays en raison des pluies.",
+      "time": "Il y a 1j"
+    }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/togo/conseils-aux-voyageurs-securite (France Diplomatie, fiche Securite Togo, mise a jour 01 juillet 2026)"
+  ]
+}

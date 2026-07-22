@@ -1,0 +1,69 @@
+{
+  "iso2": "NG",
+  "slug": "nigeria",
+  "name": "Nigeria",
+  "namePrep": "au Nigeria",
+  "region": "Afrique de l'Ouest",
+  "capital": "Abuja",
+  "datePublished": "2026-07-22",
+  "dateModified": "2026-07-22",
+  "metaDescription": "Situation securitaire au Nigeria : zones a risque, terrorisme, criminalite et alertes en temps reel avec l'application SentiqS.",
+  "keywords": "Nigeria securite, risque pays Nigeria, veille geopolitique Lagos Abuja, surete entreprise Afrique de l'Ouest, SentiqS",
+  "summary": "Le Nigeria, premiere economie d'Afrique, combine des poles d'affaires majeurs (Lagos, Abuja) et des regions a tres haut risque securitaire. Le Nord-Est (Etats de Borno, Yobe, Adamawa) reste marque par les exactions de Boko Haram et de la branche ouest-africaine de l'Etat islamique (ISWAP). Le Delta du Niger et plusieurs Etats du centre et du sud-est connaissent un risque eleve d'enlevement contre rancon, tandis que la piraterie maritime touche l'ensemble du littoral. Lagos, Abuja, Ibadan et Abeokuta restent des poles economiques actifs, places en vigilance renforcee plutot que sous deconseil formel.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste et Insurrectionnel",
+      "text": "Le risque terroriste est eleve dans le Nord-Est du Nigeria (Etats de Borno, Yobe, Adamawa, Gombe, Bauchi), en raison des exactions recurrentes de Boko Haram et de l'ISWAP. Les enlevements et assassinats cibles, y compris de travailleurs humanitaires et d'etrangers, y sont documentes. Ces zones sont formellement deconseillees par les autorites diplomatiques occidentales."
+    },
+    "crime": {
+      "title": "Risque Criminel et Enlevements contre Rancon",
+      "text": "La grande criminalite est presente sur l'ensemble du territoire, avec un nombre eleve d'enlevements contre rancon, en particulier dans le Delta du Niger, la Middle Belt (Etats de Benue, Nasarawa, Kogi, Plateau) et sur plusieurs axes routiers du Nord. A Lagos, la partie continentale concentre l'essentiel du risque d'agression, tandis que Victoria Island et Ikoyi sont plus securises."
+    },
+    "infra": {
+      "title": "Risques Maritimes et Logistiques",
+      "text": "La piraterie maritime touche la zone cotiere nigeriane et le golfe de Guinee, avec des attaques de navires et des prises d'otages ; la navigation de plaisance y est deconseillee. Sur terre, les points de controle sont frequents, des couvre-feux locaux peuvent etre decretes, et les deplacements interurbains de nuit sont deconseilles."
+    }
+  },
+  "neighbors": [
+    {
+      "name": "Benin",
+      "slug": "benin",
+      "available": false
+    },
+    {
+      "name": "Niger",
+      "slug": "niger",
+      "available": false
+    },
+    {
+      "name": "Tchad",
+      "slug": "tchad",
+      "available": false
+    },
+    {
+      "name": "Cameroun",
+      "slug": "cameroun",
+      "available": false
+    }
+  ],
+  "alertsSample": [
+    {
+      "tag": "SURETE",
+      "text": "Renforcement des dispositifs de securite signale dans une localite du Nord-Est, pres de la frontiere avec le Cameroun.",
+      "time": "Il y a 6h"
+    },
+    {
+      "tag": "SOCIAL",
+      "text": "Mouvement social localise a Lagos, perturbations ponctuelles de la circulation sur un axe principal.",
+      "time": "Il y a 14h"
+    },
+    {
+      "tag": "INFRA",
+      "text": "Vigilance maritime renforcee signalee au large du golfe de Guinee par les autorites portuaires.",
+      "time": "Il y a 1j"
+    }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/nigeria/conseils-aux-voyageurs-securite (France Diplomatie, fiche Securite Nigeria, mise a jour 15 juillet 2026)"
+  ]
+}

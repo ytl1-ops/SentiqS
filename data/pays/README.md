@@ -20,7 +20,7 @@ Le script `scripts/generate-country-fiche.js` refuse de generer une fiche si le 
 3. Le fichier `web/pays/<slug>.html` est genere a partir du gabarit `scripts/templates/fiche-country.template.html`.
 4. Ajouter manuellement l'entree dans `sitemap.xml` et dans `web/pays/index.html`.
 
-## Checklist des 48 pays restants (6/54 deja publies : Burkina Faso, Cote d'Ivoire, Ghana, Guinee, Liberia, Mali)
+## Checklist des 45 pays restants (9/54 deja publies : Burkina Faso, Cote d'Ivoire, Ghana, Guinee, Liberia, Mali, Nigeria, Senegal, Togo)
 
 | Pays | Slug prevu | ISO2 | Statut |
 |---|---|---|---|
@@ -55,11 +55,11 @@ Le script `scripts/generate-country-fiche.js` refuse de generer une fiche si le 
 | Mozambique | `mozambique` | MZ | ☐ a faire |
 | Namibie | `namibie` | NA | ☐ a faire |
 | Niger | `niger` | NE | ☐ a faire |
-| Nigeria | `nigeria` | NG | ☐ a faire |
+| Nigeria | `nigeria` | NG | publiee (source France Diplomatie) |
 | Ouganda | `ouganda` | UG | ☐ a faire |
 | Rwanda | `rwanda` | RW | ☐ a faire |
 | Sao Tome-et-Principe | `sao-tome-et-principe` | ST | ☐ a faire |
-| Senegal | `senegal` | SN | ☐ a faire |
+| Senegal | `senegal` | SN | publiee (source France Diplomatie) |
 | Seychelles | `seychelles` | SC | ☐ a faire |
 | Sierra Leone | `sierra-leone` | SL | ☐ a faire |
 | Somalie | `somalie` | SO | ☐ a faire |
@@ -67,7 +67,7 @@ Le script `scripts/generate-country-fiche.js` refuse de generer une fiche si le 
 | Soudan du Sud | `soudan-du-sud` | SS | ☐ a faire |
 | Tanzanie | `tanzanie` | TZ | ☐ a faire |
 | Tchad | `tchad` | TD | ☐ a faire |
-| Togo | `togo` | TG | ☐ a faire |
+| Togo | `togo` | TG | publiee (source France Diplomatie) |
 | Tunisie | `tunisie` | TN | ☐ a faire |
 | Zambie | `zambie` | ZM | ☐ a faire |
 | Zimbabwe | `zimbabwe` | ZW | ☐ a faire |
