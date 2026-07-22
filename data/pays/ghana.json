@@ -1,0 +1,40 @@
+{
+  "iso2": "GH",
+  "slug": "ghana",
+  "name": "Ghana",
+  "namePrep": "au Ghana",
+  "region": "Afrique de l'Ouest",
+  "capital": "Accra",
+  "datePublished": "2026-01-15",
+  "dateModified": "2026-07-21",
+  "metaDescription": "Situation securitaire au Ghana : veille geopolitique, zones a risque et alertes en temps reel avec l'application SentiqS.",
+  "keywords": "Ghana securite, risque pays Ghana, veille geopolitique Accra, surete entreprise Afrique de l'Ouest, SentiqS",
+  "summary": "Le Ghana demeure l'une des democraties les plus stables d'Afrique de l'Ouest, ayant connu une alternance pacifique a l'issue de l'election presidentielle de decembre 2024. Le principal point de vigilance concerne la frontiere nord avec le Burkina Faso, exposee a un risque de debordement de l'instabilite sahelienne vers les regions du Nord, des Savanes et du Haut-Est. Accra et Kumasi restent des centres economiques globalement surs, tandis que certaines zones du nord connaissent des tensions communautaires ponctuelles liees a des conflits fonciers ou de chefferie.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste et Insurrectionnel",
+      "text": "Le Ghana n'a pas connu d'attaque jihadiste organisee sur son sol a ce jour. Le principal point de vigilance reste la frontiere nord avec le Burkina Faso, ou un risque de debordement des groupes armes saheliens vers les regions du Nord, des Savanes et du Haut-Est est surveille de pres par les autorites, qui ont renforce leur dispositif securitaire frontalier."
+    },
+    "crime": {
+      "title": "Risque Criminel et Volatilite Urbaine",
+      "text": "Accra et Kumasi connaissent une criminalite urbaine classique (vols, escroqueries) plus qu'une violence organisee. Des tensions communautaires ponctuelles, liees a des conflits de chefferie ou fonciers, peuvent survenir dans certaines regions du nord. Le contexte politique reste globalement stable depuis l'alternance democratique de janvier 2025."
+    },
+    "infra": {
+      "title": "Risques Infrastructures, Energie et Logistique",
+      "text": "Le reseau electrique ghaneen a historiquement connu des periodes de delestage (dumsor) liees a des tensions sur l'approvisionnement energetique. Le reseau routier et les telecommunications sont globalement fiables dans le sud du pays, mais plus limites dans les regions septentrionales frontalieres."
+    }
+  },
+  "neighbors": [
+    { "name": "Burkina Faso", "slug": "burkina-faso", "available": true },
+    { "name": "Cote d'Ivoire", "slug": "cote-divoire", "available": true },
+    { "name": "Togo", "slug": "togo", "available": false }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Renforcement du dispositif securitaire signale dans une localite frontaliere de la region du Nord.", "time": "Il y a 4h" },
+    { "tag": "SOCIAL", "text": "Mouvement de protestation localise a Kumasi, circulation perturbee sur un axe secondaire.", "time": "Il y a 11h" },
+    { "tag": "INFRA", "text": "Coupure d'electricite programmee annoncee par le gestionnaire du reseau dans le sud du pays.", "time": "Il y a 1j" }
+  ],
+  "sources": [
+    "https://ytl1-ops.github.io/SentiqS/pays/ghana.html (contenu retranscrit depuis la fiche deja publiee et validee sur le site SentiqS)"
+  ]
+}
