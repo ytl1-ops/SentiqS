@@ -1,0 +1,74 @@
+{
+  "iso2": "SN",
+  "slug": "senegal",
+  "name": "Senegal",
+  "namePrep": "au Senegal",
+  "region": "Afrique de l'Ouest",
+  "capital": "Dakar",
+  "datePublished": "2026-07-22",
+  "dateModified": "2026-07-22",
+  "metaDescription": "Situation securitaire au Senegal : Casamance, frontieres, criminalite urbaine et alertes en temps reel avec l'application SentiqS.",
+  "keywords": "Senegal securite, risque pays Senegal, veille geopolitique Dakar Casamance, surete entreprise Afrique de l'Ouest, SentiqS",
+  "summary": "Le Senegal figure parmi les democraties les plus stables d'Afrique de l'Ouest, avec Dakar comme pole economique et diplomatique majeur. Les principaux points de vigilance concernent la Casamance (frontieres avec la Gambie et la Guinee-Bissau) ainsi que la zone frontaliere avec le Mali et le sud de la Mauritanie, exposees a un risque de debordement de l'instabilite regionale. La criminalite urbaine classique (vols, agressions) est presente a Dakar et dans les zones touristiques du littoral.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste Transfrontalier",
+      "text": "La menace terroriste n'est pas averee sur le sol senegalais a ce jour, mais elle est confirmee dans plusieurs Etats voisins, notamment a la frontiere avec le Mali. Une vigilance particuliere est recommandee dans l'est du pays et le long de cette frontiere, ou les controles routiers et d'identite sont renforces."
+    },
+    "crime": {
+      "title": "Delinquance Urbaine et Criminalite",
+      "text": "Les actes de delinquance visent principalement les biens (vols a la tire, cambriolages) et sont en hausse depuis une decennie, avec des pics autour des grandes fetes religieuses. Dakar et les zones touristiques du littoral (Somone, Saly, Lac Rose) sont concernees ; une prudence renforcee est recommandee la nuit et lors des rassemblements."
+    },
+    "infra": {
+      "title": "Risques Transport et Climatique",
+      "text": "Les accidents de la route sont tres frequents en raison d'un parc automobile vetuste et d'infrastructures inegales ; les deplacements interurbains de nuit sont deconseilles. La saison des pluies (juillet a octobre) peut provoquer des inondations soudaines bloquant les axes routiers, y compris a Dakar."
+    }
+  },
+  "neighbors": [
+    {
+      "name": "Mali",
+      "slug": "mali",
+      "available": true
+    },
+    {
+      "name": "Guinee",
+      "slug": "guinee",
+      "available": true
+    },
+    {
+      "name": "Mauritanie",
+      "slug": "mauritanie",
+      "available": false
+    },
+    {
+      "name": "Gambie",
+      "slug": "gambie",
+      "available": false
+    },
+    {
+      "name": "Guinee-Bissau",
+      "slug": "guinee-bissau",
+      "available": false
+    }
+  ],
+  "alertsSample": [
+    {
+      "tag": "SURETE",
+      "text": "Controles renforces signales le long de la frontiere orientale avec le Mali.",
+      "time": "Il y a 5h"
+    },
+    {
+      "tag": "SOCIAL",
+      "text": "Rassemblement localise signale dans le centre de Dakar, vigilance conseillee aux abords.",
+      "time": "Il y a 10h"
+    },
+    {
+      "tag": "INFRA",
+      "text": "Fortes precipitations signalees, risque de perturbation ponctuelle de la circulation dans l'agglomeration de Dakar.",
+      "time": "Il y a 1j"
+    }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/senegal/conseils-aux-voyageurs-securite (France Diplomatie, fiche Securite Senegal, mise a jour 01 juillet 2026)"
+  ]
+}
