@@ -1,0 +1,34 @@
+name: SEO - Fraicheur sitemap
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-freshness:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Met a jour les dates de fraicheur du sitemap
+        run: node scripts/update-sitemap-freshness.js
+
+      - name: Ouvre une Pull Request si changement detecte
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(seo): actualisation automatique de la fraicheur du sitemap"
+          branch: automation/seo-freshness-update
+          title: "SEO - Actualisation automatique de la fraicheur (sitemap)"
+          body: |
+            Pull Request generee automatiquement par le workflow seo-freshness.yml.
+
+            Met a jour les balises lastmod de web/sitemap.xml pour refleter l'activite reelle du site (axe 2 - automatisation).
+
+            A verifier rapidement puis fusionner. Aucune donnee sensible n'est manipulee par cette automatisation.
+          delete-branch: true
