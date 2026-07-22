@@ -27,7 +27,7 @@
   "neighbors": [
     { "name": "Burkina Faso", "slug": "burkina-faso", "available": true },
     { "name": "Cote d'Ivoire", "slug": "cote-divoire", "available": true },
-    { "name": "Togo", "slug": "togo", "available": false }
+    { "name": "Togo", "slug": "togo", "available": true }
   ],
   "alertsSample": [
     { "tag": "SURETE", "text": "Renforcement du dispositif securitaire signale dans une localite frontaliere de la region du Nord.", "time": "Il y a 4h" },
