@@ -1,0 +1,70 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Fiche Pays SentiqS - schema de donnees",
+  "description": "Schema pour les fichiers data/pays/<slug>.json utilises par scripts/generate-country-fiche.js. REGLE DE SECURITE : chaque fiche doit etre redigee a partir de sources verifiees (diplomatie, OSAC, Crisis24, presse locale fiable, ONG reconnues). Ne jamais inventer de contenu securitaire. Le champ 'sources' est obligatoire et ne doit jamais etre vide.",
+  "type": "object",
+  "required": ["iso2", "slug", "name", "namePrep", "region", "capital", "datePublished", "dateModified", "metaDescription", "keywords", "summary", "threats", "neighbors", "sources"],
+  "properties": {
+    "iso2": { "type": "string", "pattern": "^[A-Z]{2}$", "description": "Code ISO 3166-1 alpha-2, ex: GH" },
+    "slug": { "type": "string", "pattern": "^[a-z0-9-]+$", "description": "Identifiant URL, ex: ghana" },
+    "name": { "type": "string", "description": "Nom du pays affiche, ex: Ghana" },
+    "namePrep": { "type": "string", "description": "Locution prepositionnelle, ex: 'au Ghana', 'en Angola', 'en Cote d ivoire'" },
+    "region": { "type": "string", "description": "Ex: Afrique de l'Ouest" },
+    "capital": { "type": "string" },
+    "datePublished": { "type": "string", "format": "date" },
+    "dateModified": { "type": "string", "format": "date" },
+    "metaDescription": { "type": "string", "maxLength": 160 },
+    "keywords": { "type": "string" },
+    "summary": { "type": "string", "minLength": 50, "description": "Paragraphe de synthese, base sur des sources verifiees" },
+    "threats": {
+      "type": "object",
+      "required": ["terrorism", "crime", "infra"],
+      "properties": {
+        "terrorism": { "$ref": "#/definitions/threatBlock" },
+        "crime": { "$ref": "#/definitions/threatBlock" },
+        "infra": { "$ref": "#/definitions/threatBlock" }
+      }
+    },
+    "neighbors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "slug", "available"],
+        "properties": {
+          "name": { "type": "string" },
+          "slug": { "type": "string" },
+          "available": { "type": "boolean", "description": "true si la fiche du voisin existe deja dans web/pays/" }
+        }
+      }
+    },
+    "alertsSample": {
+      "type": "array",
+      "description": "Optionnel. Exemples d'apercu generiques par categorie (SURETE/SOCIAL/INFRA), jamais un incident specifique invente.",
+      "items": {
+        "type": "object",
+        "required": ["tag", "text", "time"],
+        "properties": {
+          "tag": { "type": "string" },
+          "text": { "type": "string" },
+          "time": { "type": "string" }
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "description": "OBLIGATOIRE, non vide : URLs des sources verifiees utilisees pour rediger cette fiche.",
+      "items": { "type": "string" }
+    }
+  },
+  "definitions": {
+    "threatBlock": {
+      "type": "object",
+      "required": ["title", "text"],
+      "properties": {
+        "title": { "type": "string" },
+        "text": { "type": "string", "minLength": 30 }
+      }
+    }
+  }
+}
