@@ -246,6 +246,13 @@ export default function FeedScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />}
           contentContainerStyle={{ paddingBottom: 20 }}
           ListFooterComponent={loadingMore ? <ActivityIndicator color={Colors.primary} style={{ margin: 16 }} /> : null}
+        ListEmptyComponent={!loading ? (
+          <View style={s.emptyWrap}>
+            <Ionicons name="file-tray-outline" size={40} color={Colors.textMuted} />
+            <Text style={s.emptyTitle}>Aucun article trouvé</Text>
+            <Text style={s.emptySub}>Essayez une autre recherche ou catégorie.</Text>
+          </View>
+        ) : null}
           renderItem={({ item: article }) => (
             <TouchableOpacity style={s.articleCard} onPress={() => handleArticlePress(article)}>
               <View style={s.articleLeft}>
@@ -300,6 +307,9 @@ const DEMO_ALERTS: SentinelAlert[] = [
 
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.surface },
+  emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80, paddingHorizontal: Spacing.xl },
+  emptyTitle: { fontSize: 15, fontWeight: '600', color: Colors.text, marginTop: 12 },
+  emptySub: { fontSize: 12, color: Colors.textSecond, marginTop: 4, textAlign: 'center' },
   header: { backgroundColor: Colors.dark, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   headerTitle: { fontSize: 16, fontWeight: '700', color: '#fff', letterSpacing: 1.5 },
   headerSub: { fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 1 },

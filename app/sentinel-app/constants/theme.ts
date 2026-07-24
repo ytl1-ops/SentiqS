@@ -34,6 +34,18 @@ export const Radius = {
   sm: 6, md: 10, lg: 16, xl: 24, full: 999,
 };
 
+export const FontSize = {
+  xs: 10, sm: 11, base: 13, md: 14, lg: 16, xl: 18, xxl: 22, display: 28,
+};
+
+export const LineHeight = {
+  tight: 1.2, normal: 1.4, relaxed: 1.6, loose: 1.7,
+};
+
+export const FontWeight = {
+  regular: '400' as const, medium: '500' as const, semibold: '600' as const, bold: '700' as const, extrabold: '800' as const,
+};
+
 export const PLANS_CONFIG = [
   { slug: 'trial',       name: 'Essai gratuit', duration: '72 heures', price: 'Gratuit',    badge: '50 articles', color: Colors.success },
   { slug: 'starter',     name: 'Starter',       duration: '7 jours',   price: '2 500 FCFA', badge: null,          color: Colors.primary },

@@ -164,6 +164,7 @@ export default function ProfileScreen() {
             <Switch
               value={notifs}
               onValueChange={setNotifs}
+              accessibilityLabel="Notifications alertes"
               trackColor={{ true: Colors.primary }}
               style={{ marginLeft: 'auto' }}
             />
@@ -200,6 +201,7 @@ export default function ProfileScreen() {
             <Switch
               value={rappelActif}
               onValueChange={setRappelActif}
+              accessibilityLabel="Activer les rappels"
               trackColor={{ true: Colors.primary }}
               style={{ marginLeft: 'auto' }}
             />
@@ -236,7 +238,10 @@ export default function ProfileScreen() {
           {!!rappelMsg && <Text style={s.rappelMsg}>{rappelMsg}</Text>}
         </View>
 
-        <TouchableOpacity style={s.signOutBtn} onPress={handleSignOut}>
+        <TouchableOpacity style={s.signOutBtn} onPress={handleSignOut}
+          accessibilityRole="button"
+          accessibilityLabel="Se déconnecter"
+        >
           <Ionicons name="log-out-outline" size={18} color={Colors.danger} />
           <Text style={s.signOutTxt}>Déconnexion</Text>
         </TouchableOpacity>

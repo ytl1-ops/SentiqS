@@ -132,6 +132,9 @@ export default function MapScreen() {
           <TouchableOpacity
             style={[s.typeChip, type === item.key && s.typeChipActive]}
             onPress={() => { setType(item.key); setSelectedCountry(null); }}
+              accessibilityRole="button"
+              accessibilityLabel={`Filtrer par ${item.label}`}
+              accessibilityState={{ selected: type === item.key }}
           >
             <Ionicons name={item.icon} size={13} color={type === item.key ? Colors.primary : Colors.textSecond} />
             <Text style={[s.typeText, type === item.key && s.typeTextActive]}>{item.label}</Text>
@@ -161,6 +164,9 @@ export default function MapScreen() {
                   key={country}
                   style={[s.countryCard, { borderColor: SEVERITY_COLOR[maxSeverity] }, isSelected && s.countryCardSelected]}
                   onPress={() => setSelectedCountry(isSelected ? null : country)}
+accessibilityRole="button"
+                  accessibilityLabel={`${countryInfo?.name ?? country}, ${pts.length} signalaux, sévérité ${SEVERITY_LABEL[maxSeverity]}`}
+                  accessibilityState={{ selected: isSelected }}
                 >
                   <View style={[s.countryDot, { backgroundColor: SEVERITY_COLOR[maxSeverity] }]} />
                   <Text style={s.countryName} numberOfLines={1}>{countryInfo?.name ?? country}</Text>
