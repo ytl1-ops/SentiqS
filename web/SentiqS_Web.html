@@ -7599,7 +7599,7 @@ function parseRSS(xml, src) {
       // flux ne fournit aucune description exploitable.
       analysis: desc || 'Resume non disponible pour cette actualite.',
       url: link, srcs:[src.id], primary:src.id,
-      cy:(cyReel || src.cy), sc:((cyReel === 'INT') ? 'regional' : ((cyReel && cyReel !== src.cy) ? 'national' : src.sc)), cat, level:lvl,
+      cy:(cyConfiant ? cyReel : (src.cy || cyReel)), sc:((cyReel === 'INT') ? 'regional' : ((cyReel && cyReel !== src.cy) ? 'national' : src.sc)), cat, level:lvl,
       score:src.score, pubDate:pubTs, time:fmtAge(pubTs),
       verified:src.score>=80,
       crosses:[src.n],
@@ -12714,7 +12714,7 @@ async function publierCollectePartagee(articles, force) {
   try {
     const { data: existant, error: erreurLecture } = await client.from('collecte_partagee').select('articles,updated_at').eq('id', COLLECTE_PARTAGEE_ID).maybeSingle();
     if (erreurLecture) { console.warn('SentiqS — publierCollectePartagee a echoue (lecture) :', erreurLecture.message || erreurLecture); return { ok: false, raison: erreurLecture.message || String(erreurLecture) }; }
-    if (!force && existant && existant.updated_at && (Date.now() - new Date(existant.updated_at).getTime()) < COLLECTE_PARTAGEE_FRAICHEUR_MS) return { ok: true, ignore: true };
+    if (!force && existant && existant.updated_at && (Date.now() - new Date(existant.updated_at).getTime()) < COLLECTE_PARTAGEE_FRAICHEUR_MS) { const _cvr = new Set((existant.articles||[]).filter(a=>a&&a.pubDate&&(Date.now()-a.pubDate)<COLLECTE_PARTAGEE_FRAICHEUR_MS).map(a=>a.cy)); const _neuf = Array.isArray(articles) && articles.some(a=>a&&a.cy&&a.pubDate&&(Date.now()-a.pubDate)<COLLECTE_PARTAGEE_FRAICHEUR_MS&&!_cvr.has(a.cy)); if (!_neuf) return { ok: true, ignore: true }; }
     // FUSIONNE avec le cache existant au lieu de l'ECRASER — chaque run du
     // job planifie (.github/workflows/collecte-planifiee.yml, ~30 min) ne
     // couvre typiquement qu'un sous-ensemble des ~495 sources avant de buter
