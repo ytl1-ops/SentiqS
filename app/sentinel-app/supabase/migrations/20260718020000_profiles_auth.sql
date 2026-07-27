@@ -31,14 +31,6 @@
 --
 -- Appliquer via `npx supabase db push` (app/sentinel-app/) ou copier-coller
 -- dans l'éditeur SQL du projet Supabase, à la suite de 20260718010000.
---
--- ATTENTION — cette table `profiles` a déjà été créée avec des colonnes
--- incompatibles par 20260629000000_initial_schema.sql, sans DROP ici :
--- rejouer les migrations dans l'ordre sur une base neuve échoue à ce
--- stade ("relation profiles already exists"). Voir
--- 20260727000000_reconcile_profiles_schema.sql pour le détail et la
--- réconciliation additive (n'édite pas ce fichier pour ne pas risquer un
--- DROP contre une base qui contient déjà de vraies lignes utilisateur).
 -- ============================================================
 
 CREATE TABLE profiles (

@@ -1,7 +1,0 @@
-node_modules
-dist
-dist-ssr
-out
-*.local
-.DS_Store
-auto-imports.d.ts
