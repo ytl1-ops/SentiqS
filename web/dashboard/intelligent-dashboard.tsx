@@ -37,7 +37,7 @@ export function RiskMap({ stats }: { stats: any }) {
   };
 
   return (
-    <div className="bg-panel rounded-lg border border-line2 p-4 h-96">
+    <div className="bg-panel rounded-lg border border-line2 p-4 h-72 sm:h-96">
       <h3 className="text-ink font-bold mb-4">🗺️ Risk Map - Africa</h3>
       <MapGL
         {...viewport}
@@ -126,7 +126,7 @@ export function SeverityGauge({ stats }: { stats: any }) {
           <Tooltip />
         </PieChart>
       </ResponsiveContainer>
-      <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+      <div className="mt-4 grid grid-cols-2 gap-2 text-xs sm:text-sm">
         {data.map(item => (
           <div key={item.name} className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
@@ -312,7 +312,7 @@ function MetricCard({
       <div className="flex items-start justify-between">
         <div>
           <p className="text-ink3 text-sm font-medium">{label}</p>
-          <p className="text-ink font-bold text-2xl mt-1">{value}</p>
+          <p className="text-ink font-bold text-xl sm:text-2xl mt-1">{value}</p>
         </div>
         <span className="text-2xl">{icon}</span>
       </div>
@@ -338,11 +338,11 @@ export function IntelligentDashboard({ userId }: { userId: string }) {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <div>
-          <h1 className="text-ink font-bold text-3xl">SentiqS Dashboard</h1>
+          <h1 className="text-ink font-bold text-2xl sm:text-3xl">SentiqS Dashboard</h1>
           <p className="text-ink3 text-sm mt-1">Real-time security intelligence</p>
         </div>
         <div className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -353,7 +353,7 @@ export function IntelligentDashboard({ userId }: { userId: string }) {
       </div>
 
       {/* Key Metrics */}
-      <KeyMetrics stats={stats} connected={connected} />
+      <KeyMetrics stats={stats} connected={connected} />{" "}<TimelineView alerts={alerts} />
 
       {/* Main Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -368,10 +368,10 @@ export function IntelligentDashboard({ userId }: { userId: string }) {
         </div>
       </div>
 
-      {/* Trends & Timeline */}
+      {/* Trend */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <TrendChart alerts={alerts} />
-        <TimelineView alerts={alerts} />
+         
       </div>
 
       {/* Correlations */}
