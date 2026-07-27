@@ -166,7 +166,7 @@ button{cursor:pointer;font-family:inherit}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    COMPOSANTS DE PRESENTATION PARTAGES — tuiles de stats, badges de severite,
-   barre de filtres, cartes de liste. Introduits pour une presentation
+   cartes de liste. Introduits pour une presentation
    coherente entre Vue d'ensemble / Alertes / Actualites / Synthese / Agenda /
    Geopolitique / Rapports, sans dupliquer du style ad hoc vue par vue. Batis
    uniquement sur les variables deja definies plus haut (--n/--b/--bd/--sf/
@@ -185,10 +185,6 @@ button{cursor:pointer;font-family:inherit}
 .sev-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;
   border-radius:4px;font-size:9px;font-weight:700;letter-spacing:.05em;
   text-transform:uppercase;color:#fff;white-space:nowrap;flex-shrink:0}
-
-.filter-chip-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px}
-.filter-chip-bar select{padding:4px 10px;border:1px solid var(--bd);border-radius:20px;
-  font-size:11px;font-weight:600;color:var(--t);background:var(--sf)}
 
 .list-card{display:flex;flex-direction:column;background:var(--w);
   border:1px solid var(--bd);border-radius:var(--card-radius);overflow:hidden;
@@ -10720,13 +10716,13 @@ async function renderPanelATraiter(cyFiltre, zoneFiltre) {
   const LVL_LB  = {crit:'CRITIQUE', high:'ÉLEVÉ', mod:'MODÉRÉ', ok:'STABLE'};
   await preTraduireRapport(arts.map(a => a.title));
   if (!arts.length) {
-    return `<div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:16px;margin-bottom:12px;text-align:center;color:var(--lg);font-size:11px;">
+    return `<div class="list-card" style="padding:16px;text-align:center;color:var(--lg);font-size:11px;">
       <i class="ti ti-circle-check" style="font-size:22px;color:#0F4F2A;display:block;margin-bottom:6px;"></i>
       Aucune actualité de moins de 12h en attente de traitement.
     </div>`;
   }
-  return `<div style="background:var(--w);border:1px solid var(--bd);border-left:3px solid var(--b);border-radius:9px;padding:12px;margin-bottom:12px;">
-    <div style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+  return `<div class="list-card" style="border-left:3px solid var(--b);margin-bottom:12px;">
+    <div style="padding:10px 12px;border-bottom:1px solid var(--bd);font-size:11px;font-weight:700;color:var(--t);display:flex;align-items:center;gap:6px;">
       <i class="ti ti-clock-exclamation" style="color:var(--b)"></i>
       Actualités à traiter (moins de 12h)
       <span style="margin-left:auto;background:var(--b);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;">${arts.length}</span>
@@ -10735,11 +10731,11 @@ async function renderPanelATraiter(cyFiltre, zoneFiltre) {
       ${arts.map(a => {
         const pays = infoPays(a.cy);
         const surv = fmtSurvenance(a);
-        return `<div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--bd);align-items:flex-start;">
+        return `<div class="list-row" style="cursor:pointer;" onclick="showDet('${a.id}');switchView('flux',document.querySelector('.ntab[onclick*=flux]'))">
           <span style="width:6px;height:6px;border-radius:50%;background:${LVL_COL[a.level]||'#4B5563'};flex-shrink:0;margin-top:5px;"></span>
-          <div style="flex:1;min-width:0;cursor:pointer;" onclick="showDet('${a.id}');switchView('flux',document.querySelector('.ntab[onclick*=flux]'))">
-            <div style="font-size:9px;color:var(--lg);font-weight:600;">${pays.flag} ${pays.name} · ${LVL_LB[a.level]||'INFO'} · ${surv.texte}</div>
-            <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.35;" id="atrait-${a.id}">${escHtml(L(a.title))}</div>
+          <div class="lr-body">
+            <div class="lr-meta">${pays.flag} ${pays.name} · ${LVL_LB[a.level]||'INFO'} · ${surv.texte}</div>
+            <div class="lr-title" id="atrait-${a.id}">${escHtml(L(a.title))}</div>
           </div>
           <button onclick="event.stopPropagation();marquerArticleTraite('${a.id}')" title="Marquer comme traité" style="flex-shrink:0;background:none;border:1px solid var(--bd);border-radius:5px;padding:3px 7px;font-size:9px;color:var(--lg);cursor:pointer;">
             <i class="ti ti-check"></i>
@@ -10946,7 +10942,7 @@ async function updSynthese() {
     socialPerimetre.forEach(a => { parPays[a.cy] = (parPays[a.cy]||0)+1; });
     const topPays = Object.entries(parPays).sort((a,b)=>b[1]-a[1]).slice(0,3)
       .map(([cy,n]) => (PAYS_INFO[cy]?PAYS_INFO[cy].flag+' '+PAYS_INFO[cy].name:cy)+' ('+n+')').join(' · ');
-    html += '<div class="sy-sec"><div class="sy-shd" style="background:#EEF2F7;color:#1E2530;"><i class="ti ti-social"></i>Pouls reseaux sociaux ('+socialPerimetre.length+' publications)</div>'+
+    html += '<div class="list-card" style="margin-bottom:20px;"><div style="padding:8px 12px;background:#EEF2F7;color:#1E2530;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:6px;"><i class="ti ti-social"></i>Pouls reseaux sociaux ('+socialPerimetre.length+' publications)</div>'+
       '<div style="padding:10px 12px;font-size:11px;color:var(--t2);line-height:1.7;">'+
       'Sentiment : <strong style="color:#15803D">'+pos+' positifs</strong> · <strong style="color:#8B1A1A">'+neg+' negatifs</strong> · <strong>'+(socialPerimetre.length-pos-neg)+' neutres</strong><br>'+
       (termes.length ? 'Tendances : '+termes.map(t=>t.terme).join(', ')+'<br>' : '')+
@@ -16182,7 +16178,7 @@ async function renderAlertTable(scores) {
     return `<tr style="background:${bg};cursor:pointer;" onclick="ouvrirVuePays('${s.cy}')" onmouseover="this.style.background='var(--bl)'" onmouseout="this.style.background='${bg}'">
       <td style="padding:7px 10px;font-size:11px;font-weight:700;color:var(--t);">${pays.flag} ${pays.name}</td>
       <td style="padding:7px 10px;font-size:10px;color:var(--t2);">${pays.capital}</td>
-      <td style="padding:7px 10px;"><div style="padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700;color:#fff;background:${n.col};display:inline-block;">${n.label} — ${n.sous}</div></td>
+      <td style="padding:7px 10px;"><span class="sev-badge" style="background:${n.col};">${n.label} — ${n.sous}</span></td>
       <td style="padding:7px 10px;font-size:11px;font-weight:700;color:${n.col};">${s.total100}</td>
       <td style="padding:7px 10px;font-size:10px;color:var(--t2);">${s.events.length}</td>
       <td style="padding:7px 10px;font-size:9px;color:var(--t2);">${escHtml(L(m.expatries[0]))}</td>
