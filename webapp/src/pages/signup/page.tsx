@@ -4,8 +4,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import i18n from '@/i18n';
 import { supabase } from '@/lib/supabase';
 
-const EDGE_FUNCTION_URL = `${import.meta.env.VITE_PUBLIC_SUPABASE_URL}/functions/v1/auto-confirm-signup`;
-
 export default function Signup() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -61,44 +59,64 @@ export default function Signup() {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(EDGE_FUNCTION_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.VITE_PUBLIC_SUPABASE_ANON_KEY as string,
-        },
-        body: JSON.stringify({
-          email: email.trim(),
-          password,
-          full_name: fullName.trim(),
-          organization: organization.trim(),
-          zone,
-        }),
+      // Flux reel Supabase Auth (comme doRegister() dans
+      // web/SentiqS_Web.html) : signUp cree le compte reel, puis on cree
+      // la ligne `profiles` associee (role/status determines cote serveur
+      // par un trigger, jamais par ce que le client envoie ici — voir
+      // profiles_before_insert()). Les champs secondaires (nom,
+      // organisation, zone prioritaire) vivent dans data (jsonb), meme
+      // convention que le site reel.
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
       });
 
-      const data = await response.json();
-
-      if (!response.ok || data.error) {
-        const errMsg = data.error || 'Signup failed';
-        if (errMsg.toLowerCase().includes('already') || errMsg.toLowerCase().includes('exists')) {
+      if (error) {
+        const msg = error.message.toLowerCase();
+        if (msg.includes('already') || msg.includes('registered') || msg.includes('exists')) {
           setFormError(lang === 'fr' ? 'Un compte existe déjà avec cette adresse e-mail. Veuillez vous connecter.' : 'An account already exists with this email. Please log in.');
         } else {
-          setFormError(errMsg);
+          setFormError(error.message);
         }
+        return;
+      }
+
+      if (data.user) {
+        const { error: profileError } = await supabase.from('profiles').insert({
+          id: data.user.id,
+          email: email.trim(),
+          data: {
+            name: fullName.trim(),
+            organisation: organization.trim(),
+            zonePrioritaire: zone || null,
+            plan: 'gratuit',
+            createdAt: new Date().toISOString(),
+          },
+        });
+        // Une ligne profiles peut deja exister (ex. nouvelle tentative
+        // apres un email non confirme) — pas bloquant pour la suite.
+        if (profileError && profileError.code !== '23505') {
+          setFormError(profileError.message);
+          return;
+        }
+      }
+
+      if (data.session) {
+        navigate('/dashboard', { replace: true });
         return;
       }
 
       setSuccessMessage(
         lang === 'fr'
-          ? 'Compte créé avec succès ! Vous pouvez maintenant vous connecter.'
-          : 'Account created successfully! You can now log in.'
+          ? 'Compte créé ! Vérifiez votre boîte de réception pour confirmer votre adresse e-mail avant de vous connecter.'
+          : 'Account created! Check your inbox to confirm your email address before logging in.'
       );
     } catch {
       setFormError(lang === 'fr' ? 'Une erreur est survenue. Veuillez réessayer.' : 'An error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
-  }, [fullName, email, organization, zone, password, confirmPassword, lang]);
+  }, [fullName, email, organization, zone, password, confirmPassword, lang, navigate]);
 
   return (
     <div className="relative min-h-screen w-full flex flex-col items-center justify-between overflow-hidden bg-sentiqs-gray-bg">
