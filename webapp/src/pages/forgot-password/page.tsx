@@ -12,7 +12,6 @@ export default function ForgotPassword() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [resetLink, setResetLink] = useState('');
   const [checkingSession, setCheckingSession] = useState(true);
 
   useEffect(() => {
@@ -36,7 +35,6 @@ export default function ForgotPassword() {
     e.preventDefault();
     setFormError('');
     setSuccessMessage('');
-    setResetLink('');
 
     if (!email.trim()) {
       setFormError(lang === 'fr' ? 'Veuillez saisir votre adresse e-mail.' : 'Please enter your email address.');
@@ -45,30 +43,30 @@ export default function ForgotPassword() {
 
     setIsSubmitting(true);
     try {
-      const supabaseUrl = import.meta.env.VITE_PUBLIC_SUPABASE_URL;
-      const response = await fetch(`${supabaseUrl}/functions/v1/password-reset-link`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), lang }),
+      // Flux reel Supabase Auth (comme web/SentiqS_Web.html) : envoie un
+      // vrai email de reinitialisation via Supabase, qui redirige vers
+      // /reset-password une fois le lien clique. On n'affiche/ne renvoie
+      // JAMAIS de lien de reinitialisation directement au navigateur — un
+      // tel lien permettrait a n'importe qui de reinitialiser le mot de
+      // passe de n'importe quel compte sans jamais avoir acces a sa boite
+      // mail (l'ancienne version de cette page, branchee sur une fonction
+      // edge desormais retiree, faisait exactement ca).
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`,
       });
 
-      const data = await response.json();
-
-      if (!response.ok || data.error) {
-        setFormError(data.error || (lang === 'fr' ? 'Une erreur est survenue.' : 'An error occurred.'));
+      if (error) {
+        setFormError(error.message);
         return;
       }
 
-      if (data.action_link) {
-        setResetLink(data.action_link);
-        setSuccessMessage(
-          lang === 'fr'
-            ? 'Lien de réinitialisation généré avec succès.'
-            : 'Reset link generated successfully.'
-        );
-      } else if (data.note) {
-        setSuccessMessage(data.note);
-      }
+      // Message volontairement identique que l'email existe ou non, pour
+      // ne pas laisser deviner quelles adresses ont un compte.
+      setSuccessMessage(
+        lang === 'fr'
+          ? "Si un compte existe pour cette adresse, un e-mail de réinitialisation vient d'être envoyé."
+          : 'If an account exists for this address, a reset email has just been sent.'
+      );
     } catch {
       setFormError(lang === 'fr' ? 'Une erreur est survenue. Veuillez réessayer.' : 'An error occurred. Please try again.');
     } finally {
@@ -182,25 +180,6 @@ export default function ForgotPassword() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-green-800">{successMessage}</p>
-                  {resetLink && (
-                    <>
-                      <p className="text-xs text-green-700 mt-2 mb-3">
-                        {lang === 'fr'
-                          ? 'Aucun email n\'est envoyé. Le lien est affiché directement ci-dessous :'
-                          : 'No email is sent. The reset link is displayed directly below:'}
-                      </p>
-                      <div className="bg-white border border-green-300 rounded-lg p-3 mb-3 break-all">
-                        <p className="text-xs text-gray-600 font-mono break-all">{resetLink}</p>
-                      </div>
-                      <a
-                        href={resetLink}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-sentiqs-navy hover:bg-sentiqs-navy-light text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
-                      >
-                        <i className="ri-lock-unlock-line" />
-                        {lang === 'fr' ? 'Réinitialiser le mot de passe' : 'Reset Password'}
-                      </a>
-                    </>
-                  )}
                   <Link
                     to="/login"
                     className="inline-block mt-3 text-sm font-semibold text-sentiqs-blue hover:text-sentiqs-blue-dark transition-colors underline underline-offset-2 ml-3"
