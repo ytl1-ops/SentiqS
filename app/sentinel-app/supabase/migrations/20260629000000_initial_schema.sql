@@ -4,13 +4,6 @@
 -- Appliquer via la CLI Supabase : `npx supabase link` puis
 -- `npx supabase db push` depuis app/sentinel-app/, ou copier-coller
 -- ce fichier dans l'éditeur SQL du projet Supabase.
---
--- ATTENTION — la table `profiles` créée ici est redéfinie de façon
--- incompatible par 20260718020000_profiles_auth.sql (schéma réellement
--- utilisé par web/SentiqS_Web.html en production), sans DROP entre les
--- deux : rejouer ces migrations dans l'ordre sur une base neuve échoue.
--- Voir 20260727000000_reconcile_profiles_schema.sql pour le détail et la
--- réconciliation additive.
 -- ============================================================
 
 -- Extension UUID
