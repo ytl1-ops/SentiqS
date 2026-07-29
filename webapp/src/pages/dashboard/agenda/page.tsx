@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { agendaEvents } from '@/mocks/dashboard';
+import { useAgenda, type AgendaEvent } from '@/lib/planning';
 import ShareModal from '@/components/feature/ShareModal';
 
 const MONTHS_FR = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
@@ -34,6 +34,7 @@ const priorityBadge = (p: string) => {
 export default function AgendaPage() {
   const { t, i18n } = useTranslation();
   const isFr = i18n.language.startsWith('fr');
+  const { data: agendaEvents, loading, error, recharger } = useAgenda();
 
   const today = new Date();
   const [viewMonth, setViewMonth] = useState(today.getMonth());
@@ -57,13 +58,13 @@ export default function AgendaPage() {
   };
 
   const eventsByDate = useMemo(() => {
-    const map: Record<string, typeof agendaEvents> = {};
+    const map: Record<string, AgendaEvent[]> = {};
     agendaEvents.forEach((ev) => {
       if (!map[ev.date]) map[ev.date] = [];
       map[ev.date].push(ev);
     });
     return map;
-  }, []);
+  }, [agendaEvents]);
 
   const selectedDateEvents = useMemo(() => {
     if (!selectedDate) return null;
@@ -73,12 +74,12 @@ export default function AgendaPage() {
   const selectedEventData = useMemo(() => {
     if (!selectedEvent) return null;
     return agendaEvents.find((e) => e.id === selectedEvent) || null;
-  }, [selectedEvent]);
+  }, [agendaEvents, selectedEvent]);
 
   const allEventTypes = useMemo(() => {
     const types = new Set(agendaEvents.map((e) => e.type));
     return Array.from(types) as EventType[];
-  }, []);
+  }, [agendaEvents]);
 
   const calendarDays = useMemo(() => {
     const firstDay = new Date(viewYear, viewMonth, 1);
@@ -105,7 +106,7 @@ export default function AgendaPage() {
         return new Date(ev.date) >= new Date(new Date().setHours(0, 0, 0, 0));
       })
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [typeFilter]);
+  }, [agendaEvents, typeFilter]);
 
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
@@ -113,7 +114,28 @@ export default function AgendaPage() {
     const counts: Record<string, number> = {};
     agendaEvents.forEach((ev) => { counts[ev.type] = (counts[ev.type] || 0) + 1; });
     return counts;
-  }, []);
+  }, [agendaEvents]);
+
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="bg-white rounded-lg border border-gray-100 h-24 animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="py-12 text-center text-sentiqs-gray-text text-xs bg-white rounded-lg border border-gray-100">
+        Impossible de charger l'agenda : {error}
+        <button type="button" onClick={recharger} className="ml-2 text-sentiqs-navy font-semibold underline cursor-pointer">
+          Réessayer
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">

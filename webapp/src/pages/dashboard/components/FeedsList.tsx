@@ -1,19 +1,31 @@
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { dashboardFeeds } from '@/mocks/dashboard';
+import { useVeille, flux } from '@/lib/veille';
 
 export default function FeedsList() {
   const { t } = useTranslation();
+  const { articles, loading } = useVeille();
+  const dashboardFeeds = flux(articles);
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   };
 
+  if (loading) {
+    return <div className="bg-white rounded-xl border border-gray-100 p-4 h-64 animate-pulse" />;
+  }
+
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-bold text-sentiqs-navy">{t('dashboard.feeds.latest')}</h3>
       </div>
+      {dashboardFeeds.length === 0 && (
+        <p className="text-xs text-sentiqs-gray-text py-6 text-center">
+          Aucun article collecté pour l'instant.
+        </p>
+      )}
       <div className="space-y-3">
         {dashboardFeeds.map((feed) => (
           <div key={feed.id} className="flex items-start gap-2.5 pb-2.5 border-b border-gray-50 last:border-0 last:pb-0">
@@ -34,13 +46,12 @@ export default function FeedsList() {
         ))}
       </div>
       <div className="mt-3 pt-2 border-t border-gray-50">
-        <a
-          href="#"
+        <Link
+          to="/dashboard/feeds"
           className="text-xs text-sentiqs-blue hover:text-sentiqs-blue-dark transition-colors font-medium"
-          onClick={(e) => e.preventDefault()}
         >
           {t('dashboard.feeds.viewAll')} →
-        </a>
+        </Link>
       </div>
     </div>
   );

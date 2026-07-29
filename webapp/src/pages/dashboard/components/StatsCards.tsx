@@ -1,8 +1,10 @@
 import { useTranslation } from 'react-i18next';
-import { dashboardStats } from '@/mocks/dashboard';
+import { useVeille, stats } from '@/lib/veille';
 
 export default function StatsCards() {
   const { t } = useTranslation();
+  const { articles, loading } = useVeille();
+  const dashboardStats = stats(articles);
 
   const cards = [
     {
@@ -34,6 +36,16 @@ export default function StatsCards() {
       bgColor: 'bg-emerald-50',
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="bg-white rounded-xl border border-gray-100 p-4 h-[76px] animate-pulse" />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">

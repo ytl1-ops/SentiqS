@@ -1,15 +1,18 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { dashboardAlerts } from '@/mocks/dashboard';
+import { useVeille, alertes } from '@/lib/veille';
 import ShareModal from '@/components/feature/ShareModal';
 
-type Severity = 'all' | 'critical' | 'high' | 'medium' | 'low';
-type Status = 'all' | 'active' | 'monitoring' | 'resolved';
+// Les alertes descendent de la collecte réelle : par construction elles sont
+// critiques ou élevées, et n'ont pas de cycle de vie (voir VeilleAlerte.status).
+// Le filtre par statut a donc disparu, il ne discriminait plus rien.
+type Severity = 'all' | 'critical' | 'high';
 
 export default function AlertsPage() {
   const { t } = useTranslation();
+  const { articles, loading, error, recharger } = useVeille();
+  const dashboardAlerts = useMemo(() => alertes(articles), [articles]);
   const [severityFilter, setSeverityFilter] = useState<Severity>('all');
-  const [statusFilter, setStatusFilter] = useState<Status>('all');
   const [search, setSearch] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<string>('timestamp');
@@ -20,7 +23,6 @@ export default function AlertsPage() {
   const filteredAlerts = useMemo(() => {
     let alerts = [...dashboardAlerts];
     if (severityFilter !== 'all') alerts = alerts.filter((a) => a.severity === severityFilter);
-    if (statusFilter !== 'all') alerts = alerts.filter((a) => a.status === statusFilter);
     if (search.trim()) {
       const q = search.toLowerCase();
       alerts = alerts.filter(
@@ -31,13 +33,13 @@ export default function AlertsPage() {
           a.category.toLowerCase().includes(q),
       );
     }
-    alerts.sort((a: Record<string, string>, b: Record<string, string>) => {
-      const va = a[sortKey] || '';
-      const vb = b[sortKey] || '';
+    alerts.sort((a, b) => {
+      const va = String(a[sortKey as keyof typeof a] ?? '');
+      const vb = String(b[sortKey as keyof typeof b] ?? '');
       return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
     });
     return alerts;
-  }, [severityFilter, statusFilter, search, sortKey, sortDir]);
+  }, [dashboardAlerts, severityFilter, search, sortKey, sortDir]);
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
@@ -49,12 +51,16 @@ export default function AlertsPage() {
   };
 
   const counts = useMemo(() => {
-    const c = { critical: 0, high: 0, medium: 0, low: 0, total: dashboardAlerts.length };
+    const c = { critical: 0, high: 0, total: dashboardAlerts.length, pays: 0 };
+    const pays = new Set<string>();
     dashboardAlerts.forEach((a) => {
-      if (a.severity in c) c[a.severity as keyof typeof c]++;
+      if (a.severity === 'critical') c.critical++;
+      else if (a.severity === 'high') c.high++;
+      pays.add(a.country);
     });
+    c.pays = pays.size;
     return c;
-  }, []);
+  }, [dashboardAlerts]);
 
   const severityBadge = (s: string) => {
     const map: Record<string, string> = {
@@ -81,6 +87,27 @@ export default function AlertsPage() {
     return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   };
 
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="bg-white rounded-lg border border-gray-100 h-16 animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="py-12 text-center text-sentiqs-gray-text text-xs bg-white rounded-lg border border-gray-100">
+        Impossible de charger la collecte : {error}
+        <button type="button" onClick={recharger} className="ml-2 text-sentiqs-navy font-semibold underline cursor-pointer">
+          Réessayer
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5">
       {/* Share Modal */}
@@ -106,13 +133,14 @@ export default function AlertsPage() {
         {([
           { key: 'critical', label: t('dashboard.severity.critical'), color: 'bg-red-50 border-red-200 text-red-700', count: counts.critical },
           { key: 'high', label: t('dashboard.severity.high'), color: 'bg-orange-50 border-orange-200 text-orange-700', count: counts.high },
-          { key: 'medium', label: t('dashboard.severity.medium'), color: 'bg-yellow-50 border-yellow-200 text-yellow-700', count: counts.medium },
-          { key: 'low', label: t('dashboard.severity.low'), color: 'bg-emerald-50 border-emerald-200 text-emerald-700', count: counts.low },
+          { key: 'all', label: 'Total', color: 'bg-gray-50 border-gray-200 text-sentiqs-navy', count: counts.total },
+          { key: 'pays', label: 'Pays concernés', color: 'bg-blue-50 border-blue-200 text-blue-700', count: counts.pays },
         ] as const).map(({ key, label, color, count }) => (
           <button
             key={key}
             type="button"
-            onClick={() => setSeverityFilter(severityFilter === key ? 'all' : key)}
+            disabled={key === 'pays'}
+            onClick={() => key !== 'pays' && setSeverityFilter(severityFilter === key ? 'all' : (key as Severity))}
             className={`rounded-lg border p-3 text-left transition-colors ${color} ${severityFilter === key ? 'ring-2 ring-offset-1 ring-current' : 'hover:opacity-80'}`}
           >
             <div className="text-2xl font-bold">{count}</div>
@@ -134,22 +162,6 @@ export default function AlertsPage() {
           />
         </div>
 
-        <div className="flex gap-2 flex-wrap">
-          {(['all', 'active', 'monitoring', 'resolved'] as Status[]).map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setStatusFilter(s)}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold border transition-colors whitespace-nowrap ${
-                statusFilter === s
-                  ? 'bg-sentiqs-navy text-white border-sentiqs-navy'
-                  : 'bg-white text-sentiqs-gray-text border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              {s === 'all' ? 'Tous' : t(`dashboard.status.${s}`)}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Alerts table */}
@@ -222,12 +234,19 @@ export default function AlertsPage() {
                             <p className="text-sentiqs-navy mt-1">{alert.impact}</p>
                           </div>
                           <div className="sm:col-span-3">
-                            <span className="text-[10px] font-semibold uppercase tracking-wider text-sentiqs-gray-text">Statut</span>
-                            <span className={`ml-2 px-2 py-0.5 rounded text-[10px] font-semibold ${
-                              alert.status === 'active' ? 'bg-red-50 text-red-700' : alert.status === 'monitoring' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'
-                            }`}>
-                              {t(`dashboard.status.${alert.status}`)}
-                            </span>
+                            <span className="text-[10px] font-semibold uppercase tracking-wider text-sentiqs-gray-text">Article source</span>
+                            {alert.url ? (
+                              <a
+                                href={alert.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="ml-2 text-sentiqs-blue hover:underline break-all"
+                              >
+                                {alert.url}
+                              </a>
+                            ) : (
+                              <span className="ml-2 text-sentiqs-gray-text">Lien indisponible</span>
+                            )}
                           </div>
                         </div>
                         <div className="mt-3 flex items-center gap-3">
@@ -247,7 +266,11 @@ export default function AlertsPage() {
           </table>
         </div>
         {filteredAlerts.length === 0 && (
-          <div className="py-12 text-center text-sentiqs-gray-text text-xs">Aucune alerte trouvée avec ces filtres.</div>
+          <div className="py-12 text-center text-sentiqs-gray-text text-xs">
+            {dashboardAlerts.length === 0
+              ? "La collecte n'a remonté aucune alerte critique ou élevée. Lancez une collecte depuis la page Flux."
+              : 'Aucune alerte trouvée avec ces filtres.'}
+          </div>
         )}
       </div>
     </div>

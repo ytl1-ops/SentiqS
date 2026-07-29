@@ -1,16 +1,18 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { reports } from '@/mocks/dashboard';
+import { supabase } from '@/lib/supabase';
+import { useRapports, type Rapport } from '@/lib/planning';
 import ShareModal from '@/components/feature/ShareModal';
 import ScheduledReportsPanel from './components/ScheduledReports';
 
-type ReportType = typeof reports[0];
+type ReportType = Rapport;
 type TypeFilter = string;
 type RegionFilter = string;
 type FormatFilter = string;
 
 export default function ReportsPage() {
   const { t } = useTranslation();
+  const { data: reports, loading, error, recharger } = useRapports();
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [regionFilter, setRegionFilter] = useState<RegionFilter>('all');
   const [formatFilter, setFormatFilter] = useState<FormatFilter>('all');
@@ -23,7 +25,7 @@ export default function ReportsPage() {
   const regions = useMemo(() => {
     const set = new Set(reports.map((r) => r.region));
     return Array.from(set);
-  }, []);
+  }, [reports]);
 
   const filteredReports = useMemo(() => {
     let rs = [...reports];
@@ -41,7 +43,7 @@ export default function ReportsPage() {
       );
     }
     return rs;
-  }, [typeFilter, regionFilter, formatFilter, search]);
+  }, [reports, typeFilter, regionFilter, formatFilter, search]);
 
   const counts = useMemo(() => {
     return {
@@ -49,7 +51,7 @@ export default function ReportsPage() {
       ready: reports.filter((r) => r.status === 'ready').length,
       generating: reports.filter((r) => r.status === 'generating').length,
     };
-  }, []);
+  }, [reports]);
 
   const formatTime = (ts: string) => {
     const d = new Date(ts);
@@ -70,17 +72,38 @@ export default function ReportsPage() {
   };
 
   const formatIcon = (fmt: string) => {
+    // Formats acceptés par public.reports.format
     const map: Record<string, { icon: string; color: string }> = {
-      pdf: { icon: 'ri-file-pdf-2-line', color: 'text-red-500' },
-      word: { icon: 'ri-file-word-2-line', color: 'text-blue-500' },
-      excel: { icon: 'ri-file-excel-2-line', color: 'text-emerald-600' },
+      pdf: { icon: 'ri-file-pdf-2-line', color: 'bg-red-50 text-red-500 hover:bg-red-100' },
+      docx: { icon: 'ri-file-word-2-line', color: 'bg-blue-50 text-blue-500 hover:bg-blue-100' },
+      xlsx: { icon: 'ri-file-excel-2-line', color: 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' },
+      csv: { icon: 'ri-file-text-line', color: 'bg-gray-50 text-gray-600 hover:bg-gray-100' },
     };
-    return map[fmt] || { icon: 'ri-file-line', color: 'text-gray-400' };
+    return map[fmt] || { icon: 'ri-file-line', color: 'bg-gray-50 text-gray-400 hover:bg-gray-100' };
   };
 
-  const handleDownload = (rpt: ReportType, fmt: string) => {
-    const msg = `"${rpt.id}" — ${fmt.toUpperCase()} ${t('dashboard.reports.toast.downloaded')}`;
-    setDownloadToast(msg);
+  // Un rapport porte un seul fichier, dans son propre format : le bouton
+  // télécharge ce fichier depuis le bucket privé « reports », via une URL
+  // signée. Aucune conversion à la volée n'est proposée.
+  const handleDownload = async (rpt: ReportType) => {
+    if (!rpt.filePath) {
+      setDownloadToast('Aucun fichier attaché à ce rapport.');
+      setTimeout(() => setDownloadToast(null), 2500);
+      return;
+    }
+
+    const { data, error: signErr } = await supabase.storage
+      .from('reports')
+      .createSignedUrl(rpt.filePath, 60);
+
+    if (signErr || !data) {
+      setDownloadToast('Téléchargement impossible : ' + (signErr?.message ?? 'lien indisponible'));
+      setTimeout(() => setDownloadToast(null), 3000);
+      return;
+    }
+
+    window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+    setDownloadToast(`« ${rpt.title} » — ${t('dashboard.reports.toast.downloaded')}`);
     setTimeout(() => setDownloadToast(null), 2500);
   };
 
@@ -88,6 +111,27 @@ export default function ReportsPage() {
     setShareTarget(rpt);
     setShareModalOpen(true);
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="bg-white rounded-lg border border-gray-100 h-24 animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="py-12 text-center text-sentiqs-gray-text text-xs bg-white rounded-lg border border-gray-100">
+        Impossible de charger les rapports : {error}
+        <button type="button" onClick={recharger} className="ml-2 text-sentiqs-navy font-semibold underline cursor-pointer">
+          Réessayer
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -184,8 +228,9 @@ export default function ReportsPage() {
         >
           <option value="all">{t('dashboard.reports.allFormats')}</option>
           <option value="pdf">PDF</option>
-          <option value="word">Word</option>
-          <option value="excel">Excel</option>
+          <option value="docx">Word</option>
+          <option value="xlsx">Excel</option>
+          <option value="csv">CSV</option>
         </select>
       </div>
 
@@ -232,42 +277,22 @@ export default function ReportsPage() {
                     <span><i className="ri-map-pin-line text-xs mr-0.5" />{rpt.region}</span>
                     <span>{rpt.countries.length} {t('dashboard.reports.countries').toLowerCase()}</span>
                     <span>{rpt.alertCount} {t('dashboard.reports.alertsIncluded').toLowerCase()} · {rpt.corrCount} {t('dashboard.reports.corrsIncluded').toLowerCase()}</span>
-                    <span>{formatTime(rpt.generatedAt)}</span>
+                    <span>{rpt.generatedAt ? formatTime(rpt.generatedAt) : 'En cours de génération'}</span>
                     {rpt.size && rpt.size !== '--' && <span className="text-[10px]">{rpt.size}</span>}
                   </div>
                 </div>
 
                 {/* Actions */}
                 <div className="flex items-center gap-1.5 flex-shrink-0">
-                  {/* PDF export */}
+                  {/* Téléchargement du fichier réel */}
                   <button
                     type="button"
-                    onClick={() => handleDownload(rpt, 'pdf')}
-                    disabled={rpt.status !== 'ready'}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    title="PDF"
+                    onClick={() => handleDownload(rpt)}
+                    disabled={rpt.status !== 'ready' || !rpt.filePath}
+                    className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${fmt.color}`}
+                    title={rpt.filePath ? `Télécharger (${rpt.format.toUpperCase()})` : 'Aucun fichier attaché'}
                   >
-                    <i className="ri-file-pdf-2-line text-base" />
-                  </button>
-                  {/* Word export */}
-                  <button
-                    type="button"
-                    onClick={() => handleDownload(rpt, 'word')}
-                    disabled={rpt.status !== 'ready'}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-500 hover:bg-blue-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    title="Word"
-                  >
-                    <i className="ri-file-word-2-line text-base" />
-                  </button>
-                  {/* Excel export */}
-                  <button
-                    type="button"
-                    onClick={() => handleDownload(rpt, 'excel')}
-                    disabled={rpt.status !== 'ready'}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    title="Excel"
-                  >
-                    <i className="ri-file-excel-2-line text-base" />
+                    <i className={`${fmt.icon} text-base`} />
                   </button>
                   {/* Share */}
                   <button
@@ -319,7 +344,9 @@ export default function ReportsPage() {
 
         {filteredReports.length === 0 && (
           <div className="py-12 text-center text-sentiqs-gray-text text-xs bg-white rounded-lg border border-gray-100">
-            {t('dashboard.reports.empty')}
+            {reports.length === 0
+              ? "Aucun rapport n'a encore été produit."
+              : t('dashboard.reports.empty')}
           </div>
         )}
       </div>

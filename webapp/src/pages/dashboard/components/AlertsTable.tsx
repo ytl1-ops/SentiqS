@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { dashboardAlerts } from '@/mocks/dashboard';
+import { useVeille, alertes } from '@/lib/veille';
 
 const severityBadge: Record<string, string> = {
   critical: 'bg-red-100 text-red-700',
@@ -11,29 +12,37 @@ const severityBadge: Record<string, string> = {
 
 const statusBadge: Record<string, string> = {
   active: 'bg-red-50 text-red-600 border border-red-100',
-  monitoring: 'bg-blue-50 text-blue-600 border border-blue-100',
-  resolved: 'bg-emerald-50 text-emerald-600 border border-emerald-100',
 };
+
+/** La vue d'ensemble n'affiche qu'un aperçu — la liste complète est sur /dashboard/alerts. */
+const APERCU = 8;
 
 export default function AlertsTable() {
   const { t } = useTranslation();
   const [filter, setFilter] = useState('all');
+  const { articles, loading } = useVeille();
+  const dashboardAlerts = alertes(articles);
 
-  const filteredAlerts = filter === 'all'
+  const filteredAlerts = (filter === 'all'
     ? dashboardAlerts
-    : dashboardAlerts.filter((a) => a.severity === filter);
+    : dashboardAlerts.filter((a) => a.severity === filter)
+  ).slice(0, APERCU);
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   };
 
+  if (loading) {
+    return <div className="bg-white rounded-xl border border-gray-100 h-72 animate-pulse" />;
+  }
+
   return (
     <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
       <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
         <h3 className="text-sm font-bold text-sentiqs-navy">{t('dashboard.alerts.latest')}</h3>
         <div className="flex items-center gap-1">
-          {['all', 'critical', 'high', 'medium'].map((f) => (
+          {['all', 'critical', 'high'].map((f) => (
             <button
               key={f}
               type="button"
@@ -68,7 +77,7 @@ export default function AlertsTable() {
                 key={alert.id}
                 className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors cursor-pointer"
               >
-                <td className="px-4 py-2.5 text-[11px] font-mono text-sentiqs-gray-text">{alert.id}</td>
+                <td className="px-4 py-2.5 text-[11px] font-mono text-sentiqs-gray-text max-w-[90px] truncate">{alert.id}</td>
                 <td className="px-4 py-2.5">
                   <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-semibold ${severityBadge[alert.severity] || severityBadge.low}`}>
                     {t(`dashboard.severity.${alert.severity}`)}
@@ -86,16 +95,20 @@ export default function AlertsTable() {
             ))}
           </tbody>
         </table>
+        {filteredAlerts.length === 0 && (
+          <p className="text-xs text-sentiqs-gray-text py-8 text-center">
+            Aucune alerte critique ou élevée dans la collecte en cours.
+          </p>
+        )}
       </div>
 
       <div className="px-4 py-2 border-t border-gray-100">
-        <a
-          href="#"
+        <Link
+          to="/dashboard/alerts"
           className="text-xs text-sentiqs-blue hover:text-sentiqs-blue-dark transition-colors font-medium"
-          onClick={(e) => e.preventDefault()}
         >
           {t('dashboard.alerts.viewAll')} →
-        </a>
+        </Link>
       </div>
     </div>
   );
