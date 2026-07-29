@@ -13,22 +13,41 @@
 
 -- Vérifie que l'appelant est administrateur. En security definer pour éviter
 -- la récursion RLS sur public.profiles.
-create or replace function public.is_admin()
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select exists (
-    select 1 from public.profiles
-    where id = auth.uid() and role = 'admin'
-  );
+--
+-- Créée seulement si absente : la production porte déjà une is_admin()
+-- au corps identique, dont dépendent d'autres politiques. Un
+-- `create or replace` la réécrirait — inutile ici, et risqué si sa
+-- définition venait à diverger de celle-ci.
+do $$
+begin
+  if not exists (
+    select 1 from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public' and p.proname = 'is_admin' and p.pronargs = 0
+  ) then
+    create function public.is_admin()
+    returns boolean
+    language sql
+    stable
+    security definer
+    set search_path = public
+    as $fn$
+      select exists (
+        select 1 from public.profiles
+        where id = auth.uid() and role = 'admin'
+      );
+    $fn$;
+  end if;
+end
 $$;
 
+-- search_path figé : sans lui, le linter Supabase signale une fonction
+-- détournable via un search_path forgé par l'appelant. Le corps n'utilise
+-- que now(), résolu depuis pg_catalog, donc un chemin vide suffit.
 create or replace function public.touch_updated_at()
 returns trigger
 language plpgsql
+set search_path = ''
 as $$
 begin
   new.updated_at = now();
