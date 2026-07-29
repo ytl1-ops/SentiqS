@@ -348,7 +348,8 @@ export interface VeilleCorrelation {
   type: 'direct' | 'cluster' | 'chain';
   strength: 'strong' | 'medium' | 'low';
   description: string;
-  relatedCountries: string[];
+  /** Noms des sources ayant rapporté le même fait (champ `crosses`). */
+  sources: string[];
   detectedAt: string;
   /**
    * Score de fiabilité de la source, porté tel quel par la collecte —
@@ -358,13 +359,17 @@ export interface VeilleCorrelation {
 }
 
 /**
- * Une corrélation réelle = un article que le classifieur a rattaché à
- * plusieurs pays (champ `crosses`). L'ampleur du recoupement donne le type
- * et la force ; rien n'est extrapolé au-delà.
+ * Une corrélation réelle = un fait rapporté par PLUSIEURS sources
+ * indépendantes. `crosses` porte les noms de sources qui ont remonté le
+ * même article (voir `crosses: [src.n]` dans collecte/fetchRss.ts) — ce
+ * n'est pas une liste de pays, malgré ce que son nom pourrait laisser
+ * croire. Un seul rapporteur n'est pas une corrélation : sur une collecte
+ * réelle, 600 des 645 articles n'ont qu'une source, les retenir tous
+ * reviendrait à appeler « corrélation » n'importe quelle dépêche.
  */
 export function correlations(articles: RealArticle[]): VeilleCorrelation[] {
   return articles
-    .filter((a) => a.crosses?.length > 0 && CATEGORIES_SURETE.includes(a.cat))
+    .filter((a) => (a.crosses?.length ?? 0) >= 2 && CATEGORIES_SURETE.includes(a.cat))
     .sort((a, b) => b.pubDate - a.pubDate)
     .map((a) => {
       const n = a.crosses.length;
@@ -375,10 +380,10 @@ export function correlations(articles: RealArticle[]): VeilleCorrelation[] {
         alertSeverity: severite(a),
         country: nomPays(a.cy),
         region: zonePays(a.cy),
-        type: n >= 3 ? 'chain' : n === 2 ? 'cluster' : 'direct',
-        strength: n >= 3 ? 'strong' : n === 2 ? 'medium' : 'low',
+        type: n >= 4 ? 'chain' : n === 3 ? 'cluster' : 'direct',
+        strength: n >= 4 ? 'strong' : n === 3 ? 'medium' : 'low',
         description: a.analysis || a.title,
-        relatedCountries: a.crosses.map(nomPays),
+        sources: a.crosses,
         detectedAt: new Date(a.pubDate).toISOString(),
         confidence: a.score,
       };

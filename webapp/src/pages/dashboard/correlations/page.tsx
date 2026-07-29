@@ -5,7 +5,7 @@ import ShareModal from '@/components/feature/ShareModal';
 
 type CorrType = VeilleCorrelation;
 // Le type 'pattern' n'existe plus : les corrélations réelles se classent par
-// le nombre de pays recoupés (voir veille.correlations).
+// le nombre de sources concordantes (voir veille.correlations).
 type TypeFilter = 'all' | 'direct' | 'cluster' | 'chain';
 type StrengthFilter = 'all' | 'strong' | 'medium' | 'low';
 type RegionFilter = string;
@@ -143,7 +143,6 @@ export default function CorrelationsPage() {
     const alertSet = new Set<string>();
     filteredCorrelations.forEach((c) => {
       countrySet.add(c.country);
-      c.relatedCountries.forEach((rc) => countrySet.add(rc));
       alertSet.add(c.alertId);
     });
 
@@ -200,18 +199,6 @@ export default function CorrelationsPage() {
         });
       }
 
-      // Edges from alert to related countries
-      c.relatedCountries.forEach((rc) => {
-        const rcNodeId = `country-${rc}`;
-        if (nodeMap.has(alertNodeId) && nodeMap.has(rcNodeId)) {
-          edges.push({
-            from: alertNodeId,
-            to: rcNodeId,
-            strength: c.strength,
-            corrId: c.id,
-          });
-        }
-      });
     });
 
     return { graphNodes: nodes, graphEdges: edges };
@@ -227,7 +214,7 @@ export default function CorrelationsPage() {
       return filteredCorrelations.filter((c) => c.alertId === alertId);
     }
     return filteredCorrelations.filter(
-      (c) => c.country === countryName || c.relatedCountries.includes(countryName),
+      (c) => c.country === countryName,
     );
   }, [selectedNode, filteredCorrelations]);
 
@@ -349,7 +336,7 @@ export default function CorrelationsPage() {
       return (
         nodeId === `alert-${corr.alertId}` ||
         nodeId === `country-${corr.country}` ||
-        corr.relatedCountries.some((rc) => nodeId === `country-${rc}`)
+        false
       );
     }
     return true;
@@ -688,7 +675,7 @@ export default function CorrelationsPage() {
                           <i className="ri-map-pin-line text-xs" /> {corr.country} ({corr.region})
                         </span>
                         <span className="flex items-center gap-1">
-                          <i className="ri-links-line text-xs" /> {corr.relatedCountries.join(', ')}
+                          <i className="ri-links-line text-xs" /> {corr.sources.length} sources concordantes
                         </span>
                       </div>
                     </div>
@@ -716,8 +703,8 @@ export default function CorrelationsPage() {
                         <span className="text-sentiqs-navy font-mono">{corr.alertId}</span>
                       </div>
                       <div>
-                        <span className="font-semibold uppercase tracking-wider text-sentiqs-gray-text block mb-0.5">{t('dashboard.correlations.relatedCountries')}</span>
-                        <span className="text-sentiqs-navy">{corr.relatedCountries.join(', ')}</span>
+                        <span className="font-semibold uppercase tracking-wider text-sentiqs-gray-text block mb-0.5">Sources concordantes</span>
+                        <span className="text-sentiqs-navy">{corr.sources.join(', ')}</span>
                       </div>
                       <div>
                         <span className="font-semibold uppercase tracking-wider text-sentiqs-gray-text block mb-0.5">{t('dashboard.correlations.detectedAt')}</span>
