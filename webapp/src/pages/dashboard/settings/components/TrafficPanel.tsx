@@ -4,11 +4,15 @@ import { supabase } from '@/lib/supabase';
 interface TrafficLog {
   id: number;
   page_path: string;
-  country: string;
-  region: string;
+  // country n'est renseigné qu'une fois la résolution géographique de l'IP
+  // faite côté serveur ; region vient du fuseau horaire du navigateur.
+  country: string | null;
+  region: string | null;
   duration_seconds: number;
   timestamp: string;
 }
+
+const UNKNOWN = 'Inconnu';
 
 const pageLabels: Record<string, string> = {
   '/dashboard': 'Tableau de bord',
@@ -47,7 +51,8 @@ export default function TrafficPanel() {
 
     const countryCounts: Record<string, number> = {};
     logs.forEach((l) => {
-      countryCounts[l.country] = (countryCounts[l.country] || 0) + 1;
+      const key = l.country || UNKNOWN;
+      countryCounts[key] = (countryCounts[key] || 0) + 1;
     });
     const topCountries = Object.entries(countryCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
 
@@ -59,7 +64,8 @@ export default function TrafficPanel() {
 
     const regionCounts: Record<string, number> = {};
     logs.forEach((l) => {
-      regionCounts[l.region] = (regionCounts[l.region] || 0) + 1;
+      const key = l.region || UNKNOWN;
+      regionCounts[key] = (regionCounts[key] || 0) + 1;
     });
     const topRegions = Object.entries(regionCounts).sort((a, b) => b[1] - a[1]);
 
@@ -176,8 +182,8 @@ export default function TrafficPanel() {
                     <tr key={l.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                       <td className="px-4 py-2 text-sentiqs-gray-text font-mono whitespace-nowrap">{formatTime(l.timestamp)}</td>
                       <td className="px-4 py-2 font-semibold text-sentiqs-navy">{pageLabels[l.page_path] || l.page_path}</td>
-                      <td className="px-4 py-2 text-sentiqs-gray-text">{l.country}</td>
-                      <td className="px-4 py-2 text-sentiqs-gray-text">{l.region}</td>
+                      <td className="px-4 py-2 text-sentiqs-gray-text">{l.country || UNKNOWN}</td>
+                      <td className="px-4 py-2 text-sentiqs-gray-text">{l.region || UNKNOWN}</td>
                       <td className="px-4 py-2 text-sentiqs-gray-text text-right">{l.duration_seconds || 0}s</td>
                     </tr>
                   ))}
