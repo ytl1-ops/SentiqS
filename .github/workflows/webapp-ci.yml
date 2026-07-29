@@ -1,0 +1,126 @@
+name: CI webapp
+
+# Garde-fou né d'un incident réel : le merge de la PR #16 a repris le côté
+# « revert » de la PR #15 et supprimé les 16 889 lignes de webapp/, alors que
+# la branche fusionnée contenait justement le commit qui les restaurait
+# (b7a554e, « Annule le rollback : restaure webapp/ »). Personne n'a vérifié
+# l'arbre après fusion, et la perte est passée inaperçue.
+#
+# Ce workflow refuse donc toute PR — et signale tout push sur main — où
+# webapp/ aurait disparu, se serait vidé de sa substance, ou ne compilerait
+# plus. Il tourne sur le résultat du merge, pas seulement sur la branche.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  integrite:
+    name: Intégrité de l'arborescence
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Vérifie que les répertoires critiques sont toujours là
+        run: |
+          set -euo pipefail
+
+          # Fichiers dont la disparition signale une fusion partie de travers.
+          # Un simple test de présence de webapp/ ne suffirait pas : un dossier
+          # réduit à son package.json passerait.
+          requis=(
+            webapp/package.json
+            webapp/vite.config.ts
+            webapp/src/App.tsx
+            webapp/src/router/config.tsx
+            webapp/src/lib/supabase.ts
+            webapp/src/lib/veille.ts
+            webapp/src/lib/pays.ts
+            webapp/src/lib/planning.ts
+            webapp/src/pages/dashboard/page.tsx
+            webapp/src/pages/dashboard/settings/page.tsx
+            web/SentiqS_Web.html
+          )
+
+          manquants=0
+          for f in "${requis[@]}"; do
+            if [ ! -f "$f" ]; then
+              echo "::error file=$f::Fichier critique absent : $f"
+              manquants=$((manquants + 1))
+            fi
+          done
+
+          if [ "$manquants" -gt 0 ]; then
+            echo "$manquants fichier(s) critique(s) manquant(s) — fusion probablement partie du mauvais côté."
+            exit 1
+          fi
+
+          # webapp/ tournait à ~74 fichiers suivis. Un seuil bas (40) laisse la
+          # place aux suppressions légitimes tout en attrapant un effacement
+          # massif, qui est le seul cas que ce garde-fou cherche à bloquer.
+          suivis=$(git ls-files webapp | wc -l)
+          echo "Fichiers suivis dans webapp/ : $suivis"
+          if [ "$suivis" -lt 40 ]; then
+            echo "::error::webapp/ ne contient plus que $suivis fichiers suivis (seuil : 40)."
+            exit 1
+          fi
+
+          # Les migrations sont cumulatives : en perdre est toujours une erreur.
+          migrations=$(git ls-files 'supabase/migrations/*.sql' | wc -l)
+          echo "Migrations présentes : $migrations"
+          if [ "$migrations" -lt 3 ]; then
+            echo "::error::Seulement $migrations migration(s) — au moins 3 sont attendues."
+            exit 1
+          fi
+
+          echo "Arborescence intègre."
+
+  webapp:
+    name: Build, types et lint
+    runs-on: ubuntu-latest
+    needs: integrite
+    defaults:
+      run:
+        working-directory: webapp
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: webapp/package-lock.json
+
+      - name: Installe les dépendances
+        run: npm ci
+
+      - name: Vérifie les types
+        run: npm run type-check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build de production
+        # Les variables ne servent qu'à satisfaire l'import de src/lib/supabase.ts
+        # au moment du build : aucune requête n'est émise, et les vraies valeurs
+        # viennent de webapp/.env à l'exécution.
+        env:
+          VITE_PUBLIC_SUPABASE_URL: https://exemple.supabase.co
+          VITE_PUBLIC_SUPABASE_ANON_KEY: build-only
+        run: npm run build
+
+      - name: Refuse un build vide
+        run: |
+          set -euo pipefail
+          test -f out/index.html || { echo "::error::out/index.html absent après le build."; exit 1; }
+          if [ "$(find out/assets -name '*.js' | wc -l)" -eq 0 ]; then
+            echo "::error::Aucun bundle JS produit."
+            exit 1
+          fi
+          echo "Build vérifié."
