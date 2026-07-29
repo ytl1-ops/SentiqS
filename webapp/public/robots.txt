@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /dashboard
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /reset-password
+Allow: /
+Sitemap: https://example.com/sitemap.xml
