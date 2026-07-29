@@ -1,10 +1,10 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { reports } from '@/mocks/dashboard';
+import { useRapports, type Rapport } from '@/lib/planning';
 import ShareModal from '@/components/feature/ShareModal';
 
-type ReportType = typeof reports[0];
+type ReportType = Rapport;
 
 type TypeFilter = string;
 type RegionFilter = string;
@@ -12,6 +12,10 @@ type FormatFilter = string;
 
 export default function ReportsPreviewPage() {
   const { t } = useTranslation();
+  // Page publique branchée sur la même table que /dashboard/reports. La RLS
+  // de public.reports réserve la lecture aux comptes connectés : un visiteur
+  // anonyme voit donc une liste vide, et non un aperçu fabriqué.
+  const { data: reports, loading, error } = useRapports();
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [regionFilter, setRegionFilter] = useState<RegionFilter>('all');
   const [formatFilter, setFormatFilter] = useState<FormatFilter>('all');
@@ -24,7 +28,7 @@ export default function ReportsPreviewPage() {
   const regions = useMemo(() => {
     const set = new Set(reports.map((r) => r.region));
     return Array.from(set);
-  }, []);
+  }, [reports]);
 
   const filteredReports = useMemo(() => {
     let rs = [...reports];
@@ -42,7 +46,7 @@ export default function ReportsPreviewPage() {
       );
     }
     return rs;
-  }, [typeFilter, regionFilter, formatFilter, search]);
+  }, [reports, typeFilter, regionFilter, formatFilter, search]);
 
   const counts = useMemo(() => {
     return {
@@ -50,7 +54,7 @@ export default function ReportsPreviewPage() {
       ready: reports.filter((r) => r.status === 'ready').length,
       generating: reports.filter((r) => r.status === 'generating').length,
     };
-  }, []);
+  }, [reports]);
 
   const formatTime = (ts: string) => {
     const d = new Date(ts);
@@ -71,19 +75,22 @@ export default function ReportsPreviewPage() {
   };
 
   const formatIcon = (fmt: string) => {
+    // Formats acceptés par public.reports.format
     const map: Record<string, { icon: string; color: string }> = {
-      pdf: { icon: 'ri-file-pdf-2-line', color: 'text-red-500' },
-      word: { icon: 'ri-file-word-2-line', color: 'text-blue-500' },
-      excel: { icon: 'ri-file-excel-2-line', color: 'text-emerald-600' },
+      pdf: { icon: 'ri-file-pdf-2-line', color: 'bg-red-50 text-red-500 hover:bg-red-100' },
+      docx: { icon: 'ri-file-word-2-line', color: 'bg-blue-50 text-blue-500 hover:bg-blue-100' },
+      xlsx: { icon: 'ri-file-excel-2-line', color: 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' },
+      csv: { icon: 'ri-file-text-line', color: 'bg-gray-50 text-gray-600 hover:bg-gray-100' },
     };
-    return map[fmt] || { icon: 'ri-file-line', color: 'text-gray-400' };
+    return map[fmt] || { icon: 'ri-file-line', color: 'bg-gray-50 text-gray-400 hover:bg-gray-100' };
   };
 
-  const handleDownload = useCallback((rpt: ReportType, fmt: string) => {
-    const msg = `"${rpt.id}" — ${fmt.toUpperCase()} ${t('dashboard.reports.toast.downloaded')}`;
-    setDownloadToast(msg);
-    setTimeout(() => setDownloadToast(null), 2500);
-  }, [t]);
+  // Aperçu public : le téléchargement du fichier réel reste réservé au
+  // tableau de bord, où la session permet de signer l'URL de stockage.
+  const handleDownload = useCallback(() => {
+    setDownloadToast('Connectez-vous au tableau de bord pour télécharger ce rapport.');
+    setTimeout(() => setDownloadToast(null), 3000);
+  }, []);
 
   const handleShare = useCallback((rpt: ReportType) => {
     setShareTarget(rpt);
@@ -202,8 +209,9 @@ export default function ReportsPreviewPage() {
           >
             <option value="all">{t('dashboard.reports.allFormats')}</option>
             <option value="pdf">PDF</option>
-            <option value="word">Word</option>
-            <option value="excel">Excel</option>
+            <option value="docx">Word</option>
+            <option value="xlsx">Excel</option>
+            <option value="csv">CSV</option>
           </select>
         </div>
 
@@ -250,7 +258,7 @@ export default function ReportsPreviewPage() {
                       <span><i className="ri-map-pin-line text-xs mr-0.5" />{rpt.region}</span>
                       <span>{rpt.countries.length} {t('dashboard.reports.countries').toLowerCase()}</span>
                       <span>{rpt.alertCount} {t('dashboard.reports.alertsIncluded').toLowerCase()} · {rpt.corrCount} {t('dashboard.reports.corrsIncluded').toLowerCase()}</span>
-                      <span>{formatTime(rpt.generatedAt)}</span>
+                      <span>{rpt.generatedAt ? formatTime(rpt.generatedAt) : 'En cours de génération'}</span>
                       {rpt.size && rpt.size !== '--' && <span className="text-[10px]">{rpt.size}</span>}
                     </div>
                   </div>
@@ -259,30 +267,12 @@ export default function ReportsPreviewPage() {
                   <div className="flex items-center gap-1.5 flex-shrink-0">
                     <button
                       type="button"
-                      onClick={() => handleDownload(rpt, 'pdf')}
+                      onClick={handleDownload}
                       disabled={rpt.status !== 'ready'}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                      title="PDF"
+                      className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${fmt.color}`}
+                      title={`Télécharger (${rpt.format.toUpperCase()})`}
                     >
-                      <i className="ri-file-pdf-2-line text-base" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDownload(rpt, 'word')}
-                      disabled={rpt.status !== 'ready'}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-500 hover:bg-blue-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                      title="Word"
-                    >
-                      <i className="ri-file-word-2-line text-base" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDownload(rpt, 'excel')}
-                      disabled={rpt.status !== 'ready'}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                      title="Excel"
-                    >
-                      <i className="ri-file-excel-2-line text-base" />
+                      <i className={`${fmt.icon} text-base`} />
                     </button>
                     <button
                       type="button"
@@ -330,9 +320,19 @@ export default function ReportsPreviewPage() {
             );
           })}
 
-          {filteredReports.length === 0 && (
+          {loading && (
             <div className="py-12 text-center text-foreground-500 text-xs bg-white rounded-lg border border-background-200/70">
-              {t('dashboard.reports.empty')}
+              Chargement des rapports…
+            </div>
+          )}
+
+          {!loading && filteredReports.length === 0 && (
+            <div className="py-12 text-center text-foreground-500 text-xs bg-white rounded-lg border border-background-200/70">
+              {error
+                ? `Impossible de charger les rapports : ${error}`
+                : reports.length === 0
+                  ? 'Aucun rapport à afficher. Connectez-vous pour accéder au catalogue complet.'
+                  : t('dashboard.reports.empty')}
             </div>
           )}
         </div>

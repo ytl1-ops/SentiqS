@@ -1,10 +1,12 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { correlations, dashboardAlerts, countryRiskLevels } from '@/mocks/dashboard';
+import { useVeille, correlations as derivedCorrelations, alertes, risquePays, type VeilleCorrelation } from '@/lib/veille';
 import ShareModal from '@/components/feature/ShareModal';
 
-type CorrType = typeof correlations[0];
-type TypeFilter = 'all' | 'direct' | 'cluster' | 'pattern' | 'chain';
+type CorrType = VeilleCorrelation;
+// Le type 'pattern' n'existe plus : les corrélations réelles se classent par
+// le nombre de sources concordantes (voir veille.correlations).
+type TypeFilter = 'all' | 'direct' | 'cluster' | 'chain';
 type StrengthFilter = 'all' | 'strong' | 'medium' | 'low';
 type RegionFilter = string;
 type SeverityFilter = string;
@@ -30,6 +32,10 @@ interface GraphEdge {
 
 export default function CorrelationsPage() {
   const { t } = useTranslation();
+  const { articles, loading, error, recharger } = useVeille();
+  const correlations = useMemo(() => derivedCorrelations(articles), [articles]);
+  const dashboardAlerts = useMemo(() => alertes(articles), [articles]);
+  const countryRiskLevels = useMemo(() => risquePays(articles), [articles]);
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [strengthFilter, setStrengthFilter] = useState<StrengthFilter>('all');
   const [regionFilter, setRegionFilter] = useState<RegionFilter>('all');
@@ -51,7 +57,7 @@ export default function CorrelationsPage() {
   const regions = useMemo(() => {
     const set = new Set(correlations.map((c) => c.region));
     return Array.from(set);
-  }, []);
+  }, [correlations]);
 
   const enterFullscreen = useCallback(() => {
     const vw = window.innerWidth;
@@ -97,7 +103,7 @@ export default function CorrelationsPage() {
       );
     }
     return cs;
-  }, [typeFilter, strengthFilter, regionFilter, severityFilter, search]);
+  }, [correlations, typeFilter, strengthFilter, regionFilter, severityFilter, search]);
 
   const { graphNodes, graphEdges } = useMemo(() => {
     const nodes: GraphNode[] = [];
@@ -137,7 +143,6 @@ export default function CorrelationsPage() {
     const alertSet = new Set<string>();
     filteredCorrelations.forEach((c) => {
       countrySet.add(c.country);
-      c.relatedCountries.forEach((rc) => countrySet.add(rc));
       alertSet.add(c.alertId);
     });
 
@@ -194,22 +199,10 @@ export default function CorrelationsPage() {
         });
       }
 
-      // Edges from alert to related countries
-      c.relatedCountries.forEach((rc) => {
-        const rcNodeId = `country-${rc}`;
-        if (nodeMap.has(alertNodeId) && nodeMap.has(rcNodeId)) {
-          edges.push({
-            from: alertNodeId,
-            to: rcNodeId,
-            strength: c.strength,
-            corrId: c.id,
-          });
-        }
-      });
     });
 
     return { graphNodes: nodes, graphEdges: edges };
-  }, [filteredCorrelations]);
+  }, [filteredCorrelations, dashboardAlerts, countryRiskLevels]);
 
   const selectedCorrelations = useMemo(() => {
     if (!selectedNode) return [];
@@ -221,17 +214,17 @@ export default function CorrelationsPage() {
       return filteredCorrelations.filter((c) => c.alertId === alertId);
     }
     return filteredCorrelations.filter(
-      (c) => c.country === countryName || c.relatedCountries.includes(countryName),
+      (c) => c.country === countryName,
     );
   }, [selectedNode, filteredCorrelations]);
 
   const typeCounts = useMemo(() => {
-    const c = { direct: 0, cluster: 0, pattern: 0, chain: 0, total: correlations.length };
+    const c = { direct: 0, cluster: 0, chain: 0, total: correlations.length };
     correlations.forEach((co) => {
       if (co.type in c) c[co.type as keyof typeof c]++;
     });
     return c;
-  }, []);
+  }, [correlations]);
 
   const nodeColor = (node: GraphNode) => {
     if (node.type === 'alert') {
@@ -343,11 +336,32 @@ export default function CorrelationsPage() {
       return (
         nodeId === `alert-${corr.alertId}` ||
         nodeId === `country-${corr.country}` ||
-        corr.relatedCountries.some((rc) => nodeId === `country-${rc}`)
+        false
       );
     }
     return true;
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="bg-white rounded-lg border border-gray-100 h-20 animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="py-12 text-center text-sentiqs-gray-text text-xs bg-white rounded-lg border border-gray-100">
+        Impossible de charger la collecte : {error}
+        <button type="button" onClick={recharger} className="ml-2 text-sentiqs-navy font-semibold underline cursor-pointer">
+          Réessayer
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -380,7 +394,6 @@ export default function CorrelationsPage() {
         {([
           { key: 'direct', label: t('dashboard.correlations.types.direct'), color: 'bg-indigo-50 border-indigo-200 text-indigo-700', count: typeCounts.direct },
           { key: 'cluster', label: t('dashboard.correlations.types.cluster'), color: 'bg-violet-50 border-violet-200 text-violet-700', count: typeCounts.cluster },
-          { key: 'pattern', label: t('dashboard.correlations.types.pattern'), color: 'bg-cyan-50 border-cyan-200 text-cyan-700', count: typeCounts.pattern },
           { key: 'chain', label: t('dashboard.correlations.types.chain'), color: 'bg-amber-50 border-amber-200 text-amber-700', count: typeCounts.chain },
         ] as const).map(({ key, label, color, count }) => (
           <button
@@ -662,7 +675,7 @@ export default function CorrelationsPage() {
                           <i className="ri-map-pin-line text-xs" /> {corr.country} ({corr.region})
                         </span>
                         <span className="flex items-center gap-1">
-                          <i className="ri-links-line text-xs" /> {corr.relatedCountries.join(', ')}
+                          <i className="ri-links-line text-xs" /> {corr.sources.length} sources concordantes
                         </span>
                       </div>
                     </div>
@@ -690,8 +703,8 @@ export default function CorrelationsPage() {
                         <span className="text-sentiqs-navy font-mono">{corr.alertId}</span>
                       </div>
                       <div>
-                        <span className="font-semibold uppercase tracking-wider text-sentiqs-gray-text block mb-0.5">{t('dashboard.correlations.relatedCountries')}</span>
-                        <span className="text-sentiqs-navy">{corr.relatedCountries.join(', ')}</span>
+                        <span className="font-semibold uppercase tracking-wider text-sentiqs-gray-text block mb-0.5">Sources concordantes</span>
+                        <span className="text-sentiqs-navy">{corr.sources.join(', ')}</span>
                       </div>
                       <div>
                         <span className="font-semibold uppercase tracking-wider text-sentiqs-gray-text block mb-0.5">{t('dashboard.correlations.detectedAt')}</span>
@@ -719,7 +732,9 @@ export default function CorrelationsPage() {
 
         {filteredCorrelations.length === 0 && (
           <div className="py-12 text-center text-sentiqs-gray-text text-xs bg-white rounded-lg border border-gray-100">
-            {t('dashboard.correlations.empty')}
+            {correlations.length === 0
+              ? "La collecte n'a détecté aucun recoupement entre pays. Lancez une collecte depuis la page Flux."
+              : t('dashboard.correlations.empty')}
           </div>
         )}
       </div>

@@ -1,9 +1,15 @@
 import { useTranslation } from 'react-i18next';
-import { activityData } from '@/mocks/dashboard';
+import { useVeille, activite } from '@/lib/veille';
 
 export default function ActivityChart() {
   const { t } = useTranslation();
+  const { articles, loading } = useVeille();
+  const activityData = activite(articles);
   const maxValue = Math.max(...activityData.map((d) => d.alerts + d.feeds));
+
+  if (loading) {
+    return <div className="bg-white rounded-xl border border-gray-100 p-4 h-64 animate-pulse" />;
+  }
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-4">

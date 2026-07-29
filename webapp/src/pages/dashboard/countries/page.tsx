@@ -1,12 +1,16 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { countryRiskLevels } from '@/mocks/dashboard';
+import { useVeille, risquePays } from '@/lib/veille';
 import ShareModal from '@/components/feature/ShareModal';
 
 type RiskLevel = 'all' | 'critical' | 'high' | 'medium' | 'low';
 
 export default function CountriesPage() {
   const { t } = useTranslation();
+  const { articles, loading, error, recharger } = useVeille();
+  // Seuls les pays effectivement remontés par la collecte apparaissent : la
+  // liste n'est pas pré-remplie avec les 54 pays du référentiel.
+  const countryRiskLevels = useMemo(() => risquePays(articles), [articles]);
   const [riskFilter, setRiskFilter] = useState<RiskLevel>('all');
   const [regionFilter, setRegionFilter] = useState<string>('all');
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
@@ -16,14 +20,14 @@ export default function CountriesPage() {
   const regions = useMemo(() => {
     const r = new Set(countryRiskLevels.map((c) => c.region));
     return Array.from(r);
-  }, []);
+  }, [countryRiskLevels]);
 
   const filteredCountries = useMemo(() => {
     let countries = [...countryRiskLevels];
     if (riskFilter !== 'all') countries = countries.filter((c) => c.risk === riskFilter);
     if (regionFilter !== 'all') countries = countries.filter((c) => c.region === regionFilter);
     return countries;
-  }, [riskFilter, regionFilter]);
+  }, [countryRiskLevels, riskFilter, regionFilter]);
 
   const riskBadge = (risk: string) => {
     const map: Record<string, string> = {
@@ -61,12 +65,33 @@ export default function CountriesPage() {
       if (co.risk in c) c[co.risk as keyof typeof c]++;
     });
     return c;
-  }, []);
+  }, [countryRiskLevels]);
 
   const selectedData = useMemo(() => {
     if (!selectedCountry) return null;
     return countryRiskLevels.find((c) => c.country === selectedCountry) || null;
-  }, [selectedCountry]);
+  }, [countryRiskLevels, selectedCountry]);
+
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="bg-white rounded-lg border border-gray-100 h-16 animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="py-12 text-center text-sentiqs-gray-text text-xs bg-white rounded-lg border border-gray-100">
+        Impossible de charger la collecte : {error}
+        <button type="button" onClick={recharger} className="ml-2 text-sentiqs-navy font-semibold underline cursor-pointer">
+          Réessayer
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -221,7 +246,11 @@ export default function CountriesPage() {
       </div>
 
       {filteredCountries.length === 0 && (
-        <div className="py-12 text-center text-sentiqs-gray-text text-xs">Aucun pays trouvé avec ces filtres.</div>
+        <div className="py-12 text-center text-sentiqs-gray-text text-xs">
+          {countryRiskLevels.length === 0
+            ? "Aucun pays évalué : la collecte n'a encore remonté aucun signal. Lancez une collecte depuis la page Flux."
+            : 'Aucun pays trouvé avec ces filtres.'}
+        </div>
       )}
     </div>
   );

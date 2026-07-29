@@ -1,11 +1,10 @@
 import { useTranslation } from 'react-i18next';
-import { timelineEvents } from '@/mocks/dashboard';
+import { useVeille, chronologie } from '@/lib/veille';
 
 const eventIcon: Record<string, string> = {
   alert: 'ri-alarm-warning-line',
   feed: 'ri-rss-line',
   correlation: 'ri-git-merge-line',
-  update: 'ri-refresh-line',
 };
 
 const eventColor: Record<string, string> = {
@@ -17,6 +16,12 @@ const eventColor: Record<string, string> = {
 
 export default function Timeline() {
   const { t } = useTranslation();
+  const { articles, loading } = useVeille();
+  const timelineEvents = chronologie(articles);
+
+  if (loading) {
+    return <div className="bg-white rounded-xl border border-gray-100 p-4 h-64 animate-pulse" />;
+  }
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-4">
@@ -24,6 +29,11 @@ export default function Timeline() {
         <h3 className="text-sm font-bold text-sentiqs-navy">{t('dashboard.timeline.title')}</h3>
         <span className="text-[10px] font-semibold text-sentiqs-gray-text uppercase tracking-wider">{t('dashboard.timeline.today')}</span>
       </div>
+      {timelineEvents.length === 0 && (
+        <p className="text-xs text-sentiqs-gray-text py-6 text-center">
+          Aucun signal collecté pour l'instant. Lancez une collecte depuis la page Flux.
+        </p>
+      )}
       <div className="space-y-3">
         {timelineEvents.map((event, index) => (
           <div key={event.id} className="flex items-start gap-3">

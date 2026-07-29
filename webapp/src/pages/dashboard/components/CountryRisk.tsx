@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { countryRiskLevels } from '@/mocks/dashboard';
+import { useVeille, risquePays } from '@/lib/veille';
 
 const riskBadge: Record<string, string> = {
   critical: 'bg-red-100 text-red-700',
@@ -19,12 +19,23 @@ const riskDot: Record<string, string> = {
 export default function CountryRisk() {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
+  const { articles, loading } = useVeille();
+  const countryRiskLevels = risquePays(articles);
+
+  if (loading) {
+    return <div className="bg-white rounded-xl border border-gray-100 p-4 h-64 animate-pulse" />;
+  }
 
   const display = expanded ? countryRiskLevels : countryRiskLevels.slice(0, 6);
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-4">
       <h3 className="text-sm font-bold text-sentiqs-navy mb-3">{t('dashboard.countries.title')}</h3>
+      {countryRiskLevels.length === 0 && (
+        <p className="text-xs text-sentiqs-gray-text py-6 text-center">
+          Aucun pays évalué : la collecte n'a encore remonté aucun signal.
+        </p>
+      )}
       <div className="space-y-2">
         {display.map((c) => (
           <div key={c.code} className="flex items-center gap-3 py-1.5 border-b border-gray-50 last:border-0">
