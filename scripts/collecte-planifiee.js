@@ -141,7 +141,7 @@ const { interceptionProxyDirecte, stats: statsInterception } = creerIntercepteur
       // page ouverte) qui couvre effectivement les 54 pays de facon fiable :
       // sans lui, un evenement detecte reste invisible des que l'article
       // source sort de ALL (12h), quel que soit le trafic reel de visiteurs.
-      if (typeof publierAgendaPartagee === 'function') { try { await publierAgendaPartagee(ALL); } catch (_) {} }
+      if (typeof publierAgendaPartagee === 'function') { try { const pubAgenda = await publierAgendaPartagee(ALL); if (!pubAgenda || !pubAgenda.ok) console.error('[collecte-planifiee] publierAgendaPartagee a echoue :', (pubAgenda && pubAgenda.raison) || 'raison inconnue'); } catch (e) { console.error('[collecte-planifiee] publierAgendaPartagee a leve une exception :', (e && e.message) || e); } }
       return { ok: true, nbArticles: pub.nbArticles, bestProxy: String(typeof bestProxy !== 'undefined' ? bestProxy : '?') };
     });
 
