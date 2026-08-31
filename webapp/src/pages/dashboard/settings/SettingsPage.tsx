@@ -6,7 +6,10 @@ import SubscribersPanel from './components/SubscribersPanel';
 import SubscriptionsPanel from './components/SubscriptionsPanel';
 import TrafficPanel from './components/TrafficPanel';
 import PaymentsPanel from './components/PaymentsPanel';
-import LinkCheckerPanel from './components/LinkCheckerPanel';
+// LinkCheckerPanel retire : son hook useLinkStatus (scan des liens et
+// planification) n'existe dans AUCUN fichier du depot — l'export d'origine
+// etait incomplet. Le monolithe web/ conserve cette fonction ; la reecrire
+// ici reviendrait a inventer un comportement sans source.
 
 type TabId = 'overview' | 'alerts' | 'subscribers' | 'subscriptions' | 'traffic' | 'payments' | 'links';
 
@@ -232,7 +235,6 @@ export default function SettingsPage() {
         {activeTab === 'subscriptions' && <SubscriptionsPanel />}
         {activeTab === 'traffic' && <TrafficPanel />}
         {activeTab === 'payments' && <PaymentsPanel />}
-        {activeTab === 'links' && <LinkCheckerPanel />}
       </div>
     </div>
   );

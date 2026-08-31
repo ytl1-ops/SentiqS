@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap, Tooltip, GeoJSON } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import type { GeoJsonObject } from 'geojson';
 import { feature } from 'topojson-client';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore - world-atlas ships JSON but has no TS declarations
@@ -463,7 +464,7 @@ function ChoroplethLayer({ risks, onSelect, selectedCountry }: {
 }) {
   // Convert TopoJSON to GeoJSON and filter for Africa
   const africaGeoJSON = useMemo(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const topologyAny = topology as any;
     const geoJson = feature(topologyAny, topologyAny.objects.countries) as any;
     const riskMap = new Map<string, CountryRiskRecord>();
@@ -541,7 +542,9 @@ function ChoroplethLayer({ risks, onSelect, selectedCountry }: {
     });
   }, [onSelect, selectedCountry]);
 
-  return <GeoJSON key="choropleth" data={africaGeoJSON} style={styleFn} onEachFeature={onEachFeature} />;
+  // africaGeoJSON est reconstruit depuis un TopoJSON a l'execution : sa forme
+  // est correcte mais non prouvable statiquement depuis topojson-client.
+  return <GeoJSON key="choropleth" data={africaGeoJSON as unknown as GeoJsonObject} style={styleFn} onEachFeature={onEachFeature} />;
 }
 
 // —— Main Component ——
@@ -649,7 +652,7 @@ export default function AfricaHeatmap({ levels }: { levels?: CountryAlertLevel[]
 
   // Fix leaflet default icon path
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     delete (L.Icon.Default.prototype as any)._getIconUrl;
     L.Icon.Default.mergeOptions({
       iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',

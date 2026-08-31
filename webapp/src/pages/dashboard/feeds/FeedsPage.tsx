@@ -6,7 +6,7 @@ import { useFeedTranslation } from '@/hooks/useFeedTranslation';
 import ShareModal from '@/components/feature/ShareModal';
 import ErrorState from '@/components/base/ErrorState';
 import EmptyState from '@/components/base/EmptyState';
-import { linkStatusBadge } from './components/LinkStatusBadge';
+import { LinkStatusBadge } from './components/LinkStatusBadge';
 import { categoryBadgeClasses } from '@/utils/categoryColors';
 import { formatDateTime } from '@/utils/timeFormat';
 
@@ -510,7 +510,7 @@ export default function FeedsPage() {
                         {t('common.unverifiedBadge')}
                       </span>
                     )}
-                    {linkStatusBadge(feed)}
+                    <LinkStatusBadge feed={feed} />
                     {isCorroborated && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold border bg-violet-50 text-violet-700 border-violet-200" title={t('feeds.corroboratedTooltip')}>
                         <i className="ri-git-branch-line text-[9px]" />
@@ -702,7 +702,7 @@ export default function FeedsPage() {
                       {t('common.unverifiedBadge')}
                     </span>
                   )}
-                  {linkStatusBadge(feed)}
+                  <LinkStatusBadge feed={feed} />
                   {isCorroborated && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold border bg-violet-50 text-violet-700 border-violet-200" title={t('feeds.corroboratedTooltip')}>
                       <i className="ri-git-branch-line text-[9px]" />

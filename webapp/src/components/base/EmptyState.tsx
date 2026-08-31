@@ -1,7 +1,10 @@
 interface EmptyStateProps {
-  icon: string;
+  // icon/description facultatifs : les vues de la generation v2 (agenda,
+  // situations critiques, historique de posture) n'affichent qu'un titre.
+  icon?: string;
   title: string;
-  description: string;
+  description?: string;
+  iconClassName?: string;
   actionLabel?: string;
   actionIcon?: string;
   onAction?: () => void;

@@ -40,7 +40,5 @@ export function LinkStatusBadge({ feed }: LinkStatusBadgeProps) {
   }
 }
 
-// Legacy function wrapper for backward compatibility
-export function linkStatusBadge(feed: VerifiedFeed) {
-  return <LinkStatusBadge feed={feed} />;
-}
+// L'enveloppe linkStatusBadge() a ete retiree : ses deux appelants
+// (FeedsPage) utilisent desormais le composant directement.

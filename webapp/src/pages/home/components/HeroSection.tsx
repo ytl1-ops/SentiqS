@@ -32,21 +32,14 @@ export default function HeroSection() {
           {t('landing.hero.subtitle')}
         </p>
 
-        <div className="mt-8 flex flex-col sm:flex-row items-center gap-4">
+        <div className="mt-8">
           <Link
-            to="/login"
+            to="/dashboard"
             className="inline-flex items-center gap-2 px-6 py-3 bg-sentiqs-blue hover:bg-sentiqs-blue-dark text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
           >
-            <i className="ri-login-box-line" />
+            <i className="ri-dashboard-line" />
             {t('landing.hero.ctaPrimary')}
           </Link>
-          <a
-            href="#features"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold rounded-lg border border-white/20 transition-colors whitespace-nowrap"
-          >
-            <i className="ri-arrow-down-line" />
-            {t('landing.hero.ctaSecondary')}
-          </a>
         </div>
       </div>
     </section>

@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { supabase } from '@/lib/supabase';
+import Toast from '@/components/base/Toast';
+import ErrorState from '@/components/base/ErrorState';
+import EmptyState from '@/components/base/EmptyState';
 
 interface AlertChannel {
   id: number;
@@ -40,6 +44,7 @@ const severityColors: Record<string, string> = {
 };
 
 export default function AlertChannelsPanel() {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const [channels, setChannels] = useState<AlertChannel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,11 +99,9 @@ export default function AlertChannelsPanel() {
       setShowCreate(false);
       setForm({ name: '', channel_type: 'sms', phone: '', email: '', is_active: true, alert_severities: ['critical', 'high'] });
       setToast('Canal d\'alerte créé !');
-      setTimeout(() => setToast(null), 2500);
       await fetchChannels();
     } catch {
       setToast('Erreur lors de la création.');
-      setTimeout(() => setToast(null), 2500);
     }
   };
 
@@ -106,11 +109,9 @@ export default function AlertChannelsPanel() {
     try {
       await supabase.from('alert_channels').update({ is_active: !ch.is_active }).eq('id', ch.id);
       setToast(ch.is_active ? 'Canal désactivé' : 'Canal activé');
-      setTimeout(() => setToast(null), 2000);
       await fetchChannels();
     } catch {
       setToast('Erreur lors de la mise à jour.');
-      setTimeout(() => setToast(null), 2500);
     }
   };
 
@@ -118,26 +119,45 @@ export default function AlertChannelsPanel() {
     try {
       await supabase.from('alert_channels').delete().eq('id', id);
       setToast('Canal supprimé');
-      setTimeout(() => setToast(null), 2000);
       await fetchChannels();
     } catch {
       setToast('Erreur lors de la suppression.');
-      setTimeout(() => setToast(null), 2500);
     }
   };
 
+  const activeCount = channels.filter((c) => c.is_active).length;
+
   return (
     <div className="space-y-5">
-      {toast && (
-        <div className="fixed bottom-6 right-6 z-50 bg-sentiqs-navy text-white text-xs font-semibold px-4 py-2.5 rounded-lg flex items-center gap-2 animate-in slide-in-from-bottom-4 duration-300">
-          <i className="ri-check-line text-emerald-400 text-sm" /> {toast}
+      <Toast message={toast} onDismiss={() => setToast(null)} />
+
+      {/* Connection card to Alerts module */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
+          <i className="ri-alarm-warning-line text-red-500 text-lg" />
         </div>
-      )}
+        <div className="flex-1 min-w-0">
+          <h3 className="text-xs font-bold text-sentiqs-navy">Connecté au module Alertes</h3>
+          <p className="text-[10px] text-sentiqs-gray-text mt-0.5">
+            Les canaux configurés ici reçoivent les alertes en fonction de leur niveau de criticité. Gérez les niveaux d'alerte depuis le module Niveau d'Alerte.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => navigate('/dashboard/alerts')}
+          className="text-[10px] font-semibold text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors cursor-pointer flex-shrink-0"
+        >
+          <i className="ri-external-link-line text-xs" /> Voir le module Alertes
+        </button>
+      </div>
 
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-sm font-bold text-sentiqs-navy">Canaux d'alerte SMS / WhatsApp</h2>
-          <p className="text-[10px] text-sentiqs-gray-text mt-0.5">Configurez les destinataires des alertes critiques par SMS ou WhatsApp</p>
+          <p className="text-[10px] text-sentiqs-gray-text mt-0.5">
+            {activeCount > 0 ? `${activeCount} canal${activeCount > 1 ? 'x' : ''} actif${activeCount > 1 ? 's' : ''} — ` : ''}
+            Configurez les destinataires des alertes critiques par SMS ou WhatsApp
+          </p>
         </div>
         <button
           type="button"
@@ -220,10 +240,10 @@ export default function AlertChannelsPanel() {
         </div>
       )}
 
-      {/* Channels list */}
+      {/* Channels list or empty state */}
       {loading ? (
         <div className="space-y-2">
-          {[...Array(3)].map((_, i) => (
+          {[...Array(2)].map((_, i) => (
             <div key={i} className="bg-white rounded-lg border border-gray-100 p-4 animate-pulse">
               <div className="h-4 bg-gray-100 rounded w-1/3 mb-2" />
               <div className="h-3 bg-gray-50 rounded w-1/2" />
@@ -231,14 +251,16 @@ export default function AlertChannelsPanel() {
           ))}
         </div>
       ) : error ? (
-        <div className="py-8 text-center text-sentiqs-gray-text text-xs bg-white rounded-lg border border-gray-100">
-          {error}
-          <button type="button" onClick={fetchChannels} className="ml-2 text-sentiqs-navy font-semibold underline cursor-pointer">Réessayer</button>
-        </div>
+        <ErrorState message={error} onRetry={fetchChannels} retryLabel={t('common.retry')} />
       ) : channels.length === 0 ? (
-        <div className="py-12 text-center text-sentiqs-gray-text text-xs bg-white rounded-lg border border-gray-100">
-          Aucun canal d'alerte configuré.
-        </div>
+        <EmptyState
+          icon="ri-notification-3-line"
+          title="Aucun canal configuré"
+          description="Créez des canaux SMS, WhatsApp ou Email pour notifier automatiquement vos équipes lors des alertes critiques."
+          actionLabel="Créer un premier canal"
+          actionIcon="ri-add-line"
+          onAction={() => setShowCreate(true)}
+        />
       ) : (
         <div className="space-y-2">
           {channels.map((ch) => (

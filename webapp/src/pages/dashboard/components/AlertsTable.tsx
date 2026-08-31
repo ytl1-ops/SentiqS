@@ -1,48 +1,47 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useVeille, alertes } from '@/lib/veille';
+import { useAlertLevels, LEVEL_COLORS } from '@/hooks/useAlertLevels';
 
-const severityBadge: Record<string, string> = {
-  critical: 'bg-red-100 text-red-700',
-  high: 'bg-amber-100 text-amber-700',
-  medium: 'bg-blue-100 text-blue-700',
-  low: 'bg-gray-100 text-gray-600',
+const LEVEL_NAMES: Record<string, string> = {
+  rouge: 'ROUGE',
+  orange: 'ORANGE',
+  jaune: 'JAUNE',
+  vert: 'VERT',
 };
-
-const statusBadge: Record<string, string> = {
-  active: 'bg-red-50 text-red-600 border border-red-100',
-};
-
-/** La vue d'ensemble n'affiche qu'un aperçu — la liste complète est sur /dashboard/alerts. */
-const APERCU = 8;
 
 export default function AlertsTable() {
   const { t } = useTranslation();
   const [filter, setFilter] = useState('all');
-  const { articles, loading } = useVeille();
-  const dashboardAlerts = alertes(articles);
+  const { alertLevels, loading, stats } = useAlertLevels();
 
-  const filteredAlerts = (filter === 'all'
-    ? dashboardAlerts
-    : dashboardAlerts.filter((a) => a.severity === filter)
-  ).slice(0, APERCU);
+  const filtered = filter === 'all'
+    ? alertLevels
+    : alertLevels.filter((l) => l.level === filter);
 
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  };
+  const topLevels = filtered.slice(0, 10);
 
   if (loading) {
-    return <div className="bg-white rounded-xl border border-gray-100 h-72 animate-pulse" />;
+    return (
+      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+        <div className="px-4 py-3 border-b border-gray-100">
+          <h3 className="text-sm font-bold text-sentiqs-navy">{t('dashboard.alerts.latest')}</h3>
+        </div>
+        <div className="p-8 text-center text-sentiqs-gray-text text-xs">Chargement des niveaux d'alerte...</div>
+      </div>
+    );
   }
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
       <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-        <h3 className="text-sm font-bold text-sentiqs-navy">{t('dashboard.alerts.latest')}</h3>
+        <div>
+          <h3 className="text-sm font-bold text-sentiqs-navy">{t('dashboard.alerts.alertLevels')}</h3>
+          <p className="text-[9px] text-sentiqs-gray-text mt-0.5">
+            {stats.totalIncidents} incidents sur 24h · 54 pays Africains
+          </p>
+        </div>
         <div className="flex items-center gap-1">
-          {['all', 'critical', 'high'].map((f) => (
+          {['all', 'rouge', 'orange', 'jaune', 'vert'].map((f) => (
             <button
               key={f}
               type="button"
@@ -53,7 +52,7 @@ export default function AlertsTable() {
                   : 'bg-gray-50 text-sentiqs-gray-text hover:bg-gray-100'
               }`}
             >
-              {f === 'all' ? 'Tout' : t(`dashboard.severity.${f}`)}
+              {f === 'all' ? 'Tout' : LEVEL_NAMES[f]}
             </button>
           ))}
         </div>
@@ -63,52 +62,59 @@ export default function AlertsTable() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-50">
-              <th className="px-4 py-2 text-left text-[9px] font-bold tracking-[0.1em] text-sentiqs-gray-text uppercase">{t('dashboard.alerts.id')}</th>
-              <th className="px-4 py-2 text-left text-[9px] font-bold tracking-[0.1em] text-sentiqs-gray-text uppercase">{t('dashboard.alerts.severity')}</th>
-              <th className="px-4 py-2 text-left text-[9px] font-bold tracking-[0.1em] text-sentiqs-gray-text uppercase">{t('dashboard.alerts.country')}</th>
-              <th className="px-4 py-2 text-left text-[9px] font-bold tracking-[0.1em] text-sentiqs-gray-text uppercase hidden md:table-cell">{t('dashboard.alerts.title')}</th>
-              <th className="px-4 py-2 text-left text-[9px] font-bold tracking-[0.1em] text-sentiqs-gray-text uppercase">{t('dashboard.alerts.time')}</th>
-              <th className="px-4 py-2 text-left text-[9px] font-bold tracking-[0.1em] text-sentiqs-gray-text uppercase hidden sm:table-cell">{t('dashboard.alerts.status')}</th>
+              <th className="px-4 py-2 text-left text-[9px] font-bold tracking-[0.1em] text-sentiqs-gray-text uppercase">Niveau</th>
+              <th className="px-4 py-2 text-left text-[9px] font-bold tracking-[0.1em] text-sentiqs-gray-text uppercase">Pays</th>
+              <th className="px-4 py-2 text-left text-[9px] font-bold tracking-[0.1em] text-sentiqs-gray-text uppercase">Score</th>
+              <th className="px-4 py-2 text-left text-[9px] font-bold tracking-[0.1em] text-sentiqs-gray-text uppercase">Incidents</th>
+              <th className="px-4 py-2 text-left text-[9px] font-bold tracking-[0.1em] text-sentiqs-gray-text uppercase hidden sm:table-cell">Dernier</th>
             </tr>
           </thead>
           <tbody>
-            {filteredAlerts.map((alert) => (
+            {topLevels.map((level, idx: number) => (
               <tr
-                key={alert.id}
-                className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors cursor-pointer"
+                key={level.country}
+                className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors cursor-pointer anim-entry-right"
+                style={{ animationDelay: `${idx * 25}ms` }}
               >
-                <td className="px-4 py-2.5 text-[11px] font-mono text-sentiqs-gray-text max-w-[90px] truncate">{alert.id}</td>
                 <td className="px-4 py-2.5">
-                  <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-semibold ${severityBadge[alert.severity] || severityBadge.low}`}>
-                    {t(`dashboard.severity.${alert.severity}`)}
+                  <span className={`inline-flex px-2 py-0.5 rounded text-[9px] font-bold uppercase ${LEVEL_COLORS[level.level]}`}>
+                    {level.level.toUpperCase()}
                   </span>
                 </td>
-                <td className="px-4 py-2.5 text-xs text-sentiqs-navy font-medium">{alert.country}</td>
-                <td className="px-4 py-2.5 text-xs text-sentiqs-gray-text hidden md:table-cell max-w-[280px] truncate">{alert.title}</td>
-                <td className="px-4 py-2.5 text-[11px] text-sentiqs-gray-text">{formatTime(alert.timestamp)}</td>
-                <td className="px-4 py-2.5 hidden sm:table-cell">
-                  <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-semibold ${statusBadge[alert.status] || statusBadge.monitoring}`}>
-                    {t(`dashboard.status.${alert.status}`)}
-                  </span>
+                <td className="px-4 py-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-sentiqs-navy bg-sentiqs-navy/5 px-1.5 py-0.5 rounded">
+                      {level.countryCode}
+                    </span>
+                    <span className="text-[11px] text-sentiqs-navy font-semibold whitespace-nowrap">{level.country}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-2.5">
+                  <span className="text-[11px] font-bold text-sentiqs-navy">{level.score.toFixed(1)}</span>
+                  <span className="text-[9px] text-gray-400">/100</span>
+                </td>
+                <td className="px-4 py-2.5 text-[11px] text-sentiqs-gray-text">
+                  {level.incidents}
+                  <span className="text-[9px] text-gray-400 ml-1">({level.verifiedCount} vérifiés)</span>
+                </td>
+                <td className="px-4 py-2.5 hidden sm:table-cell text-[11px] text-sentiqs-gray-text whitespace-nowrap">
+                  {level.latestIncidentAt
+                    ? new Date(level.latestIncidentAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                    : '—'}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        {filteredAlerts.length === 0 && (
-          <p className="text-xs text-sentiqs-gray-text py-8 text-center">
-            Aucune alerte critique ou élevée dans la collecte en cours.
-          </p>
-        )}
       </div>
 
       <div className="px-4 py-2 border-t border-gray-100">
-        <Link
-          to="/dashboard/alerts"
+        <a
+          href="/dashboard/alerts"
           className="text-xs text-sentiqs-blue hover:text-sentiqs-blue-dark transition-colors font-medium"
         >
           {t('dashboard.alerts.viewAll')} →
-        </Link>
+        </a>
       </div>
     </div>
   );
