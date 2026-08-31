@@ -572,7 +572,10 @@ export function useAlertLevels() {
         type: 'alert',
         locality: alert.locality,
         source: alert.source,
-        verified: alert.status === 'active' || alert.verification_status === 'verified',
+        // La table `alerts` ne porte pas de colonne verification_status (voir
+        // 20260724_alerts_schema.sql) : la clause qui la lisait etait morte,
+        // toujours undefined a l'execution. Seul le statut fait foi ici.
+        verified: alert.status === 'active',
         category: alert.category,
       });
     });

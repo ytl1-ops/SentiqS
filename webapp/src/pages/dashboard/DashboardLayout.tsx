@@ -51,7 +51,7 @@ export default function DashboardLayout() {
         titleIntervalRef.current = null;
       }
     };
-  }, [unreadCount]);
+  }, [unreadCount, t]);
 
   // Nettoyage final au démontage
   useEffect(() => {

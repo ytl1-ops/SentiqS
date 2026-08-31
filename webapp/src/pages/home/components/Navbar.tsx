@@ -37,19 +37,19 @@ export default function Navbar() {
 
         <div className="hidden md:flex items-center gap-8">
           <a
-            href="#features"
+            href="/#features"
             className="text-sm font-medium text-sentiqs-gray-text hover:text-sentiqs-navy transition-colors whitespace-nowrap"
           >
             {t('landing.nav.features')}
           </a>
           <a
-            href="#pricing"
+            href="/#pricing"
             className="text-sm font-medium text-sentiqs-gray-text hover:text-sentiqs-navy transition-colors whitespace-nowrap"
           >
             {t('landing.nav.pricing')}
           </a>
           <a
-            href="#stats"
+            href="/#stats"
             className="text-sm font-medium text-sentiqs-gray-text hover:text-sentiqs-navy transition-colors whitespace-nowrap"
           >
             {t('landing.nav.stats')}
@@ -84,16 +84,17 @@ export default function Navbar() {
           </div>
 
           <Link
-            to="/signup"
-            className="inline-flex items-center gap-2 px-4 py-2 border border-sentiqs-navy text-sentiqs-navy hover:bg-sentiqs-navy hover:text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap mr-2"
-          >
-            {t('signup.card.submit')}
-          </Link>
-          <Link
             to="/login"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-sentiqs-navy hover:bg-sentiqs-navy-light text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
+            className="inline-flex items-center gap-2 px-4 py-2 border border-sentiqs-navy text-sentiqs-navy hover:bg-sentiqs-navy hover:text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
           >
             <i className="ri-login-box-line" />
+            {t('card.login.title')}
+          </Link>
+          <Link
+            to="/dashboard"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-sentiqs-navy hover:bg-sentiqs-navy-light text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
+          >
+            <i className="ri-dashboard-line" />
             {t('landing.nav.access')}
           </Link>
         </div>

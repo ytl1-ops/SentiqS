@@ -1,10 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import { useVeille, chronologie } from '@/lib/veille';
+import { useSupabaseStats } from '@/hooks/useSupabaseStats';
 
 const eventIcon: Record<string, string> = {
   alert: 'ri-alarm-warning-line',
   feed: 'ri-rss-line',
   correlation: 'ri-git-merge-line',
+  update: 'ri-refresh-line',
 };
 
 const eventColor: Record<string, string> = {
@@ -16,27 +17,29 @@ const eventColor: Record<string, string> = {
 
 export default function Timeline() {
   const { t } = useTranslation();
-  const { articles, loading } = useVeille();
-  const timelineEvents = chronologie(articles);
+  const { timelineEvents, loading } = useSupabaseStats();
 
   if (loading) {
-    return <div className="bg-white rounded-xl border border-gray-100 p-4 h-64 animate-pulse" />;
+    return (
+      <div className="bg-white rounded-xl border border-gray-100 p-4">
+        <h3 className="text-sm font-bold text-sentiqs-navy mb-3">{t('dashboard.timeline.title')}</h3>
+        <p className="text-xs text-sentiqs-gray-text text-center py-4">{t('common.loading')}</p>
+      </div>
+    );
   }
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-bold text-sentiqs-navy">{t('dashboard.timeline.title')}</h3>
+        <div>
+          <h3 className="text-sm font-bold text-sentiqs-navy">{t('dashboard.timeline.title')}</h3>
+          <p className="text-[9px] text-sentiqs-gray-text mt-0.5">{t('dashboard.activity.loading')}</p>
+        </div>
         <span className="text-[10px] font-semibold text-sentiqs-gray-text uppercase tracking-wider">{t('dashboard.timeline.today')}</span>
       </div>
-      {timelineEvents.length === 0 && (
-        <p className="text-xs text-sentiqs-gray-text py-6 text-center">
-          Aucun signal collecté pour l'instant. Lancez une collecte depuis la page Flux.
-        </p>
-      )}
       <div className="space-y-3">
         {timelineEvents.map((event, index) => (
-          <div key={event.id} className="flex items-start gap-3">
+          <div key={event.id} className="flex items-start gap-3 anim-entry-right" style={{ animationDelay: `${index * 90}ms` }}>
             <div className="flex flex-col items-center flex-shrink-0">
               <div className={`w-2 h-2 rounded-full ${eventColor[event.severity] || eventColor.low}`} />
               {index < timelineEvents.length - 1 && (
@@ -47,6 +50,12 @@ export default function Timeline() {
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-mono text-sentiqs-gray-text">{event.time}</span>
                 <i className={`${eventIcon[event.type] || eventIcon.feed} text-xs text-sentiqs-gray-text`} />
+                {event.locality && (
+                  <span className="inline-flex items-center gap-0.5 text-[9px] font-semibold text-sentiqs-navy bg-sentiqs-navy/5 px-1.5 py-0.5 rounded whitespace-nowrap">
+                    <i className="ri-map-pin-line text-[8px]" />
+                    {event.locality}
+                  </span>
+                )}
               </div>
               <p className="text-xs text-sentiqs-navy mt-0.5 truncate">{event.title}</p>
             </div>

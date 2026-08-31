@@ -1,2 +1,0 @@
-VITE_PUBLIC_SUPABASE_ANON_KEY="sb_publishable_KFnCBmsu6n6zaUFeTADoN5Fsq9pMZoZl"
-VITE_PUBLIC_SUPABASE_URL="https://y29ohsbp5agtra5dbor1.helloreaddy.com/"

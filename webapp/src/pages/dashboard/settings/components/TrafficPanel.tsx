@@ -1,31 +1,31 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
+import ErrorState from '@/components/base/ErrorState';
+import EmptyState from '@/components/base/EmptyState';
+import { formatDateTime } from '@/utils/timeFormat';
 
 interface TrafficLog {
   id: number;
   page_path: string;
-  // country n'est renseigné qu'une fois la résolution géographique de l'IP
-  // faite côté serveur ; region vient du fuseau horaire du navigateur.
-  country: string | null;
-  region: string | null;
+  country: string;
+  region: string;
   duration_seconds: number;
   timestamp: string;
 }
-
-const UNKNOWN = 'Inconnu';
 
 const pageLabels: Record<string, string> = {
   '/dashboard': 'Tableau de bord',
   '/dashboard/alerts': 'Alertes',
   '/dashboard/feeds': 'Flux',
-  '/dashboard/correlations': 'Corrélations',
-  '/dashboard/countries': 'Pays',
+  '/dashboard/situation': 'Situation',
   '/dashboard/reports': 'Rapports',
   '/dashboard/agenda': 'Agenda',
   '/dashboard/settings': 'Paramètres',
 };
 
 export default function TrafficPanel() {
+  const navigate = useNavigate();
   const [logs, setLogs] = useState<TrafficLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,8 +51,7 @@ export default function TrafficPanel() {
 
     const countryCounts: Record<string, number> = {};
     logs.forEach((l) => {
-      const key = l.country || UNKNOWN;
-      countryCounts[key] = (countryCounts[key] || 0) + 1;
+      countryCounts[l.country] = (countryCounts[l.country] || 0) + 1;
     });
     const topCountries = Object.entries(countryCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
 
@@ -64,25 +63,42 @@ export default function TrafficPanel() {
 
     const regionCounts: Record<string, number> = {};
     logs.forEach((l) => {
-      const key = l.region || UNKNOWN;
-      regionCounts[key] = (regionCounts[key] || 0) + 1;
+      regionCounts[l.region] = (regionCounts[l.region] || 0) + 1;
     });
     const topRegions = Object.entries(regionCounts).sort((a, b) => b[1] - a[1]);
 
     return { totalVisits, avgDuration, topCountries, topPages, topRegions };
   }, [logs]);
 
-  const formatTime = (ts: string) => {
-    const d = new Date(ts);
-    return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) + ' ' +
-      d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  };
 
   const maxCountryCount = stats.topCountries[0]?.[1] || 1;
   const maxPageCount = stats.topPages[0]?.[1] || 1;
 
+  const hasData = logs.length > 0;
+
   return (
     <div className="space-y-5">
+      {/* Connection card to analytics */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="w-10 h-10 rounded-lg bg-violet-50 flex items-center justify-center flex-shrink-0">
+          <i className="ri-bar-chart-line text-violet-600 text-lg" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-xs font-bold text-sentiqs-navy">Analyse du trafic plateforme</h3>
+          <p className="text-[10px] text-sentiqs-gray-text mt-0.5">
+            Les logs de trafic enregistrent chaque visite sur le dashboard. Activez le tracking complet depuis les paramètres d'analytics pour des statistiques détaillées.
+          </p>
+        </div>
+        <a
+          href="https://analytics.readdy.ai"
+          target="_blank"
+          rel="nofollow noopener noreferrer"
+          className="text-[10px] font-semibold text-violet-700 bg-violet-50 hover:bg-violet-100 px-3 py-1.5 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors cursor-pointer flex-shrink-0"
+        >
+          <i className="ri-external-link-line text-xs" /> Analytics
+        </a>
+      </div>
+
       <div>
         <h2 className="text-sm font-bold text-sentiqs-navy">Suivi du trafic</h2>
         <p className="text-[10px] text-sentiqs-gray-text mt-0.5">Analyse des visites par page, pays et région</p>
@@ -90,7 +106,7 @@ export default function TrafficPanel() {
 
       {loading ? (
         <div className="space-y-3">
-          {[...Array(4)].map((_, i) => (
+          {[...Array(3)].map((_, i) => (
             <div key={i} className="bg-white rounded-lg border border-gray-100 p-4 animate-pulse">
               <div className="h-4 bg-gray-100 rounded w-1/3 mb-2" />
               <div className="h-3 bg-gray-50 rounded w-1/2" />
@@ -98,17 +114,20 @@ export default function TrafficPanel() {
           ))}
         </div>
       ) : error ? (
-        <div className="py-8 text-center text-sentiqs-gray-text text-xs bg-white rounded-lg border border-gray-100">
-          {error}
-          <button type="button" onClick={fetchLogs} className="ml-2 text-sentiqs-navy font-semibold underline cursor-pointer">Réessayer</button>
-        </div>
+        <ErrorState message={error} onRetry={fetchLogs} retryLabel="Réessayer" />
+      ) : !hasData ? (
+        <EmptyState
+          icon="ri-line-chart-line"
+          title="Aucune donnée de trafic"
+          description="Les visites sur le dashboard seront automatiquement enregistrées ici. Publiez le site pour commencer à collecter des données réelles."
+        />
       ) : (
         <>
           {/* Quick stats */}
           <div className="grid grid-cols-3 gap-3">
             <div className="bg-white rounded-lg border border-gray-100 p-4">
               <div className="text-2xl font-bold text-sentiqs-navy">{stats.totalVisits}</div>
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-sentiqs-gray-text mt-0.5">Visites (échantillon)</div>
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-sentiqs-gray-text mt-0.5">Visites</div>
             </div>
             <div className="bg-white rounded-lg border border-gray-100 p-4">
               <div className="text-2xl font-bold text-emerald-600">{stats.avgDuration}s</div>
@@ -122,7 +141,6 @@ export default function TrafficPanel() {
 
           {/* Charts row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Countries */}
             <div className="bg-white rounded-lg border border-gray-100 p-4">
               <h3 className="text-xs font-bold text-sentiqs-navy mb-3">Top pays consultés</h3>
               <div className="space-y-2">
@@ -141,7 +159,6 @@ export default function TrafficPanel() {
               </div>
             </div>
 
-            {/* Pages */}
             <div className="bg-white rounded-lg border border-gray-100 p-4">
               <h3 className="text-xs font-bold text-sentiqs-navy mb-3">Pages les plus visitées</h3>
               <div className="space-y-2">
@@ -180,10 +197,10 @@ export default function TrafficPanel() {
                 <tbody>
                   {logs.slice(0, 20).map((l) => (
                     <tr key={l.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                      <td className="px-4 py-2 text-sentiqs-gray-text font-mono whitespace-nowrap">{formatTime(l.timestamp)}</td>
+                      <td className="px-4 py-2 text-sentiqs-gray-text font-mono whitespace-nowrap">{formatDateTime(l.timestamp, 'fr')}</td>
                       <td className="px-4 py-2 font-semibold text-sentiqs-navy">{pageLabels[l.page_path] || l.page_path}</td>
-                      <td className="px-4 py-2 text-sentiqs-gray-text">{l.country || UNKNOWN}</td>
-                      <td className="px-4 py-2 text-sentiqs-gray-text">{l.region || UNKNOWN}</td>
+                      <td className="px-4 py-2 text-sentiqs-gray-text">{l.country}</td>
+                      <td className="px-4 py-2 text-sentiqs-gray-text">{l.region}</td>
                       <td className="px-4 py-2 text-sentiqs-gray-text text-right">{l.duration_seconds || 0}s</td>
                     </tr>
                   ))}

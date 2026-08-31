@@ -21,17 +21,17 @@ export default function Footer() {
           </div>
 
           <div className="flex flex-wrap items-center gap-6 md:gap-8">
-            <a href="#features" className="text-sm text-white/60 hover:text-white transition-colors whitespace-nowrap">
+            <a href="/#features" className="text-sm text-white/60 hover:text-white transition-colors whitespace-nowrap">
               {t('landing.nav.features')}
             </a>
-            <a href="#pricing" className="text-sm text-white/60 hover:text-white transition-colors whitespace-nowrap">
+            <a href="/#pricing" className="text-sm text-white/60 hover:text-white transition-colors whitespace-nowrap">
               {t('landing.nav.pricing')}
             </a>
-            <a href="#stats" className="text-sm text-white/60 hover:text-white transition-colors whitespace-nowrap">
+            <a href="/#stats" className="text-sm text-white/60 hover:text-white transition-colors whitespace-nowrap">
               {t('landing.nav.stats')}
             </a>
-            <Link to="/login" className="text-sm text-white/60 hover:text-white transition-colors whitespace-nowrap">
-              {t('card.login.title')}
+            <Link to="/dashboard" className="text-sm text-white/60 hover:text-white transition-colors whitespace-nowrap">
+              Dashboard
             </Link>
           </div>
         </div>

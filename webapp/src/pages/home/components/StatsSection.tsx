@@ -1,13 +1,52 @@
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { supabase } from '@/lib/supabase';
 
 export default function StatsSection() {
   const { t } = useTranslation();
+  const [liveStats, setLiveStats] = useState({
+    countries: 54,
+    activeAlerts: 0,
+    recentFeeds: 0,
+    regions: 10,
+  });
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchLiveStats() {
+      try {
+        const twentyFourH = new Date(Date.now() - 86400000).toISOString();
+
+        const [activeRes, feedsRes] = await Promise.all([
+          supabase.from('alerts').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+          supabase.from('feeds').select('*', { count: 'exact', head: true }).gte('timestamp', twentyFourH),
+        ]);
+
+        if (cancelled) return;
+
+        setLiveStats({
+          countries: 54,
+          activeAlerts: activeRes.count || 0,
+          recentFeeds: feedsRes.count || 0,
+          regions: 10,
+        });
+        setLoaded(true);
+      } catch {
+        if (!cancelled) setLoaded(true);
+      }
+    }
+
+    fetchLiveStats();
+    return () => { cancelled = true; };
+  }, []);
 
   const stats = [
-    { value: '54', label: t('landing.stats.countries'), icon: 'ri-global-line' },
-    { value: '12', label: t('landing.stats.alerts'), icon: 'ri-alarm-warning-line' },
-    { value: '47', label: t('landing.stats.feeds'), icon: 'ri-rss-line' },
-    { value: '8', label: t('landing.stats.regions'), icon: 'ri-map-pin-line' },
+    { value: liveStats.countries.toString(), label: t('landing.stats.countries'), icon: 'ri-global-line' },
+    { value: loaded ? liveStats.activeAlerts.toString() : '...', label: t('landing.stats.alerts'), icon: 'ri-alarm-warning-line' },
+    { value: loaded ? liveStats.recentFeeds.toString() : '...', label: t('landing.stats.feeds'), icon: 'ri-rss-line' },
+    { value: liveStats.regions.toString(), label: t('landing.stats.regions'), icon: 'ri-map-pin-line' },
   ];
 
   return (
@@ -24,6 +63,15 @@ export default function StatsSection() {
             </div>
           ))}
         </div>
+
+        {loaded && (
+          <div className="mt-6 text-center">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-full text-[10px] font-semibold text-emerald-700">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Données en temps réel — {new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </span>
+          </div>
+        )}
       </div>
     </section>
   );

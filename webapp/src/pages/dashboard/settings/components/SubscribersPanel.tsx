@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
+import Toast from '@/components/base/Toast';
+import ErrorState from '@/components/base/ErrorState';
+import EmptyState from '@/components/base/EmptyState';
 
 interface Subscriber {
   id: number;
@@ -31,6 +35,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function SubscribersPanel() {
+  const { t } = useTranslation();
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -73,11 +78,9 @@ export default function SubscribersPanel() {
       setShowCreate(false);
       setForm({ name: '', email: '', phone: '', country: '', subscription_tier: 'Essentiel', status: 'actif' });
       setToast('Abonné ajouté !');
-      setTimeout(() => setToast(null), 2500);
       await fetchSubscribers();
     } catch {
       setToast('Erreur lors de l\'ajout.');
-      setTimeout(() => setToast(null), 2500);
     }
   };
 
@@ -85,11 +88,9 @@ export default function SubscribersPanel() {
     try {
       await supabase.from('subscribers').update({ status: newStatus }).eq('id', id);
       setToast('Statut mis à jour');
-      setTimeout(() => setToast(null), 2000);
       await fetchSubscribers();
     } catch {
       setToast('Erreur de mise à jour.');
-      setTimeout(() => setToast(null), 2500);
     }
   };
 
@@ -102,11 +103,27 @@ export default function SubscribersPanel() {
 
   return (
     <div className="space-y-5">
-      {toast && (
-        <div className="fixed bottom-6 right-6 z-50 bg-sentiqs-navy text-white text-xs font-semibold px-4 py-2.5 rounded-lg flex items-center gap-2 animate-in slide-in-from-bottom-4 duration-300">
-          <i className="ri-check-line text-emerald-400 text-sm" /> {toast}
+      <Toast message={toast} onDismiss={() => setToast(null)} />
+
+      {/* Connection card to user management */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
+          <i className="ri-user-settings-line text-emerald-600 text-lg" />
         </div>
-      )}
+        <div className="flex-1 min-w-0">
+          <h3 className="text-xs font-bold text-sentiqs-navy">Gestion des accès plateforme</h3>
+          <p className="text-[10px] text-sentiqs-gray-text mt-0.5">
+            Les abonnés sont les utilisateurs autorisés à accéder au dashboard SentiqS. Chaque abonné est lié à un plan tarifaire qui détermine ses droits.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors cursor-pointer flex-shrink-0"
+        >
+          <i className="ri-question-line text-xs" /> Guide d'accès
+        </button>
+      </div>
 
       <div className="flex items-center justify-between">
         <div>
@@ -123,19 +140,21 @@ export default function SubscribersPanel() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-3">
-        {[
-          { label: 'Total', value: stats.total, color: 'text-sentiqs-navy' },
-          { label: 'Actifs', value: stats.actif, color: 'text-emerald-600' },
-          { label: 'Suspendus', value: stats.suspendu, color: 'text-red-500' },
-          { label: 'Inactifs', value: stats.inactif, color: 'text-gray-400' },
-        ].map((s) => (
-          <div key={s.label} className="bg-white rounded-lg border border-gray-100 p-3">
-            <div className={`text-xl font-bold ${s.color}`}>{s.value}</div>
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-sentiqs-gray-text mt-0.5">{s.label}</div>
-          </div>
-        ))}
-      </div>
+      {stats.total > 0 && (
+        <div className="grid grid-cols-4 gap-3">
+          {[
+            { label: 'Total', value: stats.total, color: 'text-sentiqs-navy' },
+            { label: t('dashboard.settings.subscribers.active'), value: stats.actif, color: 'text-emerald-600' },
+            { label: 'Suspendus', value: stats.suspendu, color: 'text-red-500' },
+            { label: 'Inactifs', value: stats.inactif, color: 'text-gray-400' },
+          ].map((s) => (
+            <div key={s.label} className="bg-white rounded-lg border border-gray-100 p-3">
+              <div className={`text-xl font-bold ${s.color}`}>{s.value}</div>
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-sentiqs-gray-text mt-0.5">{s.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Create form */}
       {showCreate && (
@@ -167,29 +186,31 @@ export default function SubscribersPanel() {
       )}
 
       {/* Filters */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex items-center bg-white border border-gray-200 rounded-lg px-3 py-1.5 flex-1 min-w-[180px]">
-          <i className="ri-search-line text-sentiqs-gray-text text-sm mr-2" />
-          <input type="text" placeholder="Rechercher un abonné..." value={search} onChange={(e) => setSearch(e.target.value)} className="bg-transparent text-xs text-sentiqs-navy placeholder:text-gray-400 focus:outline-none w-full" />
+      {subscribers.length > 0 && (
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center bg-white border border-gray-200 rounded-lg px-3 py-1.5 flex-1 min-w-[180px]">
+            <i className="ri-search-line text-sentiqs-gray-text text-sm mr-2" />
+            <input type="text" placeholder="Rechercher un abonné..." value={search} onChange={(e) => setSearch(e.target.value)} className="bg-transparent text-xs text-sentiqs-navy placeholder:text-gray-400 focus:outline-none w-full" />
+          </div>
+          <select value={tierFilter} onChange={(e) => setTierFilter(e.target.value)} className="px-3 py-1.5 rounded-lg text-[10px] font-semibold border border-gray-200 bg-white text-sentiqs-gray-text focus:outline-none focus:border-sentiqs-navy whitespace-nowrap">
+            <option value="all">Tous les plans</option>
+            <option value="Essentiel">Essentiel</option>
+            <option value="Professionnel">Professionnel</option>
+            <option value="Enterprise">Enterprise</option>
+          </select>
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-1.5 rounded-lg text-[10px] font-semibold border border-gray-200 bg-white text-sentiqs-gray-text focus:outline-none focus:border-sentiqs-navy whitespace-nowrap">
+            <option value="all">Tous les statuts</option>
+            <option value="actif">Actif</option>
+            <option value="inactif">Inactif</option>
+            <option value="suspendu">Suspendu</option>
+          </select>
         </div>
-        <select value={tierFilter} onChange={(e) => setTierFilter(e.target.value)} className="px-3 py-1.5 rounded-lg text-[10px] font-semibold border border-gray-200 bg-white text-sentiqs-gray-text focus:outline-none focus:border-sentiqs-navy whitespace-nowrap">
-          <option value="all">Tous les plans</option>
-          <option value="Essentiel">Essentiel</option>
-          <option value="Professionnel">Professionnel</option>
-          <option value="Enterprise">Enterprise</option>
-        </select>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-1.5 rounded-lg text-[10px] font-semibold border border-gray-200 bg-white text-sentiqs-gray-text focus:outline-none focus:border-sentiqs-navy whitespace-nowrap">
-          <option value="all">Tous les statuts</option>
-          <option value="actif">Actif</option>
-          <option value="inactif">Inactif</option>
-          <option value="suspendu">Suspendu</option>
-        </select>
-      </div>
+      )}
 
-      {/* Table */}
+      {/* Table or empty state */}
       {loading ? (
         <div className="space-y-1">
-          {[...Array(5)].map((_, i) => (
+          {[...Array(3)].map((_, i) => (
             <div key={i} className="bg-white rounded-lg border border-gray-100 p-4 animate-pulse">
               <div className="h-3 bg-gray-100 rounded w-2/3 mb-2" />
               <div className="h-2 bg-gray-50 rounded w-1/2" />
@@ -197,10 +218,16 @@ export default function SubscribersPanel() {
           ))}
         </div>
       ) : error ? (
-        <div className="py-8 text-center text-sentiqs-gray-text text-xs bg-white rounded-lg border border-gray-100">
-          {error}
-          <button type="button" onClick={fetchSubscribers} className="ml-2 text-sentiqs-navy font-semibold underline cursor-pointer">Réessayer</button>
-        </div>
+        <ErrorState message={error} onRetry={fetchSubscribers} retryLabel={t('common.retry')} />
+      ) : subscribers.length === 0 ? (
+        <EmptyState
+          icon="ri-group-line"
+          title="Aucun abonné enregistré"
+          description="Ajoutez des abonnés pour leur donner accès à la plateforme SentiqS. Chaque abonné peut être rattaché à un plan tarifaire."
+          actionLabel="Ajouter un premier abonné"
+          actionIcon="ri-add-line"
+          onAction={() => setShowCreate(true)}
+        />
       ) : (
         <div className="bg-white rounded-lg border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
