@@ -1,0 +1,50 @@
+name: Étiquette de version
+
+# Pose une étiquette datée sur chaque déploiement de main, et enregistre la
+# révision effectivement publiée.
+#
+# Le dépôt ne portait aucun tag : revenir à l'état d'avant un déploiement
+# supposait de retrouver le bon commit à la main, dans un historique où les
+# fusions sont nombreuses. Une étiquette par mise en production donne un point
+# de retour nommé — `git checkout prod-2026.08.31-1` — et rend visible ce qui
+# tourne réellement.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: version-tag
+  cancel-in-progress: false
+
+jobs:
+  etiqueter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compose une étiquette unique pour ce déploiement
+        id: nom
+        run: |
+          set -euo pipefail
+          jour=$(date -u +%Y.%m.%d)
+          # Rang du jour : permet plusieurs déploiements dans la même journée.
+          n=$(( $(git tag -l "prod-${jour}-*" | wc -l) + 1 ))
+          echo "tag=prod-${jour}-${n}" >> "$GITHUB_OUTPUT"
+
+      - name: Pose l'étiquette
+        run: |
+          set -euo pipefail
+          tag="${{ steps.nom.outputs.tag }}"
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$tag" -m "Déploiement du $(date -u '+%d/%m/%Y %H:%M UTC') — ${GITHUB_SHA:0:7}"
+          git push origin "$tag"
+          echo "Étiquette posée : $tag sur ${GITHUB_SHA:0:7}"
+          echo "Retour arrière : git checkout $tag" >> "$GITHUB_STEP_SUMMARY"

@@ -1,220 +1,74 @@
-# ⭐ SentiqS Features Checklist
+# SentiqS — état réel des fonctionnalités
 
-## Completed Skills (v2.0)
+Ce document distingue ce qui **tourne en production** de ce qui existe **en code
+non déployé**. La version précédente présentait les quatre briques ci-dessous
+comme « Production Ready » alors que rien ne les exécute : l'écart s'est vu au
+premier prospect qui a demandé une démonstration.
 
-### ✅ 1. Real-Time Alerts System 🚨
-- [x] WebSocket server (Socket.io)
-- [x] Multi-level escalation (0→1→2→3)
-- [x] Auto-escalation after timeout (30 min)
-- [x] Alert routing by user rules
-- [x] Offline support (local queue)
-- [x] PostgreSQL schema with RLS
-- [x] Audit trail (all changes logged)
-- [x] React Hook (useAlerts)
-- **Branch:** `feature/real-time-alerts`
-
-### ✅ 2. Public API & Integrations 🔗
-- [x] REST API endpoints (/alerts, /stats, /correlations)
-- [x] API key management
-- [x] Slack integration (channel posts)
-- [x] Jira integration (auto-create tickets)
-- [x] Generic webhooks (POST to any endpoint)
-- [x] Rate limiting per key
-- [x] Webhook event queue + retry logic
-- [x] Test endpoint
-- **Branch:** `feature/integrations-api`
-
-### ✅ 3. Automated Reports 📊
-- [x] Multiple formats (DOCX, PDF, XLSX, CSV)
-- [x] Report types (Executive, Operational, Full Analysis, Risk Matrix)
-- [x] Scheduling (Daily, Weekly, Monthly)
-- [x] Email delivery (SMTP)
-- [x] On-demand generation
-- [x] Regional correlation analysis
-- [x] Cron job scheduler
-- [x] Custom filtering
-- **Branch:** `feature/automated-reports`
-
-### ✅ 4. Intelligent Dashboard 📈
-- [x] Risk Map (Mapbox choropleth)
-- [x] Severity Gauge (pie chart)
-- [x] Timeline (last 24h incidents)
-- [x] Trend Chart (7-day volume)
-- [x] Correlations Graph (multi-country themes)
-- [x] Key Metrics (summary cards)
-- [x] Real-time WebSocket sync
-- [x] Analytics helper functions
-- **Branch:** `feature/intelligent-dashboard`
+Révision de référence : voir `git log`. Périmètre : ce qui est servi depuis
+`web/` par GitHub Pages.
 
 ---
 
-## Deployment Checklist
+## En production
 
-### Backend Setup
-- [ ] Install Node.js dependencies
-- [ ] Configure `.env` (Redis, Supabase, SMTP, Mapbox, Slack)
-- [ ] Run Supabase migrations
-- [ ] Start alert server: `node backend/alerts/alert-server.js`
-- [ ] Start report scheduler: `node backend/reports/scheduler.ts`
+Servi aux utilisateurs à chaque visite, sur `web/SentiqS_Web.html`.
 
-### Frontend Setup
-- [ ] Install React dependencies
-- [ ] Add Mapbox token to `.env`
-- [ ] Build dashboard: `npm run build`
-- [ ] Deploy to GitHub Pages / Vercel
+| Fonctionnalité | État | Où |
+|---|---|---|
+| Collecte RSS — 495 sources, 54 pays | opérationnelle | `doCollect`, `proxyFetch` |
+| Classification en 4 axes (sécurité, humanitaire, politique, économique) | opérationnelle | `classify` |
+| Filtrage anti-hallucination (date réelle, < 12 h, source identifiée) | opérationnelle | `antiHalluFilter` |
+| Niveau de posture par pays (5 niveaux) + mesures opérationnelles | opérationnelle | `getNivKey`, `MESURES` |
+| Corrélations entre pays sur la fenêtre temps réel | opérationnelle, réservée aux rapports | `_corrBuildSignaux` |
+| Exports Word, PDF, PowerPoint, Excel, CSV | opérationnels | `exportWord`, `exportPDF`, … |
+| Agenda sûreté, main courante, fiches pays | opérationnelles | modules de l'interface |
+| Bilingue français / anglais, y compris exports | opérationnel | `L()`, `i18n` |
+| Authentification Supabase, rôles serveur | opérationnelle | migration `profiles_auth` |
+| Cache de collecte partagé, rafraîchi toutes les 30 min | opérationnel | `collecte-planifiee.yml` |
+| Alertes par e-mail et SMS | configurables | panneau Paramètres |
 
-### Testing
-- [ ] Create test alert → verify WebSocket delivery
-- [ ] Schedule test report → check email
-- [ ] Test Slack integration → verify channel post
-- [ ] Create Jira ticket via API → verify in Jira
-- [ ] View dashboard → confirm real-time updates
-- [ ] Test offline mode → queue local alerts
+## Écrit mais non déployé
 
-### Monitoring
-- [ ] Alert queue depth
-- [ ] Email delivery rate
-- [ ] API response times
-- [ ] WebSocket connection count
-- [ ] Job failure rate
+Le code existe et se lit, mais **aucun processus ne l'exécute** : `backend/` n'a
+ni `package.json`, ni dépendances déclarées, et n'est référencé nulle part.
+Ne pas présenter ces points comme disponibles.
 
----
+| Brique | Où | Ce qui manque pour l'activer |
+|---|---|---|
+| Serveur d'alertes temps réel (WebSocket) | `backend/alerts/alert-server.js` | hébergement, manifeste, Redis |
+| API publique et clés d'accès | `backend/api/` | hébergement, gestion des clés |
+| Intégrations Slack, Jira, webhooks | `backend/api/integration-service.ts` | hébergement, comptes tiers |
+| Rapports planifiés envoyés par e-mail | `backend/reports/` | hébergement, SMTP |
+| Tableau de bord React (Vite) | `webapp/` | décision de déploiement (voir ci-dessous) |
+| Application mobile Expo | `app/sentinel-app/` | `eas.json`, dossier `assets/` absent |
+| Tableau de bord nouvelle génération | `archive/tableau-de-bord-v2/` | répertoires `hooks/`, `utils/`, `mocks/` manquants |
 
-## File Structure
+## Non commencé
 
-```
-SentiqS/
-├── app/sentinel-app/
-│   └── lib/alerts/
-│       ├── alert-types.ts         ← Feature #1
-│       ├── alert-service.ts       ← Feature #1
-│       ├── use-alerts.ts          ← Feature #1 (React Hook)
-│       └── ...
-├── backend/
-│   ├── alerts/
-│   │   ├── alert-server.js        ← Feature #1 (WebSocket)
-│   │   └── README.md
-│   ├── api/
-│   │   ├── integration-types.ts    ← Feature #2
-│   │   ├── integration-service.ts  ← Feature #2
-│   │   ├── public-api-routes.ts    ← Feature #2
-│   │   └── README.md
-│   └── reports/
-│       ├── report-service.ts       ← Feature #3
-│       ├── report-scheduler.ts     ← Feature #3
-│       └── README.md
-├── supabase/migrations/
-│   ├── 20260724_alerts_schema.sql  ← Feature #1
-│   └── ...
-└── web/dashboard/
-    ├── intelligent-dashboard.tsx   ← Feature #4 (React)
-    ├── analytics.ts                ← Feature #4
-    └── README.md
-```
+À traiter avant toute facturation.
+
+- Application des droits d'abonnement côté serveur — les quotas vivent
+  aujourd'hui dans le navigateur.
+- Encaissement (Stripe n'est pas branché).
+- Mentions légales, conditions générales de vente, politique de
+  confidentialité, page RGPD.
+- Nom de domaine propre.
+- Sauvegarde et restauration de la base.
 
 ---
 
-## Environment Variables
+## Deux architectures en parallèle
 
-```env
-# Redis
-REDIS_URL=redis://localhost:6379
+`web/` est en production ; `webapp/` est construite, typée et lintée par la CI
+mais n'est **jamais déployée** — `gh-pages-deploy.yml` publie `web/`. Tant que
+cet arbitrage n'est pas tranché, toute correction se paie deux fois.
 
-# Supabase
-SUPABASE_URL=https://zpdwqmliogxbuwirziny.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=...
-EXPO_PUBLIC_SUPABASE_URL=...
-EXPO_PUBLIC_SUPABASE_ANON_KEY=...
+## Vérifier soi-même
 
-# Email (SMTP)
-SMTP_HOST=smtp.sendgrid.net
-SMTP_PORT=587
-SMTP_USER=apikey
-SMTP_PASSWORD=SG.xxxxx
-SMTP_FROM=reports@sentiqs.com
-
-# Map & Geolocation
-REACT_APP_MAPBOX_TOKEN=pk_live_xxx
-
-# API Server
-PORT=3001
-FRONTEND_URL=https://ytl1-ops.github.io/SentiqS
-
-# Integrations (optional)
-SLACK_BOT_TOKEN=xoxb-...
-JIRA_API_TOKEN=...
-SALESFORCE_CLIENT_ID=...
-```
-
----
-
-## API Examples
-
-### Create Alert
 ```bash
-curl -X POST http://localhost:3000/api/v1/alerts \
-  -H "Authorization: Bearer sk_abc123" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Affrontements signal\u00e9s \u00e0 Gao",
-    "description": "Incident s\u00e9curitaire",
-    "country": "Mali",
-    "severity": "CRITIQUE",
-    "category": "S\u00c9CURIT\u00c9"
-  }'
+npm test                              # tests du moteur de collecte
+node scripts/verifier-syntaxe-html.js # JavaScript inline de production
+node scripts/verifier-couverture-proxys.js
+node scripts/verifier-accessibilite.js
 ```
-
-### Get Stats
-```bash
-curl http://localhost:3000/api/v1/stats \
-  -H "Authorization: Bearer sk_abc123"
-```
-
-### Schedule Report
-```bash
-curl -X POST http://localhost:3000/api/v1/reports/schedule \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Daily Briefing",
-    "type": "EXECUTIVE_SUMMARY",
-    "format": ["PDF"],
-    "frequency": "DAILY",
-    "time": "07:00",
-    "recipients": ["ceo@acme.com"]
-  }'
-```
-
----
-
-## Performance Metrics
-
-**Alert Delivery:**
-- WebSocket latency: <500ms
-- Email delivery: <30s
-- Escalation check: Every 30 min
-
-**Dashboard:**
-- Initial load: <2s
-- Real-time update: <3s
-- Map render: <5s (Mapbox)
-
-**API:**
-- Rate limit: 100 req/min (per key)
-- Response time: <200ms
-- Timeout: 30s
-
----
-
-## Support & Issues
-
-- **Alerts:** alert-support@sentiqs.com
-- **API:** api-support@sentiqs.com
-- **Reports:** reports@sentiqs.com
-- **Dashboard:** dashboard@sentiqs.com
-
----
-
-**Version:** 2.0 (4 Enterprise Skills)  
-**Last Updated:** 2026-07-24  
-**Status:** ✅ Production Ready

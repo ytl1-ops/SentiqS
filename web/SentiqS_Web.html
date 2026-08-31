@@ -4498,6 +4498,29 @@ function t(cle) { return (I18N[LANG] && I18N[LANG][cle]) || I18N.fr[cle] || cle;
 // boutons FR/EN du bandeau superieur mais jamais definie auparavant (bouton
 // mort). Le francais reste la langue par defaut (LANG='fr') ; ce bouton ne
 // fait que permettre un basculement volontaire vers l'anglais.
+// _rendreOuSignaler(nom, fn) : execute un rendu et, en cas d'echec, le dit.
+//
+// Ces quatre appels etaient enveloppes dans des `catch(_) {}` : si renderFeed
+// levait une exception, l'utilisateur voyait un ecran vide, sans message, et
+// rien n'en gardait trace. Sur un produit de veille, un flux vide se confond
+// avec « aucune actualite » — le pire mode de defaillance, parce qu'il est
+// silencieux. On conserve le caractere non bloquant (un module en echec n'en
+// entraine pas d'autres) mais l'echec devient visible en console ET a l'ecran.
+function _rendreOuSignaler(nom, fn) {
+  try { fn(); return true; }
+  catch (e) {
+    console.error('[rendu] ' + nom + ' a echoue :', e);
+    if (typeof _toastRapide === 'function') {
+      _toastRapide(
+        LANG === 'en' ? 'Display error (' + nom + '). Try reloading the page.'
+                      : 'Erreur d\'affichage (' + nom + '). Rechargez la page.',
+        'ti-alert-triangle'
+      );
+    }
+    return false;
+  }
+}
+
 function setLang(lang) {
   LANG = (lang === 'en') ? 'en' : 'fr';
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('on', b.dataset.lang === LANG));
@@ -4522,10 +4545,10 @@ function setLang(lang) {
     appliquerTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
   }
   // Re-rendre le contenu deja affiche pour qu'il suive la langue choisie
-  if (typeof renderFeed === 'function') { try { renderFeed(); } catch(_) {} }
-  if (typeof updSynthese === 'function' && document.getElementById('syCont')) { try { updSynthese(); } catch(_) {} }
-  if (typeof renderDashboard === 'function' && document.getElementById('v-dashboard') && document.getElementById('v-dashboard').classList.contains('on')) { try { renderDashboard(); } catch(_) {} }
-  if (typeof renderAuthStats === 'function') { try { renderAuthStats(); } catch(_) {} }
+  if (typeof renderFeed === 'function') { _rendreOuSignaler('renderFeed', renderFeed); }
+  if (typeof updSynthese === 'function' && document.getElementById('syCont')) { _rendreOuSignaler('updSynthese', updSynthese); }
+  if (typeof renderDashboard === 'function' && document.getElementById('v-dashboard') && document.getElementById('v-dashboard').classList.contains('on')) { _rendreOuSignaler('renderDashboard', renderDashboard); }
+  if (typeof renderAuthStats === 'function') { _rendreOuSignaler('renderAuthStats', renderAuthStats); }
 }
 
 // setDisplayMode(mode) : force l'affichage Web ou Mobile independamment de la
@@ -11874,7 +11897,7 @@ function switchView(name,el){
   // collecte RSS suivant — l'utilisateur pouvait donc voir un contenu deja
   // perime en arrivant sur l'onglet juste apres une actualisation manquee.
   if(name==='alertes' && typeof recalcAlertes === 'function') { try { recalcAlertes({ silencieux:true }); } catch(_) {} }
-  if(name==='analyse' && typeof updSynthese === 'function'){ try { updSynthese(); } catch(_) {} }
+  if(name==='analyse' && typeof updSynthese === 'function'){ _rendreOuSignaler('updSynthese', updSynthese); }
   if(name==='params') loadParamsModule();
   if(name==='rapports') peuplerFiltresRapports();
   if(name==='flux'){document.getElementById('nbadge').style.display='none';NEW_IDS.clear();renderFeed();}
@@ -14863,7 +14886,7 @@ function renderWhatsappContacts() {
     '<tr><td>' + _apEsc(c.nom || '—') + '</td>' +
     '<td>' + (c.type === 'groupe' ? '<i class="ti ti-users"></i> Groupe' : '<i class="ti ti-user"></i> Contact') + '</td>' +
     '<td>' + _apEsc(c.type === 'groupe' ? (c.lien || '') : (c.tel || '')) + '</td>' +
-    '<td><button class="btn-action" style="background:var(--rl);color:var(--r);border-color:var(--rb)" onclick="waSupprimerContact(' + i + ')"><i class="ti ti-trash"></i></button></td></tr>'
+    '<td><button class="btn-action" style="background:var(--rl);color:var(--r);border-color:var(--rb)" aria-label="Supprimer ce contact WhatsApp" title="Supprimer ce contact WhatsApp" onclick="waSupprimerContact(' + i + ')"><i class="ti ti-trash"></i></button></td></tr>'
   ).join('') : '<tr><td colspan="4" style="color:var(--lg);text-align:center;padding:12px">Aucun contact — le bouton WhatsApp des actus invitera à en ajouter un.</td></tr>';
 }
 function waAjouterContact() {
@@ -14907,7 +14930,7 @@ function renderTelegramGroupes() {
   if (cntEl) cntEl.textContent = groupes.length + ' groupe(s)';
   body.innerHTML = groupes.length ? groupes.map((g, i) =>
     '<tr><td>' + _apEsc(g.nom || '—') + '</td><td>' + _apEsc(g.lien || '') + '</td>' +
-    '<td><button class="btn-action" style="background:var(--rl);color:var(--r);border-color:var(--rb)" onclick="tgSupprimerGroupe(' + i + ')"><i class="ti ti-trash"></i></button></td></tr>'
+    '<td><button class="btn-action" style="background:var(--rl);color:var(--r);border-color:var(--rb)" aria-label="Supprimer ce groupe Telegram" title="Supprimer ce groupe Telegram" onclick="tgSupprimerGroupe(' + i + ')"><i class="ti ti-trash"></i></button></td></tr>'
   ).join('') : '<tr><td colspan="3" style="color:var(--lg);text-align:center;padding:12px">Aucun groupe — le bouton Telegram des actus invitera à en ajouter un.</td></tr>';
 }
 function tgAjouterGroupe() {
@@ -14941,7 +14964,7 @@ function renderEmailGroupes() {
   if (cntEl) cntEl.textContent = groupes.length + ' groupe(s)';
   body.innerHTML = groupes.length ? groupes.map((g, i) =>
     '<tr><td>' + _apEsc(g.nom || '—') + '</td><td>' + _apEsc((g.emails || []).join(', ')) + '</td>' +
-    '<td><button class="btn-action" style="background:var(--rl);color:var(--r);border-color:var(--rb)" onclick="emSupprimerGroupe(' + i + ')"><i class="ti ti-trash"></i></button></td></tr>'
+    '<td><button class="btn-action" style="background:var(--rl);color:var(--r);border-color:var(--rb)" aria-label="Supprimer ce groupe e-mail" title="Supprimer ce groupe e-mail" onclick="emSupprimerGroupe(' + i + ')"><i class="ti ti-trash"></i></button></td></tr>'
   ).join('') : '<tr><td colspan="3" style="color:var(--lg);text-align:center;padding:12px">Aucun groupe — le bouton Email des actus invitera à en ajouter un.</td></tr>';
 }
 function emAjouterGroupe() {
@@ -16267,15 +16290,15 @@ function applyGlobalCountryFilter(cy) {
 
   // Flux — filtre direct
   fCy = cy;
-  if (typeof renderCyList === 'function' && document.getElementById('cySelectTop')) { try { renderCyList(); } catch(_) {} }
-  if (typeof renderFeed === 'function' && document.getElementById('feed')) { try { renderFeed(); } catch(_) {} }
+  if (typeof renderCyList === 'function' && document.getElementById('cySelectTop')) { _rendreOuSignaler('renderCyList', renderCyList); }
+  if (typeof renderFeed === 'function' && document.getElementById('feed')) { _rendreOuSignaler('renderFeed', renderFeed); }
 
   // Synthese — filtre direct (exclusif avec le filtre zone)
   if (typeof fSyCy !== 'undefined') {
     fSyCy = cy; fSyZone = 'all';
     const selSyCy = document.getElementById('syCyFilter'); if (selSyCy) selSyCy.value = cy;
     const selSyZo = document.getElementById('syZoneFilter'); if (selSyZo) selSyZo.value = 'all';
-    if (typeof updSynthese === 'function' && document.getElementById('syCont')) { try { updSynthese(); } catch(_) {} }
+    if (typeof updSynthese === 'function' && document.getElementById('syCont')) { _rendreOuSignaler('updSynthese', updSynthese); }
   }
 
   // Agenda — filtre direct (exclusif avec le filtre zone)
@@ -16283,7 +16306,7 @@ function applyGlobalCountryFilter(cy) {
     fAgCy = cy; fAgZone = 'all';
     const selAgCy = document.getElementById('agCyFilter'); if (selAgCy) selAgCy.value = cy;
     const selAgZo = document.getElementById('agZoneFilter'); if (selAgZo) selAgZo.value = 'all';
-    if (typeof renderAgenda === 'function' && document.getElementById('agTl')) { try { renderAgenda(); } catch(_) {} }
+    if (typeof renderAgenda === 'function' && document.getElementById('agTl')) { _rendreOuSignaler('renderAgenda', renderAgenda); }
   }
 
   // Rapports — filtre direct (exclusif avec le filtre zone)
@@ -16299,7 +16322,7 @@ function applyGlobalCountryFilter(cy) {
 
   // Dashboard — surbrillance de la carte pays dans le heatmap si la vue est active
   if (typeof renderDashboard === 'function' && document.getElementById('dashContent') && document.getElementById('v-dashboard') && document.getElementById('v-dashboard').classList.contains('on')) {
-    try { renderDashboard(); } catch(_) {}
+    _rendreOuSignaler('renderDashboard', renderDashboard);
   }
 
   updateGlobalFilterBadge();
@@ -20405,7 +20428,7 @@ updStats = function(){
   if (typeof renderDashboard === 'function' && document.getElementById('dashContent')) {
     const dashEl = document.getElementById('v-dashboard');
     if (dashEl && dashEl.classList.contains('on')) {
-      try { renderDashboard(); } catch(_) {}
+      _rendreOuSignaler('renderDashboard', renderDashboard);
     }
   }
 };

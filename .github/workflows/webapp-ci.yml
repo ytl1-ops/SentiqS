@@ -162,5 +162,11 @@ jobs:
         # identifiable — silencieusement.
         run: node scripts/verifier-couverture-proxys.js
 
+      - name: Accessibilité du fichier de production
+        # Un contrôle interactif sans nom accessible est inutilisable au
+        # clavier comme au lecteur d'écran — trois boutons de suppression
+        # étaient dans ce cas.
+        run: node scripts/verifier-accessibilite.js
+
       - name: Tests du moteur de collecte
         run: npm test
