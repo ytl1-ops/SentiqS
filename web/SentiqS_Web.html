@@ -8639,11 +8639,61 @@ function limiteDeTelechargementAtteinte() { return telechargementsRestants() <= 
 // d'export (exportWord/exportPDF/exportPPTX/exportExcel/exportCSV) — bloque
 // et previent l'utilisateur si le quota de son abonnement est deja
 // consomme, avant meme de lancer la generation (evite un travail inutile).
-function _verifierLimiteTelechargement() {
-  if (!limiteDeTelechargementAtteinte()) return false;
+// _autoriserExportCoteServeur(format, nom) : demande le droit a la fonction
+// Edge `autoriser-export`, qui seule detient la cle de service.
+//
+// Le controle local ci-dessous lit localStorage : un utilisateur peut vider
+// son stockage pour remettre son quota a zero, ou editer une valeur pour se
+// declarer au forfait Entreprise. Pour une offre facturee, le droit doit
+// etre verifie la ou il ne peut pas etre reecrit — et la consommation
+// enregistree cote serveur, sinon le compteur reste fictif.
+//
+// Renvoie null si la voie serveur n'est pas disponible (fonction pas encore
+// deployee, ou pas de session Supabase) : l'appelant retombe alors sur le
+// controle local, comportement actuel inchange. Meme bascule progressive
+// que pour la publication de la collecte.
+async function _autoriserExportCoteServeur(format, nom) {
+  const client = getSentinelSupabase();
+  if (!client) return null;
+  let jeton = null;
+  try {
+    const { data } = await client.auth.getSession();
+    jeton = data && data.session && data.session.access_token;
+  } catch (_) { return null; }
+  if (!jeton) return null; // pas de session Supabase reelle : voie locale
+
+  try {
+    const r = await fetch(SENTINEL_SUPABASE_URL + '/functions/v1/autoriser-export', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'Authorization': 'Bearer ' + jeton },
+      body: JSON.stringify({ format: format, nom: nom || null }),
+    });
+    if (r.status === 404) return null; // fonction pas deployee
+    const d = await r.json().catch(() => null);
+    if (!r.ok || !d || !d.ok) return null; // panne serveur : ne pas bloquer un client legitime
+    return d;
+  } catch (_) {
+    return null;
+  }
+}
+
+// _verifierLimiteTelechargement(format, nom) : vrai si l'export doit etre
+// BLOQUE. Interroge d'abord le serveur ; a defaut, retombe sur le controle
+// local historique.
+async function _verifierLimiteTelechargement(format, nom) {
   const msg = LANG === 'en'
     ? 'Download limit reached for your plan. Upgrade to continue.'
     : 'Limite de téléchargements atteinte pour votre abonnement. Passez à un plan supérieur pour continuer.';
+
+  const verdict = await _autoriserExportCoteServeur(format, nom);
+  if (verdict) {
+    if (verdict.autorise) return false;
+    if (typeof _toastRapide === 'function') _toastRapide(msg, 'ti-lock');
+    else alert(msg);
+    return true;
+  }
+
+  if (!limiteDeTelechargementAtteinte()) return false;
   if (typeof _toastRapide === 'function') _toastRapide(msg, 'ti-lock');
   else alert(msg);
   return true;
@@ -17688,7 +17738,7 @@ function updateDLCounts(){
 //  EXPORT EXCEL via SheetJS (XLSX)
 // ════════════════════════════════════════════════════════════════════
 async function exportExcel(type){
-  if (_verifierLimiteTelechargement()) return;
+  if (await _verifierLimiteTelechargement('xlsx')) return;
   if(typeof XLSX==='undefined'){
     alert('SheetJS non chargé. Vérifiez votre connexion internet.'); return;
   }
@@ -17774,7 +17824,7 @@ async function exportExcel(type){
 //  EXPORT CSV (fallback universel sans lib)
 // ════════════════════════════════════════════════════════════════════
 async function exportCSV(type){
-  if (_verifierLimiteTelechargement()) return;
+  if (await _verifierLimiteTelechargement('csv')) return;
   const btn=event?.target;btnSpin(btn);
   try{
     const arts=getExportData();
@@ -17818,7 +17868,7 @@ function getExportDataPeriode(jours) {
 }
 
 async function exportPPTX(type) {
-  if (_verifierLimiteTelechargement()) return;
+  if (await _verifierLimiteTelechargement('pptx')) return;
   type = type || 'rapport_complet';
   const btn = event?.target; btnSpin(btn);
   try {
@@ -18973,7 +19023,7 @@ async function genererModeEmploiPDF() {
 }
 
 async function exportPDF(type) {
-  if (_verifierLimiteTelechargement()) return;
+  if (await _verifierLimiteTelechargement('pdf')) return;
   const btn = event?.target; btnSpin(btn);
   try {
     if (typeof PDFLib === 'undefined') throw new Error('pdf-lib non chargé — verifiez la connexion internet');
@@ -19818,7 +19868,7 @@ async function apercuSynthese() {
 //  EXPORT WORD via docx.js (CDN)
 // ════════════════════════════════════════════════════════════════════
 async function exportWord(type){
-  if (_verifierLimiteTelechargement()) return;
+  if (await _verifierLimiteTelechargement('docx')) return;
   const btn=event?.target;btnSpin(btn);
   try{
     if(typeof docx==='undefined') throw new Error('docx.js non chargé');
