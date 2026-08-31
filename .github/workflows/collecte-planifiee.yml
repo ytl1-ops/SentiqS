@@ -67,6 +67,13 @@ jobs:
           # deploiement depuis ce changement et aurait fini par servir une
           # version figee/perimee de l'app a ce job planifie.
           SENTINEL_URL: https://ytl1-ops.github.io/SentiqS/SentiqS_Web.html
+          # Jeton de publication vers la fonction Edge publier-collecte.
+          # Optionnel tant que la migration de verrouillage n'est pas
+          # appliquee : sans lui, le job publie par ecriture directe et le
+          # signale dans ses journaux. A definir dans Settings > Secrets and
+          # variables > Actions, avec la MEME valeur que le secret de la
+          # fonction Edge.
+          COLLECTEUR_JETON: ${{ secrets.COLLECTEUR_JETON }}
         run: node scripts/collecte-planifiee.js
 
       - name: Vérifie la fraîcheur du cache publié

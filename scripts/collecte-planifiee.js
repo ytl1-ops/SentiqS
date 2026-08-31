@@ -86,6 +86,29 @@ const { interceptionProxyDirecte, stats: statsInterception } = creerIntercepteur
     );
     console.log('Session collecteur établie.');
 
+    // Jeton de publication : injecté dans la session, JAMAIS écrit dans le
+    // fichier public ni dans ce dépôt. Il autorise l'appel à la fonction
+    // Edge `publier-collecte`, qui détient la clé de service et écrit à
+    // notre place — de sorte que la table n'ait plus à être ouverte au rôle
+    // anon (voir supabase/README.md).
+    //
+    // Absent : la publication retombe sur l'écriture directe, encore valide
+    // tant que la migration de verrouillage n'est pas appliquée. On le
+    // signale, sans faire échouer le job — l'ordre de bascule est
+    // volontairement progressif.
+    const jetonPublication = process.env.COLLECTEUR_JETON || '';
+    if (jetonPublication) {
+      await page.evaluate((jeton) => {
+        if (typeof _MEM_SESSION === 'object' && _MEM_SESSION) _MEM_SESSION.collecteurJeton = jeton;
+      }, jetonPublication);
+      console.log('Jeton de publication injecté : publication via la fonction Edge.');
+    } else {
+      console.warn(
+        'COLLECTEUR_JETON absent : publication par écriture directe (voie héritée). ' +
+        'Définissez ce secret avant d\'appliquer la migration de verrouillage.'
+      );
+    }
+
     // Orchestration explicite (voir checkCollectorSession, volontairement
     // minimal côté client) : detectProxy() -> doCollect(). Ne PAS chaîner
     // publierCollectePartagee() à l'intérieur de cet evaluate : si
