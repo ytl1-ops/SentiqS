@@ -12788,7 +12788,52 @@ async function lireCollectePartagee() {
 // du bug ou la table collecte_partagee a pu rester absente/en echec pendant
 // des semaines sans que rien ne le signale — un risque grave pour une appli
 // de surete ou une donnee perimee affichee comme a jour induit en erreur).
+// _publierViaFonctionEdge(articles, force) : voie PRIVILEGIEE de publication.
+//
+// L'ecriture directe dans collecte_partagee imposait d'ouvrir la table au
+// role anon — donc a quiconque lit la cle publique de ce fichier. La
+// fonction Edge `publier-collecte` fait la meme chose avec la cle de
+// service, cote serveur, apres validation du contenu et fusion atomique
+// (voir app/sentinel-app/supabase/functions/publier-collecte/index.ts).
+//
+// Le jeton n'existe que dans la session du collecteur planifie : un
+// visiteur ordinaire n'en a pas, et n'alimente donc plus le cache partage.
+// C'etait deja l'intention du job planifie — garder ce cache frais
+// INDEPENDAMMENT du trafic.
+//
+// Renvoie null si la voie Edge n'est pas disponible (fonction pas encore
+// deployee, ou pas de jeton) : l'appelant retombe alors sur l'ecriture
+// directe, qui reste valide TANT QUE la migration de verrouillage n'est
+// pas appliquee. Cet ordre est volontaire — voir supabase/README.md.
+async function _publierViaFonctionEdge(articles, force) {
+  const jeton = (typeof _MEM_SESSION === 'object' && _MEM_SESSION && _MEM_SESSION.collecteurJeton) || null;
+  if (!jeton) return null;
+  try {
+    const r = await fetch(SENTINEL_SUPABASE_URL + '/functions/v1/publier-collecte', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-collecteur-jeton': jeton,
+        'Authorization': 'Bearer ' + SENTINEL_SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({ articles, force: !!force }),
+    });
+    // 404 : fonction pas encore deployee — on laisse l'appelant reprendre
+    // la voie directe plutot que d'echouer alors qu'elle fonctionne encore.
+    if (r.status === 404) return null;
+    const d = await r.json().catch(() => null);
+    if (!r.ok || !d || !d.ok) {
+      return { ok: false, raison: 'fonction publier-collecte : ' + ((d && d.raison) || ('HTTP ' + r.status)) };
+    }
+    return { ok: true, nbArticles: d.nbArticles };
+  } catch (e) {
+    return { ok: false, raison: 'fonction publier-collecte injoignable : ' + (e && e.message || e) };
+  }
+}
+
 async function publierCollectePartagee(articles, force) {
+  const viaEdge = await _publierViaFonctionEdge(articles, force);
+  if (viaEdge) return viaEdge;
   const client = getSentinelSupabase();
   if (!client) return { ok: false, raison: 'Supabase non configure/joignable' };
   if (!Array.isArray(articles) || !articles.length) return { ok: false, raison: 'Aucun article a publier' };
