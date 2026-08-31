@@ -4498,6 +4498,29 @@ function t(cle) { return (I18N[LANG] && I18N[LANG][cle]) || I18N.fr[cle] || cle;
 // boutons FR/EN du bandeau superieur mais jamais definie auparavant (bouton
 // mort). Le francais reste la langue par defaut (LANG='fr') ; ce bouton ne
 // fait que permettre un basculement volontaire vers l'anglais.
+// _rendreOuSignaler(nom, fn) : execute un rendu et, en cas d'echec, le dit.
+//
+// Ces quatre appels etaient enveloppes dans des `catch(_) {}` : si renderFeed
+// levait une exception, l'utilisateur voyait un ecran vide, sans message, et
+// rien n'en gardait trace. Sur un produit de veille, un flux vide se confond
+// avec « aucune actualite » — le pire mode de defaillance, parce qu'il est
+// silencieux. On conserve le caractere non bloquant (un module en echec n'en
+// entraine pas d'autres) mais l'echec devient visible en console ET a l'ecran.
+function _rendreOuSignaler(nom, fn) {
+  try { fn(); return true; }
+  catch (e) {
+    console.error('[rendu] ' + nom + ' a echoue :', e);
+    if (typeof _toastRapide === 'function') {
+      _toastRapide(
+        LANG === 'en' ? 'Display error (' + nom + '). Try reloading the page.'
+                      : 'Erreur d\'affichage (' + nom + '). Rechargez la page.',
+        'ti-alert-triangle'
+      );
+    }
+    return false;
+  }
+}
+
 function setLang(lang) {
   LANG = (lang === 'en') ? 'en' : 'fr';
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('on', b.dataset.lang === LANG));
@@ -4522,10 +4545,10 @@ function setLang(lang) {
     appliquerTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
   }
   // Re-rendre le contenu deja affiche pour qu'il suive la langue choisie
-  if (typeof renderFeed === 'function') { try { renderFeed(); } catch(_) {} }
-  if (typeof updSynthese === 'function' && document.getElementById('syCont')) { try { updSynthese(); } catch(_) {} }
-  if (typeof renderDashboard === 'function' && document.getElementById('v-dashboard') && document.getElementById('v-dashboard').classList.contains('on')) { try { renderDashboard(); } catch(_) {} }
-  if (typeof renderAuthStats === 'function') { try { renderAuthStats(); } catch(_) {} }
+  if (typeof renderFeed === 'function') { _rendreOuSignaler('renderFeed', renderFeed); }
+  if (typeof updSynthese === 'function' && document.getElementById('syCont')) { _rendreOuSignaler('updSynthese', updSynthese); }
+  if (typeof renderDashboard === 'function' && document.getElementById('v-dashboard') && document.getElementById('v-dashboard').classList.contains('on')) { _rendreOuSignaler('renderDashboard', renderDashboard); }
+  if (typeof renderAuthStats === 'function') { _rendreOuSignaler('renderAuthStats', renderAuthStats); }
 }
 
 // setDisplayMode(mode) : force l'affichage Web ou Mobile independamment de la
@@ -5607,7 +5630,17 @@ async function proxyFetchOne(rssUrl, T, cy) {
   // GAGNANT est journalisé par pays (les perdants d'une course parallele
   // n'ont pas de resultat individuel exploitable sans ralentir la course
   // elle-meme avec un Promise.allSettled).
-  const others = CORS_PX.map((fn, i) => i).filter(i => i !== bestProxy && i !== proxyPrefPays);
+  // MAX_REPLI_PARALLELE : ce dernier etage courait AUTANT de requetes que de
+  // proxys restants (jusqu'a 5), pour chaque source d'un lot. Avec un lot de
+  // 30 sources, cela pouvait faire 150 requetes simultanees vers les proxys
+  // publics — precisement au moment ou ils faiblissent, puisque cet etage
+  // n'est atteint que lorsque les precedents ont echoue. Le mecanisme de
+  // resilience aggravait donc la cause de la panne. Deux candidats suffisent
+  // a conserver l'interet de la course (le plus rapide gagne) sans ce pic.
+  const MAX_REPLI_PARALLELE = 2;
+  const others = CORS_PX.map((fn, i) => i)
+    .filter(i => i !== bestProxy && i !== proxyPrefPays)
+    .slice(0, MAX_REPLI_PARALLELE);
   const winner = await Promise.any(
     others.map(idx =>
       fetch(CORS_PX[idx](rssUrl), { signal: AbortSignal.timeout(T) })
@@ -6787,6 +6820,52 @@ function computeConfidence(a, allArts) {
 // qu'une seule carte, en unissant les sources/crosses de toutes les versions
 // fusionnees. Necessaire notamment depuis l'ajout des flux AllAfrica par pays,
 // qui recoupent souvent des faits deja couverts par une source nationale.
+// MOTS_VIDES_DEDUP : vocabulaire trop courant pour porter un sens
+// distinctif. Sans cette liste, trois mots generiques ("gouvernement",
+// "securite", "personnes") suffisaient a fusionner deux faits sans aucun
+// rapport — et l'un des deux disparaissait alors du flux.
+const MOTS_VIDES_DEDUP = new Set([
+  'gouvernement','securite','personnes','situation','selon','apres','avant','contre','entre',
+  'premier','premiere','nouveau','nouvelle','autorites','president','ministre','ministere',
+  'national','nationale','pays','region','regionale','ville','habitants','population',
+  'declare','declaration','annonce','affirme','estime','indique','precise','ajoute',
+  'plusieurs','certains','autres','cette','cettes','leurs','notamment','egalement','encore',
+  'aujourd','hier','demain','matin','soir','journee','semaine','mois','annee',
+  'millions','milliards','pourcent','environ','preoccupante','important','importante',
+  'government','security','people','situation','according','after','before','against',
+  'president','minister','national','country','region','city','several'
+]);
+
+// motsSignificatifs(titre) : tokens porteurs de sens d'un titre — accents
+// neutralises, mots vides retires, longueur > 4. Isolee et exportee pour
+// etre testable hors navigateur (voir scripts/test/dedup.test.js).
+function motsSignificatifs(titre) {
+  return (titre || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .split(/[^a-z0-9]+/)
+    .filter(m => m.length > 4 && !MOTS_VIDES_DEDUP.has(m));
+}
+
+// Seuils : 4 mots significatifs communs ET au moins 40% du titre le plus
+// court. Le ratio evite qu'un titre tres long ne recoupe n'importe quoi par
+// accumulation, le plancher evite les fusions sur trois mots de vocabulaire
+// courant. L'appariement se fait sur le MOT ENTIER (Set.has), plus par
+// sous-chaine : "region" ne correspond plus a "regionale", ni "attaque" a
+// "contre-attaquer".
+const DEDUP_MIN_COMMUNS = 4;
+const DEDUP_MIN_RATIO   = 0.4;
+
+function articlesSontDoublons(a, b) {
+  const motsA = motsSignificatifs(a.title);
+  const motsB = motsSignificatifs(b.title);
+  if (motsA.length < DEDUP_MIN_COMMUNS || motsB.length < DEDUP_MIN_COMMUNS) return false;
+  const setB = new Set(motsB);
+  const communs = new Set(motsA.filter(m => setB.has(m))).size;
+  if (communs < DEDUP_MIN_COMMUNS) return false;
+  return communs / Math.min(motsA.length, motsB.length) >= DEDUP_MIN_RATIO;
+}
+
 function dedupliquerArticles(arts) {
   const parPays = {};
   arts.forEach(a => { (parPays[a.cy] = parPays[a.cy] || []).push(a); });
@@ -6795,23 +6874,25 @@ function dedupliquerArticles(arts) {
     for (let i = 0; i < groupe.length; i++) {
       const a = groupe[i];
       if (aSupprimer.has(a.id)) continue;
-      const motsA = (a.title || '').toLowerCase().split(/\s+/).filter(m => m.length > 4);
-      if (!motsA.length) continue;
       for (let j = i + 1; j < groupe.length; j++) {
         const b = groupe[j];
         if (aSupprimer.has(b.id) || a.primary === b.primary) continue;
-        const communs = motsA.filter(m => (b.title || '').toLowerCase().includes(m)).length;
-        if (communs >= 3) {
-          // Fusion : on garde la version de la source la mieux notee, on unit
-          // les listes de sources/corroboration des deux versions.
-          const garde = (a.score >= b.score) ? a : b;
-          const fusionne = (garde === a) ? b : a;
-          garde.srcs = [...new Set([...(garde.srcs||[garde.primary]), ...(fusionne.srcs||[fusionne.primary])])];
-          garde.crosses = [...new Set([...(garde.crosses||[]), ...(fusionne.crosses||[fusionne.n||fusionne.primary])])];
-          garde.verified = true;
-          aSupprimer.add(fusionne.id);
-          if (fusionne === a) break; // a vient d'etre marque supprime : arreter cette boucle interne
-        }
+        if (!articlesSontDoublons(a, b)) continue;
+        // Fusion : on garde la version de la source la mieux notee, on unit
+        // les listes de sources/corroboration des deux versions.
+        const garde = (a.score >= b.score) ? a : b;
+        const fusionne = (garde === a) ? b : a;
+        garde.srcs = [...new Set([...(garde.srcs||[garde.primary]), ...(fusionne.srcs||[fusionne.primary])])];
+        garde.crosses = [...new Set([...(garde.crosses||[]), ...(fusionne.crosses||[fusionne.n||fusionne.primary])])];
+        garde.verified = true;
+        // Trace de la fusion : l'article replie n'est plus perdu sans laisser
+        // d'empreinte — son titre et sa source restent consultables (panneau
+        // de detail, rapports) et une fusion erronee reste diagnosticable.
+        garde._fusionnes = [...(garde._fusionnes || []), {
+          id: fusionne.id, title: fusionne.title, primary: fusionne.primary, url: fusionne.url
+        }];
+        aSupprimer.add(fusionne.id);
+        if (fusionne === a) break; // a vient d'etre marque supprime : arreter cette boucle interne
       }
     }
   });
@@ -11816,7 +11897,7 @@ function switchView(name,el){
   // collecte RSS suivant — l'utilisateur pouvait donc voir un contenu deja
   // perime en arrivant sur l'onglet juste apres une actualisation manquee.
   if(name==='alertes' && typeof recalcAlertes === 'function') { try { recalcAlertes({ silencieux:true }); } catch(_) {} }
-  if(name==='analyse' && typeof updSynthese === 'function'){ try { updSynthese(); } catch(_) {} }
+  if(name==='analyse' && typeof updSynthese === 'function'){ _rendreOuSignaler('updSynthese', updSynthese); }
   if(name==='params') loadParamsModule();
   if(name==='rapports') peuplerFiltresRapports();
   if(name==='flux'){document.getElementById('nbadge').style.display='none';NEW_IDS.clear();renderFeed();}
@@ -14805,7 +14886,7 @@ function renderWhatsappContacts() {
     '<tr><td>' + _apEsc(c.nom || '—') + '</td>' +
     '<td>' + (c.type === 'groupe' ? '<i class="ti ti-users"></i> Groupe' : '<i class="ti ti-user"></i> Contact') + '</td>' +
     '<td>' + _apEsc(c.type === 'groupe' ? (c.lien || '') : (c.tel || '')) + '</td>' +
-    '<td><button class="btn-action" style="background:var(--rl);color:var(--r);border-color:var(--rb)" onclick="waSupprimerContact(' + i + ')"><i class="ti ti-trash"></i></button></td></tr>'
+    '<td><button class="btn-action" style="background:var(--rl);color:var(--r);border-color:var(--rb)" aria-label="Supprimer ce contact WhatsApp" title="Supprimer ce contact WhatsApp" onclick="waSupprimerContact(' + i + ')"><i class="ti ti-trash"></i></button></td></tr>'
   ).join('') : '<tr><td colspan="4" style="color:var(--lg);text-align:center;padding:12px">Aucun contact — le bouton WhatsApp des actus invitera à en ajouter un.</td></tr>';
 }
 function waAjouterContact() {
@@ -14849,7 +14930,7 @@ function renderTelegramGroupes() {
   if (cntEl) cntEl.textContent = groupes.length + ' groupe(s)';
   body.innerHTML = groupes.length ? groupes.map((g, i) =>
     '<tr><td>' + _apEsc(g.nom || '—') + '</td><td>' + _apEsc(g.lien || '') + '</td>' +
-    '<td><button class="btn-action" style="background:var(--rl);color:var(--r);border-color:var(--rb)" onclick="tgSupprimerGroupe(' + i + ')"><i class="ti ti-trash"></i></button></td></tr>'
+    '<td><button class="btn-action" style="background:var(--rl);color:var(--r);border-color:var(--rb)" aria-label="Supprimer ce groupe Telegram" title="Supprimer ce groupe Telegram" onclick="tgSupprimerGroupe(' + i + ')"><i class="ti ti-trash"></i></button></td></tr>'
   ).join('') : '<tr><td colspan="3" style="color:var(--lg);text-align:center;padding:12px">Aucun groupe — le bouton Telegram des actus invitera à en ajouter un.</td></tr>';
 }
 function tgAjouterGroupe() {
@@ -14883,7 +14964,7 @@ function renderEmailGroupes() {
   if (cntEl) cntEl.textContent = groupes.length + ' groupe(s)';
   body.innerHTML = groupes.length ? groupes.map((g, i) =>
     '<tr><td>' + _apEsc(g.nom || '—') + '</td><td>' + _apEsc((g.emails || []).join(', ')) + '</td>' +
-    '<td><button class="btn-action" style="background:var(--rl);color:var(--r);border-color:var(--rb)" onclick="emSupprimerGroupe(' + i + ')"><i class="ti ti-trash"></i></button></td></tr>'
+    '<td><button class="btn-action" style="background:var(--rl);color:var(--r);border-color:var(--rb)" aria-label="Supprimer ce groupe e-mail" title="Supprimer ce groupe e-mail" onclick="emSupprimerGroupe(' + i + ')"><i class="ti ti-trash"></i></button></td></tr>'
   ).join('') : '<tr><td colspan="3" style="color:var(--lg);text-align:center;padding:12px">Aucun groupe — le bouton Email des actus invitera à en ajouter un.</td></tr>';
 }
 function emAjouterGroupe() {
@@ -15710,18 +15791,29 @@ function getLiveAlertEvents(cy) {
   );
 
   // Un article critique n'est retenu comme signal live que s'il est corroboré
-  // par au moins un autre article du même pays et du même thème
+  // par un autre article DU MEME EVENEMENT — publie par une autre source.
+  //
+  // La version precedente ne comparait que le pays et la categorie : avec 323
+  // sources "securite" sur 495, la condition etait vraie en permanence et le
+  // filtre ne filtrait rien. On exige desormais un recoupement de contenu,
+  // mesure par les memes mots significatifs que le dedoublonnage (mots vides
+  // ecartes, appariement sur le mot entier) — un seuil volontairement plus bas
+  // que celui du dedoublonnage : il s'agit ici de reconnaitre deux recits d'un
+  // meme fait, pas deux copies du meme article.
+  const CORROB_MIN_COMMUNS = 3;
   const filtresParCorroboration = candidats.filter(a => {
     if (a.level !== 'crit') return true; // les niveaux modérés passent sans corroboration
-    // Pour le niveau critique : exiger au moins 1 autre source distincte
-    const corrobore = candidats.some(b =>
-      b.id !== a.id &&
-      b.primary !== a.primary &&      // source différente
-      b.cat === a.cat                 // même thème
-    );
-    return corrobore;
+    // Un article deja fusionne au dedoublonnage porte la trace de ses doublons :
+    // il est corrobore par construction.
+    if (Array.isArray(a._fusionnes) && a._fusionnes.length) return true;
+    const motsA = new Set(motsSignificatifs(a.title));
+    if (motsA.size < CORROB_MIN_COMMUNS) return false;
+    return candidats.some(b => {
+      if (b.id === a.id || b.primary === a.primary || b.cat !== a.cat) return false;
+      const communs = motsSignificatifs(b.title).filter(m => motsA.has(m));
+      return new Set(communs).size >= CORROB_MIN_COMMUNS;
+    });
   });
-
   return filtresParCorroboration
     .sort((a,b) => (b.pubDate||0) - (a.pubDate||0))
     .slice(0, MAX_LIVE_EVENTS_PAR_PAYS)
@@ -16198,15 +16290,15 @@ function applyGlobalCountryFilter(cy) {
 
   // Flux — filtre direct
   fCy = cy;
-  if (typeof renderCyList === 'function' && document.getElementById('cySelectTop')) { try { renderCyList(); } catch(_) {} }
-  if (typeof renderFeed === 'function' && document.getElementById('feed')) { try { renderFeed(); } catch(_) {} }
+  if (typeof renderCyList === 'function' && document.getElementById('cySelectTop')) { _rendreOuSignaler('renderCyList', renderCyList); }
+  if (typeof renderFeed === 'function' && document.getElementById('feed')) { _rendreOuSignaler('renderFeed', renderFeed); }
 
   // Synthese — filtre direct (exclusif avec le filtre zone)
   if (typeof fSyCy !== 'undefined') {
     fSyCy = cy; fSyZone = 'all';
     const selSyCy = document.getElementById('syCyFilter'); if (selSyCy) selSyCy.value = cy;
     const selSyZo = document.getElementById('syZoneFilter'); if (selSyZo) selSyZo.value = 'all';
-    if (typeof updSynthese === 'function' && document.getElementById('syCont')) { try { updSynthese(); } catch(_) {} }
+    if (typeof updSynthese === 'function' && document.getElementById('syCont')) { _rendreOuSignaler('updSynthese', updSynthese); }
   }
 
   // Agenda — filtre direct (exclusif avec le filtre zone)
@@ -16214,7 +16306,7 @@ function applyGlobalCountryFilter(cy) {
     fAgCy = cy; fAgZone = 'all';
     const selAgCy = document.getElementById('agCyFilter'); if (selAgCy) selAgCy.value = cy;
     const selAgZo = document.getElementById('agZoneFilter'); if (selAgZo) selAgZo.value = 'all';
-    if (typeof renderAgenda === 'function' && document.getElementById('agTl')) { try { renderAgenda(); } catch(_) {} }
+    if (typeof renderAgenda === 'function' && document.getElementById('agTl')) { _rendreOuSignaler('renderAgenda', renderAgenda); }
   }
 
   // Rapports — filtre direct (exclusif avec le filtre zone)
@@ -16230,7 +16322,7 @@ function applyGlobalCountryFilter(cy) {
 
   // Dashboard — surbrillance de la carte pays dans le heatmap si la vue est active
   if (typeof renderDashboard === 'function' && document.getElementById('dashContent') && document.getElementById('v-dashboard') && document.getElementById('v-dashboard').classList.contains('on')) {
-    try { renderDashboard(); } catch(_) {}
+    _rendreOuSignaler('renderDashboard', renderDashboard);
   }
 
   updateGlobalFilterBadge();
@@ -20336,7 +20428,7 @@ updStats = function(){
   if (typeof renderDashboard === 'function' && document.getElementById('dashContent')) {
     const dashEl = document.getElementById('v-dashboard');
     if (dashEl && dashEl.classList.contains('on')) {
-      try { renderDashboard(); } catch(_) {}
+      _rendreOuSignaler('renderDashboard', renderDashboard);
     }
   }
 };

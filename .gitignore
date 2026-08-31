@@ -1,1 +1,14 @@
+node_modules/
+dist/
+out/
+build/
+
+# Secrets et configuration locale — ne jamais versionner
+.env
+.env.*
+!.env.example
+
+# Artefacts de collecte et de build
 scripts/rapport-collecte-directe.json
+*.log
+.DS_Store

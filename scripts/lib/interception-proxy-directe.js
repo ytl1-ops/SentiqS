@@ -37,6 +37,23 @@ const PROXY_PREFIXES = [
   { prefix: 'https://thingproxy.freeboard.io/fetch/', decode: false, forme: 'brut' },
 ];
 
+// PREFIXES_NEUTRALISES : services que le job doit refuser plutot qu'imiter.
+//
+// rss2json est le PREMIER service teste par detectProxy() cote application :
+// s'il repond, bestProxy vaut 'rss2json' et les 495 sources y transitent —
+// hors interception, donc sans robots.txt, sans throttle par domaine, et sous
+// l'User-Agent de rss2json plutot que le notre. Les garde-fous de
+// fetch-respectueux.js ne s'appliquaient alors quasiment jamais.
+//
+// Emuler le format de reponse de rss2json (status/items) demanderait de
+// reimplementer son parseur ; le refuser est plus simple ET plus sur : la
+// chaine de repli de l'application bascule d'elle-meme sur un proxy CORS de
+// la liste ci-dessus, qui est intercepte. Aucune source ne sort donc du
+// chemin respectueux.
+const PREFIXES_NEUTRALISES = [
+  'https://api.rss2json.com/',
+];
+
 // options.prefixes / options.fetchFn : injectables uniquement pour les
 // tests (simuler d'autres domaines de proxy, ou mocker le reseau sans
 // dependre de fetch-respectueux.js reel) — en production, creerIntercepteur()
@@ -44,10 +61,23 @@ const PROXY_PREFIXES = [
 function creerIntercepteur(options) {
   const prefixes = (options && options.prefixes) || PROXY_PREFIXES;
   const fetchFn = (options && options.fetchFn) || fetchRespectueux;
-  const stats = { intercepte: 0, direct_ok: 0, repli_proxy: 0 };
+  const neutralises = (options && options.neutralises) || PREFIXES_NEUTRALISES;
+  const stats = { intercepte: 0, direct_ok: 0, repli_proxy: 0, neutralise: 0 };
 
   async function interceptionProxyDirecte(route) {
     const url = route.request().url();
+    // Services refuses (voir PREFIXES_NEUTRALISES) : on repond 503 plutot que
+    // d'abandonner la requete, pour que la chaine de repli de l'application
+    // traite ce service comme indisponible et bascule proprement sur un proxy
+    // intercepte, au lieu de remonter une erreur reseau brute.
+    if (neutralises.some(p => url.startsWith(p))) {
+      stats.neutralise++;
+      return route.fulfill({
+        status: 503,
+        headers: { 'access-control-allow-origin': '*' },
+        body: 'Neutralise par le job de collecte planifiee : voir PREFIXES_NEUTRALISES.',
+      });
+    }
     const motif = prefixes.find(p => url.startsWith(p.prefix));
     if (!motif) return route.continue();
     stats.intercepte++;
@@ -74,4 +104,4 @@ function creerIntercepteur(options) {
   return { interceptionProxyDirecte, stats };
 }
 
-module.exports = { creerIntercepteur, PROXY_PREFIXES };
+module.exports = { creerIntercepteur, PROXY_PREFIXES, PREFIXES_NEUTRALISES };
