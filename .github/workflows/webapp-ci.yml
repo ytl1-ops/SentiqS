@@ -171,5 +171,10 @@ jobs:
         # étaient dans ce cas.
         run: node scripts/verifier-accessibilite.js
 
+      - name: Pages légales
+        # Bloque si une page légale publiée contient encore un emplacement
+        # non complété — une conformité de façade est pire que rien.
+        run: node scripts/verifier-pages-legales.js
+
       - name: Tests du moteur de collecte
         run: npm test

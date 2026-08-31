@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Politique de confidentialité — SentiqS</title>
+<meta name="robots" content="index,follow">
+<style>
+  :root { color-scheme: light dark; }
+  body { max-width: 46rem; margin: 0 auto; padding: 2.5rem 1.25rem 5rem;
+         font: 16px/1.65 system-ui, -apple-system, sans-serif; }
+  h1 { font-size: 1.8rem; margin-bottom: .25rem; }
+  h2 { font-size: 1.15rem; margin-top: 2.25rem; }
+  .maj { color: #64748b; font-size: .85rem; }
+  .todo { background: #fef3c7; color: #7c2d12; padding: .1em .4em; border-radius: 3px;
+          font-family: ui-monospace, monospace; font-size: .85em; }
+  table { border-collapse: collapse; width: 100%; margin-top: 1rem; font-size: .9rem; }
+  th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  th { font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: #64748b; }
+  code { font-family: ui-monospace, monospace; font-size: .88em; }
+  a { color: #2563eb; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; font-size: .875rem; }
+</style>
+</head>
+<body>
+<h1>Politique de confidentialité</h1>
+<p class="maj">Dernière mise à jour : <span class="todo">[[À COMPLÉTER : date]]</span></p>
+
+<p>
+  Cet inventaire est établi à partir du schéma réel de la base : il décrit ce
+  que le service collecte effectivement, pas ce qu'il pourrait collecter.
+</p>
+
+<h2>Responsable du traitement</h2>
+<p>
+  <span class="todo">[[À COMPLÉTER : identité et coordonnées — reprendre les
+  mentions légales]]</span><br>
+  Délégué à la protection des données :
+  <span class="todo">[[À COMPLÉTER : nom et contact, ou mention « non désigné »
+  si le service n'y est pas tenu]]</span>
+</p>
+
+<h2>Données traitées</h2>
+<table>
+  <thead><tr><th>Donnée</th><th>Origine</th><th>Finalité</th><th>Base légale</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Adresse e-mail, rôle (<code>profiles</code>)</td>
+      <td>inscription</td>
+      <td>authentification, gestion des droits</td>
+      <td>exécution du contrat</td>
+    </tr>
+    <tr>
+      <td>Nom, e-mail, téléphone, pays (<code>subscribers</code>)</td>
+      <td>souscription</td>
+      <td>gestion de l'abonnement et facturation</td>
+      <td>exécution du contrat</td>
+    </tr>
+    <tr>
+      <td>Horodatage des connexions (<code>connexions_log</code>)</td>
+      <td>connexion</td>
+      <td>sécurité du compte, affichage « dernière connexion »</td>
+      <td><span class="todo">[[À COMPLÉTER : intérêt légitime, à documenter]]</span></td>
+    </tr>
+    <tr>
+      <td>Page, pays, empreinte d'IP, navigateur, référent, durée (<code>traffic_logs</code>)</td>
+      <td>navigation</td>
+      <td>mesure d'audience</td>
+      <td><span class="todo">[[À COMPLÉTER : intérêt légitime ou consentement — dépend du caractère réellement anonyme de l'empreinte d'IP]]</span></td>
+    </tr>
+    <tr>
+      <td>Format et horodatage des exports (<code>telechargements</code>)</td>
+      <td>usage du service</td>
+      <td>application du quota d'abonnement</td>
+      <td>exécution du contrat</td>
+    </tr>
+  </tbody>
+</table>
+<p>
+  Le service <strong>ne collecte pas</strong> de données de localisation
+  précise, ni de données sensibles au sens de l'article 9 du RGPD.
+</p>
+
+<h2>Durées de conservation</h2>
+<p>
+  Les articles collectés sont purgés automatiquement
+  (<code>purger_articles_rag_perimes</code>, quotidien ; agenda, hebdomadaire).
+  <span class="todo">[[À COMPLÉTER : durée de conservation des comptes après
+  résiliation, du journal de connexions, du journal de trafic et des factures —
+  cette dernière est encadrée par le Code de commerce]]</span>
+</p>
+
+<h2>Destinataires et sous-traitants</h2>
+<table>
+  <thead><tr><th>Sous-traitant</th><th>Rôle</th><th>Localisation</th></tr></thead>
+  <tbody>
+    <tr><td>Supabase, Inc.</td><td>base de données, authentification</td><td><span class="todo">[[À COMPLÉTER : région du projet]]</span></td></tr>
+    <tr><td>GitHub, Inc.</td><td>hébergement du site</td><td>États-Unis</td></tr>
+    <tr><td><span class="todo">[[À COMPLÉTER : Stripe, si le paiement est activé]]</span></td><td>paiement</td><td>—</td></tr>
+  </tbody>
+</table>
+<p>
+  <span class="todo">[[À COMPLÉTER : encadrement des transferts hors Union
+  européenne — clauses contractuelles types ou décision d'adéquation]]</span>
+</p>
+
+<h2>Vos droits</h2>
+<p>
+  Accès, rectification, effacement, limitation, opposition et portabilité
+  s'exercent auprès de
+  <span class="todo">[[À COMPLÉTER : adresse de contact dédiée]]</span>.
+  Réponse sous un mois. Une réclamation peut être adressée à la CNIL.
+</p>
+<p>
+  <span class="todo">[[À COMPLÉTER : décrire la procédure concrète d'export et
+  de suppression d'un compte. Une politique qui annonce un droit sans procédure
+  pour l'exercer n'est pas conforme]]</span>
+</p>
+
+<h2>Traceurs</h2>
+<p>
+  Le service utilise le stockage local du navigateur pour ses préférences
+  (thème, langue, affichage) et sa session. Ces usages sont strictement
+  nécessaires au fonctionnement.
+  <span class="todo">[[À COMPLÉTER : si une mesure d'audience non exemptée est
+  ajoutée, un bandeau de consentement devient obligatoire]]</span>
+</p>
+
+<footer><a href="../index.html">Retour à l'accueil</a></footer>
+</body>
+</html>
