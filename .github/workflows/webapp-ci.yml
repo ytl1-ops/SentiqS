@@ -11,8 +11,11 @@ name: CI webapp
 # plus. Il tourne sur le résultat du merge, pas seulement sur la branche.
 
 on:
+  # Aucun filtre de branche cible sur les pull requests : une PR empilee sur
+  # une autre PR (base != main) n'aurait sinon AUCUNE verification, et se
+  # presenterait au relecteur comme non testee. Le filtre `branches: [main]`
+  # ne couvrait que les PR visant directement main.
   pull_request:
-    branches: [main]
   push:
     branches: [main]
   workflow_dispatch:
