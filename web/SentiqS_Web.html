@@ -5607,7 +5607,17 @@ async function proxyFetchOne(rssUrl, T, cy) {
   // GAGNANT est journalisé par pays (les perdants d'une course parallele
   // n'ont pas de resultat individuel exploitable sans ralentir la course
   // elle-meme avec un Promise.allSettled).
-  const others = CORS_PX.map((fn, i) => i).filter(i => i !== bestProxy && i !== proxyPrefPays);
+  // MAX_REPLI_PARALLELE : ce dernier etage courait AUTANT de requetes que de
+  // proxys restants (jusqu'a 5), pour chaque source d'un lot. Avec un lot de
+  // 30 sources, cela pouvait faire 150 requetes simultanees vers les proxys
+  // publics — precisement au moment ou ils faiblissent, puisque cet etage
+  // n'est atteint que lorsque les precedents ont echoue. Le mecanisme de
+  // resilience aggravait donc la cause de la panne. Deux candidats suffisent
+  // a conserver l'interet de la course (le plus rapide gagne) sans ce pic.
+  const MAX_REPLI_PARALLELE = 2;
+  const others = CORS_PX.map((fn, i) => i)
+    .filter(i => i !== bestProxy && i !== proxyPrefPays)
+    .slice(0, MAX_REPLI_PARALLELE);
   const winner = await Promise.any(
     others.map(idx =>
       fetch(CORS_PX[idx](rssUrl), { signal: AbortSignal.timeout(T) })
@@ -6787,6 +6797,52 @@ function computeConfidence(a, allArts) {
 // qu'une seule carte, en unissant les sources/crosses de toutes les versions
 // fusionnees. Necessaire notamment depuis l'ajout des flux AllAfrica par pays,
 // qui recoupent souvent des faits deja couverts par une source nationale.
+// MOTS_VIDES_DEDUP : vocabulaire trop courant pour porter un sens
+// distinctif. Sans cette liste, trois mots generiques ("gouvernement",
+// "securite", "personnes") suffisaient a fusionner deux faits sans aucun
+// rapport — et l'un des deux disparaissait alors du flux.
+const MOTS_VIDES_DEDUP = new Set([
+  'gouvernement','securite','personnes','situation','selon','apres','avant','contre','entre',
+  'premier','premiere','nouveau','nouvelle','autorites','president','ministre','ministere',
+  'national','nationale','pays','region','regionale','ville','habitants','population',
+  'declare','declaration','annonce','affirme','estime','indique','precise','ajoute',
+  'plusieurs','certains','autres','cette','cettes','leurs','notamment','egalement','encore',
+  'aujourd','hier','demain','matin','soir','journee','semaine','mois','annee',
+  'millions','milliards','pourcent','environ','preoccupante','important','importante',
+  'government','security','people','situation','according','after','before','against',
+  'president','minister','national','country','region','city','several'
+]);
+
+// motsSignificatifs(titre) : tokens porteurs de sens d'un titre — accents
+// neutralises, mots vides retires, longueur > 4. Isolee et exportee pour
+// etre testable hors navigateur (voir scripts/test/dedup.test.js).
+function motsSignificatifs(titre) {
+  return (titre || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .split(/[^a-z0-9]+/)
+    .filter(m => m.length > 4 && !MOTS_VIDES_DEDUP.has(m));
+}
+
+// Seuils : 4 mots significatifs communs ET au moins 40% du titre le plus
+// court. Le ratio evite qu'un titre tres long ne recoupe n'importe quoi par
+// accumulation, le plancher evite les fusions sur trois mots de vocabulaire
+// courant. L'appariement se fait sur le MOT ENTIER (Set.has), plus par
+// sous-chaine : "region" ne correspond plus a "regionale", ni "attaque" a
+// "contre-attaquer".
+const DEDUP_MIN_COMMUNS = 4;
+const DEDUP_MIN_RATIO   = 0.4;
+
+function articlesSontDoublons(a, b) {
+  const motsA = motsSignificatifs(a.title);
+  const motsB = motsSignificatifs(b.title);
+  if (motsA.length < DEDUP_MIN_COMMUNS || motsB.length < DEDUP_MIN_COMMUNS) return false;
+  const setB = new Set(motsB);
+  const communs = new Set(motsA.filter(m => setB.has(m))).size;
+  if (communs < DEDUP_MIN_COMMUNS) return false;
+  return communs / Math.min(motsA.length, motsB.length) >= DEDUP_MIN_RATIO;
+}
+
 function dedupliquerArticles(arts) {
   const parPays = {};
   arts.forEach(a => { (parPays[a.cy] = parPays[a.cy] || []).push(a); });
@@ -6795,23 +6851,25 @@ function dedupliquerArticles(arts) {
     for (let i = 0; i < groupe.length; i++) {
       const a = groupe[i];
       if (aSupprimer.has(a.id)) continue;
-      const motsA = (a.title || '').toLowerCase().split(/\s+/).filter(m => m.length > 4);
-      if (!motsA.length) continue;
       for (let j = i + 1; j < groupe.length; j++) {
         const b = groupe[j];
         if (aSupprimer.has(b.id) || a.primary === b.primary) continue;
-        const communs = motsA.filter(m => (b.title || '').toLowerCase().includes(m)).length;
-        if (communs >= 3) {
-          // Fusion : on garde la version de la source la mieux notee, on unit
-          // les listes de sources/corroboration des deux versions.
-          const garde = (a.score >= b.score) ? a : b;
-          const fusionne = (garde === a) ? b : a;
-          garde.srcs = [...new Set([...(garde.srcs||[garde.primary]), ...(fusionne.srcs||[fusionne.primary])])];
-          garde.crosses = [...new Set([...(garde.crosses||[]), ...(fusionne.crosses||[fusionne.n||fusionne.primary])])];
-          garde.verified = true;
-          aSupprimer.add(fusionne.id);
-          if (fusionne === a) break; // a vient d'etre marque supprime : arreter cette boucle interne
-        }
+        if (!articlesSontDoublons(a, b)) continue;
+        // Fusion : on garde la version de la source la mieux notee, on unit
+        // les listes de sources/corroboration des deux versions.
+        const garde = (a.score >= b.score) ? a : b;
+        const fusionne = (garde === a) ? b : a;
+        garde.srcs = [...new Set([...(garde.srcs||[garde.primary]), ...(fusionne.srcs||[fusionne.primary])])];
+        garde.crosses = [...new Set([...(garde.crosses||[]), ...(fusionne.crosses||[fusionne.n||fusionne.primary])])];
+        garde.verified = true;
+        // Trace de la fusion : l'article replie n'est plus perdu sans laisser
+        // d'empreinte — son titre et sa source restent consultables (panneau
+        // de detail, rapports) et une fusion erronee reste diagnosticable.
+        garde._fusionnes = [...(garde._fusionnes || []), {
+          id: fusionne.id, title: fusionne.title, primary: fusionne.primary, url: fusionne.url
+        }];
+        aSupprimer.add(fusionne.id);
+        if (fusionne === a) break; // a vient d'etre marque supprime : arreter cette boucle interne
       }
     }
   });
@@ -15710,18 +15768,29 @@ function getLiveAlertEvents(cy) {
   );
 
   // Un article critique n'est retenu comme signal live que s'il est corroboré
-  // par au moins un autre article du même pays et du même thème
+  // par un autre article DU MEME EVENEMENT — publie par une autre source.
+  //
+  // La version precedente ne comparait que le pays et la categorie : avec 323
+  // sources "securite" sur 495, la condition etait vraie en permanence et le
+  // filtre ne filtrait rien. On exige desormais un recoupement de contenu,
+  // mesure par les memes mots significatifs que le dedoublonnage (mots vides
+  // ecartes, appariement sur le mot entier) — un seuil volontairement plus bas
+  // que celui du dedoublonnage : il s'agit ici de reconnaitre deux recits d'un
+  // meme fait, pas deux copies du meme article.
+  const CORROB_MIN_COMMUNS = 3;
   const filtresParCorroboration = candidats.filter(a => {
     if (a.level !== 'crit') return true; // les niveaux modérés passent sans corroboration
-    // Pour le niveau critique : exiger au moins 1 autre source distincte
-    const corrobore = candidats.some(b =>
-      b.id !== a.id &&
-      b.primary !== a.primary &&      // source différente
-      b.cat === a.cat                 // même thème
-    );
-    return corrobore;
+    // Un article deja fusionne au dedoublonnage porte la trace de ses doublons :
+    // il est corrobore par construction.
+    if (Array.isArray(a._fusionnes) && a._fusionnes.length) return true;
+    const motsA = new Set(motsSignificatifs(a.title));
+    if (motsA.size < CORROB_MIN_COMMUNS) return false;
+    return candidats.some(b => {
+      if (b.id === a.id || b.primary === a.primary || b.cat !== a.cat) return false;
+      const communs = motsSignificatifs(b.title).filter(m => motsA.has(m));
+      return new Set(communs).size >= CORROB_MIN_COMMUNS;
+    });
   });
-
   return filtresParCorroboration
     .sort((a,b) => (b.pubDate||0) - (a.pubDate||0))
     .slice(0, MAX_LIVE_EVENTS_PAR_PAYS)

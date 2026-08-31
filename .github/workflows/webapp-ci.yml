@@ -71,6 +71,21 @@ jobs:
             exit 1
           fi
 
+          # Les manifestes de la racine doivent etre du JSON analysable.
+          # Le 2 aout 2026, un depot de fichiers a remplace package.json par un
+          # composant React : `npm install` a cesse de fonctionner a la racine
+          # et le job de collecte planifiee a echoue en silence pendant 25
+          # jours. Ce controle rend ce mode de panne impossible a repeter.
+          for f in package.json tsconfig.json tsconfig.app.json tsconfig.node.json; do
+            if [ -f "$f" ]; then
+              if ! node -e "JSON.parse(require('fs').readFileSync('$f','utf8'))" 2>/dev/null; then
+                echo "::error file=$f::$f n'est pas du JSON valide."
+                exit 1
+              fi
+              echo "$f : JSON valide"
+            fi
+          done
+
           # Les migrations sont cumulatives : en perdre est toujours une erreur.
           migrations=$(git ls-files 'supabase/migrations/*.sql' | wc -l)
           echo "Migrations présentes : $migrations"
@@ -124,3 +139,28 @@ jobs:
             exit 1
           fi
           echo "Build vérifié."
+
+  collecte:
+    name: Moteur de collecte
+    runs-on: ubuntu-latest
+    needs: integrite
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Syntaxe du JavaScript inline de production
+        # web/SentiqS_Web.html n'a aucune etape de build : une erreur de
+        # syntaxe n'y serait decouverte que dans le navigateur d'un visiteur.
+        run: node scripts/verifier-syntaxe-html.js
+
+      - name: Couverture des proxys par le job planifie
+        # Un proxy ajoute cote application mais absent du job le ferait
+        # retomber sur le proxy public, sans robots.txt ni User-Agent
+        # identifiable — silencieusement.
+        run: node scripts/verifier-couverture-proxys.js
+
+      - name: Tests du moteur de collecte
+        run: npm test
