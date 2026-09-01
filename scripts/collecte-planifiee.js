@@ -209,7 +209,29 @@ function ecrireResumeActions(md) {
       // page ouverte) qui couvre effectivement les 54 pays de facon fiable :
       // sans lui, un evenement detecte reste invisible des que l'article
       // source sort de ALL (12h), quel que soit le trafic reel de visiteurs.
-      if (typeof publierAgendaPartagee === 'function') { try { const pubAgenda = await publierAgendaPartagee(ALL); if (!pubAgenda || !pubAgenda.ok) console.error('[collecte-planifiee] publierAgendaPartagee a echoue :', (pubAgenda && pubAgenda.raison) || 'raison inconnue'); } catch (e) { console.error('[collecte-planifiee] publierAgendaPartagee a leve une exception :', (e && e.message) || e); } }
+      //
+      // Le verdict est distingue en trois : un succes ayant publie, un succes
+      // sans rien a publier (le cas courant), et un echec. L'ancienne version
+      // ne distinguait rien : elle criait « a echoue : raison inconnue » des
+      // que le retour etait falsy, et la fonction ne retournait alors JAMAIS
+      // rien. Chaque cycle vert portait donc une fausse alarme.
+      if (typeof publierAgendaPartagee === 'function') {
+        try {
+          const pubAgenda = await publierAgendaPartagee(ALL);
+          if (!pubAgenda || typeof pubAgenda.ok !== 'boolean') {
+            console.error('[collecte-planifiee] publierAgendaPartagee n\'a rendu aucun verdict '
+              + '— contrat rompu, publication non verifiable.');
+          } else if (!pubAgenda.ok) {
+            console.error('[collecte-planifiee] publierAgendaPartagee a echoue :', pubAgenda.raison);
+          } else if (pubAgenda.publiees > 0) {
+            console.log('[collecte-planifiee] agenda partage : ' + pubAgenda.publiees + ' entree(s) publiee(s).');
+          } else {
+            console.log('[collecte-planifiee] agenda partage : rien a publier (' + pubAgenda.raison + ').');
+          }
+        } catch (e) {
+          console.error('[collecte-planifiee] publierAgendaPartagee a leve une exception :', (e && e.message) || e);
+        }
+      }
       return { ok: true, nbArticles: pub.nbArticles, bestProxy: String(typeof bestProxy !== 'undefined' ? bestProxy : '?') };
     });
 

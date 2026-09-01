@@ -12979,10 +12979,22 @@ async function publierArticlesRagPartages(articles) {
 // couvre a lui seul les 54 pays sans dependre qu'un visiteur ait la page
 // ouverte). Best-effort, jamais bloquant ; necessite la migration
 // 20260719000000_agenda_partagee.sql, sinon echoue silencieusement.
+//
+// Rend TOUJOURS un verdict { ok, publiees, raison } — sur chaque chemin, y
+// compris le succes. L'appelant du job planifie teste `!pubAgenda.ok` : tant
+// que cette fonction ne rendait rien, elle etait lue comme un echec a chaque
+// cycle, meme quand la publication avait parfaitement reussi. Une alarme qui
+// sonne toujours ne dit plus rien.
+//
+// « rien a publier » n'est pas un echec : la plupart des cycles n'ont aucune
+// entree d'agenda a moins de la fenetre de recence. C'est ok:true, publiees:0.
 const AGENDA_PARTAGEE_MAX_PAR_APPEL = 200;
 async function publierAgendaPartagee(articles) {
   const client = getSentinelSupabase();
-  if (!client || !Array.isArray(articles) || !articles.length) return;
+  if (!client) return { ok: false, publiees: 0, raison: 'client Supabase indisponible' };
+  if (!Array.isArray(articles) || !articles.length) {
+    return { ok: true, publiees: 0, raison: 'aucun article a examiner' };
+  }
   try {
     const lignes = articles
       .filter(a => a && a._estAgenda && typeof estAgendaRecent === 'function' && estAgendaRecent(a))
@@ -12998,10 +13010,19 @@ async function publierAgendaPartagee(articles) {
         updated_at: new Date().toISOString(),
       }))
       .filter(l => l.id && l.title);
-    if (!lignes.length) return;
+    if (!lignes.length) return { ok: true, publiees: 0, raison: 'aucune entree d\'agenda recente' };
     const { error } = await client.from('agenda_partagee').upsert(lignes);
-    if (error) console.warn('SentiqS — publierAgendaPartagee a echoue :', error.message || error);
-  } catch (e) { console.warn('SentiqS — publierAgendaPartagee a echoue :', e && e.message ? e.message : e); }
+    if (error) {
+      const raison = error.message || String(error);
+      console.warn('SentiqS — publierAgendaPartagee a echoue :', raison);
+      return { ok: false, publiees: 0, raison };
+    }
+    return { ok: true, publiees: lignes.length, raison: null };
+  } catch (e) {
+    const raison = (e && e.message) ? e.message : String(e);
+    console.warn('SentiqS — publierAgendaPartagee a echoue :', raison);
+    return { ok: false, publiees: 0, raison };
+  }
 }
 
 // ligneAgendaPartageeVersEntree(row) : reconstruit une entree affichable
