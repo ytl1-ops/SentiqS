@@ -10930,7 +10930,103 @@ function setDashCartoMode(m) { window.dashCartoMode = m; if (typeof renderDashbo
   // milieu-haut, bande cotiere/centrale/grands lacs au milieu, Afrique
   // australe (+ iles ocean Indien) en bas). Remplace la simple grille
   // plate par une vraie lecture geospatiale, cliquable par pays.
-  const radarView = () => { const zoneOrder = ['afrique_nord','sahel','corne_afrique','ao_cotiere','golfe_guinee','afrique_centrale','grands_lacs','afrique_australe']; const parZone = {}; scores.forEach(s => { const z = CY_TO_ZONE[s.cy] || 'autre'; (parZone[z] = parZone[z]||[]).push(s); }); const cx = 250, cy0 = 250, rMax = 210, rMin = 30; const sectorW = 360 / zoneOrder.length; const toXY = (angleDeg, r) => { const a = (angleDeg - 90) * Math.PI / 180; return [cx + r*Math.cos(a), cy0 + r*Math.sin(a)]; }; const bandColor = {rouge:cv('--r','#8B1A1A'), marron:cv('--m','#78350F'), orange:cv('--a','#7C4A00'), jaune:cv('--j','#CA8A04'), vert:cv('--g','#0F4F2A')}; const bands = [{pct:100,key:'rouge'},{pct:80,key:'marron'},{pct:60,key:'orange'},{pct:40,key:'jaune'},{pct:20,key:'vert'}]; const rings = bands.map(b => { const r = rMin + (b.pct/100)*(rMax-rMin); return `<circle cx="${cx}" cy="${cy0}" r="${r}" fill="${bandColor[b.key]}" fill-opacity="0.14" stroke="${bandColor[b.key]}" stroke-opacity="0.5" stroke-width="1"/>`; }).join(''); const spokes = zoneOrder.map((z,i) => { const angle = i*sectorW; const [x,y] = toXY(angle, rMax); return `<line x1="${cx}" y1="${cy0}" x2="${x}" y2="${y}" stroke="var(--bd)" stroke-width="1"/>`; }).join(''); const labels = zoneOrder.map((z,i) => { const angle = i*sectorW + sectorW/2; const [x,y] = toXY(angle, rMax+16); const nom = (ZONES_GEO[z]||{}).nom || z; return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="7.5" font-weight="700" fill="var(--lg)" style="text-transform:uppercase;letter-spacing:.03em;">${nom}</text>`; }).join(''); const dots = zoneOrder.map((z,zi) => { const list = (parZone[z]||[]).slice().sort((a,b)=>a.pays.name.localeCompare(b.pays.name)); const baseAngle = zi*sectorW; return list.map((s,i) => { const frac = (i+1)/(list.length+1); const angle = baseAngle + frac*sectorW; const r = rMin + (Math.min(s.score,100)/100)*(rMax-rMin); const [x,y] = toXY(angle, r); const col = scoreColor(s); return `<circle cx="${x}" cy="${y}" r="5" fill="${col}" stroke="var(--w)" stroke-width="1.2" style="cursor:pointer;" onclick="ouvrirVuePays('${s.cy}')"><title>${s.pays.name} — ${s.score}/100</title></circle>`; }).join(''); }).join(''); const legend = [{l:'Stable',c:bandColor.vert},{l:'Modéré',c:bandColor.jaune},{l:'Tendu',c:bandColor.orange},{l:'Critique',c:bandColor.marron},{l:'Grave',c:bandColor.rouge}].map(it => `<span style="display:flex;align-items:center;gap:4px;font-size:9px;color:var(--lg);"><span style="width:8px;height:8px;border-radius:50%;background:${it.c};display:inline-block;"></span>${it.l}</span>`).join(''); return `<div style="position:relative;width:100%;max-width:520px;margin:0 auto;"><div style="position:absolute;inset:0;border-radius:50%;overflow:hidden;pointer-events:none;"><div class="radar-sweep"></div></div><svg viewBox="0 0 500 500" style="width:100%;height:auto;display:block;position:relative;">${rings}${spokes}${dots}${labels}<circle cx="${cx}" cy="${cy0}" r="3" fill="var(--lg)"/></svg></div><div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:10px;">${legend}</div><style>@keyframes radarSweepSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}.radar-sweep{position:absolute;inset:0;background:conic-gradient(from 0deg, ${bandColor.vert}77, transparent 25deg, transparent 360deg);border-radius:50%;animation:radarSweepSpin 5s linear infinite;transform-origin:50% 50%;}</style>`; }; const cartogramme = () => {
+  const radarView = () => { const zoneOrder = ['afrique_nord','sahel','corne_afrique','ao_cotiere','golfe_guinee','afrique_centrale','grands_lacs','afrique_australe']; const parZone = {}; scores.forEach(s => { const z = CY_TO_ZONE[s.cy] || 'autre'; (parZone[z] = parZone[z]||[]).push(s); }); const cx = 300, cy0 = 285, rMax = 200, rMin = 30; const sectorW = 360 / zoneOrder.length; const toXY = (angleDeg, r) => { const a = (angleDeg - 90) * Math.PI / 180; return [cx + r*Math.cos(a), cy0 + r*Math.sin(a)]; }; const bandColor = {rouge:cv('--r','#8B1A1A'), marron:cv('--m','#78350F'), orange:cv('--a','#7C4A00'), jaune:cv('--j','#CA8A04'), vert:cv('--g','#0F4F2A')}; const bands = [{pct:100,key:'rouge'},{pct:80,key:'marron'},{pct:60,key:'orange'},{pct:40,key:'jaune'},{pct:20,key:'vert'}]; const rings = bands.map(b => { const r = rMin + (b.pct/100)*(rMax-rMin); return `<circle cx="${cx}" cy="${cy0}" r="${r}" fill="${bandColor[b.key]}" fill-opacity="0.14" stroke="${bandColor[b.key]}" stroke-opacity="0.5" stroke-width="1"/>`; }).join(''); const spokes = zoneOrder.map((z,i) => { const angle = i*sectorW; const [x,y] = toXY(angle, rMax); return `<line x1="${cx}" y1="${cy0}" x2="${x}" y2="${y}" stroke="var(--bd)" stroke-width="1"/>`; }).join(''); const labels = zoneOrder.map((z,i) => { const angle = i*sectorW + sectorW/2; const [x,y] = toXY(angle, rMax+22); const nom = (ZONES_GEO[z]||{}).nom || z; return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="7.5" font-weight="700" fill="var(--lg)" style="text-transform:uppercase;letter-spacing:.03em;">${nom}</text>`; }).join(''); const dots = zoneOrder.map((z,zi) => { const list = (parZone[z]||[]).slice().sort((a,b)=>a.score-b.score); const baseAngle = zi*sectorW; return list.map((s,i) => { const frac = (i+1)/(list.length+1); const angle = baseAngle + frac*sectorW; const r = rMin + (Math.min(s.score,100)/100)*(rMax-rMin); const [x,y] = toXY(angle, r); const col = scoreColor(s); const marque = ['orange','marron','rouge'].includes(s.key);
+        const lx = x + (x >= cx ? 8 : -8), ancre = (x >= cx) ? 'start' : 'end';
+        return `<circle cx="${x}" cy="${y}" r="5" fill="${col}" stroke="var(--w)" stroke-width="1.2" style="cursor:pointer;" onclick="ouvrirVuePays('${s.cy}')"><title>${s.pays.name} — ${Math.round(s.score)}/100</title></circle>`
+          + (marque ? `<text x="${lx}" y="${y}" text-anchor="${ancre}" dominant-baseline="middle" font-size="7" font-weight="700" fill="${col}" style="pointer-events:none;">${s.cy}</text>` : ''); }).join(''); }).join(''); const legend = [{l:'Stable',c:bandColor.vert},{l:'Modéré',c:bandColor.jaune},{l:'Tendu',c:bandColor.orange},{l:'Critique',c:bandColor.marron},{l:'Grave',c:bandColor.rouge}].map(it => `<span style="display:flex;align-items:center;gap:4px;font-size:9px;color:var(--lg);"><span style="width:8px;height:8px;border-radius:50%;background:${it.c};display:inline-block;"></span>${it.l}</span>`).join(''); return `<div style="position:relative;width:100%;max-width:520px;margin:0 auto;"><div style="position:absolute;inset:0;border-radius:50%;overflow:hidden;pointer-events:none;"><div class="radar-sweep"></div></div><svg viewBox="0 0 600 570" style="width:100%;height:auto;display:block;position:relative;">${rings}${spokes}${dots}${labels}<circle cx="${cx}" cy="${cy0}" r="3" fill="var(--lg)"/></svg></div><div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:10px;">${legend}</div><style>@keyframes radarSweepSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}.radar-sweep{position:absolute;inset:0;background:conic-gradient(from 0deg, ${bandColor.vert}77, transparent 25deg, transparent 360deg);border-radius:50%;animation:radarSweepSpin 5s linear infinite;transform-origin:50% 50%;}@media (prefers-reduced-motion:reduce){.radar-sweep{animation:none;opacity:.25;}}</style>`; }; // profilView() : la FORME du risque d'un pays, non son ampleur.
+//
+// Le cartogramme et le radar disent tous deux « a quel point ». Aucun des deux
+// ne dit « de quelle nature ». Deux pays au meme score peuvent etre tires l'un
+// par le securitaire, l'autre par l'humanitaire — et cela change une decision
+// operationnelle. Les quatre dimensions existent deja sur chaque article
+// (cat: securite / humanitaire / politique / economique).
+//
+// Honnetete de la mesure : un pays sans actualite recente n'a PAS un profil
+// plat, il n'a PAS de profil. On le dit, plutot que de dessiner un quadrilatere
+// de zeros qui se lirait comme « aucun risque ».
+const PROFIL_AXES = [
+  { k:'securite',    lb:'Sécurité'   },
+  { k:'humanitaire', lb:'Humanitaire'},
+  { k:'politique',   lb:'Politique'  },
+  { k:'economique',  lb:'Économique' },
+];
+const profilPays = (cy) => {
+  const arts = (ALL||[]).filter(a => a.cy === cy && estRecentReel(a));
+  const parCat = {};
+  PROFIL_AXES.forEach(ax => { parCat[ax.k] = 0; });
+  arts.forEach(a => { if (parCat[a.cat] !== undefined) parCat[a.cat]++; });
+  return { cy, total: arts.length, parCat };
+};
+const profilView = () => {
+  // Pays montres : celui filtre s'il l'est, sinon les trois plus a risque
+  // AYANT de l'actualite recente — superposer plus de trois courbes rend la
+  // lecture impossible.
+  const avecActu = scores.filter(s => profilPays(s.cy).total > 0).sort((a,b)=>b.score-a.score);
+  const choisis = (GLOBAL_CY_FILTER && GLOBAL_CY_FILTER !== 'all')
+    ? scores.filter(s => s.cy === GLOBAL_CY_FILTER)
+    : avecActu.slice(0, 3);
+  const profils = choisis.map(s => ({ s, p: profilPays(s.cy) })).filter(x => x.p.total > 0);
+
+  if (!profils.length) {
+    const nom = (GLOBAL_CY_FILTER && GLOBAL_CY_FILTER !== 'all')
+      ? ((PAYS_INFO[GLOBAL_CY_FILTER]||{}).name || GLOBAL_CY_FILTER) : null;
+    return `<div style="padding:26px 16px;text-align:center;color:var(--lg);font-size:11px;line-height:1.7;">
+      <i class="ti ti-chart-radar" style="font-size:24px;display:block;margin-bottom:8px;opacity:.5;"></i>
+      ${nom ? escHtml(nom)+' n\'a aucune actualité de moins de 12 h.' : 'Aucun pays n\'a d\'actualité de moins de 12 h.'}<br>
+      <span style="opacity:.75;">Sans actualité récente, ce pays n'a pas un profil plat — il n'a pas de profil.
+      Le niveau d'alerte reste porté par le socle vérifié.</span>
+    </div>`;
+  }
+
+  const cx = 220, cy0 = 195, rMax = 130, rMin = 12;
+  const n = PROFIL_AXES.length;
+  const maxVal = Math.max(1, ...profils.flatMap(x => PROFIL_AXES.map(ax => x.p.parCat[ax.k])));
+  const toXY = (i, frac) => {
+    const a = (i * (360/n) - 90) * Math.PI/180;
+    const r = rMin + Math.max(0, Math.min(1, frac)) * (rMax - rMin);
+    return [cx + r*Math.cos(a), cy0 + r*Math.sin(a)];
+  };
+  // Toile : anneaux gradues sur des ENTIERS d'articles, pas sur des fractions.
+  const pas = Math.max(1, Math.ceil(maxVal/3));
+  const paliers = []; for (let v = pas; v <= maxVal; v += pas) paliers.push(v);
+  const toile = paliers.map(v => {
+    const pts = PROFIL_AXES.map((_,i) => toXY(i, v/maxVal).join(',')).join(' ');
+    return `<polygon points="${pts}" fill="none" stroke="var(--bd)" stroke-width="1"/>`
+      + `<text x="${cx+7}" y="${toXY(0, v/maxVal)[1]+1}" font-size="7" fill="var(--lg)" dominant-baseline="middle" style="paint-order:stroke;stroke:var(--w);stroke-width:2.5;">${v}</text>`;
+  }).join('');
+  const rayons = PROFIL_AXES.map((ax,i) => {
+    const [x,y] = toXY(i, 1);
+    const [lx,ly] = toXY(i, 1.22);
+    return `<line x1="${cx}" y1="${cy0}" x2="${x}" y2="${y}" stroke="var(--bd)" stroke-width="1"/>`
+      + `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="8.5" font-weight="700" fill="var(--lg)">${ax.lb}</text>`;
+  }).join('');
+  const COUL = ['#8B1A1A', '#2C5AAE', '#0F4F2A'];
+  const formes = profils.map((x, k) => {
+    const col = COUL[k % COUL.length];
+    const pts = PROFIL_AXES.map((ax,i) => toXY(i, x.p.parCat[ax.k]/maxVal).join(',')).join(' ');
+    const points = PROFIL_AXES.map((ax,i) => {
+      const [px,py] = toXY(i, x.p.parCat[ax.k]/maxVal);
+      return `<circle cx="${px}" cy="${py}" r="2.6" fill="${col}"><title>${x.s.pays.name} — ${ax.lb} : ${x.p.parCat[ax.k]} article(s)</title></circle>`;
+    }).join('');
+    return `<polygon points="${pts}" fill="${col}" fill-opacity="0.13" stroke="${col}" stroke-width="1.6"/>${points}`;
+  }).join('');
+  const legende = profils.map((x,k) => {
+    const col = COUL[k % COUL.length];
+    return `<span onclick="applyGlobalCountryFilter('${x.s.cy}')" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--t);">
+      <span style="width:9px;height:9px;border-radius:2px;background:${col};display:inline-block;"></span>
+      ${x.s.pays.flag} ${x.s.pays.name}
+      <span style="color:var(--lg);font-family:var(--font-mono,'Roboto Mono',monospace);">${Math.round(x.s.score)} · ${x.p.total} art.</span></span>`;
+  }).join('');
+  return `<div style="max-width:520px;margin:0 auto;">
+      <svg viewBox="0 0 440 400" style="width:100%;height:auto;display:block;">${toile}${rayons}${formes}</svg>
+    </div>
+    <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:8px;">${legende}</div>
+    <div style="text-align:center;font-size:9px;color:var(--lg);margin-top:8px;opacity:.8;">
+      Nombre d'articles de moins de 12 h par dimension. Choisissez un pays dans le filtre pour l'isoler.
+    </div>`;
+};
+
+const cartogramme = () => {
     const parZone = {};
     scores.forEach(s => { const z = CY_TO_ZONE[s.cy] || 'autre'; (parZone[z] = parZone[z]||[]).push(s); });
     const zoneArea = {
@@ -10996,9 +11092,9 @@ function setDashCartoMode(m) { window.dashCartoMode = m; if (typeof renderDashbo
       <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:14px;margin-bottom:12px;">
         <div style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:12px;display:flex;align-items:center;gap:6px;">
           <i class="ti ti-map-2" style="color:#2C5AAE"></i>
-          ${cartoMode==='radar' ? 'Vue radar — pays par zone et niveau de risque' : 'Carte régionale des risques — Score 0-100 par pays, regroupés par zone'}<span style="margin-left:auto;display:flex;gap:4px;"><button onclick="setDashCartoMode('grid')" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:5px;border:1px solid var(--bd);cursor:pointer;background:${cartoMode==='grid'?'var(--b)':'var(--sf)'};color:${cartoMode==='grid'?'#fff':'var(--lg)'};">Cartogramme</button><button onclick="setDashCartoMode('radar')" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:5px;border:1px solid var(--bd);cursor:pointer;background:${cartoMode==='radar'?'var(--b)':'var(--sf)'};color:${cartoMode==='radar'?'#fff':'var(--lg)'};">Radar</button></span>
+          ${cartoMode==='profil' ? 'Profil de risque — nature du risque par dimension' : cartoMode==='radar' ? 'Vue radar — pays par zone et niveau de risque' : 'Carte régionale des risques — Score 0-100 par pays, regroupés par zone'}<span style="margin-left:auto;display:flex;gap:4px;"><button onclick="setDashCartoMode('grid')" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:5px;border:1px solid var(--bd);cursor:pointer;background:${cartoMode==='grid'?'var(--b)':'var(--sf)'};color:${cartoMode==='grid'?'#fff':'var(--lg)'};">Cartogramme</button><button onclick="setDashCartoMode('radar')" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:5px;border:1px solid var(--bd);cursor:pointer;background:${cartoMode==='radar'?'var(--b)':'var(--sf)'};color:${cartoMode==='radar'?'#fff':'var(--lg)'};">Radar</button><button onclick="setDashCartoMode('profil')" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:5px;border:1px solid var(--bd);cursor:pointer;background:${cartoMode==='profil'?'var(--b)':'var(--sf)'};color:${cartoMode==='profil'?'#fff':'var(--lg)'};">Profil</button></span>
         </div>
-        ${cartoMode==='radar' ? radarView() : cartogramme()}
+        ${cartoMode==='profil' ? profilView() : cartoMode==='radar' ? radarView() : cartogramme()}
       </div>
 
       <!-- Zones de risque -->
