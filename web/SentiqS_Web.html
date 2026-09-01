@@ -6217,11 +6217,22 @@ const CULTURE_DIVERTISSEMENT_KW = [
   'oscars du cinema','grammy awards','ballon d\'or','prix nobel','prix goncourt',
   'grand prix litteraire','festival international du film','recompense artistique',
   'trophee des arts','exposition d\'art','vernissage','sortie d\'album',
+  // Ajouts issus d'un faux positif trouve en ecrivant scripts/test/classification.test.js :
+  // « Le realisateur frappe fort avec son nouveau film » remontait en CRITIQUE
+  // (« frappe » est dans CK_CRIT) faute d'un mot-cle culturel dans le titre.
+  // Termes volontairement sans collision avec la prose securitaire : « film »
+  // seul est ecarte (« le film des evenements » est courant en presse), et
+  // « frappe fort » n'est PAS neutralise comme locution figee — « l'armee
+  // frappe fort contre les jihadistes » est un vrai signal qu'on perdrait.
+  'realisateur','realisatrice','long-metrage','court-metrage','bande-annonce',
+  'sortie en salles','salle de cinema','comedien','comedienne','scenariste',
+  'rappeur','rappeuse','discographie','romancier','romanciere','bande dessinee',
   // — Equivalents anglais —
   'box office','premiere (film)','film festival','music festival','singer',
   'music album','music video','fashion show','celebrity','showbiz','private life of',
   'engagement of','wedding of','tv series','tv show','reality show','academy awards',
-  'nobel prize','art exhibition','album release',
+  'nobel prize','art exhibition','album release','filmmaker','screenwriter',
+  'movie theater','feature film','short film','novelist',
 ];
 
 // estContenuCulturel(t) : vrai si le texte relève clairement de la culture,
