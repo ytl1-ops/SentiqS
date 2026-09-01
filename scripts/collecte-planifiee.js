@@ -59,6 +59,16 @@ function lireTokenDepuisSource() {
 // sécurité automatique (route.continue()) si le fetch direct échoue.
 const { interceptionProxyDirecte, stats: statsInterception } = creerIntercepteur();
 
+// ecrireResumeActions(md) : depose un resume Markdown sur la page du run
+// GitHub Actions ($GITHUB_STEP_SUMMARY). Hors CI la variable est absente et
+// la fonction ne fait rien — le job doit rester lancable en local.
+function ecrireResumeActions(md) {
+  const dest = process.env.GITHUB_STEP_SUMMARY;
+  if (!dest) return;
+  try { fs.appendFileSync(dest, md + '\n'); }
+  catch (e) { console.warn('Resume Actions non ecrit :', e && e.message ? e.message : e); }
+}
+
 (async () => {
   const token = lireTokenDepuisSource();
   const url = TARGET_URL + '#collecteur-' + token;
@@ -85,6 +95,36 @@ const { interceptionProxyDirecte, stats: statsInterception } = creerIntercepteur
       { timeout: 15000 }
     );
     console.log('Session collecteur établie.');
+
+    // ── CADENCE RÉELLE ───────────────────────────────────────────────────
+    // Le cron demande une collecte toutes les 30 min ; GitHub déprioritise
+    // et jette une grande partie des déclenchements infra-horaires, et rien
+    // ne mesurait l'écart. On lit l'âge du cache qu'on s'apprête à remplacer :
+    // c'est exactement le temps pendant lequel les visiteurs ont vu une
+    // donnée périmée. Lecture directe (lireCollectePartagee renvoie null
+    // au-delà de la fenêtre de fraîcheur, donc ne peut pas servir ici).
+    const ageCachePrecedent = await page.evaluate(async () => {
+      try {
+        const client = getSentinelSupabase();
+        if (!client) return null;
+        const { data, error } = await client.from('collecte_partagee')
+          .select('updated_at').eq('id', COLLECTE_PARTAGEE_ID).maybeSingle();
+        if (error || !data || !data.updated_at) return null;
+        return Date.now() - new Date(data.updated_at).getTime();
+      } catch (_) { return null; }
+    });
+    if (ageCachePrecedent !== null) {
+      const min = Math.round(ageCachePrecedent / 60000);
+      const attendu = 30;
+      console.log('Cadence réelle : ' + min + ' min depuis la publication précédente'
+        + ' (cadence demandée : ' + attendu + ' min).');
+      if (min > attendu * 2) {
+        console.log('  Au-delà du double de la cadence demandée : les déclenchements planifiés'
+          + ' sont jetés par GitHub, et le cache a été périmé pendant ' + (min - 40) + ' min.');
+      }
+    } else {
+      console.log('Cadence réelle : aucune publication précédente lisible (première collecte ?).');
+    }
 
     // Jeton de publication : injecté dans la session, JAMAIS écrit dans le
     // fichier public ni dans ce dépôt. Il autorise l'appel à la fonction
@@ -168,11 +208,72 @@ const { interceptionProxyDirecte, stats: statsInterception } = creerIntercepteur
       return { ok: true, nbArticles: pub.nbArticles, bestProxy: String(typeof bestProxy !== 'undefined' ? bestProxy : '?') };
     });
 
-    console.log(
-      'Interception directe (voir scripts/lib/fetch-respectueux.js) : ' +
-      statsInterception.direct_ok + '/' + statsInterception.intercepte + ' requêtes proxy servies directement, ' +
-      statsInterception.repli_proxy + ' repli sur le vrai proxy.'
-    );
+    // ── COUVERTURE DE LA COLLECTE ────────────────────────────────────────
+    // Un run vert disait seulement « N articles publiés ». Il ne disait pas
+    // combien de sources avaient répondu, ni quels pays étaient repartis les
+    // mains vides — or c'est exactement ce qui distingue une collecte saine
+    // d'une collecte à moitié rate-limitée qui publie quand même. La santé
+    // par source vivait dans le localStorage du navigateur et personne, hors
+    // ce navigateur, ne pouvait la lire.
+    //
+    // Mesuré dans un evaluate SÉPARÉ, exécuté même quand la publication a
+    // échoué : c'est précisément là que le détail a le plus de valeur.
+    const couverture = await page.evaluate(() => {
+      const vide = { sourcesTotal: 0, sourcesProductives: 0, paysTotal: 0, paysCouverts: 0, paysMuets: [], enVeille: 0 };
+      try {
+        if (!Array.isArray(ALL)) return vide;
+        const sourcesTotal = (typeof SRCS !== 'undefined' && Array.isArray(SRCS)) ? SRCS.length : 0;
+        const productives = new Set(ALL.map(a => a && a.primary).filter(Boolean));
+        const paysConnus = (typeof PAYS_INFO !== 'undefined') ? Object.keys(PAYS_INFO) : [];
+        const couverts = new Set(ALL.map(a => a && a.cy).filter(c => c && c !== 'INT'));
+        const enVeille = (typeof SRC_HEALTH !== 'undefined' && typeof SRC_FAIL_THRESHOLD !== 'undefined')
+          ? Object.values(SRC_HEALTH).filter(h => h && (h.fails || 0) >= SRC_FAIL_THRESHOLD).length
+          : 0;
+        return {
+          sourcesTotal,
+          sourcesProductives: productives.size,
+          paysTotal: paysConnus.length,
+          paysCouverts: couverts.size,
+          paysMuets: paysConnus.filter(c => !couverts.has(c)),
+          enVeille,
+        };
+      } catch (_) { return vide; }
+    });
+
+    const pct = (n, d) => (d > 0 ? Math.round((n / d) * 100) : 0);
+    const lignesCouverture = [
+      'Sources ayant produit au moins un article : ' + couverture.sourcesProductives + '/' + couverture.sourcesTotal
+        + ' (' + pct(couverture.sourcesProductives, couverture.sourcesTotal) + ' %)',
+      'Pays couverts : ' + couverture.paysCouverts + '/' + couverture.paysTotal
+        + ' (' + pct(couverture.paysCouverts, couverture.paysTotal) + ' %)',
+      'Sources en veille (échecs répétés) : ' + couverture.enVeille,
+      'Interception directe : ' + statsInterception.direct_ok + '/' + statsInterception.intercepte
+        + ' requêtes servies sans proxy public, ' + statsInterception.repli_proxy + ' repli.',
+    ];
+    if (couverture.paysMuets.length) {
+      lignesCouverture.push('Pays sans aucun article ce cycle : ' + couverture.paysMuets.join(', '));
+    }
+    lignesCouverture.forEach(l => console.log('  ' + l));
+
+    // Résumé lisible sur la page du run, sans avoir à ouvrir les journaux.
+    ecrireResumeActions([
+      '### Couverture de la collecte',
+      '',
+      '| Mesure | Valeur |',
+      '|---|---|',
+      '| Sources productives | ' + couverture.sourcesProductives + ' / ' + couverture.sourcesTotal
+        + ' (' + pct(couverture.sourcesProductives, couverture.sourcesTotal) + ' %) |',
+      '| Pays couverts | ' + couverture.paysCouverts + ' / ' + couverture.paysTotal
+        + ' (' + pct(couverture.paysCouverts, couverture.paysTotal) + ' %) |',
+      '| Sources en veille | ' + couverture.enVeille + ' |',
+      '| Requêtes sans proxy public | ' + statsInterception.direct_ok + ' / ' + statsInterception.intercepte + ' |',
+      '| Écart depuis la publication précédente | '
+        + (ageCachePrecedent === null ? 'inconnu' : Math.round(ageCachePrecedent / 60000) + ' min (demandé : 30 min)') + ' |',
+      '',
+      couverture.paysMuets.length
+        ? '**Pays sans aucun article ce cycle :** ' + couverture.paysMuets.join(', ')
+        : 'Tous les pays connus ont au moins un article.',
+    ].join('\n'));
 
     if (!resultat.ok) {
       console.error('Échec :', resultat.raison);

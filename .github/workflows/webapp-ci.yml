@@ -176,5 +176,40 @@ jobs:
         # non complété — une conformité de façade est pire que rien.
         run: node scripts/verifier-pages-legales.js
 
+      - name: Symetrie du dictionnaire de traduction
+        # t() retombe silencieusement sur le francais quand une cle manque en
+        # anglais : une cle ajoutee d'un seul cote n'echoue nulle part, elle
+        # affiche du francais a un anglophone.
+        run: node scripts/verifier-i18n.js
+
+      - name: Registre des sources
+        # Le seuil de fiabilite decide quelles sources peuvent declencher une
+        # alerte. Un pays sans aucune source au-dessus du seuil serait
+        # totalement aveugle, sans que rien ne le signale.
+        run: node scripts/verifier-sources.js
+
+      - name: Ressources referencees presentes
+        # Les captures du mode d'emploi ont quitte le fichier (240 Ko de
+        # base64 imposes a chaque visiteur) pour web/assets/. Un fichier
+        # renomme ne casserait plus rien de visible au chargement, seulement
+        # l'export PDF, et seulement quand quelqu'un l'essaie.
+        run: node scripts/verifier-ressources.js
+
+      - name: Datation des incidents verifies
+        # Le niveau d'alerte affiche repose d'abord sur ALERTE_EVENTS et
+        # FACTEURS_SPECIAUX, saisis a la main. Ce controle refuse une date
+        # qu'aucun format connu ne couvre, et affiche l'age du socle verifie.
+        run: node scripts/verifier-datation-incidents.js
+
       - name: Tests du moteur de collecte
         run: npm test
+
+      - name: La page de production se charge
+        # Tous les autres controles LISENT le fichier sans jamais l'executer :
+        # aucun ne verrait une rupture d'execution (dependance manquante,
+        # script charge dans le mauvais ordre, ressource refusee par la CSP).
+        # Celui-ci ouvre vraiment la page dans un navigateur.
+        run: |
+          npm install playwright@1 --no-save
+          npx playwright install --with-deps chromium
+          node scripts/test-fumee.js
