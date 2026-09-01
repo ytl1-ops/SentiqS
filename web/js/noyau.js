@@ -19,7 +19,7 @@
   'use strict';
 
 // Plafond du nombre de signaux temps reel retenus par pays. Vit ici parce que
-// plafondLive() en depend : le laisser dans la page ferait diverger la valeur
+// borneRougeVerifie() en depend : le laisser dans la page ferait diverger la valeur
 // vue par les tests de celle vue en production.
 const MAX_LIVE_EVENTS_PAR_PAYS = 5;
 
@@ -197,14 +197,40 @@ function poidsVerifie(e, maintenant) {
   return { poids: brut * f, fraicheur: f, precision, ms };
 }
 
-// Plafond du signal temps réel. Il s'ouvre quand la donnée vérifiée vieillit,
-// et ne dépasse jamais MAX_LIVE_EVENTS_PAR_PAYS : le seul temps réel ne peut
-// donc porter un pays qu'à ORANGE au plus, jamais au ROUGE (seuil 14).
-const PLAFOND_LIVE_BASE_FRAICHE = 2;
-function plafondLive(fraicheurVerifiee) {
-  const f = Math.max(0, Math.min(1, fraicheurVerifiee || 0));
-  const haut = (typeof MAX_LIVE_EVENTS_PAR_PAYS === 'number') ? MAX_LIVE_EVENTS_PAR_PAYS : 5;
-  return PLAFOND_LIVE_BASE_FRAICHE + (1 - f) * Math.max(0, haut - PLAFOND_LIVE_BASE_FRAICHE);
+// ── Le socle vérifié est un PLANCHER, pas un plafond ───────────────────────
+//
+// Il exista ici un plafondLive() qui bridait le temps réel d'autant plus que
+// le socle vérifié était récent. L'intention était juste — si un humain vient
+// de qualifier la situation, la collecte ne doit pas la contredire — mais la
+// mesure (scripts/tableau-niveaux.js) a montré qu'il produisait l'inverse :
+// le frein était indexé sur l'ancienneté de la SAISIE, pas sur la couverture
+// réelle. Les Seychelles, sans un seul incident au dossier, pouvaient
+// atteindre l'ORANGE ; le Sénégal, qui en a trois, ne le pouvait pas.
+// Vérifier un pays le rendait moins réactif. Neuf des quinze pays alors
+// bloqués l'étaient pour cette seule raison.
+//
+// Le socle vérifié fixe donc désormais le niveau MINIMUM d'un pays — son
+// risque structurel, que rien d'autre ne porte — et la collecte monte
+// librement au-dessus, bornée par le seul nombre d'articles live retenus
+// (MAX_LIVE_EVENTS_PAR_PAYS). Aucun pays ne redescend jamais parce que sa
+// donnée a vieilli : c'est la propriété à préserver, et une première
+// tentative de décroissance faisait tomber la Somalie, le Kenya et
+// l'Éthiopie au VERT.
+
+// La seule borne qui reste. Le ROUGE est l'affirmation la plus grave de
+// l'outil ; la collecte ne peut l'atteindre que là où le dossier humain place
+// DÉJÀ le pays au MARRON. Un saut du jaune au rouge sur la seule collecte est
+// interdit — c'est exactement ce qu'une rafale d'articles mal dédoublonnés
+// produirait. Là où le socle dit déjà « marron », le rouge automatique reste
+// possible : ce sont les pays où il compte le plus, et les leur retirer
+// serait une régression, pas une protection.
+const NIVEAUX_ORDRE = ['vert', 'jaune', 'orange', 'marron', 'rouge'];
+const NIVEAU_MIN_POUR_ROUGE_AUTO = 'marron';
+function borneRougeVerifie(niveauCalcule, niveauPlancher) {
+  if (niveauCalcule !== 'rouge') return niveauCalcule;
+  const rang = NIVEAUX_ORDRE.indexOf(niveauPlancher);
+  const requis = NIVEAUX_ORDRE.indexOf(NIVEAU_MIN_POUR_ROUGE_AUTO);
+  return (rang >= requis) ? 'rouge' : NIVEAU_MIN_POUR_ROUGE_AUTO;
 }
 
 
@@ -217,9 +243,10 @@ const API = {
   MOTS_VIDES_DEDUP, motsSignificatifs, articlesSontDoublons,
   DEDUP_MIN_COMMUNS, DEDUP_MIN_RATIO,
   getNivKey,
-  MOIS_FR_IDX, dateEvenementMs, facteurFraicheur, poidsVerifie, plafondLive,
+  MOIS_FR_IDX, dateEvenementMs, facteurFraicheur, poidsVerifie,
   DECROISSANCE_PLEIN_J, DECROISSANCE_NULLE_J, POIDS_CONTEXTE_NON_DATE,
-  PLAFOND_LIVE_BASE_FRAICHE, MAX_LIVE_EVENTS_PAR_PAYS,
+  NIVEAUX_ORDRE, NIVEAU_MIN_POUR_ROUGE_AUTO, borneRougeVerifie,
+  MAX_LIVE_EVENTS_PAR_PAYS,
 };
 
 if (typeof module !== 'undefined' && module.exports) module.exports = API;

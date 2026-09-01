@@ -16060,33 +16060,25 @@ function calcAlertScore(cy) {
   // plus grave que la donnee perimee qu'il pretendait corriger : les 172
   // incidents figes portent aussi, de fait, le risque STRUCTUREL d'un pays,
   // que rien d'autre ne porte aujourd'hui. La fraicheur ne sert donc qu'a
-  // ouvrir le plafond du temps reel (voir plafondLive), jamais a retrancher.
+  // servir de plancher et a dater la provenance, jamais a retrancher.
   const baseScoreVerifie = eventsVerifies.reduce((s,e)=>s+(e.weight||0), 0);
   const baseScoreLive    = eventsLive.reduce((s,e)=>s+(e.weight||0), 0);
   const specialScore     = specials.reduce((s,f)=>s+(f.bonus||0), 0);
 
-  // Garde-fou : les signaux live ne peuvent pas faire basculer le niveau au-delà
-  // d'une case par rapport au niveau issu des incidents vérifiés uniquement.
-  // Exemple : si les incidents vérifiés donnent JAUNE (score 4), les signaux
-  // live peuvent au maximum amener à ORANGE, jamais directement à ROUGE.
+  // Le socle verifie est un PLANCHER, jamais un plafond : il fixe le niveau
+  // MINIMUM du pays — son risque structurel, que rien d'autre ne porte — et la
+  // collecte monte librement au-dessus. Un plafondLive() bridait auparavant le
+  // temps reel d'autant plus que le socle etait recemment SAISI ; la mesure
+  // (scripts/tableau-niveaux.js) a montre que cela rendait un pays verifie
+  // MOINS reactif qu'un pays sur lequel personne n'avait rien ecrit. Voir le
+  // commentaire de borneRougeVerifie dans web/js/noyau.js.
   const totalSansLive = baseScoreVerifie + specialScore;
-
-  // Fraicheur du socle verifie = celle de son incident le plus recent. Elle
-  // commande l'ouverture du plafond temps reel : tant qu'un humain a verifie
-  // quelque chose recemment, le live reste bride a +2 (une case) ; quand ce
-  // socle vieillit, le plafond s'ouvre pour que la collecte puisse porter le
-  // niveau seule — jusqu'a ORANGE au plus, jamais ROUGE (voir plafondLive).
-  const fraicheurVerifiee = detailVerifies.reduce((mx,d)=>Math.max(mx, d.fraicheur), 0);
   const dernierVerifieMs  = detailVerifies.reduce((mx,d)=>(d.ms && d.ms > mx) ? d.ms : mx, 0) || null;
-  const plafond           = plafondLive(fraicheurVerifiee);
-  const liveBonusLimite   = Math.min(baseScoreLive, plafond);
-  // Le plafonnement n'est plus silencieux : l'interface doit pouvoir dire
-  // POURQUOI un pays ne monte pas plus haut malgre les signaux du jour.
-  const motifPlafond = (baseScoreLive > plafond)
-    ? (fraicheurVerifiee > 0
-        ? 'signaux du jour plafonnes : un incident verifie recent encadre deja le niveau'
-        : 'signaux du jour plafonnes : le passage au rouge demande une verification humaine')
-    : null;
+  const fraicheurVerifiee = detailVerifies.reduce((mx,d)=>Math.max(mx, d.fraicheur), 0);
+
+  // Le live n'est plus bride que par le nombre d'articles retenus, applique en
+  // amont dans getLiveAlertEvents (MAX_LIVE_EVENTS_PAR_PAYS).
+  const liveBonusLimite   = baseScoreLive;
 
   // Contexte historique (donnees > 12h ou source non fiable en date, cf.
   // HISTORIQUE/archiverHistorique) : sert UNIQUEMENT d'element de reference
@@ -16112,13 +16104,25 @@ function calcAlertScore(cy) {
   // total (brut, non borne) reste utilise en interne pour le tri/classement :
   // deux pays tres critiques restent distinguables meme proches de 100.
   const total100 = Math.min(99.9, Math.round(1000 * (1 - Math.exp(-total / ASYMPTOTE_K))) / 10);
-  const key   = getNivKey(total);
+  // Seule borne restante : le ROUGE automatique exige que le socle verifie
+  // place deja le pays au MARRON. Un saut du jaune au rouge sur la seule
+  // collecte est refuse — c'est ce qu'une rafale mal dedoublonnee produirait.
+  const keyPlancher = getNivKey(totalSansLive);
+  const keyBrut     = getNivKey(total);
+  const key   = borneRougeVerifie(keyBrut, keyPlancher);
   const niv   = NIV[key];
+  // Le bridage n'est pas silencieux : l'interface doit pouvoir dire POURQUOI
+  // un pays ne monte pas plus haut malgre les signaux du jour.
+  const motifPlafond = (key !== keyBrut)
+    ? 'niveau borne au marron : le passage au rouge demande qu\'un incident verifie place deja ce pays au marron'
+    : null;
   return {cy, events, specials, baseScore: baseScoreVerifie + baseScoreLive, specialScore, total, total100, key, niv,
           motifPlafond, dernierVerifieMs, fraicheurVerifiee,
           debug: {verifies: baseScoreVerifie, live: baseScoreLive, liveApplique: liveBonusLimite, specials: specialScore,
                   historiqueRef: nbHisto, historiqueApplique: historiqueBonus,
-                  plafondLive: plafond, fraicheurVerifiee, dernierVerifieMs,
+                  plancher: totalSansLive, keyPlancher, keyBrut,
+                  maxLiveParPays: (typeof MAX_LIVE_EVENTS_PAR_PAYS === 'number') ? MAX_LIVE_EVENTS_PAR_PAYS : 5,
+                  fraicheurVerifiee, dernierVerifieMs,
                   verifiesBruts: eventsVerifies.reduce((s,e)=>s+(e.weight||0), 0)}};
 }
 

@@ -67,7 +67,7 @@ const serveur = http.createServer((req, res) => {
     await page.waitForTimeout(2500);
     sonde = await page.evaluate(() => { try {
       const noyau = ['getNivKey', 'matchMot', 'dateEvenementMs', 'motsSignificatifs',
-                     'plafondLive', 'articlesSontDoublons', 'normaliserAccents'];
+                     'borneRougeVerifie', 'articlesSontDoublons', 'normaliserAccents'];
       const manquants = noyau.filter((n) => typeof globalThis[n] !== 'function');
       let score = null;
       try { if (typeof calcAlertScore === 'function') { const s = calcAlertScore('BF'); score = s && s.key; } }

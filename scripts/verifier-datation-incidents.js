@@ -59,7 +59,7 @@ if (jours !== null) {
   console.log(`\nSocle verifie : l'incident date le plus recent remonte a ${jours} jours.`);
   if (jours > 90) {
     console.log('⚠  Plus de 90 jours. Les niveaux affiches reposent sur une saisie ancienne ;');
-    console.log('   le plafond du signal temps reel s\'est ouvert pour compenser (voir plafondLive),');
+    console.log('   le socle sert de plancher et la collecte monte librement au-dessus,');
     console.log('   mais rien ne remplace une revue humaine des incidents.');
   }
 }

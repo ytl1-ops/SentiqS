@@ -8,7 +8,8 @@ const test = require('node:test');
 const assert = require('node:assert');
 const { HTML, tranche, bac, exposer, noyau } = require('./_bac.js');
 
-const { dateEvenementMs, facteurFraicheur, poidsVerifie, plafondLive, getNivKey } = noyau;
+const { dateEvenementMs, facteurFraicheur, poidsVerifie, getNivKey,
+        borneRougeVerifie, MAX_LIVE_EVENTS_PAR_PAYS } = noyau;
 // Les incidents verifies restent une donnee du fichier de production.
 const { ALERTE_EVENTS } = exposer(
   bac(tranche('const ALERTE_EVENTS = [', '\n];') + '\n];'),
@@ -68,17 +69,54 @@ test('le socle vérifié ne perd jamais de poids : la fraîcheur ne retranche ri
     'baseScoreVerifie doit sommer les poids BRUTS, sans pondération par l\'âge');
 });
 
-test('le plafond du temps réel s\'ouvre quand le socle vérifié vieillit', () => {
-  assert.strictEqual(plafondLive(1), 2, 'socle frais : le live reste bridé à une case');
-  assert.strictEqual(plafondLive(0), 5, 'socle périmé : le live peut porter le niveau seul');
-  assert.ok(plafondLive(0.5) > plafondLive(1) && plafondLive(0.5) < plafondLive(0));
+// Il exista un plafondLive() qui bridait le temps réel d'autant plus que le
+// socle vérifié était RÉCEMMENT SAISI. La mesure a montré l'inversion : les
+// Seychelles, sans un incident au dossier, atteignaient l'orange ; le Sénégal,
+// qui en a trois, ne le pouvait pas. Ce test interdit son retour.
+test('la fraîcheur de la saisie ne bride plus le temps réel', () => {
+  assert.strictEqual(typeof noyau.plafondLive, 'undefined',
+    'plafondLive est revenu : le frein serait de nouveau indexé sur l\'âge de la saisie');
+  assert.strictEqual(typeof noyau.PLAFOND_LIVE_BASE_FRAICHE, 'undefined');
 });
 
 test('le seul signal temps réel ne peut pas porter un pays au ROUGE', () => {
-  // La promesse centrale du produit : un basculement au rouge exige une
-  // vérification humaine. Le plafond le plus ouvert doit rester sous le seuil.
+  // La promesse centrale du produit. Elle tient aujourd'hui par l'arithmétique
+  // seule : le live plafonne à MAX_LIVE_EVENTS_PAR_PAYS points (1 pt/article)
+  // plus 0,5 d'historique, et cela ne franchit pas l'écart entre le seuil
+  // marron (8) et le seuil rouge (14).
   const maxHistorique = 0.5;
-  assert.notStrictEqual(getNivKey(plafondLive(0) + maxHistorique), 'rouge');
+  assert.notStrictEqual(getNivKey(MAX_LIVE_EVENTS_PAR_PAYS + maxHistorique), 'rouge');
+});
+
+// La porte de borneRougeVerifie ne se déclenche donc JAMAIS avec les nombres
+// d'aujourd'hui. Ce n'est pas une raison de la croire inutile — c'est une
+// raison de prouver qu'elle tiendrait si le plafond montait. Sans ce test,
+// elle serait une porte qui ne se ferme jamais, et personne ne le saurait.
+test('si le plafond du live montait, la porte rouge tiendrait seule', () => {
+  const PLAFOND_HYPOTHETIQUE = 20;      // au-delà de l'écart marron -> rouge
+  const plancher = 3;                   // socle vérifié : jaune
+  const total = plancher + PLAFOND_HYPOTHETIQUE;
+  assert.strictEqual(getNivKey(total), 'rouge',
+    'prémisse du test : sans porte, l\'arithmétique donnerait bien rouge');
+  assert.strictEqual(borneRougeVerifie(getNivKey(total), getNivKey(plancher)), 'marron',
+    'la porte doit ramener au marron un pays dont le socle vérifié dit jaune');
+});
+
+test('la porte rouge laisse passer les pays que le socle place déjà au marron', () => {
+  // Le retirer à ces pays-là serait une régression, pas une protection : ce
+  // sont ceux où le rouge compte le plus (Somalie, Tchad, Soudan du Sud...).
+  assert.strictEqual(borneRougeVerifie('rouge', 'marron'), 'rouge');
+  assert.strictEqual(borneRougeVerifie('rouge', 'rouge'), 'rouge');
+  assert.strictEqual(borneRougeVerifie('rouge', 'orange'), 'marron');
+  assert.strictEqual(borneRougeVerifie('rouge', 'jaune'), 'marron');
+  assert.strictEqual(borneRougeVerifie('rouge', 'vert'), 'marron');
+});
+
+test('la porte ne touche à rien en dessous du rouge', () => {
+  for (const k of ['vert', 'jaune', 'orange', 'marron']) {
+    assert.strictEqual(borneRougeVerifie(k, 'vert'), k,
+      k + ' ne doit pas être modifié par une porte qui ne concerne que le rouge');
+  }
 });
 
 test('chaque incident du fichier de production porte une date analysable', () => {

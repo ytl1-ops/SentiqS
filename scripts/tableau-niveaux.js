@@ -66,6 +66,8 @@ const serveur = http.createServer((req, res) => {
     lignes = await page.evaluate(() => {
       const SEUILS = { rouge: 14, marron: 8, orange: 5, jaune: 2, vert: 0 };
       const ORDRE = ['vert', 'jaune', 'orange', 'marron', 'rouge'];
+      const nivAtteignable = (t, keyPlancher) =>
+        borneRougeVerifie(getNivKey(t), keyPlancher);
       return CYS.filter((c) => c.code !== 'all').map((c) => {
         const s = calcAlertScore(c.code);
         const d = s.debug;
@@ -86,21 +88,24 @@ const serveur = http.createServer((req, res) => {
           // « quelle part le fige porte quand le live vaut zero » : ce chiffre
           // vaut 100 % par construction et ne dit rien. On mesure le pouvoir
           // que la collecte a, au mieux, une fois son plafond sature.
-          totalSiCollecteSaturee: Math.round((s.total - d.liveApplique + d.plafondLive) * 100) / 100,
+          totalSiCollecteSaturee: Math.round((d.plancher + d.historiqueApplique + d.maxLiveParPays) * 100) / 100,
           partMaxCollecte: (() => {
-            const t = s.total - d.liveApplique + d.plafondLive;
-            return t > 0 ? Math.round(1000 * d.plafondLive / t) / 10 : null;
+            const t = d.plancher + d.historiqueApplique + d.maxLiveParPays;
+            return t > 0 ? Math.round(1000 * d.maxLiveParPays / t) / 10 : null;
           })(),
           // Combien la collecte devrait apporter pour faire monter d'un cran,
           // et si son plafond le lui permet seulement.
-          plafondLive: Math.round(d.plafondLive * 100) / 100,
+          plafondLive: d.maxLiveParPays,
+          plancher: Math.round(d.plancher * 100) / 100,
           fraicheurVerifiee: Math.round(d.fraicheurVerifiee * 100) / 100,
+          niveauAtteignable: nivAtteignable(
+            d.plancher + d.historiqueApplique + d.maxLiveParPays, d.keyPlancher),
           niveauSuivant: suivant,
           manquePourMonter: suivant ? Math.round((SEUILS[suivant] - s.total) * 100) / 100 : null,
           // Le point decisif : meme en saturant son plafond, le pays peut-il
           // atteindre le cran suivant ?
           atteignableParCollecte: suivant
-            ? (s.total - d.liveApplique + d.plafondLive) >= SEUILS[suivant] : false,
+            ? (d.plancher + d.historiqueApplique + d.maxLiveParPays) >= SEUILS[suivant] : false,
         };
       });
     });
@@ -121,15 +126,15 @@ const serveur = http.createServer((req, res) => {
   // Niveau que chaque pays atteindrait si la collecte saturait son plafond.
   const SEUILS = { rouge: 14, marron: 8, orange: 5, jaune: 2 };
   const niveauDe = (t) => t >= 14 ? 'rouge' : t >= 8 ? 'marron' : t >= 5 ? 'orange' : t >= 2 ? 'jaune' : 'vert';
-  const inchanges = lignes.filter((l) => niveauDe(l.totalSiCollecteSaturee) === l.niveau);
-  const jamaisRouge = lignes.filter((l) => l.totalSiCollecteSaturee < 14);
+  const inchanges = lignes.filter((l) => l.niveauAtteignable === l.niveau);
+  const jamaisRouge = lignes.filter((l) => l.niveauAtteignable !== 'rouge');
 
   console.log('Pays examines : ' + lignes.length + '  (niveau au repos, collecte a zero)');
   console.log('Repartition   : ' + ['rouge', 'marron', 'orange', 'jaune', 'vert']
     .map((k) => k + ' ' + (parNiveau[k] || 0)).join('  ·  '));
   console.log('Pouvoir MAXIMAL de la collecte (plafond sature), mediane : '
     + mediane('partMaxCollecte') + ' % du score');
-  console.log('Plafond live median : ' + mediane('plafondLive') + ' points');
+  console.log('Plafond live (articles retenus) : ' + mediane('plafondLive') + ' points');
   console.log('Pays dont le niveau ne bouge PAS meme collecte saturee : '
     + inchanges.length + '/' + lignes.length);
   console.log('Pays qui ne peuvent JAMAIS atteindre le rouge par la collecte : '

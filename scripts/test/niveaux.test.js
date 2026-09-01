@@ -3,7 +3,7 @@
 // jamais pouvoir porter seul un pays au rouge.
 const test = require('node:test');
 const assert = require('node:assert');
-const { HTML, noyau } = require('./_bac.js');
+const { HTML, noyau, tranche } = require('./_bac.js');
 
 const { getNivKey } = noyau;
 
@@ -38,8 +38,8 @@ test("le flux RSS seul ne peut jamais porter un pays au ROUGE", () => {
   // consequence mesuree : 27 pays sur 53 ne pouvaient plus changer de niveau,
   // et un pays sans incident pre-saisi restait JAUNE en pleine crise.
   //
-  // Le contrat est desormais : le plafond s'ouvre quand la donnee verifiee
-  // vieillit (voir plafondLive), MAIS le passage au ROUGE reste conditionne a
+  // Le contrat est desormais : le socle verifie est un PLANCHER, la collecte
+  // monte librement au-dessus, MAIS le passage au ROUGE reste conditionne a
   // une verification humaine. C'est cet invariant-la qu'il faut proteger.
   const plafondMax = lireNombre('MAX_LIVE_EVENTS_PAR_PAYS');
   const historiqueMax = 0.5;
@@ -50,13 +50,23 @@ test("le flux RSS seul ne peut jamais porter un pays au ROUGE", () => {
   );
 });
 
-test("tant que la donnee verifiee est fraiche, le direct reste bride a une case", () => {
-  const bride = lireNombre('PLAFOND_LIVE_BASE_FRAICHE');
-  const atteignable = getNivKey(bride + 0.5);
-  assert.ok(
-    ['vert', 'jaune'].includes(atteignable),
-    `socle frais : le direct atteint ${atteignable} — il ne doit pas depasser jaune`
-  );
+test("le socle verifie sert de plancher, jamais de plafond", () => {
+  // calcAlertScore doit ADDITIONNER le live au socle sans le brider par une
+  // mesure de fraicheur. Le defaut corrige : plus un pays etait recemment
+  // saisi, moins il pouvait bouger.
+  const src = tranche('const totalSansLive =', 'const total =');
+  assert.doesNotMatch(src, /plafondLive|Math\.min\(baseScoreLive/,
+    'le live est de nouveau bride par la fraicheur de la saisie');
+  assert.match(src, /liveBonusLimite\s*=\s*baseScoreLive/,
+    'le live doit entrer entier : son seul bridage est le nombre d\'articles retenus');
+});
+
+test("aucun pays ne peut afficher ROUGE si son socle verifie est sous MARRON", () => {
+  // L'invariant du produit, exprime sur le code de production lui-meme plutot
+  // que sur des nombres : il survit a un changement de seuil ou de plafond.
+  const src = tranche('const keyPlancher =', 'const niv   =');
+  assert.match(src, /borneRougeVerifie\(\s*keyBrut\s*,\s*keyPlancher\s*\)/,
+    'le niveau affiche doit passer par la porte rouge');
 });
 
 test("un article live pèse au plus 1 point, quel que soit son niveau", () => {
