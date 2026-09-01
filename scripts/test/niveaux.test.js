@@ -45,13 +45,30 @@ test('juste sous chaque seuil, le niveau reste le précédent', () => {
   assert.strictEqual(getNivKey(13.9), 'marron');
 });
 
-test("le flux RSS seul ne peut pas atteindre le niveau orange", () => {
-  // Garde-fou central : maxLiveBonus plafonne TOUT l'apport du direct.
-  const maxLiveBonus = lireNombre('maxLiveBonus');
-  const niveauAtteignable = getNivKey(maxLiveBonus);
+test("le flux RSS seul ne peut jamais porter un pays au ROUGE", () => {
+  // Le contrat a change, volontairement. Il etait : « le RSS seul ne depasse
+  // pas JAUNE » — un plafond fixe de 2 points pour un seuil rouge de 14. Sa
+  // consequence mesuree : 27 pays sur 53 ne pouvaient plus changer de niveau,
+  // et un pays sans incident pre-saisi restait JAUNE en pleine crise.
+  //
+  // Le contrat est desormais : le plafond s'ouvre quand la donnee verifiee
+  // vieillit (voir plafondLive), MAIS le passage au ROUGE reste conditionne a
+  // une verification humaine. C'est cet invariant-la qu'il faut proteger.
+  const plafondMax = lireNombre('MAX_LIVE_EVENTS_PAR_PAYS');
+  const historiqueMax = 0.5;
+  const atteignable = getNivKey(plafondMax + historiqueMax);
+  assert.notStrictEqual(
+    atteignable, 'rouge',
+    `le RSS seul atteint ${atteignable} (plafond ${plafondMax}) — il ne doit jamais atteindre rouge`
+  );
+});
+
+test("tant que la donnee verifiee est fraiche, le direct reste bride a une case", () => {
+  const bride = lireNombre('PLAFOND_LIVE_BASE_FRAICHE');
+  const atteignable = getNivKey(bride + 0.5);
   assert.ok(
-    ['vert', 'jaune'].includes(niveauAtteignable),
-    `le RSS seul atteint ${niveauAtteignable} (plafond ${maxLiveBonus}) — il ne doit pas dépasser jaune`
+    ['vert', 'jaune'].includes(atteignable),
+    `socle frais : le direct atteint ${atteignable} — il ne doit pas depasser jaune`
   );
 });
 

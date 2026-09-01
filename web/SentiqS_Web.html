@@ -16027,6 +16027,140 @@ const MESURES = {
   },
 };
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  FRAÎCHEUR DE LA DONNÉE VÉRIFIÉE — décroissance et plafond adaptatif
+//
+//  Jusqu'ici, un incident d'ALERTE_EVENTS pesait exactement le même poids un
+//  an après sa saisie qu'au premier jour. Mesure faite sur le fichier de
+//  production le 01/09/2026 : 172 incidents figés (le plus récent datant de
+//  juin 2026, le plus ancien de septembre 2024) et 38 facteurs structurels
+//  sans aucune date portaient l'essentiel du score, tandis que la collecte
+//  temps réel plafonnait à +2 pour un seuil rouge de 14 — soit 14 % du seuil.
+//
+//  Conséquence arithmétique, vérifiée pays par pays : 27 des 53 pays ne
+//  pouvaient plus changer de niveau quoi que la collecte remonte, et 42 ne
+//  pouvaient jamais atteindre le rouge. Un pays sans incident pré-saisi
+//  plafonnait à JAUNE même en pleine crise.
+//
+//  Un outil de veille dont le niveau d'alerte ne peut pas bouger n'est pas
+//  une veille. La correction retenue OUVRE LE PLAFOND du signal temps réel à
+//  mesure que la donnée vérifiée vieillit, sans jamais retrancher au socle.
+//
+//  Ce qui a été essayé et écarté : faire décroître le poids des incidents
+//  avec leur âge. Mesuré avant de le retenir — 43 pays sur 53 baissaient d'un
+//  cran, Somalie, Kenya et Éthiopie passant au VERT faute d'incident
+//  récemment saisi. Sur un outil de sûreté, ce faux négatif est plus grave
+//  que la donnée périmée qu'il corrigeait : les incidents figés portent
+//  aussi, de fait, le risque STRUCTUREL des pays, que rien d'autre ne porte.
+//  Séparer les deux demande un travail d'analyste, pas de développeur ; tant
+//  qu'il n'est pas fait, on n'enlève rien.
+//
+//  Le plafonnement n'est plus silencieux : calcAlertScore expose
+//  motifPlafond et dernierVerifieMs, que l'interface affiche.
+// ═══════════════════════════════════════════════════════════════════════════
+
+const MOIS_FR_IDX = {
+  janvier:0, fevrier:1, mars:2, avril:3, mai:4, juin:5,
+  juillet:6, aout:7, septembre:8, octobre:9, novembre:10, decembre:11,
+  jan:0, fev:1, avr:3, jun:5, jul:6, aou:7, sept:8, sep:8, oct:9, nov:10, dec:11,
+};
+
+// PRECISION_DATE : ce que la chaîne saisie permet réellement d'affirmer.
+//  'jour'  — 29/06/2026, 2026-06-29, 18-19/01/2026
+//  'mois'  — Juin 2026, Juillet-Aout 2025
+//  'annee' — 2026, 2020-2026 : trop imprécis pour dater un incident ponctuel
+//  null    — non analysable
+//
+// Une date imprécise n'est PAS traitée comme fraîche : ce serait exactement
+// l'hallucination que le reste de l'application s'emploie à empêcher. Elle
+// est traitée comme un élément de contexte structurel (poids réduit, sans
+// décroissance) et signalée par scripts/verifier-datation-incidents.js, pour
+// que la dette éditoriale soit visible au lieu d'être silencieuse.
+function dateEvenementMs(txt) {
+  if (!txt) return { ms: null, precision: null };
+  const s = String(txt).trim();
+  const maintenant = Date.now();
+  const borne = (ms) => (ms === null || !isFinite(ms)) ? null : Math.min(ms, maintenant);
+  const sansAccents = (typeof normaliserAccents === 'function')
+    ? normaliserAccents(s.toLowerCase())
+    : s.toLowerCase();
+
+  // JJ/MM/AAAA [HHhMM]  et  JJ-JJ/MM/AAAA (on retient le DERNIER jour cité :
+  // c'est l'instant le plus récent auquel l'événement a pu se produire).
+  let m = s.match(/^(\d{1,2})(?:\s*-\s*(\d{1,2}))?\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2})h(\d{2}))?$/);
+  if (m) {
+    const jour = Number(m[2] || m[1]);
+    const h = m[5] !== undefined ? Number(m[5]) : 23;
+    const min = m[6] !== undefined ? Number(m[6]) : 59;
+    return { ms: borne(Date.UTC(Number(m[4]), Number(m[3]) - 1, jour, h, min)), precision: 'jour' };
+  }
+
+  // AAAA-MM-JJ
+  m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (m) return { ms: borne(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 23, 59)), precision: 'jour' };
+
+  // [Mois-]Mois AAAA — fin du dernier mois cité (Date.UTC(a, idx+1, 0) = son dernier jour)
+  m = sansAccents.match(/^([a-z]+)(?:\s*-\s*([a-z]+))?\s+(\d{4})$/);
+  if (m) {
+    const idx = MOIS_FR_IDX[m[2] || m[1]];
+    // Un mot qui n'est pas un mois ("Fin 2025") n'est pas une erreur : on
+    // laisse les formats suivants tenter leur chance plutot que d'abandonner
+    // ici — c'est ce court-circuit qui rendait "Fin 2025" non analysable.
+    if (idx !== undefined) {
+      return { ms: borne(Date.UTC(Number(m[3]), idx + 1, 0, 23, 59)), precision: 'mois' };
+    }
+  }
+
+  // AAAA, AAAA-AAAA, ou une année qualifiée ("Fin 2025", "Debut 2026") —
+  // une année seule ne date pas un incident ponctuel.
+  m = s.match(/^(\d{4})(?:\s*-\s*(\d{4}))?$/);
+  if (m) return { ms: borne(Date.UTC(Number(m[2] || m[1]), 11, 31, 23, 59)), precision: 'annee' };
+  m = sansAccents.match(/^(?:fin|debut|mi|courant|vers)\s+(\d{4})$/);
+  if (m) return { ms: borne(Date.UTC(Number(m[1]), 11, 31, 23, 59)), precision: 'annee' };
+
+  return { ms: null, precision: null };
+}
+
+// Décroissance : poids plein pendant DECROISSANCE_PLEIN_J, puis décroissance
+// linéaire jusqu'à zéro à DECROISSANCE_NULLE_J. Un incident de sûreté reste
+// pertinent quelques semaines ; au-delà de six mois il relève de l'historique,
+// que l'application traite déjà séparément (HISTORIQUE_MAX_AGE_MS).
+const DECROISSANCE_PLEIN_J = 45;
+const DECROISSANCE_NULLE_J = 180;
+// Part de poids conservée par un élément daté à l'année près ou non daté :
+// contexte structurel, jamais une actualité — d'où un poids réduit et constant.
+const POIDS_CONTEXTE_NON_DATE = 0.5;
+
+function facteurFraicheur(ageMs) {
+  if (!isFinite(ageMs) || ageMs < 0) return 1;
+  const jours = ageMs / 86400000;
+  if (jours <= DECROISSANCE_PLEIN_J) return 1;
+  if (jours >= DECROISSANCE_NULLE_J) return 0;
+  return 1 - (jours - DECROISSANCE_PLEIN_J) / (DECROISSANCE_NULLE_J - DECROISSANCE_PLEIN_J);
+}
+
+// poidsVerifie(evenement) : poids effectif d'un incident, et fraîcheur associée.
+function poidsVerifie(e, maintenant) {
+  const now = (maintenant === undefined) ? Date.now() : maintenant;
+  const brut = e.weight || 0;
+  const { ms, precision } = dateEvenementMs(e.date);
+  if (ms === null || precision === 'annee') {
+    return { poids: brut * POIDS_CONTEXTE_NON_DATE, fraicheur: 0, precision, ms: null };
+  }
+  const f = facteurFraicheur(now - ms);
+  return { poids: brut * f, fraicheur: f, precision, ms };
+}
+
+// Plafond du signal temps réel. Il s'ouvre quand la donnée vérifiée vieillit,
+// et ne dépasse jamais MAX_LIVE_EVENTS_PAR_PAYS : le seul temps réel ne peut
+// donc porter un pays qu'à ORANGE au plus, jamais au ROUGE (seuil 14).
+const PLAFOND_LIVE_BASE_FRAICHE = 2;
+function plafondLive(fraicheurVerifiee) {
+  const f = Math.max(0, Math.min(1, fraicheurVerifiee || 0));
+  const haut = (typeof MAX_LIVE_EVENTS_PAR_PAYS === 'number') ? MAX_LIVE_EVENTS_PAR_PAYS : 5;
+  return PLAFOND_LIVE_BASE_FRAICHE + (1 - f) * Math.max(0, haut - PLAFOND_LIVE_BASE_FRAICHE);
+}
+
 // ASYMPTOTE_K : constante de calibration de la courbe asymptotique du score
 // d'alerte affiche (voir total100 dans calcAlertScore). Plus k est petit,
 // plus la courbe grimpe vite vers 100 ; k=12 fait correspondre les seuils
@@ -16040,6 +16174,20 @@ function calcAlertScore(cy) {
   const events         = [...eventsVerifies, ...eventsLive];
   const specials       = FACTEURS_SPECIAUX[cy] || [];
 
+  // Chaque incident verifie est pondere par son age (voir poidsVerifie) : un
+  // incident de juin ne pese plus autant en septembre. Sans cette ponderation,
+  // le socle fige dominait le score et gelait le niveau de 27 pays sur 53.
+  const maintenant     = Date.now();
+  const detailVerifies = eventsVerifies.map(e => poidsVerifie(e, maintenant));
+
+  // Le socle verifie garde son poids PLEIN. Premiere version de ce correctif :
+  // le poids decroissait avec l'age, et la mesure a montre que 43 pays sur 53
+  // baissaient d'un cran — Somalie, Kenya et Ethiopie passant au VERT faute
+  // d'incident recemment saisi. Sur un outil de surete, un faux negatif est
+  // plus grave que la donnee perimee qu'il pretendait corriger : les 172
+  // incidents figes portent aussi, de fait, le risque STRUCTUREL d'un pays,
+  // que rien d'autre ne porte aujourd'hui. La fraicheur ne sert donc qu'a
+  // ouvrir le plafond du temps reel (voir plafondLive), jamais a retrancher.
   const baseScoreVerifie = eventsVerifies.reduce((s,e)=>s+(e.weight||0), 0);
   const baseScoreLive    = eventsLive.reduce((s,e)=>s+(e.weight||0), 0);
   const specialScore     = specials.reduce((s,f)=>s+(f.bonus||0), 0);
@@ -16049,8 +16197,23 @@ function calcAlertScore(cy) {
   // Exemple : si les incidents vérifiés donnent JAUNE (score 4), les signaux
   // live peuvent au maximum amener à ORANGE, jamais directement à ROUGE.
   const totalSansLive = baseScoreVerifie + specialScore;
-  const maxLiveBonus  = 2; // au maximum 1 niveau supplémentaire
-  const liveBonusLimite = Math.min(baseScoreLive, maxLiveBonus);
+
+  // Fraicheur du socle verifie = celle de son incident le plus recent. Elle
+  // commande l'ouverture du plafond temps reel : tant qu'un humain a verifie
+  // quelque chose recemment, le live reste bride a +2 (une case) ; quand ce
+  // socle vieillit, le plafond s'ouvre pour que la collecte puisse porter le
+  // niveau seule — jusqu'a ORANGE au plus, jamais ROUGE (voir plafondLive).
+  const fraicheurVerifiee = detailVerifies.reduce((mx,d)=>Math.max(mx, d.fraicheur), 0);
+  const dernierVerifieMs  = detailVerifies.reduce((mx,d)=>(d.ms && d.ms > mx) ? d.ms : mx, 0) || null;
+  const plafond           = plafondLive(fraicheurVerifiee);
+  const liveBonusLimite   = Math.min(baseScoreLive, plafond);
+  // Le plafonnement n'est plus silencieux : l'interface doit pouvoir dire
+  // POURQUOI un pays ne monte pas plus haut malgre les signaux du jour.
+  const motifPlafond = (baseScoreLive > plafond)
+    ? (fraicheurVerifiee > 0
+        ? 'signaux du jour plafonnes : un incident verifie recent encadre deja le niveau'
+        : 'signaux du jour plafonnes : le passage au rouge demande une verification humaine')
+    : null;
 
   // Contexte historique (donnees > 12h ou source non fiable en date, cf.
   // HISTORIQUE/archiverHistorique) : sert UNIQUEMENT d'element de reference
@@ -16079,8 +16242,11 @@ function calcAlertScore(cy) {
   const key   = getNivKey(total);
   const niv   = NIV[key];
   return {cy, events, specials, baseScore: baseScoreVerifie + baseScoreLive, specialScore, total, total100, key, niv,
+          motifPlafond, dernierVerifieMs, fraicheurVerifiee,
           debug: {verifies: baseScoreVerifie, live: baseScoreLive, liveApplique: liveBonusLimite, specials: specialScore,
-                  historiqueRef: nbHisto, historiqueApplique: historiqueBonus}};
+                  historiqueRef: nbHisto, historiqueApplique: historiqueBonus,
+                  plafondLive: plafond, fraicheurVerifiee, dernierVerifieMs,
+                  verifiesBruts: eventsVerifies.reduce((s,e)=>s+(e.weight||0), 0)}};
 }
 
 function mkDot(level) {
@@ -16214,6 +16380,41 @@ async function renderAlertCard(score) {
     </div>`;
   }).join('');
 
+  // ── PROVENANCE DU NIVEAU ────────────────────────────────────────────────
+  // L'utilisateur voyait « filtre anti-hallucination, moins de 12 h » et en
+  // deduisait que TOUT etait frais. En realite le niveau est porte d'abord
+  // par des incidents verifies saisis a la main, parfois vieux de plusieurs
+  // mois, et le plafonnement du signal du jour etait totalement silencieux.
+  // On dit desormais les deux : depuis quand le socle verifie n'a pas bouge,
+  // et pourquoi les signaux du jour ne montent pas plus haut.
+  const provenanceHtml = (() => {
+    const lignes = [];
+    if (score.dernierVerifieMs) {
+      const jours = Math.floor((Date.now() - score.dernierVerifieMs) / 86400000);
+      const quand = jours <= 0 ? "aujourd'hui"
+                  : jours === 1 ? 'hier'
+                  : jours < 60 ? ('il y a ' + jours + ' jours')
+                  : ('il y a ' + Math.floor(jours / 30) + ' mois');
+      const perime = jours > DECROISSANCE_PLEIN_J;
+      lignes.push('<div style="font-size:9px;color:' + (perime ? n.col : 'var(--lg)') + ';">'
+        + '<i class="ti ti-user-check" style="font-size:10px;margin-right:4px;"></i>'
+        + 'Dernier incident verifie par un humain : <strong>' + quand + '</strong>'
+        + (perime ? ' — au-dela de ce delai, les signaux du jour pesent davantage' : '')
+        + '</div>');
+    } else {
+      lignes.push('<div style="font-size:9px;color:var(--lg);">'
+        + '<i class="ti ti-user-off" style="font-size:10px;margin-right:4px;"></i>'
+        + 'Aucun incident verifie date pour ce pays : le niveau repose sur le contexte structurel et les signaux du jour.'
+        + '</div>');
+    }
+    if (score.motifPlafond) {
+      lignes.push('<div style="font-size:9px;color:' + n.col + ';margin-top:3px;">'
+        + '<i class="ti ti-shield-lock" style="font-size:10px;margin-right:4px;"></i>'
+        + escHtml(score.motifPlafond) + '</div>');
+    }
+    return '<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--bd);">' + lignes.join('') + '</div>';
+  })();
+
   const spHtml = score.specials.map(f =>
     `<div style="display:flex;align-items:flex-start;gap:5px;padding:2px 0;">
       <i class="ti ti-alert-triangle" style="font-size:10px;color:${n.col};flex-shrink:0;margin-top:1px;"></i>
@@ -16297,6 +16498,7 @@ async function renderAlertCard(score) {
           <div style="font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;">Facteurs aggravants</div>
           ${spHtml}
         </div>`:''}
+        ${provenanceHtml}
       </div>
       <!-- Colonne droite : mesures -->
       <div style="padding:10px 12px;background:var(--w);">

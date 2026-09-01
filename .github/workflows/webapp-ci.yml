@@ -176,5 +176,11 @@ jobs:
         # non complété — une conformité de façade est pire que rien.
         run: node scripts/verifier-pages-legales.js
 
+      - name: Datation des incidents verifies
+        # Le niveau d'alerte affiche repose d'abord sur ALERTE_EVENTS et
+        # FACTEURS_SPECIAUX, saisis a la main. Ce controle refuse une date
+        # qu'aucun format connu ne couvre, et affiche l'age du socle verifie.
+        run: node scripts/verifier-datation-incidents.js
+
       - name: Tests du moteur de collecte
         run: npm test
