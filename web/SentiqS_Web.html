@@ -2118,7 +2118,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
     <button class="actu-btn" onclick="runDiagnostic()" id="diagBtn" title="Tester les services de collecte" style="background:var(--sf)">
       <i class="ti ti-stethoscope"></i> <span data-i18n="btn_diagnostic">Diagnostic</span>
     </button>
-    <span style="font-size:10px;color:var(--lg);font-weight:500;white-space:nowrap" id="tbTime">04/07/2026 · 20:15</span>
+    <span style="font-size:10px;color:var(--lg);font-weight:500;white-space:nowrap" id="tbTime">—</span>
     <div class="user-wrap" id="userWrap" style="display:none">
       <div class="user-chip" onclick="toggleUserMenu(event)">
         <div class="user-avatar" id="userAvatar">A</div>
@@ -2155,7 +2155,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
     <div class="pb-title" data-i18n="proxy_title">Collecte RSS automatique — Cliquez Actualiser</div>
     <div class="pb-steps">
       <div class="pb-step">
-        <b>Cliquez sur Actualiser</b> — les services de collecte RSS sont detectes automatiquement (rss2json, allorigins, corsproxy). Aucune installation requise.
+        <b>Cliquez sur Actualiser</b> — la veille se met a jour depuis le cache partage, ou relance une collecte si celui-ci a vieilli. Aucune installation requise.
       </div>
     </div>
     <div class="pb-pills" id="pbPills">
@@ -2357,7 +2357,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
           <button class="btn-dl btn-dl-pdf" onclick="exportPDF(&#39;synthese&#39;)"><i class="ti ti-file-type-pdf"></i>PDF</button>
           <button class="btn-dl btn-dl-apercu" onclick="apercuSynthese()"><i class="ti ti-printer"></i>Aperçu impression</button>
           <div class="dl-sep"></div>
-          <span style="font-size:9px;color:var(--lg)" id="dlSyntheseDate">Données du 04/07/2026 20:08</span>
+          <span style="font-size:9px;color:var(--lg)" id="dlSyntheseDate">Données non encore chargées</span>
         </div>
         <div class="tlbr" style="flex-shrink:0;">
           <span style="font-size:11px;font-weight:700;color:var(--t);display:flex;align-items:center;gap:5px;"><i class="ti ti-filter" style="font-size:14px"></i>Filtrer la synthese</span>
@@ -5708,6 +5708,18 @@ function rehydrateArticles(arts) {
       }
     }
 
+    // Recalcul du NIVEAU et de la CATEGORIE, pour la meme raison que le pays
+    // juste au-dessus : un article deja en cache porte le verdict de la
+    // version de classify() qui l'a collecte. Sans ce recalcul, un correctif
+    // de classification ne prend effet qu'a la collecte SUIVANTE — jusqu'a
+    // 12 h pendant lesquelles un litige entre deux personnes privees continue
+    // d'ouvrir la liste des actualites a traiter, classe CRITIQUE.
+    if (src && typeof classify === 'function' && !a._demo) {
+      const texteClass = (a.title || '') + ' ' + ((a.analysis && !/^voir sur /i.test(a.analysis.trim())) ? a.analysis : '');
+      const r = classify(texteClass, src);
+      if (r && r.lvl) { a.level = r.lvl; a.cat = r.cat; }
+    }
+
     if (a._srcRssMethod === undefined) {
       a._srcRssMethod = src ? (src.rss_method || null) : null;
       a._srcRssUrl = src ? (src.rss || '') : '';
@@ -5863,8 +5875,8 @@ function parseJSON(d, src) {
 // faisait remonter "tue" dans "statue", "arme" dans "larme", "mort" dans
 // "amortissement" comme signaux de securite, une confusion grave pour un
 // outil de surete pays (l'app n'est pas un fil d'actualite generaliste).
-const CK_CRIT = ['attaque','attentat','enlev',"enlevement",'massacre','explosion','mort','tue','tues','tuee','tuees','coup d','putsch','assaut',"prise d'otage",'prise d otage','embuscade','incendie','frappe','drone','bombardement','meurtre','execution','genocide'];
-const CK_HIGH = ['tension','alerte','insecurite','crise','manifestation','greve','blocus','restriction','fermeture','evacuation','deplacement','menace','avertissement','siege','offensive','combat','violence'];
+const CK_CRIT = ['attaque','attentat','enlev',"enlevement",'massacre','explosion','mort','tue','tues','tuee','tuees','coup d','putsch','assaut',"prise d'otage",'prise d otage','embuscade','frappe','drone','bombardement','meurtre','execution','genocide'];
+const CK_HIGH = ['incendie','tension','alerte','insecurite','crise','manifestation','greve','blocus','restriction','fermeture','evacuation','deplacement','menace','avertissement','siege','offensive','combat','violence'];
 const CK_SEC  = ['securite','securitaire','arme','armee','militaire','terrorisme','jihadiste','djihadiste','jnim','aqmi','boko','bandit','enlev','fsr','m23','adf','eis','al-shabaab','groupes armes'];
 const CK_HUM  = ['alimentaire','humanitaire','famine','soudure','refugie','deplace','deplacement','ocha','fao','malnutrition','aide humanitaire','cholera','ebola','epidemie','urgence','crise alimentaire'];
 const CK_POL  = ['election','president','gouvernement','parlement','constitution','loi','diplomatique','sommet','junte','transition','coup','veto','sanctions','greve','manifestation'];
@@ -5894,11 +5906,32 @@ const EXPRESSIONS_NON_SECURITAIRES = [
   'prix nobel','prix goncourt','prix litteraire','grand prix litteraire',
 ];
 
+// TOURNURES_JUDICIAIRES : « attaquer en justice » veut dire poursuivre, pas
+// agresser. Une expression figee ne suffit pas ici — le complement s'intercale
+// (« attaque Joseph Fouda en justice »), donc il faut un motif. Observe en
+// production le 1er septembre 2026 : un litige entre deux personnes privees
+// au Cameroun remontait en tete des « actualites a traiter », classe CRITIQUE,
+// au-dessus d'une leveee de blocus djihadiste au Mali.
+//
+// Le motif reste volontairement etroit : il ne neutralise QUE le verbe
+// attaquer suivi de « en justice ». Un proces pour terrorisme garde donc tous
+// ses autres mots-cles, et reste un signal de surete.
+const TOURNURES_JUDICIAIRES = [
+  /attaqu\w*\s+(?:[^.;]{0,60}?\s+)?en\s+justice/g,
+  /porte\w*\s+plainte/g,
+  /assign\w*\s+(?:[^.;]{0,60}?\s+)?en\s+justice/g,
+];
+function neutraliserTournuresJudiciaires(t) {
+  let out = t;
+  for (const motif of TOURNURES_JUDICIAIRES) out = out.replace(motif, ' ');
+  return out;
+}
+
 // neutraliserExpressions(t) : retire les expressions ci-dessus du texte avant
 // tout calcul de mots-cles securitaires. Renvoie le texte nettoye (les mots
 // composant l'expression disparaissent donc du scan, pas seulement leur sens).
 function neutraliserExpressions(t) {
-  let out = t;
+  let out = neutraliserTournuresJudiciaires(t);
   for (const expr of EXPRESSIONS_NON_SECURITAIRES) {
     if (out.includes(expr)) out = out.split(expr).join(' ');
   }
@@ -10758,7 +10791,14 @@ function getArticlesATraiter(cyFiltre, zoneFiltre) {
     .filter(a => estRecentReel(a) && !traitesSet.has(a.id)
       && (!cyFiltre || cyFiltre === 'all' || a.cy === cyFiltre)
       && (!zoneFiltre || zoneFiltre === 'all' || (typeof CY_TO_ZONE !== 'undefined' && CY_TO_ZONE[a.cy] === zoneFiltre)))
-    .sort((a, b) => (LVL_ORDER[a.level] - LVL_ORDER[b.level]) || ((b.pubDate||0) - (a.pubDate||0)));
+    // Une actualite internationale ('INT') passe APRES les 54 pays africains a
+    // niveau egal. L'outil couvre l'Afrique : un incident europeen classe
+    // CRITIQUE se placait en tete de la file de triage, au-dessus de signaux
+    // africains reels (observe le 1er septembre 2026 — un differend Allemagne
+    // / Russie ouvrait la liste). Il reste present, il ne passe plus devant.
+    .sort((a, b) => (LVL_ORDER[a.level] - LVL_ORDER[b.level])
+      || ((a.cy === 'INT' ? 1 : 0) - (b.cy === 'INT' ? 1 : 0))
+      || ((b.pubDate||0) - (a.pubDate||0)));
 }
 
 function marquerArticleTraite(id) {
@@ -10796,11 +10836,22 @@ async function renderPanelATraiter(cyFiltre, zoneFiltre) {
       ${arts.map(a => {
         const pays = infoPays(a.cy);
         const surv = fmtSurvenance(a);
+        // Provenance et confiance, comme dans la Synthese. Sans elles, un
+        // analyste surete ne peut pas hierarchiser : une agence nationale et
+        // un agregateur n'ont pas le meme poids, et le niveau seul ne dit pas
+        // si l'article est corrobore. Constat d'audit du 1er septembre 2026 —
+        // la liste ne portait que pays, niveau, heure et titre.
+        const ps  = (typeof gs === 'function') ? gs(a.primary) : null;
+        const cfg = (a.score >= 85) ? '#0F4F2A' : (a.score >= 65) ? '#7C4A00' : '#8B1A1A';
         return `<div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--bd);align-items:flex-start;">
           <span style="width:6px;height:6px;border-radius:50%;background:${LVL_COL[a.level]||'#4B5563'};flex-shrink:0;margin-top:5px;"></span>
           <div style="flex:1;min-width:0;cursor:pointer;" onclick="showDet('${a.id}');switchView('flux',document.querySelector('.ntab[onclick*=flux]'))">
             <div style="font-size:9px;color:var(--lg);font-weight:600;">${pays.flag} ${pays.name} · ${LVL_LB[a.level]||'INFO'} · ${surv.texte}</div>
             <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.35;" id="atrait-${a.id}">${escHtml(L(a.title))}</div>
+            <div style="font-size:9px;color:var(--lg);margin-top:3px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              ${(ps && sourcesVisibles()) ? `<span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:5px;height:5px;border-radius:50%;background:${ps.col};display:inline-block;"></span>${escHtml(ps.n)}</span>` : ''}
+              ${Number.isFinite(a.score) ? `<span title="Score de confiance : corroboration entre sources et fiabilite de la source" style="font-weight:700;color:${cfg};">confiance ${a.score}%</span>` : ''}
+            </div>
           </div>
           <button onclick="event.stopPropagation();marquerArticleTraite('${a.id}')" title="Marquer comme traité" style="flex-shrink:0;background:none;border:1px solid var(--bd);border-radius:5px;padding:3px 7px;font-size:9px;color:var(--lg);cursor:pointer;">
             <i class="ti ti-check"></i>
@@ -10826,7 +10877,17 @@ function setDashCartoMode(m) { window.dashCartoMode = m; if (typeof renderDashbo
   // chiffre au lieu de refleter la couverture reelle des 54 pays africains.
   // Meme correctif deja applique aux rapports exportes (Word/PDF/PPTX).
   const nbPays  = new Set(artsActifs.filter(a=>a.cy && a.cy!=='INT').map(a=>a.cy)).size;
-  const nbSrcs  = new Set(artsActifs.map(a=>a.primary)).size;
+  // nbSrcsFraiches : sources ayant PUBLIE depuis 12 h. Ce compteur s'affichait
+  // sous le libelle « sources actives », que l'analyste lisait comme la sante
+  // du reseau — « 41 de mes 495 sources fonctionnent ». C'est faux : la
+  // mesure d'accessibilite du meme jour donnait 411 sources sur 495 joignables.
+  // Meme confusion fraicheur/accessibilite que celle corrigee cote job.
+  const nbSrcsFraiches = new Set(artsActifs.map(a=>a.primary)).size;
+  // Accessibilite reelle, lue dans SRC_HEALTH : la source a-t-elle REPONDU ?
+  const _sante = (typeof SRC_HEALTH === 'object' && SRC_HEALTH) ? Object.values(SRC_HEALTH) : [];
+  const _joignables = _sante.filter(h => h && h.lastOk && (h.lastOk >= (h.lastFail || 0))).length;
+  const _tentees    = _sante.length;
+  const nbSrcs  = _tentees ? _joignables : nbSrcsFraiches;
 
   // Scores par pays (54 pays) — score ET niveau calcules ensemble (un seul
   // appel a calcAlertScore par pays), pour que le regroupement par bande
@@ -10889,7 +10950,7 @@ function setDashCartoMode(m) { window.dashCartoMode = m; if (typeof renderDashbo
             const col = scoreColor(s);
             return `<div class="carto-tile" onclick="ouvrirVuePays('${s.cy}')" title="${s.pays.name} — ${s.score}/100" style="cursor:pointer;padding:5px 6px;border-radius:5px;background:${col}14;border:1px solid ${col}44;transition:transform .12s,box-shadow .12s;${GLOBAL_CY_FILTER===s.cy?`box-shadow:0 0 0 2px ${col};`:''}">
               <div style="font-size:9.5px;font-weight:700;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.pays.flag} ${s.pays.name}</div>
-              <div style="font-family:var(--font-mono,'Roboto Mono',monospace);font-size:9px;font-weight:700;color:${col};">${s.score}</div>
+              <div style="font-family:var(--font-mono,'Roboto Mono',monospace);font-size:9px;font-weight:700;color:${col};">${Math.round(s.score)}</div>
             </div>`;
           }).join('')}
         </div>
@@ -10924,8 +10985,8 @@ function setDashCartoMode(m) { window.dashCartoMode = m; if (typeof renderDashbo
         ${kpiCard(nbPays,'Pays couverts','#2C5AAE','ti-world','pays','Dernières 12h')}
         ${kpiCard(nbCrit,'Critiques','#8B1A1A','ti-alert-triangle','crit')}
         ${kpiCard(nbHigh,'Élevés','#7C4A00','ti-alert-circle','high')}
-        ${kpiCard(nbSrcs,'Sources actives','#0F4F2A','ti-antenna','sources')}
-        ${kpiCard(enTension.length,'Pays en tension','#CA8A04','ti-trending-up','tension','Sur 54 pays')}
+        ${kpiCard(nbSrcs,_tentees?'Sources joignables':'Sources ayant publié','#0F4F2A','ti-antenna','sources',_tentees?('sur '+_tentees+' interrogées · '+nbSrcsFraiches+' ont publié'):'Aucune mesure sur cet appareil')}
+        ${kpiCard(enTension.length,'Pays en tension','#CA8A04','ti-trending-up','tension','Niveau orange, marron ou rouge')}
       </div>
 
       <!-- Actualités a traiter (< 12h) -->
@@ -12755,6 +12816,19 @@ const COLLECTE_PARTAGEE_ID = 'global';
 // collecte complete des ~495 sources tant que le job tourne correctement.
 // Si Supabase ou le job planifie sont indisponibles, l'app retombe
 // silencieusement sur son ancien comportement (collecte cote client), inchange.
+// Deux durees distinctes, la ou une seule servait aux deux usages.
+//
+// LECTURE — jusqu'a quel age le cache partage reste preferable a une collecte
+// locale. Elle valait 40 minutes pour une cadence de collecte reellement
+// observee de 3 h 24 a 5 h 51 : passe ce delai, CHAQUE visiteur relancait sa
+// propre collecte a travers les proxys CORS publics, soit environ 85 % du
+// temps. C'etait la cause premiere de la lenteur percue et des vues
+// partielles. Six heures : au-dela, l'ecart avec la fenetre de 12 h qui
+// definit le temps reel deviendrait sensible.
+const COLLECTE_PARTAGEE_LECTURE_MAX_MS = 6 * 60 * 60 * 1000;
+// PUBLICATION — garde-fou anti-rafale : un navigateur ne republie pas si une
+// publication recente existe deja. Inchangee (le job planifie la contourne
+// deliberement avec force=true).
 const COLLECTE_PARTAGEE_FRAICHEUR_MS = 40 * 60 * 1000;
 // Lit le cache partage le plus recent. Retourne null si Supabase n'est
 // pas configure/joignable, si la table n'existe pas encore (migration non
@@ -12773,7 +12847,7 @@ async function lireCollectePartagee() {
     if (error) { console.warn('SentiqS — lireCollectePartagee a echoue :', error.message || error); return null; }
     if (!data || !Array.isArray(data.articles) || !data.articles.length) return null;
     const age = Date.now() - new Date(data.updated_at).getTime();
-    if (age > COLLECTE_PARTAGEE_FRAICHEUR_MS) return null; // perime — mieux vaut collecter soi-meme
+    if (age > COLLECTE_PARTAGEE_LECTURE_MAX_MS) return null; // perime — mieux vaut collecter soi-meme
     return data.articles;
   } catch (e) { console.warn('SentiqS — lireCollectePartagee a echoue :', e && e.message ? e.message : e); return null; }
 }
@@ -13311,7 +13385,14 @@ async function refreshUsersDepuisSupabase() {
 }
 function getPending()  { return _ls(()=>JSON.parse(localStorage.getItem(PENDING_KEY)||'[]'),[]); }
 function savePending(p){ _ls(()=>localStorage.setItem(PENDING_KEY,JSON.stringify(p))); }
-function getSession()  { return _MEM_SESSION || {email:ADMIN_EMAIL, name:'Administrateur SentiqS', role:'admin'}; }
+// Repli SANS session : le role le plus faible, jamais le plus fort. Il rendait
+// auparavant {role:'admin'}, si bien que tout ce qui decide de l'affichage a
+// partir du role — visibilite des sources, droits de telechargement, panneau
+// d'administration — traitait un visiteur non authentifie comme
+// administrateur des que le voile de connexion etait ecarte. La RLS Supabase
+// restait la vraie frontiere des donnees, mais l'autorisation de l'interface
+// n'en etait pas une. Un repli d'autorisation qui echoue doit fermer.
+function getSession()  { return _MEM_SESSION || {email:null, name:'Visiteur', role:'reader'}; }
 function saveSession(s){ _MEM_SESSION=s; _ls(()=>localStorage.setItem(STORE_KEY,JSON.stringify(s))); }
 function clearSession(){ _MEM_SESSION=null; _ls(()=>localStorage.removeItem(STORE_KEY)); }
 
