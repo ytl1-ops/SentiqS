@@ -5880,7 +5880,28 @@ const CK_HIGH = ['incendie','tension','alerte','insecurite','crise','manifestati
 const CK_SEC  = ['securite','securitaire','arme','armee','militaire','terrorisme','jihadiste','djihadiste','jnim','aqmi','boko','bandit','enlev','fsr','m23','adf','eis','al-shabaab','groupes armes'];
 const CK_HUM  = ['alimentaire','humanitaire','famine','soudure','refugie','deplace','deplacement','ocha','fao','malnutrition','aide humanitaire','cholera','ebola','epidemie','urgence','crise alimentaire'];
 const CK_POL  = ['election','president','gouvernement','parlement','constitution','loi','diplomatique','sommet','junte','transition','coup','veto','sanctions','greve','manifestation'];
-const CK_ECO  = ['economie','marche','prix','croissance','investissement','entreprise','commerce','port','export','inflation','bceao','monnaie'];
+const CK_ECO  = ['economie','marche','prix','croissance','investissement','entreprise','commerce','port','export','inflation','bceao','monnaie',
+  // Elargi le 1er septembre 2026, apres mesure sur les 512 articles du cache :
+  // seuls 25 d'entre eux portaient un mot economique, d'ou 3,9 % de la
+  // repartition. CK_ECO n'entre PAS dans lienSecuriteFaible : l'elargir ne
+  // touche donc aucun niveau d'alerte, seulement la categorie.
+  'fmi','dette','budget','penurie','carburant','filiere','chomage','banque mondiale'];
+
+// CK_HUM_DOMAINE : vocabulaire humanitaire de DOMAINE, qui n'est pas du
+// vocabulaire de CRISE.
+//
+// La distinction n'est pas cosmetique. CK_HUM alimente lienSecuriteFaible, qui
+// fait sortir un article du niveau « ok » — famine, cholera, refugie le
+// justifient. « Paludisme », « vaccination » ou « MSF » designent le meme
+// domaine sans annoncer de crise : mesure faite, les y ajouter faisait passer
+// « Paludisme : le Mali a la tete d'une revolution therapeutique » en ELEVE.
+// Une bonne nouvelle affichee comme une alerte est un faux positif de plus.
+//
+// Ces mots ne pesent donc QUE sur le choix de la categorie, jamais sur le
+// niveau. Elargissement mesure : humanitaire de 10 a 18 articles sur 512,
+// sans qu'aucun niveau ne bouge.
+const CK_HUM_DOMAINE = ['paludisme','vaccination','inondation','inondations',
+  'secheresse','msf','secours','croix-rouge','croissant-rouge','unhcr','hcr'];
 
 // EXPRESSIONS_NON_SECURITAIRES : locutions figees du francais courant qui
 // contiennent un mot-cle ci-dessus SANS rapport avec la surete ("coup de
@@ -6744,7 +6765,8 @@ function classify(txt, src) {
 
   const scores = {
     securite:   CK_SEC.filter(k=>matchMot(tScan,k)).length,
-    humanitaire:CK_HUM.filter(k=>matchMot(tScan,k)).length,
+    humanitaire:CK_HUM.filter(k=>matchMot(tScan,k)).length
+              + CK_HUM_DOMAINE.filter(k=>matchMot(tScan,k)).length,
     politique:  CK_POL.filter(k=>matchMot(tScan,k)).length,
     economique: CK_ECO.filter(k=>matchMot(tScan,k)).length,
   };
@@ -6763,7 +6785,10 @@ function classify(txt, src) {
   // Sans ce garde-fou, un accord commercial ou une nomination ministerielle
   // au Mali remontait "ELEVE" au seul motif que le Mali est un pays a risque
   // — une actu dans un pays critique n'est pas forcement elle-meme critique.
-  const lienSecuriteFaible = scores.securite > 0 || scores.humanitaire > 0;
+  // Volontairement recalcule sur CK_HUM seul : scores.humanitaire inclut
+  // desormais le vocabulaire de domaine, qui ne doit pas relever un niveau.
+  const criseHumanitaire = CK_HUM.filter(k=>matchMot(tScan,k)).length;
+  const lienSecuriteFaible = scores.securite > 0 || criseHumanitaire > 0;
   let lvl = CK_CRIT.some(k=>matchMot(tScan,k)) ? 'crit'
           : CK_HIGH.some(k=>matchMot(tScan,k)) ? 'high'
           : (lienSecuriteFaible && HIGH_BASE_CY.has(src.cy)) ? 'high'
