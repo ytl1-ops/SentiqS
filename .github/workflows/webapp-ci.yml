@@ -176,6 +176,12 @@ jobs:
         # non complété — une conformité de façade est pire que rien.
         run: node scripts/verifier-pages-legales.js
 
+      - name: Registre des sources
+        # Le seuil de fiabilite decide quelles sources peuvent declencher une
+        # alerte. Un pays sans aucune source au-dessus du seuil serait
+        # totalement aveugle, sans que rien ne le signale.
+        run: node scripts/verifier-sources.js
+
       - name: Ressources referencees presentes
         # Les captures du mode d'emploi ont quitte le fichier (240 Ko de
         # base64 imposes a chaque visiteur) pour web/assets/. Un fichier
