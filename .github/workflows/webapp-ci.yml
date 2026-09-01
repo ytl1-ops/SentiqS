@@ -203,3 +203,13 @@ jobs:
 
       - name: Tests du moteur de collecte
         run: npm test
+
+      - name: La page de production se charge
+        # Tous les autres controles LISENT le fichier sans jamais l'executer :
+        # aucun ne verrait une rupture d'execution (dependance manquante,
+        # script charge dans le mauvais ordre, ressource refusee par la CSP).
+        # Celui-ci ouvre vraiment la page dans un navigateur.
+        run: |
+          npm install playwright@1 --no-save
+          npx playwright install --with-deps chromium
+          node scripts/test-fumee.js

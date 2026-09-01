@@ -3,30 +3,16 @@
 // suit automatiquement. Lancer : node --test scripts/test/
 const test = require('node:test');
 const assert = require('node:assert');
-const fs = require('node:fs');
-const path = require('node:path');
-const vm = require('node:vm');
+const { tranche, bac, exposer, noyau } = require('./_bac.js');
 
-const HTML = fs.readFileSync(path.join(__dirname, '../../web/SentiqS_Web.html'), 'utf8');
-
-// Extrait un bloc de code du fichier de production, depuis un marqueur de
-// depart jusqu'a un marqueur de fin (exclus).
-function extraire(debut, fin) {
-  const i = HTML.indexOf(debut);
-  const j = HTML.indexOf(fin, i);
-  assert.ok(i !== -1, 'marqueur de debut introuvable : ' + debut);
-  assert.ok(j !== -1, 'marqueur de fin introuvable : ' + fin);
-  return HTML.slice(i, j);
-}
-
-const sandbox = {};
-vm.createContext(sandbox);
-vm.runInContext(
-  extraire('const MOTS_VIDES_DEDUP', 'function dedupliquerArticles') +
-  extraire('function dedupliquerArticles', '\nfunction attachConfidenceScores'),
-  sandbox
+// motsSignificatifs et articlesSontDoublons sont desormais dans le noyau
+// (web/js/noyau.js) : on les prend au module, comme la page les prend au
+// <script src>. Seule dedupliquerArticles vit encore inline.
+const { motsSignificatifs, articlesSontDoublons } = noyau;
+const { dedupliquerArticles } = exposer(
+  bac(tranche('function dedupliquerArticles', '\nfunction attachConfidenceScores')),
+  'dedupliquerArticles'
 );
-const { motsSignificatifs, articlesSontDoublons, dedupliquerArticles } = sandbox;
 
 const art = (id, title, primary, score = 80) =>
   ({ id, title, primary, score, cy: 'ML', srcs: [primary], crosses: [primary], url: 'https://x/' + id });

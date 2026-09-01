@@ -6,32 +6,14 @@
 // jour », « article verifie » — et ni l'un ni l'autre n'avait de test.
 const test = require('node:test');
 const assert = require('node:assert');
-const fs = require('node:fs');
-const path = require('node:path');
-const vm = require('node:vm');
+const { tranche, bac, exposer, noyau } = require('./_bac.js');
 
-const HTML = fs.readFileSync(path.join(__dirname, '../../web/SentiqS_Web.html'), 'utf8');
-const debut = HTML.indexOf('function computeConfidence');
-assert.ok(debut !== -1, 'computeConfidence introuvable');
-const fin = HTML.indexOf('function evalFiabilite', debut);
-assert.ok(fin !== -1, 'fin de bloc introuvable');
-
-const bac = { console, Date };
-vm.createContext(bac);
-// estimeEvenementAncien (appele par antiHalluFilter) s'appuie sur matchMot,
-// declare bien plus haut dans le fichier : on l'extrait aussi plutot que d'en
-// recopier une version approchee, pour que le test suive le vrai comportement.
-const iMasque = HTML.indexOf('const TERMES_AMBIGUS_MASQUES');
-assert.ok(iMasque !== -1, 'TERMES_AMBIGUS_MASQUES introuvable');
-vm.runInContext(HTML.slice(iMasque, HTML.indexOf('\n// HORS_PERIMETRE_KW', iMasque)), bac);
-vm.runInContext(
-  HTML.slice(debut, fin)
-  + '\nthis.antiHalluFilter = antiHalluFilter;'
-  + '\nthis.computeConfidence = computeConfidence;'
-  + '\nthis.motsSignificatifs = motsSignificatifs;',
-  bac
+const contexte = exposer(
+  bac(tranche('function computeConfidence', 'function evalFiabilite')),
+  'antiHalluFilter', 'computeConfidence'
 );
-const { antiHalluFilter, computeConfidence, motsSignificatifs } = bac;
+const { antiHalluFilter, computeConfidence } = contexte;
+const { motsSignificatifs } = noyau;
 
 const H = 3600000;
 const art = (o) => Object.assign({

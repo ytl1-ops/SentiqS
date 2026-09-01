@@ -26,15 +26,16 @@ function extraire(debut, fin) {
   return HTML.slice(i, j);
 }
 
+// dateEvenementMs vit dans le noyau logique : on le charge comme la page le
+// charge, au lieu de le decouper au vol dans le fichier de production.
+const { dateEvenementMs } = require('../web/js/noyau.js');
+
 const bac = {};
 vm.createContext(bac);
-vm.runInContext("function normaliserAccents(t){return t.normalize('NFD').replace(/[̀-ͯ]/g,'');}", bac);
-vm.runInContext('const MAX_LIVE_EVENTS_PAR_PAYS = 5;', bac);
-vm.runInContext(extraire('const MOIS_FR_IDX', '// ASYMPTOTE_K'), bac);
 vm.runInContext(extraire('const ALERTE_EVENTS = [', '\n];') + '\n];\nthis.ALERTE_EVENTS = ALERTE_EVENTS;', bac);
 vm.runInContext(extraire('const FACTEURS_SPECIAUX = {', '\n};') + '\n};\nthis.FACTEURS_SPECIAUX = FACTEURS_SPECIAUX;', bac);
 
-const { ALERTE_EVENTS, FACTEURS_SPECIAUX, dateEvenementMs } = bac;
+const { ALERTE_EVENTS, FACTEURS_SPECIAUX } = bac;
 
 const analyses = ALERTE_EVENTS.map((e) => ({ e, d: dateEvenementMs(e.date) }));
 const muets   = analyses.filter((a) => a.d.precision === null);

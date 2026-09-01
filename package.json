@@ -5,7 +5,10 @@
   "description": "SentiqS — veille de sûreté pour 54 pays d'Afrique. Ce manifeste racine existe pour que les outils Node lancés à la racine (notamment le job de collecte planifiée, qui installe Playwright) fonctionnent. L'application web se construit depuis webapp/, l'application mobile depuis app/sentinel-app/.",
   "scripts": {
     "test": "node --test scripts/test/*.test.js",
-    "collecte": "node scripts/collecte-planifiee.js"
+    "collecte": "node scripts/collecte-planifiee.js",
+    "fumee": "node scripts/test-fumee.js"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  }
 }

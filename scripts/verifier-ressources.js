@@ -20,8 +20,10 @@ const html = brut
   .replace(/<!--[\s\S]*?-->/g, (c) => c.replace(/[^\n]/g, ' '))
   .replace(/^\s*\/\/.*$/gm, '');
 
-// Chemins relatifs vers des fichiers servis : 'assets/x.jpg', "pays/y.html"...
-const motif = /['"]((?:assets|pays|dashboard|legal)\/[A-Za-z0-9._\-/]+\.[a-z0-9]{2,5})['"]/g;
+// Chemins relatifs vers des fichiers servis : 'assets/x.jpg', "pays/y.html",
+// et le <script src="js/noyau.js"> dont depend TOUTE l'application — sans lui,
+// la page se charge mais aucune fonction de decision n'existe.
+const motif = /['"]((?:assets|js|pays|dashboard|legal)\/[A-Za-z0-9._\-/]+\.[a-z0-9]{2,5})['"]/g;
 const refs = [...new Set([...html.matchAll(motif)].map((m) => m[1]))];
 
 const manquantes = refs.filter((r) => !fs.existsSync(path.join(racine, r)));

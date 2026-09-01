@@ -6,28 +6,14 @@
 // régression sur ces fonctions ramènerait ce gel silencieusement.
 const test = require('node:test');
 const assert = require('node:assert');
-const fs = require('node:fs');
-const path = require('node:path');
-const vm = require('node:vm');
+const { HTML, tranche, bac, exposer, noyau } = require('./_bac.js');
 
-const HTML = fs.readFileSync(path.join(__dirname, '../../web/SentiqS_Web.html'), 'utf8');
-function extraire(debut, fin) {
-  const i = HTML.indexOf(debut);
-  assert.ok(i !== -1, 'marqueur introuvable : ' + debut);
-  const j = HTML.indexOf(fin, i);
-  assert.ok(j !== -1, 'fin introuvable : ' + fin);
-  return HTML.slice(i, j);
-}
-
-const bac = {};
-vm.createContext(bac);
-// normaliserAccents vit plus haut dans le fichier ; on fournit la même sémantique.
-vm.runInContext("function normaliserAccents(t){return t.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');}", bac);
-vm.runInContext('const MAX_LIVE_EVENTS_PAR_PAYS = 5;', bac);
-vm.runInContext(extraire('const MOIS_FR_IDX', '// ASYMPTOTE_K'), bac);
-vm.runInContext(extraire('function getNivKey(total)', '\n// MESURES'), bac);
-vm.runInContext(extraire('const ALERTE_EVENTS = [', '\n];') + '\n];\nthis.ALERTE_EVENTS = ALERTE_EVENTS;', bac);
-const { dateEvenementMs, facteurFraicheur, poidsVerifie, plafondLive, getNivKey, ALERTE_EVENTS } = bac;
+const { dateEvenementMs, facteurFraicheur, poidsVerifie, plafondLive, getNivKey } = noyau;
+// Les incidents verifies restent une donnee du fichier de production.
+const { ALERTE_EVENTS } = exposer(
+  bac(tranche('const ALERTE_EVENTS = [', '\n];') + '\n];'),
+  'ALERTE_EVENTS'
+);
 
 const J = 86400000;
 
@@ -77,7 +63,7 @@ test('le socle vérifié ne perd jamais de poids : la fraîcheur ne retranche ri
   // Garde-fou contre la première version de ce correctif, qui faisait décroître
   // le poids affiché : 43 pays sur 53 baissaient d'un cran, Somalie et Kenya
   // passant au VERT. Sur un outil de sûreté, le faux négatif est le pire échec.
-  const src = extraire('const baseScoreVerifie', ';');
+  const src = tranche('const baseScoreVerifie', ';');
   assert.match(src, /eventsVerifies\.reduce/,
     'baseScoreVerifie doit sommer les poids BRUTS, sans pondération par l\'âge');
 });

@@ -7,28 +7,16 @@
 // et rien n'empêchait leur retour.
 const test = require('node:test');
 const assert = require('node:assert');
-const fs = require('node:fs');
-const path = require('node:path');
-const vm = require('node:vm');
+const { tranche, bac, exposer } = require('./_bac.js');
 
-const HTML = fs.readFileSync(path.join(__dirname, '../../web/SentiqS_Web.html'), 'utf8');
-function extraire(debut, fin) {
-  const i = HTML.indexOf(debut);
-  assert.ok(i !== -1, 'marqueur introuvable : ' + debut);
-  const j = HTML.indexOf(fin, i);
-  assert.ok(j !== -1, 'fin introuvable : ' + fin);
-  return HTML.slice(i, j);
-}
-
-const bac = { console };
-vm.createContext(bac);
-vm.runInContext(
-  extraire('const CK_CRIT', '//  FIABILITÉ & ANTI-HALLUCINATION') + '\nthis.classify = classify;',
-  bac
+// classify() vit encore dans le script inline ; le noyau dont elle depend
+// (normaliserAccents, matchMot) est pose par le socle.
+const contexte = exposer(
+  bac(tranche('const CK_CRIT', '//  FIABILITÉ & ANTI-HALLUCINATION')),
+  'classify'
 );
-const { classify } = bac;
+const { classify } = contexte;
 
-// src minimal : classify ne lit que .cat (catégorie par défaut) et .cy (pays).
 const src = (cy, cat) => ({ cy: cy || 'SN', cat: cat || 'securite' });
 
 test('un vrai incident de sûreté est classé critique', () => {

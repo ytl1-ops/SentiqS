@@ -7,23 +7,14 @@
 // est la plus exposée du moteur et n'avait aucun test.
 const test = require('node:test');
 const assert = require('node:assert');
-const fs = require('node:fs');
-const path = require('node:path');
-const vm = require('node:vm');
+const { tranche, bac, exposer } = require('./_bac.js');
 
-const HTML = fs.readFileSync(path.join(__dirname, '../../web/SentiqS_Web.html'), 'utf8');
-const debut = HTML.indexOf('const PAYS_DETECT');
-assert.ok(debut !== -1, 'PAYS_DETECT introuvable');
-const fin = HTML.indexOf('function classify', debut);
-assert.ok(fin !== -1, 'fin de bloc introuvable');
-
-const bac = { console };
-vm.createContext(bac);
-vm.runInContext(
-  HTML.slice(debut, fin) + '\nthis._detecterPaysCoeur = _detecterPaysCoeur;\nthis.detectPaysFromText = detectPaysFromText;',
-  bac
+const contexte = exposer(
+  bac(tranche('const PAYS_DETECT', 'function classify')),
+  '_detecterPaysCoeur', 'detectPaysFromText'
 );
-const { _detecterPaysCoeur, detectPaysFromText } = bac;
+const { _detecterPaysCoeur, detectPaysFromText } = contexte;
+
 const ou = (titre, contenu, srcCy) => _detecterPaysCoeur(titre, contenu || '', srcCy);
 
 test('un pays nommé dans le titre l\'emporte sur le pays de la source', () => {

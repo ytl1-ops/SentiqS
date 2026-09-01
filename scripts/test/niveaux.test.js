@@ -3,30 +3,17 @@
 // jamais pouvoir porter seul un pays au rouge.
 const test = require('node:test');
 const assert = require('node:assert');
-const fs = require('node:fs');
-const path = require('node:path');
-const vm = require('node:vm');
+const { HTML, noyau } = require('./_bac.js');
 
-const HTML = fs.readFileSync(path.join(__dirname, '../../web/SentiqS_Web.html'), 'utf8');
+const { getNivKey } = noyau;
 
-function extraire(debut, fin) {
-  const i = HTML.indexOf(debut);
-  assert.ok(i !== -1, 'marqueur introuvable : ' + debut);
-  const j = HTML.indexOf(fin, i);
-  assert.ok(j !== -1, 'fin introuvable : ' + fin);
-  return HTML.slice(i, j);
-}
-
-const sandbox = {};
-vm.createContext(sandbox);
-vm.runInContext(extraire('function getNivKey(total)', '\n// MESURES'), sandbox);
-const { getNivKey } = sandbox;
-
-// Les plafonds sont declares en clair : on les lit plutot que de les recopier,
-// pour que le test suive toute modification du fichier de production.
+// Les plafonds sont lus la ou ils vivent — dans le noyau pour ceux qui en
+// font partie, dans le fichier de production pour ceux qui y sont restes —
+// plutot que recopies, pour que le test suive toute modification.
 const lireNombre = (nom) => {
+  if (typeof noyau[nom] === 'number') return noyau[nom];
   const m = HTML.match(new RegExp(nom + '\\s*=\\s*(\\d+)'));
-  assert.ok(m, nom + ' introuvable dans le fichier de production');
+  assert.ok(m, nom + ' introuvable, ni dans le noyau ni dans le fichier de production');
   return Number(m[1]);
 };
 
