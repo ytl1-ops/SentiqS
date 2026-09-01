@@ -176,6 +176,13 @@ jobs:
         # non complété — une conformité de façade est pire que rien.
         run: node scripts/verifier-pages-legales.js
 
+      - name: Ressources referencees presentes
+        # Les captures du mode d'emploi ont quitte le fichier (240 Ko de
+        # base64 imposes a chaque visiteur) pour web/assets/. Un fichier
+        # renomme ne casserait plus rien de visible au chargement, seulement
+        # l'export PDF, et seulement quand quelqu'un l'essaie.
+        run: node scripts/verifier-ressources.js
+
       - name: Datation des incidents verifies
         # Le niveau d'alerte affiche repose d'abord sur ALERTE_EVENTS et
         # FACTEURS_SPECIAUX, saisis a la main. Ce controle refuse une date
