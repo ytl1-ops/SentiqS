@@ -116,3 +116,45 @@ test('classify renvoie toujours un niveau et une catégorie exploitables', () =>
     assert.ok(typeof r.cat === 'string' && r.cat.length > 0);
   }
 });
+
+// ── Vocabulaire de CRISE contre vocabulaire de DOMAINE ────────────────────
+// Mesuré le 1er septembre 2026 sur les 512 articles du cache : seuls 12
+// portaient un mot humanitaire, d'où 2,1 % de la répartition. Le classement
+// n'était pas en cause — quand un mot humanitaire est présent, il l'emporte
+// dans 83 % des cas. C'est le lexique qui était trop étroit.
+//
+// Mais CK_HUM alimente lienSecuriteFaible, qui fait sortir un article du
+// niveau « ok ». L'élargir naïvement faisait passer « Paludisme : le Mali à la
+// tête d'une révolution thérapeutique » en ÉLEVÉ — une bonne nouvelle affichée
+// comme une alerte.
+test('le vocabulaire humanitaire de domaine ne relève aucun niveau', () => {
+  const bonnesNouvelles = [
+    'Paludisme : le Mali à la tête d\'une révolution thérapeutique africaine',
+    'FCTA begins 2-week mass rabies vaccination across Abuja',
+    'À Bria, MSF facilite l\'accès aux soins pédiatriques',
+  ];
+  for (const t of bonnesNouvelles) {
+    assert.strictEqual(classify(t, src('ML')).lvl, 'ok',
+      '« ' + t.slice(0, 40) + '… » ne doit pas être une alerte');
+  }
+});
+
+test('le vocabulaire humanitaire de crise continue, lui, de compter', () => {
+  // famine, choléra, réfugiés : eux justifient de sortir du niveau « ok ».
+  for (const t of ['Famine declaree dans la region', 'Epidemie de cholera : 40 cas confirmes']) {
+    assert.notStrictEqual(classify(t, src('ML')).lvl, 'ok',
+      'une crise humanitaire réelle doit rester un signal');
+  }
+});
+
+test('le domaine humanitaire décide bien de la catégorie', () => {
+  assert.strictEqual(classify('Paludisme : campagne de vaccination lancee', src('ML')).cat, 'humanitaire');
+  assert.strictEqual(classify('MSF ouvre un centre de soins', src('CF')).cat, 'humanitaire');
+});
+
+test('le lexique économique élargi ne touche pas les niveaux', () => {
+  // CK_ECO n'entre pas dans lienSecuriteFaible — l'élargir est sans effet
+  // sur l'alerte, et ce test l'ancre.
+  assert.strictEqual(classify('Le FMI annonce un programme de 2,2 milliards de dollars', src('SN')).cat, 'economique');
+  assert.strictEqual(classify('Le FMI annonce un programme de 2,2 milliards de dollars', src('SN')).lvl, 'ok');
+});
