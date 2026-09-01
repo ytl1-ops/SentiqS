@@ -109,3 +109,69 @@ test('le niveau est recalculé à la réhydratation, comme le pays', () => {
     'sans recalcul, un article en cache garde le verdict de la version qui l\'a collecté');
   assert.match(f, /a\.level = r\.lvl/, 'le niveau recalculé doit remplacer celui du cache');
 });
+
+// ── Vues du tableau de bord ───────────────────────────────────────────────
+// Le radar existant : 54 pastilles anonymes, l'angle codant l'ordre
+// alphabétique, les étiquettes de zone hors du cadre et un balayage tournant
+// sans égard pour prefers-reduced-motion.
+// Les noms de zone tels que l'application les affiche — lus dans ZONES_GEO,
+// pas n'importe quel `nom:` du fichier (les sources en portent aussi).
+const ZONES_NOMS = Object.fromEntries(
+  [...tranche('const ZONES_GEO', '\n};').matchAll(/nom:\s*'([^']+)'/g)]
+    .map((m, i) => [i, m[1]]));
+
+test('le radar tient dans son cadre', () => {
+  const r = tranche('const radarView = () =>', 'const cartogramme');
+  const vb = HTML.match(/viewBox="0 0 (\d+) (\d+)"[^>]*style="width:100%;height:auto;display:block;position:relative;"/);
+  assert.ok(vb, 'viewBox du radar introuvable');
+  const [, w] = vb.map(Number);
+  const cx = Number(r.match(/const cx = (\d+)/)[1]);
+  const rMax = Number(r.match(/rMax = (\d+)/)[1]);
+  const posEtiquette = Number(r.match(/toXY\(angle, rMax\+(\d+)\)/)[1]);
+  // Le point d'ancrage seul ne suffit pas : le texte est CENTRÉ, il déborde
+  // donc de sa demi-largeur. C'était exactement le défaut — l'ancre tenait
+  // dans le cadre, « CORNE DE L'AFRIQUE » non.
+  const plusLong = Math.max(...Object.values(ZONES_NOMS).map(n => n.length));
+  const demiLargeur = plusLong * 7.5 * 0.6 / 2;
+  assert.ok(cx + rMax + posEtiquette + demiLargeur <= w,
+    `« ${Object.values(ZONES_NOMS).find(n=>n.length===plusLong)} » atteindrait `
+    + `${Math.round(cx + rMax + posEtiquette + demiLargeur)} pour un cadre de ${w} — texte coupé`);
+});
+
+test('l\'angle du radar code le risque, pas l\'alphabet', () => {
+  const r = tranche('const radarView = () =>', 'const cartogramme');
+  assert.doesNotMatch(r, /localeCompare/,
+    'ranger les pays par nom rend la dimension angulaire purement décorative');
+  assert.match(r, /sort\(\(a,b\)=>a\.score-b\.score\)/);
+});
+
+test('les pays à risque portent leur code sur le radar', () => {
+  const r = tranche('const radarView = () =>', 'const cartogramme');
+  assert.match(r, /\['orange','marron','rouge'\]\.includes\(s\.key\)/,
+    '54 pastilles anonymes ne s\'identifient qu\'au survol, impossible sur tactile');
+});
+
+test('le balayage s\'arrête si l\'utilisateur refuse les animations', () => {
+  const r = tranche('const radarView = () =>', 'const cartogramme');
+  assert.match(r, /prefers-reduced-motion:reduce\)\{\.radar-sweep\{animation:none/,
+    'une animation en boucle infinie sur un outil de veille doit pouvoir être coupée');
+});
+
+// La vue Profil dit la NATURE du risque, que ni le cartogramme ni le radar ne
+// donnent. Sa promesse tient à une condition : ne jamais dessiner un profil
+// pour un pays qui n'a pas d'actualité — un quadrilatère de zéros se lirait
+// comme « aucun risque ».
+test('un pays sans actualité récente n\'a pas de profil plat, il n\'en a pas', () => {
+  const v = tranche('const profilView = () =>', 'const cartogramme');
+  assert.match(v, /if \(!profils\.length\)/, 'l\'état vide doit être explicite');
+  assert.match(v, /n'a pas un profil plat/, 'et doit dire pourquoi, pas afficher des zéros');
+  assert.match(v, /filter\(x => x\.p\.total > 0\)/,
+    'un pays sans article ne doit jamais entrer dans le tracé');
+});
+
+test('le profil compte des articles entiers, sans échelle inventée', () => {
+  const v = tranche('const PROFIL_AXES', 'const cartogramme');
+  assert.match(v, /parCat\[a\.cat\]\+\+/, 'les axes doivent porter un décompte réel');
+  assert.match(v, /Math\.max\(1, Math\.ceil\(maxVal\/3\)\)/,
+    'les graduations doivent tomber sur des entiers d\'articles');
+});
