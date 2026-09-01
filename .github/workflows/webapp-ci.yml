@@ -176,6 +176,12 @@ jobs:
         # non complété — une conformité de façade est pire que rien.
         run: node scripts/verifier-pages-legales.js
 
+      - name: Symetrie du dictionnaire de traduction
+        # t() retombe silencieusement sur le francais quand une cle manque en
+        # anglais : une cle ajoutee d'un seul cote n'echoue nulle part, elle
+        # affiche du francais a un anglophone.
+        run: node scripts/verifier-i18n.js
+
       - name: Registre des sources
         # Le seuil de fiabilite decide quelles sources peuvent declencher une
         # alerte. Un pays sans aucune source au-dessus du seuil serait
