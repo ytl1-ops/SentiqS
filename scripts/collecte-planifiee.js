@@ -27,6 +27,7 @@ const fs = require('fs');
 const path = require('path');
 const { USER_AGENT } = require('./lib/fetch-respectueux');
 const { creerIntercepteur } = require('./lib/interception-proxy-directe');
+const { evaluerAccessibilite } = require('./lib/couverture');
 
 // Firebase Hosting retire (sentinel-surete.web.app ne recoit plus de
 // deploiement) — GitHub Pages est desormais l'hebergement reel.
@@ -58,6 +59,10 @@ function lireTokenDepuisSource() {
 // raisonnement complet). Transparente pour le code client, filet de
 // sécurité automatique (route.continue()) si le fetch direct échoue.
 const { interceptionProxyDirecte, stats: statsInterception } = creerIntercepteur();
+
+// Instant de depart du cycle : sert a n'attribuer a CE run que les
+// succes et echecs de source releves apres lui.
+const debutRun = Date.now();
 
 // ecrireResumeActions(md) : depose un resume Markdown sur la page du run
 // GitHub Actions ($GITHUB_STEP_SUMMARY). Hors CI la variable est absente et
@@ -204,7 +209,29 @@ function ecrireResumeActions(md) {
       // page ouverte) qui couvre effectivement les 54 pays de facon fiable :
       // sans lui, un evenement detecte reste invisible des que l'article
       // source sort de ALL (12h), quel que soit le trafic reel de visiteurs.
-      if (typeof publierAgendaPartagee === 'function') { try { const pubAgenda = await publierAgendaPartagee(ALL); if (!pubAgenda || !pubAgenda.ok) console.error('[collecte-planifiee] publierAgendaPartagee a echoue :', (pubAgenda && pubAgenda.raison) || 'raison inconnue'); } catch (e) { console.error('[collecte-planifiee] publierAgendaPartagee a leve une exception :', (e && e.message) || e); } }
+      //
+      // Le verdict est distingue en trois : un succes ayant publie, un succes
+      // sans rien a publier (le cas courant), et un echec. L'ancienne version
+      // ne distinguait rien : elle criait « a echoue : raison inconnue » des
+      // que le retour etait falsy, et la fonction ne retournait alors JAMAIS
+      // rien. Chaque cycle vert portait donc une fausse alarme.
+      if (typeof publierAgendaPartagee === 'function') {
+        try {
+          const pubAgenda = await publierAgendaPartagee(ALL);
+          if (!pubAgenda || typeof pubAgenda.ok !== 'boolean') {
+            console.error('[collecte-planifiee] publierAgendaPartagee n\'a rendu aucun verdict '
+              + '— contrat rompu, publication non verifiable.');
+          } else if (!pubAgenda.ok) {
+            console.error('[collecte-planifiee] publierAgendaPartagee a echoue :', pubAgenda.raison);
+          } else if (pubAgenda.publiees > 0) {
+            console.log('[collecte-planifiee] agenda partage : ' + pubAgenda.publiees + ' entree(s) publiee(s).');
+          } else {
+            console.log('[collecte-planifiee] agenda partage : rien a publier (' + pubAgenda.raison + ').');
+          }
+        } catch (e) {
+          console.error('[collecte-planifiee] publierAgendaPartagee a leve une exception :', (e && e.message) || e);
+        }
+      }
       return { ok: true, nbArticles: pub.nbArticles, bestProxy: String(typeof bestProxy !== 'undefined' ? bestProxy : '?') };
     });
 
@@ -218,42 +245,102 @@ function ecrireResumeActions(md) {
     //
     // Mesuré dans un evaluate SÉPARÉ, exécuté même quand la publication a
     // échoué : c'est précisément là que le détail a le plus de valeur.
-    const couverture = await page.evaluate(() => {
-      const vide = { sourcesTotal: 0, sourcesProductives: 0, paysTotal: 0, paysCouverts: 0, paysMuets: [], enVeille: 0 };
+    // Deux mesures DISTINCTES, et c'est tout l'interet de ce bloc.
+    //
+    // Premiere version de ce rapport : elle ne comptait que les sources
+    // presentes dans ALL, en croyant mesurer l'accessibilite. Or ALL est
+    // filtre a 12 h et dedoublonne (voir « Separation stricte » dans
+    // web/SentiqS_Web.html) : elle mesurait donc la FRAICHEUR. Un media
+    // national qui n'a rien publie depuis douze heures y apparaissait comme
+    // une source en echec — et vingt-neuf petits pays comme « muets », alors
+    // que leurs sites repondaient normalement. Conclusion fausse tiree d'un
+    // chiffre juste.
+    //
+    //   joignables / en echec  -> la source a-t-elle REPONDU ? (SRC_HEALTH,
+    //                             alimente par recordSrcOk/recordSrcFail)
+    //   article frais          -> a-t-elle publie quelque chose depuis 12 h ?
+    //
+    // Seule la premiere dit si la collecte fonctionne. La seconde varie
+    // legitimement avec l'heure et la taille du pays.
+    const couverture = await page.evaluate((debutRun) => {
+      const vide = {
+        sourcesTotal: 0, joignables: 0, enEchec: 0, tentees: 0,
+        sourcesAvecArticleFrais: 0, paysTotal: 0, paysAvecArticleFrais: 0,
+        paysSansArticleFrais: [], enVeille: 0, mesurable: false,
+      };
       try {
         if (!Array.isArray(ALL)) return vide;
         const sourcesTotal = (typeof SRCS !== 'undefined' && Array.isArray(SRCS)) ? SRCS.length : 0;
-        const productives = new Set(ALL.map(a => a && a.primary).filter(Boolean));
         const paysConnus = (typeof PAYS_INFO !== 'undefined') ? Object.keys(PAYS_INFO) : [];
-        const couverts = new Set(ALL.map(a => a && a.cy).filter(c => c && c !== 'INT'));
-        const enVeille = (typeof SRC_HEALTH !== 'undefined' && typeof SRC_FAIL_THRESHOLD !== 'undefined')
-          ? Object.values(SRC_HEALTH).filter(h => h && (h.fails || 0) >= SRC_FAIL_THRESHOLD).length
+
+        // Accessibilite. Le navigateur du job demarre avec un localStorage
+        // vide : tout ce que SRC_HEALTH contient vient donc de CE cycle. Le
+        // filtrage sur debutRun n'est qu'une ceinture de securite au cas ou
+        // un profil serait reutilise.
+        const sante = (typeof SRC_HEALTH !== 'undefined') ? Object.values(SRC_HEALTH) : [];
+        const joignables = sante.filter((h) => h && (h.lastOk || 0) >= debutRun).length;
+        const enEchec = sante.filter((h) => h && (h.lastFail || 0) >= debutRun && (h.lastOk || 0) < debutRun).length;
+
+        // Fraicheur.
+        const avecArticle = new Set(ALL.map((a) => a && a.primary).filter(Boolean));
+        const paysFrais = new Set(ALL.map((a) => a && a.cy).filter((c) => c && c !== 'INT'));
+
+        const enVeille = (typeof SRC_FAIL_THRESHOLD !== 'undefined')
+          ? sante.filter((h) => h && (h.fails || 0) >= SRC_FAIL_THRESHOLD).length
           : 0;
+
         return {
           sourcesTotal,
-          sourcesProductives: productives.size,
+          joignables,
+          enEchec,
+          tentees: joignables + enEchec,
+          sourcesAvecArticleFrais: avecArticle.size,
           paysTotal: paysConnus.length,
-          paysCouverts: couverts.size,
-          paysMuets: paysConnus.filter(c => !couverts.has(c)),
+          paysAvecArticleFrais: paysFrais.size,
+          paysSansArticleFrais: paysConnus.filter((c) => !paysFrais.has(c)),
           enVeille,
+          mesurable: sante.length > 0,
         };
       } catch (_) { return vide; }
-    });
+    }, debutRun);
 
     const pct = (n, d) => (d > 0 ? Math.round((n / d) * 100) : 0);
+    const tauxJoignables = pct(couverture.joignables, couverture.tentees);
+
     const lignesCouverture = [
-      'Sources ayant produit au moins un article : ' + couverture.sourcesProductives + '/' + couverture.sourcesTotal
-        + ' (' + pct(couverture.sourcesProductives, couverture.sourcesTotal) + ' %)',
-      'Pays couverts : ' + couverture.paysCouverts + '/' + couverture.paysTotal
-        + ' (' + pct(couverture.paysCouverts, couverture.paysTotal) + ' %)',
+      'ACCESSIBILITÉ — sources ayant répondu : ' + couverture.joignables + '/' + couverture.tentees
+        + ' tentées (' + tauxJoignables + ' %), sur ' + couverture.sourcesTotal + ' déclarées',
+      'FRAÎCHEUR — sources ayant publié depuis 12 h : ' + couverture.sourcesAvecArticleFrais
+        + ', couvrant ' + couverture.paysAvecArticleFrais + '/' + couverture.paysTotal + ' pays',
       'Sources en veille (échecs répétés) : ' + couverture.enVeille,
       'Interception directe : ' + statsInterception.direct_ok + '/' + statsInterception.intercepte
         + ' requêtes servies sans proxy public, ' + statsInterception.repli_proxy + ' repli.',
     ];
-    if (couverture.paysMuets.length) {
-      lignesCouverture.push('Pays sans aucun article ce cycle : ' + couverture.paysMuets.join(', '));
+    if (couverture.paysSansArticleFrais.length) {
+      // Formule prudente : un pays sans actualité fraîche n'est pas un pays
+      // injoignable. Beaucoup de petits pays n'ont rien à publier en 12 h.
+      lignesCouverture.push('Pays sans actualité de moins de 12 h : '
+        + couverture.paysSansArticleFrais.join(', '));
     }
     lignesCouverture.forEach(l => console.log('  ' + l));
+
+    // Seuil d'alerte. Il ne porte QUE sur l'accessibilité : la fraîcheur varie
+    // légitimement avec l'heure et la taille du pays, et un seuil posé dessus
+    // serait rouge en permanence ou jamais — inutile dans les deux cas.
+    //
+    // Pas de ligne de base historique pour calibrer finement : on se limite
+    // donc à ce qui est vrai quel que soit le régime habituel — si quatre
+    // sources sur cinq réellement tentées échouent, quelque chose est cassé.
+    const verdict = evaluerAccessibilite(
+      couverture,
+      process.env.SEUIL_JOIGNABLES_PCT ? Number(process.env.SEUIL_JOIGNABLES_PCT) : undefined
+    );
+    if (!verdict.ok) {
+      console.error('\n✗ ' + verdict.message);
+      process.exitCode = 1;
+    } else if (verdict.code === 'non_mesurable') {
+      console.log('  (' + verdict.message + ')');
+    }
 
     // Résumé lisible sur la page du run, sans avoir à ouvrir les journaux.
     ecrireResumeActions([
@@ -261,18 +348,20 @@ function ecrireResumeActions(md) {
       '',
       '| Mesure | Valeur |',
       '|---|---|',
-      '| Sources productives | ' + couverture.sourcesProductives + ' / ' + couverture.sourcesTotal
-        + ' (' + pct(couverture.sourcesProductives, couverture.sourcesTotal) + ' %) |',
-      '| Pays couverts | ' + couverture.paysCouverts + ' / ' + couverture.paysTotal
-        + ' (' + pct(couverture.paysCouverts, couverture.paysTotal) + ' %) |',
+      '| **Sources ayant répondu** | ' + couverture.joignables + ' / ' + couverture.tentees
+        + ' tentées (' + tauxJoignables + ' %) |',
+      '| Sources ayant publié depuis 12 h | ' + couverture.sourcesAvecArticleFrais + ' |',
+      '| Pays avec une actualité fraîche | ' + couverture.paysAvecArticleFrais + ' / ' + couverture.paysTotal + ' |',
       '| Sources en veille | ' + couverture.enVeille + ' |',
       '| Requêtes sans proxy public | ' + statsInterception.direct_ok + ' / ' + statsInterception.intercepte + ' |',
       '| Écart depuis la publication précédente | '
         + (ageCachePrecedent === null ? 'inconnu' : Math.round(ageCachePrecedent / 60000) + ' min (demandé : 30 min)') + ' |',
       '',
-      couverture.paysMuets.length
-        ? '**Pays sans aucun article ce cycle :** ' + couverture.paysMuets.join(', ')
-        : 'Tous les pays connus ont au moins un article.',
+      couverture.paysSansArticleFrais.length
+        ? '**Pays sans actualité de moins de 12 h :** ' + couverture.paysSansArticleFrais.join(', ')
+          + '\n\n_Un pays sans actualité fraîche n\'est pas un pays injoignable : la ligne'
+          + ' « sources ayant répondu » ci-dessus est la seule qui dise si la collecte fonctionne._'
+        : 'Tous les pays connus ont une actualité de moins de 12 h.',
     ].join('\n'));
 
     if (!resultat.ok) {
