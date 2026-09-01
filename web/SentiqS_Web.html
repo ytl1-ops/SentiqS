@@ -6792,12 +6792,24 @@ function computeConfidence(a, allArts) {
   // au moins 3 mots significatifs (>4 lettres, hors mots vides) avec celui-ci.
   let corroScore = 0;
   if (allArts && allArts.length) {
-    const mots = (a.title || '').toLowerCase().split(/\s+/).filter(m => m.length > 4);
-    const corrobores = allArts.filter(x =>
-      x.id !== a.id &&
-      x.primary !== a.primary &&
-      mots.filter(m => (x.title || '').toLowerCase().includes(m)).length >= 3
-    );
+    // Appariement sur le MOT ENTIER, mots vides ecartes (motsSignificatifs,
+    // deja utilise par le dedoublonnage et la corroboration des alertes).
+    //
+    // La version precedente decoupait sur les espaces, gardait tout mot de
+    // plus de 4 lettres — « gouvernement », « plusieurs », « contre » compris
+    // — et appariait par sous-chaine (String.includes). Trois articles sans
+    // aucun rapport partageant ces trois mots courants suffisaient a donner
+    // 30/30 de corroboration et le statut « verifie » : l'article etait
+    // presente a l'utilisateur comme recoupe, sur une coincidence de
+    // vocabulaire. C'est la meme confusion que celle deja corrigee deux fois
+    // ailleurs dans ce fichier ; le lexique de mots vides existait, cette
+    // fonction ne s'en servait simplement pas.
+    const mots = motsSignificatifs(a.title);
+    const corrobores = allArts.filter(x => {
+      if (x.id === a.id || x.primary === a.primary) return false;
+      const motsX = new Set(motsSignificatifs(x.title));
+      return mots.filter(m => motsX.has(m)).length >= 3;
+    });
     corroScore = corrobores.length >= 3 ? 30 : corrobores.length >= 2 ? 20 : corrobores.length === 1 ? 10 : 0;
   }
 
@@ -6845,7 +6857,7 @@ const MOTS_VIDES_DEDUP = new Set([
   'millions','milliards','pourcent','environ','preoccupante','important','importante',
   'government','security','people','situation','according','after','before','against',
   'president','minister','national','country','region','city','several'
-]);
+, 'depuis']);
 
 // motsSignificatifs(titre) : tokens porteurs de sens d'un titre — accents
 // neutralises, mots vides retires, longueur > 4. Isolee et exportee pour
