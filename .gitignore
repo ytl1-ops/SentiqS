@@ -12,3 +12,4 @@ build/
 scripts/rapport-collecte-directe.json
 *.log
 .DS_Store
+niveaux-pays.json
