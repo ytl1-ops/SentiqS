@@ -50,6 +50,21 @@ function esc(str) {
   return String(str);
 }
 
+// Les sources declarees, rendues lisibles au lecteur. Une entree est de la
+// forme « https://exemple.org/page (Nom de la source, date) » : on separe
+// l'URL du libelle pour poser un vrai lien, sans jamais inventer de libelle
+// quand il n'y en a pas.
+function buildSourcesHtml(sources) {
+  return sources.map(function (s) {
+    const brut = String(s).trim();
+    const m = brut.match(/^(https?:\/\/\S+)\s*(?:\((.*)\))?\s*$/);
+    if (!m) return '<li>' + brut + '</li>';
+    const url = m[1];
+    const libelle = (m[2] || '').trim() || url;
+    return '<li><a href="' + url + '" rel="noopener nofollow" target="_blank">' + libelle + '</a></li>';
+  }).join('\n');
+}
+
 function buildNeighborsHtml(neighbors) {
   return neighbors.map(function (n) {
     if (n.available) {
@@ -79,6 +94,17 @@ function validate(data, slugArg) {
   }
   if (!Array.isArray(data.sources) || data.sources.length === 0) {
     fail('le champ "sources" est vide. Ajoutez au moins une source verifiee avant de generer la fiche.');
+  }
+  // Une source qui pointe sur SentiqS n'est pas une source : elle referme la
+  // boucle sans rien verifier. Le fichier de donnees du Ghana citait la fiche
+  // Ghana deja publiee comme sa propre source — la regle etait satisfaite
+  // formellement, et le lecteur n'avait toujours rien pour verifier.
+  const AUTO = /(ytl1-ops\.github\.io|sentiqs\.com)/i;
+  const externes = data.sources.filter(function (s) { return !AUTO.test(String(s)); });
+  if (externes.length === 0) {
+    fail('toutes les sources declarees pointent sur SentiqS lui-meme. Une fiche pays\n'
+      + '  doit s\'appuyer sur au moins une source EXTERNE verifiable par le lecteur\n'
+      + '  (diplomatie, OSAC, ONG reconnue, presse locale fiable).');
   }
   ['terrorism', 'crime', 'infra'].forEach(function (key) {
     const block = data.threats && data.threats[key];
@@ -137,6 +163,8 @@ function main() {
     '{{THREAT_INFRA_TITLE}}': esc(data.threats.infra.title),
     '{{THREAT_INFRA_TEXT}}': esc(data.threats.infra.text),
     '{{NEIGHBORS_HTML}}': buildNeighborsHtml(data.neighbors),
+    '{{SOURCES_HTML}}': buildSourcesHtml(data.sources),
+    '{{SOURCES_COUNT_TEXT}}': '495 sources reparties sur les 54 pays suivis',
     '{{ALERTS_HTML}}': buildAlertsHtml(data.alertsSample),
     '{{CTA_TEXT}}': esc(data.ctaText || ('L\'application SentiqS permet de recevoir des alertes Push et SMS en temps reel et de cartographier vos equipes ' + data.namePrep + ' pour securiser vos activites.'))
   };

@@ -144,3 +144,60 @@ test('un incident non porteur reste differable meme tres ancien', () => {
   // coute rien a l utilisateur.
   assert.strictEqual(P.triageIncident(inc({ niveauSans: 'marron', jours: 900 })), 'differable');
 });
+
+// ── Sourcage des fiches pays ───────────────────────────────────────────────
+//
+// Le generateur EXIGEAIT depuis toujours un champ « sources » non vide et
+// refusait de produire la fiche sans lui. Mais le gabarit ne l'affichait
+// nulle part : la regle etait appliquee a la generation et invisible au
+// lecteur. Une page d'evaluation de risque pays, publique, sans rien qui
+// permette de verifier ce qu'elle avance.
+const fsSrc = require('node:fs');
+const pathSrc = require('node:path');
+
+const RACINE_FICHES = pathSrc.join(__dirname, '../../web/pays');
+const RACINE_DONNEES = pathSrc.join(__dirname, '../../data/pays');
+
+test('le gabarit prevoit une section sources', () => {
+  const g = fsSrc.readFileSync(pathSrc.join(__dirname, '../templates/fiche-country.template.html'), 'utf8');
+  assert.match(g, /<section class="sources">/);
+  assert.match(g, /\{\{SOURCES_HTML\}\}/);
+});
+
+test('le generateur refuse une source qui pointe sur SentiqS lui-meme', () => {
+  // Le fichier de donnees du Ghana citait la fiche Ghana deja publiee comme
+  // sa propre source : la regle etait satisfaite formellement, et le lecteur
+  // n'avait toujours rien pour verifier.
+  const gen = fsSrc.readFileSync(pathSrc.join(__dirname, '../generate-country-fiche.js'), 'utf8');
+  assert.match(gen, /ytl1-ops\\\.github\\\.io\|sentiqs\\\.com/);
+  assert.match(gen, /source EXTERNE verifiable par le lecteur/);
+});
+
+test('toute fiche adossee a des donnees affiche ses sources', () => {
+  const donnees = fsSrc.readdirSync(RACINE_DONNEES)
+    .filter((f) => f.endsWith('.json') && f !== 'schema.json')
+    .map((f) => f.replace(/\.json$/, ''));
+  const AUTO = /(ytl1-ops\.github\.io|sentiqs\.com)/i;
+
+  for (const slug of donnees) {
+    const d = JSON.parse(fsSrc.readFileSync(pathSrc.join(RACINE_DONNEES, slug + '.json'), 'utf8'));
+    const externes = (d.sources || []).filter((s) => !AUTO.test(String(s)));
+    const fiche = pathSrc.join(RACINE_FICHES, slug + '.html');
+    if (!fsSrc.existsSync(fiche)) continue;
+    const html = fsSrc.readFileSync(fiche, 'utf8');
+
+    if (externes.length === 0) {
+      // Cas connu et nomme : Ghana. Sa fiche existe, mais ses donnees ne
+      // portent aucune source externe — elle ne peut donc pas etre regeneree
+      // tant que quelqu'un ne lui en donne pas une.
+      assert.strictEqual(slug, 'ghana',
+        slug + ' n\'a aucune source externe : ajoutez-en une ou retirez la fiche');
+      continue;
+    }
+    assert.match(html, /<section class="sources">/, slug + ' : la fiche n\'affiche pas ses sources');
+    for (const s of externes) {
+      const url = String(s).match(/https?:\/\/\S+?(?=\s|\)|$)/);
+      if (url) assert.ok(html.includes(url[0]), slug + ' : la source ' + url[0] + ' n\'apparait pas dans la fiche');
+    }
+  }
+});

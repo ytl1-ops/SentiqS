@@ -88,6 +88,12 @@ footer a{color:var(--ink3)}
 .alert-unlock{position:relative;margin:-8px -24px 0;padding:26px 24px 24px;text-align:center;background:linear-gradient(180deg,rgba(16,26,34,0) 0%,var(--panel) 55%)}
 .alert-unlock p{max-width:56ch;margin:0 auto 14px;font-size:13.5px;color:var(--ink2)}
 .alert-unlock a.btn{display:inline-block;background:var(--blue);color:#fff;padding:11px 22px;border-radius:6px;font-weight:700;font-size:14px}
+
+.sources{margin-top:38px;padding-top:22px;border-top:1px solid var(--bd,#dcd8d0);}
+.sources h2{font-size:1.1rem;margin-bottom:12px;}
+.sources ul{margin:0 0 14px;padding-left:20px;}
+.sources li{font-size:.92rem;line-height:1.55;margin-bottom:8px;word-break:break-word;}
+.sources-note{font-size:.85rem;color:var(--muted,#6b675f);margin:0;}
 </style>
 </head>
 <body>
@@ -144,6 +150,19 @@ footer a{color:var(--ink3)}
 <p>L'application SentiqS permet de recevoir des alertes Push et SMS en temps reel et de cartographier vos equipes au Nigeria pour securiser vos activites.</p>
 <a class="btn" href="../SentiqS_Web.html">Essayer SentiqS</a>
 </div>
+
+<!-- Sources. Le generateur EXIGE depuis toujours un champ « sources » non vide
+     et refuse de produire la fiche sans lui — mais le gabarit ne l'affichait
+     nulle part. La regle etait donc appliquee a la generation et invisible au
+     lecteur : une page d'evaluation de risque pays, publique, sans rien qui
+     permette de verifier ce qu'elle avance. -->
+<section class="sources">
+<h2>Sources</h2>
+<ul>
+<li><a href="https://www.diplomatie.gouv.fr/fr/information-par-pays/nigeria/conseils-aux-voyageurs-securite" rel="noopener nofollow" target="_blank">France Diplomatie, fiche Securite Nigeria, mise a jour 15 juillet 2026</a></li>
+</ul>
+<p class="sources-note">Cette fiche est rédigée à partir des sources ci-dessus. Les alertes affichées plus haut proviennent, elles, de la collecte automatique de SentiqS sur 495 sources reparties sur les 54 pays suivis.</p>
+</section>
 </main>
 <footer>
 <div>SentiqS — Veille sûreté · 54 pays d'Afrique</div>
