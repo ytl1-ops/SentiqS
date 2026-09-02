@@ -69,4 +69,43 @@ function prioriteRevue(pays) {
   return rang * age * partSocle * attenuation;
 }
 
-module.exports = { RANG_NIVEAU, AGE_SI_INCONNU_J, profilSeuil, prioriteRevue };
+/**
+ * Triage d'un incident vérifié.
+ *
+ * Deux questions, dans cet ordre :
+ *
+ *  1. Cet incident PORTE-t-il le niveau ? On le sait en le retirant : si le
+ *     pays descend d'un cran, oui. Sinon il ne fait que s'ajouter a un socle
+ *     deja suffisant, et le relire ne changerait rien a ce que voit
+ *     l'utilisateur.
+ *  2. Est-il ANCIEN ? Un incident porteur et recent est probablement encore
+ *     vrai. Porteur et vieux de dix-huit mois, personne ne sait.
+ *
+ * Seule la combinaison des deux est urgente. C'est ce qui fait passer « relire
+ * 172 incidents » a une liste qu'un analyste peut finir.
+ */
+const AGE_SUSPECT_J = 180;
+
+function triageIncident(inc) {
+  const i = inc || {};
+  const porteur = !!i.niveauSans && i.niveauSans !== i.niveau;
+  // Une date NON ANALYSABLE (null) compte comme ancienne : on ne sait pas,
+  // donc on regarde. La traiter comme recente ferait disparaitre de la liste
+  // les incidents les moins bien saisis.
+  //
+  // Un age NEGATIF est autre chose, et la premiere version les confondait.
+  // dateEvenementMs resout une date imprecise (« Juin 2026 ») a un point qui
+  // peut tomber un jour ou deux dans le futur : douze incidents porteurs
+  // sortaient a -1 jour et etaient classes « urgents » alors qu'ils sont les
+  // PLUS RECENTS du socle. Un age negatif vaut donc zero : c'est aujourd'hui.
+  const brut = (typeof i.jours === 'number' && Number.isFinite(i.jours)) ? i.jours : null;
+  const age = brut === null ? null : Math.max(0, brut);
+  const ancien = age === null || age >= AGE_SUSPECT_J;
+  if (!porteur) return 'differable';
+  return ancien ? 'urgent' : 'porteur';
+}
+
+module.exports = {
+  RANG_NIVEAU, AGE_SI_INCONNU_J, AGE_SUSPECT_J,
+  profilSeuil, prioriteRevue, triageIncident,
+};
