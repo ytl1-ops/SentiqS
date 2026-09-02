@@ -30,6 +30,7 @@ const { creerIntercepteur } = require('./lib/interception-proxy-directe');
 const { evaluerAccessibilite } = require('./lib/couverture');
 const historique = require('./lib/historique');
 const alerteSortante = require('./lib/alerte-sortante');
+const santeCollecte = require('./lib/sante-collecte');
 
 // Firebase Hosting retire (sentinel-surete.web.app ne recoit plus de
 // deploiement) — GitHub Pages est desormais l'hebergement reel.
@@ -54,6 +55,13 @@ const COLLECT_TIMEOUT_MS = 8 * 60 * 1000;
 // ni par une API qui n'existe pas. Voir scripts/lib/historique.js.
 const RACINE_HISTORIQUE = process.env.RACINE_HISTORIQUE
   || path.join(__dirname, '..', 'web', 'historique');
+
+// Mémoire inter-runs de SRC_HEALTH / PROXY_HEALTH_PAYS — HORS dépôt
+// (répertoire dans .gitignore), restaurée/sauvegardée par actions/cache
+// dans collecte-planifiee.yml. Voir scripts/lib/sante-collecte.js pour le
+// raisonnement complet (pourquoi ni un commit git, ni Supabase).
+const RACINE_CACHE_SANTE = process.env.RACINE_CACHE_SANTE
+  || path.join(__dirname, '..', '.cache-sante');
 
 function lireTokenDepuisSource() {
   const html = fs.readFileSync(HTML_PATH, 'utf8');
@@ -96,6 +104,30 @@ function ecrireResumeActions(md) {
   page.on('pageerror', e => erreursPage.push(e.message));
   page.on('console', msg => { if (msg.type() === 'warning' || msg.type() === 'error') console.log('  [page]', msg.text()); });
   await page.route('**/*', interceptionProxyDirecte);
+
+  // Charge la mémoire du run précédent (voir scripts/lib/sante-collecte.js)
+  // et la sème dans le localStorage AVANT la navigation : SRC_HEALTH et
+  // PROXY_HEALTH_PAYS sont lus par la page dès son propre script inline
+  // (`let SRC_HEALTH = ...`), donc trop tard pour un page.evaluate() APRÈS
+  // page.goto() — addInitScript() s'exécute avant tout script de la page, à
+  // chaque navigation. Sans ce cache, ce job démarre TOUJOURS avec un
+  // navigateur vierge : SRC_HEALTH et PROXY_HEALTH_PAYS repartent de zéro à
+  // chaque run alors qu'ils sont conçus pour s'affiner dans la durée.
+  const santePrecedente = santeCollecte.lireSante(RACINE_CACHE_SANTE);
+  const nbSrcPrecedent = santeCollecte.compterCles(santePrecedente.srcHealth);
+  const nbProxyPaysPrecedent = santeCollecte.compterCles(santePrecedente.proxyHealthPays);
+  if (nbSrcPrecedent || nbProxyPaysPrecedent) {
+    console.log('Mémoire inter-runs chargée : ' + nbSrcPrecedent + ' source(s), '
+      + nbProxyPaysPrecedent + ' combinaison(s) pays:proxy (run précédent).');
+    await page.addInitScript((etat) => {
+      try {
+        localStorage.setItem('sentinel_src_health', JSON.stringify(etat.srcHealth));
+        localStorage.setItem('sentinel_proxy_health_pays_v1', JSON.stringify(etat.proxyHealthPays));
+      } catch (_) { /* localStorage indisponible -> ce run repart simplement a vide, comme avant */ }
+    }, santePrecedente);
+  } else {
+    console.log('Mémoire inter-runs : aucune (premier run, ou cache GitHub Actions pas encore chaud).');
+  }
 
   try {
     await page.goto(url, { waitUntil: 'load', timeout: 60000 });
@@ -281,10 +313,13 @@ function ecrireResumeActions(md) {
         const sourcesTotal = (typeof SRCS !== 'undefined' && Array.isArray(SRCS)) ? SRCS.length : 0;
         const paysConnus = (typeof PAYS_INFO !== 'undefined') ? Object.keys(PAYS_INFO) : [];
 
-        // Accessibilite. Le navigateur du job demarre avec un localStorage
-        // vide : tout ce que SRC_HEALTH contient vient donc de CE cycle. Le
-        // filtrage sur debutRun n'est qu'une ceinture de securite au cas ou
-        // un profil serait reutilise.
+        // Accessibilite. Le job seme desormais SRC_HEALTH depuis la memoire
+        // du run precedent (voir plus haut, page.addInitScript) : SANS le
+        // filtrage sur debutRun, les succes/echecs d'un run anterieur
+        // seraient recomptes ici. Seule une source RE-touchee pendant CE
+        // cycle avance son lastOk/lastFail au-dela de debutRun ; une entree
+        // seedee et jamais re-tentee ce cycle-ci reste donc exclue des deux
+        // compteurs, comme avant l'introduction de cette memoire.
         const sante = (typeof SRC_HEALTH !== 'undefined') ? Object.values(SRC_HEALTH) : [];
         const joignables = sante.filter((h) => h && (h.lastOk || 0) >= debutRun).length;
         const enEchec = sante.filter((h) => h && (h.lastFail || 0) >= debutRun && (h.lastOk || 0) < debutRun).length;
@@ -311,6 +346,27 @@ function ecrireResumeActions(md) {
         };
       } catch (_) { return vide; }
     }, debutRun);
+
+    // ── MÉMOIRE INTER-RUNS ────────────────────────────────────────────────
+    // Relit SRC_HEALTH / PROXY_HEALTH_PAYS tels que CE cycle les a laissés
+    // (enrichis par la mémoire du run précédent puis mis à jour par
+    // detectProxy()/doCollect() ci-dessus) et les réécrit dans le cache
+    // GitHub Actions (voir scripts/lib/sante-collecte.js) pour le prochain
+    // run. Volontairement séparé du bloc ARCHIVE ci-dessous : cette mémoire
+    // n'est qu'un bonus d'efficacité de collecte, jamais une dépendance —
+    // son échec ne doit jamais faire tomber un run qui a, par ailleurs, réussi.
+    try {
+      const santeActuelle = await page.evaluate(() => ({
+        srcHealth: (typeof SRC_HEALTH === 'object' && SRC_HEALTH) || {},
+        proxyHealthPays: (typeof PROXY_HEALTH_PAYS === 'object' && PROXY_HEALTH_PAYS) || {},
+      }));
+      santeCollecte.ecrireSante(RACINE_CACHE_SANTE, santeActuelle);
+      console.log('  Mémoire inter-runs sauvegardée : '
+        + santeCollecte.compterCles(santeActuelle.srcHealth) + ' source(s), '
+        + santeCollecte.compterCles(santeActuelle.proxyHealthPays) + ' combinaison(s) pays:proxy.');
+    } catch (e) {
+      console.warn('  Mémoire inter-runs : non sauvegardée (' + ((e && e.message) || e) + ')');
+    }
 
     // ── ARCHIVE DES NIVEAUX ──────────────────────────────────────────────
     // Le cache partage expire a six heures et rien ne lui survit : jusqu'ici
@@ -418,6 +474,8 @@ function ecrireResumeActions(md) {
       'Sources en veille (échecs répétés) : ' + couverture.enVeille,
       'Interception directe : ' + statsInterception.direct_ok + '/' + statsInterception.intercepte
         + ' requêtes servies sans proxy public, ' + statsInterception.repli_proxy + ' repli.',
+      'Mémoire inter-runs chargée au départ : ' + nbSrcPrecedent + ' source(s), '
+        + nbProxyPaysPrecedent + ' combinaison(s) pays:proxy — alimente meilleurProxyPourPays().',
     ];
     if (couverture.paysSansArticleFrais.length) {
       // Formule prudente : un pays sans actualité fraîche n'est pas un pays
@@ -459,6 +517,8 @@ function ecrireResumeActions(md) {
       '| Requêtes sans proxy public | ' + statsInterception.direct_ok + ' / ' + statsInterception.intercepte + ' |',
       '| Écart depuis la publication précédente | '
         + (ageCachePrecedent === null ? 'inconnu' : Math.round(ageCachePrecedent / 60000) + ' min (demandé : 30 min)') + ' |',
+      '| Mémoire inter-runs chargée au départ | ' + nbSrcPrecedent + ' source(s), '
+        + nbProxyPaysPrecedent + ' combinaison(s) pays:proxy |',
       '',
       couverture.paysSansArticleFrais.length
         ? '**Pays sans actualité de moins de 12 h :** ' + couverture.paysSansArticleFrais.join(', ')
