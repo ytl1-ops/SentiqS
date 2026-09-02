@@ -7949,6 +7949,43 @@ const _cbarArt = (() => {
   };
 })();
 
+// Rotation de repli du point de depart de la file de collecte — voir
+// srcsToCollect plus bas. Sans elle, les sources en fin de tableau SRCS
+// sont TOUJOURS celles sacrifiees quand un cycle est rate-limite / n'a pas
+// le temps de tout traiter (le job planifie a un budget de 8 min, voir
+// COLLECT_TIMEOUT_MS dans scripts/collecte-planifiee.js ; le traitement se
+// fait lot par lot, DANS L'ORDRE DU TABLEAU) : un biais STRUCTUREL sur QUI
+// est collecte en dernier, independant de la fraicheur reelle de
+// l'actualite dans ces pays.
+//
+// Mesure du 02/09/2026 sur le run planifie #802 : les 20 pays sans article
+// frais avaient 35 % de leurs sources dans le DERNIER quart du tableau
+// SRCS, contre 23 % pour les 34 autres pays — un ecart net et systematique,
+// pas un hasard de dates de publication.
+//
+// La zone prioritaire (voir _estSrcZonePrio) reste intouchee et passe
+// toujours en tete ; cette rotation ne joue que sur l'ordre du reste, en
+// faisant glisser continument le point de depart : un tour complet du
+// tableau toutes les ROTATION_TOUR_COMPLET_MS — chaque tranche du tableau
+// passe ainsi, a tour de role, en tete de collecte plutot que toujours en
+// dernier. Fonction pure (aucune lecture de Date.now en interne) :
+// testable sans horloge reelle, voir scripts/test/rotation-collecte.test.js.
+//
+// Duree du tour choisie a 4 h (8 cycles du job planifie a 30 min) :
+// verifie par simulation sur les 495 sources reelles que sur une journee
+// (48 cycles), le dernier quart de la file rotative retombe alors sur
+// ~31 % de sources "pays a la traine" — soit exactement leur part reelle
+// dans le tableau (154/495) — au lieu des 35 % fixes mesures avant ce
+// correctif (run #802) : le risque d'etre sacrifie en cas de cycle
+// rate-limite se repartit desormais a peu pres egalement entre pays,
+// au lieu de toujours retomber sur les memes.
+const ROTATION_TOUR_COMPLET_MS = 4 * 60 * 60 * 1000;
+function rangRotatif(idx, total, maintenant) {
+  if (!(total > 0)) return idx;
+  const decalage = Math.floor((maintenant / ROTATION_TOUR_COMPLET_MS) * total) % total;
+  return (idx - decalage + total) % total;
+}
+
 async function doCollect() {
   if (busy) return;
   busy = true;
@@ -8007,9 +8044,21 @@ async function doCollect() {
   // se retrouvent ainsi renseignes en premier et plus completement.
   const _zonePrio = (typeof zonePrioritaireActuelle === 'function') ? zonePrioritaireActuelle() : '';
   const _estSrcZonePrio = s => _zonePrio && typeof CY_TO_ZONE !== 'undefined' && CY_TO_ZONE[s.cy] === _zonePrio;
+  // Rang d'origine par REFERENCE d'objet (pas indexOf en boucle dans le
+  // comparateur : O(n) par appel, O(n^2 log n) au total sur 495 sources —
+  // negligeable en soi, mais autant l'eviter proprement).
+  const _idxOriginal = new Map(SRCS.map((s, i) => [s, i]));
+  const _maintenantRotation = Date.now();
   const srcsToCollect = SRCS
     .filter(s => _estSrcZonePrio(s) || !srcIsSkippable(s))
-    .sort((a, b) => (_estSrcZonePrio(b) ? 1 : 0) - (_estSrcZonePrio(a) ? 1 : 0));
+    .sort((a, b) => {
+      const prio = (_estSrcZonePrio(b) ? 1 : 0) - (_estSrcZonePrio(a) ? 1 : 0);
+      if (prio) return prio;
+      // Hors zone prioritaire : ordre rotatif plutot que l'ordre fixe du
+      // tableau, voir rangRotatif() ci-dessus.
+      return rangRotatif(_idxOriginal.get(a), SRCS.length, _maintenantRotation)
+           - rangRotatif(_idxOriginal.get(b), SRCS.length, _maintenantRotation);
+    });
   const skippedCount  = SRCS.length - srcsToCollect.length;
   const total = srcsToCollect.length;
   let lastLegRender = 0; // renderSrcLeg coûteux : limiter sa fréquence
