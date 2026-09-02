@@ -204,12 +204,42 @@ jobs:
       - name: Tests du moteur de collecte
         run: npm test
 
+      - name: Fiches pays adossées à des données vérifiées
+        # Le generateur refuse deja de produire du contenu surete a partir de
+        # rien. Mesure du 02/09/2026 : neuf fiches publiees, quatre seulement
+        # avec leur fichier de donnees — cinq avaient contourne le generateur,
+        # et rien ne le signalait.
+        run: node scripts/verifier-fiches-pays.js
+
+      - name: Aucun nouveau fichier de secrets suivi par git
+        # .gitignore ne protege que ce qui n'est pas DEJA suivi : webapp/.env
+        # a ete ajoute avant la regle et le reste. Le retirer demande de
+        # verifier Netlify d'abord — d'ou un cliquet, pas un correctif.
+        run: node scripts/verifier-secrets-suivis.js
+
+      - name: Installer le navigateur des contrôles
+        # Deux controles ouvrent vraiment la page : celui d'accessibilite et
+        # le test de fumee. L'installation vivait DANS l'etape du test de
+        # fumee, donc apres le controle d'accessibilite — qui trouvait
+        # playwright absent et se taisait. Il a fallu le durcir pour que la
+        # panne devienne visible ; l'installation est maintenant explicite et
+        # placee avant ses deux consommateurs.
+        run: |
+          npm install playwright@1 --no-save
+          npx playwright install --with-deps chromium
+
+      - name: Accessibilité de l'interface rendue
+        # Mesure le DOM APRES rendu, pas le fichier source : l'essentiel de
+        # cette interface est construit par JavaScript, et compter les
+        # attributs dans le source ne dit rien de ce que voit un lecteur
+        # d'ecran. Le 02/09/2026, cette mesure a trouve 64 champs sur 103
+        # sans nom accessible, aucun repere de structure et aucun <h1>,
+        # alors que la grille d'evaluation notait l'accessibilite 3 sur 5.
+        run: node scripts/verifier-accessibilite-interface.js
+
       - name: La page de production se charge
         # Tous les autres controles LISENT le fichier sans jamais l'executer :
         # aucun ne verrait une rupture d'execution (dependance manquante,
         # script charge dans le mauvais ordre, ressource refusee par la CSP).
         # Celui-ci ouvre vraiment la page dans un navigateur.
-        run: |
-          npm install playwright@1 --no-save
-          npx playwright install --with-deps chromium
-          node scripts/test-fumee.js
+        run: node scripts/test-fumee.js

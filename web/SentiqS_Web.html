@@ -1794,6 +1794,14 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
   }
 }
 
+
+/* Accessibilite — voir les reperes poses en tete de <body>. */
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+.saut-contenu{position:absolute;left:-9999px;top:0;z-index:10000;
+  background:var(--w,#fff);color:var(--t,#111);padding:10px 16px;border-radius:0 0 6px 0;
+  font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.25);}
+.saut-contenu:focus{left:0;}
 </style>
 
   <!-- docx.js pour export Word -->
@@ -1808,6 +1816,13 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
 </head>
 <body>
+
+<!-- Reperes d'accessibilite. Mesure du 02/09/2026 sur le DOM rendu : aucun
+     repere de structure, aucun <h1>, et 64 champs de formulaire sur 103 sans
+     nom accessible. Un utilisateur de lecteur d'ecran devait parcourir 88
+     boutons pour atteindre le contenu. -->
+<a class="saut-contenu" href="#contenuPrincipal">Aller au contenu principal</a>
+<h1 class="sr-only">SentiqS — veille de sûreté sur les 54 pays d'Afrique</h1>
 
 <!-- ═══ CONTENEUR NOTIFICATIONS POPUP — flottant sur toute l'application ═══ -->
 <div id="toastContainer" style="position:fixed;top:58px;right:14px;z-index:9999;
@@ -1876,15 +1891,15 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <div class="auth-title" data-i18n="login_title">Connexion</div>
       <div class="auth-sub" data-i18n="login_sub">Acces restreint aux responsables surete autorises</div>
       <div class="auth-field">
-        <label data-i18n="login_email_label">Adresse e-mail</label>
+        <label data-i18n="login_email_label" for="loginEmail">Adresse e-mail</label>
         <input type="email" id="loginEmail" placeholder="votre@email.com" autocomplete="email">
       </div>
       <div class="auth-field">
-        <label data-i18n="login_code_label">Mot de passe</label>
+        <label data-i18n="login_code_label" for="loginPass">Mot de passe</label>
         <input type="password" id="loginPass" placeholder="Votre mot de passe" data-i18n-ph="ph_login_code" autocomplete="current-password" onkeydown="if(event.key===&#39;Enter&#39;)doLogin()">
       </div>
       <div class="auth-field">
-        <label data-i18n="login_zone_prio_label">Zone prioritaire (optionnel)</label>
+        <label data-i18n="login_zone_prio_label" for="loginZonePrioritaire">Zone prioritaire (optionnel)</label>
         <select id="loginZonePrioritaire"></select>
         <div style="font-size:9px;color:var(--lg);margin-top:3px;line-height:1.4" data-i18n="login_zone_prio_help">
           La collecte démarre par les pays de cette zone (ex. Golfe de Guinée) et les couvre plus en profondeur, pour renseigner en priorité tous leurs modules (Alertes, Tableau de bord, Agenda...).
@@ -1903,11 +1918,11 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <div class="auth-title">Définissez votre mot de passe</div>
       <div class="auth-sub">Choisissez un mot de passe personnel — 8 caractères minimum.</div>
       <div class="auth-field">
-        <label>Nouveau mot de passe</label>
+        <label for="spNewPass">Nouveau mot de passe</label>
         <input type="password" id="spNewPass" placeholder="8 caractères minimum" autocomplete="new-password">
       </div>
       <div class="auth-field">
-        <label>Confirmer le mot de passe</label>
+        <label for="spConfirmPass">Confirmer le mot de passe</label>
         <input type="password" id="spConfirmPass" placeholder="Retapez le mot de passe" autocomplete="new-password" onkeydown="if(event.key===&#39;Enter&#39;)soumettreNouveauMotDePasse()">
       </div>
       <button class="auth-btn" onclick="soumettreNouveauMotDePasse()" id="setPasswordBtn">
@@ -1919,7 +1934,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <div class="auth-title">Mot de passe oublié</div>
       <div class="auth-sub">Recevez un lien de réinitialisation par e-mail.</div>
       <div class="auth-field">
-        <label>Adresse e-mail</label>
+        <label for="fpEmail">Adresse e-mail</label>
         <input type="email" id="fpEmail" placeholder="votre@email.com" autocomplete="email" onkeydown="if(event.key===&#39;Enter&#39;)demanderReinitialisationMdp()">
       </div>
       <button class="auth-btn" onclick="demanderReinitialisationMdp()" id="forgotPasswordBtn">
@@ -1940,23 +1955,23 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         </div>
       </div>
       <div class="auth-field">
-        <label data-i18n="register_name_label">Nom complet</label>
+        <label data-i18n="register_name_label" for="regName">Nom complet</label>
         <input type="text" id="regName" placeholder="Prenom Nom" data-i18n-ph="ph_reg_name">
       </div>
       <div class="auth-field">
-        <label data-i18n="register_email_label">Adresse e-mail professionnelle</label>
+        <label data-i18n="register_email_label" for="regEmail">Adresse e-mail professionnelle</label>
         <input type="email" id="regEmail" placeholder="votre@organisation.com">
       </div>
       <div class="auth-field">
-        <label data-i18n="register_org_label">Organisation / Fonction</label>
+        <label data-i18n="register_org_label" for="regOrg">Organisation / Fonction</label>
         <input type="text" id="regOrg" placeholder="Ex : DSI - Entreprise XYZ" data-i18n-ph="ph_reg_org">
       </div>
       <div class="auth-field">
-        <label>Mot de passe</label>
+        <label for="regPass">Mot de passe</label>
         <input type="password" id="regPass" placeholder="8 caractères minimum" autocomplete="new-password">
       </div>
       <div class="auth-field">
-        <label>Confirmer le mot de passe</label>
+        <label for="regPassConfirm">Confirmer le mot de passe</label>
         <input type="password" id="regPassConfirm" placeholder="Retapez le mot de passe" autocomplete="new-password">
       </div>
       <button class="auth-btn" onclick="doRegister()" id="registerBtn">
@@ -2000,7 +2015,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <div class="user-form">
         <input type="email" id="newUserEmail" placeholder="email@organisation.com">
         <input type="text" id="newUserName" placeholder="Nom complet">
-        <select id="newUserRole">
+        <select id="newUserRole" aria-label="Role du nouvel utilisateur">
           <option value="reader">Lecteur</option>
           <option value="user" selected="">Utilisateur</option>
           <option value="admin">Administrateur</option>
@@ -2070,8 +2085,8 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         paiement avant d'activer votre abonnement — vous recevrez votre code d'accès par email.
       </div>
       <div class="user-form" style="flex-direction:column;align-items:stretch">
-        <select id="pdForfait" style="padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--w);color:var(--t);font-size:13px;font-family:inherit"></select>
-        <select id="pdMoyen" style="padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--w);color:var(--t);font-size:13px;font-family:inherit"></select>
+        <select id="pdForfait" aria-label="Forfait" style="padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--w);color:var(--t);font-size:13px;font-family:inherit"></select>
+        <select id="pdMoyen" aria-label="Moyen de paiement" style="padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--w);color:var(--t);font-size:13px;font-family:inherit"></select>
         <input type="text" id="pdReference" placeholder="Référence de transaction (SMS de confirmation)">
         <textarea id="pdNote" placeholder="Note complémentaire (optionnel)" rows="2" style="padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--w);color:var(--t);font-size:13px;font-family:inherit;resize:vertical"></textarea>
         <button onclick="submitPaiementDeclare()"><i class="ti ti-send"></i> Déclarer le paiement</button>
@@ -2179,7 +2194,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
 </div>
 
 <!-- NAV -->
-<div class="nav-wrap">
+<div class="nav-wrap" role="navigation" aria-label="Modules de l'application">
   <button class="nav-arrow nav-arrow-l" onclick="navScrollModule(-1)" aria-label="Module précédent" title="Module précédent"><i class="ti ti-chevron-left"></i></button>
   <div class="nav" id="navTabs">
     <div class="ntab" data-view="flux" onclick="ouvrirModulePleinEcran(&#39;flux&#39;,this)"><i class="ti ti-radar-2"></i><span data-i18n="nav_flux">Flux</span><span class="nbadge" id="nbadge" style="display: none;">0</span></div>
@@ -2232,7 +2247,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
 
 <div class="layout">
   <!-- MAIN -->
-  <div class="main">
+  <div class="main" id="contenuPrincipal" role="main" tabindex="-1">
 
     <!-- FLUX -->
     <div class="view" id="v-flux">
@@ -2257,7 +2272,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
             <div id="geoItems"><div class="gi on" onclick="setGeo(&#39;all&#39;,&#39;Tous pays&#39;)"><span class="gf">🌍</span>Tous les pays</div><div class="gi" onclick="setGeo(&#39;BF&#39;,&#39;Burkina Faso&#39;)"><span class="gf">🇧🇫</span>Burkina Faso<span style="color:#ff8080;background:rgba(139,26,26,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">CRIT</span></div><div class="gi" onclick="setGeo(&#39;ML&#39;,&#39;Mali&#39;)"><span class="gf">🇲🇱</span>Mali<span style="color:#ff8080;background:rgba(139,26,26,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">CRIT</span></div><div class="gi" onclick="setGeo(&#39;NE&#39;,&#39;Niger&#39;)"><span class="gf">🇳🇪</span>Niger<span style="color:#ffb84d;background:rgba(124,74,0,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">HIGH</span></div><div class="gi" onclick="setGeo(&#39;GN&#39;,&#39;Guinee&#39;)"><span class="gf">🇬🇳</span>Guinee<span style="color:#ffb84d;background:rgba(124,74,0,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">HIGH</span></div><div class="gi" onclick="setGeo(&#39;GW&#39;,&#39;Guinee-Bissau&#39;)"><span class="gf">🇬🇼</span>Guinee-Bissau<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;CI&#39;,&#39;Cote d&#39;Ivoire&#39;)"><span class="gf">🇨🇮</span>Cote d'Ivoire<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;SN&#39;,&#39;Senegal&#39;)"><span class="gf">🇸🇳</span>Senegal<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;NG&#39;,&#39;Nigeria&#39;)"><span class="gf">🇳🇬</span>Nigeria<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;GH&#39;,&#39;Ghana&#39;)"><span class="gf">🇬🇭</span>Ghana<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;BJ&#39;,&#39;Benin&#39;)"><span class="gf">🇧🇯</span>Benin<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;TG&#39;,&#39;Togo&#39;)"><span class="gf">🇹🇬</span>Togo<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;MR&#39;,&#39;Mauritanie&#39;)"><span class="gf">🇲🇷</span>Mauritanie<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;LR&#39;,&#39;Liberia&#39;)"><span class="gf">🇱🇷</span>Liberia<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;DZ&#39;,&#39;Algérie&#39;)"><span class="gf">🇩🇿</span>Algérie<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;AO&#39;,&#39;Angola&#39;)"><span class="gf">🇦🇴</span>Angola<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;BW&#39;,&#39;Botswana&#39;)"><span class="gf">🇧🇼</span>Botswana<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;BI&#39;,&#39;Burundi&#39;)"><span class="gf">🇧🇮</span>Burundi<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;CM&#39;,&#39;Cameroun&#39;)"><span class="gf">🇨🇲</span>Cameroun<span style="color:#ffb84d;background:rgba(124,74,0,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">HIGH</span></div><div class="gi" onclick="setGeo(&#39;CV&#39;,&#39;Cap-Vert&#39;)"><span class="gf">🇨🇻</span>Cap-Vert<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;CF&#39;,&#39;Centrafrique&#39;)"><span class="gf">🇨🇫</span>Centrafrique<span style="color:#ff8080;background:rgba(139,26,26,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">CRIT</span></div><div class="gi" onclick="setGeo(&#39;TD&#39;,&#39;Tchad&#39;)"><span class="gf">🇹🇩</span>Tchad<span style="color:#ffb84d;background:rgba(124,74,0,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">HIGH</span></div><div class="gi" onclick="setGeo(&#39;KM&#39;,&#39;Comores&#39;)"><span class="gf">🇰🇲</span>Comores<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;CG&#39;,&#39;Congo-Brazzaville&#39;)"><span class="gf">🇨🇬</span>Congo-Brazzaville<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;CD&#39;,&#39;RD Congo&#39;)"><span class="gf">🇨🇩</span>RD Congo<span style="color:#ff8080;background:rgba(139,26,26,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">CRIT</span></div><div class="gi" onclick="setGeo(&#39;DJ&#39;,&#39;Djibouti&#39;)"><span class="gf">🇩🇯</span>Djibouti<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;EG&#39;,&#39;Égypte&#39;)"><span class="gf">🇪🇬</span>Égypte<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;GQ&#39;,&#39;Guinée équatoriale&#39;)"><span class="gf">🇬🇶</span>Guinée équatoriale<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;ER&#39;,&#39;Érythrée&#39;)"><span class="gf">🇪🇷</span>Érythrée<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;SZ&#39;,&#39;Eswatini&#39;)"><span class="gf">🇸🇿</span>Eswatini<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;ET&#39;,&#39;Éthiopie&#39;)"><span class="gf">🇪🇹</span>Éthiopie<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;GA&#39;,&#39;Gabon&#39;)"><span class="gf">🇬🇦</span>Gabon<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;GM&#39;,&#39;Gambie&#39;)"><span class="gf">🇬🇲</span>Gambie<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;KE&#39;,&#39;Kenya&#39;)"><span class="gf">🇰🇪</span>Kenya<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;LS&#39;,&#39;Lesotho&#39;)"><span class="gf">🇱🇸</span>Lesotho<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;LY&#39;,&#39;Libye&#39;)"><span class="gf">🇱🇾</span>Libye<span style="color:#ffb84d;background:rgba(124,74,0,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">HIGH</span></div><div class="gi" onclick="setGeo(&#39;MG&#39;,&#39;Madagascar&#39;)"><span class="gf">🇲🇬</span>Madagascar<span style="color:#ffb84d;background:rgba(124,74,0,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">HIGH</span></div><div class="gi" onclick="setGeo(&#39;MW&#39;,&#39;Malawi&#39;)"><span class="gf">🇲🇼</span>Malawi<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;MA&#39;,&#39;Maroc&#39;)"><span class="gf">🇲🇦</span>Maroc<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;MU&#39;,&#39;Maurice&#39;)"><span class="gf">🇲🇺</span>Maurice<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;MZ&#39;,&#39;Mozambique&#39;)"><span class="gf">🇲🇿</span>Mozambique<span style="color:#ff8080;background:rgba(139,26,26,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">CRIT</span></div><div class="gi" onclick="setGeo(&#39;NA&#39;,&#39;Namibie&#39;)"><span class="gf">🇳🇦</span>Namibie<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;RW&#39;,&#39;Rwanda&#39;)"><span class="gf">🇷🇼</span>Rwanda<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;ST&#39;,&#39;São Tomé-et-Príncipe&#39;)"><span class="gf">🇸🇹</span>São Tomé-et-Príncipe<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;SC&#39;,&#39;Seychelles&#39;)"><span class="gf">🇸🇨</span>Seychelles<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;SL&#39;,&#39;Sierra Leone&#39;)"><span class="gf">🇸🇱</span>Sierra Leone<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;SO&#39;,&#39;Somalie&#39;)"><span class="gf">🇸🇴</span>Somalie<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;ZA&#39;,&#39;Afrique du Sud&#39;)"><span class="gf">🇿🇦</span>Afrique du Sud<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;SS&#39;,&#39;Soudan du Sud&#39;)"><span class="gf">🇸🇸</span>Soudan du Sud<span style="color:#ff8080;background:rgba(139,26,26,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">CRIT</span></div><div class="gi" onclick="setGeo(&#39;SD&#39;,&#39;Soudan&#39;)"><span class="gf">🇸🇩</span>Soudan<span style="color:#ff8080;background:rgba(139,26,26,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">CRIT</span></div><div class="gi" onclick="setGeo(&#39;TZ&#39;,&#39;Tanzanie&#39;)"><span class="gf">🇹🇿</span>Tanzanie<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;TN&#39;,&#39;Tunisie&#39;)"><span class="gf">🇹🇳</span>Tunisie<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;UG&#39;,&#39;Ouganda&#39;)"><span class="gf">🇺🇬</span>Ouganda<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;ZM&#39;,&#39;Zambie&#39;)"><span class="gf">🇿🇲</span>Zambie<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;ZW&#39;,&#39;Zimbabwe&#39;)"><span class="gf">🇿🇼</span>Zimbabwe<span style="color:#ffb84d;background:rgba(124,74,0,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">HIGH</span></div></div>
           </div>
         </div>
-        <select class="ssel" id="sortSel" onchange="renderFeed()">
+        <select class="ssel" id="sortSel" aria-label="Trier les articles" onchange="renderFeed()">
           <option value="date">Plus recent</option>
           <option value="level">Priorite</option>
           <option value="score">Fiabilite</option>
@@ -2316,7 +2331,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
           <input type="text" id="searchQ" placeholder="Rechercher un pays, un evenement, un theme, une source..." oninput="renderRechercheDebounced()" style="width:100%;padding:10px 12px 10px 34px;border:1px solid var(--bd);border-radius:8px;font-size:13px;outline:none;">
         </div>
         <div class="tlbr" style="flex-wrap:wrap;">
-          <select id="seScope" onchange="setSeScope(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
+          <select id="seScope" aria-label="Perimetre de recherche" onchange="setSeScope(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
             <option value="all">Tout</option>
             <option value="flux">Flux (actif, &lt;12h)</option>
             <option value="historique">Historique</option>
@@ -2324,10 +2339,10 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
             <option value="alertes">Alertes verifiees</option>
             <option value="sources" id="seScopeSources">Sources</option>
           </select>
-          <select id="seCy" onchange="setSeCy(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
+          <select id="seCy" aria-label="Pays recherche" onchange="setSeCy(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
             <option value="all">Tous les pays</option>
           </select>
-          <select id="seCat" onchange="setSeCat(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
+          <select id="seCat" aria-label="Categorie recherchee" onchange="setSeCat(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
             <option value="all">Toutes categories</option>
             <option value="securite">Securite</option>
             <option value="humanitaire">Humanitaire</option>
@@ -2361,10 +2376,10 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         </div>
         <div class="tlbr" style="flex-shrink:0;">
           <span style="font-size:11px;font-weight:700;color:var(--t);display:flex;align-items:center;gap:5px;"><i class="ti ti-filter" style="font-size:14px"></i>Filtrer la synthese</span>
-          <select id="syZoneFilter" onchange="setSyntheseZone(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
+          <select id="syZoneFilter" aria-label="Zone geographique de la synthese" onchange="setSyntheseZone(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
             <option value="all">Toutes les zones</option>
           </select>
-          <select id="syCyFilter" onchange="setSyntheseCy(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
+          <select id="syCyFilter" aria-label="Pays de la synthese" onchange="setSyntheseCy(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
             <option value="all">Tous les pays</option>
           </select>
           <button onclick="updSynthese()" title="Rafraichir la synthese depuis les donnees deja collectees" style="padding:5px 12px;background:rgba(44,90,174,.12);border:1px solid rgba(44,90,174,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
@@ -2431,13 +2446,13 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
           </div>
           <div class="tlbr" style="flex-shrink:0;margin-bottom:8px;">
             <span style="font-size:11px;font-weight:700;color:var(--t);display:flex;align-items:center;gap:5px;"><i class="ti ti-filter" style="font-size:14px"></i>Filtrer</span>
-            <select id="agZoneFilter" onchange="setAgendaZone(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
+            <select id="agZoneFilter" aria-label="Zone geographique de l'agenda" onchange="setAgendaZone(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
               <option value="all">Toutes les zones</option>
             </select>
-            <select id="agCyFilter" onchange="setAgendaCy(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
+            <select id="agCyFilter" aria-label="Pays de l'agenda" onchange="setAgendaCy(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
               <option value="all">Tous les pays</option>
             </select>
-            <select id="agTypeFilter" onchange="setAgendaType(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
+            <select id="agTypeFilter" aria-label="Type d'evenement de l'agenda" onchange="setAgendaType(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
               <option value="all">Tous les types</option>
               <option value="manifestation">Manifestation</option>
               <option value="travaux">Travaux</option>
@@ -2496,14 +2511,14 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
           </div>
           <div class="tlbr" style="margin-bottom:6px">
             <span style="font-size:11px;font-weight:700;color:var(--t);display:flex;align-items:center;gap:5px"><i class="ti ti-filter" style="font-size:14px"></i>Périmètre</span>
-            <select id="rpZoneFilter" onchange="setRapportZone(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w)">
+            <select id="rpZoneFilter" aria-label="Zone geographique du rapport" onchange="setRapportZone(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w)">
               <option value="all">Toutes les zones</option>
             </select>
-            <select id="rpCyFilter" onchange="setRapportCy(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w)">
+            <select id="rpCyFilter" aria-label="Pays du rapport" onchange="setRapportCy(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w)">
               <option value="all">Tous les pays</option>
             </select>
             <span style="font-size:11px;font-weight:700;color:var(--t);margin-left:10px">Période PowerPoint :</span>
-            <select id="rpPeriode" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w)">
+            <select id="rpPeriode" aria-label="Periode PowerPoint" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w)">
               <option value="hebdo">Hebdomadaire (7 jours)</option>
               <option value="mensuel" selected>Mensuel (30 jours)</option>
               <option value="trimestriel">Trimestriel (90 jours)</option>
@@ -2644,7 +2659,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         <div id="alerteVueChrono" style="display:none;">
           <div class="tlbr" style="margin-bottom:12px;">
             <span style="font-size:11px;font-weight:700;color:var(--t);display:flex;align-items:center;gap:5px;"><i class="ti ti-timeline" style="font-size:14px"></i>Chronologie</span>
-            <select id="chronoCy" onchange="setChronoCy(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
+            <select id="chronoCy" aria-label="Pays de la chronologie" onchange="setChronoCy(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
               <option value="all">Tous les pays</option>
             </select>
             <span style="margin-left:auto;font-size:9px;color:var(--lg);" id="chronoCount"></span>
@@ -2771,7 +2786,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <a href="javascript:void(0)" onclick="document.getElementById('pricingGrid')?.scrollIntoView({behavior:'smooth'})" style="color:#7C4A00;font-weight:700;text-decoration:underline">Voir les tarifs</a></span>
               </div>
               <div style="margin-bottom:12px">
-                <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Nom de la marque / société</label>
+                <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="marqueNom">Nom de la marque / société</label>
                 <input type="text" id="marqueNom" placeholder="Ex. Groupe Sûreté SARL" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
               </div>
               <!-- 3 identites d'envoi possibles (ex. plusieurs cellules/equipes qui
@@ -2780,20 +2795,20 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                    (voir signatureEnvoiActuelle). -->
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:8px">
                 <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Identité d'envoi 1 (pseudo ou société)</label>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="marqueIdentite1">Identité d'envoi 1 (pseudo ou société)</label>
                   <input type="text" id="marqueIdentite1" placeholder="Ex. Cellule Sûreté ABC" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px" oninput="renderMarqueIdentiteChoix()">
                 </div>
                 <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Identité d'envoi 2 (optionnel)</label>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="marqueIdentite2">Identité d'envoi 2 (optionnel)</label>
                   <input type="text" id="marqueIdentite2" placeholder="Ex. Cellule Sûreté Nord" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px" oninput="renderMarqueIdentiteChoix()">
                 </div>
                 <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Identité d'envoi 3 (optionnel)</label>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="marqueIdentite3">Identité d'envoi 3 (optionnel)</label>
                   <input type="text" id="marqueIdentite3" placeholder="Ex. Cellule Sûreté Sud" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px" oninput="renderMarqueIdentiteChoix()">
                 </div>
               </div>
               <div style="margin-bottom:12px">
-                <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Identité utilisée dans les partages</label>
+                <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="marqueIdentiteActive">Identité utilisée dans les partages</label>
                 <select id="marqueIdentiteActive" style="width:100%;max-width:280px;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px"></select>
               </div>
               <div style="display:flex;align-items:center;gap:10px">
@@ -2837,11 +2852,11 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
                 <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Numero WhatsApp (avec indicatif pays)</label>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="rappelWaNumero">Numero WhatsApp (avec indicatif pays)</label>
                   <input type="text" id="rappelWaNumero" placeholder="Ex. 2250747974398" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
                 <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Heures (HH:MM, separees par virgule)</label>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="rappelWaHeures">Heures (HH:MM, separees par virgule)</label>
                   <input type="text" id="rappelWaHeures" placeholder="Ex. 06:00, 16:30, 20:30" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
               </div>
@@ -2876,11 +2891,11 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:12px">
                 <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Nom</label>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="waContactNom">Nom</label>
                   <input type="text" id="waContactNom" placeholder="Ex. Directeur Sûreté" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
                 <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" id="waContactValLbl">Numéro (avec indicatif pays)</label>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" id="waContactValLbl" for="waContactTel">Numéro (avec indicatif pays)</label>
                   <input type="text" id="waContactTel" placeholder="Ex. +225 07 12 34 56 78" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
                 <div style="display:flex;align-items:flex-end">
@@ -2912,11 +2927,11 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:12px">
                 <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Nom</label>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="tgGroupeNom">Nom</label>
                   <input type="text" id="tgGroupeNom" placeholder="Ex. Cellule Sûreté Régionale" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
                 <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Lien (t.me/...)</label>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="tgGroupeLien">Lien (t.me/...)</label>
                   <input type="text" id="tgGroupeLien" placeholder="Ex. https://t.me/joinchat/XXXXXXXXXX" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
                 <div style="display:flex;align-items:flex-end">
@@ -2947,11 +2962,11 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:12px">
                 <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Nom</label>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="emGroupeNom">Nom</label>
                   <input type="text" id="emGroupeNom" placeholder="Ex. Comité de crise" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
                 <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Emails (séparés par des virgules)</label>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="emGroupeEmails">Emails (séparés par des virgules)</label>
                   <input type="text" id="emGroupeEmails" placeholder="Ex. a@x.com, b@y.com" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
                 <div style="display:flex;align-items:flex-end">
@@ -3081,7 +3096,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
                 <button class="btn-action btn-rest" onclick="exporterDonneesAdmin()"><i class="ti ti-download"></i> Telecharger une sauvegarde (JSON)</button>
                 <button class="btn-action btn-rest" onclick="document.getElementById('pmRestoreFile').click()"><i class="ti ti-upload"></i> Restaurer depuis un fichier</button>
-                <input type="file" id="pmRestoreFile" accept="application/json" style="display:none" onchange="importerDonneesAdmin(this)">
+                <input type="file" id="pmRestoreFile" aria-label="Fichier de sauvegarde a restaurer" accept="application/json" style="display:none" onchange="importerDonneesAdmin(this)">
               </div>
             </div>
           </div>
@@ -3124,7 +3139,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               <div class="pmu-form">
                 <input type="email" id="pmNewEmail" placeholder="email@organisation.com">
                 <input type="text" id="pmNewName" placeholder="Nom complet">
-                <select id="pmNewRole">
+                <select id="pmNewRole" aria-label="Role du nouvel utilisateur">
                   <option value="reader">Lecteur</option>
                   <option value="user" selected="">Utilisateur</option>
                   <option value="admin">Administrateur</option>
@@ -3182,7 +3197,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               </div>
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:10px 12px;background:var(--sf);border:1px solid var(--bd);border-radius:7px">
                 <i class="ti ti-currency-euro" style="color:var(--b);font-size:15px"></i>
-                <label style="font-size:10px;color:var(--lg);white-space:nowrap">Taux de change (FCFA pour 1 €)</label>
+                <label style="font-size:10px;color:var(--lg);white-space:nowrap" for="tauxEurFcfa">Taux de change (FCFA pour 1 €)</label>
                 <input type="number" min="1" step="0.001" id="tauxEurFcfa" value="655.957" oninput="_pricingMajTousLesEur()" style="width:100px;padding:5px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px;font-weight:700">
                 <span style="font-size:9px;color:var(--lg)">Le franc CFA est arrimé à l'euro (~655,957) ; ajustable si vous facturez à un autre taux.</span>
               </div>
@@ -3353,15 +3368,15 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               </div>
               <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:12px">
                 <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Service ID</label>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="ejServiceId">Service ID</label>
                   <input type="text" id="ejServiceId" placeholder="Ex. service_xxxxxxx" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
                 <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Template ID</label>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="ejTemplateId">Template ID</label>
                   <input type="text" id="ejTemplateId" placeholder="Ex. template_xxxxxxx" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
                 <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px">Public Key</label>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="ejPublicKey">Public Key</label>
                   <input type="text" id="ejPublicKey" placeholder="Clé publique EmailJS" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
               </div>
@@ -3494,7 +3509,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                   <div class="rights-row-sub">N'afficher que les articles des 18 dernieres heures</div>
                 </div>
                 <label class="tgl">
-                  <input type="checkbox" id="tgl18h" checked="" onchange="save18hPref(this.checked)">
+                  <input type="checkbox" id="tgl18h" aria-label="Filtre 12h automatique" checked="" onchange="save18hPref(this.checked)">
                   <div class="tgl-sw"></div>
                 </label>
               </div>
@@ -3504,7 +3519,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                   <div class="rights-row-sub">Collecter les flux RSS automatiquement toutes les 15 minutes</div>
                 </div>
                 <label class="tgl">
-                  <input type="checkbox" id="tglAutoRefresh" checked="" onchange="saveAutoRefreshPref(this.checked)">
+                  <input type="checkbox" id="tglAutoRefresh" aria-label="Actualisation automatique (15 min)" checked="" onchange="saveAutoRefreshPref(this.checked)">
                   <div class="tgl-sw"></div>
                 </label>
               </div>
@@ -3514,7 +3529,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                   <div class="rights-row-sub">Afficher le score de fiabilite (%) sur chaque article</div>
                 </div>
                 <label class="tgl">
-                  <input type="checkbox" id="tglScore" checked="">
+                  <input type="checkbox" id="tglScore" aria-label="Afficher le niveau de fiabilite" checked="">
                   <div class="tgl-sw"></div>
                 </label>
               </div>
@@ -4763,7 +4778,10 @@ async function _trViaLingva(texte, srcLang, tgtLang) {
   for (const mirror of LINGVA_MIRRORS) {
     try {
       const url = mirror + '/api/v1/' + srcLV + '/' + tgtLang + '/' + encodeURIComponent(texte);
-      const r = await fetch(url, { signal: AbortSignal.timeout(9000) });
+      // 4 s et non 9 : un miroir qui n'a pas repondu en quatre secondes ne
+      // sauvera pas la traduction d'un titre, et trois miroirs a 9 s faisaient
+      // attendre 27 s avant meme d'atteindre le moteur suivant.
+      const r = await fetch(url, { signal: AbortSignal.timeout(4000) });
       const d = await r.json();
       if (d && typeof d.translation === 'string' && d.translation.trim()) return d.translation;
     } catch (e) { /* miroir suivant */ }
@@ -4783,7 +4801,20 @@ async function _trViaGoogle(texte, srcLang, tgtLang) {
   return out;
 }
 
-const TR_AGENT_PROVIDERS = [_trViaMyMemory, _trViaLingva, _trViaGoogle];
+// Chaque moteur porte son disjoncteur (voir creerDisjoncteur dans
+// web/js/noyau.js). Mesure du 02/09/2026 : les trois miroirs de Lingva
+// repondent 500, 502 et 403 — ils sont morts, pas lents. Sans disjoncteur,
+// l'application les rappelait pour CHAQUE titre a traduire, et payait
+// l'attente a chaque fois. Deux echecs consecutifs suffisent maintenant a
+// court-circuiter un moteur pour le reste de la session ; un seul succes le
+// referme, parce qu'un miroir qui revient doit pouvoir resservir.
+const TR_AGENT_PROVIDERS = (typeof avecDisjoncteur === 'function')
+  ? [
+      avecDisjoncteur(_trViaMyMemory, creerDisjoncteur({ nom: 'mymemory' })),
+      avecDisjoncteur(_trViaLingva,   creerDisjoncteur({ nom: 'lingva' })),
+      avecDisjoncteur(_trViaGoogle,   creerDisjoncteur({ nom: 'google' })),
+    ]
+  : [_trViaMyMemory, _trViaLingva, _trViaGoogle];
 
 // _trDecodeEntities(str) : MyMemory (et parfois d'autres API de traduction
 // publiques) renvoie occasionnellement le texte traduit avec des caracteres

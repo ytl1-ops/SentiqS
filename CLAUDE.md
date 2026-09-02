@@ -38,7 +38,7 @@ corriger un fichier que personne ne charge.
 ## Vérifier une modification
 
 ```bash
-npm test          # node --test scripts/test/*.test.js — 149 tests
+npm test          # node --test scripts/test/*.test.js — 176 tests
 npm run fumee     # charge la page de production dans Chromium
 ```
 
@@ -65,13 +65,15 @@ critère de tri, pas sa *position* ; l'autre la position d'une ancre de texte,
 pas la demi-largeur du texte centré). Un test neuf doit d'abord être vu
 **échouer** sur l'ancien comportement.
 
-### Les dix contrôles automatiques
+### Les treize contrôles automatiques
 
 `.github/workflows/webapp-ci.yml`, job `collecte` : syntaxe du JS inline,
 couverture des proxys, accessibilité du fichier de production, pages légales,
 symétrie du dictionnaire i18n, registre des sources, ressources référencées
-présentes, datation des incidents vérifiés, les 149 tests, chargement réel de
-la page. Chacun a son script dans `scripts/verifier-*.js`.
+présentes, datation des incidents vérifiés, fiches pays adossées à des
+données, aucun nouveau fichier de secrets suivi, accessibilité du DOM rendu,
+les 176 tests, chargement réel de la page. Chacun a son script dans
+`scripts/verifier-*.js`.
 
 Le job `integrite` refuse toute PR où `webapp/` aurait disparu — né d'une
 fusion qui a supprimé 16 889 lignes sans que personne ne le remarque.
@@ -226,6 +228,58 @@ dégradation — le vérifier sur deux runs avant de conclure.
 - Le binaire est `/opt/pw-browsers/chromium-1194/chrome-linux/chrome`, à lancer
   avec `--no-sandbox`. Ne jamais lancer `playwright install`.
 - `require('playwright')` doit être résolvable depuis la racine du dépôt.
+
+---
+
+## Les trois cliquets
+
+Même forme, même raison d'être : une dette qu'on ne peut pas résorber par du
+code, nommée dans le script, avec interdiction de l'agrandir. Chacun indique
+quoi abaisser quand la dette recule ; aucun ne doit être relevé.
+
+| Contrôle | Dette gelée | Ce qu'il refuse |
+|---|---|---|
+| `verifier-datation-incidents.js` | 38 facteurs non datés | un 39ᵉ, une date de revue illisible ou future |
+| `verifier-fiches-pays.js` | 5 fiches sans données | une 10ᵉ fiche, un fichier de données aux sources vides |
+| `verifier-secrets-suivis.js` | `webapp/.env` | tout nouveau `.env` suivi par git |
+
+Deux tests comparent la dette **déclarée** à la dette **réelle** : allonger la
+liste au lieu de fournir les données fait tomber le test. C'est exactement le
+contournement que ces cliquets visent.
+
+---
+
+## Accessibilité
+
+`verifier-accessibilite-interface.js` mesure le **DOM après rendu**, jamais le
+fichier source : l'essentiel de cette interface est construit par JavaScript,
+et compter les attributs dans le source ne dit rien de ce que voit un lecteur
+d'écran. La note d'accessibilité de ce produit a été fausse deux fois pour
+cette raison exacte.
+
+Cliquet à **zéro champ sans nom accessible**. Les repères de structure sont
+posés en attributs (`role=`) et non en changeant les balises : le CSS est
+entièrement indexé sur les classes.
+
+**Un libellé inventé est pire qu'un libellé absent** — il décrit à
+l'utilisateur un autre contrôle que celui qu'il manipule. Reprendre le texte
+déjà visible à l'écran, à côté du champ.
+
+---
+
+## Les services externes tombent, et il faut cesser de les rappeler
+
+Mesure du 02/09/2026 : les trois miroirs de Lingva répondent 500, 502 et 403.
+Morts, pas lents. La chaîne de traduction les essayait avec neuf secondes de
+patience chacun, pour **chaque titre**.
+
+`creerDisjoncteur` / `avecDisjoncteur`, dans le noyau : après deux échecs
+consécutifs le service est court-circuité pour la session — on lève tout de
+suite au lieu d'attendre le réseau. Un seul succès le referme, parce qu'un
+miroir qui revient doit pouvoir resservir.
+
+Aucun moteur n'est retiré de la liste : c'est le disjoncteur qui décide, pas
+une suppression figée dans le code.
 
 ---
 
