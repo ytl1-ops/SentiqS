@@ -154,6 +154,9 @@ jobs:
         with:
           node-version: 22
 
+      - name: Installer npm dependencies
+        run: npm ci
+
       - name: Installer le navigateur des contrôles
         # Deux controles ouvrent vraiment la page : celui d'accessibilite et
         # le test de fumee. L'installation vivait DANS l'etape du test de
