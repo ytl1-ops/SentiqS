@@ -18,6 +18,9 @@
 // AUCUNE NOUVELLE fiche ne doit s'ajouter a cette liste.
 const fs = require('node:fs');
 const path = require('node:path');
+const {
+  jetonsOrphelins, contrastesInsuffisants, dateVisible,
+} = require('./lib/fiches-pays.js');
 
 const RACINE = path.join(__dirname, '..');
 const FICHES = path.join(RACINE, 'web', 'pays');
@@ -62,12 +65,39 @@ if (resorbees.length) {
   console.log('   Retirez-la(les) de DETTE_SANS_DONNEES dans ce script pour verrouiller le gain.');
 }
 
+// Trois regles qui portent sur la page servie, pas sur ses donnees : une fiche
+// peut etre parfaitement sourcee et rester illisible ou non datee.
+const orphelins = [];
+const contrastes = [];
+const sansDate = [];
+for (const s of slugs) {
+  const html = fs.readFileSync(path.join(FICHES, s + '.html'), 'utf8');
+  const o = jetonsOrphelins(html);
+  if (o.length) orphelins.push(s + ' : ' + o.join(', '));
+  const c = contrastesInsuffisants(html);
+  if (c.length) contrastes.push(s + ' : ' + c.join(', '));
+  if (!dateVisible(html)) sansDate.push(s);
+}
+
 const echecs = [];
 if (nouvelles.length) {
   echecs.push('Fiche(s) publiee(s) sans fichier de donnees verifiees : ' + nouvelles.join(', '));
 }
 if (sansSources.length) {
   echecs.push('Fichier(s) de donnees sans aucune source : ' + sansSources.join(', '));
+}
+if (orphelins.length) {
+  echecs.push('Jeton(s) CSS reference(s) sans etre defini(s) — le repli du var() '
+    + 'applique une couleur d\'un autre theme, en silence : ' + orphelins.join(' ; '));
+}
+if (contrastes.length) {
+  echecs.push('Texte sous le seuil AA de 4,5:1 une fois compose sur le fond : '
+    + contrastes.join(' ; '));
+}
+if (sansDate.length) {
+  echecs.push('Fiche(s) sans date lisible par le lecteur (<p class="meta-fresh">) : '
+    + sansDate.join(', ') + '. Une evaluation de risque sans date se lit comme si '
+    + 'elle etait d\'aujourd\'hui.');
 }
 
 if (echecs.length) {
@@ -79,3 +109,4 @@ if (echecs.length) {
   process.exit(1);
 }
 console.log('\n✓ Aucune fiche pays ne s\'est ajoutee hors du generateur.');
+console.log('✓ ' + slugs.length + ' fiche(s) : jetons CSS tous definis, texte au seuil AA, date lisible.');

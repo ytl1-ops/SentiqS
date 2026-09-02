@@ -22,7 +22,7 @@
 <style>
 :root{
   --bg:#05080B; --bg2:#070C11; --panel:#101A22; --panel-b:#1C2E3D; --line:#2E4E63; --line2:#1B2A36;
-  --ink:#F5F7FA; --ink2:rgba(245,247,250,.68); --ink3:rgba(245,247,250,.44); --ink4:rgba(245,247,250,.28);
+  --ink:#F5F7FA; --ink2:rgba(245,247,250,.68); --ink3:rgba(245,247,250,.55); --ink4:rgba(245,247,250,.47);
   --blue:#2C5AAE; --sky:#7FB2CC; --navy:#16212C;
   --red:#8B1A1A; --amber:#7C4A00; --sblue:#2C5AAE; --green:#0F4F2A;
   --serif:'Source Serif 4',serif; --sans:'IBM Plex Sans',sans-serif; --mono:'IBM Plex Mono',monospace;
@@ -48,6 +48,10 @@ footer{border-top:1px solid var(--line2);padding:32px 24px;text-align:center;col
 footer a{color:var(--ink3)}
 .breadcrumb{font-size:12.5px;color:var(--ink3);margin-bottom:18px}
 .breadcrumb a{color:var(--sky)}
+.meta-fresh{font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-bottom:24px}
+.sources{margin-top:38px;padding-top:22px;border-top:1px solid var(--line2);}
+.sources h2{font-size:1.1rem;margin-bottom:12px;}
+.sources-note{font-size:.85rem;color:var(--ink2);margin:0;}
 </style>
 </head>
 <body>
@@ -66,6 +70,7 @@ footer a{color:var(--ink3)}
   <div class="breadcrumb"><a href="../index.html">Accueil</a> / <a href="index.html">Fiches pays</a> / Guinée</div>
   <div class="eyebrow">Fiche risque & veille sécuritaire</div>
   <h1>Fiche Risque & Veille Sécuritaire : Guinée</h1>
+  <p class="meta-fresh">Rédigée le 21 juillet 2026 · non révisée depuis · sources non publiées</p>
   <p class="summary">La Guinée traverse une phase de transition politique dont le calendrier et les modalités doivent être suivis avec attention, dans un contexte institutionnel encore instable depuis le changement de pouvoir de 2021. Conakry demeure le principal foyer de tensions politiques et sociales, avec des mobilisations récurrentes. La région forestière frontalière avec le Libéria et la Côte d'Ivoire reste sensible aux trafics et aux tensions intercommunautaires historiques. Les zones minières de Boké et du futur corridor de Simandou constituent des enjeux économiques majeurs nécessitant une sécurisation logistique spécifique.</p>
 
   <h2>Évaluation des menaces pour les entreprises et opérateurs en Guinée</h2>
@@ -84,6 +89,14 @@ footer a{color:var(--ink3)}
     <p>Entre instabilité politique et enjeux logistiques miniers, la situation guinéenne peut basculer rapidement. L'application SentiqS diffuse des alertes Push et SMS en temps réel et permet de cartographier vos équipes sur le terrain pour anticiper toute dégradation du contexte sécuritaire.</p>
     <a class="btn" href="../SentiqS_Web.html">Essayer SentiqS</a>
   </div>
+  <section class="sources">
+    <h2>Sources</h2>
+    <p class="sources-note">Cette fiche a été rédigée hors du générateur SentiqS et
+    ne cite aucune source vérifiable. Elle décrit une situation arrêtée au
+    21 juillet 2026 et n'a pas été révisée depuis : ne l'utilisez pas comme
+    référence à jour. Le flux d'alertes de l'application, lui, indique ses
+    sources et sa date de collecte.</p>
+  </section>
 </main>
 <footer>
   <div>SentiqS — Veille sûreté · 54 pays d'Afrique</div>
