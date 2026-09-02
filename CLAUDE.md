@@ -65,7 +65,7 @@ critère de tri, pas sa *position* ; l'autre la position d'une ancre de texte,
 pas la demi-largeur du texte centré). Un test neuf doit d'abord être vu
 **échouer** sur l'ancien comportement.
 
-### Les treize contrôles automatiques
+### Les quatorze contrôles automatiques
 
 `.github/workflows/webapp-ci.yml`, job `collecte` : syntaxe du JS inline,
 couverture des proxys, accessibilité du fichier de production, pages légales,
@@ -335,6 +335,20 @@ et `marqueSilence()` distinguent désormais les deux.
 La marque est délibérément **discrète et sans couleur d'alerte** : un pays
 muet n'est pas un pays dangereux, c'est un pays sur lequel on ne sait rien.
 Un test interdit la couleur d'alerte sur cette marque.
+
+**Deux états, pas un.** « Muet » = rien du tout sur ce pays. « Hors alerte » =
+du flux existe, mais aucune source au-dessus du seuil 70 n'a publié, donc
+`getLiveAlertEvents` ne retient rien et le niveau *ne peut pas monter*. Le
+second est le plus trompeur des deux, parce que l'interface a l'air alimentée.
+Un test vérifie que le seuil de la marque reste identique à celui de
+`getLiveAlertEvents` : les laisser diverger ferait dire « couvert » à un pays
+qui ne l'est plus.
+
+**Treize pays n'ont qu'une seule source d'alerte** — SS BI CG ER GM GW SL GQ
+KM LS SZ MZ LY. Une source qui se tait douze heures suffit à les rendre
+aveugles. `verifier-redondance-sources.js` pose un cliquet à 13 ; il descend
+en évaluant éditorialement de nouvelles sources, jamais en leur attribuant un
+score au jugé.
 
 ---
 

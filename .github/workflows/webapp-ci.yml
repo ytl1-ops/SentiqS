@@ -207,6 +207,14 @@ jobs:
         # totalement aveugle, sans que rien ne le signale.
         run: node scripts/verifier-sources.js
 
+      - name: Redondance des sources d'alerte
+        # verifier-sources.js garantit qu'aucun pays n'est totalement aveugle.
+        # Celui-ci va plus loin : treize pays n'ont qu'UNE source au-dessus du
+        # seuil, et une source qui se tait douze heures suffit alors a
+        # empecher le pays de monter d'un cran. Cliquet a 13, fait pour
+        # descendre.
+        run: node scripts/verifier-redondance-sources.js
+
       - name: Ressources referencees presentes
         # Les captures du mode d'emploi ont quitte le fichier (240 Ko de
         # base64 imposes a chaque visiteur) pour web/assets/. Un fichier
