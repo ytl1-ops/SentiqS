@@ -13,3 +13,8 @@ scripts/rapport-collecte-directe.json
 *.log
 .DS_Store
 niveaux-pays.json
+
+# Mémoire inter-runs du job de collecte planifiée (SRC_HEALTH /
+# PROXY_HEALTH_PAYS) — restaurée/sauvegardée via actions/cache, jamais
+# commitée (voir scripts/lib/sante-collecte.js).
+.cache-sante/
