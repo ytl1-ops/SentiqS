@@ -234,6 +234,33 @@ function borneRougeVerifie(niveauCalcule, niveauPlancher) {
 }
 
 
+// ── Tendance d'un pays sur la série archivée ───────────────────────────────
+//
+// Une seule implémentation, partagée par l'interface (qui lit
+// web/historique/serie.json) et par le job de collecte (via
+// scripts/lib/historique.js). Ce dépôt a déjà payé le prix de deux
+// implémentations du même calcul : le parsing RSS avait failli être réécrit
+// en Node avant qu'on ne décide de piloter la vraie page.
+//
+// `points` est une suite [jour, niveau] triée du plus ancien au plus récent.
+// On retourne null en dessous de deux points : afficher « stable » le
+// premier jour serait une affirmation sans mesure, et sur ce produit une
+// affirmation sans mesure coûte cher.
+function tendanceNiveaux(points, fenetre) {
+  if (!Array.isArray(points) || points.length < 2) return null;
+  const f = (typeof fenetre === 'number' && fenetre > 1) ? fenetre : 30;
+  const vus = points.slice(-f);
+  const debut = vus[0], fin = vus[vus.length - 1];
+  const rDebut = NIVEAUX_ORDRE.indexOf(debut[1]);
+  const rFin = NIVEAUX_ORDRE.indexOf(fin[1]);
+  if (rDebut < 0 || rFin < 0) return null;
+  return {
+    depuis: debut[0], jusqu: fin[0],
+    de: debut[1], vers: fin[1],
+    crans: rFin - rDebut, points: vus.length,
+  };
+}
+
 // ── Exposition ─────────────────────────────────────────────────────────────
 // Navigateur : les noms deviennent globaux, exactement comme lorsqu'ils
 // etaient declares dans le script inline. Node : export CommonJS pour les
@@ -246,6 +273,7 @@ const API = {
   MOIS_FR_IDX, dateEvenementMs, facteurFraicheur, poidsVerifie,
   DECROISSANCE_PLEIN_J, DECROISSANCE_NULLE_J, POIDS_CONTEXTE_NON_DATE,
   NIVEAUX_ORDRE, NIVEAU_MIN_POUR_ROUGE_AUTO, borneRougeVerifie,
+  tendanceNiveaux,
   MAX_LIVE_EVENTS_PAR_PAYS,
 };
 

@@ -30,10 +30,22 @@ permissions:
   contents: read
   issues: write
 
+# Deux collectes qui se chevauchent se disputeraient le commit de l'archive.
+# On laisse finir celle qui tourne plutot que d'annuler : elle est peut-etre
+# a deux minutes d'avoir publie son cache.
+concurrency:
+  group: collecte-planifiee
+  cancel-in-progress: false
+
 jobs:
   collecte:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      # Ecriture necessaire au seul commit de l'archive des niveaux
+      # (web/historique/). Le reste du job ne touche pas au depot.
+      contents: write
+      issues: write
     steps:
       - uses: actions/checkout@v4
 
@@ -80,6 +92,39 @@ jobs:
         # La collecte peut "reussir" sans rien publier d'utile. On verifie
         # donc l'effet, pas seulement l'absence d'erreur.
         run: node scripts/verifier-fraicheur-cache.js
+
+      - name: Archiver l'instantané du jour
+        # Un instantané par jour, écrit par le premier passage (voir
+        # scripts/lib/historique.js). Les passages suivants ne trouvent rien
+        # à commiter et sortent sans rien faire — d'où le test de diff.
+        #
+        # Le rebase avant push est là pour le cas où un déploiement Pages ou
+        # une fusion serait arrivé pendant les huit minutes de collecte :
+        # perdre l'archive du jour pour un conflit de fast-forward serait
+        # absurde, et la relancer coûte un cycle entier.
+        if: success()
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain web/historique)" ]; then
+            echo "Rien de neuf dans l'archive — journée déjà couverte."
+            exit 0
+          fi
+          git config user.name  "collecte-planifiee[bot]"
+          git config user.email "collecte-planifiee@users.noreply.github.com"
+          git add web/historique
+          jour=$(date -u +%Y-%m-%d)
+          git commit -m "Archive des niveaux d'alerte du $jour"
+          for essai in 1 2 3; do
+            if git push origin HEAD:main; then
+              echo "Archive du $jour poussée."
+              exit 0
+            fi
+            echo "Push refusé (essai $essai) — rebase puis nouvelle tentative."
+            git pull --rebase origin main
+            sleep $((essai * 4))
+          done
+          echo "::warning::Archive du $jour non poussée après trois tentatives."
+
 
   alerte:
     name: Signaler l'échec
