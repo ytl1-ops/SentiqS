@@ -71,10 +71,17 @@ test('aucun horodatage de repli n\'est une fausse date crédible', () => {
     'un outil temps réel doit afficher un tiret, jamais une date plausible et fausse');
 });
 
-test('l\'actualité internationale ne passe plus devant les 54 pays', () => {
+test('l\'actualité internationale ne passe jamais devant les 54 pays', () => {
   const f = tranche('function getArticlesATraiter', 'function marquerArticleTraite');
-  assert.match(f, /a\.cy === 'INT' \? 1 : 0/,
-    'à niveau égal, un incident hors Afrique doit passer après les pays couverts');
+  const posPerimetre = f.indexOf("a.cy === 'INT' ? 1 : 0");
+  const posNiveau = f.indexOf('LVL_ORDER[a.level]');
+  assert.ok(posPerimetre !== -1 && posNiveau !== -1, 'critères de tri introuvables');
+  // Mesuré le 2 septembre : rétrograder l'international « à niveau égal » ne
+  // suffisait pas — un différend Allemagne/Russie, seul article CRITIQUE du
+  // cycle, ouvrait la file devant tous les signaux africains.
+  assert.ok(posPerimetre < posNiveau,
+    'le périmètre doit être comparé AVANT le niveau, sinon un incident hors '
+    + 'Afrique classé plus haut remonte en tête de la file de traitement');
 });
 
 // ── Autorisation ──────────────────────────────────────────────────────────

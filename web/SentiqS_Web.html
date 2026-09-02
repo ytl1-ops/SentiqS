@@ -10821,8 +10821,19 @@ function getArticlesATraiter(cyFiltre, zoneFiltre) {
     // CRITIQUE se placait en tete de la file de triage, au-dessus de signaux
     // africains reels (observe le 1er septembre 2026 — un differend Allemagne
     // / Russie ouvrait la liste). Il reste present, il ne passe plus devant.
-    .sort((a, b) => (LVL_ORDER[a.level] - LVL_ORDER[b.level])
-      || ((a.cy === 'INT' ? 1 : 0) - (b.cy === 'INT' ? 1 : 0))
+    // Le perimetre passe AVANT le niveau, pas apres.
+    //
+    // Premiere version : l'international ne reculait qu'a niveau egal. Mesure
+    // sur le cache du 2 septembre — un differend Allemagne/Russie, seul article
+    // CRITIQUE du cycle, ouvrait encore la file devant tous les signaux
+    // africains. Le tri par niveau le remontait aussitot.
+    //
+    // Cette liste est la file de traitement d'un responsable surete couvrant
+    // 54 pays d'Afrique : un evenement hors de ce perimetre ne doit jamais
+    // passer devant un evenement dedans, quel que soit son niveau. Il reste
+    // present et garde son niveau — il attend son tour.
+    .sort((a, b) => ((a.cy === 'INT' ? 1 : 0) - (b.cy === 'INT' ? 1 : 0))
+      || (LVL_ORDER[a.level] - LVL_ORDER[b.level])
       || ((b.pubDate||0) - (a.pubDate||0)));
 }
 
