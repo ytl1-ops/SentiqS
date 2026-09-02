@@ -11029,21 +11029,60 @@ const NIV_LIBELLE = { vert:'vert', jaune:'jaune', orange:'orange', marron:'marro
 // « Separation stricte » plus haut) : un pays absent de ALL est un pays dont
 // aucune source n'a rien publie sur la fenetre. On le dit, au lieu de
 // laisser le silence passer pour du calme.
+//
+// DEUXIEME PASSE, et c'est la nuance qui compte vraiment. « Aucune actualite »
+// n'est pas la meme chose qu'« aucune actualite capable de faire bouger le
+// niveau ». Seules les sources de score >= 70 alimentent getLiveAlertEvents ;
+// un pays peut donc avoir du flux et rester AVEUGLE cote alerte.
+//
+// Mesure du premier instantane archive (02/09/2026) : sur 54 pays, 42 n'ont
+// recu aucun apport de la collecte. Et treize pays ne comptent qu'UNE SEULE
+// source au-dessus du seuil — Soudan du Sud, Burundi, Congo, Erythree,
+// Gambie, Guinee-Bissau, Sierra Leone, Guinee equatoriale, Comores, Lesotho,
+// Eswatini, Mozambique, Libye. Si cette source se tait, le pays ne peut plus
+// monter d'un cran, quoi qu'il se passe sur le terrain.
+//
+// Marquer « muet » un pays qui a du flux mais rien d'exploitable serait donc
+// faux dans un sens, et le marquer « couvert » serait faux dans l'autre. On
+// distingue les deux etats.
+const SEUIL_SOURCE_ALERTE = 70;
+
 function paysMuet(cy) {
   if (!cy || cy === 'INT' || typeof ALL === 'undefined' || !Array.isArray(ALL)) return false;
   return !ALL.some(function (a) { return a && a.cy === cy; });
+}
+
+// Aucune source FIABLE n'a publie sur ce pays : le flux peut exister, le
+// niveau ne peut pas bouger. C'est l'etat le plus trompeur des deux, parce
+// que l'interface a l'air alimentee.
+function paysAveugleAlerte(cy) {
+  if (!cy || cy === 'INT' || typeof ALL === 'undefined' || !Array.isArray(ALL)) return false;
+  return !ALL.some(function (a) {
+    return a && a.cy === cy && (a.score || 0) >= SEUIL_SOURCE_ALERTE;
+  });
 }
 
 // Marque discrete mais explicite. Pas une alerte : un pays muet n'est pas un
 // pays dangereux, c'est un pays sur lequel on ne sait rien depuis douze
 // heures. La nuance est exactement ce qu'il faut transmettre.
 function marqueSilence(cy) {
-  if (!paysMuet(cy)) return '';
-  return '<span title="Aucune source n\'a publi\u00e9 sur ce pays depuis 12 h. Le niveau affich\u00e9 repose uniquement sur le socle v\u00e9rifi\u00e9 et le contexte structurel — absence de signal ne veut pas dire absence de risque." '
-    + 'aria-label="Aucune actualit\u00e9 depuis 12 heures" '
+  var muet = paysMuet(cy);
+  var aveugle = paysAveugleAlerte(cy);
+  if (!muet && !aveugle) return '';
+
+  // « muet »   : rien du tout sur ce pays.
+  // « hors alerte » : du flux, mais rien qui puisse faire bouger le niveau.
+  // Le second est le plus trompeur : l'interface a l'air alimentee.
+  var libelle = muet ? 'muet' : 'hors alerte';
+  var infobulle = muet
+    ? 'Aucune source n\'a publi\u00e9 sur ce pays depuis 12 h. Le niveau affich\u00e9 repose uniquement sur le socle v\u00e9rifi\u00e9 et le contexte structurel — absence de signal ne veut pas dire absence de risque.'
+    : 'Des articles existent, mais aucun ne vient d\'une source assez fiable pour faire \u00e9voluer le niveau (seuil ' + SEUIL_SOURCE_ALERTE + '). Le niveau affich\u00e9 ne peut pas monter tant que cela dure.';
+
+  return '<span title="' + infobulle + '" '
+    + 'aria-label="' + (muet ? 'Aucune actualit\u00e9 depuis 12 heures' : 'Aucune source fiable depuis 12 heures') + '" '
     + 'style="font-family:var(--font-mono,\'Roboto Mono\',monospace);font-size:8.5px;font-weight:700;'
     + 'color:var(--lg);border:1px dashed var(--bd);border-radius:3px;padding:0 3px;margin-left:4px;white-space:nowrap;">'
-    + 'muet</span>';
+    + libelle + '</span>';
 }
 
 // Rendu compact : une fleche et le nombre de crans. Le detail complet est
