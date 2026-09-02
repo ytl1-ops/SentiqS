@@ -51,20 +51,25 @@ function contrastesInsuffisants(html) {
   const fond = table['--bg'];
   if (!fond || !/^#[0-9a-fA-F]{3,6}$/.test(fond)) return [];
 
+  // Deux formes a couvrir : « color: var(--jeton) » et une couleur ecrite en
+  // dur. La seconde n'existe aujourd'hui que sous la forme #fff, mais un gris
+  // ajoute demain echapperait a un controle qui ne regarderait que les jetons.
   const utilises = new Set();
-  const re = /color\s*:\s*var\(\s*(--[\w-]+)/g;
   let m;
-  while ((m = re.exec(html)) !== null) utilises.add(m[1]);
+  const reJeton = /color\s*:\s*var\(\s*(--[\w-]+)/g;
+  while ((m = reJeton.exec(html)) !== null) utilises.add(m[1]);
+  const reDur = /color\s*:\s*(#[0-9a-fA-F]{3,8})\b/g;
+  while ((m = reDur.exec(html)) !== null) utilises.add(m[1]);
 
   const faibles = [];
   for (const nom of [...utilises].sort()) {
-    const brut = table[nom];
+    const brut = nom.startsWith('--') ? table[nom] : nom;
     if (!brut) continue;               // deja signale par la regle 1
     const rgba = lireRgba(brut);
     let couleur;
     if (rgba) couleur = composer(rgba.hex, fond, rgba.alpha);
-    else if (/^#[0-9a-fA-F]{3,6}$/.test(brut)) couleur = brut;
-    else continue;                     // gradient, mot-cle : hors de portee ici
+    else if (/^#[0-9a-fA-F]{3}$|^#[0-9a-fA-F]{6}$/.test(brut)) couleur = brut;
+    else continue;                     // gradient, mot-cle, #RRGGBBAA : hors de portee ici
     const r = rapport(couleur, fond);
     if (r < SEUIL_AA) faibles.push(nom + ' (' + r.toFixed(2) + ':1)');
   }

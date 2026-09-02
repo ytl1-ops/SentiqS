@@ -73,6 +73,14 @@ test('un texte sous le seuil AA est signale, un texte au-dessus ne l\'est pas', 
   assert.deepStrictEqual(contrastesInsuffisants(FOND + 'p{color:var(--ink3)}'), []);
 });
 
+test('une couleur ecrite en dur est mesuree comme un jeton', () => {
+  // La regle ne doit pas se contourner en ecrivant la couleur directement.
+  // #6b675f est justement celle qui a ete livree en repli le 02/09/2026.
+  const F = ':root{--bg:#05080B;}';
+  assert.deepStrictEqual(contrastesInsuffisants(F + 'p{color:#6b675f}'), ['#6b675f (3.57:1)']);
+  assert.deepStrictEqual(contrastesInsuffisants(F + 'p{color:#fff}'), []);
+});
+
 test('une fiche sans ligne de date est signalee', () => {
   assert.strictEqual(dateVisible('<h1>Mali</h1><p class="summary">…</p>'), null);
   // Une ligne presente mais sans date lisible ne compte pas : c'est le cas
