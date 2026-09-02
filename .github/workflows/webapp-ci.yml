@@ -204,6 +204,19 @@ jobs:
       - name: Tests du moteur de collecte
         run: npm test
 
+      - name: Fiches pays adossées à des données vérifiées
+        # Le generateur refuse deja de produire du contenu surete a partir de
+        # rien. Mesure du 02/09/2026 : neuf fiches publiees, quatre seulement
+        # avec leur fichier de donnees — cinq avaient contourne le generateur,
+        # et rien ne le signalait.
+        run: node scripts/verifier-fiches-pays.js
+
+      - name: Aucun nouveau fichier de secrets suivi par git
+        # .gitignore ne protege que ce qui n'est pas DEJA suivi : webapp/.env
+        # a ete ajoute avant la regle et le reste. Le retirer demande de
+        # verifier Netlify d'abord — d'ou un cliquet, pas un correctif.
+        run: node scripts/verifier-secrets-suivis.js
+
       - name: Accessibilité de l'interface rendue
         # Mesure le DOM APRES rendu, pas le fichier source : l'essentiel de
         # cette interface est construit par JavaScript, et compter les
