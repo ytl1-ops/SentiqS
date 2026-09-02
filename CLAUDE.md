@@ -283,6 +283,61 @@ une suppression figée dans le code.
 
 ---
 
+## Accessibilité
+
+`verifier-accessibilite-interface.js` mesure le **DOM après rendu**, jamais le
+fichier source : l'essentiel de cette interface est construit par JavaScript,
+et compter les attributs dans le source ne dit rien de ce que voit un lecteur
+d'écran. La note d'accessibilité de ce produit a été fausse deux fois pour
+cette raison exacte.
+
+Cliquet à **zéro champ sans nom accessible**. Les repères de structure sont
+posés en attributs (`role=`) et non en changeant les balises : le CSS est
+entièrement indexé sur les classes.
+
+**Un libellé inventé est pire qu'un libellé absent** — il décrit à
+l'utilisateur un autre contrôle que celui qu'il manipule. Reprendre le texte
+déjà visible à l'écran, à côté du champ.
+
+**En CI, ce contrôle échoue si le navigateur manque.** Il est entré en CI en
+passant au vert sans rien mesurer, parce que l'installation de Playwright
+vivait dans une étape ultérieure. Un contrôle muet occupe la place d'une
+garantie sans en donner aucune.
+
+---
+
+## Les services externes tombent, et il faut cesser de les rappeler
+
+Mesure du 02/09/2026 : les trois miroirs de Lingva répondent 500, 502 et 403.
+Morts, pas lents. La chaîne de traduction les essayait avec neuf secondes de
+patience chacun, pour **chaque titre**.
+
+`creerDisjoncteur` / `avecDisjoncteur`, dans le noyau : après deux échecs
+consécutifs le service est court-circuité pour la session — on lève tout de
+suite au lieu d'attendre le réseau. Un seul succès le referme, parce qu'un
+miroir qui revient doit pouvoir resservir.
+
+Aucun moteur n'est retiré de la liste : c'est le disjoncteur qui décide, pas
+une suppression figée dans le code.
+
+---
+
+## Silence n'est pas calme
+
+Au run #800, **39 sources sur 495** avaient publié depuis douze heures,
+couvrant **31 pays sur 54**. Les vingt-trois autres s'affichaient dans le
+cartogramme exactement comme un pays calme.
+
+Pour un professionnel de la sûreté, c'est l'ambiguïté la plus coûteuse de
+l'outil : l'absence de signal ressemble à l'absence de risque. `paysMuet()`
+et `marqueSilence()` distinguent désormais les deux.
+
+La marque est délibérément **discrète et sans couleur d'alerte** : un pays
+muet n'est pas un pays dangereux, c'est un pays sur lequel on ne sait rien.
+Un test interdit la couleur d'alerte sur cette marque.
+
+---
+
 ## Conventions
 
 - **Tout en français** : commits, commentaires, noms de fonctions et de
