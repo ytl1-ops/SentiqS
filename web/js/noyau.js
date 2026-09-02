@@ -234,6 +234,45 @@ function borneRougeVerifie(niveauCalcule, niveauPlancher) {
 }
 
 
+// ── Fraîcheur d'un facteur structurel ──────────────────────────────────────
+//
+// Les 38 facteurs de FACTEURS_SPECIAUX portent un contexte non daté — « deux
+// gouvernements rivaux depuis 2014 », « insurrection active depuis 2017 » —
+// et pèsent leur bonus plein sans que personne puisse dire de quand date la
+// dernière vérification. Un contexte structurel finit pourtant par cesser
+// d'être vrai, et c'est alors le pays qui reste bloqué haut sans raison.
+//
+// Ce qui suit ne RETRANCHE rien. Dater ces facteurs demande un analyste, pas
+// du code, et retirer du poids à partir de dates qu'on n'a pas produirait un
+// faux négatif — l'erreur la plus chère de cet outil. On se contente donc de
+// rendre la dette visible là où elle se décide, et d'empêcher qu'elle
+// grossisse (voir scripts/verifier-datation-incidents.js).
+const REVUE_RECOMMANDEE_MOIS = 6;
+
+/**
+ * L'âge en mois d'un champ revu:'AAAA-MM'.
+ *
+ * null si le champ est absent ou illisible. Négatif si la date est dans le
+ * futur — cas que la CI doit refuser plutôt que d'afficher « revu il y a -3
+ * mois », qui ne veut rien dire.
+ */
+function ageRevueMois(revu, maintenant) {
+  if (typeof revu !== 'string') return null;
+  const m = /^(\d{4})-(\d{2})$/.exec(revu.trim());
+  if (!m) return null;
+  const annee = Number(m[1]);
+  const mois = Number(m[2]);
+  if (mois < 1 || mois > 12) return null;
+  const d = new Date(maintenant || Date.now());
+  return (d.getUTCFullYear() - annee) * 12 + (d.getUTCMonth() + 1 - mois);
+}
+
+/** Un facteur non daté, ou revu il y a plus de REVUE_RECOMMANDEE_MOIS mois. */
+function revueDepassee(revu, maintenant) {
+  const age = ageRevueMois(revu, maintenant);
+  return age === null || age > REVUE_RECOMMANDEE_MOIS;
+}
+
 // ── Tendance d'un pays sur la série archivée ───────────────────────────────
 //
 // Une seule implémentation, partagée par l'interface (qui lit
@@ -273,6 +312,7 @@ const API = {
   MOIS_FR_IDX, dateEvenementMs, facteurFraicheur, poidsVerifie,
   DECROISSANCE_PLEIN_J, DECROISSANCE_NULLE_J, POIDS_CONTEXTE_NON_DATE,
   NIVEAUX_ORDRE, NIVEAU_MIN_POUR_ROUGE_AUTO, borneRougeVerifie,
+  REVUE_RECOMMANDEE_MOIS, ageRevueMois, revueDepassee,
   tendanceNiveaux,
   MAX_LIVE_EVENTS_PAR_PAYS,
 };

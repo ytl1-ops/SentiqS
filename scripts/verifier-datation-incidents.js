@@ -28,7 +28,18 @@ function extraire(debut, fin) {
 
 // dateEvenementMs vit dans le noyau logique : on le charge comme la page le
 // charge, au lieu de le decouper au vol dans le fichier de production.
-const { dateEvenementMs } = require('../web/js/noyau.js');
+const { dateEvenementMs, ageRevueMois, REVUE_RECOMMANDEE_MOIS } = require('../web/js/noyau.js');
+
+// CLIQUET. Au 02/09/2026, 38 facteurs structurels ne portaient aucune date de
+// revue. Personne ne peut les dater a leur place : cela demande un analyste
+// surete, pas du code — et inventer des dates sur ce produit serait pire que
+// l'absence de date.
+//
+// Ce plafond ne sert donc pas a resorber la dette, mais a l'empecher de
+// grossir : une PR qui ajoute un facteur non date echoue. Il est fait pour
+// DESCENDRE au fur et a mesure des revues, jamais pour monter. Le relever
+// serait annuler le seul mecanisme qui protege ce socle.
+const PLAFOND_FACTEURS_NON_DATES = 38;
 
 const bac = {};
 vm.createContext(bac);
@@ -66,7 +77,42 @@ if (jours !== null) {
 if (facteursDates < facteurs) {
   console.log(`\n⚠  ${facteurs - facteursDates} facteur(s) structurel(s) sans date de revue.`);
   console.log('   Ils pesent leur bonus plein sans que personne puisse savoir de quand il date.');
-  console.log("   Ajoutez un champ revu:'AAAA-MM' au fur et a mesure des revues.");
+  console.log(`   Ajoutez un champ revu:'AAAA-MM' au fur et a mesure des revues (revue conseillee`);
+  console.log(`   tous les ${REVUE_RECOMMANDEE_MOIS} mois). L'interface affiche desormais « non date » sur chacun.`);
+}
+
+// Une date de revue illisible ou dans le futur est PIRE que pas de date : elle
+// affiche « revu recemment » et endort la vigilance sur un facteur que
+// personne n'a rouvert.
+const revuesInvalides = [];
+const revuesFutures = [];
+for (const [cy, liste] of Object.entries(FACTEURS_SPECIAUX)) {
+  for (const f of liste) {
+    if (f.revu === undefined) continue;
+    const age = ageRevueMois(f.revu);
+    if (age === null) revuesInvalides.push({ cy, f });
+    else if (age < 0) revuesFutures.push({ cy, f, age });
+  }
+}
+
+const nonDates = facteurs - facteursDates;
+if (nonDates > PLAFOND_FACTEURS_NON_DATES) {
+  console.error(`\n✗ ${nonDates} facteur(s) structurel(s) sans date de revue, pour un plafond de `
+    + `${PLAFOND_FACTEURS_NON_DATES}.`);
+  console.error("   Tout nouveau facteur doit porter revu:'AAAA-MM'. Ce plafond descend au fil");
+  console.error('   des revues ; le relever annulerait le seul garde-fou de ce socle.');
+  process.exit(1);
+}
+if (nonDates < PLAFOND_FACTEURS_NON_DATES) {
+  console.log(`\n→ ${PLAFOND_FACTEURS_NON_DATES - nonDates} facteur(s) date(s) depuis la pose du cliquet.`);
+  console.log(`   Abaissez PLAFOND_FACTEURS_NON_DATES a ${nonDates} dans ce script pour verrouiller le gain.`);
+}
+
+if (revuesInvalides.length || revuesFutures.length) {
+  console.error('\n✗ Date(s) de revue inexploitables — elles endorment la vigilance au lieu de l\'informer :');
+  revuesInvalides.forEach(({ cy, f }) => console.error(`   ${cy}  revu:'${f.revu}'  format attendu AAAA-MM  — ${String(f.label).slice(0, 60)}`));
+  revuesFutures.forEach(({ cy, f, age }) => console.error(`   ${cy}  revu:'${f.revu}'  dans le futur (${-age} mois) — ${String(f.label).slice(0, 60)}`));
+  process.exit(1);
 }
 
 if (muets.length) {

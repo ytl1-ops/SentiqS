@@ -16878,10 +16878,24 @@ async function ouvrirVuePays(cy) {
     </div>`;
   }).join('') : '';
 
+  // La date de revue d'un facteur structurel, affichee la ou la decision se
+  // prend. Ces facteurs pesent leur bonus plein et rien ne disait de quand ils
+  // datent : un analyste lisant « insurrection active » ne pouvait pas savoir
+  // si quelqu'un l'avait verifie ce mois-ci ou il y a deux ans. Voir
+  // ageRevueMois() dans web/js/noyau.js — le poids, lui, n'est pas touche :
+  // retrancher a partir de dates qu'on n'a pas produirait un faux negatif.
+  const marqueRevue = (f) => {
+    const age = (typeof ageRevueMois === 'function') ? ageRevueMois(f.revu) : null;
+    if (age === null) return '<span title="Aucune date de revue : ce facteur pese son bonus plein sans que rien ne dise de quand il date." style="font-size:8.5px;color:var(--lg);border:1px solid var(--bd);border-radius:3px;padding:0 4px;margin-left:5px;white-space:nowrap;">non dat\u00e9</span>';
+    const perime = (typeof revueDepassee === 'function') && revueDepassee(f.revu);
+    const libelle = age <= 0 ? 'revu ce mois-ci' : 'revu il y a ' + age + ' mois';
+    return '<span title="Derniere revue : ' + f.revu + '" style="font-size:8.5px;color:' + (perime ? 'var(--a)' : 'var(--lg)') + ';border:1px solid ' + (perime ? 'var(--a)' : 'var(--bd)') + ';border-radius:3px;padding:0 4px;margin-left:5px;white-space:nowrap;">' + libelle + '</span>';
+  };
+
   const htmlFacteurs = facteurs.length ? facteurs.map(f => `
     <div style="display:flex;gap:6px;padding:3px 0;">
       <i class="ti ti-alert-triangle" style="font-size:11px;color:var(--a);flex-shrink:0;margin-top:2px;"></i>
-      <span style="font-size:10px;color:var(--t2);">${f.label} <strong>(+${f.bonus})</strong></span>
+      <span style="font-size:10px;color:var(--t2);">${f.label} <strong>(+${f.bonus})</strong>${marqueRevue(f)}</span>
     </div>`).join('') : '';
 
   const htmlAgenda = evenementsAgenda.length ? evenementsAgenda.map((e,i) => {
