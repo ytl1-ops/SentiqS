@@ -10898,9 +10898,61 @@ async function renderPanelATraiter(cyFiltre, zoneFiltre) {
   </div>`;
 }
 
+// ── TRAJECTOIRE ────────────────────────────────────────────────────────────
+//
+// Le cache partage expire a six heures : jusqu'ici l'outil ne pouvait montrer
+// qu'un etat, jamais un mouvement. Un professionnel de la surete ne lit pas
+// « Mali : marron » de la meme facon selon que le pays y est depuis trois
+// mois ou qu'il y est monte cette semaine.
+//
+// La serie est ecrite un instantane par jour par le job de collecte
+// planifiee (voir scripts/lib/historique.js) et servie a cote de la page.
+// Tant qu'elle n'existe pas, l'interface se passe simplement de trajectoire :
+// aucune fleche affichee vaut mieux qu'une fleche inventee.
+let HISTORIQUE_SERIE = null;
+let historiqueDemande = false;
+function chargerHistorique() {
+  if (historiqueDemande) return;
+  historiqueDemande = true;
+  fetch('historique/serie.json', { cache: 'no-cache' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (j) {
+      if (!j || !j.pays) return;
+      HISTORIQUE_SERIE = j;
+      if (typeof renderDashboard === 'function') renderDashboard();
+    })
+    .catch(function () { /* pas d'archive : sans consequence */ });
+}
+
+// Le calcul lui-meme vient du noyau (tendanceNiveaux), partage avec le job
+// qui ecrit la serie. Ici on ne fait que l'habiller.
+function tendancePays(code) {
+  if (!HISTORIQUE_SERIE || typeof tendanceNiveaux !== 'function') return null;
+  return tendanceNiveaux((HISTORIQUE_SERIE.pays || {})[code] || [], 30);
+}
+
+const NIV_LIBELLE = { vert:'vert', jaune:'jaune', orange:'orange', marron:'marron', rouge:'rouge' };
+
+// Rendu compact : une fleche et le nombre de crans. Le detail complet est
+// dans l'infobulle, parce que la tuile fait 108 px de large.
+function chipTendance(code) {
+  const t = tendancePays(code);
+  if (!t || t.crans === 0) return '';
+  const monte = t.crans > 0;
+  const col = monte ? 'var(--rouge, #b3261e)' : 'var(--vert, #2e7d32)';
+  const sens = monte ? 'aggravation' : 'amelioration';
+  const titre = sens + ' de ' + Math.abs(t.crans) + ' cran' + (Math.abs(t.crans) > 1 ? 's' : '')
+    + ' : ' + NIV_LIBELLE[t.de] + ' le ' + t.depuis + ' \u2192 ' + NIV_LIBELLE[t.vers] + ' le ' + t.jusqu
+    + ' (' + t.points + ' relev\u00e9s)';
+  return '<span title="' + titre + '" style="font-family:var(--font-mono,\'Roboto Mono\',monospace);'
+    + 'font-size:8.5px;font-weight:700;color:' + col + ';margin-left:4px;white-space:nowrap;">'
+    + (monte ? '\u2197' : '\u2198') + Math.abs(t.crans) + '</span>';
+}
+
 function setDashCartoMode(m) { window.dashCartoMode = m; if (typeof renderDashboard === 'function') renderDashboard(); } async function renderDashboard() {
   const el = document.getElementById('dashContent');
   if (!el) return;
+  chargerHistorique();
 
   // KPI globaux
   const MAX = 12*60*60*1000;
@@ -11082,7 +11134,7 @@ const cartogramme = () => {
             const col = scoreColor(s);
             return `<div class="carto-tile" onclick="ouvrirVuePays('${s.cy}')" title="${s.pays.name} — ${s.score}/100" style="cursor:pointer;padding:5px 6px;border-radius:5px;background:${col}14;border:1px solid ${col}44;transition:transform .12s,box-shadow .12s;${GLOBAL_CY_FILTER===s.cy?`box-shadow:0 0 0 2px ${col};`:''}">
               <div style="font-size:9.5px;font-weight:700;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.pays.flag} ${s.pays.name}</div>
-              <div style="font-family:var(--font-mono,'Roboto Mono',monospace);font-size:9px;font-weight:700;color:${col};">${Math.round(s.score)}</div>
+              <div style="font-family:var(--font-mono,'Roboto Mono',monospace);font-size:9px;font-weight:700;color:${col};display:flex;align-items:baseline;">${Math.round(s.score)}${chipTendance(s.cy)}</div>
             </div>`;
           }).join('')}
         </div>
@@ -16826,10 +16878,24 @@ async function ouvrirVuePays(cy) {
     </div>`;
   }).join('') : '';
 
+  // La date de revue d'un facteur structurel, affichee la ou la decision se
+  // prend. Ces facteurs pesent leur bonus plein et rien ne disait de quand ils
+  // datent : un analyste lisant « insurrection active » ne pouvait pas savoir
+  // si quelqu'un l'avait verifie ce mois-ci ou il y a deux ans. Voir
+  // ageRevueMois() dans web/js/noyau.js — le poids, lui, n'est pas touche :
+  // retrancher a partir de dates qu'on n'a pas produirait un faux negatif.
+  const marqueRevue = (f) => {
+    const age = (typeof ageRevueMois === 'function') ? ageRevueMois(f.revu) : null;
+    if (age === null) return '<span title="Aucune date de revue : ce facteur pese son bonus plein sans que rien ne dise de quand il date." style="font-size:8.5px;color:var(--lg);border:1px solid var(--bd);border-radius:3px;padding:0 4px;margin-left:5px;white-space:nowrap;">non dat\u00e9</span>';
+    const perime = (typeof revueDepassee === 'function') && revueDepassee(f.revu);
+    const libelle = age <= 0 ? 'revu ce mois-ci' : 'revu il y a ' + age + ' mois';
+    return '<span title="Derniere revue : ' + f.revu + '" style="font-size:8.5px;color:' + (perime ? 'var(--a)' : 'var(--lg)') + ';border:1px solid ' + (perime ? 'var(--a)' : 'var(--bd)') + ';border-radius:3px;padding:0 4px;margin-left:5px;white-space:nowrap;">' + libelle + '</span>';
+  };
+
   const htmlFacteurs = facteurs.length ? facteurs.map(f => `
     <div style="display:flex;gap:6px;padding:3px 0;">
       <i class="ti ti-alert-triangle" style="font-size:11px;color:var(--a);flex-shrink:0;margin-top:2px;"></i>
-      <span style="font-size:10px;color:var(--t2);">${f.label} <strong>(+${f.bonus})</strong></span>
+      <span style="font-size:10px;color:var(--t2);">${f.label} <strong>(+${f.bonus})</strong>${marqueRevue(f)}</span>
     </div>`).join('') : '';
 
   const htmlAgenda = evenementsAgenda.length ? evenementsAgenda.map((e,i) => {

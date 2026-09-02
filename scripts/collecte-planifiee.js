@@ -28,6 +28,8 @@ const path = require('path');
 const { USER_AGENT } = require('./lib/fetch-respectueux');
 const { creerIntercepteur } = require('./lib/interception-proxy-directe');
 const { evaluerAccessibilite } = require('./lib/couverture');
+const historique = require('./lib/historique');
+const alerteSortante = require('./lib/alerte-sortante');
 
 // Firebase Hosting retire (sentinel-surete.web.app ne recoit plus de
 // deploiement) — GitHub Pages est desormais l'hebergement reel.
@@ -46,6 +48,12 @@ const HTML_PATH = process.env.SENTINEL_HTML_PATH || path.join(__dirname, '..', '
 // progressivement par doCollect() toutes les 20 sources terminées, un
 // instantané partiel reste largement utile pour le cache partagé.
 const COLLECT_TIMEOUT_MS = 8 * 60 * 1000;
+
+// L'archive vit sous web/ et non sous data/ : c'est web/ que GitHub Pages
+// sert, et l'interface doit pouvoir lire la serie sans passer par Supabase
+// ni par une API qui n'existe pas. Voir scripts/lib/historique.js.
+const RACINE_HISTORIQUE = process.env.RACINE_HISTORIQUE
+  || path.join(__dirname, '..', 'web', 'historique');
 
 function lireTokenDepuisSource() {
   const html = fs.readFileSync(HTML_PATH, 'utf8');
@@ -303,6 +311,101 @@ function ecrireResumeActions(md) {
         };
       } catch (_) { return vide; }
     }, debutRun);
+
+    // ── ARCHIVE DES NIVEAUX ──────────────────────────────────────────────
+    // Le cache partage expire a six heures et rien ne lui survit : jusqu'ici
+    // le produit ne pouvait montrer qu'un etat, jamais une trajectoire, et
+    // aucune question de qualite ne pouvait etre tranchee autrement qu'en
+    // disant « il faudrait compter sur plusieurs cycles ». Personne ne
+    // comptait.
+    //
+    // On interroge la page APRES la collecte : les niveaux enregistres
+    // incluent donc le live du jour, ce qui est precisement ce qui bouge.
+    // scripts/tableau-niveaux.js, lui, coupe le reseau volontairement pour
+    // mesurer le plancher fige — ce sont deux mesures differentes, et
+    // melanger les deux archives n'aurait aucun sens.
+    //
+    // Le calcul n'est pas reimplemente ici : c'est calcAlertScore de la page
+    // qui repond, comme partout ailleurs dans ce depot.
+    try {
+      const niveaux = await page.evaluate(() => {
+        if (typeof calcAlertScore !== 'function' || typeof CYS === 'undefined') return null;
+        return CYS.filter((c) => c && c.code && c.code !== 'all').map((c) => {
+          const s = calcAlertScore(c.code);
+          const d = (s && s.debug) || {};
+          return {
+            code: c.code, nom: c.name, niveau: s && s.key, total: s && s.total,
+            verifies: d.verifies, facteurs: d.specials,
+            live: d.liveApplique, historique: d.historiqueApplique,
+          };
+        });
+      });
+
+      if (!niveaux || !niveaux.length) {
+        // Ne jamais ecrire un instantane vide : il occuperait la journee et
+        // empecherait le passage suivant d'en ecrire un bon.
+        console.warn('  Archive : la page n\'a pas rendu de niveaux — rien enregistre pour aujourd\'hui.');
+      } else {
+        const jour = historique.jourUTC(Date.now());
+        const inst = historique.construireInstantane({
+          jour, commit: process.env.GITHUB_SHA || null, pays: niveaux,
+        });
+        const ecrit = historique.ecrireInstantane(RACINE_HISTORIQUE, inst);
+        if (ecrit) {
+          const serie = historique.construireSerie(historique.lireSerie(RACINE_HISTORIQUE));
+          fs.writeFileSync(path.join(RACINE_HISTORIQUE, 'serie.json'), JSON.stringify(serie) + '\n');
+          console.log('  Archive : instantane du ' + jour + ' ecrit (' + inst.pays.length
+            + ' pays), serie sur ' + serie.jours.length + ' jour(s).');
+        } else {
+          console.log('  Archive : le ' + jour + ' est deja couvert — le premier passage du jour fait foi.');
+        }
+
+        // ── SORTIE D'ALERTE ────────────────────────────────────────────
+        // Le produit detectait, affichait, et s'arretait la. Une
+        // notification navigateur ne part que si quelqu'un a l'onglet
+        // ouvert : c'est-a-dire pas la nuit, pas le week-end, pas quand
+        // elle sert. L'envoi part donc d'ici, ou le job voit chaque cycle.
+        //
+        // Voir scripts/lib/alerte-sortante.js pour le raisonnement complet.
+        // Sans WEBHOOK_ALERTES, tout ce bloc est un calcul a vide : on
+        // journalise ce qui SERAIT parti, ce qui permet de regler le bruit
+        // avant de brancher un canal.
+        const cheminEtat = path.join(RACINE_HISTORIQUE, 'dernier-signale.json');
+        let etat = {};
+        try {
+          if (fs.existsSync(cheminEtat)) etat = JSON.parse(fs.readFileSync(cheminEtat, 'utf8'));
+        } catch (_) { etat = {}; }   // etat illisible : on repart de zero, donc silencieux
+
+        const mouvement = alerteSortante.changements(etat, inst);
+        const noms = {};
+        for (const n of niveaux) if (n && n.code) noms[n.code] = n.nom || n.code;
+        const message = alerteSortante.construireMessage(mouvement, { jour, noms });
+
+        if (!message) {
+          console.log('  Alerte : aucun changement de niveau depuis le dernier signalement'
+            + (mouvement.descentes ? ' (' + mouvement.descentes + ' amelioration(s))' : '') + '.');
+        } else if (!process.env.WEBHOOK_ALERTES) {
+          console.log('  Alerte : ' + mouvement.montees.length
+            + ' aggravation(s) — aucun canal configure (WEBHOOK_ALERTES absent). Message qui serait parti :');
+          message.text.split('\n').forEach((l) => console.log('    | ' + l));
+        } else {
+          const envoi = await alerteSortante.envoyer(process.env.WEBHOOK_ALERTES, message);
+          console.log('  Alerte : ' + mouvement.montees.length + ' aggravation(s) — '
+            + (envoi.ok ? 'envoyee.' : 'NON envoyee (' + envoi.raison + ').'));
+          if (!envoi.ok) console.warn('::warning::Sortie d\'alerte en echec : ' + envoi.raison);
+        }
+
+        // L'etat avance meme sans canal configure : sinon, le jour ou l'on
+        // en branche un, il deverserait d'un coup tout l'historique des
+        // mouvements accumules.
+        fs.writeFileSync(cheminEtat,
+          JSON.stringify(alerteSortante.etatSuivant(etat, inst), null, 1) + '\n');
+      }
+    } catch (e) {
+      // L'archive est un bonus : son echec ne doit jamais faire tomber une
+      // collecte qui a, elle, reussi.
+      console.warn('  Archive : non ecrite (' + ((e && e.message) || e) + ')');
+    }
 
     const pct = (n, d) => (d > 0 ? Math.round((n / d) * 100) : 0);
     const tauxJoignables = pct(couverture.joignables, couverture.tentees);

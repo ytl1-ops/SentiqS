@@ -23,9 +23,41 @@ Sept correctifs fusionnés, chacun avec ses tests :
 | #31 | Correction du radar + vue Profil (la nature du risque, pas son ampleur) |
 | #32 | Élargissement des lexiques humanitaire et économique, sans bouger un niveau |
 | #33 | Le périmètre passe avant le niveau dans la file de traitement |
+| #34 | Documentation du dépôt pour la passation |
+| #35 | Archive quotidienne, sortie d'alerte, cliquet sur les facteurs |
 
-La couverture de test est passée de 16 à **104 tests**. Dix contrôles
+La couverture de test est passée de 16 à **149 tests**. Dix contrôles
 automatiques tournent en CI.
+
+### Ce que la PR #35 a réglé, et ce qu'elle n'a pas pu régler
+
+Après une évaluation du produit sur cinquante axes face au niveau de
+référence du secteur (107/250, soit 50 % de la référence), quatre chantiers
+ont été menés :
+
+- **l'archive quotidienne des niveaux** et la trajectoire par pays — le
+  produit ne pouvait montrer qu'un état, jamais un mouvement ;
+- **la sortie d'alerte** vers Slack, Teams ou tout relais webhook, sur
+  changement de niveau uniquement ;
+- **le cliquet** sur les 38 facteurs structurels non datés, et leur
+  affichage dans la fiche pays ;
+- **un README honnête**, qui dit aussi ce que le produit ne fait pas.
+
+Quatre écarts de la grille **ne se comblent pas par du code**, et il faut
+le dire plutôt que de les laisser croire réglés :
+
+- **Les 9 fiches pays sur 54.** Le générateur refuse délibérément de
+  produire du contenu sûreté à partir de rien : il exige un fichier de
+  données rempli à partir de sources vérifiées. Générer les 45 manquantes
+  reviendrait à fabriquer des évaluations de sûreté. Cette limite est une
+  protection, pas un obstacle.
+- **Le réseau humain de terrain et l'analyste de garde.** C'est ce que
+  vendent Crisis24 et International SOS ; aucun code ne le remplace.
+- **La latence.** GitHub étrangle le cron ; descendre sous l'heure demande
+  une infrastructure d'exécution, pas un réglage.
+- **Les langues de collecte.** Ajouter des sources en arabe, portugais ou
+  swahili sans étendre d'abord les lexiques produirait des articles mal
+  classés — c'est-à-dire une régression déguisée en couverture.
 
 Sur #33 : un item allemand concernant la Russie, seul CRITIQUE du cycle,
 ouvrait la file « À traiter » devant tout le contenu africain. Le correctif de
@@ -89,7 +121,14 @@ GitHub et Netlify. Par ordre d'urgence.
   renforce la sécurité alimentaire » ressort en ÉLEVÉ. Une bonne nouvelle
   promue en alerte. Le correctif n'a pas été tenté : il faut d'abord savoir
   combien de cas cela représente sur plusieurs cycles, plutôt que de coder une
-  règle sur deux exemples. Compter d'abord.
+  règle sur deux exemples. Compter d'abord — et depuis la PR #35, l'archive
+  quotidienne rend ce comptage possible.
+
+- **La décroissance des facteurs structurels non revus** est délibérément
+  absente, et un test l'interdit tant qu'aucune mesure ne l'a validée. Sur
+  cet outil un faux négatif coûte plus cher qu'une donnée périmée : une
+  première décroissance sur le socle vérifié faisait tomber la Somalie, le
+  Kenya et l'Éthiopie au VERT.
 
 - **Le déséquilibre des quatre axes Profil** vient du corpus, pas du
   classifieur : 72,5 % des articles collectés sont sécuritaires, et seulement

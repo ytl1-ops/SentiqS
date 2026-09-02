@@ -38,7 +38,7 @@ corriger un fichier que personne ne charge.
 ## Vérifier une modification
 
 ```bash
-npm test          # node --test scripts/test/*.test.js — 104 tests
+npm test          # node --test scripts/test/*.test.js — 149 tests
 npm run fumee     # charge la page de production dans Chromium
 ```
 
@@ -70,7 +70,7 @@ pas la demi-largeur du texte centré). Un test neuf doit d'abord être vu
 `.github/workflows/webapp-ci.yml`, job `collecte` : syntaxe du JS inline,
 couverture des proxys, accessibilité du fichier de production, pages légales,
 symétrie du dictionnaire i18n, registre des sources, ressources référencées
-présentes, datation des incidents vérifiés, les 104 tests, chargement réel de
+présentes, datation des incidents vérifiés, les 149 tests, chargement réel de
 la page. Chacun a son script dans `scripts/verifier-*.js`.
 
 Le job `integrite` refuse toute PR où `webapp/` aurait disparu — né d'une
@@ -129,6 +129,71 @@ Deux choses à savoir avant d'y toucher :
 
 Après tout changement de lexique : mesurer sur le cache réel combien de niveaux
 bougent. La bonne réponse est presque toujours zéro.
+
+---
+
+## L'archive des niveaux
+
+Le job de collecte écrit **un instantané par jour** dans
+`web/historique/AAAA-MM-JJ.json`, plus une `serie.json` compacte que
+l'interface télécharge pour afficher la trajectoire de chaque pays. Le
+premier passage de la journée fait foi ; le refus d'écraser *est* le
+mécanisme « un par jour », il ne dépend d'aucun état conservé entre deux runs.
+
+L'archive vit sous `web/` et non sous `data/` parce que c'est `web/` que Pages
+sert : l'interface la lit sans Supabase ni API.
+
+Le calcul de tendance (`tendanceNiveaux`) est dans le **noyau**, partagé par
+l'interface et par le job. Ne pas le dupliquer : c'est la trajectoire montrée
+à l'utilisateur qui paierait la divergence.
+
+**Aucune flèche n'est affichée en dessous de deux relevés.** Une trajectoire
+annoncée le premier jour serait une affirmation sans mesure.
+
+---
+
+## La sortie d'alerte
+
+`scripts/lib/alerte-sortante.js` poste un message sur `WEBHOOK_ALERTES` (un
+secret Actions) quand un pays **change de niveau**. Charge utile
+`{"text": "..."}` — le plus petit dénominateur commun entre Slack, Teams et la
+plupart des relais e-mail.
+
+Trois règles à ne pas défaire :
+
+- **On n'annonce que les changements, jamais l'état.** Le job tourne cinq à
+  quinze fois par jour ; envoyer la situation à chaque cycle produirait un
+  canal que plus personne ne lit — et une alerte qu'on ne lit plus est pire
+  qu'une alerte absente.
+- **La référence est `web/historique/dernier-signale.json`**, pas la mémoire
+  du processus, qui repart de zéro à chaque run. Cet état retient le dernier
+  niveau *annoncé*, pas le dernier *observé* : un pays qui redescend puis
+  remonte doit être annoncé une seconde fois.
+- **L'état avance même sans canal configuré**, sinon le jour du branchement
+  déverserait tout l'arriéré d'un coup.
+
+Sans `WEBHOOK_ALERTES`, le job journalise le message qui *serait* parti. C'est
+la façon de mesurer le bruit avant de brancher quoi que ce soit.
+
+---
+
+## Le cliquet sur les facteurs structurels
+
+38 facteurs de `FACTEURS_SPECIAUX` pèsent leur bonus plein sans date de revue.
+Les dater demande un analyste, pas du code.
+
+`scripts/verifier-datation-incidents.js` porte donc un plafond,
+`PLAFOND_FACTEURS_NON_DATES = 38` : toute PR qui ajoute un facteur non daté
+échoue. Il est fait pour **descendre** au fil des revues, jamais pour monter —
+le relever annulerait le seul garde-fou de ce socle. Une date `revu` illisible
+ou dans le futur bloque aussi : elle affiche « revu récemment » et endort la
+vigilance, ce qui est pire que pas de date.
+
+**Le poids des facteurs ne dépend d'aucune date de revue**, et un test
+l'interdit. Faire décroître un facteur non revu est l'idée évidente ; elle
+demande des dates que personne n'a produites, et sur cet outil un faux négatif
+coûte plus cher qu'une donnée périmée. Si ce test tombe un jour, c'est que
+quelqu'un a branché la décroissance : mesurer d'abord.
 
 ---
 
