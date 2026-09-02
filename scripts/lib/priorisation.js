@@ -89,10 +89,17 @@ const AGE_SUSPECT_J = 180;
 function triageIncident(inc) {
   const i = inc || {};
   const porteur = !!i.niveauSans && i.niveauSans !== i.niveau;
-  // Une date non analysable compte comme ancienne : on ne sait pas, donc on
-  // regarde. La traiter comme recente ferait disparaitre de la liste les
-  // incidents les moins bien saisis.
-  const age = (typeof i.jours === 'number' && i.jours >= 0) ? i.jours : null;
+  // Une date NON ANALYSABLE (null) compte comme ancienne : on ne sait pas,
+  // donc on regarde. La traiter comme recente ferait disparaitre de la liste
+  // les incidents les moins bien saisis.
+  //
+  // Un age NEGATIF est autre chose, et la premiere version les confondait.
+  // dateEvenementMs resout une date imprecise (« Juin 2026 ») a un point qui
+  // peut tomber un jour ou deux dans le futur : douze incidents porteurs
+  // sortaient a -1 jour et etaient classes « urgents » alors qu'ils sont les
+  // PLUS RECENTS du socle. Un age negatif vaut donc zero : c'est aujourd'hui.
+  const brut = (typeof i.jours === 'number' && Number.isFinite(i.jours)) ? i.jours : null;
+  const age = brut === null ? null : Math.max(0, brut);
   const ancien = age === null || age >= AGE_SUSPECT_J;
   if (!porteur) return 'differable';
   return ancien ? 'urgent' : 'porteur';

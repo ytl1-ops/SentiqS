@@ -121,7 +121,17 @@ test('une date non analysable compte comme ancienne', () => {
   // disparaitre de la liste les incidents les moins bien saisis — exactement
   // ceux qui meritent un oeil.
   assert.strictEqual(P.triageIncident(inc({ jours: null })), 'urgent');
-  assert.strictEqual(P.triageIncident(inc({ jours: -5 })), 'urgent');
+  assert.strictEqual(P.triageIncident(inc({ jours: undefined })), 'urgent');
+  assert.strictEqual(P.triageIncident(inc({ jours: 'hier' })), 'urgent');
+});
+
+test('un age negatif est aujourd hui, pas une date inconnue', () => {
+  // La premiere version confondait les deux et classait « urgents » douze
+  // incidents qui sont les PLUS RECENTS du socle : dateEvenementMs resout une
+  // date imprecise (« Juin 2026 ») a un point qui peut tomber un jour dans le
+  // futur, d'ou des ages a -1. Le comptage passait de 36 a 48.
+  assert.strictEqual(P.triageIncident(inc({ jours: -1 })), 'porteur');
+  assert.strictEqual(P.triageIncident(inc({ jours: -400 })), 'porteur');
 });
 
 test('le seuil d anciennete est inclusif', () => {
