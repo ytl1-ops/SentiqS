@@ -350,6 +350,34 @@ aveugles. `verifier-redondance-sources.js` pose un cliquet à 13 ; il descend
 en évaluant éditorialement de nouvelles sources, jamais en leur attribuant un
 score au jugé.
 
+**Ce n'est pas un manque de sources, c'est le seuil.** `sensibilite-seuil.js`
+le mesure : à 70, treize pays à source unique ; **à 68, zéro**, et la médiane
+passe de 2 à 3. Les 63 sources notées exactement 68 sont en majorité des
+requêtes « <Pays> — Sécurité » de Google News, plus douze médias nommés.
+
+Le script ne tranche rien, et c'est voulu. Descendre le seuil laisserait une
+agrégation Google News faire monter un niveau d'alerte : c'est un arbitrage
+entre un faux négatif (treize pays aveugles) et un faux positif (une
+agrégation qui alarme). Il appartient à l'éditeur. La vraie question n'est
+d'ailleurs pas « 70 ou 68 » mais « ce média nommé mérite-t-il 72 ? », et elle
+se décide source par source.
+
+---
+
+## Par où commencer la revue du socle
+
+`revue-socle.js` transforme « relire les 172 incidents » en liste ordonnée,
+à partir du dernier instantané archivé : niveau affiché × ancienneté du socle
+× part du socle dans le score, atténué de moitié si la collecte apporte
+quelque chose.
+
+Au 02/09/2026 : **33 pays sur 54** ont leur incident vérifié le plus récent à
+plus de soixante jours. En tête, la Somalie — **marron, 332 jours, 96 % du
+score porté par le socle, aucun apport de la collecte**.
+
+Un pays au vert sort toujours de la liste : c'est le seul niveau où une donnée
+périmée ne peut pas produire de faux négatif visible.
+
 ---
 
 ## Conventions
