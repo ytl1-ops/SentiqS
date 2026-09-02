@@ -273,6 +273,69 @@ function revueDepassee(revu, maintenant) {
   return age === null || age > REVUE_RECOMMANDEE_MOIS;
 }
 
+// ── Disjoncteur pour service externe ───────────────────────────────────────
+//
+// Mesuré le 02/09/2026, en interrogeant directement les trois moteurs de
+// traduction déclarés par l'application :
+//
+//   MyMemory                        HTTP 200  — répond
+//   lingva.ml                       HTTP 500
+//   translate.plausibility.cloud    HTTP 502
+//   lingva.garudalinux.org          HTTP 403  (Cloudflare)
+//   translate.googleapis.com        HTTP 429  (depuis une IP de centre de données)
+//
+// Les trois miroirs de Lingva sont morts, pas ralentis. Or la chaîne les
+// essaie l'un après l'autre avec neuf secondes de patience chacun : dès que
+// le quota MyMemory est épuisé, chaque titre à traduire coûtait jusqu'à
+// vingt-sept secondes d'attente avant même d'atteindre le dernier moteur.
+// C'est ce qu'on lit dans les journaux du run #800.
+//
+// Un disjoncteur retient l'échec au lieu de le revivre : après `seuil`
+// échecs consécutifs, le service est court-circuité pour le reste de la
+// session. Un seul succès le referme — un miroir qui revient doit pouvoir
+// resservir, c'est toute la raison d'en déclarer plusieurs.
+//
+// Volontairement sans minuterie de réarmement : une session d'interface dure
+// des minutes, pas des jours, et une temporisation ajouterait un état
+// difficile à tester pour un gain nul à cette échelle.
+const DISJONCTEUR_SEUIL = 2;
+
+function creerDisjoncteur(options) {
+  const o = options || {};
+  const seuil = (typeof o.seuil === 'number' && o.seuil > 0) ? o.seuil : DISJONCTEUR_SEUIL;
+  let echecs = 0;
+  return {
+    nom: o.nom || 'service',
+    ouvert() { return echecs >= seuil; },
+    succes() { echecs = 0; },
+    echec() { echecs += 1; },
+    echecs() { return echecs; },
+  };
+}
+
+/**
+ * Enveloppe une fonction asynchrone d'un disjoncteur.
+ *
+ * Quand le disjoncteur est ouvert, on lève immédiatement au lieu d'attendre
+ * le réseau : c'est exactement le temps qu'on cherche à ne plus perdre.
+ */
+function avecDisjoncteur(fn, disjoncteur) {
+  const d = disjoncteur || creerDisjoncteur({});
+  const enveloppe = async function (...args) {
+    if (d.ouvert()) throw new Error(d.nom + ' : disjoncteur ouvert apres ' + d.echecs() + ' echecs');
+    try {
+      const r = await fn.apply(this, args);
+      d.succes();
+      return r;
+    } catch (e) {
+      d.echec();
+      throw e;
+    }
+  };
+  enveloppe.disjoncteur = d;
+  return enveloppe;
+}
+
 // ── Tendance d'un pays sur la série archivée ───────────────────────────────
 //
 // Une seule implémentation, partagée par l'interface (qui lit
@@ -313,6 +376,7 @@ const API = {
   DECROISSANCE_PLEIN_J, DECROISSANCE_NULLE_J, POIDS_CONTEXTE_NON_DATE,
   NIVEAUX_ORDRE, NIVEAU_MIN_POUR_ROUGE_AUTO, borneRougeVerifie,
   REVUE_RECOMMANDEE_MOIS, ageRevueMois, revueDepassee,
+  DISJONCTEUR_SEUIL, creerDisjoncteur, avecDisjoncteur,
   tendanceNiveaux,
   MAX_LIVE_EVENTS_PAR_PAYS,
 };

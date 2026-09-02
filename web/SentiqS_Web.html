@@ -4763,7 +4763,10 @@ async function _trViaLingva(texte, srcLang, tgtLang) {
   for (const mirror of LINGVA_MIRRORS) {
     try {
       const url = mirror + '/api/v1/' + srcLV + '/' + tgtLang + '/' + encodeURIComponent(texte);
-      const r = await fetch(url, { signal: AbortSignal.timeout(9000) });
+      // 4 s et non 9 : un miroir qui n'a pas repondu en quatre secondes ne
+      // sauvera pas la traduction d'un titre, et trois miroirs a 9 s faisaient
+      // attendre 27 s avant meme d'atteindre le moteur suivant.
+      const r = await fetch(url, { signal: AbortSignal.timeout(4000) });
       const d = await r.json();
       if (d && typeof d.translation === 'string' && d.translation.trim()) return d.translation;
     } catch (e) { /* miroir suivant */ }
@@ -4783,7 +4786,20 @@ async function _trViaGoogle(texte, srcLang, tgtLang) {
   return out;
 }
 
-const TR_AGENT_PROVIDERS = [_trViaMyMemory, _trViaLingva, _trViaGoogle];
+// Chaque moteur porte son disjoncteur (voir creerDisjoncteur dans
+// web/js/noyau.js). Mesure du 02/09/2026 : les trois miroirs de Lingva
+// repondent 500, 502 et 403 — ils sont morts, pas lents. Sans disjoncteur,
+// l'application les rappelait pour CHAQUE titre a traduire, et payait
+// l'attente a chaque fois. Deux echecs consecutifs suffisent maintenant a
+// court-circuiter un moteur pour le reste de la session ; un seul succes le
+// referme, parce qu'un miroir qui revient doit pouvoir resservir.
+const TR_AGENT_PROVIDERS = (typeof avecDisjoncteur === 'function')
+  ? [
+      avecDisjoncteur(_trViaMyMemory, creerDisjoncteur({ nom: 'mymemory' })),
+      avecDisjoncteur(_trViaLingva,   creerDisjoncteur({ nom: 'lingva' })),
+      avecDisjoncteur(_trViaGoogle,   creerDisjoncteur({ nom: 'google' })),
+    ]
+  : [_trViaMyMemory, _trViaLingva, _trViaGoogle];
 
 // _trDecodeEntities(str) : MyMemory (et parfois d'autres API de traduction
 // publiques) renvoie occasionnellement le texte traduit avec des caracteres
