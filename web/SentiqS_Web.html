@@ -10964,6 +10964,39 @@ function tendancePays(code) {
 
 const NIV_LIBELLE = { vert:'vert', jaune:'jaune', orange:'orange', marron:'marron', rouge:'rouge' };
 
+// ── SILENCE N'EST PAS CALME ────────────────────────────────────────────────
+//
+// Mesure du run #800 : sur 495 sources, 39 seulement avaient publie depuis
+// douze heures, couvrant 31 pays sur 54. Vingt-trois pays etaient donc sans
+// aucune actualite fraiche — Angola, Burundi, Djibouti, Erythree, Gambie,
+// Guinee, Libye, Somalie, Soudan du Sud, Tchad, Ouganda parmi eux.
+//
+// Or dans le cartogramme, ces pays s'affichaient exactement comme un pays
+// calme : un score bas, une tuile discrete. Pour un professionnel de la
+// surete, c'est l'ambiguite la plus couteuse de l'outil — l'absence de
+// signal ressemble a l'absence de risque, et ce n'est pas la meme chose.
+//
+// ALL ne contient que le temps reel de moins de douze heures (voir
+// « Separation stricte » plus haut) : un pays absent de ALL est un pays dont
+// aucune source n'a rien publie sur la fenetre. On le dit, au lieu de
+// laisser le silence passer pour du calme.
+function paysMuet(cy) {
+  if (!cy || cy === 'INT' || typeof ALL === 'undefined' || !Array.isArray(ALL)) return false;
+  return !ALL.some(function (a) { return a && a.cy === cy; });
+}
+
+// Marque discrete mais explicite. Pas une alerte : un pays muet n'est pas un
+// pays dangereux, c'est un pays sur lequel on ne sait rien depuis douze
+// heures. La nuance est exactement ce qu'il faut transmettre.
+function marqueSilence(cy) {
+  if (!paysMuet(cy)) return '';
+  return '<span title="Aucune source n\'a publi\u00e9 sur ce pays depuis 12 h. Le niveau affich\u00e9 repose uniquement sur le socle v\u00e9rifi\u00e9 et le contexte structurel — absence de signal ne veut pas dire absence de risque." '
+    + 'aria-label="Aucune actualit\u00e9 depuis 12 heures" '
+    + 'style="font-family:var(--font-mono,\'Roboto Mono\',monospace);font-size:8.5px;font-weight:700;'
+    + 'color:var(--lg);border:1px dashed var(--bd);border-radius:3px;padding:0 3px;margin-left:4px;white-space:nowrap;">'
+    + 'muet</span>';
+}
+
 // Rendu compact : une fleche et le nombre de crans. Le detail complet est
 // dans l'infobulle, parce que la tuile fait 108 px de large.
 function chipTendance(code) {
@@ -11165,7 +11198,7 @@ const cartogramme = () => {
             const col = scoreColor(s);
             return `<div class="carto-tile" onclick="ouvrirVuePays('${s.cy}')" title="${s.pays.name} — ${s.score}/100" style="cursor:pointer;padding:5px 6px;border-radius:5px;background:${col}14;border:1px solid ${col}44;transition:transform .12s,box-shadow .12s;${GLOBAL_CY_FILTER===s.cy?`box-shadow:0 0 0 2px ${col};`:''}">
               <div style="font-size:9.5px;font-weight:700;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.pays.flag} ${s.pays.name}</div>
-              <div style="font-family:var(--font-mono,'Roboto Mono',monospace);font-size:9px;font-weight:700;color:${col};display:flex;align-items:baseline;">${Math.round(s.score)}${chipTendance(s.cy)}</div>
+              <div style="font-family:var(--font-mono,'Roboto Mono',monospace);font-size:9px;font-weight:700;color:${col};display:flex;align-items:baseline;flex-wrap:wrap;">${Math.round(s.score)}${chipTendance(s.cy)}${marqueSilence(s.cy)}</div>
             </div>`;
           }).join('')}
         </div>
