@@ -153,11 +153,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: package-lock.json
-
-      - name: Installe les dépendances du moteur
-        run: npm ci
+        # Pas de `cache: npm` / `cache-dependency-path` ni de `npm ci` ici :
+        # ce job tourne a la racine du depot, dont le package.json n'a aucune
+        # dependance et n'a pas de package-lock.json (seul webapp/ en a un).
+        # `cache-dependency-path: package-lock.json` fait echouer le step
+        # setup-node lui-meme ("unable to cache dependencies"), avant meme
+        # que les etapes suivantes ne s'executent, et `npm ci` a la racine
+        # echoue toujours en l'absence de lockfile. Le seul package que ce
+        # job installe est Playwright, ci-dessous, via `npm install --no-save`.
 
       - name: Installer le navigateur des contrôles
         # Deux controles ouvrent vraiment la page : celui d'accessibilite et
