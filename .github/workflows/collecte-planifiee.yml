@@ -70,6 +70,24 @@ jobs:
             exit 1
           fi
 
+      - name: Restaurer la mémoire inter-runs de collecte
+        # SRC_HEALTH / PROXY_HEALTH_PAYS (voir scripts/lib/sante-collecte.js)
+        # : un petit etat qui doit survivre entre executions ephemeres SANS
+        # toucher au depot (pas de commit — voir l'avertissement explicite
+        # dans scripts/lib/historique.js sur le bruit d'un commit a chaque
+        # run) ni a Supabase (changement de schema en production, hors
+        # perimetre sans le proprietaire). Cle glissante : chaque run
+        # sauvegarde sous une cle UNIQUE (son run id, ci-dessous), et
+        # restore-keys reprend ici la plus recente existante — jamais de
+        # collision, jamais besoin d'ecraser une cle existante.
+        uses: actions/cache/restore@v4
+        continue-on-error: true
+        with:
+          path: .cache-sante
+          key: sante-collecte-${{ github.run_id }}
+          restore-keys: |
+            sante-collecte-
+
       - name: Lancer la collecte planifiée
         env:
           # Firebase Hosting retire (voir suppression du workflow
@@ -96,6 +114,22 @@ jobs:
           # est une capacite d'ecriture sur le canal, pas une simple adresse.
           WEBHOOK_ALERTES: ${{ secrets.WEBHOOK_ALERTES }}
         run: node scripts/collecte-planifiee.js
+
+      - name: Sauvegarder la mémoire inter-runs de collecte
+        # if: always() — un run qui échoue plus loin (publication, archive)
+        # a quand meme APPRIS quelque chose sur les sources/proxys pendant
+        # sa collecte (scripts/collecte-planifiee.js l'ecrit dans
+        # .cache-sante/ des la fin de la collecte, avant tout risque
+        # d'echec ulterieur) ; le perdre reviendrait a repartir de zero pour
+        # rien. Cle = run id courant (voir l'etape de restauration
+        # ci-dessus) : jamais de collision avec une cle existante, donc
+        # jamais besoin d'overwrite.
+        if: always()
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: .cache-sante
+          key: sante-collecte-${{ github.run_id }}
 
       - name: Vérifie la fraîcheur du cache publié
         # La collecte peut "reussir" sans rien publier d'utile. On verifie
