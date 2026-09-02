@@ -29,6 +29,7 @@ const { USER_AGENT } = require('./lib/fetch-respectueux');
 const { creerIntercepteur } = require('./lib/interception-proxy-directe');
 const { evaluerAccessibilite } = require('./lib/couverture');
 const historique = require('./lib/historique');
+const alerteSortante = require('./lib/alerte-sortante');
 
 // Firebase Hosting retire (sentinel-surete.web.app ne recoit plus de
 // deploiement) — GitHub Pages est desormais l'hebergement reel.
@@ -333,7 +334,7 @@ function ecrireResumeActions(md) {
           const s = calcAlertScore(c.code);
           const d = (s && s.debug) || {};
           return {
-            code: c.code, niveau: s && s.key, total: s && s.total,
+            code: c.code, nom: c.name, niveau: s && s.key, total: s && s.total,
             verifies: d.verifies, facteurs: d.specials,
             live: d.liveApplique, historique: d.historiqueApplique,
           };
@@ -358,6 +359,47 @@ function ecrireResumeActions(md) {
         } else {
           console.log('  Archive : le ' + jour + ' est deja couvert — le premier passage du jour fait foi.');
         }
+
+        // ── SORTIE D'ALERTE ────────────────────────────────────────────
+        // Le produit detectait, affichait, et s'arretait la. Une
+        // notification navigateur ne part que si quelqu'un a l'onglet
+        // ouvert : c'est-a-dire pas la nuit, pas le week-end, pas quand
+        // elle sert. L'envoi part donc d'ici, ou le job voit chaque cycle.
+        //
+        // Voir scripts/lib/alerte-sortante.js pour le raisonnement complet.
+        // Sans WEBHOOK_ALERTES, tout ce bloc est un calcul a vide : on
+        // journalise ce qui SERAIT parti, ce qui permet de regler le bruit
+        // avant de brancher un canal.
+        const cheminEtat = path.join(RACINE_HISTORIQUE, 'dernier-signale.json');
+        let etat = {};
+        try {
+          if (fs.existsSync(cheminEtat)) etat = JSON.parse(fs.readFileSync(cheminEtat, 'utf8'));
+        } catch (_) { etat = {}; }   // etat illisible : on repart de zero, donc silencieux
+
+        const mouvement = alerteSortante.changements(etat, inst);
+        const noms = {};
+        for (const n of niveaux) if (n && n.code) noms[n.code] = n.nom || n.code;
+        const message = alerteSortante.construireMessage(mouvement, { jour, noms });
+
+        if (!message) {
+          console.log('  Alerte : aucun changement de niveau depuis le dernier signalement'
+            + (mouvement.descentes ? ' (' + mouvement.descentes + ' amelioration(s))' : '') + '.');
+        } else if (!process.env.WEBHOOK_ALERTES) {
+          console.log('  Alerte : ' + mouvement.montees.length
+            + ' aggravation(s) — aucun canal configure (WEBHOOK_ALERTES absent). Message qui serait parti :');
+          message.text.split('\n').forEach((l) => console.log('    | ' + l));
+        } else {
+          const envoi = await alerteSortante.envoyer(process.env.WEBHOOK_ALERTES, message);
+          console.log('  Alerte : ' + mouvement.montees.length + ' aggravation(s) — '
+            + (envoi.ok ? 'envoyee.' : 'NON envoyee (' + envoi.raison + ').'));
+          if (!envoi.ok) console.warn('::warning::Sortie d\'alerte en echec : ' + envoi.raison);
+        }
+
+        // L'etat avance meme sans canal configure : sinon, le jour ou l'on
+        // en branche un, il deverserait d'un coup tout l'historique des
+        // mouvements accumules.
+        fs.writeFileSync(cheminEtat,
+          JSON.stringify(alerteSortante.etatSuivant(etat, inst), null, 1) + '\n');
       }
     } catch (e) {
       // L'archive est un bonus : son echec ne doit jamais faire tomber une

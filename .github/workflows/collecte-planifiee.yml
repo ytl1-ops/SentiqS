@@ -86,6 +86,15 @@ jobs:
           # variables > Actions, avec la MEME valeur que le secret de la
           # fonction Edge.
           COLLECTEUR_JETON: ${{ secrets.COLLECTEUR_JETON }}
+          # Canal d'alerte sortant : URL d'un webhook entrant Slack, d'un
+          # connecteur Teams, ou de n'importe quel relais acceptant
+          # {"text": "..."}. OPTIONNEL — sans lui, le job calcule quand meme
+          # les changements de niveau et journalise le message qui SERAIT
+          # parti, ce qui permet de mesurer le bruit avant de brancher quoi
+          # que ce soit. A definir dans Settings > Secrets and variables >
+          # Actions. Ne jamais l'ecrire dans le depot : une URL de webhook
+          # est une capacite d'ecriture sur le canal, pas une simple adresse.
+          WEBHOOK_ALERTES: ${{ secrets.WEBHOOK_ALERTES }}
         run: node scripts/collecte-planifiee.js
 
       - name: Vérifie la fraîcheur du cache publié
@@ -95,8 +104,10 @@ jobs:
 
       - name: Archiver l'instantané du jour
         # Un instantané par jour, écrit par le premier passage (voir
-        # scripts/lib/historique.js). Les passages suivants ne trouvent rien
-        # à commiter et sortent sans rien faire — d'où le test de diff.
+        # scripts/lib/historique.js), plus l'état de dédoublonnage des
+        # alertes sortantes (dernier-signale.json), qui lui ne bouge que
+        # lorsqu'un niveau change. Les passages sans changement ne trouvent
+        # rien à commiter et sortent — d'où le test de diff.
         #
         # Le rebase avant push est là pour le cas où un déploiement Pages ou
         # une fusion serait arrivé pendant les huit minutes de collecte :
