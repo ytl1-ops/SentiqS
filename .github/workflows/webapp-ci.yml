@@ -154,6 +154,17 @@ jobs:
         with:
           node-version: 22
 
+      - name: Installer le navigateur des contrôles
+        # Deux controles ouvrent vraiment la page : celui d'accessibilite et
+        # le test de fumee. L'installation vivait DANS l'etape du test de
+        # fumee, donc apres le controle d'accessibilite — qui trouvait
+        # playwright absent et se taisait. Il a fallu le durcir pour que la
+        # panne devienne visible ; l'installation est maintenant explicite et
+        # placee avant ses deux consommateurs.
+        run: |
+          npm install playwright@1 --no-save
+          npx playwright install --with-deps chromium
+
       - name: Syntaxe du JavaScript inline de production
         # web/SentiqS_Web.html n'a aucune etape de build : une erreur de
         # syntaxe n'y serait decouverte que dans le navigateur d'un visiteur.
@@ -216,17 +227,6 @@ jobs:
         # a ete ajoute avant la regle et le reste. Le retirer demande de
         # verifier Netlify d'abord — d'ou un cliquet, pas un correctif.
         run: node scripts/verifier-secrets-suivis.js
-
-      - name: Installer le navigateur des contrôles
-        # Deux controles ouvrent vraiment la page : celui d'accessibilite et
-        # le test de fumee. L'installation vivait DANS l'etape du test de
-        # fumee, donc apres le controle d'accessibilite — qui trouvait
-        # playwright absent et se taisait. Il a fallu le durcir pour que la
-        # panne devienne visible ; l'installation est maintenant explicite et
-        # placee avant ses deux consommateurs.
-        run: |
-          npm install playwright@1 --no-save
-          npx playwright install --with-deps chromium
 
       - name: Accessibilité de l'interface rendue
         # Mesure le DOM APRES rendu, pas le fichier source : l'essentiel de
