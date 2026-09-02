@@ -22,7 +22,7 @@
 <style>
 :root{
   --bg:#05080B; --bg2:#070C11; --panel:#101A22; --panel-b:#1C2E3D; --line:#2E4E63; --line2:#1B2A36;
-  --ink:#F5F7FA; --ink2:rgba(245,247,250,.68); --ink3:rgba(245,247,250,.44); --ink4:rgba(245,247,250,.28);
+  --ink:#F5F7FA; --ink2:rgba(245,247,250,.68); --ink3:rgba(245,247,250,.55); --ink4:rgba(245,247,250,.47);
   --blue:#2C5AAE; --sky:#7FB2CC; --navy:#16212C;
   --red:#8B1A1A; --amber:#7C4A00; --sblue:#2C5AAE; --green:#0F4F2A;
   --serif:'Source Serif 4',serif; --sans:'IBM Plex Sans',sans-serif; --mono:'IBM Plex Mono',monospace;
@@ -48,6 +48,10 @@ footer{border-top:1px solid var(--line2);padding:32px 24px;text-align:center;col
 footer a{color:var(--ink3)}
 .breadcrumb{font-size:12.5px;color:var(--ink3);margin-bottom:18px}
 .breadcrumb a{color:var(--sky)}
+.meta-fresh{font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-bottom:24px}
+.sources{margin-top:38px;padding-top:22px;border-top:1px solid var(--line2);}
+.sources h2{font-size:1.1rem;margin-bottom:12px;}
+.sources-note{font-size:.85rem;color:var(--ink2);margin:0;}
 </style>
 </head>
 <body>
@@ -66,6 +70,7 @@ footer a{color:var(--ink3)}
   <div class="breadcrumb"><a href="../index.html">Accueil</a> / <a href="index.html">Fiches pays</a> / Mali</div>
   <div class="eyebrow">Fiche risque & veille sécuritaire</div>
   <h1>Fiche Risque & Veille Sécuritaire : Mali</h1>
+  <p class="meta-fresh">Rédigée le 21 juillet 2026 · non révisée depuis · sources non publiées</p>
   <p class="summary">Le Mali demeure l'un des pays les plus exposés d'Afrique de l'Ouest, en raison de la présence durable de groupes armés jihadistes et d'une transition militaire prolongée. Les régions du centre (Mopti, Ségou) et du nord (Tombouctou, Gao, Kidal) restent des zones à très haut risque, marquées par des attaques récurrentes contre les forces de sécurité et les populations civiles. Bamako, bien que globalement plus stable, n'est pas exempte d'incidents ciblant des symboles étatiques ou militaires. Les axes routiers reliant la capitale aux régions du nord sont particulièrement exposés aux engins explosifs improvisés et aux embuscades.</p>
 
   <h2>Évaluation des menaces pour les entreprises et opérateurs au Mali</h2>
@@ -84,6 +89,14 @@ footer a{color:var(--ink3)}
     <p>Face à une situation sécuritaire qui évolue en permanence, disposer d'un flux d'alertes fiable est essentiel. L'application SentiqS transmet des notifications Push et SMS d'urgence en temps réel et permet la cartographie continue de vos équipes pour sécuriser vos opérations sur le terrain.</p>
     <a class="btn" href="../SentiqS_Web.html">Essayer SentiqS</a>
   </div>
+  <section class="sources">
+    <h2>Sources</h2>
+    <p class="sources-note">Cette fiche a été rédigée hors du générateur SentiqS et
+    ne cite aucune source vérifiable. Elle décrit une situation arrêtée au
+    21 juillet 2026 et n'a pas été révisée depuis : ne l'utilisez pas comme
+    référence à jour. Le flux d'alertes de l'application, lui, indique ses
+    sources et sa date de collecte.</p>
+  </section>
 </main>
 <footer>
   <div>SentiqS — Veille sûreté · 54 pays d'Afrique</div>
