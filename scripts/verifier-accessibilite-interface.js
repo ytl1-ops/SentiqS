@@ -31,12 +31,26 @@ const TYPES = {
   '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.xml': 'application/xml',
 };
 
-let chromium;
-try { ({ chromium } = require('playwright')); }
-catch (_) {
-  console.log('· playwright absent : controle d\'accessibilite ignore.');
+// En CI, un navigateur absent n'est pas une excuse : c'est un controle qui ne
+// controle rien. Le 02/09/2026, ce script est entre en CI et rien dans les
+// journaux ne permettait de dire s'il avait mesure quoi que ce soit ou s'il
+// s'etait tu. Un test muet vaut moins que pas de test — c'est ecrit dans
+// CLAUDE.md, et ca vaut aussi pour les controles.
+const EN_CI = !!(process.env.CI || process.env.GITHUB_ACTIONS);
+
+function abandonner(raison) {
+  if (EN_CI) {
+    console.error('✗ ' + raison);
+    console.error('  En CI ce controle doit mesurer ou echouer, jamais passer en silence.');
+    process.exit(1);
+  }
+  console.log('· ' + raison + ' — controle ignore hors CI.');
   process.exit(0);
 }
+
+let chromium;
+try { ({ chromium } = require('playwright')); }
+catch (_) { abandonner('playwright absent'); }
 
 const serveur = http.createServer((req, res) => {
   const f = path.join(RACINE, decodeURIComponent(String(req.url).split('?')[0]));
@@ -56,8 +70,8 @@ const serveur = http.createServer((req, res) => {
   let nav;
   try { nav = await chromium.launch(lancement); }
   catch (e) {
-    console.log('· navigateur indisponible : controle ignore (' + String(e.message).split('\n')[0] + ')');
-    serveur.close(); process.exit(0);
+    serveur.close();
+    abandonner('navigateur indisponible : ' + String(e.message).split('\n')[0]);
   }
 
   const page = await nav.newPage();
