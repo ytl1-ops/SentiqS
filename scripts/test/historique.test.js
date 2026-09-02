@@ -207,3 +207,24 @@ test('l interface et le job lisent la meme serie de la meme facon', () => {
   const cote_interface = ctx.tendancePays('ML');
   assert.deepStrictEqual(cote_interface, cote_job);
 });
+
+test('web/historique/serie.json existe et est valide des le depart', () => {
+  // Regression de la PR #35 : la page telecharge ce fichier a chaque
+  // ouverture du tableau de bord. Sans lui, chaque visite produisait un 404
+  // en console — assez pour faire echouer le test de fumee, ce qui est
+  // exactement arrive. Une serie vide n affiche aucune trajectoire, ce qui
+  // est le bon comportement tant qu il n y a pas deux releves.
+  const cible = path.join(__dirname, '../../web/historique/serie.json');
+  assert.ok(fs.existsSync(cible), 'serie.json doit etre versionne, meme vide');
+  const j = JSON.parse(fs.readFileSync(cible, 'utf8'));
+  assert.ok(j && typeof j.pays === 'object', 'la forme doit etre celle que construireSerie produit');
+  assert.ok(Array.isArray(j.jours));
+});
+
+test('la page ne lit la serie qu a une adresse relative a web/', () => {
+  // Si quelqu un deplace l archive sous data/, Pages ne la sert plus et la
+  // trajectoire disparait sans bruit : le fetch echouerait en silence.
+  const { HTML } = require('./_bac.js');
+  assert.match(HTML, /fetch\('historique\/serie\.json'/,
+    "l'archive doit rester servie a cote de la page");
+});
