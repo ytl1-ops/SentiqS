@@ -217,6 +217,17 @@ jobs:
         # verifier Netlify d'abord — d'ou un cliquet, pas un correctif.
         run: node scripts/verifier-secrets-suivis.js
 
+      - name: Installer le navigateur des contrôles
+        # Deux controles ouvrent vraiment la page : celui d'accessibilite et
+        # le test de fumee. L'installation vivait DANS l'etape du test de
+        # fumee, donc apres le controle d'accessibilite — qui trouvait
+        # playwright absent et se taisait. Il a fallu le durcir pour que la
+        # panne devienne visible ; l'installation est maintenant explicite et
+        # placee avant ses deux consommateurs.
+        run: |
+          npm install playwright@1 --no-save
+          npx playwright install --with-deps chromium
+
       - name: Accessibilité de l'interface rendue
         # Mesure le DOM APRES rendu, pas le fichier source : l'essentiel de
         # cette interface est construit par JavaScript, et compter les
@@ -231,7 +242,4 @@ jobs:
         # aucun ne verrait une rupture d'execution (dependance manquante,
         # script charge dans le mauvais ordre, ressource refusee par la CSP).
         # Celui-ci ouvre vraiment la page dans un navigateur.
-        run: |
-          npm install playwright@1 --no-save
-          npx playwright install --with-deps chromium
-          node scripts/test-fumee.js
+        run: node scripts/test-fumee.js
