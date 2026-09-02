@@ -18,3 +18,4 @@ niveaux-pays.json
 # PROXY_HEALTH_PAYS) — restaurée/sauvegardée via actions/cache, jamais
 # commitée (voir scripts/lib/sante-collecte.js).
 .cache-sante/
+incidents-porteurs.json

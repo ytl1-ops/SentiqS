@@ -378,6 +378,21 @@ score porté par le socle, aucun apport de la collecte**.
 Un pays au vert sort toujours de la liste : c'est le seul niveau où une donnée
 périmée ne peut pas produire de faux négatif visible.
 
+**Et `incidents-porteurs.js` réduit le volume.** Il retire chaque incident un
+par un et redemande son niveau à la page : si le pays descend d'un cran,
+l'incident *porte* le niveau. Sinon il s'ajoute à un socle déjà suffisant, et
+le relire ne changerait rien à ce que voit l'utilisateur.
+
+Mesure du 02/09/2026 : **70 incidents sur 172 sont porteurs**, et **36 d'entre
+eux ont plus de 180 jours** ou une date non analysable. Les 102 autres peuvent
+attendre. C'est ce qui fait passer « relire 172 incidents » à une liste qu'un
+analyste peut finir.
+
+Le triage vit dans `scripts/lib/priorisation.js` (`triageIncident`) et une
+date illisible y compte comme **ancienne** : on ne sait pas, donc on regarde.
+La traiter comme récente ferait disparaître de la liste les incidents les
+moins bien saisis — exactement ceux qui méritent un œil.
+
 ---
 
 ## Conventions

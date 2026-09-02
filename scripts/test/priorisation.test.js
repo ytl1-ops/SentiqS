@@ -98,3 +98,39 @@ test('un pays sans score total ne casse pas le calcul', () => {
   assert.strictEqual(P.prioriteRevue(pays({ total: 0, verifies: 0 })), 0);
   assert.strictEqual(P.prioriteRevue(null), 0);
 });
+
+// ── Triage des incidents vérifiés ──────────────────────────────────────────
+const inc = (o) => Object.assign({ niveau: 'marron', niveauSans: 'orange', jours: 300 }, o);
+
+test('un incident qui ne porte pas le niveau est differable', () => {
+  // Le retirer ne change rien a ce que voit l utilisateur : le relire non plus.
+  assert.strictEqual(P.triageIncident(inc({ niveauSans: 'marron' })), 'differable');
+});
+
+test('porteur et ancien : urgent', () => {
+  assert.strictEqual(P.triageIncident(inc({ jours: 300 })), 'urgent');
+});
+
+test('porteur mais recent : a relire, pas urgent', () => {
+  // Un incident porteur de trois semaines est probablement encore vrai.
+  assert.strictEqual(P.triageIncident(inc({ jours: 20 })), 'porteur');
+});
+
+test('une date non analysable compte comme ancienne', () => {
+  // On ne sait pas, donc on regarde. La traiter comme recente ferait
+  // disparaitre de la liste les incidents les moins bien saisis — exactement
+  // ceux qui meritent un oeil.
+  assert.strictEqual(P.triageIncident(inc({ jours: null })), 'urgent');
+  assert.strictEqual(P.triageIncident(inc({ jours: -5 })), 'urgent');
+});
+
+test('le seuil d anciennete est inclusif', () => {
+  assert.strictEqual(P.triageIncident(inc({ jours: P.AGE_SUSPECT_J })), 'urgent');
+  assert.strictEqual(P.triageIncident(inc({ jours: P.AGE_SUSPECT_J - 1 })), 'porteur');
+});
+
+test('un incident non porteur reste differable meme tres ancien', () => {
+  // L anciennete seule ne suffit pas : sans effet sur le niveau, elle ne
+  // coute rien a l utilisateur.
+  assert.strictEqual(P.triageIncident(inc({ niveauSans: 'marron', jours: 900 })), 'differable');
+});
