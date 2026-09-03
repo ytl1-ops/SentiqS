@@ -158,3 +158,25 @@ test('l\'interface ne promet plus des actualites « verifiees »', () => {
   assert.doesNotMatch(HTML, /note_flux:'Flux opérationnel : actualités vérifiées/);
   assert.match(HTML, /id="stVer">0<\/div><div class="sl"[^>]*>Recoupes<\/div>/);
 });
+
+// ── Le cache publie suit la page qui le sert ─────────────────────────────
+
+test('le cache partage est recalcule et dedoublonne avant d\'etre ecrit', () => {
+  // publierCollectePartagee() fusionne le cache precedent avec la collecte du
+  // jour. Sans recalcul, un article herite garde le verdict de la version qui
+  // l'a collecte : le 03/09/2026, un enlevement au Kenya restait « normal »
+  // dans le cache publie une heure apres la refonte du tri.
+  const f = tranche('async function publierCollectePartagee', 'async function diagnostiquerCachePartage');
+  const iRehydrate = f.indexOf('rehydrateArticles(fusionnes)');
+  const iDedup = f.indexOf('fusionnes = dedupliquerArticles(fusionnes)');
+  const iUpsert = f.indexOf(".upsert({");
+  assert.ok(iRehydrate !== -1, 'le cache fusionne doit etre recalcule');
+  assert.ok(iDedup !== -1, 'le cache fusionne doit etre dedoublonne');
+  assert.ok(iRehydrate < iUpsert && iDedup < iUpsert, 'recalcul et fusion doivent preceder l\'ecriture');
+});
+
+test('a la rehydratation, « verifie » se rederive du nombre de sources', () => {
+  const f = tranche('function rehydrateArticles', 'function _decodeEntitesHTML');
+  assert.match(f, /a\.verified = distinctes\.size >= 2/);
+  assert.match(f, /a\.fiable = /);
+});
