@@ -34,7 +34,7 @@
      X-Frame-Options:DENY en en-tete HTTP reel) retire — seul GitHub Pages
      sert desormais le site, et GitHub Pages ne permet pas de personnaliser
      les en-tetes de reponse : X-Frame-Options n'est plus applique. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://translate.googleapis.com https://api.mymemory.translated.net https://lingva.ml https://translate.plausibility.cloud https://lingva.garudalinux.org https://api.rss2json.com https://api.allorigins.win https://api.codetabs.com https://proxy.cors.sh https://test.cors.workers.dev https://corsproxy.org https://thingproxy.freeboard.io https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.sheetjs.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://translate.googleapis.com https://api.mymemory.translated.net https://lingva.ml https://translate.plausibility.cloud https://lingva.garudalinux.org https://api.rss2json.com https://api.allorigins.win https://api.codetabs.com https://proxy.cors.sh https://test.cors.workers.dev https://corsproxy.org https://thingproxy.freeboard.io https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self';">
 <!-- Anti-clickjacking en JS : GitHub Pages (seul hebergeur desormais, voir
      plus haut) ne permet pas de fixer l'en-tete HTTP X-Frame-Options —
      cette protection compense en sortant la page de tout iframe cross-
@@ -1804,16 +1804,40 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
 .saut-contenu:focus{left:0;}
 </style>
 
-  <!-- docx.js pour export Word -->
-  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js" defer></script>
-  <!-- pptxgenjs pour export PowerPoint -->
-  <script src="https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.12.0/dist/pptxgen.bundle.js" defer></script>
-  <!-- pdf-lib pour export PDF (vrai document structuré, pas une capture d'ecran) -->
-  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.4.0/dist/pdf-lib.min.js" defer></script>
-  <!-- SheetJS pour export Excel -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer=""></script>
-  <!-- Supabase JS : journal de connexions partagé avec l'app mobile (voir SENTINEL_SUPABASE_URL) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
+  <!-- Bibliotheques d'export (Word, PowerPoint, PDF, Excel) : chargees A LA
+       DEMANDE par chargerBibliotheque(), au premier clic sur un export.
+       Mesure du 03/09/2026 : ces quatre fichiers pesent 2,37 Mo et etaient
+       telecharges a chaque ouverture de la page (1,44 Mo), avant le moindre
+       geste de l'utilisateur — pour une action que la plupart des sessions
+       ne font jamais. Sur une connexion mobile africaine, c'etait la
+       difference entre une page qui s'ouvre et une page qui n'arrive pas. -->
+  <script>
+  const BIBLIOTHEQUES_EXPORT = {
+    // SheetJS a quitte npm apres 0.18.5 ; les versions corrigees (0.19.3 pour
+    // CVE-2023-30533, 0.20.2 pour CVE-2024-22363) ne sont servies que par son
+    // propre CDN, autorise dans la CSP ci-dessus.
+    xlsx:  { global: 'XLSX',      src: 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js' },
+    docx:  { global: 'docx',      src: 'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js' },
+    pptx:  { global: 'PptxGenJS', src: 'https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.12.0/dist/pptxgen.bundle.js' },
+    pdf:   { global: 'PDFLib',    src: 'https://cdn.jsdelivr.net/npm/pdf-lib@1.4.0/dist/pdf-lib.min.js' },
+  };
+  const _bibliothequesEnCours = {};
+  function chargerBibliotheque(nom) {
+    const b = BIBLIOTHEQUES_EXPORT[nom];
+    if (!b) return Promise.reject(new Error('bibliotheque inconnue : ' + nom));
+    if (typeof window[b.global] !== 'undefined') return Promise.resolve(window[b.global]);
+    if (_bibliothequesEnCours[nom]) return _bibliothequesEnCours[nom];
+    _bibliothequesEnCours[nom] = new Promise((resolve, reject) => {
+      const el = document.createElement('script');
+      el.src = b.src; el.async = true;
+      el.onload = () => resolve(window[b.global]);
+      el.onerror = () => { delete _bibliothequesEnCours[nom]; reject(new Error(nom + ' non chargé — vérifiez la connexion internet')); };
+      document.head.appendChild(el);
+    });
+    return _bibliothequesEnCours[nom];
+  }
+  </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
 </head>
 <body>
 
@@ -2220,7 +2244,11 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
 <!-- Bandeau publicitaire — version gratuite, affiche au-dessus de chaque page.
      Voir ADSENSE_CLIENT_ID/ADSENSE_SLOT_ID pour l'activation reelle une fois
      le compte Google AdSense approuve (initAdBanner()). -->
-<div class="ad-banner" id="adBanner">
+<!-- Encart publicitaire masque par defaut : le script AdSense est desactive
+     (voir <head>) et un cadre vide « emplacement publicitaire » sur un outil
+     de surete professionnel ne rassure personne. Le balisage reste pour le
+     jour ou la publicite serait reactivee, In-page uniquement. -->
+<div class="ad-banner" id="adBanner" style="display:none">
   <span class="ad-banner-tag" data-i18n="ad_tag">PUBLICITÉ</span>
   <div class="ad-banner-placeholder" id="adBannerPlaceholder" data-i18n="ad_placeholder">Emplacement publicitaire — Google AdSense non configuré (voir Paramètres)</div>
   <ins class="adsbygoogle" id="adBannerIns" style="display:none;width:100%;max-width:100%;height:50px"
@@ -18378,6 +18406,7 @@ function updateDLCounts(){
 // ════════════════════════════════════════════════════════════════════
 async function exportExcel(type){
   if (await _verifierLimiteTelechargement('xlsx')) return;
+  try { await chargerBibliotheque('xlsx'); } catch (_) {}
   if(typeof XLSX==='undefined'){
     alert('SheetJS non chargé. Vérifiez votre connexion internet.'); return;
   }
@@ -18511,6 +18540,7 @@ async function exportPPTX(type) {
   type = type || 'rapport_complet';
   const btn = event?.target; btnSpin(btn);
   try {
+    try { await chargerBibliotheque('pptx'); } catch (_) {}
     if (typeof PptxGenJS === 'undefined') throw new Error('pptxgenjs non chargé — verifiez la connexion internet');
 
     const TITRES_PPTX = {
@@ -19480,6 +19510,7 @@ function _meIdDocument(email) {
 async function genererModeEmploiPDF() {
   const btn = event?.target; if (typeof btnSpin === 'function') btnSpin(btn);
   try {
+    try { await chargerBibliotheque('pdf'); } catch (_) {}
     if (typeof PDFLib === 'undefined') throw new Error('pdf-lib non chargé — vérifiez la connexion internet');
     const { PDFDocument, StandardFonts, rgb, degrees } = PDFLib;
     const doc = await PDFDocument.create();
@@ -19693,6 +19724,7 @@ async function exportPDF(type) {
   if (await _verifierLimiteTelechargement('pdf')) return;
   const btn = event?.target; btnSpin(btn);
   try {
+    try { await chargerBibliotheque('pdf'); } catch (_) {}
     if (typeof PDFLib === 'undefined') throw new Error('pdf-lib non chargé — verifiez la connexion internet');
     const { PDFDocument, StandardFonts, rgb, PDFName, PDFString } = PDFLib;
 
@@ -20538,6 +20570,7 @@ async function exportWord(type){
   if (await _verifierLimiteTelechargement('docx')) return;
   const btn=event?.target;btnSpin(btn);
   try{
+    try { await chargerBibliotheque('docx'); } catch (_) {}
     if(typeof docx==='undefined') throw new Error('docx.js non chargé');
     const {Document,Paragraph,TextRun,HeadingLevel,Table,TableRow,TableCell,
            WidthType,AlignmentType,BorderStyle,ShadingType,Packer,
