@@ -5936,6 +5936,13 @@ function rehydrateArticles(arts) {
       const texteClass = (a.title || '') + ' ' + ((a.analysis && !/^voir sur /i.test(a.analysis.trim())) ? a.analysis : '');
       const r = classify(texteClass, src, a.title || '');
       if (r && r.lvl) { a.level = r.lvl; a.cat = r.cat; }
+      // « verifie » = recoupe par une seconde source, jamais un heritage :
+      // la fusion du cache partage conserve les drapeaux poses par la
+      // version precedente. Le 03/09/2026, 31 articles gardaient un
+      // « verifie » d'avant la regle. On le rederive de ce qu'on sait.
+      const distinctes = new Set(Array.isArray(a.srcs) && a.srcs.length ? a.srcs : [a.primary]);
+      a.verified = distinctes.size >= 2;
+      a.fiable = (Number(src.score) || 0) >= 80;
     }
 
     if (a._srcRssMethod === undefined) {
@@ -13563,7 +13570,17 @@ async function publierCollectePartagee(articles, force) {
       .filter(a => a && a.pubDate && (Date.now() - a.pubDate) < 12*60*60*1000);
     existantsRecents.forEach(a => parId.set(a.id, a));
     articles.forEach(a => parId.set(a.id, a));
-    const fusionnes = [...parId.values()];
+    let fusionnes = [...parId.values()];
+    // Les articles herites du cache precedent portent le verdict de la
+    // version de classify() qui les a collectes, et n'ont jamais ete
+    // dedoublonnes avec les nouveaux. Constate le 03/09/2026 sur le premier
+    // passage apres la refonte du tri : cinq articles gardaient leur ancien
+    // niveau — un enlevement au Kenya restait « normal » — et 31 portaient
+    // un « verifie » d'avant la regle. On recalcule et on fusionne AVANT
+    // d'ecrire, pour que le cache publie soit coherent avec la page qui le
+    // sert, pas avec celle d'il y a douze heures.
+    if (typeof rehydrateArticles === 'function') rehydrateArticles(fusionnes);
+    if (typeof dedupliquerArticles === 'function') fusionnes = dedupliquerArticles(fusionnes);
     const { error } = await client.from('collecte_partagee').upsert({
       id: COLLECTE_PARTAGEE_ID, articles: fusionnes, updated_at: new Date().toISOString(),
     });
