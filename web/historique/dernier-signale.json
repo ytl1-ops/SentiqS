@@ -33,8 +33,8 @@
  "MU": "jaune",
  "MW": "jaune",
  "MZ": "marron",
- "NA": "jaune",
- "NE": "marron",
+ "NA": "vert",
+ "NE": "rouge",
  "NG": "marron",
  "RW": "marron",
  "SC": "vert",
@@ -51,6 +51,6 @@
  "TZ": "marron",
  "UG": "marron",
  "ZA": "jaune",
- "ZM": "marron",
+ "ZM": "orange",
  "ZW": "marron"
 }
