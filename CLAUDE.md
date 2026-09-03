@@ -424,6 +424,19 @@ moins bien saisis — exactement ceux qui méritent un œil.
 
 ---
 
+## Trois cliquets de plus, même forme
+
+| Contrôle | Ce qu'il refuse |
+|---|---|
+| `scripts/test/tri.test.js` | deux entrées du registre `SRCS` sur le même flux |
+| `scripts/test/langue.test.js` | un bouton ou un champ du HTML statique sans accroche `data-i18n` / `data-i18n-ph` |
+| `verifier-pages-legales.js` | une page légale incomplète sans `noindex` — Pages la sert, liée ou non |
+
+Les quatre bibliothèques d'export (Word, Excel, PowerPoint, PDF, 2,37 Mo)
+se chargent au premier clic via `chargerBibliotheque()`, jamais au démarrage ;
+un test l'interdit. SheetJS vient de `cdn.sheetjs.com` (autorisé dans la
+CSP) parce que les versions corrigées n'existent pas sur npm.
+
 ## Conventions
 
 - **Tout en français** : commits, commentaires, noms de fonctions et de

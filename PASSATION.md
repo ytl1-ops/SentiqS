@@ -1,4 +1,43 @@
-# Passation — 2 septembre 2026
+# Passation — 3 septembre 2026
+
+## Ce qui a changé le 3 septembre
+
+Un audit intégral, mesuré sur le site en ligne et sur le cache de production
+du matin (262 articles), puis sept PR fusionnées dans la journée (#41 à #47)
+et une huitième en cours. Le rapport d'audit : voir l'artefact « Audit
+intégral SentiqS » (lien dans la conversation de passation).
+
+| PR | Objet | Mesure |
+|---|---|---|
+| #41 | Les fiches pays citent leurs sources | 3 fiches sourcées, Ghana bloqué faute de source externe |
+| #42 | Fiches pays lisibles et datées | 24 textes sous le seuil AA → 0, mesuré sur le DOM rendu ; 5 fiches datées « non révisée depuis » |
+| #43 | L'archive quotidienne déclenche la mise en ligne | le site servait un relevé de moins que le dépôt ; **à constater sur le prochain passage planifié** |
+| #44 | Le tri met en tête ce qui compte | 20 articles au-dessus du normal, 3 utiles → 17 au-dessus, 12 utiles ; 6 doublons de registre retirés ; « vérifié » = recoupé |
+| #45 | Exports chargés au premier clic | 3,8 Mo → 1,44 Mo avant le premier geste ; SheetJS 0.18.5 → 0.20.3 (deux CVE) |
+| #46 | Pages légales incomplètes en noindex | 3 pages servies avec 33 trous, indexables → noindex, contrôle CI |
+| #47 | Liste de revue : âge négatif = zéro | Mauritanie, Libye, Soudan sortent de la tête de liste |
+| en cours | Anglais complet + dépendance webapp | 56 → 126 clés, cliquet contre le français en dur ; react-router 7.18.3 |
+
+**Nouveaux instruments** : `scripts/banc-tri.js` rejoue la vraie `classify()`
+sur un cache réel et nomme le mot qui fait monter chaque article — toute
+modification de lexique passe par là. `scripts/lib/contraste.js` mesure le
+contraste WCAG. Quatre nouveaux cliquets en test : flux de registre en double,
+jeton CSS non défini, bouton ou champ en français en dur, page légale
+incomplète sans noindex.
+
+**Ce que je n'ai pas prouvé** : que le déclenchement Pages après archive
+(#43) parte réellement — GitHub documente l'exception `workflow_dispatch`,
+les tests vérifient le câblage, seul le prochain passage planifié le montrera.
+Regarder la liste des runs de « Déploiement GitHub Pages » : il doit y en
+avoir un après chaque commit `Archive des niveaux d'alerte`.
+
+**Corrigé dans le rapport d'audit après publication** : l'affirmation que
+treize entrées de l'agenda avaient une date illisible était fausse — c'était
+mon script de mesure qui ne lisait pas les mois abrégés, pas la page.
+
+---
+
+## État au 2 septembre (conservé)
 
 État des lieux à la reprise du dépôt par un autre développeur.
 Référence : `main` = `b7c9f7f`, déployé sur GitHub Pages (run #183, vert à

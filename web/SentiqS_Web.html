@@ -1916,11 +1916,11 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <div class="auth-sub" data-i18n="login_sub">Acces restreint aux responsables surete autorises</div>
       <div class="auth-field">
         <label data-i18n="login_email_label" for="loginEmail">Adresse e-mail</label>
-        <input type="email" id="loginEmail" placeholder="votre@email.com" autocomplete="email">
+        <input type="email" id="loginEmail" data-i18n-ph="ph_votre_email_com" placeholder="votre@email.com" autocomplete="email">
       </div>
       <div class="auth-field">
         <label data-i18n="login_code_label" for="loginPass">Mot de passe</label>
-        <input type="password" id="loginPass" placeholder="Votre mot de passe" data-i18n-ph="ph_login_code" autocomplete="current-password" onkeydown="if(event.key===&#39;Enter&#39;)doLogin()">
+        <input type="password" id="loginPass" data-i18n-ph="ph_votre_mot_de_passe" placeholder="Votre mot de passe" data-i18n-ph="ph_login_code" autocomplete="current-password" onkeydown="if(event.key===&#39;Enter&#39;)doLogin()">
       </div>
       <div class="auth-field">
         <label data-i18n="login_zone_prio_label" for="loginZonePrioritaire">Zone prioritaire (optionnel)</label>
@@ -1943,14 +1943,14 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <div class="auth-sub">Choisissez un mot de passe personnel — 8 caractères minimum.</div>
       <div class="auth-field">
         <label for="spNewPass">Nouveau mot de passe</label>
-        <input type="password" id="spNewPass" placeholder="8 caractères minimum" autocomplete="new-password">
+        <input type="password" id="spNewPass" data-i18n-ph="ph_8_caracteres_minimum" placeholder="8 caractères minimum" autocomplete="new-password">
       </div>
       <div class="auth-field">
         <label for="spConfirmPass">Confirmer le mot de passe</label>
-        <input type="password" id="spConfirmPass" placeholder="Retapez le mot de passe" autocomplete="new-password" onkeydown="if(event.key===&#39;Enter&#39;)soumettreNouveauMotDePasse()">
+        <input type="password" id="spConfirmPass" data-i18n-ph="ph_retapez_le_mot_de_passe" placeholder="Retapez le mot de passe" autocomplete="new-password" onkeydown="if(event.key===&#39;Enter&#39;)soumettreNouveauMotDePasse()">
       </div>
       <button class="auth-btn" onclick="soumettreNouveauMotDePasse()" id="setPasswordBtn">
-        <i class="ti ti-lock"></i> Valider mon mot de passe
+        <i class="ti ti-lock"></i> <span data-i18n="btn_valider_mon_mot_de_passe">Valider mon mot de passe</span>
       </button>
       <div class="auth-err" id="setPasswordErr"></div>
     </div>
@@ -1959,10 +1959,10 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <div class="auth-sub">Recevez un lien de réinitialisation par e-mail.</div>
       <div class="auth-field">
         <label for="fpEmail">Adresse e-mail</label>
-        <input type="email" id="fpEmail" placeholder="votre@email.com" autocomplete="email" onkeydown="if(event.key===&#39;Enter&#39;)demanderReinitialisationMdp()">
+        <input type="email" id="fpEmail" data-i18n-ph="ph_votre_email_com" placeholder="votre@email.com" autocomplete="email" onkeydown="if(event.key===&#39;Enter&#39;)demanderReinitialisationMdp()">
       </div>
       <button class="auth-btn" onclick="demanderReinitialisationMdp()" id="forgotPasswordBtn">
-        <i class="ti ti-mail"></i> Envoyer le lien de réinitialisation
+        <i class="ti ti-mail"></i> <span data-i18n="btn_envoyer_le_lien_de_reinitialisation">Envoyer le lien de réinitialisation</span>
       </button>
       <div class="auth-err" id="forgotPasswordErr"></div>
       <div class="auth-sub" id="forgotPasswordMsg" style="margin-top:10px;color:var(--t2)"></div>
@@ -1980,23 +1980,23 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       </div>
       <div class="auth-field">
         <label data-i18n="register_name_label" for="regName">Nom complet</label>
-        <input type="text" id="regName" placeholder="Prenom Nom" data-i18n-ph="ph_reg_name">
+        <input type="text" id="regName" data-i18n-ph="ph_prenom_nom" placeholder="Prenom Nom" data-i18n-ph="ph_reg_name">
       </div>
       <div class="auth-field">
         <label data-i18n="register_email_label" for="regEmail">Adresse e-mail professionnelle</label>
-        <input type="email" id="regEmail" placeholder="votre@organisation.com">
+        <input type="email" id="regEmail" data-i18n-ph="ph_votre_organisation_com" placeholder="votre@organisation.com">
       </div>
       <div class="auth-field">
         <label data-i18n="register_org_label" for="regOrg">Organisation / Fonction</label>
-        <input type="text" id="regOrg" placeholder="Ex : DSI - Entreprise XYZ" data-i18n-ph="ph_reg_org">
+        <input type="text" id="regOrg" data-i18n-ph="ph_ex_dsi_entreprise_xyz" placeholder="Ex : DSI - Entreprise XYZ" data-i18n-ph="ph_reg_org">
       </div>
       <div class="auth-field">
         <label for="regPass">Mot de passe</label>
-        <input type="password" id="regPass" placeholder="8 caractères minimum" autocomplete="new-password">
+        <input type="password" id="regPass" data-i18n-ph="ph_8_caracteres_minimum" placeholder="8 caractères minimum" autocomplete="new-password">
       </div>
       <div class="auth-field">
         <label for="regPassConfirm">Confirmer le mot de passe</label>
-        <input type="password" id="regPassConfirm" placeholder="Retapez le mot de passe" autocomplete="new-password">
+        <input type="password" id="regPassConfirm" data-i18n-ph="ph_retapez_le_mot_de_passe" placeholder="Retapez le mot de passe" autocomplete="new-password">
       </div>
       <button class="auth-btn" onclick="doRegister()" id="registerBtn">
         <i class="ti ti-send"></i> <span data-i18n="register_btn">Envoyer la demande</span>
@@ -2037,14 +2037,14 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
     <div class="admin-sec">
       <div class="admin-sec-title">Octroyer un acces</div>
       <div class="user-form">
-        <input type="email" id="newUserEmail" placeholder="email@organisation.com">
-        <input type="text" id="newUserName" placeholder="Nom complet">
+        <input type="email" id="newUserEmail" data-i18n-ph="ph_email_organisation_com" placeholder="email@organisation.com">
+        <input type="text" id="newUserName" data-i18n-ph="ph_nom_complet" placeholder="Nom complet">
         <select id="newUserRole" aria-label="Role du nouvel utilisateur">
           <option value="reader">Lecteur</option>
           <option value="user" selected="">Utilisateur</option>
           <option value="admin">Administrateur</option>
         </select>
-        <button onclick="addUser()"><i class="ti ti-user-plus"></i> Ajouter</button>
+        <button onclick="addUser()"><i class="ti ti-user-plus"></i> <span data-i18n="btn_ajouter">Ajouter</span></button>
       </div>
       <div class="admin-msg" id="adminMsg"></div>
     </div>
@@ -2086,9 +2086,9 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         Décrivez votre problème ou votre réclamation — un administrateur la traitera depuis Paramètres &amp; Administration.
       </div>
       <div class="user-form" style="flex-direction:column;align-items:stretch">
-        <input type="text" id="reclamSujet" placeholder="Sujet (ex. Données manquantes, Bug d'affichage...)">
-        <textarea id="reclamMessage" placeholder="Décrivez le problème rencontré..." rows="4" style="padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--w);color:var(--t);font-size:13px;font-family:inherit;resize:vertical"></textarea>
-        <button onclick="submitReclamation()"><i class="ti ti-send"></i> Envoyer</button>
+        <input type="text" id="reclamSujet" data-i18n-ph="ph_sujet_ex_donnees_manquantes_bug_d_affich" placeholder="Sujet (ex. Données manquantes, Bug d'affichage...)">
+        <textarea id="reclamMessage" data-i18n-ph="ph_decrivez_le_probleme_rencontre" placeholder="Décrivez le problème rencontré..." rows="4" style="padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--w);color:var(--t);font-size:13px;font-family:inherit;resize:vertical"></textarea>
+        <button onclick="submitReclamation()"><i class="ti ti-send"></i> <span data-i18n="btn_envoyer">Envoyer</span></button>
       </div>
       <div class="admin-msg" id="reclamMsg"></div>
     </div>
@@ -2111,9 +2111,9 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <div class="user-form" style="flex-direction:column;align-items:stretch">
         <select id="pdForfait" aria-label="Forfait" style="padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--w);color:var(--t);font-size:13px;font-family:inherit"></select>
         <select id="pdMoyen" aria-label="Moyen de paiement" style="padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--w);color:var(--t);font-size:13px;font-family:inherit"></select>
-        <input type="text" id="pdReference" placeholder="Référence de transaction (SMS de confirmation)">
-        <textarea id="pdNote" placeholder="Note complémentaire (optionnel)" rows="2" style="padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--w);color:var(--t);font-size:13px;font-family:inherit;resize:vertical"></textarea>
-        <button onclick="submitPaiementDeclare()"><i class="ti ti-send"></i> Déclarer le paiement</button>
+        <input type="text" id="pdReference" data-i18n-ph="ph_reference_de_transaction_sms_de_confirma" placeholder="Référence de transaction (SMS de confirmation)">
+        <textarea id="pdNote" data-i18n-ph="ph_note_complementaire_optionnel" placeholder="Note complémentaire (optionnel)" rows="2" style="padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--w);color:var(--t);font-size:13px;font-family:inherit;resize:vertical"></textarea>
+        <button onclick="submitPaiementDeclare()"><i class="ti ti-send"></i> <span data-i18n="btn_declarer_le_paiement">Déclarer le paiement</span></button>
       </div>
       <div class="admin-msg" id="pdMsg"></div>
     </div>
@@ -2228,7 +2228,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
     <div class="ntab" id="tabGeopolitique" data-view="geopolitique" onclick="ouvrirModulePleinEcran(&#39;geopolitique&#39;,this)"><i class="ti ti-world"></i><span data-i18n="nav_geopolitique">Géopolitique</span></div>
     <div class="ntab" data-view="rapports" onclick="ouvrirModulePleinEcran(&#39;rapports&#39;,this)"><i class="ti ti-download"></i><span data-i18n="nav_rapports">Rapports</span></div>
     <div class="ntab" id="tabAlertes" data-view="alertes" onclick="ouvrirModulePleinEcran(&#39;alertes&#39;,this)"><i class="ti ti-shield-exclamation"></i><span data-i18n="nav_alertes">Alertes</span></div>
-    <div class="ntab on" data-view="dashboard" onclick="ouvrirModulePleinEcran(&#39;dashboard&#39;,this)"><i class="ti ti-layout-dashboard"></i><span>Tableau de bord</span></div>
+    <div class="ntab on" data-view="dashboard" onclick="ouvrirModulePleinEcran(&#39;dashboard&#39;,this)"><i class="ti ti-layout-dashboard"></i><span data-i18n="lbl_tableau_de_bord">Tableau de bord</span></div>
     <div class="ntab" id="tabParams" data-view="params" onclick="ouvrirModulePleinEcran(&#39;params&#39;,this)" style="display:none"><i class="ti ti-settings"></i><span>Parametres</span></div>
   </div>
   <button class="nav-arrow nav-arrow-r" onclick="navScrollModule(1)" aria-label="Module suivant" title="Module suivant"><i class="ti ti-chevron-right"></i></button>
@@ -2280,7 +2280,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
     <!-- FLUX -->
     <div class="view" id="v-flux">
       <div class="tlbr">
-        <div class="srch"><i class="ti ti-search"></i><input type="text" id="artQ" placeholder="Rechercher..." data-i18n-ph="ph_recherche" oninput="renderFeedDebounced()"></div>
+        <div class="srch"><i class="ti ti-search"></i><input type="text" id="artQ" data-i18n-ph="ph_rechercher" placeholder="Rechercher..." data-i18n-ph="ph_recherche" oninput="renderFeedDebounced()"></div>
         <div class="chips">
           <span class="chip on" onclick="setCat(this,&#39;all&#39;)" data-i18n="chip_tout">Tout</span>
           <span class="chip rc" onclick="setCat(this,&#39;crit&#39;)"><i class="ti ti-alert-triangle"></i><span data-i18n="chip_critique">Critique</span></span>
@@ -2293,7 +2293,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         </div>
         <div class="geo-w">
           <button class="geo-btn" onclick="toggleGeo(event)">
-            <i class="ti ti-map-pin"></i><span id="geoLbl">Tous pays</span><i class="ti ti-chevron-down"></i>
+            <i class="ti ti-map-pin"></i><span id="geoLbl"><span data-i18n="btn_tous_pays">Tous pays</span></span><i class="ti ti-chevron-down"></i>
           </button>
           <div class="geo-dd" id="geoDd">
             <div class="geo-hd" data-i18n="sb_geo">Filtrer par pays / agence de presse</div>
@@ -2306,7 +2306,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
           <option value="score">Fiabilite</option>
         </select>
         <button onclick="renderFeed()" title="Rafraichir l'affichage du Flux depuis les donnees deja collectees" style="padding:3px 12px;background:rgba(44,90,174,.12);border:1px solid rgba(44,90,174,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
-          <i class="ti ti-refresh"></i> Actualiser
+          <i class="ti ti-refresh"></i> <span data-i18n="btn_actualiser">Actualiser</span>
         </button>
       </div>
 
@@ -2329,14 +2329,14 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
            toujours deplier ce bandeau d'un clic. -->
       <div class="sstrip collapsed" id="fluxSstrip">
         <div class="ss"><div class="sn" id="stTot">0</div><div class="sl">-12h</div></div>
-        <div class="ss"><div class="sn" style="color:var(--r)" id="stCrit">0</div><div class="sl">Critiques</div></div>
-        <div class="ss"><div class="sn" style="color:#7C4A00" id="stHigh">0</div><div class="sl">Eleves</div></div>
-        <div class="ss" title="Articles rapportes par au moins deux sources distinctes"><div class="sn" style="color:var(--g)" id="stVer">0</div><div class="sl">Recoupes</div></div>
+        <div class="ss"><div class="sn" style="color:var(--r)" id="stCrit">0</div><div class="sl" data-i18n="lbl_critiques">Critiques</div></div>
+        <div class="ss"><div class="sn" style="color:#7C4A00" id="stHigh">0</div><div class="sl" data-i18n="lbl_eleves">Eleves</div></div>
+        <div class="ss" title="Articles rapportes par au moins deux sources distinctes"><div class="sn" style="color:var(--g)" id="stVer">0</div><div class="sl" data-i18n="lbl_recoupes">Recoupes</div></div>
         <div class="ss" title="Sources corroborees par au moins une autre source"><div class="sn" style="color:#15803D" id="stConfVer">0</div><div class="sl">✓ Conf.</div></div>
-        <div class="ss" title="Sources isolees, non encore corroborees"><div class="sn" style="color:#7A5D00" id="stConfNV">0</div><div class="sl">? Non ver.</div></div>
+        <div class="ss" title="Sources isolees, non encore corroborees"><div class="sn" style="color:#7A5D00" id="stConfNV">0</div><div class="sl" data-i18n="lbl_non_ver">? Non ver.</div></div>
         <div class="ss" title="Sources dont le contenu contredit d&#39;autres sources"><div class="sn" id="stConfCon">0</div><div class="sl">⚡ Contrad.</div></div>
-        <div class="ss"><div class="sn" style="color:#ffb84d" id="stNew">0</div><div class="sl">Nouveaux</div></div>
-        <div class="ss" title="Agences nationales, presse locale et reseaux sociaux ancres dans un pays precis"><div class="sn" style="color:#0B6E4F" id="stRegional">0</div><div class="sl">Régional</div></div>
+        <div class="ss"><div class="sn" style="color:#ffb84d" id="stNew">0</div><div class="sl" data-i18n="lbl_nouveaux">Nouveaux</div></div>
+        <div class="ss" title="Agences nationales, presse locale et reseaux sociaux ancres dans un pays precis"><div class="sn" style="color:#0B6E4F" id="stRegional">0</div><div class="sl" data-i18n="lbl_regional">Régional</div></div>
         <div class="ss"><div class="sn" style="color:var(--lg)" id="stUpd">--:--</div><div class="sl">MaJ</div></div>
       </div>
       <div class="feed" id="feed">
@@ -2356,7 +2356,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <div style="padding:14px;flex-shrink:0;border-bottom:1px solid var(--bd);background:var(--w);">
         <div style="position:relative;margin-bottom:10px;">
           <i class="ti ti-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--lg);font-size:15px;"></i>
-          <input type="text" id="searchQ" placeholder="Rechercher un pays, un evenement, un theme, une source..." oninput="renderRechercheDebounced()" style="width:100%;padding:10px 12px 10px 34px;border:1px solid var(--bd);border-radius:8px;font-size:13px;outline:none;">
+          <input type="text" id="searchQ" data-i18n-ph="ph_rechercher_un_pays_un_evenement_un_theme" placeholder="Rechercher un pays, un evenement, un theme, une source..." oninput="renderRechercheDebounced()" style="width:100%;padding:10px 12px 10px 34px;border:1px solid var(--bd);border-radius:8px;font-size:13px;outline:none;">
         </div>
         <div class="tlbr" style="flex-wrap:wrap;">
           <select id="seScope" aria-label="Perimetre de recherche" onchange="setSeScope(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
@@ -2378,7 +2378,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
             <option value="economique">Economique</option>
           </select>
           <button onclick="renderRecherche()" title="Rafraichir les resultats depuis les donnees deja collectees" style="padding:5px 12px;background:rgba(44,90,174,.12);border:1px solid rgba(44,90,174,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
-            <i class="ti ti-refresh"></i> Actualiser
+            <i class="ti ti-refresh"></i> <span data-i18n="btn_actualiser">Actualiser</span>
           </button>
           <span style="margin-left:auto;font-size:10px;color:var(--lg);" id="seCount"></span>
         </div>
@@ -2396,9 +2396,9 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <div id="ana-synthese" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
         <div class="dl-toolbar" id="dlBarSynthese">
           <span class="dl-toolbar-label"><i class="ti ti-download"></i>Exporter</span>
-          <button class="btn-dl btn-dl-word" onclick="exportWord(&#39;synthese&#39;)"><i class="ti ti-file-text"></i>Rapport Word</button>
+          <button class="btn-dl btn-dl-word" onclick="exportWord(&#39;synthese&#39;)"><i class="ti ti-file-text"></i><span data-i18n="btn_rapport_word">Rapport Word</span></button>
           <button class="btn-dl btn-dl-pdf" onclick="exportPDF(&#39;synthese&#39;)"><i class="ti ti-file-type-pdf"></i>PDF</button>
-          <button class="btn-dl btn-dl-apercu" onclick="apercuSynthese()"><i class="ti ti-printer"></i>Aperçu impression</button>
+          <button class="btn-dl btn-dl-apercu" onclick="apercuSynthese()"><i class="ti ti-printer"></i><span data-i18n="btn_apercu_impression">Aperçu impression</span></button>
           <div class="dl-sep"></div>
           <span style="font-size:9px;color:var(--lg)" id="dlSyntheseDate">Données non encore chargées</span>
         </div>
@@ -2411,7 +2411,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
             <option value="all">Tous les pays</option>
           </select>
           <button onclick="updSynthese()" title="Rafraichir la synthese depuis les donnees deja collectees" style="padding:5px 12px;background:rgba(44,90,174,.12);border:1px solid rgba(44,90,174,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
-            <i class="ti ti-refresh"></i> Actualiser
+            <i class="ti ti-refresh"></i> <span data-i18n="btn_actualiser">Actualiser</span>
           </button>
         </div>
         <div style="overflow-y:auto;flex:1">
@@ -2453,21 +2453,21 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               <div class="ag-sb">Evenements en cours · A venir · Echeances · Colloques · Concerts · Festivals</div>
             </div>
             <div class="ag-flt">
-              <button class="af on" onclick="setAgFilt(this,&#39;all&#39;)">Tout</button>
-              <button class="af" onclick="setAgFilt(this,&#39;en-cours&#39;)">En cours</button>
-              <button class="af" onclick="setAgFilt(this,&#39;urgent&#39;)">Urgent</button>
-              <button class="af" onclick="setAgFilt(this,&#39;planifie&#39;)">Planifie</button>
-              <button class="af" onclick="setAgFilt(this,&#39;surveillance&#39;)">Surveillance</button>
-              <button class="af" onclick="setAgFilt(this,&#39;acheve&#39;)">Acheve</button>
+              <button class="af on" onclick="setAgFilt(this,&#39;all&#39;)"><span data-i18n="btn_tout">Tout</span></button>
+              <button class="af" onclick="setAgFilt(this,&#39;en-cours&#39;)"><span data-i18n="btn_en_cours">En cours</span></button>
+              <button class="af" onclick="setAgFilt(this,&#39;urgent&#39;)"><span data-i18n="btn_urgent">Urgent</span></button>
+              <button class="af" onclick="setAgFilt(this,&#39;planifie&#39;)"><span data-i18n="btn_planifie">Planifie</span></button>
+              <button class="af" onclick="setAgFilt(this,&#39;surveillance&#39;)"><span data-i18n="btn_surveillance">Surveillance</span></button>
+              <button class="af" onclick="setAgFilt(this,&#39;acheve&#39;)"><span data-i18n="btn_acheve">Acheve</span></button>
               <button onclick="renderAgenda()" style="padding:5px 12px;background:rgba(44,90,174,.12);border:1px solid rgba(44,90,174,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;margin-left:6px;">
-                <i class="ti ti-refresh"></i> Actualiser
+                <i class="ti ti-refresh"></i> <span data-i18n="btn_actualiser">Actualiser</span>
               </button>
               <div style="display:flex;border:1px solid var(--bd);border-radius:5px;overflow:hidden;margin-left:6px;">
                 <button id="agVueListeBtn" onclick="setAgendaVue(&#39;liste&#39;)" title="Vue liste" style="padding:5px 10px;background:var(--b);border:none;color:#fff;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
-                  <i class="ti ti-list"></i> Liste
+                  <i class="ti ti-list"></i> <span data-i18n="btn_liste">Liste</span>
                 </button>
                 <button id="agVueCalBtn" onclick="setAgendaVue(&#39;calendrier&#39;)" title="Vue calendrier" style="padding:5px 10px;background:var(--sf);border:none;border-left:1px solid var(--bd);color:var(--t2);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
-                  <i class="ti ti-calendar"></i> Calendrier
+                  <i class="ti ti-calendar"></i> <span data-i18n="btn_calendrier">Calendrier</span>
                 </button>
               </div>
             </div>
@@ -2519,7 +2519,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
           <div id="geoDetailWrap" style="display:none">
             <div class="tlbr" style="flex-shrink:0;margin-bottom:8px;flex-wrap:wrap;">
               <button onclick="retourApercuGeopolitique()" title="Revenir à la vue d'ensemble de tous les pays" style="padding:5px 12px;background:var(--sf);border:1px solid var(--bd);border-radius:5px;color:var(--t);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
-                <i class="ti ti-arrow-left"></i> Vue d'ensemble
+                <i class="ti ti-arrow-left"></i> <span data-i18n="btn_vue_d_ensemble">Vue d'ensemble</span>
               </button>
             </div>
             <div id="geoAnalyse"></div>
@@ -2552,7 +2552,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               <option value="trimestriel">Trimestriel (90 jours)</option>
             </select>
             <button onclick="updateDLCounts();majLibelleRapport()" title="Rafraichir les compteurs depuis les donnees deja collectees" style="padding:5px 12px;background:rgba(44,90,174,.12);border:1px solid rgba(44,90,174,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
-              <i class="ti ti-refresh"></i> Actualiser
+              <i class="ti ti-refresh"></i> <span data-i18n="btn_actualiser">Actualiser</span>
             </button>
           </div>
           <div id="rpLibellePerimetre" style="font-size:10px;color:var(--lg);margin-bottom:16px">Périmètre : toutes zones, tous pays</div>
@@ -2565,7 +2565,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               </div>
               <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Synthèse + flux + agenda, en un seul document Word.</div>
               <div style="display:flex;gap:8px">
-                <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'rapport_complet')"><i class="ti ti-share-2"></i>Partager</button>
+                <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'rapport_complet')"><i class="ti ti-share-2"></i><span data-i18n="btn_partager">Partager</span></button>
                 <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('rapport_complet')" title="Aperçu impression"><i class="ti ti-printer"></i></button>
               </div>
             </div>
@@ -2577,7 +2577,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               </div>
               <div style="font-size:10px;color:var(--lg);margin-bottom:10px" id="dlFluxCount">Articles des dernières 12h.</div>
               <div style="display:flex;gap:8px">
-                <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'flux')"><i class="ti ti-share-2"></i>Partager</button>
+                <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'flux')"><i class="ti ti-share-2"></i><span data-i18n="btn_partager">Partager</span></button>
                 <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('flux')" title="Aperçu impression"><i class="ti ti-printer"></i></button>
               </div>
             </div>
@@ -2589,7 +2589,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               </div>
               <div style="font-size:10px;color:var(--lg);margin-bottom:10px" id="dlSyntheseDate">Analyse thématique régionale.</div>
               <div style="display:flex;gap:8px">
-                <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'synthese')"><i class="ti ti-share-2"></i>Partager</button>
+                <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'synthese')"><i class="ti ti-share-2"></i><span data-i18n="btn_partager">Partager</span></button>
                 <button class="btn-dl btn-dl-apercu" onclick="apercuSynthese()" title="Aperçu impression"><i class="ti ti-printer"></i></button>
               </div>
             </div>
@@ -2601,7 +2601,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               </div>
               <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Événements en cours et à venir.</div>
               <div style="display:flex;gap:8px">
-                <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'agenda')"><i class="ti ti-share-2"></i>Partager</button>
+                <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'agenda')"><i class="ti ti-share-2"></i><span data-i18n="btn_partager">Partager</span></button>
                 <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('agenda')" title="Aperçu impression"><i class="ti ti-printer"></i></button>
               </div>
             </div>
@@ -2613,7 +2613,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               </div>
               <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Liste des sources suivies et leur fiabilité. Réservé à l'administration.</div>
               <div style="display:flex;gap:8px">
-                <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'sources')"><i class="ti ti-share-2"></i>Partager</button>
+                <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'sources')"><i class="ti ti-share-2"></i><span data-i18n="btn_partager">Partager</span></button>
               </div>
             </div>
 
@@ -2624,7 +2624,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               </div>
               <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Fiches pays, niveaux d'alerte, mesures et actualité nationale/régionale.</div>
               <div style="display:flex;gap:8px">
-                <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'alertes')"><i class="ti ti-share-2"></i>Partager</button>
+                <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'alertes')"><i class="ti ti-share-2"></i><span data-i18n="btn_partager">Partager</span></button>
                 <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('alertes')" title="Aperçu impression"><i class="ti ti-printer"></i></button>
               </div>
             </div>
@@ -2647,11 +2647,11 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
           </div>
           <div style="display:flex;align-items:center;gap:8px;">
             <div style="display:flex;border:1px solid var(--bd);border-radius:6px;overflow:hidden;">
-              <button class="corr-dim on" id="alVueGrille" onclick="setAlerteVue('grille')" style="border:none;border-radius:0;background:var(--b);color:#fff;"><i class="ti ti-layout-grid"></i>Grille</button>
-              <button class="corr-dim" id="alVueChrono" onclick="setAlerteVue('chrono')" style="border:none;border-radius:0;background:var(--sf);color:var(--t2);"><i class="ti ti-timeline"></i>Chronologie</button>
+              <button class="corr-dim on" id="alVueGrille" onclick="setAlerteVue('grille')" style="border:none;border-radius:0;background:var(--b);color:#fff;"><i class="ti ti-layout-grid"></i><span data-i18n="btn_grille">Grille</span></button>
+              <button class="corr-dim" id="alVueChrono" onclick="setAlerteVue('chrono')" style="border:none;border-radius:0;background:var(--sf);color:var(--t2);"><i class="ti ti-timeline"></i><span data-i18n="btn_chronologie">Chronologie</span></button>
             </div>
             <button onclick="recalcAlertes()" style="padding:6px 14px;background:rgba(156,163,175,.12);border:1px solid #9CA3AF;border-radius:6px;color:#9CA3AF;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
-              <i class="ti ti-calculator"></i> Recalculer
+              <i class="ti ti-calculator"></i> <span data-i18n="btn_recalculer">Recalculer</span>
             </button>
           </div>
         </div>
@@ -2709,7 +2709,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
             <div style="font-size:12px;font-weight:800;color:var(--t);letter-spacing:.04em;">TABLEAU DE BORD</div>
             <div style="font-size:8px;color:var(--lg);">Vision temps réel — 54 pays africains — Score de risque 0-100</div>
           </div>
-          <button onclick="renderDashboard()" style="padding:4px 10px;background:var(--bl);border:1px solid var(--bb);border-radius:6px;color:var(--b);font-size:10px;font-weight:700;cursor:pointer;"><i class="ti ti-refresh"></i> Actualiser</button>
+          <button onclick="renderDashboard()" style="padding:4px 10px;background:var(--bl);border:1px solid var(--bb);border-radius:6px;color:var(--b);font-size:10px;font-weight:700;cursor:pointer;"><i class="ti ti-refresh"></i> <span data-i18n="btn_actualiser">Actualiser</span></button>
         </div>
       </div>
       <div style="flex:1;overflow-y:auto;padding:8px 14px;background:var(--sf);" id="dashContent">
@@ -2815,7 +2815,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               </div>
               <div style="margin-bottom:12px">
                 <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="marqueNom">Nom de la marque / société</label>
-                <input type="text" id="marqueNom" placeholder="Ex. Groupe Sûreté SARL" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                <input type="text" id="marqueNom" data-i18n-ph="ph_ex_groupe_surete_sarl" placeholder="Ex. Groupe Sûreté SARL" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
               </div>
               <!-- 3 identites d'envoi possibles (ex. plusieurs cellules/equipes qui
                    partagent sous des noms differents) : celle marquee "active"
@@ -2824,15 +2824,15 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:8px">
                 <div>
                   <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="marqueIdentite1">Identité d'envoi 1 (pseudo ou société)</label>
-                  <input type="text" id="marqueIdentite1" placeholder="Ex. Cellule Sûreté ABC" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px" oninput="renderMarqueIdentiteChoix()">
+                  <input type="text" id="marqueIdentite1" data-i18n-ph="ph_ex_cellule_surete_abc" placeholder="Ex. Cellule Sûreté ABC" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px" oninput="renderMarqueIdentiteChoix()">
                 </div>
                 <div>
                   <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="marqueIdentite2">Identité d'envoi 2 (optionnel)</label>
-                  <input type="text" id="marqueIdentite2" placeholder="Ex. Cellule Sûreté Nord" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px" oninput="renderMarqueIdentiteChoix()">
+                  <input type="text" id="marqueIdentite2" data-i18n-ph="ph_ex_cellule_surete_nord" placeholder="Ex. Cellule Sûreté Nord" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px" oninput="renderMarqueIdentiteChoix()">
                 </div>
                 <div>
                   <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="marqueIdentite3">Identité d'envoi 3 (optionnel)</label>
-                  <input type="text" id="marqueIdentite3" placeholder="Ex. Cellule Sûreté Sud" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px" oninput="renderMarqueIdentiteChoix()">
+                  <input type="text" id="marqueIdentite3" data-i18n-ph="ph_ex_cellule_surete_sud" placeholder="Ex. Cellule Sûreté Sud" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px" oninput="renderMarqueIdentiteChoix()">
                 </div>
               </div>
               <div style="margin-bottom:12px">
@@ -2840,7 +2840,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <select id="marqueIdentiteActive" style="width:100%;max-width:280px;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px"></select>
               </div>
               <div style="display:flex;align-items:center;gap:10px">
-                <button class="btn-action btn-rest" id="marqueSaveBtn" onclick="pmSaveMarquePerso()"><i class="ti ti-device-floppy"></i> Enregistrer la personnalisation</button>
+                <button class="btn-action btn-rest" id="marqueSaveBtn" onclick="pmSaveMarquePerso()"><i class="ti ti-device-floppy"></i> <span data-i18n="btn_enregistrer_la_personnalisation">Enregistrer la personnalisation</span></button>
                 <span class="pmu-msg" id="marqueMsg" style="margin:0"></span>
               </div>
             </div>
@@ -2881,15 +2881,15 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
                 <div>
                   <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="rappelWaNumero">Numero WhatsApp (avec indicatif pays)</label>
-                  <input type="text" id="rappelWaNumero" placeholder="Ex. 2250747974398" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                  <input type="text" id="rappelWaNumero" data-i18n-ph="ph_ex_2250747974398" placeholder="Ex. 2250747974398" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
                 <div>
                   <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="rappelWaHeures">Heures (HH:MM, separees par virgule)</label>
-                  <input type="text" id="rappelWaHeures" placeholder="Ex. 06:00, 16:30, 20:30" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                  <input type="text" id="rappelWaHeures" data-i18n-ph="ph_ex_06_00_16_30_20_30" placeholder="Ex. 06:00, 16:30, 20:30" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
               </div>
               <div style="display:flex;align-items:center;gap:10px">
-                <button class="btn-action btn-rest" id="rappelWaSaveBtn" onclick="pmSaveRappelsWhatsapp()"><i class="ti ti-device-floppy"></i> Enregistrer les rappels</button>
+                <button class="btn-action btn-rest" id="rappelWaSaveBtn" onclick="pmSaveRappelsWhatsapp()"><i class="ti ti-device-floppy"></i> <span data-i18n="btn_enregistrer_les_rappels">Enregistrer les rappels</span></button>
                 <span class="pmu-msg" id="rappelWaMsg" style="margin:0"></span>
               </div>
             </div>
@@ -2914,20 +2914,20 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 le message est copié dans le presse-papiers puis le groupe s'ouvre, il ne reste qu'à coller.
               </div>
               <div class="share-fmt-row" style="margin-bottom:10px;max-width:260px">
-                <button type="button" class="share-fmt on" id="waTypeBtnContact" onclick="waBasculerType('contact')">Contact</button>
-                <button type="button" class="share-fmt" id="waTypeBtnGroupe" onclick="waBasculerType('groupe')">Groupe</button>
+                <button type="button" class="share-fmt on" id="waTypeBtnContact" onclick="waBasculerType('contact')"><span data-i18n="btn_contact">Contact</span></button>
+                <button type="button" class="share-fmt" id="waTypeBtnGroupe" onclick="waBasculerType('groupe')"><span data-i18n="btn_groupe">Groupe</span></button>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:12px">
                 <div>
                   <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="waContactNom">Nom</label>
-                  <input type="text" id="waContactNom" placeholder="Ex. Directeur Sûreté" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                  <input type="text" id="waContactNom" data-i18n-ph="ph_ex_directeur_surete" placeholder="Ex. Directeur Sûreté" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
                 <div>
                   <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" id="waContactValLbl" for="waContactTel">Numéro (avec indicatif pays)</label>
-                  <input type="text" id="waContactTel" placeholder="Ex. +225 07 12 34 56 78" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                  <input type="text" id="waContactTel" data-i18n-ph="ph_ex_225_07_12_34_56_78" placeholder="Ex. +225 07 12 34 56 78" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
                 <div style="display:flex;align-items:flex-end">
-                  <button class="btn-action btn-rest" onclick="waAjouterContact()"><i class="ti ti-plus"></i> Ajouter</button>
+                  <button class="btn-action btn-rest" onclick="waAjouterContact()"><i class="ti ti-plus"></i> <span data-i18n="btn_ajouter">Ajouter</span></button>
                 </div>
               </div>
               <span class="pmu-msg" id="waContactMsg"></span>
@@ -2956,14 +2956,14 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:12px">
                 <div>
                   <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="tgGroupeNom">Nom</label>
-                  <input type="text" id="tgGroupeNom" placeholder="Ex. Cellule Sûreté Régionale" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                  <input type="text" id="tgGroupeNom" data-i18n-ph="ph_ex_cellule_surete_regionale" placeholder="Ex. Cellule Sûreté Régionale" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
                 <div>
                   <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="tgGroupeLien">Lien (t.me/...)</label>
-                  <input type="text" id="tgGroupeLien" placeholder="Ex. https://t.me/joinchat/XXXXXXXXXX" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                  <input type="text" id="tgGroupeLien" data-i18n-ph="ph_ex_https_t_me_joinchat_xxxxxxxxxx" placeholder="Ex. https://t.me/joinchat/XXXXXXXXXX" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
                 <div style="display:flex;align-items:flex-end">
-                  <button class="btn-action btn-rest" onclick="tgAjouterGroupe()"><i class="ti ti-plus"></i> Ajouter</button>
+                  <button class="btn-action btn-rest" onclick="tgAjouterGroupe()"><i class="ti ti-plus"></i> <span data-i18n="btn_ajouter">Ajouter</span></button>
                 </div>
               </div>
               <span class="pmu-msg" id="tgGroupeMsg"></span>
@@ -2991,14 +2991,14 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:12px">
                 <div>
                   <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="emGroupeNom">Nom</label>
-                  <input type="text" id="emGroupeNom" placeholder="Ex. Comité de crise" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                  <input type="text" id="emGroupeNom" data-i18n-ph="ph_ex_comite_de_crise" placeholder="Ex. Comité de crise" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
                 <div>
                   <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="emGroupeEmails">Emails (séparés par des virgules)</label>
-                  <input type="text" id="emGroupeEmails" placeholder="Ex. a@x.com, b@y.com" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                  <input type="text" id="emGroupeEmails" data-i18n-ph="ph_ex_a_x_com_b_y_com" placeholder="Ex. a@x.com, b@y.com" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
                 <div style="display:flex;align-items:flex-end">
-                  <button class="btn-action btn-rest" onclick="emAjouterGroupe()"><i class="ti ti-plus"></i> Ajouter</button>
+                  <button class="btn-action btn-rest" onclick="emAjouterGroupe()"><i class="ti ti-plus"></i> <span data-i18n="btn_ajouter">Ajouter</span></button>
                 </div>
               </div>
               <span class="pmu-msg" id="emGroupeMsg"></span>
@@ -3077,9 +3077,9 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               <div style="margin-top:12px">
                 <div class="profile-code-lbl">Changer votre mot de passe</div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-                  <input type="password" id="pmNewPassSelf" placeholder="Nouveau mot de passe (8 caractères min.)" autocomplete="new-password" style="flex:1;min-width:200px;padding:8px 10px;border:1px solid var(--bd);border-radius:6px;font-size:12px">
-                  <input type="password" id="pmNewPassSelfConfirm" placeholder="Confirmer" autocomplete="new-password" style="flex:1;min-width:160px;padding:8px 10px;border:1px solid var(--bd);border-radius:6px;font-size:12px">
-                  <button class="copy-btn" onclick="pmChangerMotDePassePersonnel()"><i class="ti ti-lock"></i>Mettre à jour</button>
+                  <input type="password" id="pmNewPassSelf" data-i18n-ph="ph_nouveau_mot_de_passe_8_caracteres_min" placeholder="Nouveau mot de passe (8 caractères min.)" autocomplete="new-password" style="flex:1;min-width:200px;padding:8px 10px;border:1px solid var(--bd);border-radius:6px;font-size:12px">
+                  <input type="password" id="pmNewPassSelfConfirm" data-i18n-ph="ph_confirmer" placeholder="Confirmer" autocomplete="new-password" style="flex:1;min-width:160px;padding:8px 10px;border:1px solid var(--bd);border-radius:6px;font-size:12px">
+                  <button class="copy-btn" onclick="pmChangerMotDePassePersonnel()"><i class="ti ti-lock"></i><span data-i18n="btn_mettre_a_jour">Mettre à jour</span></button>
                 </div>
                 <div class="pmu-msg" id="pmChangePassMsg" style="margin-top:6px"></div>
               </div>
@@ -3122,8 +3122,8 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 sauvegarde reguliere et conservez-la en lieu sur (email, cle USB, cloud).
               </div>
               <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-                <button class="btn-action btn-rest" onclick="exporterDonneesAdmin()"><i class="ti ti-download"></i> Telecharger une sauvegarde (JSON)</button>
-                <button class="btn-action btn-rest" onclick="document.getElementById('pmRestoreFile').click()"><i class="ti ti-upload"></i> Restaurer depuis un fichier</button>
+                <button class="btn-action btn-rest" onclick="exporterDonneesAdmin()"><i class="ti ti-download"></i> <span data-i18n="btn_telecharger_une_sauvegarde_json">Telecharger une sauvegarde (JSON)</span></button>
+                <button class="btn-action btn-rest" onclick="document.getElementById('pmRestoreFile').click()"><i class="ti ti-upload"></i> <span data-i18n="btn_restaurer_depuis_un_fichier">Restaurer depuis un fichier</span></button>
                 <input type="file" id="pmRestoreFile" aria-label="Fichier de sauvegarde a restaurer" accept="application/json" style="display:none" onchange="importerDonneesAdmin(this)">
               </div>
             </div>
@@ -3138,7 +3138,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               </div>
             </div>
             <div class="pm-sec-body">
-              <div class="dl-rights-grid" id="dlRightsGrid"><div class="dl-right-card owned"><div class="dl-rc-top"><div class="dl-rc-ico" style="background:#0A1A2D"><i class="ti ti-shield-lock" style="color:#9CA3AF"></i></div><span class="dl-rc-tag tag-own">Illimite</span></div><div><div class="dl-rc-name">Rapport analytique quotidien</div><div class="dl-rc-desc">Analyse securitaire operationnelle complete — 7 sections</div></div><div style="margin-top:4px"><div style="font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Roles autorises</div><div style="display:flex;flex-wrap:wrap;gap:6px"><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_quotidien&#39;,&#39;admin&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Admin</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_quotidien&#39;,&#39;user&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Utilisateur</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_quotidien&#39;,&#39;reader&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Lecteur</span></label></div></div><div class="dl-rc-foot"><button class="dlb dlp" style="font-size:10px;padding:5px 12px" onclick="exportWord('rapport_complet')"><i class="ti ti-download"></i>Télécharger</button><div class="dl-rc-access"><i class="ti ti-circle-check"></i>Votre acces: Autorise</div></div></div><div class="dl-right-card owned"><div class="dl-rc-top"><div class="dl-rc-ico" style="background:#0A1A10"><i class="ti ti-leaf" style="color:#4ade80"></i></div><span class="dl-rc-tag tag-own">Illimite</span></div><div><div class="dl-rc-name">Bulletin humanitaire hebdomadaire</div><div class="dl-rc-desc">Securite des operations — Sahel — Corridors logistiques</div></div><div style="margin-top:4px"><div style="font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Roles autorises</div><div style="display:flex;flex-wrap:wrap;gap:6px"><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_humanitaire&#39;,&#39;admin&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Admin</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_humanitaire&#39;,&#39;user&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Utilisateur</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_humanitaire&#39;,&#39;reader&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Lecteur</span></label></div></div><div class="dl-rc-foot"><button class="dlb dlp" style="font-size:10px;padding:5px 12px" onclick="exportWord(&#39;rapport_complet&#39;)"><i class="ti ti-download"></i>Télécharger</button><div class="dl-rc-access"><i class="ti ti-circle-check"></i>Votre acces: Autorise</div></div></div><div class="dl-right-card owned"><div class="dl-rc-top"><div class="dl-rc-ico" style="background:#1A0A0A"><i class="ti ti-shield" style="color:#ff8080"></i></div><span class="dl-rc-tag tag-own">Illimite</span></div><div><div class="dl-rc-name">Bulletin menaces armees mensuel</div><div class="dl-rc-desc">Groupes armes — Zones instabilite — Indicateurs risque</div></div><div style="margin-top:4px"><div style="font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Roles autorises</div><div style="display:flex;flex-wrap:wrap;gap:6px"><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_menaces&#39;,&#39;admin&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Admin</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_menaces&#39;,&#39;user&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Utilisateur</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_menaces&#39;,&#39;reader&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Lecteur</span></label></div></div><div class="dl-rc-foot"><button class="dlb dlp" style="font-size:10px;padding:5px 12px" onclick="exportWord(&#39;rapport_complet&#39;)"><i class="ti ti-download"></i>Télécharger</button><div class="dl-rc-access"><i class="ti ti-circle-check"></i>Votre acces: Autorise</div></div></div><div class="dl-right-card owned"><div class="dl-rc-top"><div class="dl-rc-ico" style="background:#1A1400"><i class="ti ti-chart-line" style="color:#ffb84d"></i></div><span class="dl-rc-tag tag-own">Illimite</span></div><div><div class="dl-rc-name">Evaluation risques sectoriels trimestriel</div><div class="dl-rc-desc">Securite logistique — Transports valeurs — Risques portuaires</div></div><div style="margin-top:4px"><div style="font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Roles autorises</div><div style="display:flex;flex-wrap:wrap;gap:6px"><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_sectoriel&#39;,&#39;admin&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Admin</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_sectoriel&#39;,&#39;user&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Utilisateur</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_sectoriel&#39;,&#39;reader&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Lecteur</span></label></div></div><div class="dl-rc-foot"><button class="dlb dlp" style="font-size:10px;padding:5px 12px" onclick="exportWord(&#39;rapport_complet&#39;)"><i class="ti ti-download"></i>Télécharger</button><div class="dl-rc-access"><i class="ti ti-circle-check"></i>Votre acces: Autorise</div></div></div><div class="dl-right-card owned"><div class="dl-rc-top"><div class="dl-rc-ico" style="background:#0A1525"><i class="ti ti-file-analytics" style="color:#9CA3AF"></i></div><span class="dl-rc-tag tag-own">Illimite</span></div><div><div class="dl-rc-name">Export synthese analytique</div><div class="dl-rc-desc">Synthese generee depuis les flux RSS collectes</div></div><div style="margin-top:4px"><div style="font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Roles autorises</div><div style="display:flex;flex-wrap:wrap;gap:6px"><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_synthese&#39;,&#39;admin&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Admin</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_synthese&#39;,&#39;user&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Utilisateur</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_synthese&#39;,&#39;reader&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Lecteur</span></label></div></div><div class="dl-rc-foot"><button class="dlb dlp" style="font-size:10px;padding:5px 12px" onclick="exportWord(&#39;rapport_complet&#39;)"><i class="ti ti-download"></i>Télécharger</button><div class="dl-rc-access"><i class="ti ti-circle-check"></i>Votre acces: Autorise</div></div></div><div class="dl-right-card owned"><div class="dl-rc-top"><div class="dl-rc-ico" style="background:#0A1A2D"><i class="ti ti-calendar-event" style="color:#a78bfa"></i></div><span class="dl-rc-tag tag-own">Illimite</span></div><div><div class="dl-rc-name">Export agenda surete</div><div class="dl-rc-desc">Evenements en cours et a venir — Format PDF</div></div><div style="margin-top:4px"><div style="font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Roles autorises</div><div style="display:flex;flex-wrap:wrap;gap:6px"><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_agenda&#39;,&#39;admin&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Admin</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_agenda&#39;,&#39;user&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Utilisateur</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_agenda&#39;,&#39;reader&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Lecteur</span></label></div></div><div class="dl-rc-foot"><button class="dlb dlp" style="font-size:10px;padding:5px 12px" onclick="exportWord(&#39;rapport_complet&#39;)"><i class="ti ti-download"></i>Télécharger</button><div class="dl-rc-access"><i class="ti ti-circle-check"></i>Votre acces: Autorise</div></div></div></div>
+              <div class="dl-rights-grid" id="dlRightsGrid"><div class="dl-right-card owned"><div class="dl-rc-top"><div class="dl-rc-ico" style="background:#0A1A2D"><i class="ti ti-shield-lock" style="color:#9CA3AF"></i></div><span class="dl-rc-tag tag-own">Illimite</span></div><div><div class="dl-rc-name">Rapport analytique quotidien</div><div class="dl-rc-desc">Analyse securitaire operationnelle complete — 7 sections</div></div><div style="margin-top:4px"><div style="font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Roles autorises</div><div style="display:flex;flex-wrap:wrap;gap:6px"><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_quotidien&#39;,&#39;admin&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Admin</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_quotidien&#39;,&#39;user&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Utilisateur</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_quotidien&#39;,&#39;reader&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Lecteur</span></label></div></div><div class="dl-rc-foot"><button class="dlb dlp" style="font-size:10px;padding:5px 12px" onclick="exportWord('rapport_complet')"><i class="ti ti-download"></i><span data-i18n="btn_telecharger">Télécharger</span></button><div class="dl-rc-access"><i class="ti ti-circle-check"></i>Votre acces: Autorise</div></div></div><div class="dl-right-card owned"><div class="dl-rc-top"><div class="dl-rc-ico" style="background:#0A1A10"><i class="ti ti-leaf" style="color:#4ade80"></i></div><span class="dl-rc-tag tag-own">Illimite</span></div><div><div class="dl-rc-name">Bulletin humanitaire hebdomadaire</div><div class="dl-rc-desc">Securite des operations — Sahel — Corridors logistiques</div></div><div style="margin-top:4px"><div style="font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Roles autorises</div><div style="display:flex;flex-wrap:wrap;gap:6px"><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_humanitaire&#39;,&#39;admin&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Admin</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_humanitaire&#39;,&#39;user&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Utilisateur</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_humanitaire&#39;,&#39;reader&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Lecteur</span></label></div></div><div class="dl-rc-foot"><button class="dlb dlp" style="font-size:10px;padding:5px 12px" onclick="exportWord(&#39;rapport_complet&#39;)"><i class="ti ti-download"></i><span data-i18n="btn_telecharger">Télécharger</span></button><div class="dl-rc-access"><i class="ti ti-circle-check"></i>Votre acces: Autorise</div></div></div><div class="dl-right-card owned"><div class="dl-rc-top"><div class="dl-rc-ico" style="background:#1A0A0A"><i class="ti ti-shield" style="color:#ff8080"></i></div><span class="dl-rc-tag tag-own">Illimite</span></div><div><div class="dl-rc-name">Bulletin menaces armees mensuel</div><div class="dl-rc-desc">Groupes armes — Zones instabilite — Indicateurs risque</div></div><div style="margin-top:4px"><div style="font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Roles autorises</div><div style="display:flex;flex-wrap:wrap;gap:6px"><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_menaces&#39;,&#39;admin&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Admin</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_menaces&#39;,&#39;user&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Utilisateur</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_menaces&#39;,&#39;reader&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Lecteur</span></label></div></div><div class="dl-rc-foot"><button class="dlb dlp" style="font-size:10px;padding:5px 12px" onclick="exportWord(&#39;rapport_complet&#39;)"><i class="ti ti-download"></i><span data-i18n="btn_telecharger">Télécharger</span></button><div class="dl-rc-access"><i class="ti ti-circle-check"></i>Votre acces: Autorise</div></div></div><div class="dl-right-card owned"><div class="dl-rc-top"><div class="dl-rc-ico" style="background:#1A1400"><i class="ti ti-chart-line" style="color:#ffb84d"></i></div><span class="dl-rc-tag tag-own">Illimite</span></div><div><div class="dl-rc-name">Evaluation risques sectoriels trimestriel</div><div class="dl-rc-desc">Securite logistique — Transports valeurs — Risques portuaires</div></div><div style="margin-top:4px"><div style="font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Roles autorises</div><div style="display:flex;flex-wrap:wrap;gap:6px"><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_sectoriel&#39;,&#39;admin&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Admin</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_sectoriel&#39;,&#39;user&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Utilisateur</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_sectoriel&#39;,&#39;reader&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Lecteur</span></label></div></div><div class="dl-rc-foot"><button class="dlb dlp" style="font-size:10px;padding:5px 12px" onclick="exportWord(&#39;rapport_complet&#39;)"><i class="ti ti-download"></i><span data-i18n="btn_telecharger">Télécharger</span></button><div class="dl-rc-access"><i class="ti ti-circle-check"></i>Votre acces: Autorise</div></div></div><div class="dl-right-card owned"><div class="dl-rc-top"><div class="dl-rc-ico" style="background:#0A1525"><i class="ti ti-file-analytics" style="color:#9CA3AF"></i></div><span class="dl-rc-tag tag-own">Illimite</span></div><div><div class="dl-rc-name">Export synthese analytique</div><div class="dl-rc-desc">Synthese generee depuis les flux RSS collectes</div></div><div style="margin-top:4px"><div style="font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Roles autorises</div><div style="display:flex;flex-wrap:wrap;gap:6px"><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_synthese&#39;,&#39;admin&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Admin</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_synthese&#39;,&#39;user&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Utilisateur</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_synthese&#39;,&#39;reader&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Lecteur</span></label></div></div><div class="dl-rc-foot"><button class="dlb dlp" style="font-size:10px;padding:5px 12px" onclick="exportWord(&#39;rapport_complet&#39;)"><i class="ti ti-download"></i><span data-i18n="btn_telecharger">Télécharger</span></button><div class="dl-rc-access"><i class="ti ti-circle-check"></i>Votre acces: Autorise</div></div></div><div class="dl-right-card owned"><div class="dl-rc-top"><div class="dl-rc-ico" style="background:#0A1A2D"><i class="ti ti-calendar-event" style="color:#a78bfa"></i></div><span class="dl-rc-tag tag-own">Illimite</span></div><div><div class="dl-rc-name">Export agenda surete</div><div class="dl-rc-desc">Evenements en cours et a venir — Format PDF</div></div><div style="margin-top:4px"><div style="font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Roles autorises</div><div style="display:flex;flex-wrap:wrap;gap:6px"><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_agenda&#39;,&#39;admin&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Admin</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_agenda&#39;,&#39;user&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Utilisateur</span></label><label class="tgl" style="margin-right:10px"><input type="checkbox" checked="" onchange="toggleDLRole(&#39;rp_agenda&#39;,&#39;reader&#39;,this.checked)"><div class="tgl-sw"></div><span class="tgl-lbl" style="font-size:10px">Lecteur</span></label></div></div><div class="dl-rc-foot"><button class="dlb dlp" style="font-size:10px;padding:5px 12px" onclick="exportWord(&#39;rapport_complet&#39;)"><i class="ti ti-download"></i><span data-i18n="btn_telecharger">Télécharger</span></button><div class="dl-rc-access"><i class="ti ti-circle-check"></i>Votre acces: Autorise</div></div></div></div>
             </div>
           </div>
 
@@ -3165,15 +3165,15 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
             </div>
             <div class="pm-sec-body">
               <div class="pmu-form">
-                <input type="email" id="pmNewEmail" placeholder="email@organisation.com">
-                <input type="text" id="pmNewName" placeholder="Nom complet">
+                <input type="email" id="pmNewEmail" data-i18n-ph="ph_email_organisation_com" placeholder="email@organisation.com">
+                <input type="text" id="pmNewName" data-i18n-ph="ph_nom_complet" placeholder="Nom complet">
                 <select id="pmNewRole" aria-label="Role du nouvel utilisateur">
                   <option value="reader">Lecteur</option>
                   <option value="user" selected="">Utilisateur</option>
                   <option value="admin">Administrateur</option>
                 </select>
                 <button class="pmu-add-btn" onclick="pmAddUser()">
-                  <i class="ti ti-user-plus"></i>Ajouter
+                  <i class="ti ti-user-plus"></i><span data-i18n="btn_ajouter">Ajouter</span>
                 </button>
               </div>
               <div class="pmu-msg" id="pmMsg"></div>
@@ -3182,7 +3182,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                   <th>Email</th><th>Nom</th><th>Role</th>
                   <th>Statut</th><th>Mot de passe</th><th>Derniere connexion</th><th>Actions</th>
                 </tr></thead>
-                <tbody id="pmUsersBody"><tr><td>yo•••••@gmail.com</td><td>Administrateur SentiqS</td><td><span class="badge-role br-admin">Admin</span></td><td><span class="badge-status bs-active">Actif</span></td><td><span style="font-size:11px;color:var(--lg)">Personnel</span></td><td style="color:rgba(0,0,0,.4)">29/06/2026</td><td style="display:flex;gap:5px;flex-wrap:wrap;align-items:center"><span style="font-size:10px;color:var(--lg)">Compte principal</span></td></tr><tr><td>stephanekouame221@gmail.com</td><td>KOUAME YAO STEPHANE</td><td><span class="badge-role br-user">Utilisateur</span></td><td><span class="badge-status bs-active">Actif</span></td><td><span style="font-size:11px;color:var(--lg)">Personnel</span></td><td style="color:rgba(0,0,0,.4)">Jamais</td><td style="display:flex;gap:5px;flex-wrap:wrap;align-items:center"><button class="btn-action btn-rev" onclick="pmToggleStatus(&#39;stephanekouame221@gmail.com&#39;)">Suspendre</button><button class="btn-action btn-del" onclick="pmDeleteUser(&#39;stephanekouame221@gmail.com&#39;)">Supprimer</button></td></tr></tbody>
+                <tbody id="pmUsersBody"><tr><td>yo•••••@gmail.com</td><td>Administrateur SentiqS</td><td><span class="badge-role br-admin">Admin</span></td><td><span class="badge-status bs-active">Actif</span></td><td><span style="font-size:11px;color:var(--lg)">Personnel</span></td><td style="color:rgba(0,0,0,.4)">29/06/2026</td><td style="display:flex;gap:5px;flex-wrap:wrap;align-items:center"><span style="font-size:10px;color:var(--lg)">Compte principal</span></td></tr><tr><td>stephanekouame221@gmail.com</td><td>KOUAME YAO STEPHANE</td><td><span class="badge-role br-user">Utilisateur</span></td><td><span class="badge-status bs-active">Actif</span></td><td><span style="font-size:11px;color:var(--lg)">Personnel</span></td><td style="color:rgba(0,0,0,.4)">Jamais</td><td style="display:flex;gap:5px;flex-wrap:wrap;align-items:center"><button class="btn-action btn-rev" onclick="pmToggleStatus(&#39;stephanekouame221@gmail.com&#39;)"><span data-i18n="btn_suspendre">Suspendre</span></button><button class="btn-action btn-del" onclick="pmDeleteUser(&#39;stephanekouame221@gmail.com&#39;)"><span data-i18n="btn_supprimer">Supprimer</span></button></td></tr></tbody>
               </table>
             </div>
           </div>
@@ -3231,7 +3231,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               </div>
               <div class="pricing-grid" id="pricingGrid"></div>
               <div style="margin-top:12px;display:flex;align-items:center;gap:10px">
-                <button class="btn-action btn-rest" onclick="pmSavePricing()"><i class="ti ti-device-floppy"></i> Enregistrer les tarifs</button>
+                <button class="btn-action btn-rest" onclick="pmSavePricing()"><i class="ti ti-device-floppy"></i> <span data-i18n="btn_enregistrer_les_tarifs">Enregistrer les tarifs</span></button>
                 <span class="pmu-msg" id="pricingMsg" style="margin:0"></span>
               </div>
             </div>
@@ -3256,7 +3256,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <tbody id="dlQuotaBody"></tbody>
               </table>
               <div style="margin-top:12px;display:flex;align-items:center;gap:10px">
-                <button class="btn-action btn-rest" onclick="pmSaveDLQuotas()"><i class="ti ti-device-floppy"></i> Enregistrer les quotas</button>
+                <button class="btn-action btn-rest" onclick="pmSaveDLQuotas()"><i class="ti ti-device-floppy"></i> <span data-i18n="btn_enregistrer_les_quotas">Enregistrer les quotas</span></button>
                 <span class="pmu-msg" id="dlQuotaMsg" style="margin:0"></span>
               </div>
             </div>
@@ -3280,7 +3280,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <div class="pm-sec-sub" id="cachePartageStatutCourt">Vérification...</div></div>
               </div>
               <button onclick="renderDiagnosticCachePartage()" style="padding:5px 12px;background:rgba(44,90,174,.12);border:1px solid rgba(44,90,174,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;">
-                <i class="ti ti-refresh"></i> Vérifier maintenant
+                <i class="ti ti-refresh"></i> <span data-i18n="btn_verifier_maintenant">Vérifier maintenant</span>
               </button>
             </div>
             <div class="pm-sec-body" style="padding:14px 16px">
@@ -3347,7 +3347,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               </div>
               <div class="paymethod-grid" id="paymethodGrid"></div>
               <div style="margin-top:12px;display:flex;align-items:center;gap:10px">
-                <button class="btn-action btn-rest" onclick="pmSavePaymethods()"><i class="ti ti-device-floppy"></i> Enregistrer les moyens de paiement</button>
+                <button class="btn-action btn-rest" onclick="pmSavePaymethods()"><i class="ti ti-device-floppy"></i> <span data-i18n="btn_enregistrer_les_moyens_de_paiement">Enregistrer les moyens de paiement</span></button>
                 <span class="pmu-msg" id="paymethodMsg" style="margin:0"></span>
               </div>
             </div>
@@ -3397,24 +3397,24 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:12px">
                 <div>
                   <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="ejServiceId">Service ID</label>
-                  <input type="text" id="ejServiceId" placeholder="Ex. service_xxxxxxx" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                  <input type="text" id="ejServiceId" data-i18n-ph="ph_ex_service_xxxxxxx" placeholder="Ex. service_xxxxxxx" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
                 <div>
                   <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="ejTemplateId">Template ID</label>
-                  <input type="text" id="ejTemplateId" placeholder="Ex. template_xxxxxxx" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                  <input type="text" id="ejTemplateId" data-i18n-ph="ph_ex_template_xxxxxxx" placeholder="Ex. template_xxxxxxx" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
                 <div>
                   <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="ejPublicKey">Public Key</label>
-                  <input type="text" id="ejPublicKey" placeholder="Clé publique EmailJS" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                  <input type="text" id="ejPublicKey" data-i18n-ph="ph_cle_publique_emailjs" placeholder="Clé publique EmailJS" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
               </div>
               <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-                <button class="btn-action btn-rest" onclick="pmSaveEmailjsCfg()"><i class="ti ti-device-floppy"></i> Enregistrer la configuration EmailJS</button>
+                <button class="btn-action btn-rest" onclick="pmSaveEmailjsCfg()"><i class="ti ti-device-floppy"></i> <span data-i18n="btn_enregistrer_la_configuration_emailjs">Enregistrer la configuration EmailJS</span></button>
                 <span class="pmu-msg" id="emailjsCfgMsg" style="margin:0"></span>
               </div>
               <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--bd)">
-                <input type="email" id="ejTestEmail" placeholder="votre@email.com" style="flex:1;min-width:180px;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
-                <button class="btn-action" id="ejTestBtn" onclick="pmTesterEnvoiEmailjs()" style="border-color:var(--bd);color:var(--t2)"><i class="ti ti-send"></i> Tester l'envoi</button>
+                <input type="email" id="ejTestEmail" data-i18n-ph="ph_votre_email_com" placeholder="votre@email.com" style="flex:1;min-width:180px;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+                <button class="btn-action" id="ejTestBtn" onclick="pmTesterEnvoiEmailjs()" style="border-color:var(--bd);color:var(--t2)"><i class="ti ti-send"></i> <span data-i18n="btn_tester_l_envoi">Tester l'envoi</span></button>
               </div>
             </div>
           </div>
@@ -3515,7 +3515,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <div><div class="pm-sec-title">Connexions récentes — tous appareils</div>
                 <div class="pm-sec-sub" id="connexionsSub">Qui s'est réellement connecté, web et mobile confondus</div></div>
               </div>
-              <button class="btn-action btn-rest" style="font-size:10px" onclick="renderConnexionsSupabase()"><i class="ti ti-refresh"></i> Actualiser</button>
+              <button class="btn-action btn-rest" style="font-size:10px" onclick="renderConnexionsSupabase()"><i class="ti ti-refresh"></i> <span data-i18n="btn_actualiser">Actualiser</span></button>
             </div>
             <div class="pm-sec-body" style="padding:14px 16px">
               <div id="connexionsBody" style="font-size:11px;color:var(--lg)">Chargement…</div>
@@ -3566,7 +3566,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                   <div class="rights-row-name" style="color:var(--r)">Reinitialiser toutes les donnees</div>
                   <div class="rights-row-sub">Vider le cache local et relancer une collecte reelle depuis zero</div>
                 </div>
-                <button class="btn-action btn-rev" onclick="resetAllData()">Reinitialiser</button>
+                <button class="btn-action btn-rev" onclick="resetAllData()"><span data-i18n="btn_reinitialiser">Reinitialiser</span></button>
               </div>
             </div>
           </div>
@@ -4402,6 +4402,85 @@ const TR_CACHE = {};
 // t(cle) renvoie le libellé dans la langue active (LANG), repli sur le français.
 const I18N = {
   fr: {
+    ph_votre_email_com:'votre@email.com',
+    ph_votre_organisation_com:'votre@organisation.com',
+    ph_email_organisation_com:'email@organisation.com',
+    ph_ex_2250747974398:'Ex. 2250747974398',
+    ph_ex_https_t_me_joinchat_xxxxxxxxxx:'Ex. https://t.me/joinchat/XXXXXXXXXX',
+    ph_ex_service_xxxxxxx:'Ex. service_xxxxxxx',
+    ph_ex_template_xxxxxxx:'Ex. template_xxxxxxx',
+    btn_tous_pays:'Tous pays',
+    ph_votre_mot_de_passe:'Votre mot de passe',
+    ph_prenom_nom:'Prenom Nom',
+    ph_ex_dsi_entreprise_xyz:'Ex : DSI - Entreprise XYZ',
+    ph_sujet_ex_donnees_manquantes_bug_d_affich:'Sujet (ex. Données manquantes, Bug d\'affichage...)',
+    ph_rechercher:'Rechercher...',
+    ph_ex_06_00_16_30_20_30:'Ex. 06:00, 16:30, 20:30',
+    ph_ex_225_07_12_34_56_78:'Ex. +225 07 12 34 56 78',
+    ph_ex_a_x_com_b_y_com:'Ex. a@x.com, b@y.com',
+    // Libelles statiques ajoutes le 03/09/2026 : 79 textes restaient en francais en dur, le bouton « English » ne traduisait que la moitie de l'interface.
+    btn_valider_mon_mot_de_passe:'Valider mon mot de passe',
+    btn_envoyer_le_lien_de_reinitialisation:'Envoyer le lien de réinitialisation',
+    btn_ajouter:'Ajouter',
+    btn_envoyer:'Envoyer',
+    btn_declarer_le_paiement:'Déclarer le paiement',
+    btn_actualiser:'Actualiser',
+    btn_rapport_word:'Rapport Word',
+    btn_apercu_impression:'Aperçu impression',
+    btn_tout:'Tout',
+    btn_en_cours:'En cours',
+    btn_urgent:'Urgent',
+    btn_planifie:'Planifie',
+    btn_surveillance:'Surveillance',
+    btn_acheve:'Acheve',
+    btn_liste:'Liste',
+    btn_calendrier:'Calendrier',
+    btn_vue_d_ensemble:'Vue d\'ensemble',
+    btn_partager:'Partager',
+    btn_grille:'Grille',
+    btn_chronologie:'Chronologie',
+    btn_recalculer:'Recalculer',
+    btn_enregistrer_la_personnalisation:'Enregistrer la personnalisation',
+    btn_enregistrer_les_rappels:'Enregistrer les rappels',
+    btn_contact:'Contact',
+    btn_groupe:'Groupe',
+    btn_mettre_a_jour:'Mettre à jour',
+    btn_telecharger_une_sauvegarde_json:'Telecharger une sauvegarde (JSON)',
+    btn_restaurer_depuis_un_fichier:'Restaurer depuis un fichier',
+    btn_telecharger:'Télécharger',
+    btn_suspendre:'Suspendre',
+    btn_supprimer:'Supprimer',
+    btn_enregistrer_les_tarifs:'Enregistrer les tarifs',
+    btn_enregistrer_les_quotas:'Enregistrer les quotas',
+    btn_verifier_maintenant:'Vérifier maintenant',
+    btn_enregistrer_les_moyens_de_paiement:'Enregistrer les moyens de paiement',
+    btn_enregistrer_la_configuration_emailjs:'Enregistrer la configuration EmailJS',
+    btn_tester_l_envoi:'Tester l\'envoi',
+    btn_reinitialiser:'Reinitialiser',
+    ph_8_caracteres_minimum:'8 caractères minimum',
+    ph_retapez_le_mot_de_passe:'Retapez le mot de passe',
+    ph_nom_complet:'Nom complet',
+    ph_decrivez_le_probleme_rencontre:'Décrivez le problème rencontré...',
+    ph_reference_de_transaction_sms_de_confirma:'Référence de transaction (SMS de confirmation)',
+    ph_note_complementaire_optionnel:'Note complémentaire (optionnel)',
+    ph_rechercher_un_pays_un_evenement_un_theme:'Rechercher un pays, un evenement, un theme, une source...',
+    ph_ex_groupe_surete_sarl:'Ex. Groupe Sûreté SARL',
+    ph_ex_cellule_surete_abc:'Ex. Cellule Sûreté ABC',
+    ph_ex_cellule_surete_nord:'Ex. Cellule Sûreté Nord',
+    ph_ex_cellule_surete_sud:'Ex. Cellule Sûreté Sud',
+    ph_ex_directeur_surete:'Ex. Directeur Sûreté',
+    ph_ex_cellule_surete_regionale:'Ex. Cellule Sûreté Régionale',
+    ph_ex_comite_de_crise:'Ex. Comité de crise',
+    ph_nouveau_mot_de_passe_8_caracteres_min:'Nouveau mot de passe (8 caractères min.)',
+    ph_confirmer:'Confirmer',
+    ph_cle_publique_emailjs:'Clé publique EmailJS',
+    lbl_tableau_de_bord:'Tableau de bord',
+    lbl_critiques:'Critiques',
+    lbl_eleves:'Eleves',
+    lbl_recoupes:'Recoupes',
+    lbl_non_ver:'? Non ver.',
+    lbl_nouveaux:'Nouveaux',
+    lbl_regional:'Régional',
     mes_expat:'Expatriés / Étrangers', mes_locaux:'Personnel local',
     mes_install:'Installations', mes_vehic:'Véhicules / Déplacements',
     empty_aucun:'Aucun article ne correspond à ces critères.',
@@ -4461,6 +4540,85 @@ const I18N = {
     auth_sync_min:'il y a {n} min', auth_sync_hour:'il y a {n} h', auth_sync_last:'Dernière synchronisation : ',
   },
   en: {
+    ph_votre_email_com:'your@email.com',
+    ph_votre_organisation_com:'your@organisation.com',
+    ph_email_organisation_com:'email@organisation.com',
+    ph_ex_2250747974398:'e.g. 2250747974398',
+    ph_ex_https_t_me_joinchat_xxxxxxxxxx:'e.g. https://t.me/joinchat/XXXXXXXXXX',
+    ph_ex_service_xxxxxxx:'e.g. service_xxxxxxx',
+    ph_ex_template_xxxxxxx:'e.g. template_xxxxxxx',
+    btn_tous_pays:'All countries',
+    ph_votre_mot_de_passe:'Your password',
+    ph_prenom_nom:'First name Last name',
+    ph_ex_dsi_entreprise_xyz:'e.g. CIO - XYZ Company',
+    ph_sujet_ex_donnees_manquantes_bug_d_affich:'Subject (e.g. Missing data, Display bug...)',
+    ph_rechercher:'Search...',
+    ph_ex_06_00_16_30_20_30:'e.g. 06:00, 16:30, 20:30',
+    ph_ex_225_07_12_34_56_78:'e.g. +225 07 12 34 56 78',
+    ph_ex_a_x_com_b_y_com:'e.g. a@x.com, b@y.com',
+    // Libelles statiques ajoutes le 03/09/2026 : 79 textes restaient en francais en dur, le bouton « English » ne traduisait que la moitie de l'interface.
+    btn_valider_mon_mot_de_passe:'Confirm my password',
+    btn_envoyer_le_lien_de_reinitialisation:'Send reset link',
+    btn_ajouter:'Add',
+    btn_envoyer:'Send',
+    btn_declarer_le_paiement:'Report payment',
+    btn_actualiser:'Refresh',
+    btn_rapport_word:'Word report',
+    btn_apercu_impression:'Print preview',
+    btn_tout:'All',
+    btn_en_cours:'In progress',
+    btn_urgent:'Urgent',
+    btn_planifie:'Scheduled',
+    btn_surveillance:'Monitoring',
+    btn_acheve:'Completed',
+    btn_liste:'List',
+    btn_calendrier:'Calendar',
+    btn_vue_d_ensemble:'Overview',
+    btn_partager:'Share',
+    btn_grille:'Grid',
+    btn_chronologie:'Timeline',
+    btn_recalculer:'Recalculate',
+    btn_enregistrer_la_personnalisation:'Save customisation',
+    btn_enregistrer_les_rappels:'Save reminders',
+    btn_contact:'Contact',
+    btn_groupe:'Group',
+    btn_mettre_a_jour:'Update',
+    btn_telecharger_une_sauvegarde_json:'Download a backup (JSON)',
+    btn_restaurer_depuis_un_fichier:'Restore from a file',
+    btn_telecharger:'Download',
+    btn_suspendre:'Suspend',
+    btn_supprimer:'Delete',
+    btn_enregistrer_les_tarifs:'Save prices',
+    btn_enregistrer_les_quotas:'Save quotas',
+    btn_verifier_maintenant:'Check now',
+    btn_enregistrer_les_moyens_de_paiement:'Save payment methods',
+    btn_enregistrer_la_configuration_emailjs:'Save EmailJS settings',
+    btn_tester_l_envoi:'Send a test',
+    btn_reinitialiser:'Reset',
+    ph_8_caracteres_minimum:'8 characters minimum',
+    ph_retapez_le_mot_de_passe:'Retype the password',
+    ph_nom_complet:'Full name',
+    ph_decrivez_le_probleme_rencontre:'Describe the problem...',
+    ph_reference_de_transaction_sms_de_confirma:'Transaction reference (confirmation SMS)',
+    ph_note_complementaire_optionnel:'Additional note (optional)',
+    ph_rechercher_un_pays_un_evenement_un_theme:'Search a country, an event, a topic, a source...',
+    ph_ex_groupe_surete_sarl:'e.g. Security Group Ltd',
+    ph_ex_cellule_surete_abc:'e.g. ABC Security Unit',
+    ph_ex_cellule_surete_nord:'e.g. North Security Unit',
+    ph_ex_cellule_surete_sud:'e.g. South Security Unit',
+    ph_ex_directeur_surete:'e.g. Head of Security',
+    ph_ex_cellule_surete_regionale:'e.g. Regional Security Unit',
+    ph_ex_comite_de_crise:'e.g. Crisis committee',
+    ph_nouveau_mot_de_passe_8_caracteres_min:'New password (8 characters min.)',
+    ph_confirmer:'Confirm',
+    ph_cle_publique_emailjs:'EmailJS public key',
+    lbl_tableau_de_bord:'Dashboard',
+    lbl_critiques:'Critical',
+    lbl_eleves:'High',
+    lbl_recoupes:'Cross-checked',
+    lbl_non_ver:'? Unverified',
+    lbl_nouveaux:'New',
+    lbl_regional:'Regional',
     mes_expat:'Expatriates / Foreign nationals', mes_locaux:'Local staff',
     mes_install:'Facilities', mes_vehic:'Vehicles / Movements',
     empty_aucun:'No articles match these criteria.',

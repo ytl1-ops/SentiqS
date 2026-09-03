@@ -156,5 +156,5 @@ test('seule la fusion avec une seconde source pose « verifie »', () => {
 
 test('l\'interface ne promet plus des actualites « verifiees »', () => {
   assert.doesNotMatch(HTML, /note_flux:'Flux opérationnel : actualités vérifiées/);
-  assert.match(HTML, /id="stVer">0<\/div><div class="sl">Recoupes<\/div>/);
+  assert.match(HTML, /id="stVer">0<\/div><div class="sl"[^>]*>Recoupes<\/div>/);
 });
