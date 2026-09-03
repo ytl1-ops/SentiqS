@@ -46,6 +46,9 @@ jobs:
       # (web/historique/). Le reste du job ne touche pas au depot.
       contents: write
       issues: write
+      # Declencher le deploiement Pages apres ce commit — voir l'etape
+      # « Archiver l'instantane du jour » pour la raison.
+      actions: write
     steps:
       - uses: actions/checkout@v4
 
@@ -148,6 +151,8 @@ jobs:
         # perdre l'archive du jour pour un conflit de fast-forward serait
         # absurde, et la relancer coûte un cycle entier.
         if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           if [ -z "$(git status --porcelain web/historique)" ]; then
@@ -162,6 +167,29 @@ jobs:
           for essai in 1 2 3; do
             if git push origin HEAD:main; then
               echo "Archive du $jour poussée."
+              # GitHub ne declenche AUCUN workflow sur un push fait avec le
+              # GITHUB_TOKEN d'un job — garde-fou anti-recursion. Le
+              # deploiement Pages ne partait donc jamais pour une archive :
+              # le fichier que l'interface telecharge restait fige jusqu'a
+              # la fusion humaine suivante.
+              #
+              # Constate le 03/09/2026 : main portait les releves du 2 ET du
+              # 3 septembre, le site public servait encore le seul releve du
+              # 2. Aucun des cinq commits d'archive du bot n'avait declenche
+              # de deploiement ; les archives n'arrivaient a l'utilisateur
+              # que par raccroc, poussees par la fusion d'une PR sans rapport.
+              #
+              # Consequence directe sur ce que voit un professionnel : la
+              # fleche de tendance a besoin de DEUX releves. Tant que le site
+              # n'en sert qu'un, elle ne s'affiche pour personne.
+              #
+              # workflow_dispatch est l'exception documentee a ce garde-fou :
+              # un workflow declenche par l'API avec le GITHUB_TOKEN part
+              # bien. On ne fait pas echouer le run si l'appel echoue —
+              # l'archive, elle, est deja poussee.
+              gh workflow run gh-pages-deploy.yml --ref main \
+                && echo "Déploiement Pages déclenché pour l'archive du $jour." \
+                || echo "::warning::Archive poussée mais déploiement Pages non déclenché."
               exit 0
             fi
             echo "Push refusé (essai $essai) — rebase puis nouvelle tentative."
