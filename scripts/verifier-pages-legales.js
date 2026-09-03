@@ -30,13 +30,25 @@ for (const page of pages) {
   const contenu = fs.readFileSync(path.join(dossier, page), 'utf8');
   const n = (contenu.match(/À COMPLÉTER/g) || []).length;
   const referencee = publiees.includes('legal/' + page);
+  // « Non liée » ne veut pas dire « non publiée » : GitHub Pages sert tout
+  // web/, et ces trois pages répondaient 200 le 03/09/2026 avec leurs trous
+  // visibles, robots.txt autorisant tout. Une page incomplète doit donc
+  // porter noindex — c'est le seul moyen de ne pas l'exposer sans la retirer.
+  const noindex = /<meta name="robots" content="noindex[^"]*">/.test(contenu);
   trous += n;
-  if (n === 0) { console.log(`✓ ${page} : complète`); continue; }
+  if (n === 0) {
+    if (noindex) console.log(`· ${page} : complète mais encore en noindex — repasser en index,follow`);
+    else console.log(`✓ ${page} : complète`);
+    continue;
+  }
   if (referencee) {
     bloquant = true;
-    console.error(`✗ ${page} : ${n} emplacement(s) non complété(s), ET la page est publiée.`);
+    console.error(`✗ ${page} : ${n} emplacement(s) non complété(s), ET la page est liée depuis le site.`);
+  } else if (!noindex) {
+    bloquant = true;
+    console.error(`✗ ${page} : ${n} emplacement(s) non complété(s) et pas de noindex — la page est servie et indexable.`);
   } else {
-    console.log(`· ${page} : ${n} emplacement(s) à compléter (non publiée, non bloquant)`);
+    console.log(`· ${page} : ${n} emplacement(s) à compléter (servie mais en noindex, non bloquant)`);
   }
 }
 
