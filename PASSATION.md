@@ -141,12 +141,33 @@ GitHub et Netlify. Par ordre d'urgence.
 
 ---
 
-## Signalé sans conclusion
+## Élucidé le 3 septembre — divergence de projet Supabase
 
-**Divergence de projet Supabase.** L'application pointe sur
-`zpdwqmliogxbuwirziny` ; le contrôle GitHub « Supabase Preview » pointe sur
-`yttctytqjtmaiheegqky`. Les deux ont été constatés, l'explication n'a pas été
-établie. À élucider avant toute opération de migration.
+**Il y a bien deux projets Supabase distincts, et c'est voulu.**
+`zpdwqmliogxbuwirziny` est celui que `web/SentiqS_Web.html` sert
+réellement en production (son URL est codée en dur dans le fichier) — 20
+tables, schéma qui correspond à ce dépôt. `yttctytqjtmaiheegqky`, nommé
+« SentiqS » dans l'organisation, est un futur remplaçant : une V2 sur une
+architecture différente (34 tables dont `feeds`, `gis_layers`,
+`logistics_status`, un schéma `resobuzz` ; 67 migrations ; 30 fonctions
+Edge actives), confirmée par le propriétaire — pas un résidu ni une
+confusion entre deux environnements.
+
+Ce second projet **n'est référencé nulle part dans ce dépôt** : aucune de
+ses migrations n'existe sous `supabase/migrations/`, aucun de ses noms de
+table ou de fonction n'apparaît dans le code de `web/`. Tant que le
+propriétaire n'annonce pas de bascule, il n'y a rien à y faire depuis ce
+dépôt — ne pas y appliquer de migration, ne pas y déployer de fonction, ne
+pas le confondre avec le projet de production en travaillant dessus « par
+réflexe » parce qu'il porte le nom du produit. S'il y a un jour une
+décision de bascule, elle appartient au propriétaire et se prépare comme
+tout changement de production : mesurer l'écart de schéma avant de migrer
+quoi que ce soit, pas après.
+
+Reste ouvert : le contrôle GitHub « Supabase Preview » (vu dans les statuts
+de CI) pointait sur `yttctytqjtmaiheegqky` — à vérifier s'il doit être
+reconfiguré pour suivre plutôt le projet de production, ou s'il est
+délibérément branché sur la V2 en préparation.
 
 ---
 
