@@ -112,7 +112,9 @@ test('le bandeau d\'accueil ne nomme plus des proxys, dont un refusé', () => {
 // réhydratation ; le niveau ne l'était pas.
 test('le niveau est recalculé à la réhydratation, comme le pays', () => {
   const f = tranche('function rehydrateArticles', 'if (a._isSocial !== undefined) return;');
-  assert.match(f, /classify\(texteClass, src\)/,
+  // Le troisieme argument (le titre seul) est arrive avec la regle « le titre
+  // decide, le corps nuance » ; l'appel reste le recalcul cherche ici.
+  assert.match(f, /classify\(texteClass, src(?:, [^)]*)?\)/,
     'sans recalcul, un article en cache garde le verdict de la version qui l\'a collecté');
   assert.match(f, /a\.level = r\.lvl/, 'le niveau recalculé doit remplacer celui du cache');
 });

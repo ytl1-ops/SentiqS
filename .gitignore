@@ -19,3 +19,4 @@ niveaux-pays.json
 # commitée (voir scripts/lib/sante-collecte.js).
 .cache-sante/
 incidents-porteurs.json
+banc-tri.json

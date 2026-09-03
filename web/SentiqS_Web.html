@@ -2303,7 +2303,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         <div class="ss"><div class="sn" id="stTot">0</div><div class="sl">-12h</div></div>
         <div class="ss"><div class="sn" style="color:var(--r)" id="stCrit">0</div><div class="sl">Critiques</div></div>
         <div class="ss"><div class="sn" style="color:#7C4A00" id="stHigh">0</div><div class="sl">Eleves</div></div>
-        <div class="ss"><div class="sn" style="color:var(--g)" id="stVer">0</div><div class="sl">Verifies</div></div>
+        <div class="ss" title="Articles rapportes par au moins deux sources distinctes"><div class="sn" style="color:var(--g)" id="stVer">0</div><div class="sl">Recoupes</div></div>
         <div class="ss" title="Sources corroborees par au moins une autre source"><div class="sn" style="color:#15803D" id="stConfVer">0</div><div class="sl">✓ Conf.</div></div>
         <div class="ss" title="Sources isolees, non encore corroborees"><div class="sn" style="color:#7A5D00" id="stConfNV">0</div><div class="sl">? Non ver.</div></div>
         <div class="ss" title="Sources dont le contenu contredit d&#39;autres sources"><div class="sn" id="stConfCon">0</div><div class="sl">⚡ Contrad.</div></div>
@@ -2320,7 +2320,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
           </span>
         </div>
       </div>
-      <div class="view-note"><i class="ti ti-info-circle"></i><span data-i18n="note_flux">Flux opérationnel : actualités vérifiées des 12 dernières heures, triables et filtrables par pays, catégorie et niveau d'alerte.</span></div>
+      <div class="view-note"><i class="ti ti-info-circle"></i><span data-i18n="note_flux">Flux opérationnel : actualités sourcées des 12 dernières heures, triables et filtrables par pays, catégorie et niveau d'alerte.</span></div>
     </div>
 
     <!-- RECHERCHE -->
@@ -3652,6 +3652,13 @@ document.addEventListener('DOMContentLoaded', () => {
   appliquerTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
 });
 
+// Chaque entree lit UN flux que personne d'autre ne lit. Le 03/09/2026, six
+// entrees lisaient un flux deja declare sous un autre identifiant (BBC
+// Afrique, France 24, Lusaka Times, Guineenews, deux canaux Telegram) :
+// chaque article de ces flux arrivait deux fois, sous deux noms de source,
+// parfois avec deux notes de fiabilite differentes pour le meme site — et
+// « Guineenews » etait en plus rattache a la Guinee-Bissau. Un test refuse
+// desormais deux entrees sur le meme flux.
 const SRCS=[
  {id:'rfi',n:'RFI Afrique',col:'#7F77DD',cy:'INT',sc:'regional',cat:'securite',score:93,url:'https://www.rfi.fr/fr/afrique/',rss:'https://www.rfi.fr/fr/rss/actualite-afrique.xml'},
  {id:'bbc',n:'BBC Afrique',col:'#5C5CCA',cy:'INT',sc:'regional',cat:'securite',score:91,url:'https://www.bbc.com/afrique/topics/c404v14nk9xt',rss:'https://feeds.bbci.co.uk/afrique/rss.xml'},
@@ -3819,7 +3826,6 @@ const SRCS=[
  {id:'x_ocha_wca',n:'OCHA_ROWCA sur X/Twitter',col:'#0078C8',cy:'INT',sc:'regional',cat:'humanitaire',score:93,url:'https://twitter.com/OCHA_ROWCA',rss:'https://reliefweb.int/rss/updates/AF',rss_method:'RSS natif',note:'Compte officiel OCHA Afrique Ouest et Centre'},
  {id:'x_acled',n:'ACLEDinfo sur X/Twitter',col:'#8B0000',cy:'INT',sc:'regional',cat:'securite',score:92,url:'https://twitter.com/ACLEDinfo',rss:'https://acleddata.com/feed/',rss_method:'RSS natif'},
  {id:'x_hrw_fr',n:'HRW_fr sur X/Twitter',col:'#CC0000',cy:'INT',sc:'regional',cat:'securite',score:91,url:'https://twitter.com/HRW_fr',rss:'https://www.hrw.org/fr/rss/news',rss_method:'RSS natif'},
- {id:'x_france24',n:'France24 Afrique sur X/Twitter',col:'#003DA5',cy:'INT',sc:'regional',cat:'securite',score:87,url:'https://twitter.com/France24_fr',rss:'https://www.france24.com/fr/afrique/rss',rss_method:'RSS natif'},
  {id:'x_apanews',n:'APANewsAgency sur X/Twitter',col:'#1B6CA8',cy:'INT',sc:'regional',cat:'securite',score:86,url:'https://twitter.com/APAnewsAgency',rss:'https://apanews.net/fr/feed/',rss_method:'RSS natif'},
  {id:'x_iss_africa',n:'ISS_Africa sur X/Twitter',col:'#003580',cy:'INT',sc:'regional',cat:'securite',score:90,url:'https://twitter.com/issafrica',rss:'https://issafrica.org/rss/iss-today.xml',rss_method:'RSS natif'},
  {id:'x_sahel_watch',n:'Sahel Watch sur X/Twitter',col:'#B8860B',cy:'INT',sc:'regional',cat:'securite',score:85,url:'https://twitter.com/SahelWatch',rss:'https://news.google.com/rss/search?q=Sahel+securite+alerte&hl=fr&gl=SN&ceid=SN:fr',rss_method:'Google News RSS'},
@@ -3885,8 +3891,6 @@ const SRCS=[
  {id:'gn_nzerekore',n:'Nzérékoré/Forêt Guinée (GN)',col:'#7C3AED',cy:'GN',sc:'local',cat:'securite',score:60,url:'https://twitter.com/search?q=Nzerekore+Guinee',rss:'https://news.google.com/rss/search?q=Nzerekore+Guinee&hl=fr&gl=GN&ceid=GN:fr',rss_method:'Google News RSS'},
  {id:'gn_kankan',n:'Kankan/Haute Guinée (GN)',col:'#6D28D9',cy:'GN',sc:'local',cat:'securite',score:61,url:'https://twitter.com/search?q=Kankan+Guinee',rss:'https://news.google.com/rss/search?q=Kankan+Guinee&hl=fr&gl=GN&ceid=GN:fr',rss_method:'Google News RSS'},
  // Telegram — canaux d'alerte régionaux
- {id:'tg_sahel_alert',n:'Sahel Alert (Telegram)',col:'#0EA5E9',cy:'INT',sc:'regional',cat:'securite',score:72,url:'https://t.me/sahelinfo',rss:'https://rsshub.app/telegram/channel/sahelinfo',rss_method:'RSSHub/Telegram'},
- {id:'tg_bf_infos',n:'Burkina Infos (Telegram)',col:'#0EA5E9',cy:'BF',sc:'national',cat:'securite',score:68,url:'https://t.me/burkinainfos',rss:'https://rsshub.app/telegram/channel/burkinainfos',rss_method:'RSSHub/Telegram'},
  {id:'tg_mali_24',n:'Mali 24 (Telegram)',col:'#0EA5E9',cy:'ML',sc:'national',cat:'securite',score:67,url:'https://t.me/mali24news',rss:'https://rsshub.app/telegram/channel/mali24news',rss_method:'RSSHub/Telegram'},
  {id:'tg_niger_actu',n:'Niger Actu (Telegram)',col:'#0EA5E9',cy:'NE',sc:'national',cat:'securite',score:66,url:'https://t.me/nigeractu',rss:'https://rsshub.app/telegram/channel/nigeractu',rss_method:'RSSHub/Telegram'},
  {id:'tg_ci_breaking',n:'CI Breaking (Telegram)',col:'#0EA5E9',cy:'CI',sc:'national',cat:'securite',score:65,url:'https://t.me/cibreaking',rss:'https://rsshub.app/telegram/channel/cibreaking',rss_method:'RSSHub/Telegram'},
@@ -3895,7 +3899,6 @@ const SRCS=[
  {id:'radio_ndeke_cf',n:'Radio Ndeke Luka (RCA)',col:'#003082',cy:'CF',sc:'national',cat:'securite',score:72,url:'https://www.radiondekeluka.org/',rss:'https://www.radiondekeluka.org/feed/',rss_method:'RSS natif'},
  {id:'alwihda_td',n:'Alwihda Info (Tchad)',col:'#003082',cy:'TD',sc:'national',cat:'securite',score:70,url:'https://www.alwihda.com/',rss:'https://www.alwihda.com/feed/',rss_method:'RSS natif'},
  // Afrique de l Ouest manquants
- {id:'guineenews_gw',n:'Guineenews (Guinee-Bissau)',col:'#CE1126',cy:'GW',sc:'national',cat:'securite',score:65,url:'https://guineenews.org/',rss:'https://guineenews.org/feed/',rss_method:'RSS natif'},
  {id:'awoko_sl',n:'Awoko Newspaper (Sierra Leone)',col:'#1EB53A',cy:'SL',sc:'national',cat:'securite',score:68,url:'https://awoko.org/',rss:'https://awoko.org/feed/',rss_method:'RSS natif'},
  // Afrique de l Est
  {id:'nation_ke',n:'Daily Nation (Kenya)',col:'#006600',cy:'KE',sc:'national',cat:'securite',score:88,url:'https://nation.africa/',rss:'https://nation.africa/kenya/rss/',rss_method:'RSS natif'},
@@ -3909,10 +3912,8 @@ const SRCS=[
  {id:'shorouk_eg',n:'El Shorouk (Egypte)',col:'#CE1126',cy:'EG',sc:'national',cat:'politique',score:70,url:'https://www.shorouknews.com/',rss:'https://www.shorouknews.com/rss',rss_method:'RSS natif'},
  // Afrique Australe
  {id:'sabc_za',n:'SABC News (Afrique du Sud)',col:'#007A4D',cy:'ZA',sc:'national',cat:'securite',score:85,url:'https://www.sabcnews.com/',rss:'https://www.sabcnews.com/sabcnews/feed/',rss_method:'RSS natif'},
- {id:'lusaka_times',n:'Lusaka Times (Zambie)',col:'#198A00',cy:'ZM',sc:'national',cat:'securite',score:70,url:'https://www.lusakatimes.com/',rss:'https://www.lusakatimes.com/feed/',rss_method:'RSS natif'},
  {id:'opais_mz',n:'O Pais Mozambique',col:'#009A44',cy:'MZ',sc:'national',cat:'securite',score:68,url:'https://www.opais.co.mz/',rss:'https://www.opais.co.mz/feed/',rss_method:'RSS natif'},
  // Sources continentales et internationales a forte couverture africaine
- {id:'bbc_afrique',n:'BBC Afrique',col:'#BB1919',cy:'INT',sc:'regional',cat:'securite',score:92,url:'https://www.bbc.com/afrique',rss:'https://feeds.bbci.co.uk/afrique/rss.xml',rss_method:'RSS natif'},
  {id:'dw_afrique',n:'Deutsche Welle Afrique',col:'#0066CC',cy:'INT',sc:'regional',cat:'politique',score:88,url:'https://www.dw.com/fr/afrique/',rss:'https://rss.dw.com/rdf/rss-afrique-fra',rss_method:'RSS natif'},
  {id:'voa_afrique',n:'VOA Afrique',col:'#0033A0',cy:'INT',sc:'regional',cat:'securite',score:88,url:'https://www.voaafrique.com/',rss:'https://www.voaafrique.com/api/z-oyoyqm$yipmqfk_q-yopmy/rss',rss_method:'RSS natif'},
  {id:'jeune_afrique',n:'Jeune Afrique',col:'#CC0000',cy:'INT',sc:'regional',cat:'politique',score:85,url:'https://www.jeuneafrique.com/',rss:'https://www.jeuneafrique.com/feed/rss/',rss_method:'RSS natif'},
@@ -4391,7 +4392,7 @@ const I18N = {
     ph_recherche:'Rechercher...',
     flashinfo_lbl:'FLASH INFO',
     sb_geo:'Filtrer par pays / agence de presse', sb_agences:'Agences nationales',
-    note_flux:'Flux opérationnel : actualités vérifiées des 12 dernières heures, triables et filtrables par pays, catégorie et niveau d\'alerte.',
+    note_flux:'Flux opérationnel : actualités sourcées des 12 dernières heures, triables et filtrables par pays, catégorie et niveau d\'alerte. Le badge « recoupé » signale un fait rapporté par plusieurs sources.',
     note_recherche:'Recherche : retrouvez un pays, un événement, un thème ou une source dans l\'ensemble des données collectées par SentiqS.',
     note_analyse:'Synthèse : rapport analytique thématique généré automatiquement à partir du Flux, filtrable par zone ou par pays.',
     note_agenda:'Agenda : événements en cours, à venir et échéances de sûreté, classés par statut et par zone.',
@@ -4450,7 +4451,7 @@ const I18N = {
     ph_recherche:'Search...',
     flashinfo_lbl:'BREAKING NEWS',
     sb_geo:'Filter by country / press agency', sb_agences:'National agencies',
-    note_flux:'Feed: verified news from the last 12 hours, sortable and filterable by country, category and alert level.',
+    note_flux:'Feed: sourced news from the last 12 hours, sortable and filterable by country, category and alert level. The cross-checked badge marks a fact reported by several sources.',
     note_recherche:'Search: find a country, event, theme or source across all data collected by SentiqS.',
     note_analyse:'Summary: thematic analytical report automatically generated from the Feed, filterable by zone or country.',
     note_agenda:'Agenda: ongoing and upcoming security events and deadlines, classified by status and zone.',
@@ -5747,7 +5748,7 @@ function rehydrateArticles(arts) {
     // d'ouvrir la liste des actualites a traiter, classe CRITIQUE.
     if (src && typeof classify === 'function' && !a._demo) {
       const texteClass = (a.title || '') + ' ' + ((a.analysis && !/^voir sur /i.test(a.analysis.trim())) ? a.analysis : '');
-      const r = classify(texteClass, src);
+      const r = classify(texteClass, src, a.title || '');
       if (r && r.lvl) { a.level = r.lvl; a.cat = r.cat; }
     }
 
@@ -5871,7 +5872,7 @@ function parseJSON(d, src) {
     // absent du Flux qu'affiche a tort comme une actualite du jour.
     if (!pubTs || isNaN(pubTs)) pubTs = 0;
 
-    const { lvl, cat } = classify(title + ' ' + desc, src);
+    const { lvl, cat } = classify(title + ' ' + desc, src, title);
     const agendaType = typeEvenementDetecte(title + ' ' + desc);
     const id = 'r_' + src.id + '_' + btoa(unescape(encodeURIComponent(title.slice(0,28)))).replace(/[+/=]/g,'').slice(0,18);
     // Pays reel dont parle l'article, independant du pays de la source.
@@ -5888,7 +5889,12 @@ function parseJSON(d, src) {
       url: link, srcs: [src.id], primary: src.id,
       cy: cyReel || src.cy, sc: (cyReel === 'INT') ? 'regional' : ((cyReel && cyReel !== src.cy) ? 'national' : src.sc), cat, level: lvl,
       score: src.score, pubDate: pubTs, time: fmtAge(pubTs),
-      verified: src.score >= 80,
+      // « verifie » veut dire RECOUPE par une seconde source, jamais « source
+      // bien notee » : c'est dedupliquerArticles() qui le pose, a la fusion.
+      // Le 03/09/2026, 125 articles du cache portaient ce badge ; 120 n'avaient
+      // qu'une seule source. La fiabilite de la source est un autre signal,
+      // porte par « fiable » et par le score affiche.
+      verified: false, fiable: src.score >= 80,
       crosses: [src.n],
       recos: [], flagged: false, fromRSS: true,
       _srcBadge: badge, _isSocial: isSocial, _srcCy: src.cy,
@@ -5906,9 +5912,20 @@ function parseJSON(d, src) {
 // faisait remonter "tue" dans "statue", "arme" dans "larme", "mort" dans
 // "amortissement" comme signaux de securite, une confusion grave pour un
 // outil de surete pays (l'app n'est pas un fil d'actualite generaliste).
-const CK_CRIT = ['attaque','attentat','enlev',"enlevement",'massacre','explosion','mort','tue','tues','tuee','tuees','coup d','putsch','assaut',"prise d'otage",'prise d otage','embuscade','frappe','drone','bombardement','meurtre','execution','genocide'];
-const CK_HIGH = ['incendie','tension','alerte','insecurite','crise','manifestation','greve','blocus','restriction','fermeture','evacuation','deplacement','menace','avertissement','siege','offensive','combat','violence'];
-const CK_SEC  = ['securite','securitaire','arme','armee','militaire','terrorisme','jihadiste','djihadiste','jnim','aqmi','boko','bandit','enlev','fsr','m23','adf','eis','al-shabaab','groupes armes'];
+// Lexiques bilingues. Mesure du 03/09/2026 sur le cache de production : 62 des
+// 262 articles etaient en anglais (Nigeria, Ghana, Kenya, Zambie, Namibie…),
+// et « Troops rescue 30 kidnap victims » restait au niveau normal faute d'un
+// seul mot anglais dans ces listes. Les termes anglais ci-dessous sont ceux
+// qui apparaissent reellement dans les titres de ces sources.
+const CK_CRIT = ['attaque','attentat','enlev',"enlevement",'massacre','explosion','mort','morts','tue','tues','tuee','tuees','coup d','putsch','assaut',"prise d'otage",'prise d otage','embuscade','frappe','drone','bombardement','meurtre','execution','genocide',
+  'attack','attacks','attacked','killed','kills','kidnap','kidnapped','kidnapping','abduction','abducted','bombing','ambush','gunmen','shooting','beheaded','airstrike','hostage','hostages'];
+const CK_HIGH = ['incendie','tension','alerte','insecurite','crise','manifestation','greve','blocus','restriction','fermeture','evacuation','deplacement','menace','avertissement','siege','offensive','combat','violence',
+  // « threat » ecarte : dans la presse politique nigeriane il designe une
+  // menace electorale (« flogging threat may turn voters ») bien plus souvent
+  // qu'une menace securitaire — mesure sur le cache du 03/09/2026.
+  'unrest','clashes','protest','protests','curfew','riot','riots','insecurity','lockdown'];
+const CK_SEC  = ['securite','securitaire','arme','armee','militaire','terrorisme','terroriste','terroristes','jihadiste','djihadiste','jnim','aqmi','boko','bandit','bandits','banditisme','criminalite','enlev','fsr','m23','adf','eis','al-shabaab','groupes armes',
+  'security','troops','soldiers','military','terrorist','terrorists','militants','insurgents','jihadist','jihadists'];
 const CK_HUM  = ['alimentaire','humanitaire','famine','soudure','refugie','deplace','deplacement','ocha','fao','malnutrition','aide humanitaire','cholera','ebola','epidemie','urgence','crise alimentaire'];
 const CK_POL  = ['election','president','gouvernement','parlement','constitution','loi','diplomatique','sommet','junte','transition','coup','veto','sanctions','greve','manifestation'];
 const CK_ECO  = ['economie','marche','prix','croissance','investissement','entreprise','commerce','port','export','inflation','bceao','monnaie',
@@ -6763,7 +6780,38 @@ function trierAgenda(liste) {
 // un vrai enlevement risquerait de ne pas etre detecte, l'inverse exact de
 // ce qu'un outil de surete doit garantir.
 
-function classify(txt, src) {
+// FORMATS EDITORIAUX : ce sont des cadres, pas des faits. Un journal televise
+// resume tout ce qui s'est passe dans la journee, une chronique commente,
+// un communique du conseil des ministres liste des decisions. Leur texte
+// contient presque toujours un mot de securite — et ils remontaient en
+// ELEVE ou CRITIQUE sur ce seul mot. Constate le 03/09/2026 sur le cache de
+// production : « Journal Televise du 02 Septembre », « Communique du conseil
+// des ministres », « Les chroniques de Ragidro » ouvraient la file a traiter.
+// Le motif s'applique au DEBUT du titre : « Chronique d'une attaque » au
+// milieu d'un titre n'est pas un format, c'est une figure de style.
+const FORMATS_EDITORIAUX_RE = /^(?:les?\s+|la\s+|l\s+|une?\s+)?(?:chroniques?|editorial|edito|tribune|billet|revue de presse|journal televise|journal de \d|jt\b|communique du conseil des ministres|conseil des ministres|compte[- ]rendu du conseil|meteo|horoscope|programme tv|sommaire)\b/;
+function estFormatEditorial(tTitre) { return FORMATS_EDITORIAUX_RE.test(tTitre.trim()); }
+
+// SUITES JUDICIAIRES : une condamnation pour meurtre parle d'un meurtre, mais
+// le meurtre a eu lieu il y a des mois. Le titre commence par le verdict :
+// on plafonne au niveau MODERE au lieu de laisser « meurtre » ouvrir la file.
+const SUITE_JUDICIAIRE_RE = /^(?:condamnes?|condamnation|proces|verdict|tribunal|cour d appel|acquitte|relaxe|mis en examen|inculpe)\b/;
+function estSuiteJudiciaire(tTitre) { return SUITE_JUDICIAIRE_RE.test(tTitre.trim()); }
+
+// motsTouches : mots-cles d'un lexique presents dans le texte, comptes par
+// FAMILLE (quatre premieres lettres) pour que « tue » et « tues », « attaque »
+// et « attaques » ne comptent pas deux fois.
+function motsTouches(texte, lexique) {
+  const familles = new Set();
+  for (const k of lexique) if (matchMot(texte, k)) familles.add(k.slice(0, 4));
+  return familles;
+}
+
+// classify(txt, src, titre) : txt est le titre suivi du corps ; titre, quand
+// l'appelant le fournit, permet de distinguer ce que dit le TITRE de ce que
+// dit le corps. Sans lui (anciens appels, tests), tout est traite comme titre :
+// comportement d'avant, inchange.
+function classify(txt, src, titre) {
   const t = txt.toLowerCase();
 
   // Normalisation des accents D'ABORD (voir normaliserAccents) : reutilisee
@@ -6820,12 +6868,42 @@ function classify(txt, src) {
   // desormais le vocabulaire de domaine, qui ne doit pas relever un niveau.
   const criseHumanitaire = CK_HUM.filter(k=>matchMot(tScan,k)).length;
   const lienSecuriteFaible = scores.securite > 0 || criseHumanitaire > 0;
-  let lvl = CK_CRIT.some(k=>matchMot(tScan,k)) ? 'crit'
-          : CK_HIGH.some(k=>matchMot(tScan,k)) ? 'high'
-          : (lienSecuriteFaible && HIGH_BASE_CY.has(src.cy)) ? 'high'
-          : (lienSecuriteFaible && MOD_BASE_CY.has(src.cy)) ? 'mod'
-          : lienSecuriteFaible ? 'mod'
-          : 'ok';
+
+  // LE TITRE DECIDE, LE CORPS NUANCE.
+  //
+  // Jusqu'ici un seul mot de CK_HIGH n'importe ou dans le corps suffisait a
+  // classer ELEVE, et un seul mot de CK_SEC dans le corps suffisait, pour un
+  // pays a risque, a classer ELEVE aussi. Le corps est un paragraphe entier :
+  // « violence » y apparait dans l'appel a l'unite d'un chef coutumier zambien,
+  // « securite » dans le sommaire d'un journal televise, « attaque » dans une
+  // chronique economique. Mesure du 03/09/2026 sur les 20 articles au-dessus
+  // du niveau normal dans le cache de production : 3 interessaient un
+  // responsable surete. Les 17 autres tenaient a un mot du corps.
+  //
+  // Regle : un mot du TITRE fait le niveau. Le corps seul ne le fait qu'avec
+  // au moins DEUX familles de mots distinctes — un vrai incident decrit dans
+  // le corps en aligne plusieurs (attaque, tues, armes), un mot isole est
+  // presque toujours une figure de style. Un mot isole du corps vaut MODERE.
+  const tTitre = (typeof titre === 'string' && titre)
+    ? neutraliserExpressions(normaliserAccents(titre.toLowerCase()))
+    : tScan;
+  if (estFormatEditorial(tTitre)) return {lvl: 'ok', cat};
+
+  const critTitre = motsTouches(tTitre, CK_CRIT);
+  const critCorps = motsTouches(tScan, CK_CRIT);
+  const highTitre = motsTouches(tTitre, CK_HIGH);
+  const highCorps = motsTouches(tScan, CK_HIGH);
+  const lienTitre = CK_SEC.some(k=>matchMot(tTitre,k)) || CK_HUM.some(k=>matchMot(tTitre,k));
+
+  let lvl;
+  if (critTitre.size || critCorps.size >= 2) lvl = 'crit';
+  else if (highTitre.size || (critCorps.size + highCorps.size) >= 2) lvl = 'high';
+  else if (lienTitre && HIGH_BASE_CY.has(src.cy)) lvl = 'high';
+  else if (critCorps.size || highCorps.size) lvl = 'mod';
+  else if (lienSecuriteFaible) lvl = 'mod';
+  else lvl = 'ok';
+
+  if (lvl !== 'ok' && estSuiteJudiciaire(tTitre)) lvl = 'mod';
 
   return {lvl, cat};
 }
@@ -7669,8 +7747,9 @@ function renderMediaBlock(a, heightPx) {
   }
 
   // Pas de média direct : conteneur vide patché de façon asynchrone via OGP
-  // (ne tente OGP que pour les articles vérifiés afin de limiter les requêtes)
-  if (a.verified && a.url && a.url.startsWith('https')) {
+  // (ne tente OGP que pour les sources bien notees afin de limiter les requêtes ;
+  // « fiable » a remplace ici « verified », qui signifie desormais « recoupe »)
+  if ((a.fiable || a.verified) && a.url && a.url.startsWith('https')) {
     resolveOGP(a.url, a.id).then(m => patchMediaDOM(a.id, m));
   }
   return `<div class="artmedia-wrap" id="artmedia-${a.id}" style="${fallbackStyle};display:${(MEDIA_CACHE[a.id] && MEDIA_CACHE[a.id].img)?'block':'none'}"></div>`;
@@ -7715,7 +7794,7 @@ function parseRSS(xml, src) {
     // On n'invente plus de date recente — exclusion automatique en aval.
     if (!pubTs || isNaN(pubTs)) pubTs = 0;
 
-    const {lvl, cat} = classify(title+' '+desc, src);
+    const {lvl, cat} = classify(title+' '+desc, src, title);
     const agendaType = typeEvenementDetecte(title+' '+desc);
     const id = 'r_'+src.id+'_'+btoa(unescape(encodeURIComponent(title.slice(0,30)))).replace(/[+/=]/g,'').slice(0,18);
     // Pays reel dont parle l'article, independant du pays de la source.
@@ -7732,7 +7811,7 @@ function parseRSS(xml, src) {
       url: link, srcs:[src.id], primary:src.id,
       cy:(cyConfiant ? cyReel : (src.cy || cyReel)), sc:((cyReel === 'INT') ? 'regional' : ((cyReel && cyReel !== src.cy) ? 'national' : src.sc)), cat, level:lvl,
       score:src.score, pubDate:pubTs, time:fmtAge(pubTs),
-      verified:src.score>=80,
+      verified:false, fiable:src.score>=80, // voir parseRSS : verifie = recoupe
       crosses:[src.n],
       recos:[], flagged:false, fromRSS:true,
       _srcBadge:badge, _isSocial:isSocial, _srcCy:src.cy,
@@ -8113,8 +8192,13 @@ async function doCollect() {
       reconcilierDatesPremiereVue(fresh);
       const mapPartial={}; ALL.forEach(a=>mapPartial[a.id]=a); Object.assign(mapPartial, fresh);
       const partial = Object.values(mapPartial).filter(a=>estRecentReel(a));
+      // Dedoublonner ICI aussi, pas seulement a la toute fin de doCollect() :
+      // le job planifie s'arrete a 8 min (proxys rate-limites) et publie ce
+      // que ALL contient a cet instant. Le 03/09/2026, ce cache publie portait
+      // cinq paires d'articles au titre strictement identique — la fusion de
+      // fin de collecte n'avait jamais eu lieu.
       if (partial.length > ALL.length) {
-        ALL = partial; renderFeed(); updStats();
+        ALL = dedupliquerArticles(partial); renderFeed(); updStats();
         // Auparavant, seul le Flux se rafraichissait pendant la collecte (ici)
         // — Alertes/Tableau de bord/Agenda/Synthese restaient figes sur l'etat
         // d'AVANT le cycle jusqu'a la toute fin (~495 sources), donnant
@@ -10437,8 +10521,8 @@ async function renderFeed() {
           '<button class="share-trigger" onclick="toggleShareMenu(event,\''+a.id+'\')" title="'+(LANG==='en'?'Share':'Partager')+'"><i class="ti ti-share-2"></i>'+(LANG==='en'?'Share':'Partager')+'</button>'+
           (typeof confBadge==='function' ? confBadge(a) : '')+
           '<span class="rtg '+rc(a.score)+'">'+a.score+'%</span>'+
-          (a.verified?'<span class="vtg"><i class="ti ti-shield-check"></i>'+(a.crosses?.length||1)+' src</span>':
-                      '<span class="utg">1 src</span>')+
+          (a.verified?'<span class="vtg" title="'+(LANG==='en'?'Reported by several sources':'Rapporte par plusieurs sources')+'"><i class="ti ti-shield-check"></i>'+(a.crosses?.length||1)+' src</span>':
+                      '<span class="utg" title="'+(LANG==='en'?'Single source':'Source unique')+'">1 src</span>')+
           (()=>{
             const diffMin=a.pubDate?Math.floor((Date.now()-a.pubDate)/60000):999;
             const cls=diffMin<30?'fresh':diffMin>600?'crit':'';
