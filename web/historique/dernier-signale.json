@@ -5,7 +5,7 @@
  "BJ": "jaune",
  "BW": "vert",
  "CD": "rouge",
- "CF": "rouge",
+ "CF": "marron",
  "CG": "orange",
  "CI": "orange",
  "CM": "marron",
@@ -51,6 +51,6 @@
  "TZ": "marron",
  "UG": "marron",
  "ZA": "jaune",
- "ZM": "orange",
+ "ZM": "marron",
  "ZW": "marron"
 }
