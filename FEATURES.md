@@ -27,6 +27,7 @@ Servi aux utilisateurs à chaque visite, sur `web/SentiqS_Web.html`.
 | Authentification Supabase, rôles serveur | opérationnelle | migration `profiles_auth` |
 | Cache de collecte partagé, rafraîchi toutes les 30 min | opérationnel | `collecte-planifiee.yml` |
 | Alertes par e-mail et SMS | configurables | panneau Paramètres |
+| Quotas de téléchargement par abonnement, vérifiés côté serveur | opérationnelle depuis le 03/09/2026 | migration `quotas_cote_serveur`, fonction Edge `autoriser-export` |
 
 ## Écrit mais non déployé
 
@@ -48,11 +49,13 @@ Ne pas présenter ces points comme disponibles.
 
 À traiter avant toute facturation.
 
-- Application des droits d'abonnement côté serveur — les quotas vivent
-  aujourd'hui dans le navigateur.
-- Encaissement (Stripe n'est pas branché).
+- Encaissement (le code `creer-paiement` / `webhook-stripe` existe dans
+  `app/sentinel-app/supabase/functions/` mais n'est pas déployé — attend un
+  compte Stripe et ses clés).
 - Mentions légales, conditions générales de vente, politique de
-  confidentialité, page RGPD.
+  confidentialité : structures livrées avec 33 emplacements
+  `[[À COMPLÉTER]]` (voir `web/legal/README.md`), pages servies en
+  `noindex`. Pas des textes publiables en l'état.
 - Nom de domaine propre.
 - Sauvegarde et restauration de la base.
 
