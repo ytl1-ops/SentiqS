@@ -132,6 +132,35 @@ Deux choses à savoir avant d'y toucher :
 Après tout changement de lexique : mesurer sur le cache réel combien de niveaux
 bougent. La bonne réponse est presque toujours zéro.
 
+```bash
+node scripts/banc-tri.js cache.json            # rejoue classify() sur un cache réel
+node scripts/banc-tri.js cache.json --diff banc-avant.json
+```
+
+Le banc rejoue **la vraie `classify()`**, extraite du fichier de production,
+et nomme le mot qui a fait monter chaque article. `SENTINEL_HTML_PATH` permet
+de rejouer la version de `main` pour produire la référence « avant ».
+
+**Le titre décide, le corps nuance.** `classify(txt, src, titre)` reçoit le
+titre seul en troisième argument. Un mot du titre fait le niveau ; le corps
+seul ne le fait qu'avec au moins deux familles de mots distinctes, et un mot
+isolé du corps vaut modéré. Mesure du 03/09/2026 qui a imposé la règle : sur
+les vingt articles au-dessus du normal, dix-sept tenaient à un mot du corps
+(« violence » dans un appel à l'unité, « sécurité » dans le sommaire d'un
+journal télévisé). Les formats éditoriaux (journal télévisé, chronique,
+communiqué du conseil des ministres) sont exclus en tête de titre, et une
+condamnation plafonne au modéré.
+
+**Les lexiques sont bilingues.** 62 des 262 titres du cache étaient en
+anglais et aucun mot anglais n'y figurait : « Troops rescue 30 kidnap
+victims » restait au niveau normal. « threat » est volontairement absent : dans
+la presse politique nigériane c'est une menace électorale.
+
+**« Vérifié » veut dire recoupé.** `verified` n'est posé que par la fusion de
+deux sources dans `dedupliquerArticles` ; la note de la source est portée par
+`fiable`. Le 03/09/2026, 125 articles portaient le badge, 120 n'avaient qu'une
+source.
+
 ---
 
 ## L'archive des niveaux

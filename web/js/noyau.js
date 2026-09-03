@@ -85,7 +85,17 @@ function motsSignificatifs(titre) {
 const DEDUP_MIN_COMMUNS = 4;
 const DEDUP_MIN_RATIO   = 0.4;
 
+function titreNormalise(titre) {
+  return (titre || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
 function articlesSontDoublons(a, b) {
+  // Deux titres strictement identiques sont un doublon, quel que soit leur
+  // nombre de mots : « Putin toasts HH victory » (trois mots significatifs)
+  // passait sous le plancher de quatre mots et restait en double.
+  const na = titreNormalise(a.title);
+  if (na && na === titreNormalise(b.title)) return true;
   const motsA = motsSignificatifs(a.title);
   const motsB = motsSignificatifs(b.title);
   if (motsA.length < DEDUP_MIN_COMMUNS || motsB.length < DEDUP_MIN_COMMUNS) return false;
@@ -369,7 +379,7 @@ function tendanceNiveaux(points, fenetre) {
 // tests. Aucun appelant n'a eu a changer.
 const API = {
   normaliserAccents, TERMES_AMBIGUS_MASQUES, masquerTermesComposes, matchMot,
-  MOTS_VIDES_DEDUP, motsSignificatifs, articlesSontDoublons,
+  MOTS_VIDES_DEDUP, motsSignificatifs, titreNormalise, articlesSontDoublons,
   DEDUP_MIN_COMMUNS, DEDUP_MIN_RATIO,
   getNivKey,
   MOIS_FR_IDX, dateEvenementMs, facteurFraicheur, poidsVerifie,
