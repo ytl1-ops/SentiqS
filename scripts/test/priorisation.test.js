@@ -65,6 +65,15 @@ test('a niveau egal, un socle plus ancien passe devant', () => {
   assert.ok(P.prioriteRevue(pays({ plusRecentJours: 300 })) > P.prioriteRevue(pays({ plusRecentJours: 30 })));
 });
 
+test('un age negatif est un socle tout juste mis a jour, pas un age inconnu', () => {
+  // « Septembre 2026 » se resout au 15 : le 3, l'incident a -12 jours. Il est
+  // le plus recent possible ; le traiter comme inconnu (200 j) le faisait
+  // remonter en tete de la liste de revue — l'inverse de ce qu'il merite.
+  assert.strictEqual(P.prioriteRevue(pays({ plusRecentJours: -1 })), P.prioriteRevue(pays({ plusRecentJours: 0 })));
+  assert.ok(P.prioriteRevue(pays({ plusRecentJours: -1 })) < P.prioriteRevue(pays({ plusRecentJours: 30 })));
+  assert.ok(P.prioriteRevue(pays({ plusRecentJours: null })) > P.prioriteRevue(pays({ plusRecentJours: 30 })), 'inconnu reste prioritaire');
+});
+
 test('a niveau et age egaux, une plus grande part du socle passe devant', () => {
   assert.ok(P.prioriteRevue(pays({ verifies: 9 })) > P.prioriteRevue(pays({ verifies: 2 })));
 });

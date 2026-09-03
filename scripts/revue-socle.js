@@ -57,7 +57,8 @@ const lignes = instantane.pays.map((p) => {
   const incidents = bac.EV.filter((e) => e.cy === p.code);
   const ages = incidents.map((e) => dateEvenementMs(e.date))
     .filter((d) => d && d.ms).map((d) => Math.floor((maintenant - d.ms) / 86400000));
-  const plusRecent = ages.length ? Math.min(...ages) : null;
+  // Une date imprecise peut se resoudre a demain : l'age vaut alors zero, pas « -1 j ».
+  const plusRecent = ages.length ? Math.max(0, Math.min(...ages)) : null;
   const partSocle = p.total > 0 ? p.verifies / p.total : 0;
   const priorite = prioriteRevue({ ...p, plusRecentJours: plusRecent });
   return { ...p, nom: NOMS[p.code] || p.code, nbIncidents: incidents.length, plusRecent, partSocle, priorite };

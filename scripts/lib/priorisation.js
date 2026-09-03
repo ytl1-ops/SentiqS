@@ -61,8 +61,14 @@ function profilSeuil(sources, seuil) {
 function prioriteRevue(pays) {
   const p = pays || {};
   const rang = RANG_NIVEAU[p.niveau] || 0;
-  const age = (typeof p.plusRecentJours === 'number' && p.plusRecentJours >= 0)
-    ? p.plusRecentJours : AGE_SI_INCONNU_J;
+  // Un age NEGATIF n'est pas un age inconnu : une date imprecise (« Septembre
+  // 2026 ») se resout au milieu du mois, soit parfois demain, et l'incident
+  // est alors le plus recent possible — age zero. Le traiter comme inconnu lui
+  // donnait 200 jours et faisait remonter en tete de liste la Mauritanie, la
+  // Libye et le Soudan, dont le socle venait justement d'etre mis a jour.
+  // Constate le 03/09/2026 dans la sortie de revue-socle.js (« -1 j »).
+  const age = (typeof p.plusRecentJours === 'number' && Number.isFinite(p.plusRecentJours))
+    ? Math.max(0, p.plusRecentJours) : AGE_SI_INCONNU_J;
   const total = Number(p.total) || 0;
   const partSocle = total > 0 ? (Number(p.verifies) || 0) / total : 0;
   const attenuation = (Number(p.live) || 0) > 0 ? 0.5 : 1;
