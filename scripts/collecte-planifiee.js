@@ -48,7 +48,13 @@ const HTML_PATH = process.env.SENTINEL_HTML_PATH || path.join(__dirname, '..', '
 // PARTIEL au lieu d'un échec sec (voir plus bas) — ALL est déjà mis à jour
 // progressivement par doCollect() toutes les 20 sources terminées, un
 // instantané partiel reste largement utile pour le cache partagé.
-const COLLECT_TIMEOUT_MS = 8 * 60 * 1000;
+// 8 → 11 min le 03/09/2026 : sur le passage n° 806, la collecte s'est arretee
+// au plafond avec 25 sources fraiches couvrant 20 pays sur 54, et le journal
+// comptait plus de quarante « 503 » des relais publics. Chaque minute de
+// plus, c'est des sources de plus atteintes avant l'arret — a cout nul, le
+// job entier tenant en 13 min pour une garde de 18. La mesure d'effet est
+// dans le journal : « Sources terminees a l'arret » (ci-dessous).
+const COLLECT_TIMEOUT_MS = 11 * 60 * 1000;
 
 // L'archive vit sous web/ et non sous data/ : c'est web/ que GitHub Pages
 // sert, et l'interface doit pouvoir lire la serie sans passer par Supabase
@@ -213,6 +219,12 @@ function ecrireResumeActions(md) {
     } catch (e) {
       collecteComplete = false;
       console.log('Collecte non terminée sous ' + (COLLECT_TIMEOUT_MS / 60000) + ' min (proxys probablement rate-limités) — publication du résultat PARTIEL déjà accumulé.');
+      // Mesure d'effet du plafond : combien de sources etaient traitees a
+      // l'arret. C'est CE nombre qui dit si une minute de plus sert.
+      try {
+        const av = await page.evaluate(() => (typeof window.COLLECTE_AVANCEMENT === 'object' && window.COLLECTE_AVANCEMENT) || null);
+        if (av) console.log('  Sources terminées à l\'arrêt : ' + av.terminees + '/' + av.total);
+      } catch (_) {}
       // La collecte continue en tâche de fond dans la page tant que le
       // navigateur reste ouvert (Promise.race n'annule pas le perdant) —
       // sans effet indésirable puisqu'on ferme le navigateur juste après
