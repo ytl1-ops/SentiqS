@@ -8360,6 +8360,11 @@ async function doCollect() {
       _cbarArt.signal(false);
     }
     done++;
+    // Avancement lisible de l'exterieur : le job planifie s'arrete a un
+    // plafond de temps et publie ce qu'il a ; sans ce compteur, personne ne
+    // sait combien de sources ont ete traitees avant l'arret, donc si
+    // rallonger le plafond sert a quelque chose. Voir scripts/collecte-planifiee.js.
+    window.COLLECTE_AVANCEMENT = { terminees: done, total: total };
     document.getElementById('cbarFill').style.width=Math.round(done/total*100)+'%';
     document.getElementById('cbarMsg').textContent=src.n+' ('+done+'/'+total+')';
     document.getElementById('cbarOk').textContent=ok;

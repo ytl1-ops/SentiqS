@@ -28,7 +28,7 @@ jobs:
     name: Intégrité de l'arborescence
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Vérifie que les répertoires critiques sont toujours là
         run: |
@@ -107,9 +107,9 @@ jobs:
       run:
         working-directory: webapp
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -148,9 +148,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: integrite
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
         # Pas de `cache: npm` / `cache-dependency-path` ni de `npm ci` ici :
