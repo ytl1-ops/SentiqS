@@ -427,6 +427,43 @@ un pays dont tous les médias sont déjà lus — la même ambiguïté que
 **La mesure ne note personne**, et un test l'interdit. Elle compte des
 occurrences ; le score de fiabilité reste un jugement éditorial.
 
+**Et elle a trouvé le défaut avant les sources.** Le même piège de langue
+était déjà dans le registre : 81 requêtes Google News, sur 18 pays,
+interrogeaient une édition anglophone, lusophone ou arabophone avec le nom
+**français** du pays. Mesure du 06/09/2026 sur trente jours, requêtes de
+sûreté uniquement :
+
+| Pays | Avant | Après | Nom attendu |
+|---|---|---|---|
+| Cap-Vert | 0 | 71 | Cabo Verde |
+| Soudan du Sud | 1 | 66 | South Sudan |
+| Afrique du Sud | 4 | 72 | South Africa |
+| Gambie | 4 | 50 | The Gambia |
+| São Tomé | 3 | 27 | São Tomé e Príncipe |
+| Tanzanie | 5 | 70 | Tanzania |
+| Zambie | 9 | 63 | Zambia |
+| Soudan | 10 | 64 | Sudan |
+| Éthiopie | 10 | 70 | Ethiopia |
+| Mozambique | 13 | 62 | Moçambique |
+
+**367 → 1 009 articles** sur les dix-sept requêtes de sûreté concernées. Le
+Soudan du Sud, pays au niveau marron, recevait **un article par mois**.
+
+C'est le pire genre de panne : silencieuse. Rien n'échouait, aucun contrôle
+ne rougissait — le pays paraissait simplement calme. C'est exactement ce que
+`paysMuet()` combat côté interface, entré cette fois par la requête.
+
+Un cliquet le refuse désormais (`scripts/test/couverture-medias.test.js`) :
+aucune requête thématique ne peut porter le nom français du pays sur une
+édition qui ne l'est pas. **Seul le paramètre `q=` a changé** : le libellé
+affiché reste en français, c'est la langue de l'interface, et un test le
+vérifie aussi.
+
+Reste à faire, même classe : les noms de **villes** sont eux aussi en
+français dans ces requêtes (« Le Caire », « Mogadiscio », « Djouba »,
+« Darfour », « Le Cap », « Addis-Abeba »). Non mesuré à ce jour — le faire
+avant de corriger.
+
 ---
 
 ## Par où commencer la revue du socle

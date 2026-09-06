@@ -107,3 +107,69 @@ test('la mesure ne note aucune source et n\'écrit jamais dans le registre', () 
   assert.doesNotMatch(src, /writeFileSync\([^)]*SentiqS_Web\.html/, 'le registre ne doit jamais être réécrit');
   assert.match(HTML, /const SRCS=\[/, 'le registre reste la seule source de vérité');
 });
+
+// ── Les requêtes interrogent-elles dans la bonne langue ? ────────────────
+
+// Noms français dont l'usage sur une édition étrangère a été mesuré comme
+// coûteux, le 06/09/2026, sur trente jours de Google News. Le nom attendu
+// est celui de la langue de l'édition interrogée.
+//
+//   Cap-Vert        0 →  71 articles    Cabo Verde
+//   Soudan du Sud   1 →  66             South Sudan
+//   Afrique du Sud  4 →  72             South Africa
+//   Gambie          4 →  50             The Gambia
+//   Sao Tomé        3 →  27             São Tomé e Príncipe
+//   Tanzanie        5 →  70             Tanzania
+//   Zambie          9 →  63             Zambia
+//   Soudan         10 →  64             Sudan
+//   Éthiopie       10 →  70             Ethiopia
+//   Mozambique     13 →  62             Moçambique
+//   Maurice        15 →  48             Mauritius
+//   Guinée-Bissau  18 →  22             Guiné-Bissau
+//   Érythrée       33 →  42             Eritrea
+//   Somalie        43 →  75             Somalia
+//   Égypte         62 →  67             مصر
+//   Libye          67 →  70             ليبيا
+//   Namibie        70 →  70             Namibia
+//
+// Total sur les dix-sept requêtes de sûreté : 367 → 1 009 articles. Le
+// Soudan du Sud, pays au niveau marron, recevait UN article par mois.
+const EXONYMES_FRANCAIS = {
+  CV: ['cap-vert'], EG: ['egypte'], ER: ['erythree'], ET: ['ethiopie'],
+  GM: ['gambie'], GW: ['guinee-bissau'], LY: ['libye'], MU: ['maurice'],
+  MZ: ['mozambique'], NA: ['namibie'], SD: ['soudan'], SO: ['somalie'],
+  SS: ['soudan du sud'], ST: ['sao tome-et-principe', 'sao tome et principe'],
+  TZ: ['tanzanie'], ZA: ['afrique du sud'], ZM: ['zambie'],
+};
+
+test('une requête n\'interroge jamais une édition étrangère avec le nom français du pays', () => {
+  // Cliquet. Google News cherche le texte de la requête dans les articles de
+  // son édition : « Soudan du Sud » sur l'édition anglophone du Soudan du Sud
+  // ne trouve presque rien, et la mesure n'a pas l'air cassée — elle conclut
+  // simplement que le pays est peu couvert. C'est la même classe d'erreur que
+  // celle rencontrée en construisant scripts/couverture-mediatique.js, et
+  // elle était déjà dans le registre, sur dix-huit pays.
+  const sansAccents = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const fautes = [];
+  for (const s of SRCS) {
+    if (!/news\.google\.com\/rss\/search/.test(s.rss || '')) continue;
+    if (/q=site(?:%3A|:)/i.test(s.rss)) continue;
+    const langue = (/ceid=[A-Z]{2}:([a-z-]+)/.exec(s.rss) || [])[1];
+    if (!langue || langue.startsWith('fr')) continue;
+    const exonymes = EXONYMES_FRANCAIS[s.cy];
+    if (!exonymes) continue;
+    const q = sansAccents(decodeURIComponent((/q=([^&]+)/.exec(s.rss) || [])[1] || '').replace(/\+/g, ' '));
+    for (const e of exonymes) if (q.includes(e)) fautes.push(s.id + ' (' + langue + ') : « ' + q + ' »');
+  }
+  assert.deepStrictEqual(fautes, [], fautes.length + ' requête(s) au nom français sur une édition étrangère :\n' + fautes.join('\n'));
+});
+
+test('le libellé affiché reste en français, seule la requête change', () => {
+  // La correction ne devait toucher que le paramètre q= : l'interface est en
+  // français, et renommer les sources aurait changé ce que voit l'utilisateur
+  // sans rien améliorer à la collecte.
+  const ss = SRCS.find((s) => s.id === 'ss_gn_secu');
+  assert.ok(ss, 'ss_gn_secu doit exister');
+  assert.match(ss.n, /Soudan du Sud/, 'le libellé reste en français');
+  assert.match(ss.rss, /q=South\+Sudan/, 'la requête interroge en anglais');
+});
