@@ -319,6 +319,54 @@ quelqu'un a branché la décroissance : mesurer d'abord.
 
 ---
 
+## Qui est collecté en premier
+
+Depuis les 71 médias ajoutés au registre, la collecte planifiée **s'arrête au
+plafond** de `COLLECT_TIMEOUT_MS` (11 min 03 s sur 560 sources, contre 6 min et
+« Collecte complète » sur 489). L'ordre de la file décide donc de qui est
+sacrifié — ce n'est plus une question théorique.
+
+`ordonnerFileCollecte()` range les sources en trois rangs :
+
+1. la **zone prioritaire** choisie par l'utilisateur à la connexion ;
+2. les **pays aveugles** — aucun article dans le cache courant ;
+3. tout le reste, en **ordre rotatif** (`rangRotatif`, pour qu'aucune tranche du
+   registre ne soit *toujours* en queue).
+
+**Mesure du 06/09/2026 qui a imposé le rang 2.** Neuf pays sur 54 n'avaient
+aucun article. En interrogeant une par une toutes leurs sources capables
+d'alerter, un seul avait du contenu frais à portée : la **Mauritanie**
+(7 articles sous 12 h chez `fr_mr`, 2 chez `allafrica_mr`, 2 chez `ami_mr`).
+Ses sources n'avaient simplement pas été atteintes avant l'arrêt. Les huit
+autres n'avaient **rien publié sous 36 h** :
+
+| Pays | Ce qui bloque |
+|---|---|
+| RW, SC | `igihe_rw` et `sna_sc` répondent **403** — le site refuse le robot |
+| GM, ST, BW | dernière publication à **58-59 h**, juste hors fenêtre |
+| DJ, ER, LS | aucune presse locale à flux vivant trouvée (270 à 326 h) |
+
+Autrement dit : **un ordre de file ne fait gagner qu'un pays**. Les autres
+demandent des sources, pas du code — et pour trois d'entre eux, la mesure dit
+qu'il n'y en a pas.
+
+**Le filet en aval ne pouvait pas jouer ce rôle.** La reprise « pays
+manquants », en fin de `doCollect`, ne retentait que les sources en **erreur**,
+jamais celles qui n'avaient jamais été essayées ; et sur un passage tronqué
+elle ne s'exécute même pas, `doCollect()` étant abandonné en vol par le
+plafond. D'où une priorité **en amont** plutôt qu'un rattrapage en aval.
+
+Les sources d'un pays aveugle échappent aussi au cooldown (`srcIsSkippable`),
+pour la même raison que la zone prioritaire : une source en cooldown vaut mieux
+qu'un pays sur lequel on ne sait rien.
+
+**Piège rencontré en écrivant ces tests :** `o.maintenant || Date.now()` traite
+l'instant `0` comme absent. Un test qui passait `maintenant: 0` retombait sur
+l'horloge réelle et changeait d'ordre à chaque exécution — il passait sur la
+version cassée une fois sur deux. Un test non déterministe ne prouve rien.
+
+---
+
 ## Collecte planifiée
 
 `.github/workflows/collecte-planifiee.yml` déclare `*/30 * * * *`, mais GitHub

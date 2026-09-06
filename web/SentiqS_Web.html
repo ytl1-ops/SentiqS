@@ -8469,6 +8469,69 @@ function rangRotatif(idx, total, maintenant) {
   return (idx - decalage + total) % total;
 }
 
+// Ordre de la file de collecte. Extrait de doCollect() pour etre testable :
+// c'est cet ordre qui decide QUI est sacrifie quand un passage s'arrete au
+// plafond de temps (COLLECT_TIMEOUT_MS, voir scripts/collecte-planifiee.js).
+//
+// Trois rangs, du plus prioritaire au moins :
+//   1. la zone prioritaire choisie par l'utilisateur a la connexion ;
+//   2. les pays AVEUGLES — aucun article dans le cache courant ;
+//   3. tout le reste, en ordre rotatif (rangRotatif).
+//
+// POURQUOI le rang 2, mesure du 06/09/2026 : avec 560 sources, la collecte
+// planifiee s'arrete desormais au plafond (11 min 03 s) et couvrait 45 pays
+// sur 54. Des neuf absents, un seul — la Mauritanie — avait du contenu frais
+// a portee (7 articles sous 12 h chez fr_mr, 2 chez allafrica_mr, 2 chez
+// ami_mr) : ses sources n'avaient tout simplement pas ete atteintes avant
+// l'arret. Les huit autres n'avaient rien publie sous 36 h, aucun ordre de
+// file n'y peut quoi que ce soit.
+//
+// Le filet prevu pour ce cas (la reprise « pays manquants », plus bas dans
+// doCollect) ne pouvait rien : il ne retente que les sources en ERREUR, donc
+// jamais celles qui n'ont jamais ete essayees — et sur un passage tronque il
+// ne s'execute meme pas, doCollect() etant abandonne en vol par le plafond.
+// D'ou une priorite en AMONT plutot qu'un rattrapage en aval : un pays sur
+// lequel on ne sait RIEN passe avant un pays deja documente.
+//
+// Les sources d'un pays aveugle echappent aussi a srcIsSkippable, pour la
+// meme raison que la zone prioritaire : mieux vaut retenter une source en
+// cooldown que laisser un pays sans aucune information.
+function ordonnerFileCollecte(srcs, opts) {
+  const o = opts || {};
+  const estZonePrio = o.estZonePrio || (() => false);
+  const estAveugle  = o.estAveugle  || (() => false);
+  const skippable   = o.skippable   || (() => false);
+  // `|| Date.now()` traiterait l'instant 0 comme absent : un test qui passe
+  // maintenant:0 retomberait alors sur l'horloge reelle, donc sur un ordre
+  // different a chaque execution. Un test non deterministe ne prouve rien.
+  const maintenant  = o.maintenant === undefined ? Date.now() : o.maintenant;
+  // Rang d'origine par REFERENCE d'objet (pas indexOf en boucle dans le
+  // comparateur : O(n) par appel, O(n^2 log n) au total sur 560 sources —
+  // negligeable en soi, mais autant l'eviter proprement).
+  const idxOriginal = new Map(srcs.map((s, i) => [s, i]));
+  const total = srcs.length;
+  const rang = (s) => estZonePrio(s) ? 0 : estAveugle(s) ? 1 : 2;
+  return srcs
+    .filter(s => estZonePrio(s) || estAveugle(s) || !skippable(s))
+    .sort((a, b) => {
+      const d = rang(a) - rang(b);
+      if (d) return d;
+      return rangRotatif(idxOriginal.get(a), total, maintenant)
+           - rangRotatif(idxOriginal.get(b), total, maintenant);
+    });
+}
+
+// Pays sans aucun article exploitable dans le cache courant. Calcule au
+// debut de chaque collecte, a partir de ce que la collecte precedente a
+// laisse : c'est la seule information disponible AVANT de collecter, et
+// elle suffit — un pays absent du dernier cycle est precisement celui qui
+// risque de l'etre encore.
+function paysAveugles(articles) {
+  const restants = new Set(Object.keys((typeof PAYS_INFO === 'object' && PAYS_INFO) || {}));
+  (articles || []).forEach(a => { if (a && a.cy) restants.delete(a.cy); });
+  return restants;
+}
+
 async function doCollect() {
   if (busy) return;
   busy = true;
@@ -8527,21 +8590,18 @@ async function doCollect() {
   // se retrouvent ainsi renseignes en premier et plus completement.
   const _zonePrio = (typeof zonePrioritaireActuelle === 'function') ? zonePrioritaireActuelle() : '';
   const _estSrcZonePrio = s => _zonePrio && typeof CY_TO_ZONE !== 'undefined' && CY_TO_ZONE[s.cy] === _zonePrio;
-  // Rang d'origine par REFERENCE d'objet (pas indexOf en boucle dans le
-  // comparateur : O(n) par appel, O(n^2 log n) au total sur 495 sources —
-  // negligeable en soi, mais autant l'eviter proprement).
-  const _idxOriginal = new Map(SRCS.map((s, i) => [s, i]));
+  // Pays dont le cache courant ne dit RIEN : leurs sources passent devant
+  // celles des pays deja documentes. Voir ordonnerFileCollecte() ci-dessus
+  // pour la mesure qui a impose ce rang (Mauritanie, 06/09/2026).
+  const _paysAveugles = paysAveugles(ALL);
+  const _estSrcPaysAveugle = s => _paysAveugles.has(s.cy);
   const _maintenantRotation = Date.now();
-  const srcsToCollect = SRCS
-    .filter(s => _estSrcZonePrio(s) || !srcIsSkippable(s))
-    .sort((a, b) => {
-      const prio = (_estSrcZonePrio(b) ? 1 : 0) - (_estSrcZonePrio(a) ? 1 : 0);
-      if (prio) return prio;
-      // Hors zone prioritaire : ordre rotatif plutot que l'ordre fixe du
-      // tableau, voir rangRotatif() ci-dessus.
-      return rangRotatif(_idxOriginal.get(a), SRCS.length, _maintenantRotation)
-           - rangRotatif(_idxOriginal.get(b), SRCS.length, _maintenantRotation);
-    });
+  const srcsToCollect = ordonnerFileCollecte(SRCS, {
+    estZonePrio: _estSrcZonePrio,
+    estAveugle: _estSrcPaysAveugle,
+    skippable: srcIsSkippable,
+    maintenant: _maintenantRotation,
+  });
   const skippedCount  = SRCS.length - srcsToCollect.length;
   const total = srcsToCollect.length;
   let lastLegRender = 0; // renderSrcLeg coûteux : limiter sa fréquence
@@ -8681,8 +8741,15 @@ async function doCollect() {
   //    On ne relance qu'une fois (garde _reprisesCouverture) pour eviter une
   //    boucle infinie si un pays n'a structurellement aucune source joignable.
   if (paysManquants.length > 0 && ok > 0 && !doCollect._repriseEnCours) {
+    // Le cooldown (srcIsSkippable) ne s'applique PAS ici : depuis que les
+    // pays aveugles passent en tete de file, leurs sources sont toutes
+    // essayees au lot principal, et celle qui vient d'y echouer devient
+    // aussitot « skippable ». La filtrer reviendrait a ne jamais reprendre
+    // que des sources dont on n'a rien tente — c'est-a-dire aucune. Pour un
+    // pays sur lequel on ne sait rien, une tentative de plus vaut mieux
+    // qu'un pays vide.
     const srcsManquantes = SRCS.filter(s =>
-      paysManquants.includes(s.cy) && !srcIsSkippable(s) && SRC_ST[s.id] === 'err'
+      paysManquants.includes(s.cy) && SRC_ST[s.id] === 'err'
     );
     if (srcsManquantes.length > 0) {
       doCollect._repriseEnCours = true;
