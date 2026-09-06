@@ -2318,7 +2318,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         <button class="btn-dl btn-dl-pdf" onclick="exportPDF(&#39;flux&#39;)"><i class="ti ti-file-type-pdf"></i>PDF</button>
         <button class="btn-dl btn-dl-csv" onclick="exportCSV(&#39;flux&#39;)"><i class="ti ti-file-spreadsheet"></i>CSV</button>
         <div class="dl-sep"></div>
-        <span style="font-size:9px;color:var(--lg)" id="dlFluxCount">19 articles (&lt;12h)</span>
+        <span style="font-size:9px;color:var(--lg)" id="dlFluxCount">19 articles (&lt;24h)</span>
       </div>
       <div class="sstrip-hd open" onclick="document.getElementById('fluxSstrip').classList.toggle('collapsed');this.classList.toggle('open')" style="display:flex;align-items:center;gap:5px;padding:3px 14px;font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;cursor:pointer;user-select:none;border-bottom:1px solid var(--bd);">
         <i class="ti ti-chevron-down" style="font-size:11px;transition:transform .15s;"></i>Statistiques
@@ -2328,7 +2328,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
            d'espace vertical au Flux des l'arrivee, l'utilisateur peut
            toujours deplier ce bandeau d'un clic. -->
       <div class="sstrip collapsed" id="fluxSstrip">
-        <div class="ss"><div class="sn" id="stTot">0</div><div class="sl">-12h</div></div>
+        <div class="ss"><div class="sn" id="stTot">0</div><div class="sl">-24h</div></div>
         <div class="ss"><div class="sn" style="color:var(--r)" id="stCrit">0</div><div class="sl" data-i18n="lbl_critiques">Critiques</div></div>
         <div class="ss"><div class="sn" style="color:#7C4A00" id="stHigh">0</div><div class="sl" data-i18n="lbl_eleves">Eleves</div></div>
         <div class="ss" title="Articles rapportes par au moins deux sources distinctes"><div class="sn" style="color:var(--g)" id="stVer">0</div><div class="sl" data-i18n="lbl_recoupes">Recoupes</div></div>
@@ -2361,7 +2361,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         <div class="tlbr" style="flex-wrap:wrap;">
           <select id="seScope" aria-label="Perimetre de recherche" onchange="setSeScope(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
             <option value="all">Tout</option>
-            <option value="flux">Flux (actif, &lt;12h)</option>
+            <option value="flux">Flux (actif, &lt;24h)</option>
             <option value="historique">Historique</option>
             <option value="agenda">Agenda</option>
             <option value="alertes">Alertes verifiees</option>
@@ -2575,7 +2575,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <i class="ti ti-radar-2" style="font-size:16px;color:var(--b)"></i>
                 <span style="font-size:12px;font-weight:700;color:var(--t)">Flux opérationnel</span>
               </div>
-              <div style="font-size:10px;color:var(--lg);margin-bottom:10px" id="dlFluxCount">Articles des dernières 12h.</div>
+              <div style="font-size:10px;color:var(--lg);margin-bottom:10px" id="dlFluxCount">Articles des dernières 24h.</div>
               <div style="display:flex;gap:8px">
                 <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'flux')"><i class="ti ti-share-2"></i><span data-i18n="btn_partager">Partager</span></button>
                 <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('flux')" title="Aperçu impression"><i class="ti ti-printer"></i></button>
@@ -3533,11 +3533,11 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
             <div class="pm-sec-body">
               <div class="rights-row">
                 <div class="rights-row-l">
-                  <div class="rights-row-name">Filtre 12h automatique</div>
+                  <div class="rights-row-name">Filtre 24h automatique</div>
                   <div class="rights-row-sub">N'afficher que les articles des 18 dernieres heures</div>
                 </div>
                 <label class="tgl">
-                  <input type="checkbox" id="tgl18h" aria-label="Filtre 12h automatique" checked="" onchange="save18hPref(this.checked)">
+                  <input type="checkbox" id="tgl18h" aria-label="Filtre 24h automatique" checked="" onchange="save18hPref(this.checked)">
                   <div class="tgl-sw"></div>
                 </label>
               </div>
@@ -4637,7 +4637,7 @@ const I18N = {
     ph_recherche:'Search...',
     flashinfo_lbl:'BREAKING NEWS',
     sb_geo:'Filter by country / press agency', sb_agences:'National agencies',
-    note_flux:'Feed: sourced news from the last 12 hours, sortable and filterable by country, category and alert level. The cross-checked badge marks a fact reported by several sources.',
+    note_flux:'Feed: sourced news from the last 24 hours, sortable and filterable by country, category and alert level. The cross-checked badge marks a fact reported by several sources.',
     note_recherche:'Search: find a country, event, theme or source across all data collected by SentiqS.',
     note_analyse:'Summary: thematic analytical report automatically generated from the Feed, filterable by zone or country.',
     note_agenda:'Agenda: ongoing and upcoming security events and deadlines, classified by status and zone.',
@@ -7205,9 +7205,13 @@ function computeConfidence(a, allArts) {
   // 1. Fiabilité de la source (40 pts max)
   const srcScore = Math.min(40, Math.round((a.score || 50) * 0.4));
 
-  // 2. Fraîcheur : décroissance linéaire sur 12h (30 pts max)
-  const ageH = a.pubDate ? (Date.now() - a.pubDate) / 3600000 : 12;
-  const fraicheurScore = Math.max(0, Math.round(30 * (1 - ageH / 12)));
+  // 2. Fraîcheur : décroissance linéaire sur la fenêtre d'actualité (30 pts
+  // max). Elle suit FENETRE_ACTUALITE_MS : laisser la décroissance à 12 h
+  // alors que le Flux en retient 24 donnerait zéro point de fraîcheur à la
+  // moitié des articles affichés.
+  const fenetreH = FENETRE_ACTUALITE_MS / 3600000;
+  const ageH = a.pubDate ? (Date.now() - a.pubDate) / 3600000 : fenetreH;
+  const fraicheurScore = Math.max(0, Math.round(30 * (1 - ageH / fenetreH)));
 
   // 3. Corroboration multi-sources : autres articles sur le même fait (30 pts max)
   // Critère : au moins un autre article d'une source différente partage
@@ -7442,15 +7446,37 @@ function sourceDateNonFiable(article) {
   return contenuAbsent || rechercheGoogleNews;
 }
 
+// FENETRE_ACTUALITE_MS : jusqu'a quel age un article compte comme
+// « actualite » dans le Flux, le tableau de bord et le compteur de pays
+// couverts.
+//
+// Mesure du 06/09/2026, les 110 sources natives capables d'alerter
+// interrogees une par une :
+//
+//   fenetre 12 h  ->  27 sources fraiches  ->  18 pays sur 54
+//   fenetre 24 h  ->  47 sources fraiches  ->  34 pays sur 54
+//   fenetre 48 h  ->  55 sources fraiches  ->  38 pays sur 54
+//
+// A 12 h, trente pays restaient vides en permanence — dont dix des treize
+// qui n'ont qu'une seule source d'alerte — sans que rien ne distingue le
+// pays calme du pays sur lequel on ne sait rien. Beaucoup de titres
+// africains publient une fois par jour : une fenetre plus courte que leur
+// rythme ne mesure pas la surete, elle mesure l'horaire de bouclage.
+//
+// Arbitrage tranche par l'editeur du produit. 48 h a ete ecarte : un
+// incident d'avant-hier affiche comme actualite peut avoir ete resolu.
+const FENETRE_ACTUALITE_MS = 24 * 60 * 60 * 1000;
+
 // estimeEvenementAncien(article) : vrai si la date de survenance estimee
-// remonte a plus de 12h, meme si la publication est recente.
+// remonte a plus que la fenetre d'actualite, meme si la publication est
+// recente.
 function estimeEvenementAncien(article) {
   const surv = extraireDateSurvenance(article);
   // Survenance inconnue : on NE bloque PAS l'article (sinon le flux se vide
   // des que l'article n'a pas d'indice temporel explicite, ce qui est le cas
   // le plus courant). Seul l'AFFICHAGE (fmtSurvenance) doit refleter le doute,
   // pas le filtrage temps reel. On retombe donc sur ts=pubDate, comme avant.
-  return (Date.now() - surv.ts) >= 12*60*60*1000;
+  return (Date.now() - surv.ts) >= FENETRE_ACTUALITE_MS;
 }
 
 // estRecentReel(article) : vrai uniquement si l'article est a la fois
@@ -7463,14 +7489,14 @@ function estimeEvenementAncien(article) {
 function estRecentReel(article) {
   if (!article || !article.pubDate) return false;
   if (sourceDateNonFiable(article)) return false;
-  if ((Date.now() - article.pubDate) >= 12*60*60*1000) return false;
+  if ((Date.now() - article.pubDate) >= FENETRE_ACTUALITE_MS) return false;
   const surv = extraireDateSurvenance(article);
-  if ((Date.now() - surv.ts) >= 12*60*60*1000) return false;
+  if ((Date.now() - surv.ts) >= FENETRE_ACTUALITE_MS) return false;
   return true;
 }
 
 function antiHalluFilter(arts, maxAgeMs) {
-  maxAgeMs = maxAgeMs || 12 * 60 * 60 * 1000;
+  maxAgeMs = maxAgeMs || FENETRE_ACTUALITE_MS;
   const now = Date.now();
   return arts.filter(a =>
     a.pubDate &&                              // horodaté
@@ -7817,17 +7843,17 @@ function getArticleVirality(a) {
   return {score, niveau};
 }
 
-// isWithin12h(dateStr) : vrai si la date (format 'JJ/MM/AAAA' ou 'JJ/MM/AAAA HHhMM'
+// estDansFenetreActualite(dateStr) : vrai si la date (format 'JJ/MM/AAAA' ou 'JJ/MM/AAAA HHhMM'
 // tel qu'utilisé dans ALERTE_EVENTS) remonte à moins de 12h. Repli sur false si
 // la chaîne ne peut pas être interprétée (dates relatives type "Juin 2026").
-function isWithin12h(dateStr) {
+function estDansFenetreActualite(dateStr) {
   if (!dateStr) return false;
   const m = /^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{1,2})h(\d{2}))?/.exec(dateStr);
   if (!m) return false;
   const [, dd, mm, yyyy, hh, min] = m;
   const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd), Number(hh || 0), Number(min || 0));
   if (isNaN(d.getTime())) return false;
-  return (Date.now() - d.getTime()) < 12 * 60 * 60 * 1000 && (Date.now() - d.getTime()) >= 0;
+  return (Date.now() - d.getTime()) < FENETRE_ACTUALITE_MS && (Date.now() - d.getTime()) >= 0;
 }
 
 // ── ANTI-PLAGIAT / RESPECT DU DROIT D'AUTEUR ─────────────────────────────
@@ -7894,7 +7920,7 @@ function fmtSurvenance(article) {
   if (surv.inconnue) {
     return { texte: 'Inconnue', ts: surv.ts, ancien:true, estimee:true, inconnue:true };
   }
-  const ancien = (Date.now() - surv.ts) >= 12*60*60*1000;
+  const ancien = (Date.now() - surv.ts) >= FENETRE_ACTUALITE_MS;
   const suffixe = surv.label ? ' (' + surv.label + ')' : '';
   return { texte: fmtFull(surv.ts) + suffixe, ts: surv.ts, ancien, estimee: surv.estimee, inconnue:false };
 }
@@ -17031,7 +17057,7 @@ async function renderAlertCard(score) {
   ]);
   const evHtml = sorted.map((e, idx) => {
     const d = NIV[e.level]||NIV.vert;
-    const fresh = isWithin12h(e.date);
+    const fresh = estDansFenetreActualite(e.date);
     const evId = 'alerte-ev-'+score.cy+'-'+idx;
     const freshTag = fresh
       ? '<span style="font-size:7px;font-weight:700;color:#fff;background:#15803D;padding:1px 5px;border-radius:3px;margin-left:5px;">-12H</span>'
