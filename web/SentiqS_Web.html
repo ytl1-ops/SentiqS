@@ -7483,7 +7483,33 @@ function extraireDateSurvenance(article) {
     if (matchMot(texte, j) && !matchMot(texte, j + ' prochain')) {
       const refDay = new Date(pubDate).getDay();
       let diff = (refDay - i + 7) % 7;
-      if (diff === 0) diff = 7; // le jour cite est forcement dans le passe, pas aujourd'hui
+      if (diff === 0) {
+        // Le jour cite EST celui de la publication. Ce cas etait force a sept
+        // jours dans le passe, au motif qu'un evenement du jour se dirait
+        // « aujourd'hui ». La presse francophone ecrit en realite « ce
+        // dimanche », « dimanche matin », « dimanche a Fogo » pour le jour
+        // meme — et l'article se retrouvait date d'une semaine, donc hors
+        // de la fenetre d'actualite, donc INVISIBLE.
+        //
+        // Mesure du 06/09/2026 sur les 560 sources du registre, un dimanche :
+        // 107 articles publies DANS la fenetre etaient ecartes sur leur date
+        // d'evenement estimee, dont 36 par ce seul cas. Parmi eux, publies
+        // depuis moins de cinq heures :
+        //   « Accident mortel de bus a Fogo : au moins 25 morts et 18 blesses »
+        //     (Cap-Vert, niveau eleve, publie 3 h plus tot, date a 171 h)
+        //   « Incendie a Sfax : les pneus usages compliquent l'operation »
+        //     (Tunisie, niveau eleve, publie 4 h 54 plus tot)
+        //   deux alertes algeriennes de niveau critique (4 h et 9 h).
+        // Le revelateur du defaut : « Le poeme du dimanche », qui ne contient
+        // ce mot que parce qu'on etait dimanche.
+        //
+        // Un renvoi explicite a la semaine ecoulee (« dimanche dernier »,
+        // « dimanche passe ») garde la lecture ancienne : c'est le seul cas
+        // ou le redacteur a dit lui-meme qu'il ne parlait pas du jour meme.
+        const marqueurPasse = [' dernier', ' derniere', ' dernière', ' passe', ' passee', ' passé', ' passée']
+          .some(suffixe => matchMot(texte, j + suffixe));
+        diff = marqueurPasse ? 7 : 0;
+      }
       return { ts: pubDate - diff*JOUR_MS, estimee:true, label:j };
     }
   }
