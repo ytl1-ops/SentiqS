@@ -518,6 +518,38 @@ un pays dont tous les médias sont déjà lus — la même ambiguïté que
 **La mesure ne note personne**, et un test l'interdit. Elle compte des
 occurrences ; le score de fiabilité reste un jugement éditorial.
 
+**Ce que l'éditeur en a fait, le 06/09/2026.** Les 74 candidats ont été
+revérifiés juste avant intégration — 71 répondaient encore, trois avaient
+cessé — puis notés **72 en bloc**, donc **au-dessus du seuil de 70** : ils
+peuvent faire monter un niveau d'alerte.
+
+| | Avant | Après |
+|---|---:|---:|
+| Sources au registre | 489 | **560** |
+| Capables d'alerter | 140 | **211** |
+| Pays à source unique | 13 | **4** |
+
+Les quatre qui restent — Érythrée, Guinée équatoriale, Guinée-Bissau,
+Lesotho — n'ont aucun média local avec un flux vivant. La mesure n'a rien
+trouvé à leur donner ; ce n'est pas un oubli.
+
+**La nuance qui doit rester écrite** : la note a été posée en bloc, sur la
+mesure de couverture, et non média par média après lecture éditoriale.
+Aucun de ces titres n'a été évalué sur sa fiabilité. Le risque a été énoncé
+avant l'arbitrage et assumé : un titre mal calibré chez l'un d'eux peut
+faire passer un pays au rouge.
+
+Deux réserves signalées avant l'arbitrage et conservées dans le registre :
+`voicegambia.com`, dont l'échantillon mesuré était presque entièrement
+sportif, et `eswatinipositivenews.online`, qui ne publie que de bonnes
+nouvelles par principe — l'Eswatini paraîtra couvert par un média qui ne
+rapportera jamais un incident, exactement le piège que `paysMuet()` combat
+ailleurs.
+
+Neuf des 71 ont été reclassés en `economique` (EcoMatin, Investir au
+Cameroun, Jornal Mercado, Forbes África Lusófona, BusinessTech…) : les
+verser tous en `securite` aurait faussé le filtre par catégorie.
+
 **Et elle a trouvé le défaut avant les sources.** Le même piège de langue
 était déjà dans le registre : 81 requêtes Google News, sur 18 pays,
 interrogeaient une édition anglophone, lusophone ou arabophone avec le nom

@@ -19,11 +19,19 @@
 // CLIQUET : le nombre de pays a source unique ne doit jamais remonter. Il
 // descend en ajoutant des sources fiables, ce qui demande de les evaluer
 // editorialement — pas de leur attribuer un score au jugé.
+//
+// Descente du 06/09/2026 : 13 -> 4. Elle vient de l'integration de 71 medias
+// locaux, mesures par scripts/couverture-mediatique.js puis notes 72 par
+// l'editeur du produit. La nuance compte et doit rester ecrite : la note a
+// ete posee EN BLOC, sur la mesure de couverture, et non media par media
+// apres lecture editoriale. Les quatre pays qui restent — Erythree, Guinee
+// equatoriale, Guinee-Bissau, Lesotho — n'ont aucun media local avec un flux
+// vivant : la mesure n'a rien trouve a leur donner, ce n'est pas un oubli.
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const PLAFOND_PAYS_SOURCE_UNIQUE = 13;
+const PLAFOND_PAYS_SOURCE_UNIQUE = 4;
 
 const cible = process.argv[2] || path.join(__dirname, '../web/SentiqS_Web.html');
 const HTML = fs.readFileSync(cible, 'utf8');
