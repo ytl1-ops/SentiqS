@@ -184,6 +184,63 @@ source.
 
 ---
 
+## La date de l'événement, pas seulement celle de publication
+
+`estRecentReel` exige **deux** conditions : l'article doit être publié dans
+`FENETRE_ACTUALITE_MS`, **et** l'événement qu'il décrit doit y tomber aussi.
+La seconde est estimée par `extraireDateSurvenance`, à partir d'indices de
+texte (« hier », « il y a trois jours », une date explicite, un jour de la
+semaine).
+
+C'est la bonne intention — un compte rendu publié aujourd'hui d'un conseil des
+ministres du 7 mai n'est pas une actualité — mais elle peut **effacer un pays
+entier**, et le silence ressemble alors au calme : exactement ce que
+`paysMuet()` combat par ailleurs.
+
+**Le défaut du 06/09/2026, mesuré sur les 560 sources un dimanche.** Le jour de
+la semaine cité était systématiquement renvoyé dans le passé :
+
+```js
+if (diff === 0) diff = 7; // le jour cite est forcement dans le passe
+```
+
+Or la presse francophone écrit « ce dimanche », « dimanche matin » pour le jour
+même. Un article publié **il y a trois heures** se retrouvait daté d'**une
+semaine**, donc hors fenêtre, donc invisible.
+
+Sur 560 sources, **107 articles publiés dans la fenêtre** étaient écartés sur
+leur date d'événement, dont **36 par ce seul cas**. Parmi eux, à moins de cinq
+heures de publication :
+
+| Publié | Daté | Article |
+|---:|---:|---|
+| 3 h | 171 h | **Accident mortel de bus à Fogo : au moins 25 morts** (Cap-Vert) |
+| 4 h | 172 h | Application de la peine de mort (Algérie, critique) |
+| 4 h 54 | 173 h | Incendie à Sfax (Tunisie) |
+| 9 h | 177 h | Peine de mort au conseil des ministres (Algérie, critique) |
+
+Le révélateur du défaut : **« Le poème du dimanche »**, qui ne portait ce mot
+que parce qu'on était dimanche.
+
+Effet mesuré du correctif, à moisson identique : **614 → 650 articles,
+46 → 47 pays** (la Mauritanie entre), critiques 24 → 29, aucun pays perdu.
+
+Un renvoi explicite à la semaine écoulée (« dimanche dernier », « dimanche
+passé ») garde la lecture ancienne : c'est le seul cas où le rédacteur a dit
+lui-même qu'il ne parlait pas du jour même. Un test l'exige dans les deux sens.
+
+**Les 71 autres articles écartés ne sont pas un défaut** : dates explicites
+(« du 27 septembre »), « il y a trois semaines », commémorations. On ne les
+touche pas — c'est le travail que cette règle doit faire.
+
+**Le piège de mesure rencontré ici :** la comparaison avant/après a d'abord
+donné « 0 article » pour la version d'avant. Ce n'était pas un résultat mais un
+plantage muet — la page avait été copiée hors de `web/`, donc elle ne trouvait
+plus `js/noyau.js`, et chaque appel levait. Une version de référence doit être
+chargée **depuis `web/`**, sinon la mesure conclut ce qu'on veut.
+
+---
+
 ## La fenêtre d'actualité
 
 `FENETRE_ACTUALITE_MS` décide jusqu'à quel âge un article compte comme
