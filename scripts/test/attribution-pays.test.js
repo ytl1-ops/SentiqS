@@ -89,3 +89,51 @@ test('la détection ne renvoie jamais une valeur inexploitable', () => {
     assert.strictEqual(typeof r.confiant, 'boolean');
   }
 });
+
+// ── Presse lusophone et hispanophone ─────────────────────────────────────
+
+test('un article portugais sur un sujet extérieur ne prend pas le pays de sa source', () => {
+  // Cas réel, relevé dans le cache publié le 06/09/2026 : « Voos suspensos
+  // em seis aeroportos da Indonésia após erupção vulcânica » s'affichait
+  // sous Mozambique. La liste hors périmètre existait en français et en
+  // anglais, pas en portugais : aucun mot ne se déclenchait, et
+  // _detecterPaysCoeur rattachait l'article au pays de sa source faute de
+  // mieux.
+  assert.strictEqual(ou('Voos suspensos em seis aeroportos da Indonésia após erupção vulcânica', '', 'MZ').cy, 'INT');
+  assert.strictEqual(ou('Espanha reforça o controlo fronteiriço', '', 'GW').cy, 'INT');
+  assert.strictEqual(ou('Estados Unidos anunciam novas sanções', '', 'AO').cy, 'INT');
+  assert.strictEqual(ou('França envia mais militares', '', 'CV').cy, 'INT');
+});
+
+test('un article espagnol sur un sujet extérieur ne prend pas le pays de sa source', () => {
+  // Même chose pour la Guinée équatoriale, seul pays hispanophone suivi.
+  assert.strictEqual(ou('España despliega la Guardia Civil', '', 'GQ').cy, 'INT');
+  assert.strictEqual(ou('Rusia y Ucrania reanudan las negociaciones', '', 'GQ').cy, 'INT');
+});
+
+test('une actualité nationale en portugais reste à son pays', () => {
+  // Le garde-fou du garde-fou : élargir la liste ne doit pas expédier à
+  // l'international ce qui concerne vraiment le pays.
+  assert.strictEqual(ou('Ataque armado em Cabo Delgado faz vítimas', '', 'MZ').cy, 'MZ');
+  assert.strictEqual(ou('Governo de Bissau anuncia novas medidas', '', 'GW').cy, 'GW');
+  assert.strictEqual(ou('Luanda acolhe cimeira sobre segurança', '', 'AO').cy, 'AO');
+});
+
+test('aucun nom de pays africain ne figure dans la liste hors périmètre', () => {
+  // L'erreur évidente en élargissant cette liste : y glisser « Guiné »,
+  // « Angola » ou « Moçambique », ce qui enverrait à l'international les
+  // articles qui parlent justement du pays surveillé.
+  const { estHorsPerimetreNational } = exposer(
+    bac(tranche('const PAYS_HORS_AFRIQUE', 'function detectPaysFromText')),
+    'estHorsPerimetreNational'
+  );
+  const africains = [
+    'angola', 'moçambique', 'mocambique', 'guiné', 'guine', 'cabo verde',
+    'são tomé', 'sao tome', 'marrocos', 'argélia', 'argelia', 'egito',
+    'nigéria', 'quénia', 'quenia', 'etiópia', 'etiopia', 'zâmbia', 'zambia',
+    'somália', 'somalia', 'líbia', 'libia', 'sudão', 'sudao', 'chade',
+    'guinea ecuatorial', 'costa de marfil', 'senegal', 'mali',
+  ];
+  const faux = africains.filter((a) => estHorsPerimetreNational(a));
+  assert.deepStrictEqual(faux, [], 'pays africains classés hors périmètre : ' + faux.join(', '));
+});

@@ -6373,6 +6373,58 @@ const PAYS_HORS_AFRIQUE = [
   'kyrgyzstan','tajikistan','azerbaijan','armenia','armenian',
   'australia','australian','new zealand',
   'white house','beijing','moscow','tehran','baghdad','jerusalem','geneva','vienna',
+  // — Equivalents portugais et espagnols —
+  //
+  // Meme raison que la section anglaise ci-dessus, pour les six pays suivis
+  // dont la presse n'ecrit ni en francais ni en anglais : Angola, Cap-Vert,
+  // Guinee-Bissau, Mozambique, Sao Tome (portugais) et Guinee equatoriale
+  // (espagnol). Sans ces formes, un article lusophone sur un sujet exterieur
+  // ne declenchait AUCUN mot hors perimetre, et _detecterPaysCoeur le
+  // rattachait au pays de sa source faute de mieux — cas reel constate : un
+  // article portugais sur Ceuta affiche sous Mozambique.
+  //
+  // La moisson du 06/09/2026 (scripts/couverture-mediatique.js) montre
+  // pourquoi ce n'est pas un cas de bord : la couverture de la Guinee-Bissau
+  // et du Mozambique passe en bonne partie par la presse nationale
+  // portugaise (observador.pt, cmjornal.pt, noticiasaominuto.com, e-global.pt,
+  // sapo.pt), dont le fil general parle surtout du Portugal et de l'Europe.
+  //
+  // Aucun nom de pays africain ici, evidemment — « guine », « angola »,
+  // « mocambique » n'ont rien a faire dans une liste hors perimetre, et un
+  // test le verifie. matchMot ne normalise pas les accents : chaque forme
+  // accentuee est donc doublee de sa version sans accent.
+  'espanha','espanhol','espanhola','españa','espana','español','espanol',
+  'frança','franca','francês','frances','francia','francesa',
+  'alemanha','alemão','alemao','alemanha','alemania','alemán','aleman',
+  'inglaterra','inglês','ingles','reino unido','britânico','britanico',
+  'grã-bretanha','gra-bretanha','gran bretaña','gran bretana',
+  'itália','italia','italiano','bélgica','belgica','holanda','países baixos',
+  'paises baixos','paises bajos','suíça','suica','suiza','áustria','austria',
+  'irlanda','irlandês','irlandes','escócia','escocia','suécia','suecia',
+  'noruega','dinamarca','finlândia','finlandia','islândia','islandia',
+  'polónia','polonia','polônia','grécia','grecia','grego','hungria','roménia',
+  'romenia','rumania','bulgária','bulgaria','croácia','croacia','sérvia','servia',
+  'ucrânia','ucrania','rússia','rusia','russo','rusa','bielorrússia','bielorrusia',
+  'união europeia','uniao europeia','unión europea','union europea',
+  'estados unidos','norte-americano','norte americano','estadounidense',
+  'canadá','canada','méxico','mexico','brasil','brasileiro','brasileira',
+  'brasileño','brasileno','argentino','argentina','chile','chileno','colômbia',
+  'colombia','peru','perú','venezuela','venezuelano','uruguai','uruguay','cuba',
+  'cubano','haiti','haití','república dominicana','republica dominicana',
+  'china','chinês','chines','chino','japão','japao','japón','japon','japonês',
+  'japones','japonés','coreia do sul','corea del sur','coreia do norte',
+  'corea del norte','índia','india','indiano','paquistão','paquistao','pakistán',
+  'bangladeche','afeganistão','afeganistao','afganistán','irão','irao','irán',
+  'iraque','iraq','síria','siria','líbano','libano','israel','israelense',
+  'israelí','israeli','palestina','palestino','arábia saudita','arabia saudita',
+  'iémen','iemen','yemen','catar','qatar','emirados árabes unidos',
+  'emirados arabes unidos','emiratos árabes unidos','turquia','turquía','turco',
+  'tailândia','tailandia','vietname','vietnam','malásia','malasia','singapura',
+  'indonésia','indonesia','filipinas','cazaquistão','cazaquistao','austrália',
+  'australia','nova zelândia','nova zelandia','nueva zelanda',
+  'lisboa','madri','madrid','roma','bruxelas','berlim','moscovo','moscú','moscu',
+  'pequim','pequín','tóquio','toquio','nova iorque','washington','casa branca',
+  'casa blanca',
 ];
 
 // SPORT_INTERNATIONAL_KW : vocabulaire sportif hors perimetre national. Un
