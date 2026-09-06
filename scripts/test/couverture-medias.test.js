@@ -173,3 +173,38 @@ test('le libellé affiché reste en français, seule la requête change', () => 
   assert.match(ss.n, /Soudan du Sud/, 'le libellé reste en français');
   assert.match(ss.rss, /q=South\+Sudan/, 'la requête interroge en anglais');
 });
+
+// Exonymes de VILLES mesurés coûteux le 06/09/2026, sur trente jours :
+//
+//   Le Caire       5 →  71    القاهرة
+//   Sinai          9 →  64    سيناء
+//   Darfour        9 →  46    Darfur
+//   Le Cap         1 →  40    Cape Town
+//   Djouba        10 →  37    Juba
+//   Mogadiscio    49 →  62    Mogadishu
+//
+// Quatre autres ont été mesurés NEUTRES et laissés tels quels : Tripoli
+// (65 → 64), Benghazi (68 → 72), Addis-Abeba (63 → 64), Port-Louis (24 → 24).
+// Google les retrouve en écriture latine sur ces éditions. On ne change pas
+// ce que la mesure ne justifie pas — les inscrire ici les figerait comme des
+// fautes alors qu'ils n'en sont pas.
+const EXONYMES_VILLES = {
+  EG: ['le caire', 'sinai'], SD: ['darfour'], SO: ['mogadiscio'],
+  SS: ['djouba'], ZA: ['le cap'],
+};
+
+test('une requête de ville n\'utilise pas un exonyme français mesuré coûteux', () => {
+  // Même cliquet que pour les pays, un cran plus fin : « Le Cap South Africa
+  // security » ramenait UN article par mois, « Cape Town » en ramène 40.
+  const sansAccents = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const fautes = [];
+  for (const s of SRCS) {
+    if (!/news\.google\.com\/rss\/search/.test(s.rss || '')) continue;
+    if (/q=site(?:%3A|:)/i.test(s.rss)) continue;
+    const villes = EXONYMES_VILLES[s.cy];
+    if (!villes) continue;
+    const q = sansAccents(decodeURIComponent((/q=([^&]+)/.exec(s.rss) || [])[1] || '').replace(/\+/g, ' '));
+    for (const v of villes) if (q.includes(v)) fautes.push(s.id + ' : « ' + q + ' »');
+  }
+  assert.deepStrictEqual(fautes, [], fautes.join('\n'));
+});
