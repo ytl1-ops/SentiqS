@@ -61,10 +61,10 @@ test('les libelles poses reprennent le texte deja visible a l ecran', () => {
   // Regle qui compte : un libelle INVENTE est pire qu'un libelle absent — il
   // decrit a l'utilisateur un autre controle que celui qu'il manipule. Ces
   // trois-la ont ete repris mot pour mot du texte affiche a cote.
-  assert.match(HTML, /id="tgl18h"[^>]*aria-label="Filtre 12h automatique"/);
+  assert.match(HTML, /id="tgl18h"[^>]*aria-label="Filtre 24h automatique"/);
   assert.match(HTML, /id="tglAutoRefresh"[^>]*aria-label="Actualisation automatique \(15 min\)"/);
   assert.match(HTML, /id="tglScore"[^>]*aria-label="Afficher le niveau de fiabilite"/);
-  for (const t of ['Filtre 12h automatique', 'Actualisation automatique (15 min)', 'Afficher le niveau de fiabilite']) {
+  for (const t of ['Filtre 24h automatique', 'Actualisation automatique (15 min)', 'Afficher le niveau de fiabilite']) {
     assert.ok(HTML.includes('>' + t + '<'), 'le texte « ' + t + ' » doit rester affiche a l\'ecran');
   }
 });

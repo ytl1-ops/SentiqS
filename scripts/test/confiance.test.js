@@ -27,9 +27,26 @@ test('un article sans horodatage est ecarte', () => {
   assert.strictEqual(antiHalluFilter([art({ pubDate: null })]).length, 0);
 });
 
-test('un article de plus de 12 h est ecarte', () => {
-  assert.strictEqual(antiHalluFilter([art({ pubDate: Date.now() - 13 * H })]).length, 0);
-  assert.strictEqual(antiHalluFilter([art({ pubDate: Date.now() - 11 * H })]).length, 1);
+test('un article plus vieux que la fenetre d\'actualite est ecarte', () => {
+  // Fenetre portee de 12 h a 24 h le 06/09/2026. Mesure sur les 110 sources
+  // natives capables d'alerter, interrogees une par une : a 12 h, 27 avaient
+  // publie et couvraient 18 pays sur 54 ; a 24 h, 47 sources et 34 pays.
+  // Trente pays restaient vides en permanence, dont dix des treize qui n'ont
+  // qu'une seule source d'alerte.
+  assert.strictEqual(antiHalluFilter([art({ pubDate: Date.now() - 25 * H })]).length, 0);
+  assert.strictEqual(antiHalluFilter([art({ pubDate: Date.now() - 23 * H })]).length, 1);
+  // Le cas qui motivait le changement : un article de la veille au soir,
+  // ecarte avant, retenu maintenant.
+  assert.strictEqual(antiHalluFilter([art({ pubDate: Date.now() - 13 * H })]).length, 1);
+});
+
+test('la fenetre est definie une seule fois, et le score de fraicheur la suit', () => {
+  // Laisser la decroissance du score a 12 h alors que le Flux en retient 24
+  // donnerait zero point de fraicheur a la moitie des articles affiches.
+  const { HTML } = require('./_bac.js');
+  assert.match(HTML, /const FENETRE_ACTUALITE_MS = 24 \* 60 \* 60 \* 1000;/);
+  assert.doesNotMatch(HTML, />= 12\*60\*60\*1000/, 'plus aucun seuil de 12 h en dur');
+  assert.match(HTML, /const fenetreH = FENETRE_ACTUALITE_MS \/ 3600000;/);
 });
 
 test('un article sans source identifiee est ecarte', () => {

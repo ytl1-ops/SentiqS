@@ -224,3 +224,31 @@ test('une commémoration et un avis de police ne sont pas des incidents', () => 
   // L'incident lui-même, lui, reste critique.
   assert.strictEqual(cl('Twelve police officers killed in ambush', '', 'ZA').lvl, 'crit');
 });
+
+test('les flux réparés le 06/09/2026 ne repointent pas vers leur adresse morte', () => {
+  // Recensement du 06/09/2026 : sur les 110 sources natives capables
+  // d'alerter, trente ne répondaient plus — douze en 404 (adresse du flux
+  // périmée) et treize en 403 (le site refuse notre robot).
+  //
+  // Huit des douze ont été réparées avec scripts/lib/decouverte-source.js.
+  // Trois d'entre elles couvrent des pays alors absents du cache :
+  //   Le Faso (Burkina)     66 articles, dernier il y a 1 h
+  //   Hiiraan (Somalie)     20 articles, dernier il y a 1 h
+  //   The Citizen (Tanzanie) 40 articles, dernier il y a 5 h
+  //
+  // Ce test ne vérifie pas que les nouvelles adresses répondent — cela
+  // demande le réseau, et c'est le rôle de verifier-decouverte-flux.js. Il
+  // interdit seulement de revenir aux adresses dont on a MESURÉ qu'elles
+  // renvoient 404.
+  const MORTES = [
+    'https://lefaso.net/rss.php',
+    'https://www.pressafrik.com/feed/',
+    'https://www.hiiraan.com/rss/news_fr.xml',
+    'https://www.dakaractu.com/rss.xml',
+    'https://www.thecitizen.co.tz/rss"',
+    'rdf/saotomeprincipe/headlines.rdf',
+    'rdf/swaziland/headlines.rdf',
+  ];
+  const trouvees = MORTES.filter((u) => HTML.includes(u));
+  assert.deepStrictEqual(trouvees, [], 'adresses mesurées mortes, revenues dans le registre : ' + trouvees.join(', '));
+});

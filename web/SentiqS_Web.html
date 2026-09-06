@@ -2318,7 +2318,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         <button class="btn-dl btn-dl-pdf" onclick="exportPDF(&#39;flux&#39;)"><i class="ti ti-file-type-pdf"></i>PDF</button>
         <button class="btn-dl btn-dl-csv" onclick="exportCSV(&#39;flux&#39;)"><i class="ti ti-file-spreadsheet"></i>CSV</button>
         <div class="dl-sep"></div>
-        <span style="font-size:9px;color:var(--lg)" id="dlFluxCount">19 articles (&lt;12h)</span>
+        <span style="font-size:9px;color:var(--lg)" id="dlFluxCount">19 articles (&lt;24h)</span>
       </div>
       <div class="sstrip-hd open" onclick="document.getElementById('fluxSstrip').classList.toggle('collapsed');this.classList.toggle('open')" style="display:flex;align-items:center;gap:5px;padding:3px 14px;font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;cursor:pointer;user-select:none;border-bottom:1px solid var(--bd);">
         <i class="ti ti-chevron-down" style="font-size:11px;transition:transform .15s;"></i>Statistiques
@@ -2328,7 +2328,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
            d'espace vertical au Flux des l'arrivee, l'utilisateur peut
            toujours deplier ce bandeau d'un clic. -->
       <div class="sstrip collapsed" id="fluxSstrip">
-        <div class="ss"><div class="sn" id="stTot">0</div><div class="sl">-12h</div></div>
+        <div class="ss"><div class="sn" id="stTot">0</div><div class="sl">-24h</div></div>
         <div class="ss"><div class="sn" style="color:var(--r)" id="stCrit">0</div><div class="sl" data-i18n="lbl_critiques">Critiques</div></div>
         <div class="ss"><div class="sn" style="color:#7C4A00" id="stHigh">0</div><div class="sl" data-i18n="lbl_eleves">Eleves</div></div>
         <div class="ss" title="Articles rapportes par au moins deux sources distinctes"><div class="sn" style="color:var(--g)" id="stVer">0</div><div class="sl" data-i18n="lbl_recoupes">Recoupes</div></div>
@@ -2361,7 +2361,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         <div class="tlbr" style="flex-wrap:wrap;">
           <select id="seScope" aria-label="Perimetre de recherche" onchange="setSeScope(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
             <option value="all">Tout</option>
-            <option value="flux">Flux (actif, &lt;12h)</option>
+            <option value="flux">Flux (actif, &lt;24h)</option>
             <option value="historique">Historique</option>
             <option value="agenda">Agenda</option>
             <option value="alertes">Alertes verifiees</option>
@@ -2575,7 +2575,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <i class="ti ti-radar-2" style="font-size:16px;color:var(--b)"></i>
                 <span style="font-size:12px;font-weight:700;color:var(--t)">Flux opérationnel</span>
               </div>
-              <div style="font-size:10px;color:var(--lg);margin-bottom:10px" id="dlFluxCount">Articles des dernières 12h.</div>
+              <div style="font-size:10px;color:var(--lg);margin-bottom:10px" id="dlFluxCount">Articles des dernières 24h.</div>
               <div style="display:flex;gap:8px">
                 <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'flux')"><i class="ti ti-share-2"></i><span data-i18n="btn_partager">Partager</span></button>
                 <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('flux')" title="Aperçu impression"><i class="ti ti-printer"></i></button>
@@ -3533,11 +3533,11 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
             <div class="pm-sec-body">
               <div class="rights-row">
                 <div class="rights-row-l">
-                  <div class="rights-row-name">Filtre 12h automatique</div>
+                  <div class="rights-row-name">Filtre 24h automatique</div>
                   <div class="rights-row-sub">N'afficher que les articles des 18 dernieres heures</div>
                 </div>
                 <label class="tgl">
-                  <input type="checkbox" id="tgl18h" aria-label="Filtre 12h automatique" checked="" onchange="save18hPref(this.checked)">
+                  <input type="checkbox" id="tgl18h" aria-label="Filtre 24h automatique" checked="" onchange="save18hPref(this.checked)">
                   <div class="tgl-sw"></div>
                 </label>
               </div>
@@ -3696,7 +3696,7 @@ const SRCS=[
  {id:'allafrica',n:'AllAfrica',col:'#0C447C',cy:'INT',sc:'regional',cat:'securite',score:85,url:'https://allafrica.com/west_africa/',rss:'https://fr.allafrica.com/tools/headlines/rdf/africa/headlines.rdf'},
  {id:'reliefweb',n:'ReliefWeb',col:'#166534',cy:'INT',sc:'regional',cat:'humanitaire',score:91,url:'https://reliefweb.int/updates?search=west+africa&source=13',rss:'https://reliefweb.int/updates/rss.xml'},
  {id:'fao',n:'FAO Afrique',col:'#166534',cy:'INT',sc:'regional',cat:'humanitaire',score:96,url:'https://www.fao.org/africa/news/fr/',rss:'https://www.fao.org/rss/fr/'},
- {id:'lefasonet',n:'LeFaso.net',col:'#78350F',cy:'BF',sc:'national',cat:'securite',score:76,url:'https://lefaso.net/?s=securite+burkina',rss:'https://lefaso.net/rss.php'},
+ {id:'lefasonet',n:'LeFaso.net',col:'#78350F',cy:'BF',sc:'national',cat:'securite',score:76,url:'https://lefaso.net/?s=securite+burkina',rss:'https://lefaso.net/spip.php?page=backend'},
  {id:'burkina24',n:'Burkina24',col:'#92400E',cy:'BF',sc:'national',cat:'securite',score:74,url:'https://burkina24.com/?s=securite',rss:'https://burkina24.com/feed/'},
  {id:'wakatsera',n:'Wakat Sera',col:'#92400E',cy:'BF',sc:'local',cat:'humanitaire',score:70,url:'https://wakatsera.com/?s=sahel',rss:'https://wakatsera.com/feed/'},
  {id:'faso7',n:'Faso7',col:'#A16207',cy:'BF',sc:'local',cat:'politique',score:65,url:'https://faso7.com/?s=attaque',rss:'https://www.faso7.com/feed/'},
@@ -3725,8 +3725,8 @@ const SRCS=[
  {id:'abidjannet_gn_eco',n:'Abidjan.net — Economie (Google News)',col:'#F97316',cy:'CI',sc:'national',cat:'economique',score:68,url:'https://news.google.com/search?q=site:abidjan.net+economie&hl=fr&gl=CI',rss:'https://news.google.com/rss/search?q=site:abidjan.net+economie&hl=fr&gl=CI&ceid=CI:fr',rss_method:'Google News RSS'},
  {id:'apanews_ci',n:'APA News — Cote d\'Ivoire (Google News)',col:'#1B6CA8',cy:'CI',sc:'national',cat:'securite',score:74,url:'https://news.google.com/search?q=site:apanews.net+%22Cote+d%27Ivoire%22&hl=fr&gl=CI',rss:'https://news.google.com/rss/search?q=site:apanews.net+%22Cote+d%27Ivoire%22&hl=fr&gl=CI&ceid=CI:fr',rss_method:'Google News RSS'},
  {id:'seneweb',n:'Seneweb',col:'#16A34A',cy:'SN',sc:'national',cat:'politique',score:78,url:'https://seneweb.com/?s=securite',rss:'https://www.seneweb.com/rss.xml'},
- {id:'pressafrik',n:'Pressafrik',col:'#15803D',cy:'SN',sc:'national',cat:'politique',score:72,url:'https://pressafrik.com/?s=securite',rss:'https://www.pressafrik.com/feed/'},
- {id:'dakaractu',n:'Dakar Actu',col:'#166534',cy:'SN',sc:'local',cat:'politique',score:70,url:'https://dakaractu.com/?s=securite',rss:'https://www.dakaractu.com/rss.xml'},
+ {id:'pressafrik',n:'Pressafrik',col:'#15803D',cy:'SN',sc:'national',cat:'politique',score:72,url:'https://pressafrik.com/?s=securite',rss:'https://www.pressafrik.com/xml/syndication.rss'},
+ {id:'dakaractu',n:'Dakar Actu',col:'#166534',cy:'SN',sc:'local',cat:'politique',score:70,url:'https://dakaractu.com/?s=securite',rss:'https://www.dakaractu.com/xml/syndication.rss'},
  {id:'xibaaru',n:'Xibaaru',col:'#14532D',cy:'SN',sc:'local',cat:'politique',score:65,url:'https://xibaaru.com/?s=senegal',rss:'https://xibaaru.com/feed/'},
  {id:'beninwebs',n:'Beninwebs',col:'#B91C1C',cy:'BJ',sc:'national',cat:'politique',score:68,url:'https://beninwebs.com/?s=securite+benin',rss:'https://beninwebs.com/feed/'},
  {id:'haubenin',n:'24h Benin',col:'#8B1A1A',cy:'BJ',sc:'local',cat:'securite',score:66,url:'https://24haubenin.info/?s=securite',rss:'https://www.24haubenin.info/feed/'},
@@ -3754,7 +3754,7 @@ const SRCS=[
  {id:'abp_bj',n:'ABP — Agence Bénin Presse',col:'#8B1A1A',cy:'BJ',sc:'national',cat:'securite',score:80,url:'https://agencebeninpresse.info/',rss:'https://news.google.com/rss/search?q=site:agencebeninpresse.info&hl=fr&gl=BJ&ceid=BJ:fr',rss_method:'Google News RSS'},
  {id:'atop_tg',n:'ATOP — Agence Togolaise Presse',col:'#4B5563',cy:'TG',sc:'national',cat:'securite',score:79,url:'https://www.republicoftogo.com/Toutes-les-news',rss:'https://news.google.com/rss/search?q=site:republicoftogo.com&hl=fr&gl=TG&ceid=TG:fr',rss_method:'Google News RSS'},
  {id:'agi_gn',n:'AGP — Agence Guinéenne Presse',col:'#7C3AED',cy:'GN',sc:'national',cat:'securite',score:76,url:'https://www.aguinee.com/',rss:'https://news.google.com/rss/search?q=site:aguinee.com&hl=fr&gl=GN&ceid=GN:fr',rss_method:'Google News RSS'},
- {id:'aps_sn',n:'APS — Agence Sénégalaise Presse',col:'#16A34A',cy:'SN',sc:'national',cat:'securite',score:88,url:'https://www.aps.sn/',rss:'https://www.aps.sn/spip.php?page=backend',rss_method:'RSS natif'},
+ {id:'aps_sn',n:'APS — Agence Sénégalaise Presse',col:'#16A34A',cy:'SN',sc:'national',cat:'securite',score:88,url:'https://www.aps.sn/',rss:'https://aps.sn/feed/',rss_method:'RSS natif'},
  {id:'ami_mr',n:'AMI — Agence Mauritanienne Info',col:'#4B5563',cy:'MR',sc:'national',cat:'securite',score:78,url:'https://ami.mr/',rss:'https://news.google.com/rss/search?q=site:ami.mr&hl=fr&gl=MR&ceid=MR:fr',rss_method:'Google News RSS'},
  {id:'fpa_lr',n:'FrontPageAfrica — Liberia',col:'#0EA5A0',cy:'LR',sc:'national',cat:'securite',score:80,url:'https://frontpageafricaonline.com/',rss:'https://news.google.com/rss/search?q=site:frontpageafricaonline.com&hl=en&gl=LR&ceid=LR:en',rss_method:'Google News RSS'},
  // ── AGENCES NATIONALES DE PRESSE — AUTRES PAYS D'AFRIQUE (verifiees) ────
@@ -3791,7 +3791,7 @@ const SRCS=[
  {id:'mwnation_mw',n:'The Nation — Malawi',col:'#CE1126',cy:'MW',sc:'national',cat:'securite',score:76,url:'https://mwnation.com/',rss:'https://mwnation.com/feed/',rss_method:'RSS natif'},
  {id:'lusakatimes_zm',n:'Lusaka Times — Zambie',col:'#198A00',cy:'ZM',sc:'national',cat:'securite',score:76,url:'https://www.lusakatimes.com/',rss:'https://www.lusakatimes.com/feed/',rss_method:'RSS natif'},
  {id:'mg_gazette',n:'La Gazette de la Grande Ile — Madagascar',col:'#FC3D32',cy:'MG',sc:'national',cat:'politique',score:72,url:'https://lgdi-madagascar.com/',rss:'https://lgdi-madagascar.com/feed/',rss_method:'RSS natif'},
- {id:'hiiraan_so',n:'Hiiraan Online — Somalie',col:'#4189DD',cy:'SO',sc:'national',cat:'securite',score:74,url:'https://www.hiiraan.com/',rss:'https://www.hiiraan.com/rss/news_fr.xml',rss_method:'RSS natif'},
+ {id:'hiiraan_so',n:'Hiiraan Online — Somalie',col:'#4189DD',cy:'SO',sc:'national',cat:'securite',score:74,url:'https://www.hiiraan.com/',rss:'https://hiiraan.com/news.xml',rss_method:'RSS natif'},
  {id:'sudantribune',n:'Sudan Tribune',col:'#D21034',cy:'SD',sc:'national',cat:'securite',score:82,url:'https://sudantribune.com/',rss:'https://sudantribune.com/feed/',rss_method:'RSS natif'},
  // ══ AGENCES NATIONALES OFFICIELLES A SITE WEB DIRECT (verifiees juin 2026) ══
  {id:'adi_dj',n:'ADI — Agence Djiboutienne d Information',col:'#12AD28',cy:'DJ',sc:'national',cat:'securite',score:70,url:'https://adi.dj/',rss:'https://adi.dj/feed/',rss_method:'RSS natif',note:'Agence officielle de l Etat djiboutien, ligne editoriale alignee sur les narratifs gouvernementaux selon State Media Monitor. A recouper.'},
@@ -3931,7 +3931,7 @@ const SRCS=[
  // Afrique de l Est
  {id:'nation_ke',n:'Daily Nation (Kenya)',col:'#006600',cy:'KE',sc:'national',cat:'securite',score:88,url:'https://nation.africa/',rss:'https://nation.africa/kenya/rss/',rss_method:'RSS natif'},
  {id:'addisfortune_et',n:'Addis Fortune (Ethiopie)',col:'#078930',cy:'ET',sc:'national',cat:'securite',score:75,url:'https://addisfortune.net/',rss:'https://addisfortune.net/feed/',rss_method:'RSS natif'},
- {id:'thecitizen_tz',n:'The Citizen (Tanzanie)',col:'#1EB53A',cy:'TZ',sc:'national',cat:'securite',score:78,url:'https://www.thecitizen.co.tz/',rss:'https://www.thecitizen.co.tz/rss',rss_method:'RSS natif'},
+ {id:'thecitizen_tz',n:'The Citizen (Tanzanie)',col:'#1EB53A',cy:'TZ',sc:'national',cat:'securite',score:78,url:'https://www.thecitizen.co.tz/',rss:'https://www.thecitizen.co.tz/rss.xml',rss_method:'RSS natif'},
  {id:'newsoftime_rw',n:'New Times Rwanda',col:'#20603D',cy:'RW',sc:'national',cat:'politique',score:72,url:'https://www.newtimes.co.rw/',rss:'https://www.newtimes.co.rw/rss',rss_method:'RSS natif'},
  {id:'igihe_rw',n:'Igihe Rwanda',col:'#20603D',cy:'RW',sc:'national',cat:'securite',score:70,url:'https://igihe.com/',rss:'https://igihe.com/rss',rss_method:'RSS natif'},
  // Afrique du Nord
@@ -3993,8 +3993,8 @@ const SRCS=[
  {id:'allafrica_sn',n:'AllAfrica (SN)',col:'#0C447C',cy:'SN',sc:'national',cat:'securite',score:80,url:'https://fr.allafrica.com/senegal/',rss:'https://fr.allafrica.com/tools/headlines/rdf/senegal/headlines.rdf'},
  {id:'allafrica_so',n:'AllAfrica (SO)',col:'#0C447C',cy:'SO',sc:'national',cat:'securite',score:80,url:'https://fr.allafrica.com/somalia/',rss:'https://fr.allafrica.com/tools/headlines/rdf/somalia/headlines.rdf'},
  {id:'allafrica_ss',n:'AllAfrica (SS)',col:'#0C447C',cy:'SS',sc:'national',cat:'securite',score:80,url:'https://fr.allafrica.com/southsudan/',rss:'https://fr.allafrica.com/tools/headlines/rdf/southsudan/headlines.rdf'},
- {id:'allafrica_st',n:'AllAfrica (ST)',col:'#0C447C',cy:'ST',sc:'national',cat:'securite',score:80,url:'https://fr.allafrica.com/saotomeprincipe/',rss:'https://fr.allafrica.com/tools/headlines/rdf/saotomeprincipe/headlines.rdf'},
- {id:'allafrica_sz',n:'AllAfrica (SZ)',col:'#0C447C',cy:'SZ',sc:'national',cat:'securite',score:80,url:'https://fr.allafrica.com/swaziland/',rss:'https://fr.allafrica.com/tools/headlines/rdf/swaziland/headlines.rdf'},
+ {id:'allafrica_st',n:'AllAfrica (ST)',col:'#0C447C',cy:'ST',sc:'national',cat:'securite',score:80,url:'https://fr.allafrica.com/saotomeprincipe/',rss:'https://fr.allafrica.com/tools/headlines/rdf/saotomeandprincipe/headlines.rdf'},
+ {id:'allafrica_sz',n:'AllAfrica (SZ)',col:'#0C447C',cy:'SZ',sc:'national',cat:'securite',score:80,url:'https://fr.allafrica.com/swaziland/',rss:'https://fr.allafrica.com/tools/headlines/rdf/eswatini/headlines.rdf'},
  {id:'allafrica_td',n:'AllAfrica (TD)',col:'#0C447C',cy:'TD',sc:'national',cat:'securite',score:80,url:'https://fr.allafrica.com/chad/',rss:'https://fr.allafrica.com/tools/headlines/rdf/chad/headlines.rdf'},
  {id:'allafrica_tg',n:'AllAfrica (TG)',col:'#0C447C',cy:'TG',sc:'national',cat:'securite',score:80,url:'https://fr.allafrica.com/togo/',rss:'https://fr.allafrica.com/tools/headlines/rdf/togo/headlines.rdf'},
  {id:'allafrica_tn',n:'AllAfrica (TN)',col:'#0C447C',cy:'TN',sc:'national',cat:'securite',score:80,url:'https://fr.allafrica.com/tunisia/',rss:'https://fr.allafrica.com/tools/headlines/rdf/tunisia/headlines.rdf'},
@@ -4637,7 +4637,7 @@ const I18N = {
     ph_recherche:'Search...',
     flashinfo_lbl:'BREAKING NEWS',
     sb_geo:'Filter by country / press agency', sb_agences:'National agencies',
-    note_flux:'Feed: sourced news from the last 12 hours, sortable and filterable by country, category and alert level. The cross-checked badge marks a fact reported by several sources.',
+    note_flux:'Feed: sourced news from the last 24 hours, sortable and filterable by country, category and alert level. The cross-checked badge marks a fact reported by several sources.',
     note_recherche:'Search: find a country, event, theme or source across all data collected by SentiqS.',
     note_analyse:'Summary: thematic analytical report automatically generated from the Feed, filterable by zone or country.',
     note_agenda:'Agenda: ongoing and upcoming security events and deadlines, classified by status and zone.',
@@ -7205,9 +7205,13 @@ function computeConfidence(a, allArts) {
   // 1. Fiabilité de la source (40 pts max)
   const srcScore = Math.min(40, Math.round((a.score || 50) * 0.4));
 
-  // 2. Fraîcheur : décroissance linéaire sur 12h (30 pts max)
-  const ageH = a.pubDate ? (Date.now() - a.pubDate) / 3600000 : 12;
-  const fraicheurScore = Math.max(0, Math.round(30 * (1 - ageH / 12)));
+  // 2. Fraîcheur : décroissance linéaire sur la fenêtre d'actualité (30 pts
+  // max). Elle suit FENETRE_ACTUALITE_MS : laisser la décroissance à 12 h
+  // alors que le Flux en retient 24 donnerait zéro point de fraîcheur à la
+  // moitié des articles affichés.
+  const fenetreH = FENETRE_ACTUALITE_MS / 3600000;
+  const ageH = a.pubDate ? (Date.now() - a.pubDate) / 3600000 : fenetreH;
+  const fraicheurScore = Math.max(0, Math.round(30 * (1 - ageH / fenetreH)));
 
   // 3. Corroboration multi-sources : autres articles sur le même fait (30 pts max)
   // Critère : au moins un autre article d'une source différente partage
@@ -7442,15 +7446,37 @@ function sourceDateNonFiable(article) {
   return contenuAbsent || rechercheGoogleNews;
 }
 
+// FENETRE_ACTUALITE_MS : jusqu'a quel age un article compte comme
+// « actualite » dans le Flux, le tableau de bord et le compteur de pays
+// couverts.
+//
+// Mesure du 06/09/2026, les 110 sources natives capables d'alerter
+// interrogees une par une :
+//
+//   fenetre 12 h  ->  27 sources fraiches  ->  18 pays sur 54
+//   fenetre 24 h  ->  47 sources fraiches  ->  34 pays sur 54
+//   fenetre 48 h  ->  55 sources fraiches  ->  38 pays sur 54
+//
+// A 12 h, trente pays restaient vides en permanence — dont dix des treize
+// qui n'ont qu'une seule source d'alerte — sans que rien ne distingue le
+// pays calme du pays sur lequel on ne sait rien. Beaucoup de titres
+// africains publient une fois par jour : une fenetre plus courte que leur
+// rythme ne mesure pas la surete, elle mesure l'horaire de bouclage.
+//
+// Arbitrage tranche par l'editeur du produit. 48 h a ete ecarte : un
+// incident d'avant-hier affiche comme actualite peut avoir ete resolu.
+const FENETRE_ACTUALITE_MS = 24 * 60 * 60 * 1000;
+
 // estimeEvenementAncien(article) : vrai si la date de survenance estimee
-// remonte a plus de 12h, meme si la publication est recente.
+// remonte a plus que la fenetre d'actualite, meme si la publication est
+// recente.
 function estimeEvenementAncien(article) {
   const surv = extraireDateSurvenance(article);
   // Survenance inconnue : on NE bloque PAS l'article (sinon le flux se vide
   // des que l'article n'a pas d'indice temporel explicite, ce qui est le cas
   // le plus courant). Seul l'AFFICHAGE (fmtSurvenance) doit refleter le doute,
   // pas le filtrage temps reel. On retombe donc sur ts=pubDate, comme avant.
-  return (Date.now() - surv.ts) >= 12*60*60*1000;
+  return (Date.now() - surv.ts) >= FENETRE_ACTUALITE_MS;
 }
 
 // estRecentReel(article) : vrai uniquement si l'article est a la fois
@@ -7463,14 +7489,14 @@ function estimeEvenementAncien(article) {
 function estRecentReel(article) {
   if (!article || !article.pubDate) return false;
   if (sourceDateNonFiable(article)) return false;
-  if ((Date.now() - article.pubDate) >= 12*60*60*1000) return false;
+  if ((Date.now() - article.pubDate) >= FENETRE_ACTUALITE_MS) return false;
   const surv = extraireDateSurvenance(article);
-  if ((Date.now() - surv.ts) >= 12*60*60*1000) return false;
+  if ((Date.now() - surv.ts) >= FENETRE_ACTUALITE_MS) return false;
   return true;
 }
 
 function antiHalluFilter(arts, maxAgeMs) {
-  maxAgeMs = maxAgeMs || 12 * 60 * 60 * 1000;
+  maxAgeMs = maxAgeMs || FENETRE_ACTUALITE_MS;
   const now = Date.now();
   return arts.filter(a =>
     a.pubDate &&                              // horodaté
@@ -7817,17 +7843,17 @@ function getArticleVirality(a) {
   return {score, niveau};
 }
 
-// isWithin12h(dateStr) : vrai si la date (format 'JJ/MM/AAAA' ou 'JJ/MM/AAAA HHhMM'
+// estDansFenetreActualite(dateStr) : vrai si la date (format 'JJ/MM/AAAA' ou 'JJ/MM/AAAA HHhMM'
 // tel qu'utilisé dans ALERTE_EVENTS) remonte à moins de 12h. Repli sur false si
 // la chaîne ne peut pas être interprétée (dates relatives type "Juin 2026").
-function isWithin12h(dateStr) {
+function estDansFenetreActualite(dateStr) {
   if (!dateStr) return false;
   const m = /^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{1,2})h(\d{2}))?/.exec(dateStr);
   if (!m) return false;
   const [, dd, mm, yyyy, hh, min] = m;
   const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd), Number(hh || 0), Number(min || 0));
   if (isNaN(d.getTime())) return false;
-  return (Date.now() - d.getTime()) < 12 * 60 * 60 * 1000 && (Date.now() - d.getTime()) >= 0;
+  return (Date.now() - d.getTime()) < FENETRE_ACTUALITE_MS && (Date.now() - d.getTime()) >= 0;
 }
 
 // ── ANTI-PLAGIAT / RESPECT DU DROIT D'AUTEUR ─────────────────────────────
@@ -7894,7 +7920,7 @@ function fmtSurvenance(article) {
   if (surv.inconnue) {
     return { texte: 'Inconnue', ts: surv.ts, ancien:true, estimee:true, inconnue:true };
   }
-  const ancien = (Date.now() - surv.ts) >= 12*60*60*1000;
+  const ancien = (Date.now() - surv.ts) >= FENETRE_ACTUALITE_MS;
   const suffixe = surv.label ? ' (' + surv.label + ')' : '';
   return { texte: fmtFull(surv.ts) + suffixe, ts: surv.ts, ancien, estimee: surv.estimee, inconnue:false };
 }
@@ -17031,7 +17057,7 @@ async function renderAlertCard(score) {
   ]);
   const evHtml = sorted.map((e, idx) => {
     const d = NIV[e.level]||NIV.vert;
-    const fresh = isWithin12h(e.date);
+    const fresh = estDansFenetreActualite(e.date);
     const evId = 'alerte-ev-'+score.cy+'-'+idx;
     const freshTag = fresh
       ? '<span style="font-size:7px;font-weight:700;color:#fff;background:#15803D;padding:1px 5px;border-radius:3px;margin-left:5px;">-12H</span>'

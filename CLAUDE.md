@@ -184,6 +184,57 @@ source.
 
 ---
 
+## La fenêtre d'actualité
+
+`FENETRE_ACTUALITE_MS` décide jusqu'à quel âge un article compte comme
+« actualité » — dans le Flux, le tableau de bord, le compteur de pays
+couverts et le score de fraîcheur. **24 heures depuis le 06/09/2026**, contre
+douze auparavant.
+
+Mesure qui a motivé le changement, les 110 sources natives capables
+d'alerter interrogées une par une :
+
+| Fenêtre | Sources fraîches | Pays couverts |
+|---|---:|---:|
+| 12 h | 27 | **18/54** |
+| 24 h | 47 | **34/54** |
+| 48 h | 55 | 38/54 |
+
+À douze heures, trente pays restaient vides en permanence — dont dix des
+treize qui n'ont qu'une seule source d'alerte — sans que rien ne distingue le
+pays calme du pays sur lequel on ne sait rien. C'est exactement ce que
+`paysMuet()` combat, réintroduit par le réglage.
+
+Beaucoup de titres africains publient une fois par jour : **une fenêtre plus
+courte que leur rythme ne mesure pas la sûreté, elle mesure l'heure de
+bouclage.** 48 h a été écarté par l'éditeur : un incident d'avant-hier
+affiché comme actualité peut avoir été résolu.
+
+Le seuil est défini **une seule fois** et un test l'exige : la décroissance
+du score de fraîcheur le suit, sinon la moitié des articles affichés
+perdraient d'un coup leurs trente points. La fonction `isWithin12h` a été
+renommée `estDansFenetreActualite` — son nom mentait dès que la fenêtre a
+bougé.
+
+**Ce que ce réglage ne répare pas.** Le recensement du 06/09/2026 a aussi
+montré que **30 des 110 sources natives d'alerte ne répondent plus** : douze
+en 404 (adresse du flux périmée — Abidjan.net, Le Faso, APS, Dakaractu,
+Graphic, The Citizen…) et treize en 403 (le site refuse notre robot — Punch,
+Nation, L'Express, Monitor, Igihe…). Et le filet de secours des petits pays,
+AllAfrica, publie une fois par jour au mieux : 22 h d'écart typique, 19 jours
+pour le Malawi. L'agence gabonaise AGP n'a rien publié depuis quatorze mois.
+
+**Google News bloque son propre flux.** `news.google.com/robots.txt` porte
+`Disallow: /` et n'autorise que `/topics/`, `/stories/`, `/publications/` —
+pas `/rss/`. Or 319 des 489 entrées du registre sont des requêtes Google
+News. `fetchRespectueux` refuse donc de les chercher directement et la page
+retombe sur les proxys CORS publics, saturés sous 900 requêtes depuis une
+seule adresse : 359 replis au passage du 06/09. Contourner par un proxy
+public ce que le robots.txt demande de ne pas faire est un arbitrage qui
+appartient au propriétaire du produit, pas au code.
+
+---
+
 ## L'archive des niveaux
 
 Le job de collecte écrit **un instantané par jour** dans
