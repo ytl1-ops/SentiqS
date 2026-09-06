@@ -391,6 +391,42 @@ agrégation qui alarme). Il appartient à l'éditeur. La vraie question n'est
 d'ailleurs pas « 70 ou 68 » mais « ce média nommé mérite-t-il 72 ? », et elle
 se décide source par source.
 
+**Et `couverture-mediatique.js` produit la liste de ces médias nommés.** Chaque
+article d'un flux Google News nomme son éditeur (`<source url=...>`). Rejouer
+les requêtes Google News **déjà présentes dans le registre**, pays par pays,
+donne donc les médias qui parlent réellement de ce pays — ceux que la veille
+lit déjà, et ceux qu'elle voit passer sans les créditer comme source.
+
+Mesure du 06/09/2026, sur les 54 pays : **7 590 articles, 1 405 domaines
+absents du registre**, dont **572 revus au moins deux fois** en sept jours.
+Les pays dits aveugles ne le sont pas faute de flux — l'Eswatini, une seule
+source d'alerte, montrait 145 articles et 42 médias inconnus.
+
+**Le détour par les annuaires ouverts a été essayé et abandonné.** Wikidata ne
+référence, avec site officiel déclaré, qu'un média pour le Soudan du Sud, un
+pour les Comores, un pour le Congo-Brazzaville, et **aucun** pour l'Érythrée,
+le Burundi, la Sierra Leone, la Guinée équatoriale. Les pays les moins
+couverts par la veille sont aussi les moins documentés par les bases
+ouvertes : l'annuaire reproduit l'angle mort qu'il devait combler.
+
+**Le piège qui a coûté une passe entière :** composer la requête avec le nom
+français du pays alors que l'édition interrogée est anglophone ou lusophone.
+« Afrique du Sud » sur l'édition `ZA:en` ramenait 18 articles, « South
+Africa » en ramène 161 ; « Soudan du Sud » 7, « South Sudan » 161 ; « Gambie »
+4, « The Gambia » 148. Vingt-cinq pays sur cinquante-quatre étaient touchés,
+et la mesure n'avait pas l'air cassée : elle concluait simplement que ces pays
+étaient peu couverts. Reprendre les requêtes du registre, déjà écrites dans la
+bonne langue, supprime la classe d'erreur au lieu de la contourner.
+
+Un cliquet le protège : **chaque pays doit avoir au moins une requête
+thématique** dans le registre. Un pays qui n'en aurait plus ne produirait
+aucun candidat, et le rapport le montrerait « bien couvert » exactement comme
+un pays dont tous les médias sont déjà lus — la même ambiguïté que
+`paysMuet()` combat côté interface.
+
+**La mesure ne note personne**, et un test l'interdit. Elle compte des
+occurrences ; le score de fiabilité reste un jugement éditorial.
+
 ---
 
 ## Par où commencer la revue du socle

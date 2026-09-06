@@ -20,3 +20,6 @@ niveaux-pays.json
 .cache-sante/
 incidents-porteurs.json
 banc-tri.json
+
+# Rapport de couverture mediatique (scripts/couverture-mediatique.js)
+couverture-medias.json
