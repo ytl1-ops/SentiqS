@@ -1,0 +1,38 @@
+# Mesure ponctuelle : que ramènerait GDELT sur les pays que la veille ne
+# couvre pas ? Voir scripts/mesurer-gdelt.js pour la question posée et pour
+# ce que ce script ne fait PAS — il ne touche pas au registre.
+#
+# Déclenchement MANUEL uniquement. GDELT limite à une requête toutes les
+# cinq secondes par adresse : ce travail n'a pas à tourner en boucle, et
+# encore moins à chaque poussée.
+name: Mesure GDELT (manuelle)
+
+on:
+  workflow_dispatch:
+    inputs:
+      pays:
+        description: "Codes pays séparés par des espaces (vide = les 31 pays sans article)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  mesure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Interroger GDELT
+        run: node scripts/mesurer-gdelt.js ${{ inputs.pays }}
+      - name: Conserver le rapport
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mesure-gdelt
+          path: mesure-gdelt.json
+          if-no-files-found: warn

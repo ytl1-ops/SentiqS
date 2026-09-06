@@ -23,3 +23,6 @@ banc-tri.json
 
 # Rapport de couverture mediatique (scripts/couverture-mediatique.js)
 couverture-medias.json
+
+# Rapport de mesure GDELT (scripts/mesurer-gdelt.js)
+mesure-gdelt.json
