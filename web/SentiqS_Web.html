@@ -4231,6 +4231,100 @@ const SRCS=[
   {id:'zw_gn_pol',n:'Zimbabwe — Gouvernement (Google News)',col:'#4B5563',cy:'ZW',sc:'national',cat:'politique',score:66,url:'https://news.google.com/search?q=Zimbabwe+government+politics&hl=en&gl=ZW',rss:'https://news.google.com/rss/search?q=Zimbabwe+government+politics&hl=en&gl=ZW&ceid=ZW:en',rss_method:'Google News RSS'},
   {id:'zw_gn_hum',n:'Zimbabwe — Humanitaire (Google News)',col:'#0F766E',cy:'ZW',sc:'national',cat:'humanitaire',score:64,url:'https://news.google.com/search?q=Zimbabwe+humanitarian+crisis&hl=en&gl=ZW',rss:'https://news.google.com/rss/search?q=Zimbabwe+humanitarian+crisis&hl=en&gl=ZW&ceid=ZW:en',rss_method:'Google News RSS'},
   {id:'zw_gn_harare',n:'Harare — Local (Google News)',col:'#6B7280',cy:'ZW',sc:'local',cat:'securite',score:62,url:'https://news.google.com/search?q=Harare+Zimbabwe+security&hl=en&gl=ZW',rss:'https://news.google.com/rss/search?q=Harare+Zimbabwe+security&hl=en&gl=ZW&ceid=ZW:en',rss_method:'Google News RSS'},
+
+ // ── Medias locaux mesures le 06/09/2026 (scripts/couverture-mediatique.js) ──
+ //
+ // Comment ils ont ete trouves : chaque article d'un flux Google News nomme
+ // son editeur. Rejouer sept jours des requetes deja presentes dans le
+ // registre a fait apparaitre 1405 domaines que la veille voyait passer sans
+ // les lire. Filtrage successif : 572 revus au moins deux fois, 312 avec un
+ // flux RSS vivant, 74 publiant au moins trois articles par semaine dont la
+ // moitie au moins parle du pays. Revérification juste avant integration :
+ // 71 repondaient encore, trois avaient cesse (403 ou injoignables).
+ //
+ // NOTE 72, DECIDEE PAR L'EDITEUR DU PRODUIT, PAS PAR LA MESURE. Elle place
+ // ces medias AU-DESSUS du seuil de 70 : ils peuvent donc faire monter un
+ // niveau d'alerte. L'arbitrage a ete pose explicitement, avec son risque —
+ // aucun de ces titres n'a fait l'objet d'une evaluation editoriale, et un
+ // titre mal calibre chez l'un d'eux peut faire passer un pays au rouge.
+ //
+ // Deux reserves signalees avant l'arbitrage et maintenues ici pour qu'elles
+ // ne se perdent pas : voicegambia.com, dont l'echantillon mesure etait
+ // presque entierement sportif, et eswatinipositivenews.online, qui ne
+ // publie que de bonnes nouvelles par principe — l'Eswatini paraitra couvert
+ // par un media qui ne rapportera jamais un incident, exactement le piege
+ // que paysMuet() combat ailleurs.
+ {id:'forbesafricalusofo_ao',n:'Forbes África Lusofona',col:'#4B5563',cy:'AO',sc:'national',cat:'economique',score:72,url:'https://forbesafricalusofona.com/',rss:'https://forbesafricalusofona.com/feed/',rss_method:'RSS natif'},
+ {id:'mercado_ao',n:'Jornal Mercado',col:'#4B5563',cy:'AO',sc:'national',cat:'economique',score:72,url:'https://mercado.co.ao/',rss:'https://mercado.co.ao/feed/',rss_method:'RSS natif'},
+ {id:'burundiagnews_bi',n:'burundi-agnews.org',col:'#4B5563',cy:'BI',sc:'national',cat:'securite',score:72,url:'https://burundi-agnews.org/',rss:'https://burundi-agnews.org/feed/',rss_method:'RSS natif'},
+ {id:'sosmediasburundi_bi',n:'SOS Médias Burundi',col:'#4B5563',cy:'BI',sc:'national',cat:'securite',score:72,url:'https://sosmediasburundi.org/',rss:'https://www.sosmediasburundi.org/feed/',rss_method:'RSS natif'},
+ {id:'corbeaunewscentraf_cf',n:'Corbeau News Centrafrique',col:'#4B5563',cy:'CF',sc:'national',cat:'securite',score:72,url:'https://corbeaunews-centrafrique.org/',rss:'https://corbeaunews-centrafrique.org/feed/',rss_method:'RSS natif'},
+ {id:'lesechoscongobrazz_cg',n:'Les Echos du Congo Brazzaville',col:'#4B5563',cy:'CG',sc:'national',cat:'securite',score:72,url:'https://lesechos-congobrazza.com/',rss:'https://lesechos-congobrazza.com/?format=feed&amp;type=rss',rss_method:'RSS natif'},
+ {id:'actucameroun_cm',n:'Actu Cameroun',col:'#4B5563',cy:'CM',sc:'national',cat:'securite',score:72,url:'https://actucameroun.com/',rss:'https://actucameroun.com/feed/',rss_method:'RSS natif'},
+ {id:'camerounactuel_cm',n:'camerounactuel.com',col:'#4B5563',cy:'CM',sc:'national',cat:'securite',score:72,url:'https://camerounactuel.com/',rss:'https://camerounactuel.com/feed/',rss_method:'RSS natif'},
+ {id:'ecomatin_cm',n:'EcoMatin',col:'#4B5563',cy:'CM',sc:'national',cat:'economique',score:72,url:'https://ecomatin.net/',rss:'https://ecomatin.net/feed.xml',rss_method:'RSS natif'},
+ {id:'investiraucameroun_cm',n:'Investir au Cameroun',col:'#4B5563',cy:'CM',sc:'national',cat:'economique',score:72,url:'https://investiraucameroun.com/',rss:'https://investiraucameroun.com/index.php/component/obrss/fullrss',rss_method:'RSS natif'},
+ {id:'algerie360_dz',n:'Algerie360',col:'#4B5563',cy:'DZ',sc:'national',cat:'securite',score:72,url:'https://algerie360.com/',rss:'https://algerie360.com/feed/',rss_method:'RSS natif'},
+ {id:'dzfoot_dz',n:'DZfoot',col:'#4B5563',cy:'DZ',sc:'national',cat:'securite',score:72,url:'https://dzfoot.com/',rss:'https://dzfoot.com/feed/',rss_method:'RSS natif'},
+ {id:'justinfodz_dz',n:'Just-InfoDZ',col:'#4B5563',cy:'DZ',sc:'national',cat:'securite',score:72,url:'https://just-infodz.com/',rss:'https://just-infodz.com/feed/',rss_method:'RSS natif'},
+ {id:'maghrebemergent_dz',n:'Maghreb Émergent',col:'#4B5563',cy:'DZ',sc:'national',cat:'securite',score:72,url:'https://maghrebemergent.news/',rss:'https://maghrebemergent.news/fr/feed/',rss_method:'RSS natif'},
+ {id:'tsaalgerie_dz',n:'tsa-algerie.com',col:'#4B5563',cy:'DZ',sc:'national',cat:'securite',score:72,url:'https://tsa-algerie.com/',rss:'https://www.tsa-algerie.com/feed/',rss_method:'RSS natif'},
+ {id:'fr_ga',n:'fr.infosgabon.com',col:'#4B5563',cy:'GA',sc:'national',cat:'securite',score:72,url:'https://fr.infosgabon.com/',rss:'https://fr.infosgabon.com/feed/',rss_method:'RSS natif'},
+ {id:'gabonreview_ga',n:'Gabonreview.com',col:'#4B5563',cy:'GA',sc:'national',cat:'securite',score:72,url:'https://gabonreview.com/',rss:'https://www.gabonreview.com/feed',rss_method:'RSS natif'},
+ {id:'gbcghanaonline_gh',n:'GBC Ghana Online',col:'#4B5563',cy:'GH',sc:'national',cat:'securite',score:72,url:'https://gbcghanaonline.com/',rss:'https://gbcghanaonline.com/feed/',rss_method:'RSS natif'},
+ {id:'ghanabusinessnews_gh',n:'Ghana Business News',col:'#4B5563',cy:'GH',sc:'national',cat:'economique',score:72,url:'https://ghanabusinessnews.com/',rss:'https://www.ghanabusinessnews.com/feed/',rss_method:'RSS natif'},
+ {id:'ghanafa_gh',n:'Ghana Football Association',col:'#4B5563',cy:'GH',sc:'national',cat:'securite',score:72,url:'https://ghanafa.org/',rss:'https://www.ghanafa.org/feed',rss_method:'RSS natif'},
+ {id:'ghanaiantimes_gh',n:'Ghanaian Times',col:'#4B5563',cy:'GH',sc:'national',cat:'securite',score:72,url:'https://ghanaiantimes.com.gh/',rss:'https://ghanaiantimes.com.gh/feed/',rss_method:'RSS natif'},
+ {id:'thepoint_gm',n:'Gambia News - The Point',col:'#4B5563',cy:'GM',sc:'national',cat:'securite',score:72,url:'https://thepoint.gm/',rss:'https://thepoint.gm/posts/rss/xml',rss_method:'RSS natif'},
+ {id:'voicegambia_gm',n:'Voice Gambia',col:'#4B5563',cy:'GM',sc:'national',cat:'securite',score:72,url:'https://voicegambia.com/',rss:'https://www.voicegambia.com/feed/',rss_method:'RSS natif'},
+ {id:'guinee114_gn',n:'Guinee114.com',col:'#4B5563',cy:'GN',sc:'national',cat:'securite',score:72,url:'https://guinee114.com/',rss:'https://www.guinee114.com/feed/',rss_method:'RSS natif'},
+ {id:'guinee7_gn',n:'Guinee7.com',col:'#4B5563',cy:'GN',sc:'national',cat:'securite',score:72,url:'https://guinee7.com/',rss:'https://guinee7.com/feed/',rss_method:'RSS natif'},
+ {id:'guineelive_gn',n:'Guineelive',col:'#4B5563',cy:'GN',sc:'national',cat:'securite',score:72,url:'https://guineelive.com/',rss:'https://guineelive.com/feed/',rss_method:'RSS natif'},
+ {id:'guineematin_gn',n:'Guineematin.com',col:'#4B5563',cy:'GN',sc:'national',cat:'securite',score:72,url:'https://guineematin.com/',rss:'https://guineematin.com/feed/',rss_method:'RSS natif'},
+ {id:'thekenyatimes_ke',n:'The Kenya Times',col:'#4B5563',cy:'KE',sc:'national',cat:'securite',score:72,url:'https://thekenyatimes.com/',rss:'https://thekenyatimes.com/feed/',rss_method:'RSS natif'},
+ {id:'comoresinfos_km',n:'Comores Infos',col:'#4B5563',cy:'KM',sc:'national',cat:'securite',score:72,url:'https://comoresinfos.net/',rss:'https://www.comoresinfos.net/feed/',rss_method:'RSS natif'},
+ {id:'gnnliberia_lr',n:'Global News Network Liberia',col:'#4B5563',cy:'LR',sc:'national',cat:'securite',score:72,url:'https://gnnliberia.com/',rss:'https://gnnliberia.com/feed/',rss_method:'RSS natif'},
+ {id:'ar_ly',n:'ar.libyaobserver.ly',col:'#4B5563',cy:'LY',sc:'national',cat:'securite',score:72,url:'https://ar.libyaobserver.ly/',rss:'https://ar.libyaobserver.ly/rss.xml',rss_method:'RSS natif'},
+ {id:'eanlibya_ly',n:'عين ليبيا',col:'#4B5563',cy:'LY',sc:'national',cat:'securite',score:72,url:'https://eanlibya.com/',rss:'https://www.eanlibya.com/feed/',rss_method:'RSS natif'},
+ {id:'fr_ma',n:'Hespress Français - Actualités du Maroc',col:'#4B5563',cy:'MA',sc:'national',cat:'securite',score:72,url:'https://fr.hespress.com/',rss:'https://fr.hespress.com/feed/',rss_method:'RSS natif'},
+ {id:'lebrief_ma',n:'Lebrief',col:'#4B5563',cy:'MA',sc:'national',cat:'securite',score:72,url:'https://lebrief.ma/',rss:'https://www.lebrief.ma/feed/',rss_method:'RSS natif'},
+ {id:'yabiladi_ma',n:'Yabiladi.com',col:'#4B5563',cy:'MA',sc:'national',cat:'securite',score:72,url:'https://yabiladi.com/',rss:'https://www.yabiladi.com/rss',rss_method:'RSS natif'},
+ {id:'mali24_ml',n:'Mali 24',col:'#4B5563',cy:'ML',sc:'national',cat:'securite',score:72,url:'https://mali24.info/',rss:'https://mali24.info/feed/',rss_method:'RSS natif'},
+ {id:'fr_mr',n:'fr.saharamedias.net',col:'#4B5563',cy:'MR',sc:'national',cat:'securite',score:72,url:'https://fr.saharamedias.net/',rss:'https://fr.saharamedias.net/feed/',rss_method:'RSS natif'},
+ {id:'pointschauds_mr',n:'Points Chauds Online',col:'#4B5563',cy:'MR',sc:'national',cat:'securite',score:72,url:'https://pointschauds.info/',rss:'https://pointschauds.info/feed/',rss_method:'RSS natif'},
+ {id:'malawi24_mw',n:'Malawi24',col:'#4B5563',cy:'MW',sc:'national',cat:'securite',score:72,url:'https://malawi24.com/',rss:'https://malawi24.com/feed/',rss_method:'RSS natif'},
+ {id:'nyasatimes_mw',n:'Nyasa Times',col:'#4B5563',cy:'MW',sc:'national',cat:'securite',score:72,url:'https://nyasatimes.com/',rss:'https://www.nyasatimes.com/feed/',rss_method:'RSS natif'},
+ {id:'cartamz_mz',n:'Carta de Moçambique',col:'#4B5563',cy:'MZ',sc:'national',cat:'securite',score:72,url:'https://cartamz.com/',rss:'https://cartamz.com/feed/',rss_method:'RSS natif'},
+ {id:'economist_na',n:'economist.com.na',col:'#4B5563',cy:'NA',sc:'national',cat:'economique',score:72,url:'https://economist.com.na/',rss:'https://economist.com.na/feed/',rss_method:'RSS natif'},
+ {id:'observer24_na',n:'Windhoek Observer',col:'#4B5563',cy:'NA',sc:'national',cat:'securite',score:72,url:'https://observer24.com.na/',rss:'https://observer24.com.na/feed/',rss_method:'RSS natif'},
+ {id:'businessday_ng',n:'Business News Nigeria',col:'#4B5563',cy:'NG',sc:'national',cat:'economique',score:72,url:'https://businessday.ng/',rss:'https://businessday.ng/feed/',rss_method:'RSS natif'},
+ {id:'realnewsmagazine_ng',n:'Realnews Magazine',col:'#4B5563',cy:'NG',sc:'national',cat:'securite',score:72,url:'https://realnewsmagazine.net/',rss:'https://realnewsmagazine.net/feed/',rss_method:'RSS natif'},
+ {id:'thefact_ng',n:'thefact.ng',col:'#4B5563',cy:'NG',sc:'national',cat:'securite',score:72,url:'https://thefact.ng/',rss:'https://thefact.ng/feed/',rss_method:'RSS natif'},
+ {id:'thesun_ng',n:'The Sun Nigeria',col:'#4B5563',cy:'NG',sc:'national',cat:'securite',score:72,url:'https://thesun.ng/',rss:'https://thesun.ng/feed/',rss_method:'RSS natif'},
+ {id:'von_ng',n:'von.gov.ng',col:'#4B5563',cy:'NG',sc:'national',cat:'securite',score:72,url:'https://von.gov.ng/',rss:'https://von.gov.ng/feed/',rss_method:'RSS natif'},
+ {id:'sudantribune_sd',n:'سودان تربيون',col:'#4B5563',cy:'SD',sc:'national',cat:'securite',score:72,url:'https://sudantribune.net/',rss:'https://sudantribune.net/feed',rss_method:'RSS natif'},
+ {id:'thesierraleonetele_sl',n:'The Sierra Leone Telegraph',col:'#4B5563',cy:'SL',sc:'national',cat:'securite',score:72,url:'https://thesierraleonetelegraph.com/',rss:'https://www.thesierraleonetelegraph.com/feed/',rss_method:'RSS natif'},
+ {id:'senenews_sn',n:'SeneNews',col:'#4B5563',cy:'SN',sc:'national',cat:'securite',score:72,url:'https://senenews.com/',rss:'https://www.senenews.com/feed',rss_method:'RSS natif'},
+ {id:'wiwsport_sn',n:'wiwsport',col:'#4B5563',cy:'SN',sc:'national',cat:'securite',score:72,url:'https://wiwsport.com/',rss:'https://wiwsport.com/feed/',rss_method:'RSS natif'},
+ {id:'radiotamazuj_ss',n:'Radio Tamazuj',col:'#4B5563',cy:'SS',sc:'national',cat:'securite',score:72,url:'https://radiotamazuj.org/',rss:'https://www.radiotamazuj.org/en/feed',rss_method:'RSS natif'},
+ {id:'sudanspost_ss',n:'Sudans Post',col:'#4B5563',cy:'SS',sc:'national',cat:'securite',score:72,url:'https://sudanspost.com/',rss:'https://www.sudanspost.com/feed/',rss_method:'RSS natif'},
+ {id:'eswatinipositivene_sz',n:'Eswatini Positive News',col:'#4B5563',cy:'SZ',sc:'national',cat:'securite',score:72,url:'https://eswatinipositivenews.online/',rss:'https://eswatinipositivenews.online/feed/',rss_method:'RSS natif'},
+ {id:'times_sz',n:'Times of Eswatini',col:'#4B5563',cy:'SZ',sc:'national',cat:'securite',score:72,url:'https://times.co.sz/',rss:'https://times.co.sz/feed/',rss_method:'RSS natif'},
+ {id:'24heureinfo_tg',n:'24heureinfo.com',col:'#4B5563',cy:'TG',sc:'national',cat:'securite',score:72,url:'https://24heureinfo.com/',rss:'https://24heureinfo.com/feed/',rss_method:'RSS natif'},
+ {id:'lenouveaureporter_tg',n:'Le Nouveau Reporter',col:'#4B5563',cy:'TG',sc:'national',cat:'securite',score:72,url:'https://lenouveaureporter.com/',rss:'https://lenouveaureporter.com/feed/',rss_method:'RSS natif'},
+ {id:'togoactualite_tg',n:'Togo Actualite',col:'#4B5563',cy:'TG',sc:'national',cat:'securite',score:72,url:'https://togoactualite.com/',rss:'https://togoactualite.com/feed/',rss_method:'RSS natif'},
+ {id:'togopresse_tg',n:'Togo-Presse',col:'#4B5563',cy:'TG',sc:'national',cat:'securite',score:72,url:'https://togopresse.tg/',rss:'https://togopresse.tg/feed/',rss_method:'RSS natif'},
+ {id:'togoscoop_tg',n:'togoscoop.tg',col:'#4B5563',cy:'TG',sc:'national',cat:'securite',score:72,url:'https://togoscoop.tg/',rss:'https://togoscoop.tg/feed/',rss_method:'RSS natif'},
+ {id:'kapitalis_tn',n:'Kapitalis',col:'#4B5563',cy:'TN',sc:'national',cat:'securite',score:72,url:'https://kapitalis.com/',rss:'https://kapitalis.com/tunisie/feed/',rss_method:'RSS natif'},
+ {id:'lapresse_tn',n:'La Presse de Tunisie',col:'#4B5563',cy:'TN',sc:'national',cat:'securite',score:72,url:'https://lapresse.tn/',rss:'https://www.lapresse.tn/feed/',rss_method:'RSS natif'},
+ {id:'tanzaniainvest_tz',n:'tanzaniainvest.com',col:'#4B5563',cy:'TZ',sc:'national',cat:'economique',score:72,url:'https://tanzaniainvest.com/',rss:'https://www.tanzaniainvest.com/feed',rss_method:'RSS natif'},
+ {id:'therespondents_tz',n:'therespondents.co.tz',col:'#4B5563',cy:'TZ',sc:'national',cat:'securite',score:72,url:'https://therespondents.co.tz/',rss:'https://www.therespondents.co.tz/feeds/posts/default',rss_method:'RSS natif'},
+ {id:'softpower_ug',n:'SoftPower News',col:'#4B5563',cy:'UG',sc:'national',cat:'securite',score:72,url:'https://softpower.ug/',rss:'https://softpower.ug/feed/',rss_method:'RSS natif'},
+ {id:'ugdiplomat_ug',n:'UG Diplomat',col:'#4B5563',cy:'UG',sc:'national',cat:'securite',score:72,url:'https://ugdiplomat.com/',rss:'https://ugdiplomat.com/feed/',rss_method:'RSS natif'},
+ {id:'updf_ug',n:'UPDF',col:'#4B5563',cy:'UG',sc:'national',cat:'securite',score:72,url:'https://updf.go.ug/',rss:'https://www.updf.go.ug/feed/',rss_method:'RSS natif'},
+ {id:'businesstech_za',n:'businesstech.co.za',col:'#4B5563',cy:'ZA',sc:'national',cat:'economique',score:72,url:'https://businesstech.co.za/',rss:'https://businesstech.co.za/feed/',rss_method:'RSS natif'},
+ {id:'263chat_zw',n:'263Chat',col:'#4B5563',cy:'ZW',sc:'national',cat:'securite',score:72,url:'https://263chat.com/',rss:'https://www.263chat.com/feed/',rss_method:'RSS natif'},
+ {id:'iharare_zw',n:'iHarare News',col:'#4B5563',cy:'ZW',sc:'national',cat:'securite',score:72,url:'https://iharare.com/',rss:'https://iharare.com/feed/',rss_method:'RSS natif'},
 ];
 
 const CYS=[
