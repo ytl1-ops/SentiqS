@@ -40,8 +40,9 @@ concurrency:
 jobs:
   collecte:
     runs-on: ubuntu-latest
-    # 18 = 11 min de collecte (COLLECT_TIMEOUT_MS) + installation + publication + archive.
-    timeout-minutes: 18
+    # 20 = 16 min d'echeance (COLLECTE_ECHEANCE_EPOCH, fixee apres l'installation
+    # du navigateur) + publication + archive + marge.
+    timeout-minutes: 20
     permissions:
       # Ecriture necessaire au seul commit de l'archive des niveaux
       # (web/historique/). Le reste du job ne touche pas au depot.
@@ -57,10 +58,29 @@ jobs:
         with:
           node-version: 20
 
+      # Le navigateur est mis en cache entre deux passages. Sans cela, le
+      # telechargement de Chromium prend d'ordinaire 30 s mais parfois plus de
+      # 7 min (passages n° 812 et 814, les 03 et 04/09/2026) : avec la
+      # collecte de 11 min qui suivait, le job depassait sa garde de 18 min et
+      # etait tue AVANT de publier — un cycle entier perdu, et perdu en
+      # silence puisque « annule » n'est pas « echoue » (voir le job d'alerte).
+      - name: Restaurer le navigateur Playwright
+        id: cache-navigateur
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-v1
+
       - name: Installer Playwright + Chromium
         run: |
           npm install playwright@1
           npx playwright install --with-deps chromium
+
+      # Echeance absolue du passage, lue par scripts/collecte-planifiee.js :
+      # si l'installation a ete lente, la fenetre de collecte se raccourcit
+      # d'autant au lieu de laisser la garde du job tuer la publication.
+      - name: Fixer l'échéance du passage
+        run: echo "COLLECTE_ECHEANCE_EPOCH=$(( $(date +%s) + 16*60 ))" >> "$GITHUB_ENV"
 
       - name: Vérifie que la racine est utilisable par npm
         # Cause de la panne du 02/08/2026 au 27/08/2026 : un package.json
@@ -204,7 +224,9 @@ jobs:
     name: Signaler l'échec
     runs-on: ubuntu-latest
     needs: collecte
-    if: failure()
+    # cancelled() : un job tue par sa garde de temps n'est pas « en echec » pour
+    # GitHub, et deux cycles ont ete perdus sans un mot les 03 et 04/09/2026.
+    if: failure() || cancelled()
     permissions:
       issues: write
     steps:
