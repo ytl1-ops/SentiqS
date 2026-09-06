@@ -56,6 +56,11 @@ const HTML_PATH = process.env.SENTINEL_HTML_PATH || path.join(__dirname, '..', '
 // dans le journal : « Sources terminees a l'arret » (ci-dessous).
 const COLLECT_TIMEOUT_MS = 11 * 60 * 1000;
 
+// Fenetre de collecte REELLE : voir scripts/lib/fenetre-collecte.js (le
+// plafond, raccourci si le passage a deja consomme son budget).
+const { fenetreCollecteMs: _fenetre } = require('./lib/fenetre-collecte');
+function fenetreCollecteMs() { return _fenetre(COLLECT_TIMEOUT_MS, process.env.COLLECTE_ECHEANCE_EPOCH, Date.now()); }
+
 // L'archive vit sous web/ et non sous data/ : c'est web/ que GitHub Pages
 // sert, et l'interface doit pouvoir lire la serie sans passer par Supabase
 // ni par une API qui n'existe pas. Voir scripts/lib/historique.js.
@@ -214,11 +219,11 @@ function ecrireResumeActions(md) {
     try {
       await Promise.race([
         collecte,
-        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), COLLECT_TIMEOUT_MS)),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), fenetreCollecteMs())),
       ]);
     } catch (e) {
       collecteComplete = false;
-      console.log('Collecte non terminée sous ' + (COLLECT_TIMEOUT_MS / 60000) + ' min (proxys probablement rate-limités) — publication du résultat PARTIEL déjà accumulé.');
+      console.log('Collecte non terminée sous ' + Math.round(fenetreCollecteMs() / 60000) + ' min (proxys probablement rate-limités) — publication du résultat PARTIEL déjà accumulé.');
       // Mesure d'effet du plafond : combien de sources etaient traitees a
       // l'arret. C'est CE nombre qui dit si une minute de plus sert.
       try {
