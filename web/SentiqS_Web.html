@@ -7043,6 +7043,34 @@ function estFormatEditorial(tTitre) { return FORMATS_EDITORIAUX_RE.test(tTitre.t
 const SUITE_JUDICIAIRE_RE = /^(?:condamnes?|condamnation|proces|verdict|tribunal|cour d appel|acquitte|relaxe|mis en examen|inculpe)\b/;
 function estSuiteJudiciaire(tTitre) { return SUITE_JUDICIAIRE_RE.test(tTitre.trim()); }
 
+// ACCIDENTS : un carambolage n'est pas une attaque. Le vocabulaire est le
+// meme — « morts », « tues », « killed » — et sans distinction un bilan
+// routier ouvrait la file d'un responsable surete au meme rang qu'un
+// attentat. Mesure du 06/09/2026 sur le cache publie : cinq des vingt-cinq
+// articles au-dessus du normal etaient des accidents de la route.
+//
+// Arbitrage tranche par l'editeur du produit, pas par le code : l'accident
+// reste VISIBLE — un autocar a vingt-cinq morts doit se voir, plafond
+// ELEVE — mais ne peut plus atteindre CRITIQUE ; le bilan routier
+// periodique, lui, redescend a MODERE.
+const ACCIDENT_RE = /\b(accidents?|acidentes?|carambolage|collision|delit de fuite|hit[- ]and[- ]run|(?:bus|car|road|plane|train|truck|boat) crash|crash d[eu]|road traffic)\b/;
+const BILAN_ROUTIER_RE = /\b(bilan routier|morts sur (?:les|la|nos) routes?|tues sur (?:les|la|nos) routes?|road deaths|road toll|securite routiere)\b/;
+// Une attaque contre un vehicule reste une attaque : le plafond ne
+// s'applique jamais si le titre porte du vocabulaire d'agression. Sans
+// cette garde, « bus attaque par des hommes armes » serait plafonne.
+const AGRESSION_RE = /\b(attaque|attaques|attentat|attack|attacks|attacked|ambush|embuscade|gunmen|armed|armes|explosion|bombe|bomb|bombing|terroriste|terrorist|jihad|djihad|militants|assaillants|braquage|kidnap|enlevement|abduction|shooting|tirs)\b/;
+function estAccident(tTitre) { return !AGRESSION_RE.test(tTitre) && ACCIDENT_RE.test(tTitre); }
+function estBilanRoutier(tTitre) { return !AGRESSION_RE.test(tTitre) && BILAN_ROUTIER_RE.test(tTitre); }
+
+// NON-EVENEMENTS : une ceremonie du souvenir et un avis de police ne sont
+// pas des incidents. Trois des quinze critiques du 06/09/2026 en etaient :
+// « 12 police officers killed in line of duty to be remembered » (une
+// commemoration), « Plateau Police warn against illegal drone operations »
+// (un avis). Meme traitement que les suites judiciaires : plafond MODERE,
+// l'information reste consultable sans ouvrir la file d'alerte.
+const NON_EVENEMENT_RE = /\b(to be remembered|remembrance|commemorat\w*|memorial service|hommage aux?|ceremonie du souvenir|warns? against|warned against|cautions? against|met(?:tent)? en garde contre|mise en garde contre)\b/;
+function estNonEvenement(tTitre) { return NON_EVENEMENT_RE.test(tTitre); }
+
 // motsTouches : mots-cles d'un lexique presents dans le texte, comptes par
 // FAMILLE (quatre premieres lettres) pour que « tue » et « tues », « attaque »
 // et « attaques » ne comptent pas deux fois.
@@ -7149,6 +7177,9 @@ function classify(txt, src, titre) {
   else lvl = 'ok';
 
   if (lvl !== 'ok' && estSuiteJudiciaire(tTitre)) lvl = 'mod';
+  if (lvl === 'crit' && estAccident(tTitre)) lvl = 'high';
+  if (lvl !== 'ok' && estBilanRoutier(tTitre)) lvl = 'mod';
+  if (lvl === 'crit' && estNonEvenement(tTitre)) lvl = 'mod';
 
   return {lvl, cat};
 }

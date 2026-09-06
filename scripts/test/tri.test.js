@@ -180,3 +180,47 @@ test('a la rehydratation, « verifie » se rederive du nombre de sources', () =>
   assert.match(f, /a\.verified = distinctes\.size >= 2/);
   assert.match(f, /a\.fiable = /);
 });
+
+// ── Accidents et non-événements ──────────────────────────────────────────
+
+test('un accident de la route ne peut plus atteindre le niveau critique', () => {
+  // Mesure du 06/09/2026 sur le cache publié : cinq des vingt-cinq articles
+  // au-dessus du normal étaient des accidents de la route, au même rang
+  // qu'une attaque armée. Arbitrage de l'éditeur du produit : l'accident
+  // reste très visible — un autocar à vingt-cinq morts doit se voir — mais
+  // plafonne à ÉLEVÉ.
+  assert.strictEqual(cl('Tragedy In Cabo Verde As Bus Crash Kills 25, Mostly Young People', '', 'CV').lvl, 'high');
+  assert.strictEqual(cl('Cap-Vert : au moins 25 personnes tuées dans un accident de bus', '', 'CV').lvl, 'high');
+  assert.strictEqual(cl('Law student killed in hit-and-run on Tema Motorway', '', 'GH').lvl, 'high');
+});
+
+test('un bilan routier périodique redescend au niveau modéré', () => {
+  // « Trois morts sur les routes en moins de 24 heures » n'est pas un
+  // événement : c'est une statistique. Elle ouvrait la file d'alerte.
+  assert.strictEqual(cl('Trois morts sur les routes en moins de 24 heures', '', 'MU').lvl, 'mod');
+  assert.strictEqual(cl('Accident à Canot : un mort et deux blessés graves, le bilan routier grimpe à 105', '', 'MU').lvl, 'mod');
+});
+
+test('une attaque contre un véhicule reste une attaque', () => {
+  // La garde qui donne son sens au plafond. Chaque titre ci-dessous porte À
+  // LA FOIS le vocabulaire de l'accident ET celui de l'agression : sans la
+  // garde, le plafond les rangerait avec les carambolages.
+  //
+  // Premier jet de ce test : « Attaque contre un bus de passagers par des
+  // hommes armés ». Il passait sur la version SANS garde — le titre ne
+  // contenait aucun mot du motif accident, la garde n'était jamais
+  // exercée. Un test qui n'échoue pas sur la panne qu'il prétend couvrir
+  // ne vaut rien.
+  assert.strictEqual(cl('Gunmen open fire causing bus crash on Kaduna road', '', 'NG').lvl, 'crit');
+  assert.strictEqual(cl('Attentat : un véhicule piégé provoque une collision meurtrière', '', 'ML').lvl, 'crit');
+  assert.strictEqual(cl('Accident ou attentat ? Un camion fonce sur la foule à Bamako', '', 'ML').lvl, 'crit');
+});
+
+test('une commémoration et un avis de police ne sont pas des incidents', () => {
+  // Deux titres réels du cache du 06/09/2026, tous deux en CRITIQUE :
+  // une cérémonie du souvenir et un rappel réglementaire sur les drones.
+  assert.strictEqual(cl('12 police officers killed in line of duty to be remembered', '', 'ZA').lvl, 'mod');
+  assert.strictEqual(cl('Plateau Police warn against illegal drone operations', '', 'NG').lvl, 'mod');
+  // L'incident lui-même, lui, reste critique.
+  assert.strictEqual(cl('Twelve police officers killed in ambush', '', 'ZA').lvl, 'crit');
+});

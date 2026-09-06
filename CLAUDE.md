@@ -141,6 +141,27 @@ Le banc rejoue **la vraie `classify()`**, extraite du fichier de production,
 et nomme le mot qui a fait monter chaque article. `SENTINEL_HTML_PATH` permet
 de rejouer la version de `main` pour produire la référence « avant ».
 
+**Un accident n'est pas une attaque, et un plafond le dit.** Mesure du
+06/09/2026 sur le cache publié : sur vingt-cinq articles au-dessus du normal,
+**cinq étaient des accidents de la route** — dont l'accident de bus du
+Cap-Vert, compté trois fois — et **trois n'étaient pas des événements** : une
+cérémonie du souvenir (« 12 police officers killed in line of duty to be
+remembered ») et deux avis de police.
+
+`estAccident` plafonne à **élevé**, `estBilanRoutier` à **modéré**,
+`estNonEvenement` à **modéré**. Le partage entre les deux premiers a été
+tranché par l'éditeur du produit, pas par le code : un autocar à vingt-cinq
+morts doit rester très visible, une statistique routière non.
+
+`AGRESSION_RE` est la garde qui donne son sens au plafond : un bus attaqué
+par des hommes armés n'est pas un carambolage. **Le premier test de cette
+garde passait sur la version cassée** — ses titres ne contenaient aucun mot
+du motif « accident », la garde n'était jamais exercée. Un cas de garde doit
+porter les deux vocabulaires à la fois.
+
+Effet mesuré : critiques 15 → 6, élevés 10 → 14, modérés 9 → 14, et **aucun
+article ne quitte le radar**.
+
 **Le titre décide, le corps nuance.** `classify(txt, src, titre)` reçoit le
 titre seul en troisième argument. Un mot du titre fait le niveau ; le corps
 seul ne le fait qu'avec au moins deux familles de mots distinctes, et un mot
