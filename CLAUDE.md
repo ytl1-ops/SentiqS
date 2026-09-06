@@ -459,10 +459,22 @@ aucune requête thématique ne peut porter le nom français du pays sur une
 affiché reste en français, c'est la langue de l'interface, et un test le
 vérifie aussi.
 
-Reste à faire, même classe : les noms de **villes** sont eux aussi en
-français dans ces requêtes (« Le Caire », « Mogadiscio », « Djouba »,
-« Darfour », « Le Cap », « Addis-Abeba »). Non mesuré à ce jour — le faire
-avant de corriger.
+**Même faute sur les villes, mesurée puis corrigée** — mais pas partout :
+
+| Ville | Avant | Après | |
+|---|---:|---:|---|
+| Le Caire | 5 | 71 | القاهرة |
+| Sinai | 9 | 64 | سيناء |
+| Darfour | 9 | 46 | Darfur |
+| Le Cap | 1 | 40 | Cape Town |
+| Djouba | 10 | 37 | Juba |
+| Mogadiscio | 49 | 62 | Mogadishu |
+
+Quatre autres ont été mesurés **neutres** et laissés tels quels : Tripoli
+(65 → 64), Benghazi (68 → 72), Addis-Abeba (63 → 64), Port-Louis (24 → 24).
+Google les retrouve en écriture latine sur ces éditions. On ne change pas ce
+que la mesure ne justifie pas, et le cliquet ne les liste pas : les y
+inscrire les figerait comme des fautes alors qu'ils n'en sont pas.
 
 ---
 
