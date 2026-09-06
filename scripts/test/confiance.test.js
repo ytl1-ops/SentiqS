@@ -2,11 +2,12 @@
 // fichier de production.
 //
 // Ce sont les deux mecanismes sur lesquels le produit fonde sa promesse
-// centrale — « aucune actu de plus de 12 h presentee comme actualite du
-// jour », « article verifie » — et ni l'un ni l'autre n'avait de test.
+// centrale — « aucune actu plus vieille que la fenetre presentee comme
+// actualite du jour », « article verifie » — et ni l'un ni l'autre n'avait
+// de test.
 const test = require('node:test');
 const assert = require('node:assert');
-const { tranche, bac, exposer, noyau } = require('./_bac.js');
+const { HTML, tranche, bac, exposer, noyau } = require('./_bac.js');
 
 const contexte = exposer(
   bac(tranche('function computeConfidence', 'function evalFiabilite')),
@@ -16,6 +17,14 @@ const { antiHalluFilter, computeConfidence } = contexte;
 const { motsSignificatifs } = noyau;
 
 const H = 3600000;
+// La fenetre est lue dans le fichier de production plutot que recopiee : ces
+// tests ont ete recales deux fois le 06/09/2026 (12 h -> 24 h -> 36 h), et
+// un seuil recopie se perime a chaque arbitrage editorial.
+const FENETRE_H = (() => {
+  const m = /const FENETRE_ACTUALITE_MS = (\d+) \* 60 \* 60 \* 1000;/.exec(HTML);
+  assert.ok(m, 'FENETRE_ACTUALITE_MS doit etre declaree en heures dans la page');
+  return Number(m[1]);
+})();
 const art = (o) => Object.assign({
   id: 'a1', primary: 'src1', title: 'Embuscade contre un convoi militaire pres de Gao',
   score: 80, pubDate: Date.now() - H, cy: 'ML', cat: 'securite', level: 'crit',
@@ -28,25 +37,41 @@ test('un article sans horodatage est ecarte', () => {
 });
 
 test('un article plus vieux que la fenetre d\'actualite est ecarte', () => {
-  // Fenetre portee de 12 h a 24 h le 06/09/2026. Mesure sur les 110 sources
-  // natives capables d'alerter, interrogees une par une : a 12 h, 27 avaient
-  // publie et couvraient 18 pays sur 54 ; a 24 h, 47 sources et 34 pays.
-  // Trente pays restaient vides en permanence, dont dix des treize qui n'ont
-  // qu'une seule source d'alerte.
-  assert.strictEqual(antiHalluFilter([art({ pubDate: Date.now() - 25 * H })]).length, 0);
-  assert.strictEqual(antiHalluFilter([art({ pubDate: Date.now() - 23 * H })]).length, 1);
-  // Le cas qui motivait le changement : un article de la veille au soir,
-  // ecarte avant, retenu maintenant.
+  // Fenetre portee de 12 h a 24 h puis a 36 h le 06/09/2026. Mesure sur les
+  // 110 sources natives capables d'alerter, interrogees une par une :
+  //   12 h -> 27 sources, 18 pays ; 24 h -> 47 et 34 ; 36 h -> 51 et 37.
+  // Le pas de 24 a 36 h gagne Madagascar, la Guinee et le Tchad.
+  assert.strictEqual(antiHalluFilter([art({ pubDate: Date.now() - (FENETRE_H + 1) * H })]).length, 0);
+  assert.strictEqual(antiHalluFilter([art({ pubDate: Date.now() - (FENETRE_H - 1) * H })]).length, 1);
+  // Les deux cas qui ont motive les deux elargissements : un article de la
+  // veille au soir, puis un article de l'avant-veille au soir.
   assert.strictEqual(antiHalluFilter([art({ pubDate: Date.now() - 13 * H })]).length, 1);
+  assert.strictEqual(antiHalluFilter([art({ pubDate: Date.now() - 25 * H })]).length, 1);
 });
 
 test('la fenetre est definie une seule fois, et le score de fraicheur la suit', () => {
   // Laisser la decroissance du score a 12 h alors que le Flux en retient 24
   // donnerait zero point de fraicheur a la moitie des articles affiches.
-  const { HTML } = require('./_bac.js');
-  assert.match(HTML, /const FENETRE_ACTUALITE_MS = 24 \* 60 \* 60 \* 1000;/);
+  assert.strictEqual(FENETRE_H, 36, 'fenêtre attendue : 36 h (arbitrage du 06/09/2026)');
   assert.doesNotMatch(HTML, />= 12\*60\*60\*1000/, 'plus aucun seuil de 12 h en dur');
   assert.match(HTML, /const fenetreH = FENETRE_ACTUALITE_MS \/ 3600000;/);
+});
+
+test('les libellés qui annoncent une durée disent la vraie fenêtre', () => {
+  // La tuile « Actus /Xh » compte avec estRecentReel(), donc sur la fenêtre
+  // réelle. Après le passage de 24 h à 36 h elle affichait encore « /24h » :
+  // le compteur disait 36 h de collecte sous une étiquette de 24 h. C'est
+  // la même classe de mensonge que isWithin12h dont le nom survivait au
+  // changement de seuil.
+  const attendu = FENETRE_H + 'h';
+  const etiquettes = [...HTML.matchAll(/(?:Actus|News) \/(\d+h)/g)].map((m) => m[1]);
+  assert.ok(etiquettes.length >= 3, 'trois occurrences attendues : le HTML, le dictionnaire fr, le dictionnaire en');
+  const fausses = etiquettes.filter((e) => e !== attendu);
+  assert.deepStrictEqual(fausses, [], 'étiquettes qui annoncent une autre durée que ' + attendu + ' : ' + fausses.join(', '));
+  // Les autres « 24h » de la page ne sont pas des étiquettes de la fenêtre :
+  // l'audience du site, l'historique social, et un média qui s'appelle
+  // « 24h Benin ». On ne les touche pas.
+  assert.match(HTML, /24h Benin/, 'le nom du média béninois reste intact');
 });
 
 test('un article sans source identifiee est ecarte', () => {
@@ -75,8 +100,8 @@ test('une source mieux notee donne un meilleur score, toutes choses egales', () 
 
 test('la fraicheur decroit et ne devient jamais negative', () => {
   const frais = computeConfidence(art({ pubDate: Date.now() }), []);
-  const vieux = computeConfidence(art({ pubDate: Date.now() - 11 * H }), []);
-  const perime = computeConfidence(art({ pubDate: Date.now() - 30 * H }), []);
+  const vieux = computeConfidence(art({ pubDate: Date.now() - (FENETRE_H / 3) * H }), []);
+  const perime = computeConfidence(art({ pubDate: Date.now() - (FENETRE_H + 4) * H }), []);
   assert.ok(frais.fraicheurScore > vieux.fraicheurScore);
   assert.strictEqual(perime.fraicheurScore, 0);
   assert.ok(frais.fraicheurScore <= 30, 'la fraicheur plafonne a 30 points');

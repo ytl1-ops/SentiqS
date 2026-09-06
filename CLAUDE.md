@@ -188,17 +188,27 @@ source.
 
 `FENETRE_ACTUALITE_MS` décide jusqu'à quel âge un article compte comme
 « actualité » — dans le Flux, le tableau de bord, le compteur de pays
-couverts et le score de fraîcheur. **24 heures depuis le 06/09/2026**, contre
-douze auparavant.
+couverts et le score de fraîcheur. **36 heures depuis le 06/09/2026**, contre
+douze auparavant, en deux arbitrages successifs le même soir.
 
-Mesure qui a motivé le changement, les 110 sources natives capables
-d'alerter interrogées une par une :
+Mesure qui a motivé les deux pas, les 110 sources natives capables d'alerter
+interrogées une par une :
 
 | Fenêtre | Sources fraîches | Pays couverts |
 |---|---:|---:|
 | 12 h | 27 | **18/54** |
 | 24 h | 47 | **34/54** |
+| 36 h | 51 | **37/54** |
 | 48 h | 55 | 38/54 |
+
+Le second pas, de 24 à 36 h, gagne Madagascar, la Guinée et le Tchad — deux
+d'entre eux au niveau élevé — pour douze heures de plus. 48 h n'en gagnerait
+qu'un de plus.
+
+**La contrepartie est réelle** : un incident vieux d'une journée et demie
+s'affiche comme une actualité alors qu'il peut avoir été résolu. C'est le
+prix payé pour ne plus confondre le pays calme avec le pays sur lequel on ne
+sait rien.
 
 À douze heures, trente pays restaient vides en permanence — dont dix des
 treize qui n'ont qu'une seule source d'alerte — sans que rien ne distingue le
@@ -215,6 +225,15 @@ du score de fraîcheur le suit, sinon la moitié des articles affichés
 perdraient d'un coup leurs trente points. La fonction `isWithin12h` a été
 renommée `estDansFenetreActualite` — son nom mentait dès que la fenêtre a
 bougé.
+
+**Les tests lisent la fenêtre dans la page** plutôt que de la recopier : ils
+ont dû être recalés deux fois en une soirée, et un seuil recopié se périme à
+chaque arbitrage éditorial. Un test vérifie aussi que les étiquettes qui
+annoncent une durée à l'écran — la tuile « Actus /Xh » — disent la vraie
+fenêtre : après le passage à 36 h elle affichait encore « /24h » alors que
+son compteur, lui, comptait déjà sur 36. Les autres « 24h » de la page ne
+sont pas des étiquettes de fenêtre (l'audience du site, l'historique social,
+et un média qui s'appelle « 24h Benin ») et ne doivent pas être touchés.
 
 **Ce que ce réglage ne répare pas.** Le recensement du 06/09/2026 a aussi
 montré que **30 des 110 sources natives d'alerte ne répondent plus** : douze

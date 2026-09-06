@@ -1907,7 +1907,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
     </div>
     <div class="auth-stats" id="authStats">
       <div class="as-item"><div class="as-n" id="asPays">54</div><div class="as-l" data-i18n="auth_stat_pays">Pays sous veille</div></div>
-      <div class="as-item"><div class="as-n" id="asActus">—</div><div class="as-l" data-i18n="auth_stat_actus">Actus /24h</div></div>
+      <div class="as-item"><div class="as-n" id="asActus">—</div><div class="as-l" data-i18n="auth_stat_actus">Actus /36h</div></div>
       <div class="as-item"><div class="as-n" id="asAlertes">—</div><div class="as-l" data-i18n="auth_stat_alertes">Pays en alerte</div></div>
     </div>
     <div class="auth-stats-sync" id="authStatsSync"></div>
@@ -2318,7 +2318,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         <button class="btn-dl btn-dl-pdf" onclick="exportPDF(&#39;flux&#39;)"><i class="ti ti-file-type-pdf"></i>PDF</button>
         <button class="btn-dl btn-dl-csv" onclick="exportCSV(&#39;flux&#39;)"><i class="ti ti-file-spreadsheet"></i>CSV</button>
         <div class="dl-sep"></div>
-        <span style="font-size:9px;color:var(--lg)" id="dlFluxCount">19 articles (&lt;24h)</span>
+        <span style="font-size:9px;color:var(--lg)" id="dlFluxCount">19 articles (&lt;36h)</span>
       </div>
       <div class="sstrip-hd open" onclick="document.getElementById('fluxSstrip').classList.toggle('collapsed');this.classList.toggle('open')" style="display:flex;align-items:center;gap:5px;padding:3px 14px;font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;cursor:pointer;user-select:none;border-bottom:1px solid var(--bd);">
         <i class="ti ti-chevron-down" style="font-size:11px;transition:transform .15s;"></i>Statistiques
@@ -2328,7 +2328,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
            d'espace vertical au Flux des l'arrivee, l'utilisateur peut
            toujours deplier ce bandeau d'un clic. -->
       <div class="sstrip collapsed" id="fluxSstrip">
-        <div class="ss"><div class="sn" id="stTot">0</div><div class="sl">-24h</div></div>
+        <div class="ss"><div class="sn" id="stTot">0</div><div class="sl">-36h</div></div>
         <div class="ss"><div class="sn" style="color:var(--r)" id="stCrit">0</div><div class="sl" data-i18n="lbl_critiques">Critiques</div></div>
         <div class="ss"><div class="sn" style="color:#7C4A00" id="stHigh">0</div><div class="sl" data-i18n="lbl_eleves">Eleves</div></div>
         <div class="ss" title="Articles rapportes par au moins deux sources distinctes"><div class="sn" style="color:var(--g)" id="stVer">0</div><div class="sl" data-i18n="lbl_recoupes">Recoupes</div></div>
@@ -2361,7 +2361,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         <div class="tlbr" style="flex-wrap:wrap;">
           <select id="seScope" aria-label="Perimetre de recherche" onchange="setSeScope(this.value)" style="padding:4px 8px;border:1px solid var(--bd);border-radius:5px;font-size:11px;font-weight:600;color:var(--t);background:var(--w);">
             <option value="all">Tout</option>
-            <option value="flux">Flux (actif, &lt;24h)</option>
+            <option value="flux">Flux (actif, &lt;36h)</option>
             <option value="historique">Historique</option>
             <option value="agenda">Agenda</option>
             <option value="alertes">Alertes verifiees</option>
@@ -2575,7 +2575,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <i class="ti ti-radar-2" style="font-size:16px;color:var(--b)"></i>
                 <span style="font-size:12px;font-weight:700;color:var(--t)">Flux opérationnel</span>
               </div>
-              <div style="font-size:10px;color:var(--lg);margin-bottom:10px" id="dlFluxCount">Articles des dernières 24h.</div>
+              <div style="font-size:10px;color:var(--lg);margin-bottom:10px" id="dlFluxCount">Articles des dernières 36h.</div>
               <div style="display:flex;gap:8px">
                 <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'flux')"><i class="ti ti-share-2"></i><span data-i18n="btn_partager">Partager</span></button>
                 <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('flux')" title="Aperçu impression"><i class="ti ti-printer"></i></button>
@@ -3533,11 +3533,11 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
             <div class="pm-sec-body">
               <div class="rights-row">
                 <div class="rights-row-l">
-                  <div class="rights-row-name">Filtre 24h automatique</div>
+                  <div class="rights-row-name">Filtre 36h automatique</div>
                   <div class="rights-row-sub">N'afficher que les articles des 18 dernieres heures</div>
                 </div>
                 <label class="tgl">
-                  <input type="checkbox" id="tgl18h" aria-label="Filtre 24h automatique" checked="" onchange="save18hPref(this.checked)">
+                  <input type="checkbox" id="tgl18h" aria-label="Filtre 36h automatique" checked="" onchange="save18hPref(this.checked)">
                   <div class="tgl-sw"></div>
                 </label>
               </div>
@@ -4513,7 +4513,7 @@ const I18N = {
     auth_ops_veille:'Veille active · 54 pays', auth_ops_reseau1:'Réseau de surveillance', auth_ops_reseau2:'Afrique · temps réel',
     auth_ops_flux:'Flux · Corrélations · Alertes', auth_ops_surete:'Sûreté opérationnelle',
     auth_logo_sub:"Veille sûreté · 54 pays d'Afrique",
-    auth_stat_pays:'Pays sous veille', auth_stat_actus:'Actus /24h', auth_stat_alertes:'Pays en alerte',
+    auth_stat_pays:'Pays sous veille', auth_stat_actus:'Actus /36h', auth_stat_alertes:'Pays en alerte',
     login_title:'Connexion', login_sub:'Accès restreint aux responsables sûreté autorisés',
     login_email_label:'Adresse e-mail', login_code_label:"Mot de passe", login_btn:'Se connecter',
     login_first_time:'Première connexion ?', login_request_access:'Demander un accès', login_reset:"Mot de passe oublié ?",
@@ -4637,7 +4637,7 @@ const I18N = {
     ph_recherche:'Search...',
     flashinfo_lbl:'BREAKING NEWS',
     sb_geo:'Filter by country / press agency', sb_agences:'National agencies',
-    note_flux:'Feed: sourced news from the last 24 hours, sortable and filterable by country, category and alert level. The cross-checked badge marks a fact reported by several sources.',
+    note_flux:'Feed: sourced news from the last 36 hours, sortable and filterable by country, category and alert level. The cross-checked badge marks a fact reported by several sources.',
     note_recherche:'Search: find a country, event, theme or source across all data collected by SentiqS.',
     note_analyse:'Summary: thematic analytical report automatically generated from the Feed, filterable by zone or country.',
     note_agenda:'Agenda: ongoing and upcoming security events and deadlines, classified by status and zone.',
@@ -4651,7 +4651,7 @@ const I18N = {
     auth_ops_veille:'Active monitoring · 54 countries', auth_ops_reseau1:'Surveillance network', auth_ops_reseau2:'Africa · real-time',
     auth_ops_flux:'Feed · Correlations · Alerts', auth_ops_surete:'Operational security',
     auth_logo_sub:'Security monitoring · 54 African countries',
-    auth_stat_pays:'Countries monitored', auth_stat_actus:'News /24h', auth_stat_alertes:'Countries on alert',
+    auth_stat_pays:'Countries monitored', auth_stat_actus:'News /36h', auth_stat_alertes:'Countries on alert',
     login_title:'Log in', login_sub:'Access restricted to authorized security officers',
     login_email_label:'Email address', login_code_label:'Password', login_btn:'Log in',
     login_first_time:'First time here?', login_request_access:'Request access', login_reset:'Forgot password?',
@@ -7455,6 +7455,7 @@ function sourceDateNonFiable(article) {
 //
 //   fenetre 12 h  ->  27 sources fraiches  ->  18 pays sur 54
 //   fenetre 24 h  ->  47 sources fraiches  ->  34 pays sur 54
+//   fenetre 36 h  ->  51 sources fraiches  ->  37 pays sur 54
 //   fenetre 48 h  ->  55 sources fraiches  ->  38 pays sur 54
 //
 // A 12 h, trente pays restaient vides en permanence — dont dix des treize
@@ -7463,9 +7464,16 @@ function sourceDateNonFiable(article) {
 // africains publient une fois par jour : une fenetre plus courte que leur
 // rythme ne mesure pas la surete, elle mesure l'horaire de bouclage.
 //
-// Arbitrage tranche par l'editeur du produit. 48 h a ete ecarte : un
-// incident d'avant-hier affiche comme actualite peut avoir ete resolu.
-const FENETRE_ACTUALITE_MS = 24 * 60 * 60 * 1000;
+// Arbitrage tranche par l'editeur du produit, en deux temps le 06/09/2026 :
+// d'abord 24 h, puis 36 h. Le second pas gagne trois pays sur le premier —
+// Madagascar, Guinee et Tchad, dont deux au niveau eleve — pour douze
+// heures de plus. 48 h n'en gagnerait qu'un seul de plus.
+//
+// La contrepartie est reelle et doit rester en tete : un incident vieux
+// d'une journee et demie s'affiche comme une actualite, alors qu'il peut
+// avoir ete resolu entre-temps. C'est le prix paye pour ne plus confondre
+// le pays calme avec le pays sur lequel on ne sait rien.
+const FENETRE_ACTUALITE_MS = 36 * 60 * 60 * 1000;
 
 // estimeEvenementAncien(article) : vrai si la date de survenance estimee
 // remonte a plus que la fenetre d'actualite, meme si la publication est
