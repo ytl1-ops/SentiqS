@@ -292,6 +292,32 @@ son compteur, lui, comptait déjà sur 36. Les autres « 24h » de la page ne
 sont pas des étiquettes de fenêtre (l'audience du site, l'historique social,
 et un média qui s'appelle « 24h Benin ») et ne doivent pas être touchés.
 
+**48 heures ne gagnerait rien, et c'est mesuré.** Le 06/09/2026 au soir,
+l'arbitrage a failli être repris sur un souvenir : sept pays absents avaient
+leur article le plus frais « à 58 h, juste hors fenêtre », d'où la conclusion
+qu'un passage à 48 h les rattraperait. **58 h dépasse aussi 48 h.** La
+recommandation annonçait trois pays gagnés ; la mesure en donne **zéro**.
+
+`scripts/sensibilite-fenetre.js` rejoue les 560 flux moissonnés sur la vraie
+page, à fenêtre variable :
+
+| Fenêtre | Articles | Pays | Pays gagnés |
+|---:|---:|---:|---|
+| **36 h** | 655 | **47** | *(courante)* |
+| 42 h | 713 | 47 | aucun |
+| 48 h | 729 | 47 | **aucun** |
+| 60 h | 861 | **49** | Botswana, Gambie |
+| 72 h | 943 | 49 | aucun |
+
+L'article le plus frais de chaque pays encore absent : BW 59 h, GM 59 h,
+ST 83 h, SC 275 h, DJ 295 h, ER 327 h, et le **Lesotho n'en a aucun**, quelle
+que soit la fenêtre. Le vrai seuil pour gagner deux pays est **60 h**, au prix
+de 206 articles de plus dont l'essentiel a plus de deux jours.
+
+L'éditeur a tranché le 06/09/2026 : **on reste à 36 h**. Le script ne
+recommande rien et deux tests l'y obligent — il lit la fenêtre dans la page au
+lieu de la recopier, et il ne conclut pas à la place de l'éditeur.
+
 **Ce que ce réglage ne répare pas.** Le recensement du 06/09/2026 a aussi
 montré que **30 des 110 sources natives d'alerte ne répondent plus** : douze
 en 404 (adresse du flux périmée — Abidjan.net, Le Faso, APS, Dakaractu,
