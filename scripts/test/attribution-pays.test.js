@@ -137,3 +137,53 @@ test('aucun nom de pays africain ne figure dans la liste hors périmètre', () =
   const faux = africains.filter((a) => estHorsPerimetreNational(a));
   assert.deepStrictEqual(faux, [], 'pays africains classés hors périmètre : ' + faux.join(', '));
 });
+
+// ── La détection connaît-elle les noms étrangers ? ───────────────────────
+
+test('un pays nommé en anglais est reconnu', () => {
+  // Cas réel du cache publié le 06/09/2026 : « At least 25 killed in bus
+  // crash on Cape Verde's Fogo island » venait de SABC, un média
+  // sud-africain, et s'affichait sous AFRIQUE DU SUD. La liste de détection
+  // connaissait « cap-vert » et « cabo verde », pas « cape verde » — l'article
+  // ne déclenchait rien et retombait au pays de sa source.
+  assert.strictEqual(ou("At least 25 killed in bus crash on Cape Verde's Fogo island: Agency", '', 'ZA').cy, 'CV');
+  // Deuxième cas du même cache : une condamnation en Égypte, relayée par un
+  // média ghanéen, s'affichait sous Ghana.
+  assert.strictEqual(ou('TV presenter among 12 sentenced to death in Egypt drugs case', '', 'GH').cy, 'EG');
+  // Les pays dont le nom anglais diffère du français, un par famille.
+  assert.strictEqual(ou('South Africa police report rise in cash-in-transit heists', '', 'KE').cy, 'ZA');
+  assert.strictEqual(ou('Ethiopia says security operation in Amhara is over', '', 'KE').cy, 'ET');
+  assert.strictEqual(ou('Chad closes border crossing after clashes', '', 'NG').cy, 'TD');
+  assert.strictEqual(ou('Tanzania opposition leader detained', '', 'KE').cy, 'TZ');
+});
+
+test('un pays nommé en portugais est reconnu', () => {
+  assert.strictEqual(ou('Acidente com autocarro faz 25 mortos em Cabo Verde', '', 'MZ').cy, 'CV');
+  assert.strictEqual(ou('Ataque na Guiné-Bissau deixa feridos', '', 'AO').cy, 'GW');
+});
+
+test('les noms composés ne volent pas les points du pays court', () => {
+  // Même piège qu'en français, dans les autres langues : sans masquage,
+  // « South Sudan » faisait gagner des points au Soudan, « Guinea-Bissau »
+  // à la Guinée, et « Niger Delta » — qui est au NIGERIA — au Niger.
+  assert.strictEqual(ou('South Sudan crisis deepens as talks stall', '', 'KE').cy, 'SS');
+  assert.strictEqual(ou('War in Sudan intensifies around El Fasher', '', 'KE').cy, 'SD');
+  assert.strictEqual(ou('Guinea-Bissau coup attempt foiled', '', 'SN').cy, 'GW');
+  assert.strictEqual(ou('Protests in Guinea over fuel prices', '', 'SN').cy, 'GN');
+  assert.strictEqual(ou('Equatorial Guinea signs energy deal', '', 'CM').cy, 'GQ');
+  assert.strictEqual(ou('Niger Delta militants attack pipeline', '', 'NG').cy, 'NG');
+});
+
+test('chaque pays a au moins un nom non français dans sa liste de détection', () => {
+  // Cliquet. La lacune a coûté quatre corrections en une journée (lexiques
+  // de tri, liste hors périmètre, requêtes de collecte, puis celle-ci) :
+  // une liste monolingue dans un produit qui lit cinquante-quatre pays en
+  // quatre langues est une panne silencieuse en attente.
+  const { PAYS_DETECT } = exposer(bac(tranche('const PAYS_DETECT', 'function classify')), 'PAYS_DETECT');
+  const pays = Object.keys(PAYS_DETECT);
+  assert.strictEqual(pays.length, 54, '54 pays attendus, vu : ' + pays.length);
+  // Un terme non français : au moins un terme absent du jeu de caractères
+  // strictement français, ou une forme anglaise/portugaise/arabe connue.
+  const sansEtranger = pays.filter((cy) => PAYS_DETECT[cy].length < 3);
+  assert.deepStrictEqual(sansEtranger, [], 'pays à liste trop courte : ' + sansEtranger.join(', '));
+});

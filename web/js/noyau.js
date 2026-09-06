@@ -35,6 +35,18 @@ const TERMES_AMBIGUS_MASQUES = {
   guinee:  ['guinee-bissau', 'guinee equatoriale', 'bissau-guineen', 'bissau-guineenne'],
   guinéen: ['bissau-guinéen', 'bissau-guinéenne'],
   guineen: ['bissau-guineen', 'bissau-guineenne'],
+  // Memes pieges dans les autres langues de la presse africaine. Sans ces
+  // entrees, « Sudan » et « Guinea » ne pouvaient pas entrer dans
+  // PAYS_DETECT : un article sur le Soudan du Sud aurait fait gagner des
+  // points au Soudan, exactement comme en francais.
+  sudan:   ['south sudan', 'sudão do sul', 'sudao do sul'],
+  guinea:  ['guinea-bissau', 'guinea bissau', 'equatorial guinea', 'papua new guinea'],
+  guiné:   ['guiné-bissau', 'guiné equatorial'],
+  guine:   ['guine-bissau', 'guine equatorial'],
+  // « Niger Delta » et « Niger State » sont au NIGERIA, et le fleuve Niger
+  // traverse cinq pays. Sans masquage, chaque article du delta nigerian
+  // faisait gagner des points au Niger — le piege existait deja en francais.
+  niger:   ['niger delta', 'niger state', 'niger river', 'delta du niger', 'fleuve niger', 'etat du niger', 'état du niger'],
 };
 function masquerTermesComposes(texte, terme) {
   const masques = TERMES_AMBIGUS_MASQUES[terme];
