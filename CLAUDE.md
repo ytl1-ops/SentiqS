@@ -889,6 +889,14 @@ test l'exige. C'est un arbitrage : un doublon gardé coûte moins qu'un fait
 effacé, mais un suivi replié n'est pas effacé, il corrobore. Si un jour un
 suivi doit rester visible, c'est cette règle qu'il faut affiner, pas retirer.
 
+**La trace des fusions s'allongeait sans fin.** Le cache partagé est
+refusionné à chaque cycle avec les articles frais, qui portent les mêmes
+identifiants : le même repli se rejouait à chaque passage et `_fusionnes`
+grossissait. Mesure du 07/09/2026 sur le cache publié : **372 traces pour
+46 articles distincts**, 28 fois le même titre, 98 Ko sur 1,4 Mo. Défaut
+préexistant, vu seulement en relisant les fusions du pont. Un repli déjà
+tracé ne se note plus une seconde fois ; un test rejoue deux cycles.
+
 **Et le sport a des trous de vocabulaire, pas de règle.** `estContenuSportif`
 existait et classait bien en « sport » ; deux titres sont passés en critique
 parce qu'aucun de leurs mots n'était dans la liste — « Coupe de la

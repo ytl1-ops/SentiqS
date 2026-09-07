@@ -7470,9 +7470,18 @@ function dedupliquerArticles(arts) {
         // Trace de la fusion : l'article replie n'est plus perdu sans laisser
         // d'empreinte — son titre et sa source restent consultables (panneau
         // de detail, rapports) et une fusion erronee reste diagnosticable.
-        garde._fusionnes = [...(garde._fusionnes || []), {
-          id: fusionne.id, title: fusionne.title, primary: fusionne.primary, url: fusionne.url
-        }];
+        // Une seule trace par article replie. Le cache partage est refusionne
+        // a chaque cycle avec les articles frais, qui portent les MEMES
+        // identifiants : le meme repli s'y rejouait a chaque passage et sa
+        // trace s'allongeait sans fin. Mesure du 07/09/2026 sur le cache
+        // publie : 372 traces pour 46 articles distincts, 28 fois le meme
+        // pour un seul titre, 98 Ko sur 1,4 Mo. Un repli deja trace ne se
+        // note pas une seconde fois.
+        if (!(garde._fusionnes || []).some(f => f.id === fusionne.id)) {
+          garde._fusionnes = [...(garde._fusionnes || []), {
+            id: fusionne.id, title: fusionne.title, primary: fusionne.primary, url: fusionne.url
+          }];
+        }
         aSupprimer.add(fusionne.id);
         if (fusionne === a) break; // a vient d'etre marque supprime : arreter cette boucle interne
       }
