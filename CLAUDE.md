@@ -862,6 +862,43 @@ connaissance de cause ; l'entrée du registre porte une `note:` qui le dit.
 
 ---
 
+## Le même fait en trois langues
+
+`articlesSontDoublons` compare les mots significatifs des titres. Entre deux
+langues il n'y en a aucun de commun : « 25 tuées dans un accident de bus »,
+« Bus crash kills 25 », « Acidente de autocarro faz 25 mortos ». Mesure du
+06/09/2026 sur le cache publié : **l'accident de Fogo (Cap-Vert) y figurait
+cinq fois**, dont trois au niveau élevé, et aucune paire n'était reconnue.
+
+Le pont, dans le noyau (`memeEvenementEntreLangues`), n'est pas une
+traduction. Deux titres sont rapprochés s'ils portent **le même nombre** —
+un bilan, jamais une année — **et un mot de la même famille d'événement**,
+les familles étant douze courtes listes de synonymes en trois langues
+(`FAMILLES_EVENEMENT`). Le nombre seul serait trop faible, la famille seule
+aussi ; les deux, dans le même pays et la même fenêtre, ne désignent qu'un
+fait.
+
+Effet mesuré sur deux caches publiés : 0 → 6 paires reconnues (les quatre
+articles de Fogo se replient en un), 0 → 5 (Fogo à nouveau, plus un incendie
+en Indonésie en deux langues). **Chaque nouvelle fusion a été relue.**
+
+**La limite, à garder en tête** : un article de *suivi* qui reprend le bilan —
+« deux jours de deuil national pour les 25 victimes » — est replié avec
+l'accident. Les funérailles, sans chiffre, restent un article à part, et un
+test l'exige. C'est un arbitrage : un doublon gardé coûte moins qu'un fait
+effacé, mais un suivi replié n'est pas effacé, il corrobore. Si un jour un
+suivi doit rester visible, c'est cette règle qu'il faut affiner, pas retirer.
+
+**Et le sport a des trous de vocabulaire, pas de règle.** `estContenuSportif`
+existait et classait bien en « sport » ; deux titres sont passés en critique
+parce qu'aucun de leurs mots n'était dans la liste — « Coupe de la
+Confédération », « CAN U20 », « handball », « s'incline face ». Les
+compétitions continentales de clubs, les catégories d'âge et les sports
+collectifs hors football manquaient. Quand un match remonte en alerte,
+chercher le mot manquant, pas une nouvelle règle.
+
+---
+
 ## Par où commencer la revue du socle
 
 `revue-socle.js` transforme « relire les 172 incidents » en liste ordonnée,

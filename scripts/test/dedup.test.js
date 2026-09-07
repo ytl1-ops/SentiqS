@@ -53,3 +53,55 @@ test('une même source ne se corrobore jamais elle-même', () => {
   const b = art('b', 'Attaque meurtrière visant un convoi militaire près de Tombouctou', 's1');
   assert.strictEqual(dedupliquerArticles([a, b]).length, 2);
 });
+
+// ── Pont entre langues ────────────────────────────────────────────────────
+// Mesure du 06/09/2026 sur le cache publie : l'accident de bus de Fogo
+// (Cap-Vert, 25 morts) y figurait CINQ fois — anglais, francais, anglais,
+// francais, francais — dont trois au niveau eleve, et aucune paire n'etait
+// reconnue : les titres ne partageaient aucun mot. Le pont rapproche deux
+// titres qui portent le meme nombre ET un mot de la meme famille
+// d'evenement, en trois langues. Un article sans nombre n'est jamais
+// rapproche.
+
+test('le meme bilan en trois langues est un doublon', () => {
+  const fr = art('a', 'Cap-Vert : au moins 25 personnes tuées dans un accident de bus', 's1');
+  const en = art('b', 'At least 25 killed in bus crash on Cape Verde’s Fogo island', 's2');
+  const pt = art('c', 'Acidente de autocarro em Fogo faz 25 mortos e 18 feridos', 's3');
+  assert.strictEqual(articlesSontDoublons(fr, en), true, 'francais ~ anglais');
+  assert.strictEqual(articlesSontDoublons(en, pt), true, 'anglais ~ portugais');
+  assert.strictEqual(articlesSontDoublons(fr, pt), true, 'francais ~ portugais');
+  const restants = dedupliquerArticles([fr, en, pt]);
+  assert.strictEqual(restants.length, 1, 'un seul article doit rester');
+  assert.strictEqual(restants[0].verified, true, 'deux sources independantes : recoupe');
+});
+
+test('le nombre seul ne suffit pas', () => {
+  // « 25 » est partout. Sans famille d'evenement commune, rien n'est
+  // rapproche : une ecole inauguree et un accident ne sont pas un fait.
+  const a = art('a', 'Le gouvernement inaugure 25 nouvelles écoles dans la région', 's1');
+  const b = art('b', 'At least 25 killed in bus crash on Fogo island', 's2');
+  assert.strictEqual(articlesSontDoublons(a, b), false);
+});
+
+test('la famille seule ne suffit pas', () => {
+  // Deux accidents differents le meme jour : sans bilan commun, on ne fusionne
+  // pas. Le prix d'un doublon garde est moindre que celui d'un fait efface.
+  const a = art('a', 'Accident mortel de bus sur la route de Praia', 's1');
+  const b = art('b', 'Bus crash kills passengers on the Fogo road', 's2');
+  assert.strictEqual(articlesSontDoublons(a, b), false);
+});
+
+test('une annee n\'est pas un bilan', () => {
+  // « 2021 » rapprocherait n'importe quel anniversaire de n'importe quel autre.
+  const a = art('a', 'Cinq ans après le coup d’État de 2021, un appel au recueillement', 's1');
+  const b = art('b', 'Coup attempt foiled, 2021 conspirators jailed', 's2');
+  assert.strictEqual(articlesSontDoublons(a, b), false);
+  assert.deepStrictEqual([...noyau.nombresDuTitre('Coup d’État de 2021 : 3 morts')], [3]);
+});
+
+test('un article sans nombre n\'est jamais rapproche par le pont', () => {
+  // Les funerailles des victimes sont un autre article que l'accident.
+  const a = art('a', 'Cap-Vert : au moins 25 personnes tuées dans un accident de bus', 's1');
+  const b = art('b', 'Cap-Vert : funérailles de certaines victimes de l’accident d’un bus', 's2');
+  assert.strictEqual(articlesSontDoublons(a, b), false);
+});

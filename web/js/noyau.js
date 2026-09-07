@@ -105,6 +105,71 @@ function titreNormalise(titre) {
     .replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
+// ── Pont entre langues pour le dedoublonnage ────────────────────
+// Le meme evenement arrive en francais, en anglais et en portugais, et les
+// titres ne partagent alors AUCUN mot : « 25 tuees dans un accident de bus »,
+// « Bus crash kills 25 », « Acidente de autocarro faz 25 mortos ». Mesure du
+// 06/09/2026 sur le cache publie : l'accident de Fogo (Cap-Vert) y figurait
+// CINQ fois, dont trois au niveau eleve, et aucune paire n'etait reconnue.
+//
+// Le pont n'est pas une traduction. Deux titres sont rapproches s'ils
+// portent le MEME NOMBRE (un bilan : 25 morts, 18 blesses — jamais une annee)
+// ET un mot de la MEME FAMILLE d'evenement, les familles etant de courtes
+// listes de synonymes en trois langues. Le nombre seul serait trop faible
+// (« 25 » est partout), la famille seule aussi (deux accidents differents le
+// meme jour) ; les deux ensemble, dans le meme pays et la meme fenetre, ne
+// designent qu'un fait. Un article sans nombre — les funerailles des
+// victimes, par exemple — n'est jamais rapproche : c'est un autre article.
+const FAMILLES_EVENEMENT = [
+  ['mort', 'morts', 'morte', 'mortes', 'tue', 'tues', 'tuee', 'tuees', 'deces', 'decede', 'decedes',
+   'killed', 'kills', 'kill', 'dead', 'death', 'deaths', 'die', 'dies', 'died',
+   'mortos', 'mortas', 'morreu', 'morreram', 'muertos', 'muertas', 'fallecidos', 'fallecidas'],
+  ['blesse', 'blesses', 'blessee', 'blessees', 'injured', 'injures', 'wounded', 'feridos', 'feridas', 'heridos', 'heridas'],
+  ['bus', 'autocar', 'autobus', 'autocarro', 'minibus', 'onibus'],
+  ['accident', 'accidents', 'crash', 'crashes', 'acidente', 'acidentes', 'accidente', 'accidentes', 'collision', 'carambolage'],
+  ['attaque', 'attaques', 'attack', 'attacks', 'attacked', 'ataque', 'ataques', 'attentat', 'atentado', 'assault'],
+  ['enlevement', 'enlevements', 'enleves', 'enlevees', 'kidnap', 'kidnapped', 'kidnapping', 'abduction', 'abducted',
+   'rapto', 'raptados', 'raptadas', 'sequestro', 'secuestro', 'secuestrados'],
+  ['putsch', 'coup', 'golpe'],
+  ['inondation', 'inondations', 'flood', 'floods', 'flooding', 'inundacao', 'inundacoes', 'cheias', 'inundacion', 'inundaciones'],
+  ['explosion', 'explosions', 'explosao', 'explosoes', 'blast', 'bombe', 'bombes', 'bomb', 'bombing', 'bomba'],
+  ['incendie', 'incendies', 'fire', 'blaze', 'incendio', 'incendios'],
+  ['naufrage', 'naufrages', 'shipwreck', 'capsized', 'capsize', 'naufragio', 'naufragios', 'pirogue', 'chavire'],
+  ['manifestation', 'manifestations', 'manifestants', 'protest', 'protests', 'protesters', 'manifestacao', 'manifestacoes', 'protesta', 'protestas'],
+];
+const ANNEE_MIN = 1900;
+const ANNEE_MAX = 2100;
+
+// Les nombres d'un titre, hors annees : « 25 morts », « 18 blesses ». Les
+// annees sont ecartees parce qu'elles ne designent pas un bilan, et « 2021 »
+// rapprocherait n'importe quel anniversaire de n'importe quel autre.
+function nombresDuTitre(titre) {
+  const out = new Set();
+  for (const m of String(titre || '').match(/\d+/g) || []) {
+    const n = Number(m);
+    if (n >= 2 && !(n >= ANNEE_MIN && n <= ANNEE_MAX)) out.add(n);
+  }
+  return out;
+}
+
+function famillesEvenement(titre) {
+  const mots = new Set(titreNormalise(titre).split(' '));
+  const out = new Set();
+  FAMILLES_EVENEMENT.forEach((famille, i) => { if (famille.some(m => mots.has(m))) out.add(i); });
+  return out;
+}
+
+function memeEvenementEntreLangues(a, b) {
+  const nA = nombresDuTitre(a.title);
+  if (!nA.size) return false;
+  const nB = nombresDuTitre(b.title);
+  if (![...nA].some(n => nB.has(n))) return false;
+  const fA = famillesEvenement(a.title);
+  if (!fA.size) return false;
+  const fB = famillesEvenement(b.title);
+  return [...fA].some(f => fB.has(f));
+}
+
 function articlesSontDoublons(a, b) {
   // Deux titres strictement identiques sont un doublon, quel que soit leur
   // nombre de mots : « Putin toasts HH victory » (trois mots significatifs)
@@ -113,11 +178,14 @@ function articlesSontDoublons(a, b) {
   if (na && na === titreNormalise(b.title)) return true;
   const motsA = motsSignificatifs(a.title);
   const motsB = motsSignificatifs(b.title);
-  if (motsA.length < DEDUP_MIN_COMMUNS || motsB.length < DEDUP_MIN_COMMUNS) return false;
-  const setB = new Set(motsB);
-  const communs = new Set(motsA.filter(m => setB.has(m))).size;
-  if (communs < DEDUP_MIN_COMMUNS) return false;
-  return communs / Math.min(motsA.length, motsB.length) >= DEDUP_MIN_RATIO;
+  if (motsA.length >= DEDUP_MIN_COMMUNS && motsB.length >= DEDUP_MIN_COMMUNS) {
+    const setB = new Set(motsB);
+    const communs = new Set(motsA.filter(m => setB.has(m))).size;
+    if (communs >= DEDUP_MIN_COMMUNS && communs / Math.min(motsA.length, motsB.length) >= DEDUP_MIN_RATIO) return true;
+  }
+  // Meme langue, pas assez de mots communs — ou langues differentes, aucun
+  // mot commun : le pont par nombre et famille d'evenement tranche.
+  return memeEvenementEntreLangues(a, b);
 }
 
 // ── Seuils de niveau d'alerte ───────────────────────────────────
@@ -395,6 +463,7 @@ function tendanceNiveaux(points, fenetre) {
 const API = {
   normaliserAccents, TERMES_AMBIGUS_MASQUES, masquerTermesComposes, matchMot,
   MOTS_VIDES_DEDUP, motsSignificatifs, titreNormalise, articlesSontDoublons,
+  FAMILLES_EVENEMENT, nombresDuTitre, famillesEvenement, memeEvenementEntreLangues,
   DEDUP_MIN_COMMUNS, DEDUP_MIN_RATIO,
   getNivKey,
   MOIS_FR_IDX, dateEvenementMs, facteurFraicheur, poidsVerifie,
