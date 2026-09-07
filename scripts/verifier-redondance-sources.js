@@ -59,11 +59,24 @@
 // n'ont qu'une seule source capable d'alerter (BI CG ER GM GQ GW KM LS LY
 // MZ SL SS SZ). Le plafond dit la dette mesuree, pas la dette souhaitee ;
 // il redescendra a mesure que les medias relus retrouvent 72.
+//
+// Seconde remontee du 07/09/2026, le meme soir : 13 -> 26. Le compte
+// precedent tenait pour « capable d'alerter » toute source notee 70 ou
+// plus. Or la page ecarte structurellement les requetes Google News de
+// RECHERCHE (sourceDateNonFiable : classees par pertinence, pas par date),
+// avant meme qu'un article n'entre dans ALL — donc jamais dans le cache
+// publie, jamais dans getLiveAlertEvents. Cinquante requetes notees 70 a
+// 95 etaient comptees ici comme des sources d'alerte, dont les quinze
+// medias derriere Cloudflare rediriges vers Google News ce jour-la avec
+// leur note d'origine. Mesure sur la collecte n° 850 : zero article issu
+// d'une requete Google News dans le cache, avant comme apres. La regle vit
+// dans scripts/lib/capacite-alerte.js et un test la confronte a la page.
+const { peutAlerter, estRequeteGoogleNews } = require('./lib/capacite-alerte');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const PLAFOND_PAYS_SOURCE_UNIQUE = 13;
+const PLAFOND_PAYS_SOURCE_UNIQUE = 26;
 
 const cible = process.argv[2] || path.join(__dirname, '../web/SentiqS_Web.html');
 const HTML = fs.readFileSync(cible, 'utf8');
@@ -86,13 +99,15 @@ for (const s of bac.SRCS) {
   parPays.get(s.cy).push(s);
 }
 
-const fiables = (liste) => liste.filter((s) => (s.score || 0) >= SEUIL).length;
+const fiables = (liste) => liste.filter((s) => peutAlerter(s, SEUIL)).length;
+const requetesNoteesMaisMuettes = bac.SRCS.filter((s) => s && (s.score || 0) >= SEUIL && estRequeteGoogleNews(s)).length;
 const rangs = [...parPays.entries()].map(([cy, l]) => [cy, l.length, fiables(l)]);
 const aveugles = rangs.filter(([, , f]) => f === 0);
 const uniques = rangs.filter(([, , f]) => f === 1).map(([cy]) => cy).sort();
 const mediane = rangs.map(([, , f]) => f).sort((a, b) => a - b)[Math.floor(rangs.length / 2)];
 
 console.log(`Seuil de fiabilite : ${SEUIL}`);
+console.log(`Requetes Google News notees >= ${SEUIL} mais ecartees par la page : ${requetesNoteesMaisMuettes} (ne comptent pas)`);
 console.log(`Pays suivis        : ${rangs.length}`);
 console.log(`Sources capables de declencher une alerte, mediane par pays : ${mediane}`);
 console.log(`Pays a source unique : ${uniques.length}${uniques.length ? '  (' + uniques.join(' ') + ')' : ''}`);

@@ -906,11 +906,23 @@ Nation, Monitor, L'Express, Igihe, Sudan Tribune, Graphic, Herald, Crisis
 Group, APA… n'avaient produit **aucun article** sur les huit caches publiés
 du 07/09. Chaque entrée devient une requête `site:<domaine>` sur l'édition
 Google News du pays, `rss_method` mis en cohérence (le test de `tri.test.js`
-l'exige). **Contrepartie assumée** : `sourceDateNonFiable` écarte toute
-requête Google News du décompte d'actualité, donc ces quinze médias
-alimentent le flux et le niveau d'alerte, mais ne comptent plus pour la
-fraîcheur ni pour « pays couvert ». C'est mieux que rien du tout, ce qu'ils
-donnaient avant.
+l'exige).
+
+**Ce que cette bascule donne réellement : rien de visible, et c'est mesuré
+sur la collecte n° 850, la première après la fusion.** La phrase écrite
+d'abord ici — « ils alimentent le flux et le niveau d'alerte, mais ne
+comptent plus pour la fraîcheur » — était fausse. `sourceDateNonFiable`
+n'écarte pas seulement ces articles du décompte de fraîcheur : il les fait
+refuser par `estRecentReel`, donc ils n'entrent **jamais dans `ALL`**, jamais
+dans le cache publié, jamais dans `getLiveAlertEvents`. Leur seule trace est
+`HISTORIQUE`, qui pèse au plus 0,5 point dans `calcAlertScore`. Expérience
+hors ligne sur la vraie page avec le flux Google News de Punch : 8 articles
+lus, 0 retenu. Et sur les deux caches publiés du 07/09, **zéro article issu
+d'une requête Google News** — sur les 331 du registre, pas seulement les
+quinze. Les quinze médias Cloudflare sont donc perdus pour l'alerte, par
+Google News comme par leur flux natif. La décision est maintenue en
+connaissance de cause : la route reste écrite pour le jour où l'arbitrage
+n° 4 changerait, et elle ne coûte rien.
 
 **3. Les 94 notes de 72 posées en bloc redescendent à 68.** Les 71 médias du
 06/09 et les 23 du 07/09 (tous marqués `col:'#4B5563'`) avaient reçu 72 sur
@@ -924,17 +936,49 @@ Effet mesuré, et il est plus lourd que ce que la question annonçait :
 | Pays à source unique | 1 | **13** |
 
 La question disait « le plafond remonterait de 1 à 6 » : c'était une
-estimation, la mesure dit **13** — BI CG ER GM GQ GW KM LS LY MZ SL SS SZ.
-`PLAFOND_PAYS_SOURCE_UNIQUE` remonte donc à 13, **la seule fois où ce
-cliquet monte** : la valeur 1 mesurait une dette masquée par des notes
-provisoires, pas une dette résorbée. Il redescendra média par média, à
-mesure que les titres relus retrouvent 72. Le chemin de retour est une
-lecture éditoriale, pas un correctif.
+estimation, la mesure a d'abord dit **13** — BI CG ER GM GQ GW KM LS LY MZ
+SL SS SZ. `PLAFOND_PAYS_SOURCE_UNIQUE` est remonté à 13 : la valeur 1
+mesurait une dette masquée par des notes provisoires, pas une dette
+résorbée.
+
+**Puis 13 s'est révélé lui-même un sous-compte, le même soir.** Les deux
+contrôles de registre tenaient pour « capable d'alerter » toute source
+notée 70 ou plus. Or **50 de ces sources sont des requêtes Google News de
+recherche**, que la page écarte avant `ALL` (voir ci-dessus) : AIP 90,
+ACLED 95, Crisis Group 93, ISS 91, AIB 88, AMAP 85, MAP 82, TAP 81, MENA 80,
+APS 80, les présidences… et les quinze médias Cloudflare tout juste
+basculés, avec leur note d'origine. Treize pays paraissaient couverts par
+une source qui ne peut rien signaler. La règle vit désormais dans
+`scripts/lib/capacite-alerte.js`, les deux contrôles la partagent, et un
+test la confronte entrée par entrée à `sourceDateNonFiable` dans la page.
+Compte réel : **26 pays à source unique** — AO BI BJ BW CD CG DZ ER GA GM GQ
+GW KM LR LS LY MR MZ SC SD SL SS SZ TG TN ZW — aucun à zéro. Le cliquet est
+à 26, et un test exige qu'il reste égal à la dette mesurée. Il redescendra
+média par média, à mesure que les titres relus retrouvent 72, ou quand une
+agence nationale retrouvera un flux natif au lieu d'une requête Google News.
+Le chemin de retour est une lecture éditoriale, pas un correctif.
+
+**Le coût de la décision, mesuré sur le cache d'après** : 153 articles
+au-dessus du normal, dont **55 ne tiennent qu'aux 94 médias** (12 critiques,
+13 élevés, 30 modérés). Parmi les critiques : l'effondrement d'un immeuble
+à Maal (Mauritanie, 5 morts), 80 migrants présumés morts au départ de la
+Gambie, le rapport d'Amnesty sur 37 fidèles enlevés au Nigeria. Mais aussi
+un match de Trabzonspor, un sommet d'affaires à Bangkok et une tribune sur
+l'IA classés critiques : la note en bloc couvrait des titres mal calibrés,
+c'est la raison d'être de la lecture. La liste de lecture est produite dans
+l'ordre du risque : d'abord les médias des pays à source unique, puis par
+niveau du pays, puis par nombre d'articles au-dessus du normal portés seul.
 
 **4. Google News : statu quo.** Le `robots.txt` interdit `/rss/`,
 `fetchRespectueux` le respecte, la page retombe sur les relais publics. Rien
-ne change dans le code ; l'arbitrage reste à reprendre si les relais
-saturent au point de tronquer la collecte.
+ne change dans le code. Mais la mesure du n° 850 déplace la question : même
+relayées, ces requêtes ne produiraient **aucune** actualité ni alerte, parce
+que `sourceDateNonFiable` les écarte par construction. **331 des 576 entrées
+du registre ne servent donc qu'au bonus historique**, plafonné à 0,5 point.
+La vraie question à poser à l'éditeur n'est pas « relais ou pas » mais :
+que faire des cinquante sources de premier rang (agences nationales, ACLED,
+Crisis Group, ISS) dont la seule route est une requête Google News ? Leur
+trouver un flux natif est la réponse qui rend la note à ce qu'elle mesure.
 
 ---
 
