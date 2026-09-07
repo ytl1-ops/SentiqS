@@ -71,12 +71,23 @@
 // leur note d'origine. Mesure sur la collecte n° 850 : zero article issu
 // d'une requete Google News dans le cache, avant comme apres. La regle vit
 // dans scripts/lib/capacite-alerte.js et un test la confronte a la page.
+//
+// Descente du 07/09/2026, dans la foulee : 26 -> 21. Douze des cinquante
+// requetes ont retrouve un flux natif vivant, sonde le jour meme avec des
+// articles du jour : AIB, AMAP (la vraie agence, amap.ml, et non maliweb.net
+// ou pointait l'accueil), Radio Okapi, SIG Burkina, AIP, Daily Monitor
+// (rss.xml, pas /uganda/rss qui etait mort), ATOP, FrontPageAfrica, AGP
+// Gabon, AMI, KNA, Parlement CEDEAO. Cinq pays sortent de la source unique :
+// GA, LR, MR, TG et CD. Punch n'est PAS repasse en natif : son flux repond
+// d'ici mais a produit zero article sur huit caches publies depuis GitHub.
+// AMI et KNA repondent en 40 s une fois sur trois : ils peuvent retomber en
+// veille, ce qui ne vaut pas moins qu'une requete Google News muette.
 const { peutAlerter, estRequeteGoogleNews } = require('./lib/capacite-alerte');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const PLAFOND_PAYS_SOURCE_UNIQUE = 26;
+const PLAFOND_PAYS_SOURCE_UNIQUE = 21;
 
 const cible = process.argv[2] || path.join(__dirname, '../web/SentiqS_Web.html');
 const HTML = fs.readFileSync(cible, 'utf8');
