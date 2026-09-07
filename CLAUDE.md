@@ -1040,8 +1040,25 @@ le niveau de 7 pays sur 54 ce soir-là ; les trois passages au rouge
 tiennent tous à un titre qui n'est pas un incident. La question posée à
 l'éditeur : le point qui fait franchir le rouge peut-il venir d'un article
 seul, ou doit-il être recoupé ou critique ? Effet mesuré de la seconde
-règle sur ce cache : rouge 8 → 5, rien d'autre ne bouge. À passer par
-`tableau-niveaux.js` avant toute décision.
+règle sur ce cache : rouge 8 → 5, rien d'autre ne bouge.
+
+**L'éditeur a tranché le soir même : recoupé ou critique.** La règle est
+`borneRougeRecoupe`, dans le noyau à côté de `borneRougeVerifie` : quand le
+socle ne place pas déjà le pays au rouge, le rouge automatique exige qu'au
+moins un signal du jour soit recoupé par une seconde source (fusion au
+dédoublonnage) ou classé critique — un critique n'entre dans
+`getLiveAlertEvents` que corroboré. Chaque signal live porte désormais
+`recoupe` et `niveauArticle`, parce que `verified` y est un drapeau
+d'affichage forcé à `false`. Rejeu de la vraie page sur le cache publié,
+avant et après : **CF, NE et UG reviennent au marron, aucun autre pays ne
+bouge**, et `motifPlafond` dit pourquoi. `tableau-niveaux.js` mesure « au
+repos », live à zéro : il ne peut pas voir cette règle, c'est le rejeu sur
+un cache publié qui la mesure (`scripts/tableau-niveaux.js` reste la
+référence pour tout ce qui touche au socle).
+
+**Les cinq requêtes en doublon sont gardées**, décision d'éditeur du même
+soir (Koaci, L'Infodrome, Abidjan.net, ACLED, ISS) : elles ne coûtent
+qu'une requête par collecte et n'apportent que le bonus historique.
 
 **Un prénom n'est pas un pays.** « Anicet Ekanè - Son dernier combat
 politique pour Kamto », article camerounais dont le corps commence par

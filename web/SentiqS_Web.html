@@ -17041,6 +17041,12 @@ function getLiveAlertEvents(cy) {
         src: src + ' (RSS)',
         live: true,
         verified: false, // marqué non vérifié pour transparence dans l'interface
+        // Ce que borneRougeRecoupe exige (arbitrage du 07/09/2026) : le
+        // point qui fait franchir le rouge doit venir d'un article recoupe par
+        // une seconde source, ou classe critique. `verified` ci-dessus est un
+        // drapeau d'affichage, force a false : on transmet la realite a part.
+        recoupe: a.verified === true || (Array.isArray(a._fusionnes) && a._fusionnes.length > 0),
+        niveauArticle: a.level,
       };
     });
 }
@@ -17242,13 +17248,18 @@ function calcAlertScore(cy) {
   // collecte est refuse — c'est ce qu'une rafale mal dedoublonnee produirait.
   const keyPlancher = getNivKey(totalSansLive);
   const keyBrut     = getNivKey(total);
-  const key   = borneRougeVerifie(keyBrut, keyPlancher);
+  const keyVerifie  = borneRougeVerifie(keyBrut, keyPlancher);
+  // Seconde borne (07/09/2026) : le point qui fait franchir le rouge ne peut
+  // pas venir d'un article seul — voir borneRougeRecoupe dans le noyau.
+  const key   = borneRougeRecoupe(keyVerifie, keyPlancher, eventsLive);
   const niv   = NIV[key];
   // Le bridage n'est pas silencieux : l'interface doit pouvoir dire POURQUOI
   // un pays ne monte pas plus haut malgre les signaux du jour.
-  const motifPlafond = (key !== keyBrut)
+  const motifPlafond = (keyVerifie !== keyBrut)
     ? 'niveau borne au marron : le passage au rouge demande qu\'un incident verifie place deja ce pays au marron'
-    : null;
+    : (key !== keyVerifie)
+      ? 'niveau borne au marron : le point qui ferait passer au rouge vient d\'un article seul, ni recoupe par une seconde source ni critique'
+      : null;
   return {cy, events, specials, baseScore: baseScoreVerifie + baseScoreLive, specialScore, total, total100, key, niv,
           motifPlafond, dernierVerifieMs, fraicheurVerifiee,
           debug: {verifies: baseScoreVerifie, live: baseScoreLive, liveApplique: liveBonusLimite, specials: specialScore,
