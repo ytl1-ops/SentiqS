@@ -92,11 +92,23 @@ const serveur = http.createServer((req, res) => {
           const arts = parseRSS(xml, { id: 'fumee', cy: 'ML', score: 80, cat: 'securite', n: 'fumee' }) || [];
           return arts.length === 1 && arts[0].pubDate > 0;
         })(),
+        // Un flux precede d'un retour a la ligne avant « <?xml » (la forme
+        // exacte de Diario Rombe, 07/09/2026) doit etre lu. Sans le retrait
+        // des espaces de tete, DOMParser refuse tout le document et la
+        // source parait muette.
+        documentPrecedeDEspacesLu: (() => {
+          if (typeof parseRSS !== 'function') return false;
+          const xml = '\r\n<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>t</title><item>'
+            + '<title>Attaque contre un poste a Malabo</title><link>https://exemple.test/b</link>'
+            + '<pubDate>Mon, 07 Sep 2026 08:00:00 +0000</pubDate><description>Depeche.</description></item></channel></rss>';
+          const arts = parseRSS(xml, { id: 'fumee2', cy: 'GQ', score: 80, cat: 'securite', n: 'fumee2' }) || [];
+          return arts.length === 1;
+        })(),
       };
       } catch (e) {
         // La sonde elle-meme ne doit jamais planter : quand le script inline
         // n'a pas pu s'executer, c'est le diagnostic qui compte, pas la trace.
-        return { manquants: ['sonde interrompue'], score: null, classifieCritique: false, dateEntoureeLue: false,
+        return { manquants: ['sonde interrompue'], score: null, classifieCritique: false, dateEntoureeLue: false, documentPrecedeDEspacesLu: false,
                  nbSources: 0, panne: String(e && e.message ? e.message : e) };
       }
     });
@@ -112,11 +124,12 @@ const serveur = http.createServer((req, res) => {
   console.log('Score de pays calculable : ' + sonde.score);
   console.log('Classification d\'un incident : ' + (sonde.classifieCritique ? 'critique, comme attendu' : 'INATTENDUE'));
   console.log('Date de flux entouree d\'espaces : ' + (sonde.dateEntoureeLue ? 'lue' : 'PERDUE'));
+  console.log('Flux precede d\'espaces avant <?xml : ' + (sonde.documentPrecedeDEspacesLu ? 'lu' : 'REFUSE'));
   console.log('Erreurs JS non liees au reseau : ' + bloquantes.length);
   bloquantes.slice(0, 8).forEach((e) => console.error('   ' + e.slice(0, 200)));
 
   const ko = sonde.manquants.length || bloquantes.length || !sonde.nbSources
-    || !sonde.classifieCritique || !sonde.dateEntoureeLue || !sonde.score || String(sonde.score).startsWith('ERREUR');
+    || !sonde.classifieCritique || !sonde.dateEntoureeLue || !sonde.documentPrecedeDEspacesLu || !sonde.score || String(sonde.score).startsWith('ERREUR');
   if (ko) {
     if (sonde.panne) console.error('\n✗ Le script inline n\'a pas pu s\'executer : ' + sonde.panne);
     if (sonde.manquants.length) console.error('\n✗ Absentes de la page : ' + sonde.manquants.join(', '));

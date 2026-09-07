@@ -6400,7 +6400,7 @@ const PAYS_DETECT = {
   CD:['rdc','rd congo','kinshasa','congo-kinshasa','goma','bukavu','kivu','ituri','uvira','lubumbashi','Democratic Republic of the Congo','República Democrática do Congo','جمهورية الكونغو الديمقراطية','DR Congo','DRC'],
   DJ:['djibouti','djiboutien','جيبوتي'],
   EG:['égypte','egypte','le caire','égyptien','egyptien','caire','Egypt','Egito'],
-  GQ:['guinée équatoriale','guinee equatoriale','malabo','Equatorial Guinea','Guiné Equatorial','غينيا الاستوائية'],
+  GQ:['guinée équatoriale','guinee equatoriale','malabo','Equatorial Guinea','Guiné Equatorial','Guinea Ecuatorial','ecuatoguineano','ecuatoguineana','غينيا الاستوائية'],
   ER:['érythrée','erythree','asmara','érythréen','Eritrea','Eritreia','إرتريا'],
   SZ:['eswatini','swaziland','mbabane','Essuatíni','إسواتيني'],
   ET:['éthiopie','ethiopie','addis-abeba','addis abeba','éthiopien','ethiopien','tigré','tigre','amhara','Ethiopia','Etiópia','إثيوبيا'],
@@ -8255,7 +8255,14 @@ function renderMediaBlock(a, heightPx) {
 }
 
 function parseRSS(xml, src) {
-  const doc  = new DOMParser().parseFromString(xml, 'text/xml');
+  // Un flux qui commence par un retour a la ligne, un espace ou une marque
+  // d'ordre d'octets (BOM) avant « <?xml » est REFUSE en bloc par DOMParser :
+  // « XML declaration allowed only at the start of the document ». Le flux
+  // etait valide, ses articles existaient, parseRSS renvoyait [] — la source
+  // paraissait muette. Cas reel du 07/09/2026 : Diario Rombe (Guinee
+  // equatoriale), 6 articles, « \r\n » devant la declaration, 0 article
+  // parse. Un site WordPress avec une extension bavarde suffit a produire ca.
+  const doc  = new DOMParser().parseFromString(String(xml || '').replace(/^[\s\uFEFF]+/, ''), 'text/xml');
   if (doc.querySelector('parsererror')) return [];
   const items = [...doc.querySelectorAll('item,entry')];
   const res   = [];
