@@ -40,7 +40,10 @@ const TERMES_AMBIGUS_MASQUES = {
   // PAYS_DETECT : un article sur le Soudan du Sud aurait fait gagner des
   // points au Soudan, exactement comme en francais.
   sudan:   ['south sudan', 'sudão do sul', 'sudao do sul'],
-  guinea:  ['guinea-bissau', 'guinea bissau', 'equatorial guinea', 'papua new guinea'],
+  // « guinea ecuatorial » : ordre des mots espagnol. Sans ce masque, les
+  // articles de Diario Rombe et d'Ahora EG (07/09/2026) etaient rattaches a
+  // la Guinee (GN) — le seul pays hispanophone suivi perdait sa propre presse.
+  guinea:  ['guinea-bissau', 'guinea bissau', 'equatorial guinea', 'guinea ecuatorial', 'guinea equatorial', 'papua new guinea'],
   guiné:   ['guiné-bissau', 'guiné equatorial'],
   guine:   ['guine-bissau', 'guine equatorial'],
   // « Niger Delta » et « Niger State » sont au NIGERIA, et le fleuve Niger

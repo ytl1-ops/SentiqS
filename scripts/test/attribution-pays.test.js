@@ -162,6 +162,20 @@ test('un pays nommé en portugais est reconnu', () => {
   assert.strictEqual(ou('Ataque na Guiné-Bissau deixa feridos', '', 'AO').cy, 'GW');
 });
 
+test('« Guinea Ecuatorial », ordre des mots espagnol, va à la Guinée équatoriale', () => {
+  // Le masque connaissait « equatorial guinea » (anglais) et « guiné
+  // equatorial » (portugais), pas l'ordre espagnol. Résultat mesuré le
+  // 07/09/2026 en rejouant Diario Rombe et Ahora EG sur la page : leurs
+  // articles partaient à la Guinée (GN). Le seul pays hispanophone suivi
+  // perdait sa propre presse au profit de son homonyme.
+  assert.strictEqual(ou('El clan de Obiang expolia la Tesorería de Guinea Ecuatorial', '', 'GQ').cy, 'GQ');
+  assert.strictEqual(ou('Guinea Ecuatorial: detenido un periodista en Malabo', '', 'GQ').cy, 'GQ');
+  // Et le gentilé, très employé par cette presse.
+  assert.strictEqual(ou('Un empresario ecuatoguineano acusado de fraude', '', 'GQ').cy, 'GQ');
+  // Garde-fou symétrique : la Guinée tout court reste la Guinée.
+  assert.strictEqual(ou('Guinea: huelga general en Conakry', '', 'GQ').cy, 'GN');
+});
+
 test('les noms composés ne volent pas les points du pays court', () => {
   // Même piège qu'en français, dans les autres langues : sans masquage,
   // « South Sudan » faisait gagner des points au Soudan, « Guinea-Bissau »
