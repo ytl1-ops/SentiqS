@@ -122,3 +122,16 @@ test('un repli deja trace ne se note pas une seconde fois', () => {
   assert.strictEqual(second[0]._fusionnes.length, 1, 'toujours une seule trace, pas deux');
   assert.strictEqual(second[0]._fusionnes[0].id, 'b');
 });
+
+test('une trace deja repetee dans le cache est ramenee a une entree par article', () => {
+  // La garde a l'ajout n'atteint pas les traces heritees : un article dont
+  // le jumeau ne revient plus dans le flux n'est jamais refusionne, donc
+  // jamais retouche. Mesure du 07/09/2026 apres la garde seule : 60
+  // repetitions subsistaient, toutes heritees, sur six articles.
+  const a = art('a', 'Égypte : une présentatrice condamnée à mort pour trafic', 's1', 90);
+  const trace = { id: 'z', title: 'Égypte : une présentatrice TV condamnée à mort', primary: 's9', url: 'https://x/z' };
+  a._fusionnes = [trace, { ...trace }, { ...trace }];
+  const restants = dedupliquerArticles([a]);
+  assert.strictEqual(restants.length, 1);
+  assert.strictEqual(restants[0]._fusionnes.length, 1, 'une seule trace pour l\'identifiant z');
+});

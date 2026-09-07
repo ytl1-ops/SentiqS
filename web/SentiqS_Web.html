@@ -7449,6 +7449,18 @@ function computeConfidence(a, allArts) {
 // rapport — et l'un des deux disparaissait alors du flux.
 
 function dedupliquerArticles(arts) {
+  // Les traces deja repetees dans le cache partage (heritees d'avant la
+  // garde ci-dessous : 28 fois le meme article sur un seul titre) ne se
+  // nettoient pas d'elles-memes — un article dont le jumeau ne revient pas
+  // dans le flux n'est plus refusionne, donc jamais retouche. On normalise
+  // ici, a chaque cycle, pour tous les articles : une trace par identifiant.
+  // Mesure du 07/09/2026 apres la garde seule : 60 repetitions subsistaient,
+  // toutes heritees, sur six articles.
+  arts.forEach(a => {
+    if (Array.isArray(a._fusionnes) && a._fusionnes.length > 1) {
+      a._fusionnes = [...new Map(a._fusionnes.map(f => [f.id, f])).values()];
+    }
+  });
   const parPays = {};
   arts.forEach(a => { (parPays[a.cy] = parPays[a.cy] || []).push(a); });
   const aSupprimer = new Set();
