@@ -159,6 +159,39 @@ test('le lexique économique élargi ne touche pas les niveaux', () => {
   assert.strictEqual(classify('Le FMI annonce un programme de 2,2 milliards de dollars', src('SN')).lvl, 'ok');
 });
 
+test('le vocabulaire de risque financier (partenaires, sanctions, notation, groupes) classe en économique sans jamais lever le niveau', () => {
+  // Ajout du 07/09/2026 : usage intelligence économique/sûreté (risque sur
+  // partenaires et fournisseurs, sanctions et embargos, notations et risque
+  // pays, évolution des groupes stratégiques). Même garde que le reste de
+  // CK_ECO : catégorie affectée, niveau jamais.
+  //
+  // Piège rencontré en écrivant ce test : « sanctions économiques » à lui
+  // seul ne suffit pas à classer en économique. CK_POL porte déjà le mot nu
+  // « sanctions » (registre politique/diplomatique) ; sur un titre qui ne
+  // contient que « sanctions economiques » les deux scores sont à égalité et
+  // classify() garde politique (premier arrivé dans l'ordre d'itération des
+  // scores). Pas un défaut : une sanction économique est aussi un fait
+  // politique, et l'ambiguïté est réelle. D'où « gel des avoirs » ci-dessous,
+  // qui n'a pas cette collision, plutôt qu'un « sanctions economiques » seul.
+  const titres = [
+    'La société ivoirienne placée en redressement judiciaire',
+    'Le groupe minier annonce une liquidation judiciaire de sa filiale',
+    'Le fournisseur declare une cessation de paiement',
+    'Nouvel embargo economique impose au pays',
+    'Gel des avoirs ordonne contre plusieurs societes locales',
+    "L'agence de notation abaisse sa perspective sur le pays",
+    'Degradation de la note souveraine du pays',
+    'Le conglomerat annonce une fusion-acquisition avec un groupe regional',
+    'Prise de participation majoritaire dans la filiale ouest-africaine',
+    'Une OPA lancee sur le groupe cotee a la BRVM',
+  ];
+  for (const t of titres) {
+    const r = classify(t, src('CI'));
+    assert.strictEqual(r.cat, 'economique', `categorie inattendue pour: ${t} (obtenu ${r.cat})`);
+    assert.strictEqual(r.lvl, 'ok', `niveau leve a tort pour: ${t} (obtenu ${r.lvl})`);
+  }
+});
+
 test('une competition continentale de clubs ou une categorie d\'age reste du sport', () => {
   // Mesure du 07/09/2026 sur la moisson des 560 flux : ces deux titres
   // etaient classes CRITIQUE — « s'incline », « frappe fort » ne figuraient
