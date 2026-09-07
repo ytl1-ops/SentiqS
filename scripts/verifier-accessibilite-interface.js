@@ -38,6 +38,22 @@ const PLAFOND_CHAMPS_SANS_NOM = 0;
 // des attributs dans le source.
 const PLAFOND_TEXTES_SOUS_CONTRASTE = 0;
 
+// PLAFOND_CLIQUABLES_SANS_CLAVIER : elements rendus cliquables qu'aucun
+// clavier n'atteint — ni balise native, ni tabindex.
+//
+// Audit du 07/09/2026 : 118 sur 130, dont les huit onglets de modules. Un
+// utilisateur au clavier ne pouvait pas changer de vue. Le cliquet des NOMS
+// accessibles etait vert pendant ce temps : il mesure une propriete plus
+// etroite que la pilotabilite.
+//
+// Ramene a 61 le meme jour (onglets en role="tab" avec tabindex glissant,
+// liens en <span onclick> rendus atteignables). Ce qui reste est presque
+// entierement des cartes conteneurs (.acard...). Il DESCEND en convertissant
+// une action qui compte, jamais en posant un tabindex sur tout : faire de
+// chaque carte un arret de tabulation rendrait le parcours inutilisable, ce
+// qui serait une regression pour la personne qu'on pretend aider.
+const PLAFOND_CLIQUABLES_SANS_CLAVIER = 61;
+
 const RACINE = path.join(__dirname, '..', 'web');
 const PORT = Number(process.env.PORT_A11Y || 8767);
 const TYPES = {
@@ -121,6 +137,13 @@ const serveur = http.createServer((req, res) => {
         const r = ratio(f, fondDe(el));
         if (r < seuil) sousContraste.push({ txt: (el.textContent || '').trim().slice(0, 40), couleur: st.color, px, ratio: Math.round(r * 100) / 100, seuil });
       }
+      // Pilotabilite au clavier : un element cliquable qu'aucune tabulation
+      // n'atteint n'existe pas pour qui n'a pas de souris.
+      const cliquables = [...document.querySelectorAll('[onclick]')].filter((e) => e.offsetParent !== null);
+      const natif = (e) => ['A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA'].includes(e.tagName) || e.hasAttribute('tabindex');
+      const sansClavier = cliquables.filter((e) => !natif(e));
+      const onglets = [...document.querySelectorAll('.ntab')].filter((t) => t.offsetParent !== null);
+      const ongletsAtteignables = onglets.filter((t) => t.hasAttribute('tabindex') && t.getAttribute('role') === 'tab').length;
       const champs = [...document.querySelectorAll('input,select,textarea')].filter((c) => c.type !== 'hidden');
       const sansNom = champs.filter((c) => !nomme(c));
       const boutons = [...document.querySelectorAll('button,[role="button"]')];
@@ -138,6 +161,11 @@ const serveur = http.createServer((req, res) => {
         idsSansNom: sansNom.map((c) => c.id || '(' + c.tagName.toLowerCase() + ' sans id)').slice(0, 30),
         boutons: boutons.length,
         boutonsSansNom: btnSansNom.length,
+        cliquables: cliquables.length,
+        sansClavier: sansClavier.length,
+        exemplesClavier: [...new Set(sansClavier.map((e) => e.tagName.toLowerCase() + '.' + String(e.className).split(' ')[0]))].slice(0, 6),
+        onglets: onglets.length,
+        ongletsAtteignables,
         sousContraste: sousContraste.length,
         exemplesContraste: sousContraste
           .sort((a, b) => a.ratio - b.ratio)
@@ -152,6 +180,9 @@ const serveur = http.createServer((req, res) => {
   console.log('Reperes              : ' + rap.main + ' principal, ' + rap.nav + ' navigation, '
     + rap.h1 + ' titre h1, lien d\'evitement ' + (rap.sautContenu ? 'present' : 'ABSENT'));
   console.log('Langue du document   : ' + (rap.lang || 'ABSENTE'));
+  console.log('Onglets de modules   : ' + rap.onglets + ', dont ' + rap.ongletsAtteignables + ' atteignables au clavier');
+  console.log('Cliquables           : ' + rap.cliquables + ', dont ' + rap.sansClavier
+    + ' hors de portee du clavier, pour un plafond de ' + PLAFOND_CLIQUABLES_SANS_CLAVIER);
   console.log('Contraste            : ' + rap.sousContraste + ' texte(s) sous le seuil AA, pour un plafond de '
     + PLAFOND_TEXTES_SOUS_CONTRASTE);
 
@@ -162,6 +193,14 @@ const serveur = http.createServer((req, res) => {
   if (rap.nav < 1) echecs.push('Aucun repere de navigation (<nav> ou role="navigation").');
   if (!rap.sautContenu) echecs.push('Aucun lien d\'evitement vers le contenu principal.');
   if (rap.boutonsSansNom > 0) echecs.push(rap.boutonsSansNom + ' bouton(s) sans nom accessible.');
+  if (rap.onglets > 0 && rap.ongletsAtteignables < rap.onglets) {
+    echecs.push((rap.onglets - rap.ongletsAtteignables) + ' onglet(s) de module hors de portee du clavier : '
+      + 'sans eux, on ne peut pas changer de vue autrement qu\'a la souris.');
+  }
+  if (rap.sansClavier > PLAFOND_CLIQUABLES_SANS_CLAVIER) {
+    echecs.push(rap.sansClavier + ' element(s) cliquable(s) qu\'aucune tabulation n\'atteint, pour un plafond de '
+      + PLAFOND_CLIQUABLES_SANS_CLAVIER + ' (' + rap.exemplesClavier.join(', ') + ')');
+  }
   if (rap.sousContraste > PLAFOND_TEXTES_SOUS_CONTRASTE) {
     echecs.push(rap.sousContraste + ' texte(s) sous le seuil de contraste AA, pour un plafond de '
       + PLAFOND_TEXTES_SOUS_CONTRASTE + ' :\n     ' + rap.exemplesContraste.join('\n     '));
@@ -186,11 +225,14 @@ const serveur = http.createServer((req, res) => {
     }
     process.exit(1);
   }
+  if (rap.sansClavier < PLAFOND_CLIQUABLES_SANS_CLAVIER) {
+    console.log('\n→ Abaissez PLAFOND_CLIQUABLES_SANS_CLAVIER a ' + rap.sansClavier + ' pour verrouiller le gain.');
+  }
   if (rap.sousContraste < PLAFOND_TEXTES_SOUS_CONTRASTE) {
     console.log('\n→ Abaissez PLAFOND_TEXTES_SOUS_CONTRASTE a ' + rap.sousContraste + ' pour verrouiller le gain.');
   }
   if (rap.champsSansNom < PLAFOND_CHAMPS_SANS_NOM) {
     console.log('\n→ Abaissez PLAFOND_CHAMPS_SANS_NOM a ' + rap.champsSansNom + ' pour verrouiller le gain.');
   }
-  console.log('\n✓ Reperes presents, champs et boutons nommes, contraste du texte rendu conforme.');
+  console.log('\n✓ Reperes presents, champs et boutons nommes, modules pilotables au clavier,\n  contraste du texte rendu conforme.');
 })();

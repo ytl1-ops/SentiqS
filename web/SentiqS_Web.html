@@ -1934,8 +1934,8 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       </button>
       <div class="auth-err" id="loginErr"></div>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-        <div class="auth-link" style="flex:1"><span data-i18n="login_first_time">Premiere connexion ?</span> <span onclick="showRegisterForm()" data-i18n="login_request_access">Demander un acces</span></div>
-        <div class="auth-link"><span onclick="showForgotPasswordForm()" data-i18n="login_reset">Mot de passe oublié ?</span></div>
+        <div class="auth-link" style="flex:1"><span data-i18n="login_first_time">Premiere connexion ?</span> <span onclick="showRegisterForm()" data-i18n="login_request_access" role="button" tabindex="0">Demander un acces</span></div>
+        <div class="auth-link"><span onclick="showForgotPasswordForm()" data-i18n="login_reset" role="button" tabindex="0">Mot de passe oublié ?</span></div>
       </div>
     </div>
     <div id="setPasswordForm" style="display:none">
@@ -1966,7 +1966,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       </button>
       <div class="auth-err" id="forgotPasswordErr"></div>
       <div class="auth-sub" id="forgotPasswordMsg" style="margin-top:10px;color:var(--t2)"></div>
-      <div class="auth-link" style="margin-top:10px;text-align:center"><span onclick="showLoginForm()">← Retour à la connexion</span></div>
+      <div class="auth-link" style="margin-top:10px;text-align:center"><span onclick="showLoginForm()" role="button" tabindex="0">← Retour à la connexion</span></div>
     </div>
     <div id="registerForm" style="display:none">
       <div class="auth-title" data-i18n="register_title">Demande d'acces</div>
@@ -2002,11 +2002,11 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         <i class="ti ti-send"></i> <span data-i18n="register_btn">Envoyer la demande</span>
       </button>
       <div class="auth-err" id="registerErr"></div>
-      <div class="auth-link"><span onclick="showLoginForm()" data-i18n="register_back">← Retour a la connexion</span></div>
+      <div class="auth-link"><span onclick="showLoginForm()" data-i18n="register_back" role="button" tabindex="0">← Retour a la connexion</span></div>
     </div>
     <div class="auth-public-links">
-      <span onclick="ouvrirBulletinPublic()"><i class="ti ti-news"></i><span data-i18n="public_bulletin">Bulletin public gratuit</span></span>
-      <span onclick="ouvrirMethodologiePublique()"><i class="ti ti-shield-check"></i><span data-i18n="public_methodo">Méthodologie &amp; sources</span></span>
+      <span onclick="ouvrirBulletinPublic()" role="button" tabindex="0"><i class="ti ti-news"></i><span data-i18n="public_bulletin">Bulletin public gratuit</span></span>
+      <span onclick="ouvrirMethodologiePublique()" role="button" tabindex="0"><i class="ti ti-shield-check"></i><span data-i18n="public_methodo">Méthodologie &amp; sources</span></span>
     </div>
   </div>
 </div>
@@ -2017,7 +2017,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
   <div class="admin-box" style="max-width:640px">
     <div class="admin-hd">
       <div class="admin-title" id="publicPanelTitle"><i class="ti ti-news"></i>Bulletin public</div>
-      <span class="admin-close" onclick="fermerPublicPanel()">✕</span>
+      <span class="admin-close" onclick="fermerPublicPanel()" role="button" tabindex="0">✕</span>
     </div>
     <div id="publicPanelBody" style="max-height:64vh;overflow-y:auto;padding-right:4px"></div>
     <div id="publicPanelShare" style="display:flex;gap:8px;margin-top:18px;padding-top:16px;border-top:1px solid var(--bd);flex-wrap:wrap"></div>
@@ -2029,7 +2029,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
   <div class="admin-box">
     <div class="admin-hd">
       <div class="admin-title"><i class="ti ti-shield-check"></i>Administration SentiqS — Gestion des acces</div>
-      <span class="admin-close" onclick="closeAdmin()">✕</span>
+      <span class="admin-close" onclick="closeAdmin()" role="button" tabindex="0">✕</span>
     </div>
 
     <div class="admin-stats" id="adminStats"></div>
@@ -2079,7 +2079,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
   <div class="admin-box" style="max-width:480px">
     <div class="admin-hd">
       <div class="admin-title"><i class="ti ti-message-report"></i>Signaler un problème</div>
-      <span class="admin-close" onclick="closeReclamation()">✕</span>
+      <span class="admin-close" onclick="closeReclamation()" role="button" tabindex="0">✕</span>
     </div>
     <div class="admin-sec">
       <div style="font-size:11px;color:var(--t2);margin-bottom:10px;line-height:1.6">
@@ -2100,7 +2100,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
   <div class="admin-box" style="max-width:480px">
     <div class="admin-hd">
       <div class="admin-title"><i class="ti ti-receipt"></i>Déclarer un paiement</div>
-      <span class="admin-close" onclick="closePaiementDeclare()">✕</span>
+      <span class="admin-close" onclick="closePaiementDeclare()" role="button" tabindex="0">✕</span>
     </div>
     <div class="admin-sec">
       <div style="font-size:11px;color:var(--t2);margin-bottom:10px;line-height:1.6">
@@ -2201,7 +2201,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <span class="ppp ppp-wait"><i class="ti ti-loader spin"></i>Detection en cours...</span>
     </div>
   </div>
-  <span class="pb-close" onclick="this.parentElement.classList.add(&#39;hidden&#39;);try{localStorage.setItem(&#39;sentinel_pb_dismissed&#39;,Date.now())}catch(_){}">✕</span>
+  <span class="pb-close" onclick="this.parentElement.classList.add(&#39;hidden&#39;);try{localStorage.setItem(&#39;sentinel_pb_dismissed&#39;,Date.now())}catch(_){}" role="button" tabindex="0">✕</span>
 </div>
 
 <!-- BARRE COLLECTE -->
@@ -2220,16 +2220,16 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
 <!-- NAV -->
 <div class="nav-wrap" role="navigation" aria-label="Modules de l'application">
   <button class="nav-arrow nav-arrow-l" onclick="navScrollModule(-1)" aria-label="Module précédent" title="Module précédent"><i class="ti ti-chevron-left"></i></button>
-  <div class="nav" id="navTabs">
-    <div class="ntab" data-view="flux" onclick="ouvrirModulePleinEcran(&#39;flux&#39;,this)"><i class="ti ti-radar-2"></i><span data-i18n="nav_flux">Flux</span><span class="nbadge" id="nbadge" style="display: none;">0</span></div>
-    <div class="ntab" id="tabRecherche" data-view="recherche" onclick="ouvrirModulePleinEcran(&#39;recherche&#39;,this)"><i class="ti ti-search"></i><span data-i18n="nav_recherche">Recherche</span></div>
-    <div class="ntab" data-view="analyse" onclick="ouvrirModulePleinEcran(&#39;analyse&#39;,this)"><i class="ti ti-chart-dots"></i><span data-i18n="nav_analyse">Synthèse</span></div>
-    <div class="ntab" id="tabAgenda" data-view="agenda" onclick="ouvrirModulePleinEcran(&#39;agenda&#39;,this)"><i class="ti ti-calendar-event"></i><span data-i18n="nav_agenda">Agenda</span></div>
-    <div class="ntab" id="tabGeopolitique" data-view="geopolitique" onclick="ouvrirModulePleinEcran(&#39;geopolitique&#39;,this)"><i class="ti ti-world"></i><span data-i18n="nav_geopolitique">Géopolitique</span></div>
-    <div class="ntab" data-view="rapports" onclick="ouvrirModulePleinEcran(&#39;rapports&#39;,this)"><i class="ti ti-download"></i><span data-i18n="nav_rapports">Rapports</span></div>
-    <div class="ntab" id="tabAlertes" data-view="alertes" onclick="ouvrirModulePleinEcran(&#39;alertes&#39;,this)"><i class="ti ti-shield-exclamation"></i><span data-i18n="nav_alertes">Alertes</span></div>
-    <div class="ntab on" data-view="dashboard" onclick="ouvrirModulePleinEcran(&#39;dashboard&#39;,this)"><i class="ti ti-layout-dashboard"></i><span data-i18n="lbl_tableau_de_bord">Tableau de bord</span></div>
-    <div class="ntab" id="tabParams" data-view="params" onclick="ouvrirModulePleinEcran(&#39;params&#39;,this)" style="display:none"><i class="ti ti-settings"></i><span>Parametres</span></div>
+  <div class="nav" id="navTabs" role="tablist" aria-label="Modules de l'application">
+    <div class="ntab" role="tab" aria-selected="false" tabindex="-1" data-view="flux" onclick="ouvrirModulePleinEcran(&#39;flux&#39;,this)"><i class="ti ti-radar-2"></i><span data-i18n="nav_flux">Flux</span><span class="nbadge" id="nbadge" style="display: none;">0</span></div>
+    <div class="ntab" role="tab" aria-selected="false" tabindex="-1" id="tabRecherche" data-view="recherche" onclick="ouvrirModulePleinEcran(&#39;recherche&#39;,this)"><i class="ti ti-search"></i><span data-i18n="nav_recherche">Recherche</span></div>
+    <div class="ntab" role="tab" aria-selected="false" tabindex="-1" data-view="analyse" onclick="ouvrirModulePleinEcran(&#39;analyse&#39;,this)"><i class="ti ti-chart-dots"></i><span data-i18n="nav_analyse">Synthèse</span></div>
+    <div class="ntab" role="tab" aria-selected="false" tabindex="-1" id="tabAgenda" data-view="agenda" onclick="ouvrirModulePleinEcran(&#39;agenda&#39;,this)"><i class="ti ti-calendar-event"></i><span data-i18n="nav_agenda">Agenda</span></div>
+    <div class="ntab" role="tab" aria-selected="false" tabindex="-1" id="tabGeopolitique" data-view="geopolitique" onclick="ouvrirModulePleinEcran(&#39;geopolitique&#39;,this)"><i class="ti ti-world"></i><span data-i18n="nav_geopolitique">Géopolitique</span></div>
+    <div class="ntab" role="tab" aria-selected="false" tabindex="-1" data-view="rapports" onclick="ouvrirModulePleinEcran(&#39;rapports&#39;,this)"><i class="ti ti-download"></i><span data-i18n="nav_rapports">Rapports</span></div>
+    <div class="ntab" role="tab" aria-selected="false" tabindex="-1" id="tabAlertes" data-view="alertes" onclick="ouvrirModulePleinEcran(&#39;alertes&#39;,this)"><i class="ti ti-shield-exclamation"></i><span data-i18n="nav_alertes">Alertes</span></div>
+    <div class="ntab on" role="tab" aria-selected="true" tabindex="0" data-view="dashboard" onclick="ouvrirModulePleinEcran(&#39;dashboard&#39;,this)"><i class="ti ti-layout-dashboard"></i><span data-i18n="lbl_tableau_de_bord">Tableau de bord</span></div>
+    <div class="ntab" role="tab" aria-selected="false" tabindex="-1" id="tabParams" data-view="params" onclick="ouvrirModulePleinEcran(&#39;params&#39;,this)" style="display:none"><i class="ti ti-settings"></i><span>Parametres</span></div>
   </div>
   <button class="nav-arrow nav-arrow-r" onclick="navScrollModule(1)" aria-label="Module suivant" title="Module suivant"><i class="ti ti-chevron-right"></i></button>
 </div>
@@ -2282,14 +2282,14 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <div class="tlbr">
         <div class="srch"><i class="ti ti-search"></i><input type="text" id="artQ" data-i18n-ph="ph_rechercher" placeholder="Rechercher..." data-i18n-ph="ph_recherche" oninput="renderFeedDebounced()"></div>
         <div class="chips">
-          <span class="chip on" onclick="setCat(this,&#39;all&#39;)" data-i18n="chip_tout">Tout</span>
-          <span class="chip rc" onclick="setCat(this,&#39;crit&#39;)"><i class="ti ti-alert-triangle"></i><span data-i18n="chip_critique">Critique</span></span>
-          <span class="chip" onclick="setCat(this,&#39;high&#39;)"><i class="ti ti-alert-circle"></i><span data-i18n="chip_eleve">Eleve</span></span>
-          <span class="chip" onclick="setCat(this,&#39;securite&#39;)" data-i18n="chip_securite">Securite</span>
-          <span class="chip" onclick="setCat(this,&#39;humanitaire&#39;)">Humanitaire</span>
-          <span class="chip" onclick="setCat(this,&#39;politique&#39;)">Politique</span>
-          <span class="chip" onclick="setCat(this,&#39;economique&#39;)">Economique</span>
-          <span class="chip" style="border-color: rgb(29, 161, 242); color: rgb(29, 161, 242); background: rgb(239, 246, 255);" onclick="setSocialFilter(this)"><i class="ti ti-social"></i>Réseaux sociaux</span>
+          <span class="chip on" onclick="setCat(this,&#39;all&#39;)" data-i18n="chip_tout" role="button" tabindex="0">Tout</span>
+          <span class="chip rc" onclick="setCat(this,&#39;crit&#39;)" role="button" tabindex="0"><i class="ti ti-alert-triangle"></i><span data-i18n="chip_critique">Critique</span></span>
+          <span class="chip" onclick="setCat(this,&#39;high&#39;)" role="button" tabindex="0"><i class="ti ti-alert-circle"></i><span data-i18n="chip_eleve">Eleve</span></span>
+          <span class="chip" onclick="setCat(this,&#39;securite&#39;)" data-i18n="chip_securite" role="button" tabindex="0">Securite</span>
+          <span class="chip" onclick="setCat(this,&#39;humanitaire&#39;)" role="button" tabindex="0">Humanitaire</span>
+          <span class="chip" onclick="setCat(this,&#39;politique&#39;)" role="button" tabindex="0">Politique</span>
+          <span class="chip" onclick="setCat(this,&#39;economique&#39;)" role="button" tabindex="0">Economique</span>
+          <span class="chip" style="border-color: rgb(29, 161, 242); color: rgb(29, 161, 242); background: rgb(239, 246, 255);" onclick="setSocialFilter(this)" role="button" tabindex="0"><i class="ti ti-social"></i>Réseaux sociaux</span>
         </div>
         <div class="geo-w">
           <button class="geo-btn" onclick="toggleGeo(event)">
@@ -4902,6 +4902,15 @@ function setLang(lang) {
   // Les durees ecrites en dur dans le HTML statique sont remplies ici, a
   // partir de la constante — jamais recopiees (audit du 07/09/2026).
   document.querySelectorAll('[data-fenetre-h]').forEach(el => { el.textContent = libelleFenetre(); });
+  const _barreOnglets = document.getElementById('navTabs');
+  if (_barreOnglets && !_barreOnglets.dataset.clavierBranche) {
+    _barreOnglets.addEventListener('keydown', clavierOnglets);
+    _barreOnglets.dataset.clavierBranche = '1';
+  }
+  if (!document.body.dataset.clavierBoutons) {
+    document.addEventListener('keydown', clavierRolesBouton);
+    document.body.dataset.clavierBoutons = '1';
+  }
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const dict = I18N[LANG] || I18N.fr;
     const val = dict[el.getAttribute('data-i18n')];
@@ -10871,7 +10880,7 @@ async function renderToast(a) {
         '<i class="ti '+m.icon+'" style="font-size:10px;vertical-align:-1px"></i> '+m.label+
       '</span>'+
       '<span style="font-size:10.5px;color:var(--t2);font-weight:600;">'+cc.flag+' '+cc.name+'</span>'+
-      '<span style="margin-left:auto;font-size:15px;color:var(--lg);cursor:pointer;padding:2px 4px;" onclick="event.stopPropagation();dismissToastManual(\''+id+'\')">✕</span>'+
+      '<span style="margin-left:auto;font-size:15px;color:var(--lg);cursor:pointer;padding:2px 4px;" onclick="event.stopPropagation();dismissToastManual(\''+id+'\')" role="button" tabindex="0">✕</span>'+
     '</div>'+
     '<div style="display:flex;gap:10px;">'+
       vignette+
@@ -10983,7 +10992,7 @@ async function majFlashInfo(force) {
     const dateTxt = d ? d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'}) : '—';
     const heureTxt = d ? d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '—';
     const npy = (a.cy && a.cy!=='INT') ? niveauAlertePays(a.cy) : null;
-    return '<span class="flashinfo-item" onclick="switchView(\'flux\',document.querySelector(\'.ntab[onclick*=flux]\'));showDet(\''+a.id+'\')">'+
+    return '<span class="flashinfo-item" onclick="switchView(\'flux\',document.querySelector(\'.ntab[onclick*=flux]\'));showDet(\''+a.id+'\')" role="button" tabindex="0">'+
       '<span class="tt-niv" style="background:'+col+';color:#fff;" title="Niveau de cette actu">'+lb+'</span>'+
       '<span class="tt-pays">'+c.flag+' '+c.name+'</span>'+
       (npy ? '<span class="cy-niv-pill" style="background:'+npy.col+'" title="Niveau d\'alerte sûreté du pays (distinct du niveau de cette actu)"><i class="ti ti-shield-half" style="font-size:8px"></i>'+npy.label+'</span>' : '')+
@@ -11110,14 +11119,14 @@ async function renderFeed() {
       '<div class="ab">'+
         // ── Ligne meta prioritaire : pays + heure de survenance (mono), avant tout le reste ──
         '<div class="art-top">'+
-          '<span class="flagcy" onclick="event.stopPropagation();ouvrirVuePays(\''+a.cy+'\')">'+cc.flag+' '+cc.name+'</span>'+
-          (a.cy && a.cy!=='INT' ? (()=>{ const npy=niveauAlertePays(a.cy); return '<span class="cy-niv-pill" style="background:'+npy.col+'" title="Niveau d\'alerte sûreté du pays (distinct du niveau de cette actu)" onclick="event.stopPropagation();ouvrirVuePays(\''+a.cy+'\')"><i class="ti ti-shield-half" style="font-size:8px"></i>'+npy.label+'</span>'; })() : '')+
+          '<span class="flagcy" onclick="event.stopPropagation();ouvrirVuePays(\''+a.cy+'\')" role="button" tabindex="0">'+cc.flag+' '+cc.name+'</span>'+
+          (a.cy && a.cy!=='INT' ? (()=>{ const npy=niveauAlertePays(a.cy); return '<span class="cy-niv-pill" style="background:'+npy.col+'" title="Niveau d\'alerte sûreté du pays (distinct du niveau de cette actu)" onclick="event.stopPropagation();ouvrirVuePays(\''+a.cy+'\')" role="button" tabindex="0"><i class="ti ti-shield-half" style="font-size:8px"></i>'+npy.label+'</span>'; })() : '')+
           // Impact-sur-le-score : 3e info distincte (voir _idsImpactParPays plus
           // haut) — une actu grave n'est pas forcement comptee dans le score du
           // pays (ex. non corroboree), et une actu comptee n'est pas forcement
           // grave elle-meme (plafonnee a ORANGE au maximum, voir getLiveAlertEvents).
           (_idsImpactParPays[a.cy] && _idsImpactParPays[a.cy].has(a.id)
-            ? '<span class="impact-pill" title="Cette actu compte actuellement dans le calcul du niveau d\'alerte du pays (module Alertes)" onclick="event.stopPropagation();ouvrirVuePays(\''+a.cy+'\')"><i class="ti ti-trending-up" style="font-size:8px"></i>Impacte le score pays</span>'
+            ? '<span class="impact-pill" title="Cette actu compte actuellement dans le calcul du niveau d\'alerte du pays (module Alertes)" onclick="event.stopPropagation();ouvrirVuePays(\''+a.cy+'\')" role="button" tabindex="0"><i class="ti ti-trending-up" style="font-size:8px"></i>Impacte le score pays</span>'
             : '')+
           '<span class="survtime'+(surv.ancien?' ancien':'')+'"><i class="ti ti-history"></i>'+surv.texte+'</span>'+
           survSuf+
@@ -11550,7 +11559,7 @@ async function showKpiDrill(kind) {
     <div style="background:var(--w);color:var(--t);border-bottom:1px solid var(--bd);padding:14px 18px;border-radius:12px 12px 0 0;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:2;">
       <i class="ti ${icon}" style="font-size:20px;color:var(--b);"></i>
       <div style="flex:1;font-size:14px;font-weight:800;">${title}</div>
-      <span onclick="closeKpiDrill()" style="cursor:pointer;font-size:20px;line-height:1;color:var(--lg);">&times;</span>
+      <span onclick="closeKpiDrill()" style="cursor:pointer;font-size:20px;line-height:1;color:var(--lg);" role="button" tabindex="0">&times;</span>
     </div>
     <div style="padding:8px 18px 16px;">${rows}</div>
   </div>`;
@@ -11976,7 +11985,7 @@ const profilView = () => {
   }).join('');
   const legende = profils.map((x,k) => {
     const col = COUL[k % COUL.length];
-    return `<span onclick="applyGlobalCountryFilter('${x.s.cy}')" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--t);">
+    return `<span onclick="applyGlobalCountryFilter('${x.s.cy}')" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--t);" role="button" tabindex="0">
       <span style="width:9px;height:9px;border-radius:2px;background:${col};display:inline-block;"></span>
       ${x.s.pays.flag} ${x.s.pays.name}
       <span style="color:var(--lg);font-family:var(--font-mono,'Roboto Mono',monospace);">${Math.round(x.s.score)} · ${x.p.total} art.</span></span>`;
@@ -12030,7 +12039,7 @@ const cartogramme = () => {
     `<div style="background:var(--w);border:1px solid var(--bd);border-left:3px solid ${couleur};border-radius:9px;padding:12px;margin-bottom:8px;">
        <div style="font-size:10px;font-weight:700;color:${couleur};text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">${titre} (${liste.length} pays)</div>
        <div style="display:flex;flex-wrap:wrap;gap:6px;">
-         ${liste.slice(0,12).map(s=>`<span onclick="applyGlobalCountryFilter('${s.cy}')" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:4px 9px;background:${couleur}12;border:1px solid ${couleur}44;border-radius:5px;font-size:11px;font-weight:600;color:${couleur};">
+         ${liste.slice(0,12).map(s=>`<span onclick="applyGlobalCountryFilter('${s.cy}')" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:4px 9px;background:${couleur}12;border:1px solid ${couleur}44;border-radius:5px;font-size:11px;font-weight:600;color:${couleur};" role="button" tabindex="0">
            ${s.pays.flag} ${s.pays.name} <span style="font-family:var(--font-mono,'Roboto Mono',monospace);font-size:9px;opacity:.8;">${s.score}</span>
          </span>`).join('')}
        </div>
@@ -12519,7 +12528,7 @@ function ligneAgendaHtml(e, i, SL, IC, TYP) {
       '<div class="ev-tp"><div class="ev-tt"><span id="' + ttId + '">' + escHtml(L(e.title)) + '</span>' + typBadge + freshTag + autoTag + '</div><span class="ev-bg ' + sl[0] + '">' + sl[1] + '</span></div>' +
       '<div class="ev-dc" id="' + dcId + '">' + escHtml(L(e.desc)) + '</div>' +
       '<div class="ev-mt">' +
-        '<span class="ev-cy"' + (resolveAgendaCy(e.cy) ? ' style="cursor:pointer" onclick="ouvrirVuePays(\'' + resolveAgendaCy(e.cy) + '\')"' : '') + '><i class="ti ti-map-pin" style="font-size:10px"></i>' + e.cy + '</span>' +
+        '<span class="ev-cy"' + (resolveAgendaCy(e.cy) ? ' style="cursor:pointer" onclick="ouvrirVuePays(\'' + resolveAgendaCy(e.cy) + '\')"' : '') + ' role="button" tabindex="0"><i class="ti ti-map-pin" style="font-size:10px"></i>' + e.cy + '</span>' +
         '<span class="ev-ip ' + IC[e.impact] + '">Impact ' + e.impact.toUpperCase() + '</span>' +
         (sourcesVisibles()
           ? (e.surl ? '<a href="' + safeUrl(e.surl, e.src) + '" target="_blank" class="ev-sc"><i class="ti ti-external-link"></i>' + e.src + '</a>' :
@@ -13005,11 +13014,62 @@ function toggleGeo(e){e.stopPropagation();document.getElementById('geoDd').class
 function setGeo(code,name){fGeo=code;document.getElementById('geoLbl').textContent=name;document.getElementById('geoDd').classList.remove('op');renderFeed();renderGeo();}
 document.addEventListener('click',()=>document.getElementById('geoDd').classList.remove('op'));
 
+// clavierOnglets : la barre de modules se pilote au clavier.
+//
+// Audit du 07/09/2026 : les huit modules etaient des <div onclick>, donc
+// inatteignables au clavier — quatorze arrets de tabulation dans la page, et
+// aucun n'etait un onglet. Motif standard du « tabindex glissant » : la barre
+// est UN seul arret de tabulation, les fleches circulent a l'interieur. Neuf
+// arrets de plus n'auraient aide personne.
+function clavierOnglets(ev) {
+  const barre = document.getElementById('navTabs');
+  if (!barre) return;
+  const visibles = [...barre.querySelectorAll('.ntab')].filter((t) => t.offsetParent !== null);
+  const courant = ev.target.closest ? ev.target.closest('.ntab') : null;
+  if (!courant || !visibles.length) return;
+  const i = visibles.indexOf(courant);
+  let cible = null;
+  if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); courant.click(); return; }
+  else if (ev.key === 'ArrowRight') cible = visibles[(i + 1) % visibles.length];
+  else if (ev.key === 'ArrowLeft') cible = visibles[(i - 1 + visibles.length) % visibles.length];
+  else if (ev.key === 'Home') cible = visibles[0];
+  else if (ev.key === 'End') cible = visibles[visibles.length - 1];
+  if (!cible) return;
+  ev.preventDefault();
+  // On DEPLACE le focus sans activer : l'utilisateur parcourt puis choisit.
+  visibles.forEach((t) => { t.tabIndex = -1; });
+  cible.tabIndex = 0;
+  cible.focus();
+}
+
+// Activation au clavier des elements rendus cliquables sans etre des boutons
+// (liens ecrits en <span onclick>). Delegation : une seule ecoute, valable
+// pour tout ce qui est ajoute plus tard par le rendu.
+function clavierRolesBouton(ev) {
+  if (ev.key !== 'Enter' && ev.key !== ' ') return;
+  const el = ev.target.closest ? ev.target.closest('[role="button"][tabindex="0"]') : null;
+  if (!el || el.closest('#navTabs')) return;
+  if (['BUTTON', 'A', 'INPUT', 'SELECT', 'TEXTAREA'].includes(el.tagName)) return;
+  ev.preventDefault();
+  el.click();
+}
+
 function switchView(name,el){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
   document.getElementById('v-'+name).classList.add('on');
-  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
-  if(el)el.classList.add('on');
+  document.querySelectorAll('.ntab').forEach(t=>{
+    t.classList.remove('on');
+    // Un onglet visuellement actif mais annonce « non selectionne » dit deux
+    // choses contraires selon qu'on regarde ou qu'on ecoute (audit du
+    // 07/09/2026). Le tabindex glissant suit la meme regle.
+    t.setAttribute('aria-selected','false');
+    t.tabIndex = -1;
+  });
+  if(el){
+    el.classList.add('on');
+    el.setAttribute('aria-selected','true');
+    el.tabIndex = 0;
+  }
   // Fait defiler l'onglet actif dans le champ visible de la barre de
   // modules — sur mobile, la barre deborde souvent (7-8 modules sur un
   // ecran etroit) : sans ca, activer un onglet situe hors champ (via un
@@ -13066,7 +13126,7 @@ function ouvrirModulePleinEcran(name, el) {
     overlay.id = 'modulePleinEcranOverlay';
     overlay.innerHTML =
       '<div id="modulePleinEcranHdr">' +
-        '<span onclick="fermerModulePleinEcran()" style="cursor:pointer;font-size:24px;line-height:1;color:var(--t2);padding:2px 6px;" title="Fermer (Echap)"><i class="ti ti-x"></i></span>' +
+        '<span onclick="fermerModulePleinEcran()" style="cursor:pointer;font-size:24px;line-height:1;color:var(--t2);padding:2px 6px;" title="Fermer (Echap)" role="button" tabindex="0"><i class="ti ti-x"></i></span>' +
         '<div style="flex:1;font-size:13px;font-weight:700;color:var(--t);" id="modulePleinEcranTitre"></div>' +
         '<button onclick="partagerModulePleinEcran()" style="padding:6px 13px;background:var(--b);border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;"><i class="ti ti-share-2"></i> Partager</button>' +
       '</div>' +
@@ -13209,7 +13269,7 @@ async function runDiagnostic() {
   overlay.innerHTML = '<div style="background:var(--w);border-radius:12px;max-width:520px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.4);">'
     + '<div style="background:var(--w);color:var(--t);border-bottom:1px solid var(--bd);padding:14px 18px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between;">'
     + '<span style="font-size:14px;font-weight:700;"><i class="ti ti-stethoscope" style="color:var(--b)"></i> Diagnostic des services de collecte</span>'
-    + '<span onclick="document.getElementById(\'diagOverlay\').remove()" style="cursor:pointer;font-size:20px;line-height:1;color:var(--lg);">&times;</span></div>'
+    + '<span onclick="document.getElementById(\'diagOverlay\').remove()" style="cursor:pointer;font-size:20px;line-height:1;color:var(--lg);" role="button" tabindex="0">&times;</span></div>'
     + '<div id="diagBody" style="padding:16px 18px;"><div id="diagHealthPanel"></div><div style="font-size:12px;color:#4A5568;margin-bottom:12px;">Test en cours sur un flux reel (France 24 Afrique)...</div><div id="diagRows"></div></div></div>';
   document.body.appendChild(overlay);
   document.getElementById('diagHealthPanel').innerHTML = healthSummary;
@@ -13431,7 +13491,7 @@ function afficherRappelWhatsappProgramme(hhmm, numero) {
     '<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;">'+
       '<i class="ti ti-brand-whatsapp" style="color:#0F4F2A;font-size:15px;flex-shrink:0"></i>'+
       '<span style="font-size:11px;font-weight:700;color:var(--t);flex:1;min-width:0;">Rappel ' + hhmm + ' — Rapport d\'analyse</span>'+
-      '<span style="font-size:13px;color:var(--lg);cursor:pointer;flex-shrink:0" onclick="document.getElementById(\''+id+'\').remove()">✕</span>'+
+      '<span style="font-size:13px;color:var(--lg);cursor:pointer;flex-shrink:0" onclick="document.getElementById(\''+id+'\').remove()" role="button" tabindex="0">✕</span>'+
     '</div>'+
     '<div style="font-size:10px;color:var(--lg);margin-bottom:8px;">Vers +' + _apEsc(numero) + ' — identité ' + _apEsc(nomMarqueActuelle()) + '</div>'+
     '<button class="share-trigger" style="width:100%;justify-content:center;" onclick="envoyerRappelWhatsappProgramme(\''+numero+'\',\''+id+'\')"><i class="ti ti-send"></i>Envoyer maintenant</button>';
@@ -14921,7 +14981,7 @@ async function doRegister() {
         '<i class="ti ti-mail" style="font-size:48px;color:var(--b);display:block;margin-bottom:14px"></i>'+
         '<div style="font-size:14px;font-weight:700;color:var(--t);margin-bottom:8px">Confirmez votre adresse e-mail</div>'+
         '<div style="font-size:12px;color:var(--lg);line-height:1.6">Un e-mail de confirmation vient d\'être envoyé à <b>'+escHtml(email)+'</b>. Cliquez sur le lien qu\'il contient pour activer votre compte.</div>'+
-        '<div style="margin-top:16px"><span style="color:var(--b);cursor:pointer" onclick="showLoginForm()">'+t('register_go_login')+'</span></div></div>';
+        '<div style="margin-top:16px"><span style="color:var(--b);cursor:pointer" onclick="showLoginForm()" role="button" tabindex="0">'+t('register_go_login')+'</span></div></div>';
       return;
     }
 
@@ -14930,7 +14990,7 @@ async function doRegister() {
       '<i class="ti ti-circle-check" style="font-size:48px;color:#15803D;display:block;margin-bottom:14px"></i>'+
       '<div style="font-size:14px;font-weight:700;color:var(--t);margin-bottom:8px">'+t('register_activated')+'</div>'+
       '<div style="font-size:12px;color:var(--lg);line-height:1.6">Connectez-vous avec l\'adresse et le mot de passe que vous venez de définir.</div>'+
-      '<div style="margin-top:16px"><span style="color:var(--b);cursor:pointer" onclick="showLoginForm()">'+t('register_go_login')+'</span></div></div>';
+      '<div style="margin-top:16px"><span style="color:var(--b);cursor:pointer" onclick="showLoginForm()" role="button" tabindex="0">'+t('register_go_login')+'</span></div></div>';
   } finally {
     if (btn) btn.disabled = false;
   }
@@ -17850,7 +17910,7 @@ async function ouvrirVuePays(cy) {
           <div style="font-size:9px;color:var(--lg);margin-top:3px;">Score ${score.total100}/100</div>
         </div>` : ''}
         <button onclick="toggleShareMenuAlerte(event,'${cy}')" style="padding:7px 12px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;color:var(--t);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;margin-left:8px;"><i class="ti ti-share-2"></i>${LANG==='en'?'Share':'Partager'}</button>
-        <span onclick="document.getElementById('vuePaysOverlay').remove()" style="cursor:pointer;font-size:22px;line-height:1;margin-left:8px;color:var(--lg);">&times;</span>
+        <span onclick="document.getElementById('vuePaysOverlay').remove()" style="cursor:pointer;font-size:22px;line-height:1;margin-left:8px;color:var(--lg);" role="button" tabindex="0">&times;</span>
       </div>
       ${score ? (() => { const ligne = pastilleCouvertureFaible(derniereActuTsPays(cy), dateDernierIncident(score.events)); return ligne ? `<div style="padding:8px 20px 0 20px;">${ligne}</div>` : ''; })() : ''}
       <div style="padding:18px 20px;">
@@ -17958,7 +18018,7 @@ async function afficherAlerteCartePleinEcran(cy) {
   overlay.innerHTML =
     '<div style="width:100%;max-width:820px;margin:0 auto;padding:16px;">' +
       '<div style="display:flex;justify-content:flex-end;margin-bottom:8px;">' +
-        '<span onclick="fermerAlertePleinEcran()" style="cursor:pointer;color:var(--t2);font-size:26px;line-height:1;padding:4px 10px;" title="Fermer (Echap)">&times;</span>' +
+        '<span onclick="fermerAlertePleinEcran()" style="cursor:pointer;color:var(--t2);font-size:26px;line-height:1;padding:4px 10px;" title="Fermer (Echap)" role="button" tabindex="0">&times;</span>' +
       '</div>' +
       '<div id="aplecranCarte"></div>' +
     '</div>';
@@ -18508,7 +18568,7 @@ function afficherPartageDocument(name) {
     '<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;">'+
       '<i class="ti ti-circle-check" style="color:#0F4F2A;font-size:14px;flex-shrink:0"></i>'+
       '<span style="font-size:11px;font-weight:700;color:var(--t);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+_apEsc(name)+'">'+_apEsc(name)+'</span>'+
-      '<span style="font-size:13px;color:var(--lg);cursor:pointer;flex-shrink:0" onclick="document.getElementById(\''+id+'\').remove()">✕</span>'+
+      '<span style="font-size:13px;color:var(--lg);cursor:pointer;flex-shrink:0" onclick="document.getElementById(\''+id+'\').remove()" role="button" tabindex="0">✕</span>'+
     '</div>'+
     '<button class="share-trigger" style="width:100%;justify-content:center;" onclick="partagerDernierDocument(event)"><i class="ti ti-share-2"></i>'+(LANG==='en'?'Share this document':'Partager ce document')+'</button>';
   container.appendChild(el);
