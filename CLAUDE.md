@@ -822,6 +822,19 @@ avait déjà un deux lignes plus haut. Le test de fumée le vérifie désormais
 sur un flux synthétique de cette forme exacte, et il a été vu dire « PERDUE »
 sans le trim.
 
+**Même famille, second cas : un espace avant `<?xml` fait refuser tout le
+document.** Diario Rombe, ajouté le 07/09, ne remontait rien ; son flux était
+valide, 6 articles, mais commençait par `\r\n`. `DOMParser` répond « XML
+declaration allowed only at the start of the document » et `parseRSS`
+renvoie `[]`. Rejeu de la moisson des 540 flux : **un seul autre** était dans
+ce cas, `sosmediasburundi_bi` (score 72), muet pour la même raison. Les
+espaces de tête et le BOM sont retirés avant l'analyse, et le test de fumée
+porte un second flux synthétique, vu dire « REFUSE » sans le correctif.
+
+Leçon commune aux deux cas : **une source qui paraît muette doit être
+rejouée sur la vraie page avant d'être crue muette.** Les deux fois, le flux
+répondait et le défaut était dans notre lecture.
+
 **Sur les 15 sites derrière Cloudflare, ne pas conclure d'ici.** Ce bac à
 sable sort par un proxy ; `curl` obtient un défi là où le runner GitHub peut
 passer. « Injoignable » ne veut dire « mort » qu'avec un DNS vide.

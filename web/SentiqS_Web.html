@@ -8255,7 +8255,14 @@ function renderMediaBlock(a, heightPx) {
 }
 
 function parseRSS(xml, src) {
-  const doc  = new DOMParser().parseFromString(xml, 'text/xml');
+  // Un flux qui commence par un retour a la ligne, un espace ou une marque
+  // d'ordre d'octets (BOM) avant « <?xml » est REFUSE en bloc par DOMParser :
+  // « XML declaration allowed only at the start of the document ». Le flux
+  // etait valide, ses articles existaient, parseRSS renvoyait [] — la source
+  // paraissait muette. Cas reel du 07/09/2026 : Diario Rombe (Guinee
+  // equatoriale), 6 articles, « \r\n » devant la declaration, 0 article
+  // parse. Un site WordPress avec une extension bavarde suffit a produire ca.
+  const doc  = new DOMParser().parseFromString(String(xml || '').replace(/^[\s\uFEFF]+/, ''), 'text/xml');
   if (doc.querySelector('parsererror')) return [];
   const items = [...doc.querySelectorAll('item,entry')];
   const res   = [];
