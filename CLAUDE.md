@@ -456,6 +456,19 @@ version cassée une fois sur deux. Un test non déterministe ne prouve rien.
 étrangle : la **cadence réelle observée est de 3 h 24 à 5 h 51**. Ne pas
 raisonner comme si le cache avait 30 minutes.
 
+**Le plafond de 11 minutes ne mord pas aujourd'hui, et c'est mesuré.** Le
+06/09 au soir, avec 560 sources et des relais publics saturés, la collecte
+s'arrêtait au plafond (11 min 03 s). Le 07/09, sur les huit passages de la
+journée à 581 sources, le journal dit à chaque fois « Collecte complète
+publiée avec succès » — 507 sources sur 581 ont répondu au passage n° 847
+(87 %), publication à 5 min 30. **L'étape du job dure pourtant 11 minutes** :
+les six minutes qui suivent la publication sont de l'attente de fermeture du
+navigateur, pas de la collecte. Ne pas lire la durée de l'étape comme une
+durée de collecte. Le plafond reste à 11 : le relever ne rapporterait rien
+tant que le journal dit « complète », et la troncature revient dès que les
+relais saturent — c'est `ordonnerFileCollecte()` qui décide alors de qui est
+sacrifié, pas une minute de plus.
+
 Le cache partagé vit dans la table `collecte_partagee`. Deux fenêtres
 distinctes, à ne pas confondre :
 
@@ -844,9 +857,24 @@ rejouée sur la vraie page avant d'être crue muette — et ses articles suivis
 jusqu'au pays où ils atterrissent.** Les deux fois, le flux
 répondait et le défaut était dans notre lecture.
 
-**Sur les 15 sites derrière Cloudflare, ne pas conclure d'ici.** Ce bac à
-sable sort par un proxy ; `curl` obtient un défi là où le runner GitHub peut
-passer. « Injoignable » ne veut dire « mort » qu'avec un DNS vide.
+**Les 15 sites derrière Cloudflare sont morts aussi depuis GitHub, et c'est
+mesuré sans les journaux.** Il suffit de regarder le cache publié : si une
+source y a des articles, elle passe depuis le runner. Sur les huit caches
+publiés le 07/09/2026, **aucun** des quinze (Punch, Nation, Monitor,
+L'Express, Igihe, Sudan Tribune, Graphic, Herald…) n'a produit un seul
+article. Ce n'est plus « non concluant » : ils ne fonctionnent pas en
+production. Leur note est élevée (80 à 93) et leur silence est invisible.
+Rien à réparer côté code — un défi Cloudflare ne se contourne pas par une
+adresse — ; les retirer ou changer de route de collecte est une décision de
+l'éditeur.
+
+**Rwanda, même méthode nominative, avec un piège de langue.** Vingt-trois
+titres sondés, sept flux vivants — mais cinq publient en **kinyarwanda**
+(Umuseke, Umuryango, Bwiza, Panorama, Rushyashya), que les lexiques ne
+lisent pas. Bwiza titrait sur les combats du M23 à Masisi : un signal réel,
+illisible pour le classement. Seuls Taarifa et KT Press, en anglais, sont
+entrés. La règle vaut pour toute langue hors lexiques : un flux qu'on ne sait
+pas lire fait « pays couvert » sans jamais pouvoir alerter.
 
 Douze pays ont reçu un média local de plus par la méthode nominative
 (GQ, GW, TD ×2, NE ×4, DJ, BW ×2, LS ×2, GM ×2), et deux agences (ANP Niger,
