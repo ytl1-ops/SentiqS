@@ -105,3 +105,20 @@ test('un article sans nombre n\'est jamais rapproche par le pont', () => {
   const b = art('b', 'Cap-Vert : funérailles de certaines victimes de l’accident d’un bus', 's2');
   assert.strictEqual(articlesSontDoublons(a, b), false);
 });
+
+test('un repli deja trace ne se note pas une seconde fois', () => {
+  // Le cache partage est refusionne a chaque cycle avec les articles frais,
+  // qui portent les memes identifiants. Mesure du 07/09/2026 sur le cache
+  // publie : 372 traces pour 46 articles distincts, 28 fois le meme titre.
+  const a = art('a', 'Attaque meurtrière contre un convoi militaire près de Tombouctou', 's1', 90);
+  const b = art('b', 'Convoi militaire attaqué près de Tombouctou : attaque meurtrière', 's2', 70);
+  const premier = dedupliquerArticles([a, b]);
+  assert.strictEqual(premier.length, 1);
+  assert.strictEqual(premier[0]._fusionnes.length, 1, 'une trace apres le premier repli');
+  // Second cycle : le meme article b revient du flux, avec le meme id.
+  const bBis = { ...b };
+  const second = dedupliquerArticles([premier[0], bBis]);
+  assert.strictEqual(second.length, 1);
+  assert.strictEqual(second[0]._fusionnes.length, 1, 'toujours une seule trace, pas deux');
+  assert.strictEqual(second[0]._fusionnes[0].id, 'b');
+});
