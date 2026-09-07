@@ -97,8 +97,8 @@ try {
   --n:#16233A;--b:#2C5AAE;--bl:#E8EEFA;--bb:#C7D6EE;
   --r:#8B1A1A;--rl:#FEF2F2;--rb:#FECACA;
   --a:#7C4A00;--al:#FFFBEB;--ab:#FDE68A;
-  a--g:#0F4F2A;--gl:#F0FDF4;--gb:#BBF7D0;--m:#78350F;--j:#CA8A04;
-  --gr:#4A5568;--lg:#718096;--bd:#DCE4EF;
+  --g:#0F4F2A;--gl:#F0FDF4;--gb:#BBF7D0;--m:#78350F;--j:#CA8A04;--j-txt:#854D0E;
+  --gr:#4A5568;--lg:#5D6B7E;--bd:#DCE4EF;
   --sf:#F4F7FB;--w:#FFFFFF;--t:#0E1826;--t2:#3A4658;
   --sig:#A97425;--sigl:#FBF3E7;--sigb:#E9CDA0;
   /* Nouvelles variables de design */
@@ -129,7 +129,7 @@ html[data-theme="dark"]{
   --bl:rgba(44,90,174,.16);--bb:#2E4666;
   --rl:rgba(139,26,26,.22);--rb:rgba(248,113,113,.4);--r:#F87171;
   --al:rgba(124,74,0,.22);--ab:rgba(243,171,61,.4);--a:#F3AB3D;
-  --gl:rgba(15,79,42,.24);--gb:rgba(74,222,128,.4);--g:#4ADE80;--m:#D9A85C;--j:#FDE047;
+  --gl:rgba(15,79,42,.24);--gb:rgba(74,222,128,.4);--g:#4ADE80;--m:#D9A85C;--j:#FDE047;--j-txt:#FDE047;
   --gr:#B7C3D1;--lg:#8CA0B4;--bd:#28394E;
   --sf:#141E2C;--w:#1B2839;--t:#EAF0F7;--t2:#B6C3D2;
   --sigl:rgba(169,116,37,.2);--sigb:rgba(217,168,92,.4);--sig:#D9A85C;
@@ -1145,7 +1145,7 @@ html.force-mobile .ops-label{display:none}
 .tag-own{background:rgba(15,79,42,.12);color:#16a34a;border:1px solid rgba(74,222,128,.25)}
 .tag-admin{background:rgba(220,140,0,.12);color:#7C4A00;border:1px solid rgba(220,140,0,.25)}
 .tag-user{background:rgba(75,85,99,.12);color:var(--b);border:1px solid var(--bb)}
-.tag-none{background:var(--surface);color:var(--lg);border:1px solid var(--bd)}
+.tag-none{background:var(--sf);color:var(--lg);border:1px solid var(--bd)}
 .dl-rc-foot{display:flex;align-items:center;justify-content:space-between;
   padding-top:8px;border-top:1px solid var(--bd)}
 .dl-rc-foot .dlb{font-size:10px;padding:5px 12px}
@@ -1178,7 +1178,7 @@ html.force-mobile .ops-label{display:none}
   font-size:10.5px;font-family:inherit;color:var(--t);background:var(--w);text-align:center}
 /* Reclamations */
 .bs-nouveau{background:rgba(44,90,174,.12);color:#2C5AAE;border:1px solid rgba(44,90,174,.25)}
-.bs-encours{background:rgba(202,138,4,.14);color:#CA8A04;border:1px solid rgba(202,138,4,.28)}
+.bs-encours{background:rgba(202,138,4,.14);color:var(--j-txt);border:1px solid rgba(202,138,4,.28)}
 .bs-resolu{background:rgba(74,222,128,.12);color:#0F4F2A;border:1px solid rgba(74,222,128,.25)}
 /* Suivi du trafic (local a cet appareil, pas de serveur central) */
 .traffic-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:12px}
@@ -1252,7 +1252,7 @@ html.force-mobile .ops-label{display:none}
 .copy-btn:hover{background:var(--bl);color:var(--b);border-color:var(--bb)}
 .copy-btn i{font-size:12px}
 /* Pending requests */
-.pending-card{background:var(--sf);border:1px solid var(--amber-b,#FDE68A);
+.pending-card{background:var(--sf);border:1px solid var(--ab);
   border-left:3px solid #7C4A00;border-radius:0 7px 7px 0;
   padding:11px 14px;margin-bottom:8px}
 .pending-card:last-child{margin-bottom:0}
@@ -2736,7 +2736,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
        <div style="font-size:9px;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;">Sources actives</div>
      </div>
         <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:8px;text-align:center;box-shadow:var(--card-shadow);">
-       <div style="font-family:var(--font-mono,&#39;Roboto Mono&#39;,monospace);font-size:17px;font-weight:700;color:#CA8A04;line-height:1.1;">0</div>
+       <div style="font-family:var(--font-mono,&#39;Roboto Mono&#39;,monospace);font-size:17px;font-weight:700;color:var(--j-txt,#854D0E);line-height:1.1;">0</div>
        <div style="font-size:9px;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;">Pays en tension</div>
      </div>
       </div>
@@ -11815,7 +11815,7 @@ function chipTendance(code) {
   const t = tendancePays(code);
   if (!t || t.crans === 0) return '';
   const monte = t.crans > 0;
-  const col = monte ? 'var(--rouge, #b3261e)' : 'var(--vert, #2e7d32)';
+  const col = monte ? 'var(--r)' : 'var(--g)';
   const sens = monte ? 'aggravation' : 'amelioration';
   const titre = sens + ' de ' + Math.abs(t.crans) + ' cran' + (Math.abs(t.crans) > 1 ? 's' : '')
     + ' : ' + NIV_LIBELLE[t.de] + ' le ' + t.depuis + ' \u2192 ' + NIV_LIBELLE[t.vers] + ' le ' + t.jusqu
@@ -12046,7 +12046,7 @@ const cartogramme = () => {
         ${kpiCard(nbCrit,'Critiques','#8B1A1A','ti-alert-triangle','crit')}
         ${kpiCard(nbHigh,'Élevés','#7C4A00','ti-alert-circle','high')}
         ${kpiCard(nbSrcs,_tentees?'Sources joignables':'Sources ayant publié','#0F4F2A','ti-antenna','sources',_tentees?('sur '+_tentees+' interrogées · '+nbSrcsFraiches+' ont publié'):'Aucune mesure sur cet appareil')}
-        ${kpiCard(enTension.length,'Pays en tension','#CA8A04','ti-trending-up','tension','Niveau orange, marron ou rouge')}
+        ${kpiCard(enTension.length,'Pays en tension',cv('--j-txt','#854D0E'),'ti-trending-up','tension','Niveau orange, marron ou rouge')}
       </div>
 
       <!-- Actualites a traiter (dans la fenetre) -->
@@ -12065,7 +12065,7 @@ const cartogramme = () => {
       ${zoneCard('🔴 RISQUE GRAVE — Rouge', rouge, cv('--r','#8B1A1A'))}
       ${zoneCard('🟤 RISQUE CRITIQUE — Marron', marron, cv('--m','#78350F'))}
       ${zoneCard('🟠 RISQUE TENDU — Orange', orange, cv('--a','#7C4A00'))}
-      ${zoneCard('🟡 RISQUE MODÉRÉ — Jaune', jaune, cv('--j','#CA8A04'))}
+      ${zoneCard('🟡 RISQUE MODÉRÉ — Jaune', jaune, cv('--j-txt','#854D0E'))}
       ${zoneCard('🟢 SITUATION NORMALE — Vert', vert, cv('--g','#0F4F2A'))}
     `;
   });
@@ -12954,7 +12954,7 @@ function renderDiagnosticProxyPays() {
     const dernierEchec = entrees.reduce((plus, e) => (e.lastFail > (plus ? plus.lastFail : 0)) ? e : plus, null);
     const pays_ = (typeof PAYS_INFO !== 'undefined' && PAYS_INFO[cy]) || { flag: '🌍', name: cy };
     const tauxPct = Math.round(meilleur.taux * 100);
-    const col = tauxPct >= 70 ? '#0F4F2A' : tauxPct >= 40 ? '#CA8A04' : '#8B1A1A';
+    const col = tauxPct >= 70 ? '#0F4F2A' : tauxPct >= 40 ? '#854D0E' : '#8B1A1A';
     return '<tr>' +
       '<td>' + pays_.flag + ' ' + escHtml(pays_.name || cy) + '</td>' +
       '<td>' + escHtml(proxyNoms[meilleur.idx] || ('proxy ' + meilleur.idx)) + '</td>' +
@@ -17888,7 +17888,7 @@ async function ouvrirVuePays(cy) {
          box.innerHTML = `
            <div style="font-size:10px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.06em;">Avis officiel FCDO (Royaume-Uni) - mis a jour le ${dateTxt}</div>
            <div style="font-size:11.5px;color:var(--t);margin-top:4px;line-height:1.5;">${escHtml(data.resume || '')}</div>
-           <a href="${data.url}" target="_blank" rel="noopener" style="font-size:10.5px;color:var(--acc, #2563eb);">Avis complet sur gov.uk</a>`;
+           <a href="${data.url}" target="_blank" rel="noopener" style="font-size:10.5px;color:var(--b);">Avis complet sur gov.uk</a>`;
        } else {
          box.innerHTML = '<div style="font-size:11px;color:var(--lg);">Avis officiel FCDO indisponible pour le moment.</div>';
        }

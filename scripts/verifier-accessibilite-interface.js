@@ -23,6 +23,21 @@ const path = require('node:path');
 // mesure ; le remonter reviendrait a renoncer au seul garde-fou.
 const PLAFOND_CHAMPS_SANS_NOM = 0;
 
+// PLAFOND_TEXTES_SOUS_CONTRASTE : nombre de textes rendus qui n'atteignent pas
+// le seuil AA (4,5:1, ou 3:1 pour le grand texte). Meme forme que les autres
+// cliquets : la dette est nommee, on interdit de l'agrandir.
+//
+// Audit d'interface du 07/09/2026 : 117 elements sous le seuil, jamais
+// mesures parce que le contrôle ne regardait que les NOMS accessibles. Deux
+// coupables — le gris secondaire #718096 (une centaine d'usages, 3,41 a 4,02)
+// et le jaune de gravite #CA8A04 (2,49 a 2,94), une couleur d'ALERTE portee
+// par le nombre « pays en tension ». Corriges le meme jour : 117 -> 0.
+//
+// La mesure porte sur le DOM RENDU, jamais sur le fichier source : la note
+// d'accessibilite de ce produit a deja ete fausse deux fois pour avoir compte
+// des attributs dans le source.
+const PLAFOND_TEXTES_SOUS_CONTRASTE = 0;
+
 const RACINE = path.join(__dirname, '..', 'web');
 const PORT = Number(process.env.PORT_A11Y || 8767);
 const TYPES = {
@@ -88,6 +103,24 @@ const serveur = http.createServer((req, res) => {
         (c.id && document.querySelector('label[for="' + CSS.escape(c.id) + '"]')) ||
         (c.closest('label') && c.closest('label').textContent.replace(/\s+/g, '').length)
       );
+      // Contraste du texte reellement rendu, fond effectif remonte de parent
+      // en parent (une couche translucide ne compte pas comme un fond).
+      const canal = (v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+      const lum = (c) => 0.2126 * canal(c.r) + 0.7152 * canal(c.g) + 0.0722 * canal(c.b);
+      const lireRgb = (t) => { const m = String(t).match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/); return m ? { r: +m[1], g: +m[2], b: +m[3], a: m[4] === undefined ? 1 : +m[4] } : null; };
+      const fondDe = (el) => { let e = el; while (e) { const c = lireRgb(getComputedStyle(e).backgroundColor); if (c && c.a > 0.5) return c; e = e.parentElement; } return { r: 255, g: 255, b: 255 }; };
+      const ratio = (f, b) => { const l1 = lum(f), l2 = lum(b); const [h, l] = l1 > l2 ? [l1, l2] : [l2, l1]; return (h + 0.05) / (l + 0.05); };
+      const sousContraste = [];
+      for (const el of document.querySelectorAll('*')) {
+        if (el.children.length || el.offsetParent === null) continue;
+        if ((el.textContent || '').trim().length < 2) continue;
+        const st = getComputedStyle(el);
+        const f = lireRgb(st.color); if (!f) continue;
+        const px = parseFloat(st.fontSize), gras = parseInt(st.fontWeight, 10) >= 700;
+        const seuil = (px >= 24 || (px >= 18.66 && gras)) ? 3 : 4.5;
+        const r = ratio(f, fondDe(el));
+        if (r < seuil) sousContraste.push({ txt: (el.textContent || '').trim().slice(0, 40), couleur: st.color, px, ratio: Math.round(r * 100) / 100, seuil });
+      }
       const champs = [...document.querySelectorAll('input,select,textarea')].filter((c) => c.type !== 'hidden');
       const sansNom = champs.filter((c) => !nomme(c));
       const boutons = [...document.querySelectorAll('button,[role="button"]')];
@@ -105,6 +138,11 @@ const serveur = http.createServer((req, res) => {
         idsSansNom: sansNom.map((c) => c.id || '(' + c.tagName.toLowerCase() + ' sans id)').slice(0, 30),
         boutons: boutons.length,
         boutonsSansNom: btnSansNom.length,
+        sousContraste: sousContraste.length,
+        exemplesContraste: sousContraste
+          .sort((a, b) => a.ratio - b.ratio)
+          .slice(0, 8)
+          .map((e) => e.ratio + ':1 (seuil ' + e.seuil + ') ' + e.px + 'px ' + e.couleur + ' — ' + e.txt),
       };
     });
   } finally { await nav.close(); serveur.close(); }
@@ -114,6 +152,8 @@ const serveur = http.createServer((req, res) => {
   console.log('Reperes              : ' + rap.main + ' principal, ' + rap.nav + ' navigation, '
     + rap.h1 + ' titre h1, lien d\'evitement ' + (rap.sautContenu ? 'present' : 'ABSENT'));
   console.log('Langue du document   : ' + (rap.lang || 'ABSENTE'));
+  console.log('Contraste            : ' + rap.sousContraste + ' texte(s) sous le seuil AA, pour un plafond de '
+    + PLAFOND_TEXTES_SOUS_CONTRASTE);
 
   const echecs = [];
   if (!rap.lang) echecs.push('L\'attribut lang du document est absent : un lecteur d\'ecran ne sait pas quelle voix employer.');
@@ -122,6 +162,10 @@ const serveur = http.createServer((req, res) => {
   if (rap.nav < 1) echecs.push('Aucun repere de navigation (<nav> ou role="navigation").');
   if (!rap.sautContenu) echecs.push('Aucun lien d\'evitement vers le contenu principal.');
   if (rap.boutonsSansNom > 0) echecs.push(rap.boutonsSansNom + ' bouton(s) sans nom accessible.');
+  if (rap.sousContraste > PLAFOND_TEXTES_SOUS_CONTRASTE) {
+    echecs.push(rap.sousContraste + ' texte(s) sous le seuil de contraste AA, pour un plafond de '
+      + PLAFOND_TEXTES_SOUS_CONTRASTE + ' :\n     ' + rap.exemplesContraste.join('\n     '));
+  }
   if (rap.champsSansNom > PLAFOND_CHAMPS_SANS_NOM) {
     echecs.push(rap.champsSansNom + ' champ(s) sans nom accessible, pour un plafond de '
       + PLAFOND_CHAMPS_SANS_NOM + ' : ' + rap.idsSansNom.join(', '));
@@ -130,13 +174,23 @@ const serveur = http.createServer((req, res) => {
   if (echecs.length) {
     console.error('\n✗ Accessibilite :');
     echecs.forEach((e) => console.error('   ' + e));
-    console.error('\nUn libelle INVENTE est pire qu\'un libelle absent : il decrit a un utilisateur');
-    console.error('de lecteur d\'ecran un autre controle que celui qu\'il manipule. Reprendre le');
-    console.error('texte deja visible a l\'ecran a cote du champ.');
+    if (rap.champsSansNom > PLAFOND_CHAMPS_SANS_NOM || rap.boutonsSansNom > 0) {
+      console.error('\nUn libelle INVENTE est pire qu\'un libelle absent : il decrit a un utilisateur');
+      console.error('de lecteur d\'ecran un autre controle que celui qu\'il manipule. Reprendre le');
+      console.error('texte deja visible a l\'ecran a cote du champ.');
+    }
+    if (rap.sousContraste > PLAFOND_TEXTES_SOUS_CONTRASTE) {
+      console.error('\nUn texte sous le seuil se lit mal sur un ecran de portable en plein jour,');
+      console.error('exactement la ou cet outil est consulte. Assombrir le jeton plutot que le');
+      console.error('texte au cas par cas : la couleur de gravite doit rester la meme partout.');
+    }
     process.exit(1);
+  }
+  if (rap.sousContraste < PLAFOND_TEXTES_SOUS_CONTRASTE) {
+    console.log('\n→ Abaissez PLAFOND_TEXTES_SOUS_CONTRASTE a ' + rap.sousContraste + ' pour verrouiller le gain.');
   }
   if (rap.champsSansNom < PLAFOND_CHAMPS_SANS_NOM) {
     console.log('\n→ Abaissez PLAFOND_CHAMPS_SANS_NOM a ' + rap.champsSansNom + ' pour verrouiller le gain.');
   }
-  console.log('\n✓ Reperes de structure presents, tous les champs et boutons ont un nom accessible.');
+  console.log('\n✓ Reperes presents, champs et boutons nommes, contraste du texte rendu conforme.');
 })();
