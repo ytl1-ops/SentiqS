@@ -4275,6 +4275,37 @@ const SRCS=[
  {id:'ghanabusinessnews_gh',n:'Ghana Business News',col:'#4B5563',cy:'GH',sc:'national',cat:'economique',score:72,url:'https://ghanabusinessnews.com/',rss:'https://www.ghanabusinessnews.com/feed/',rss_method:'RSS natif'},
  {id:'ghanafa_gh',n:'Ghana Football Association',col:'#4B5563',cy:'GH',sc:'national',cat:'securite',score:72,url:'https://ghanafa.org/',rss:'https://www.ghanafa.org/feed',rss_method:'RSS natif'},
  {id:'ghanaiantimes_gh',n:'Ghanaian Times',col:'#4B5563',cy:'GH',sc:'national',cat:'securite',score:72,url:'https://ghanaiantimes.com.gh/',rss:'https://ghanaiantimes.com.gh/feed/',rss_method:'RSS natif'},
+ // ── Cinq medias locaux des pays sans couverture, recensement du 07/09/2026 ──
+ // Trouves en testant NOMINATIVEMENT les grands titres de chaque pays sans
+ // article (BW, DJ, ER, GM, LS, SC, ST) : le detour par les annuaires ouverts
+ // ramenait surtout des references bibliographiques. Chaque flux a ete
+ // interroge et ses titres lus ; l'age du dernier article au moment du
+ // recensement est indique.
+ //
+ // Notes 72 EN BLOC par l'editeur du produit, donc AU-DESSUS du seuil de 70 :
+ // ils peuvent faire monter un niveau d'alerte. Comme pour les 71 medias du
+ // 06/09, la note vient de la mesure de couverture et non d'une lecture
+ // editoriale titre par titre — le risque a ete enonce avant l'arbitrage et
+ // assume : un titre mal calibre chez l'un d'eux peut faire passer un pays au
+ // rouge.
+ //
+ // Deux pays restent sans solution et ce n'est pas un oubli :
+ //  - Seychelles : seule SBC (radiodiffusion publique) a un flux vivant, mais
+ //    elle publie en creole seychellois, que les lexiques ne lisent pas. Elle
+ //    ferait « pays couvert » sans jamais pouvoir signaler quoi que ce soit —
+ //    le meme piege que le media eswatini qui ne publie que de bonnes
+ //    nouvelles. Ecartee volontairement.
+ //  - Erythree : la presse d'Etat n'expose aucun flux, et les sites trouves
+ //    sont des publications de la diaspora, pas de la presse locale.
+ //
+ // Trois titres supplementaires existent mais publiaient au-dela de la fenetre
+ // de 36 h au recensement (The Voice BW 38 h, Lesotho Times 43 h, The Standard
+ // GM 64 h). Non retenus ici : ils n'ont pas ete soumis a l'arbitrage.
+ {id:'weekendpost_bw',n:'Weekend Post',col:'#4B5563',cy:'BW',sc:'national',cat:'securite',score:72,url:'https://weekendpost.co.bw/',rss:'https://weekendpost.co.bw/feed/',rss_method:'RSS natif'},
+ {id:'businessweekly_bw',n:'The Business Weekly & Review',col:'#4B5563',cy:'BW',sc:'national',cat:'economique',score:72,url:'https://businessweekly.co.bw/',rss:'https://businessweekly.co.bw/feed/',rss_method:'RSS natif'},
+ {id:'kerrfatou_gm',n:'Kerr Fatou',col:'#4B5563',cy:'GM',sc:'national',cat:'securite',score:72,url:'https://kerrfatou.com/',rss:'https://kerrfatou.com/feed/',rss_method:'RSS natif'},
+ {id:'sundayexpress_ls',n:'Sunday Express',col:'#4B5563',cy:'LS',sc:'national',cat:'securite',score:72,url:'https://sundayexpress.co.ls/',rss:'https://sundayexpress.co.ls/?feed=rss2',rss_method:'RSS natif'},
+ {id:'telanon_st',n:'Téla Nón',col:'#4B5563',cy:'ST',sc:'national',cat:'securite',score:72,url:'https://telanon.info/',rss:'https://telanon.info/feed/',rss_method:'RSS natif'},
  {id:'thepoint_gm',n:'Gambia News - The Point',col:'#4B5563',cy:'GM',sc:'national',cat:'securite',score:72,url:'https://thepoint.gm/',rss:'https://thepoint.gm/posts/rss/xml',rss_method:'RSS natif'},
  {id:'voicegambia_gm',n:'Voice Gambia',col:'#4B5563',cy:'GM',sc:'national',cat:'securite',score:72,url:'https://voicegambia.com/',rss:'https://www.voicegambia.com/feed/',rss_method:'RSS natif'},
  {id:'guinee114_gn',n:'Guinee114.com',col:'#4B5563',cy:'GN',sc:'national',cat:'securite',score:72,url:'https://guinee114.com/',rss:'https://www.guinee114.com/feed/',rss_method:'RSS natif'},

@@ -732,6 +732,67 @@ inscrire les figerait comme des fautes alors qu'ils n'en sont pas.
 
 ---
 
+## Chercher un média local : la méthode qui marche
+
+Le 07/09/2026, sept pays n'avaient aucun article. Deux approches ont été
+essayées ; une seule paie.
+
+**Le crawl d'annuaires ouverts a coûté 47 minutes pour rien.** Ramasser les
+liens externes des pages Wikipédia d'un pays ramène surtout ses **références
+bibliographiques** : le sondage est parti interroger `pubmed.ncbi.nlm.nih.gov`.
+Même en se limitant aux pages consacrées aux médias, 462 candidats donnaient
+76 flux dont **11 seulement** sur un domaine national, et beaucoup de bruit
+(`france24`, `wikimediafoundation`, `pewforum`).
+
+**Tester nominativement les grands titres connus de chaque pays a tout
+trouvé, en quelques minutes** : sept titres par pays, sondés sur les
+emplacements RSS usuels. C'est cette passe qui a sorti Kerr Fatou, Sunday
+Express, Téla Nón — et les deux adresses mortes ci-dessous.
+
+Résultat : **47 → 52 pays couverts**.
+
+| Pays | Média | Dernier article |
+|---|---|---:|
+| Botswana | Weekend Post | 20 min |
+| Botswana | The Business Weekly & Review (`economique`) | 40 min |
+| Gambie | Kerr Fatou | 5 h |
+| Lesotho | Sunday Express | 12 h |
+| São Tomé | Téla Nón | 11 h |
+
+**Deux sources déjà au registre pointaient à côté**, et c'est le genre de
+panne qui ne se voit pas :
+
+- `adi_dj` (score 70, **seule source d'alerte de Djibouti**) appelait
+  `adi.dj/feed/` → **404**. La vraie adresse est `adi.dj/rss` → 50 articles.
+- `stppress_st` passait par une requête Google News alors que l'agence a un
+  flux natif — or `sourceDateNonFiable` écarte justement les requêtes Google
+  News, donc ces articles ne comptaient jamais comme actualité.
+
+Un test l'interdit désormais : **`rss_method` doit correspondre à l'adresse
+réelle du flux**. Corriger l'une sans l'autre le fait tomber. Son premier jet
+ne mesurait rien — il cherchait l'hôte par l'expression
+`(^|.)news.google.com/`, qui ne reconnaît aucune des 318 requêtes Google News
+du registre, faute du `//` qui les précède. L'hôte se lit avec `new URL()`.
+
+**Deux pays restent sans solution, et c'est mesuré, pas oublié :**
+
+- **Érythrée** — la presse d'État n'expose aucun flux ; les sites trouvés sont
+  des publications de la diaspora, pas de la presse locale.
+- **Seychelles** — seule SBC (radiodiffusion publique) a un flux vivant, mais
+  elle publie **en créole seychellois**, que les lexiques ne lisent pas. Elle
+  ferait « pays couvert » sans jamais pouvoir signaler quoi que ce soit :
+  exactement le piège du média eswatini qui ne publie que de bonnes
+  nouvelles. Écartée volontairement.
+
+La note de 72 a été posée **en bloc** par l'éditeur, comme pour les 71 médias
+du 06/09 : sur la mesure de publication, pas après une lecture éditoriale
+titre par titre. Le risque a été énoncé avant l'arbitrage et assumé.
+
+Le cliquet `PLAFOND_PAYS_SOURCE_UNIQUE` descend de **4 à 3** — le Lesotho en
+sort. Restent l'Érythrée, la Guinée équatoriale et la Guinée-Bissau.
+
+---
+
 ## Par où commencer la revue du socle
 
 `revue-socle.js` transforme « relire les 172 incidents » en liste ordonnée,

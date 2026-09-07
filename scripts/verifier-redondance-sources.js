@@ -27,11 +27,24 @@
 // apres lecture editoriale. Les quatre pays qui restent — Erythree, Guinee
 // equatoriale, Guinee-Bissau, Lesotho — n'ont aucun media local avec un flux
 // vivant : la mesure n'a rien trouve a leur donner, ce n'est pas un oubli.
+//
+// Descente du 07/09/2026 : 4 -> 3. Le Lesotho sort de la liste avec Sunday
+// Express, trouve en testant nominativement les grands titres du pays plutot
+// qu'en passant par les annuaires ouverts. Meme reserve que ci-dessus : la
+// note de 72 a ete posee par l'editeur sur la mesure de publication, pas
+// apres une lecture editoriale du titre.
+//
+// Les trois qui restent — Erythree, Guinee equatoriale, Guinee-Bissau — n'ont
+// toujours aucun media local a flux vivant. Pour l'Erythree c'est mesure : la
+// presse d'Etat n'expose aucun flux, et les sites trouves sont des
+// publications de la diaspora. Les Seychelles ne sont PAS dans cette liste
+// mais meritent la meme prudence : leur seul flux vivant (SBC) publie en
+// creole seychellois, que les lexiques ne lisent pas.
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const PLAFOND_PAYS_SOURCE_UNIQUE = 4;
+const PLAFOND_PAYS_SOURCE_UNIQUE = 3;
 
 const cible = process.argv[2] || path.join(__dirname, '../web/SentiqS_Web.html');
 const HTML = fs.readFileSync(cible, 'utf8');
