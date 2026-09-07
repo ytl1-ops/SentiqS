@@ -184,6 +184,46 @@ source.
 
 ---
 
+## CK_ECO élargi le 07/09/2026 : risque financier, sanctions, notation, groupes
+
+À la demande de l'éditeur, pour l'usage intelligence économique/sûreté :
+risque financier sur partenaires et fournisseurs (difficultés de trésorerie,
+procédures collectives), sanctions économiques et embargos, notations
+financières et risque pays, évolution des groupes stratégiques en Afrique
+(fusions-acquisitions, cessions, prises de participation). Vingt-neuf mots-clés
+ajoutés à `CK_ECO`, bilingues, sans nom d'agence de notation (trop rares et
+sujets à confusion pour peser dans un lexique de mots isolés).
+
+**Comme le reste de `CK_ECO`, ces mots ne pèsent que sur la catégorie, jamais
+sur le niveau d'alerte** — `lienSecuriteFaible` ne les lit pas. Un test le
+vérifie sur dix titres synthétiques (`scripts/test/classification.test.js`).
+
+**Non mesuré sur cache réel** : cet environnement n'a pas accès au cache
+partagé (`verifier-fraicheur-cache.js` répond HTTP 403 ici, question de réseau
+sandbox, pas du changement). À rejouer avec `scripts/banc-tri.js` sur un cache
+de production avant la prochaine revue de lexique, comme pour tout élargissement
+précédent de `CK_ECO`.
+
+**Piège rencontré en écrivant le test** : « sanctions economiques » seul ne
+suffit pas à classer en économique — `CK_POL` porte déjà le mot nu
+« sanctions », et sur ce titre les deux scores sont à égalité, ce qui laisse
+`classify()` sur politique (premier arrivé dans l'ordre d'itération). Ce n'est
+pas un défaut : une sanction économique est aussi un fait politique. D'où
+« gel des avoirs » comme exemple de test plutôt que « sanctions economiques »
+seul, qui n'a pas cette collision.
+
+Sources du registre non touchées dans ce lot : plusieurs candidats
+(Agence Ecofin, Financial Afrik, Sika Finance) ont été explorés pour enrichir
+la couverture native de ces thèmes, mais le flux `finance-rss` d'Agence Ecofin
+s'est révélé figé (`lastBuildDate` à jour, articles bloqués à mars 2025) — le
+piège exact que ce dépôt documente déjà ailleurs (une source qui semble vivre
+et ne l'est pas). Ajouter une source sur cette seule apparence de fraîcheur
+aurait recréé le défaut. À reprendre avec la méthode qui marche pour ce dépôt :
+tester nominativement les flux candidats sur la vraie page avant intégration,
+pas sur la seule date d'en-tête du flux.
+
+---
+
 ## La date de l'événement, pas seulement celle de publication
 
 `estRecentReel` exige **deux** conditions : l'article doit être publié dans
@@ -1163,116 +1203,6 @@ Les quatre bibliothèques d'export (Word, Excel, PowerPoint, PDF, 2,37 Mo)
 se chargent au premier clic via `chargerBibliotheque()`, jamais au démarrage ;
 un test l'interdit. SheetJS vient de `cdn.sheetjs.com` (autorisé dans la
 CSP) parce que les versions corrigées n'existent pas sur npm.
-
-## L'audit d'interface du 07/09/2026
-
-Première mesure de l'interface **rendue** — page servie localement dans
-Chromium, DOM après rendu, trois largeurs. Ce que les contrôles existants ne
-regardaient pas.
-
-**L'écran annonçait « 12h » alors que la fenêtre en vaut 36.** Trente-deux
-étiquettes : le compteur du Flux, la tuile « Pays couverts », les états
-vides, les titres des fenêtres ouvertes depuis les tuiles, la marque
-`paysMuet` (« depuis 12 h »), le badge de survenance (« ⚠ plus de 12h », qui
-se déclenche à 36 h) — et les rapports exportés en PDF, Word et PowerPoint :
-« ÉVÉNEMENTS DES DERNIÈRES 12 HEURES », envoyés aux clients. Seule la tuile
-« Actus /Xh » avait été recalée en septembre, **parce qu'elle seule avait un
-test**. Le français mentait là où l'anglais disait vrai (`note_flux` : « 12
-dernières heures » contre « the last 36 hours »).
-
-`libelleFenetre()` / `libelleFenetreCourt()` dérivent la durée de la
-constante ; les textes traduisibles portent `{h}` / `{hc}`, substitués au
-rendu ; le HTML statique porte `data-fenetre-h`. Un test refuse toute durée
-d'actualité écrite en dur, avec trois exceptions justifiées : la fenêtre
-propre à `getLiveAlertEvents` (12 h, volontairement plus courte), le badge
-« -12H » (qui dit vrai), et la validité de l'essai gratuit.
-
-**Un « a » collé devant une déclaration faisait disparaître le vert.** Ligne
-100 : `a--g:#0F4F2A`. Déclaration invalide, donc `--g` n'existait pas dans le
-thème clair — le thème sombre, lui, le définissait. Quatorze usages sans
-valeur de repli : la propriété était abandonnée sans un mot. Cinq autres
-jetons étaient lus sans être déclarés, avec des replis pris à une **autre
-palette** : `var(--rouge,#b3261e)` et `var(--vert,#2e7d32)` coloraient les
-flèches de tendance, `var(--acc,#2563eb)` un lien, et `var(--surface)`
-n'avait aucun repli. C'est la panne décrite dans `scripts/lib/contraste.js`,
-en pire.
-
-**Nuance à garder :** j'avais d'abord annoncé que le compteur « Recoupés »
-s'affichait en noir. Le jeton était bien indéfini — mesuré dans le
-navigateur — mais ce compteur-là vit dans une bande repliée par défaut, et
-Chromium ne recalcule pas les styles d'un sous-arbre `display:none`. La
-mesure valable est celle du témoin : `color:var(--g)` rendait le noir hérité
-avant, `#0F4F2A` après.
-
-**117 textes sous le seuil AA, jamais mesurés.** Le contrôle d'interface ne
-regardait que les *noms* accessibles. Le gris secondaire `#718096` (une
-centaine d'usages) plafonnait à 4,02 sur blanc et 3,41 sur le fond de page ;
-le jaune de gravité `#CA8A04` tombait à 2,49 — une couleur d'**alerte**,
-portée par le nombre « pays en tension ». Corrigés : `--lg` → `#5D6B7E`, et
-`--j-txt:#854D0E` pour le jaune **en texte** seulement — la pastille et le
-fond gardent `#CA8A04`, qui est la signature du niveau. `NIV.jaune` portait
-déjà cette variante texte. Mesure : **117 → 0**.
-
-**On ne pouvait pas changer de module sans souris.** Parcours réel à la
-touche Tab : quatorze arrêts, aucun n'était un onglet. Les huit modules sont
-des `<div onclick>`. Sur 130 éléments cliquables, 118 étaient invisibles au
-clavier. Le cliquet d'accessibilité était vert pendant ce temps : il mesure
-les noms accessibles des champs, une propriété plus étroite que la
-pilotabilité. **Il ne mentait pas, il mesurait autre chose** — c'est la leçon
-à retenir de ce cliquet-là.
-
-La barre devient `role="tablist"`, chaque module `role="tab"` avec
-`aria-selected` et un **tabindex glissant** : un seul arrêt de tabulation,
-les flèches circulent dedans, Entrée active. Trente-six liens écrits en
-`<span onclick>` reçoivent `role="button"` et `tabindex`. Dette : **118 →
-61**, presque tous des cartes conteneurs. Elle descend en convertissant une
-action qui compte, jamais en posant un `tabindex` sur tout : faire de chaque
-carte un arrêt rendrait le parcours inutilisable, une régression pour la
-personne qu'on prétend aider.
-
-**Une largeur d'écran ne dit pas si une barre déborde.** À 768 px la barre
-mesurait 823 px, « Tableau de bord » était hors champ, et les flèches
-restaient cachées parce que leur règle vit dans `@media (max-width:760px)`.
-`majDebordementOnglets()` mesure `scrollWidth` contre `clientWidth` ; la
-règle l'emporte sur les modes forcés, parce qu'une barre qui déborde doit
-montrer la sortie.
-
-### Trois cliquets de plus, mesurés sur le DOM rendu
-
-`verifier-accessibilite-interface.js` en porte désormais trois, tous mesurés
-après rendu et jamais sur le fichier source :
-
-| Cliquet | Valeur | Ce qu'il refuse |
-|---|---:|---|
-| `PLAFOND_CHAMPS_SANS_NOM` | 0 | un champ sans nom accessible |
-| `PLAFOND_TEXTES_SOUS_CONTRASTE` | 0 | un texte sous le seuil AA |
-| `PLAFOND_CLIQUABLES_SANS_CLAVIER` | 61 | un cliquable de plus hors de portée du clavier |
-
-Plus une règle sans plafond : **aucun onglet de module ne peut sortir de
-portée du clavier**. Vus échouer sur la version cassée — 104 textes sous le
-seuil, code de sortie 1.
-
-### Ce qui n'a pas été touché, et pourquoi
-
-- **343 px de bandeaux avant le premier contenu sur un téléphone** (41 % de
-  l'écran), dont 175 px pour le bandeau d'explication de la collecte. Il
-  porte déjà une croix qui mémorise le renvoi ; réduire son contenu est une
-  décision éditoriale.
-- **180 textes sous 10 px**, les trois tailles dominantes étant 9, 9,5 et
-  8,5 px. Remonter l'échelle typographique change la densité de toutes les
-  vues : c'est un arbitrage, pas un correctif.
-- **Pas d'échelle d'espacement** : 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
-  16, 20, 24, 28, 36 et 40 px — tous les nombres. Chaque écran a été réglé à
-  la main.
-- **Les 172 incidents saisis n'ont pas d'accents** (« Attaque signalee
-  convoi logistique axe Kaya-Dori »). C'est de la donnée, pas du code.
-- **La vue Alertes répète le même avertissement de quarante mots sur chaque
-  carte**, affiche « Aggravants : 7 » puis « Facteurs : 7 » — même nombre,
-  deux noms — et « RSS applique: 0/0 », qui ne veut rien dire pour un
-  lecteur. Pendant ce temps ce qui distingue les pays rouges (87,5 / 86,5 /
-  85,3 / 84) est en 9 px et « ROUGE » est répété cinq fois par carte.
-
----
 
 ## Conventions
 
