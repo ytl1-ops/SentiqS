@@ -890,6 +890,54 @@ connaissance de cause ; l'entrée du registre porte une `note:` qui le dit.
 
 ---
 
+## Les quatre arbitrages du 07/09/2026 sur le registre
+
+Posés à l'éditeur en une fois, avec la mesure sous chaque question. Ce qui a
+été décidé, et ce que le code en a fait :
+
+**1. Les sept entrées mortes sont retirées.** Cinq domaines disparus
+(`togofirst`, `lanation`, `beninwebs`, `acap_cf`, `conakrylive`) et les deux
+doublons d'une adresse vivante (`jeune_afrique`, `citizen_tz`). Aucun pays ne
+perd de couverture : chacun garde au moins une autre source, le contrôle
+`verifier-sources.js` le prouve à chaque PR.
+
+**2. Les quinze sites derrière Cloudflare passent par Google News.** Punch,
+Nation, Monitor, L'Express, Igihe, Sudan Tribune, Graphic, Herald, Crisis
+Group, APA… n'avaient produit **aucun article** sur les huit caches publiés
+du 07/09. Chaque entrée devient une requête `site:<domaine>` sur l'édition
+Google News du pays, `rss_method` mis en cohérence (le test de `tri.test.js`
+l'exige). **Contrepartie assumée** : `sourceDateNonFiable` écarte toute
+requête Google News du décompte d'actualité, donc ces quinze médias
+alimentent le flux et le niveau d'alerte, mais ne comptent plus pour la
+fraîcheur ni pour « pays couvert ». C'est mieux que rien du tout, ce qu'ils
+donnaient avant.
+
+**3. Les 94 notes de 72 posées en bloc redescendent à 68.** Les 71 médias du
+06/09 et les 23 du 07/09 (tous marqués `col:'#4B5563'`) avaient reçu 72 sur
+une mesure de publication, jamais après lecture. À 68 ils restent au
+registre et dans le flux, mais **ne peuvent plus faire monter un niveau**.
+Effet mesuré, et il est plus lourd que ce que la question annonçait :
+
+| | Avant | Après |
+|---|---:|---:|
+| Sources capables d'alerter | 211 | **175** |
+| Pays à source unique | 1 | **13** |
+
+La question disait « le plafond remonterait de 1 à 6 » : c'était une
+estimation, la mesure dit **13** — BI CG ER GM GQ GW KM LS LY MZ SL SS SZ.
+`PLAFOND_PAYS_SOURCE_UNIQUE` remonte donc à 13, **la seule fois où ce
+cliquet monte** : la valeur 1 mesurait une dette masquée par des notes
+provisoires, pas une dette résorbée. Il redescendra média par média, à
+mesure que les titres relus retrouvent 72. Le chemin de retour est une
+lecture éditoriale, pas un correctif.
+
+**4. Google News : statu quo.** Le `robots.txt` interdit `/rss/`,
+`fetchRespectueux` le respecte, la page retombe sur les relais publics. Rien
+ne change dans le code ; l'arbitrage reste à reprendre si les relais
+saturent au point de tronquer la collecte.
+
+---
+
 ## Le même fait en trois langues
 
 `articlesSontDoublons` compare les mots significatifs des titres. Entre deux

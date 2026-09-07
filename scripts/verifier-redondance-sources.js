@@ -48,11 +48,22 @@
 // et les sites trouves sont des publications de la diaspora. Ce plafond ne
 // descendra a zero qu'avec une source erythreenne reelle, pas avec une
 // source de complaisance.
+//
+// Remontee du 07/09/2026 : 1 -> 13. La seule fois ou ce plafond monte, et
+// voici pourquoi. Les 94 medias notes 72 EN BLOC (les 71 du 06/09 et les
+// 23 du 07/09, tous marques col:'#4B5563') l'avaient ete sur une mesure de
+// publication, jamais apres lecture. L'editeur a tranche : ils redescendent
+// a 68, sous le seuil de 70, en attendant une lecture titre par titre. Ils
+// restent au registre et alimentent le flux, mais ne peuvent plus faire
+// monter un niveau d'alerte. La dette reelle reapparait donc : treize pays
+// n'ont qu'une seule source capable d'alerter (BI CG ER GM GQ GW KM LS LY
+// MZ SL SS SZ). Le plafond dit la dette mesuree, pas la dette souhaitee ;
+// il redescendra a mesure que les medias relus retrouvent 72.
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const PLAFOND_PAYS_SOURCE_UNIQUE = 1;
+const PLAFOND_PAYS_SOURCE_UNIQUE = 13;
 
 const cible = process.argv[2] || path.join(__dirname, '../web/SentiqS_Web.html');
 const HTML = fs.readFileSync(cible, 'utf8');
