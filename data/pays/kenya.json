@@ -1,0 +1,42 @@
+{
+  "iso2": "KE",
+  "slug": "kenya",
+  "name": "Kenya",
+  "namePrep": "au Kenya",
+  "region": "Afrique de l'Est",
+  "capital": "Nairobi",
+  "datePublished": "2026-09-07",
+  "dateModified": "2026-09-07",
+  "metaDescription": "Situation securitaire au Kenya : veille geopolitique, risque Al-Shabaab a la frontiere somalienne et alertes en temps reel avec SentiqS.",
+  "keywords": "Kenya securite, risque pays Kenya, veille geopolitique Nairobi Mombasa, surete entreprise Afrique de l'Est, SentiqS",
+  "summary": "Le Kenya reste expose a une menace terroriste significative portee par le groupe Al-Shabaab, qui a mene deux operations d'envergure depuis 2019 (attaque du complexe Dusit a Nairobi en janvier 2019, attaque de la base de Manda Bay en janvier 2020). La bande frontaliere avec la Somalie et le comte continental de Lamu restent formellement deconseilles. La delinquance urbaine est elevee a Nairobi, Kisumu et Mombasa, avec certains quartiers specifiquement deconseilles. Des tensions agro-pastorales recurrentes affectent par ailleurs plusieurs comtes du nord.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste et Insurrectionnel",
+      "text": "La menace du groupe Al-Shabaab est significative : attaque du complexe hotelier Dusit a Nairobi en janvier 2019, attaque contre la base de Manda Bay en janvier 2020. La bande frontaliere avec la Somalie (100 km de profondeur, incluant Mandera, Garissa, Dadaab et la route Garissa-Dadaab) et le comte continental de Lamu sont formellement deconseilles. Les zones frontalieres avec le Soudan du Sud et l'Ethiopie appellent egalement a la vigilance."
+    },
+    "crime": {
+      "title": "Risque Criminel et Volatilite Urbaine",
+      "text": "La delinquance est elevee dans les grands centres urbains (Nairobi, Kisumu, Mombasa) : vols a la tire, agressions automobiles, cambriolages. Certains quartiers de Nairobi (Eastleigh, Pangani, Kibera, Mathare) sont specifiquement deconseilles par les autorites consulaires."
+    },
+    "infra": {
+      "title": "Risques Infrastructures, Energie et Logistique",
+      "text": "Les comtes du nord (West Pokot, Turkana, Marsabit, Isiolo, ouest de Mandera, Wajir, Garissa, archipel de Lamu) connaissent des tensions agro-pastorales recurrentes entre agriculteurs et eleveurs, avec des couvre-feux locaux qui perturbent ponctuellement la circulation et la logistique routiere dans ces zones excentrees."
+    }
+  },
+  "neighbors": [
+    { "name": "Ethiopie", "slug": "ethiopie", "available": false },
+    { "name": "Somalie", "slug": "somalie", "available": false },
+    { "name": "Tanzanie", "slug": "tanzanie", "available": false },
+    { "name": "Ouganda", "slug": "ouganda", "available": false },
+    { "name": "Soudan du Sud", "slug": "soudan-du-sud", "available": false }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Renforcement du dispositif securitaire signale pres de la frontiere somalienne.", "time": "Il y a 8h" },
+    { "tag": "SOCIAL", "text": "Tension fonciere signalee entre communautes dans un comte du nord.", "time": "Il y a 1j" },
+    { "tag": "INFRA", "text": "Couvre-feu local annonce dans une zone de tension agro-pastorale.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/kenya/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 07/09/2026)"
+  ]
+}
