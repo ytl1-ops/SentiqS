@@ -897,6 +897,12 @@ grossissait. Mesure du 07/09/2026 sur le cache publié : **372 traces pour
 préexistant, vu seulement en relisant les fusions du pont. Un repli déjà
 tracé ne se note plus une seconde fois ; un test rejoue deux cycles.
 
+La garde à l'ajout ne suffisait pas : après elle, **60 répétitions
+subsistaient, toutes héritées**, sur six articles dont le jumeau ne revient
+plus dans le flux — jamais refusionnés, donc jamais retouchés. La trace de
+tous les articles est normalisée à l'entrée de `dedupliquerArticles`, à
+chaque cycle. Mesurer après chaque étape, pas seulement après la première.
+
 **Et le sport a des trous de vocabulaire, pas de règle.** `estContenuSportif`
 existait et classait bien en « sport » ; deux titres sont passés en critique
 parce qu'aucun de leurs mots n'était dans la liste — « Coupe de la
