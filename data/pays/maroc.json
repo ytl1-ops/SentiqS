@@ -1,0 +1,39 @@
+{
+  "iso2": "MA",
+  "slug": "maroc",
+  "name": "Maroc",
+  "namePrep": "au Maroc",
+  "region": "Afrique du Nord",
+  "capital": "Rabat",
+  "datePublished": "2026-09-07",
+  "dateModified": "2026-09-07",
+  "metaDescription": "Situation securitaire au Maroc : veille geopolitique, zones frontalieres a vigilance renforcee et alertes en temps reel avec SentiqS.",
+  "keywords": "Maroc securite, risque pays Maroc, veille geopolitique Casablanca Rabat, surete entreprise Afrique du Nord, SentiqS",
+  "summary": "Le Maroc demeure expose a une menace terroriste residuelle malgre un controle gouvernemental efficace et le demantelement regulier de cellules par les autorites. La circulation le long de la frontiere mauritanienne est formellement deconseillee hors route cotiere, et la zone au sud de la frontiere algerienne comme le Sahara occidental hors axes goudronnes appellent a la vigilance. La delinquance de voie publique (vols a l'arrache) est courante a Casablanca et Marrakech. Le risque routier et le risque sismique (seisme de magnitude 6,8 pres de Marrakech en septembre 2023) completent le tableau.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste et Insurrectionnel",
+      "text": "Le Maroc reste expose a une menace terroriste residuelle malgre un controle gouvernemental efficace et des demantelements reguliers de cellules. Des incidents recents ont ete releves, dont une agression mortelle a Tiznit en janvier 2022 et l'assassinat de deux touristes en montagne en decembre 2018. La circulation le long de la frontiere mauritanienne est formellement deconseillee, sauf via la route cotiere menant a Nouadhibou ; la zone au sud de la frontiere algerienne appelle a une vigilance renforcee."
+    },
+    "crime": {
+      "title": "Risque Criminel et Volatilite Urbaine",
+      "text": "Les vols a l'arrache sont courants, en particulier a Casablanca et Marrakech. Le harcelement envers les femmes voyageant seules est signale, de meme que des vols dans des logements loues aux touristes dans les grandes villes. La region du Rif constitue une zone de trafic de haschich ou des provocations sont possibles."
+    },
+    "infra": {
+      "title": "Risques Infrastructures, Energie et Logistique",
+      "text": "Le reseau routier connait des infractions frequentes au code de la route, avec des axes juges particulierement perilleux (Casablanca-Marrakech, Marrakech-Agadir). Un risque sismique existe, illustre par le seisme de magnitude 6,8 survenu pres de Marrakech en septembre 2023. Des zones minees subsistent au sud-est de Guelmim, et la traversee du Sahara occidental hors route cotiere goudronnee necessite un accord prealable des autorites."
+    }
+  },
+  "neighbors": [
+    { "name": "Algerie", "slug": "algerie", "available": true },
+    { "name": "Mauritanie", "slug": "mauritanie", "available": false }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Vigilance renforcee signalee dans une zone proche de la frontiere algerienne.", "time": "Il y a 10h" },
+    { "tag": "SOCIAL", "text": "Vols a l'arrache signales dans un quartier touristique de Marrakech.", "time": "Il y a 1j" },
+    { "tag": "INFRA", "text": "Alerte routiere signalee sur l'axe Marrakech-Agadir.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/maroc/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 07/09/2026)"
+  ]
+}

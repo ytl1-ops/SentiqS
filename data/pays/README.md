@@ -20,16 +20,16 @@ Le script `scripts/generate-country-fiche.js` refuse de generer une fiche si le 
 3. Le fichier `web/pays/<slug>.html` est genere a partir du gabarit `scripts/templates/fiche-country.template.html`.
 4. Ajouter manuellement l'entree dans `sitemap.xml` et dans `web/pays/index.html`.
 
-## Checklist des 45 pays restants (9/54 deja publies : Burkina Faso, Cote d'Ivoire, Ghana, Guinee, Liberia, Mali, Nigeria, Senegal, Togo)
+## Checklist des pays restants (14/54 deja publies : Burkina Faso, Cote d'Ivoire, Ghana, Guinee, Liberia, Mali, Nigeria, Senegal, Togo, Cameroun, Kenya, Maroc, Tunisie, Algerie)
 
 | Pays | Slug prevu | ISO2 | Statut |
 |---|---|---|---|
-| Algerie | `algerie` | DZ | ☐ a faire |
+| Algerie | `algerie` | DZ | publiee (source France Diplomatie) |
 | Angola | `angola` | AO | ☐ a faire |
 | Benin | `benin` | BJ | ☐ a faire |
 | Botswana | `botswana` | BW | ☐ a faire |
 | Burundi | `burundi` | BI | ☐ a faire |
-| Cameroun | `cameroun` | CM | ☐ a faire |
+| Cameroun | `cameroun` | CM | publiee (source France Diplomatie) |
 | Cap-Vert | `cap-vert` | CV | ☐ a faire |
 | Centrafrique | `centrafrique` | CF | ☐ a faire |
 | Comores | `comores` | KM | ☐ a faire |
@@ -44,12 +44,12 @@ Le script `scripts/generate-country-fiche.js` refuse de generer une fiche si le 
 | Gambie | `gambie` | GM | ☐ a faire |
 | Guinee-Bissau | `guinee-bissau` | GW | ☐ a faire |
 | Guinee equatoriale | `guinee-equatoriale` | GQ | ☐ a faire |
-| Kenya | `kenya` | KE | ☐ a faire |
+| Kenya | `kenya` | KE | publiee (source France Diplomatie) |
 | Lesotho | `lesotho` | LS | ☐ a faire |
 | Libye | `libye` | LY | ☐ a faire |
 | Madagascar | `madagascar` | MG | ☐ a faire |
 | Malawi | `malawi` | MW | ☐ a faire |
-| Maroc | `maroc` | MA | ☐ a faire |
+| Maroc | `maroc` | MA | publiee (source France Diplomatie) |
 | Maurice | `maurice` | MU | ☐ a faire |
 | Mauritanie | `mauritanie` | MR | ☐ a faire |
 | Mozambique | `mozambique` | MZ | ☐ a faire |
@@ -68,7 +68,7 @@ Le script `scripts/generate-country-fiche.js` refuse de generer une fiche si le 
 | Tanzanie | `tanzanie` | TZ | ☐ a faire |
 | Tchad | `tchad` | TD | ☐ a faire |
 | Togo | `togo` | TG | publiee (source France Diplomatie) |
-| Tunisie | `tunisie` | TN | ☐ a faire |
+| Tunisie | `tunisie` | TN | publiee (source France Diplomatie) |
 | Zambie | `zambie` | ZM | ☐ a faire |
 | Zimbabwe | `zimbabwe` | ZW | ☐ a faire |
 | Afrique du Sud | `afrique-du-sud` | ZA | ☐ a faire |

@@ -1,0 +1,43 @@
+{
+  "iso2": "DZ",
+  "slug": "algerie",
+  "name": "Algerie",
+  "namePrep": "en Algerie",
+  "region": "Afrique du Nord",
+  "capital": "Alger",
+  "datePublished": "2026-09-07",
+  "dateModified": "2026-09-07",
+  "metaDescription": "Situation securitaire en Algerie : veille geopolitique, zones frontalieres a risque et alertes en temps reel avec SentiqS.",
+  "keywords": "Algerie securite, risque pays Algerie, veille geopolitique Alger Oran, surete entreprise Afrique du Nord, SentiqS",
+  "summary": "L'Algerie compte 6 400 km de frontieres terrestres, dont plusieurs jouxtent des pays en situation d'instabilite. Des groupes terroristes (AQMI et Etat islamique) subsistent de maniere residuelle, avec des cellules actives pres des frontieres libyenne, malienne et nigerienne. Les zones frontalieres a l'est (a partir de Tebessa), au sud (Mali, Niger) et a l'ouest (frontiere marocaine, fermee depuis 1994) sont formellement deconseillees. Le banditisme routier existe sur les axes secondaires et montagneux, et le reseau routier national reste accidentogene malgre des ameliorations.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste et Insurrectionnel",
+      "text": "Des groupes terroristes (AQMI et Etat islamique) sont toujours presents de maniere residuelle, avec des cellules actives pres des frontieres avec la Libye, le Mali et le Niger. Les zones frontalieres a l'est a partir de Tebessa, la frontiere libyenne (poste ferme), ainsi que les frontieres malienne et nigeriane au sud, sont formellement deconseillees en raison de trafics intensifs et de la presence de groupes armes."
+    },
+    "crime": {
+      "title": "Risque Criminel et Volatilite Urbaine",
+      "text": "Le banditisme existe sur les routes secondaires et les axes montagneux, notamment dans les wilayas d'Ain Defla, Batna et Setif ainsi que les massifs des Aures et de Chrea. Une vigilance est recommandee vis-a-vis des vols et agressions en zones urbaines. La region de Tindouf, qui abrite des camps de refugies, appelle egalement a la prudence."
+    },
+    "infra": {
+      "title": "Risques Infrastructures, Energie et Logistique",
+      "text": "Le reseau routier national s'ameliore mais genere un trafic dangereux, source chaque annee de nombreuses victimes d'accidents. Le site petrolier de Hassi Messaoud fait l'objet d'une vigilance renforcee. La frontiere avec le Maroc, fermee depuis 1994, contraint les flux logistiques terrestres vers l'ouest du pays."
+    }
+  },
+  "neighbors": [
+    { "name": "Maroc", "slug": "maroc", "available": true },
+    { "name": "Tunisie", "slug": "tunisie", "available": true },
+    { "name": "Libye", "slug": "libye", "available": false },
+    { "name": "Niger", "slug": "niger", "available": false },
+    { "name": "Mali", "slug": "mali", "available": true },
+    { "name": "Mauritanie", "slug": "mauritanie", "available": false }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Presence residuelle de groupes armes signalee pres d'une frontiere sud.", "time": "Il y a 9h" },
+    { "tag": "SOCIAL", "text": "Vigilance renforcee signalee dans une wilaya du massif des Aures.", "time": "Il y a 1j" },
+    { "tag": "INFRA", "text": "Accident de la route signale sur un axe national frequente.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/algerie/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 07/09/2026)"
+  ]
+}

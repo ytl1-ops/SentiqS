@@ -1,0 +1,44 @@
+{
+  "iso2": "CM",
+  "slug": "cameroun",
+  "name": "Cameroun",
+  "namePrep": "au Cameroun",
+  "region": "Afrique Centrale",
+  "capital": "Yaounde",
+  "datePublished": "2026-09-07",
+  "dateModified": "2026-09-07",
+  "metaDescription": "Situation securitaire au Cameroun : veille geopolitique, zones a risque (Extreme-Nord, Nord-Ouest/Sud-Ouest) et alertes en temps reel avec SentiqS.",
+  "keywords": "Cameroun securite, risque pays Cameroun, veille geopolitique Yaounde Douala, surete entreprise Afrique Centrale, SentiqS",
+  "summary": "Le Cameroun cumule plusieurs foyers d'insecurite distincts. La region de l'Extreme-Nord reste exposee aux exactions de Boko Haram et fait l'objet d'operations militaires continues. Les regions anglophones du Nord-Ouest et du Sud-Ouest connaissent depuis 2017 une crise separatiste marquee par des meurtres et enlevements reguliers de civils et d'officiels. Les zones frontalieres avec le Nigeria, le Tchad et la Republique centrafricaine restent exposees a des incursions de groupes armes et de bandes criminelles. Douala et Yaounde concentrent l'essentiel de l'activite economique dans un contexte de criminalite urbaine plus classique.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste et Insurrectionnel",
+      "text": "La region de l'Extreme-Nord est formellement deconseillee en raison d'operations militaires et d'un risque terroriste et d'enlevement lie a Boko Haram, actif de maniere reguliere. Depuis 2017, les regions anglophones du Nord-Ouest et du Sud-Ouest traversent une crise separatiste durable marquee par des meurtres et enlevements reguliers d'officiels et de civils. Les bandes de la frontiere avec la Republique centrafricaine et le Tchad (bande frontaliere d'environ 30 km) sont le fait de groupes armes, de braconniers et de trafiquants."
+    },
+    "crime": {
+      "title": "Risque Criminel et Volatilite Urbaine",
+      "text": "Les regions Nord et Est-Adamaoua sont exposees aux « coupeurs de route » et a des enlevements d'eleveurs contre rancon, avec des decouvertes reguliers d'armes. La region de l'Ouest, frontaliere des zones anglophones, connait des debordements ponctuels. A Douala et Yaounde, la delinquance reste d'un niveau urbain classique (vols a l'arrache, agressions), sans mesure comparable aux zones ci-dessus."
+    },
+    "infra": {
+      "title": "Risques Infrastructures, Energie et Logistique",
+      "text": "Le reseau routier camerounais est juge dangereux par les autorites consulaires, qui deconseillent formellement la circulation nocturne ; les transports en commun sont regulierement impliques dans des accidents mortels. La navigation dans le golfe de Guinee est formellement deconseillee en raison du risque de piraterie maritime, ce qui affecte la logistique portuaire (Douala)."
+    }
+  },
+  "neighbors": [
+    { "name": "Nigeria", "slug": "nigeria", "available": true },
+    { "name": "Tchad", "slug": "tchad", "available": false },
+    { "name": "Centrafrique", "slug": "centrafrique", "available": false },
+    { "name": "Congo-Brazzaville", "slug": "congo-brazzaville", "available": false },
+    { "name": "Gabon", "slug": "gabon", "available": false },
+    { "name": "Guinee equatoriale", "slug": "guinee-equatoriale", "available": false }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Operation militaire signalee dans une localite de l'Extreme-Nord.", "time": "Il y a 6h" },
+    { "tag": "SOCIAL", "text": "Tension signalee dans une localite du Nord-Ouest, deplacement de population.", "time": "Il y a 14h" },
+    { "tag": "INFRA", "text": "Alerte piraterie maritime signalee au large du golfe de Guinee.", "time": "Il y a 1j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/cameroun/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 07/09/2026)",
+    "https://cm.ambafrance.org/Fiche-conseils-aux-voyageurs (Ambassade de France au Cameroun)"
+  ]
+}

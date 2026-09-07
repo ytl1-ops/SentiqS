@@ -1,0 +1,39 @@
+{
+  "iso2": "TN",
+  "slug": "tunisie",
+  "name": "Tunisie",
+  "namePrep": "en Tunisie",
+  "region": "Afrique du Nord",
+  "capital": "Tunis",
+  "datePublished": "2026-09-07",
+  "dateModified": "2026-09-07",
+  "metaDescription": "Situation securitaire en Tunisie : veille geopolitique, zones frontalieres deconseillees et alertes en temps reel avec SentiqS.",
+  "keywords": "Tunisie securite, risque pays Tunisie, veille geopolitique Tunis Sfax, surete entreprise Afrique du Nord, SentiqS",
+  "summary": "La Tunisie vit sous etat d'urgence depuis novembre 2015, regulierement proroge. Des menaces terroristes persistent contre les interets occidentaux, portees notamment par des groupes actifs dans les massifs montagneux du centre-ouest pres de la frontiere algerienne. L'extreme sud, zone militaire frontaliere de la Libye et de l'Algerie, est formellement deconseille. La delinquance de rue reste jugee relativement maitrisee par les autorites consulaires, mais des mouvements sociaux provoquent regulierement des restrictions de circulation, notamment a Tunis et Carthage.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste et Insurrectionnel",
+      "text": "Des menaces persistent contre les interets occidentaux. Les massifs montagneux du centre-ouest (monts Chambi, Selloum, Mghila, Orbata et Semema), proches de la frontiere algerienne, abritent des activites terroristes residuelles. Plusieurs attentats ont frappe le pays par le passe : Bardo (2015), Sousse (2015 et 2020), Tunis (2019 et 2020) et Djerba (2023). L'etat d'urgence, en vigueur depuis novembre 2015, est regulierement proroge."
+    },
+    "crime": {
+      "title": "Risque Criminel et Volatilite Urbaine",
+      "text": "La delinquance de rue reste relativement maitrisee selon les autorites consulaires, mais des vols a la tire et des agressions a caractere raciste sont signales. Des mouvements sociaux provoquent regulierement des restrictions de circulation et des couvre-feux ponctuels, notamment a Tunis et Carthage."
+    },
+    "infra": {
+      "title": "Risques Infrastructures, Energie et Logistique",
+      "text": "L'extreme sud, zone militaire depuis 2013 pres des frontieres libyenne et algerienne, est formellement deconseille. Le sud desertique au-dela de la ligne Bir Rijm Maatoug-Borj Bourguiba-Ben Guerdane, ainsi que les gouvernorats du Kef et de Jendouba a moins de 5 km de la frontiere algerienne, sont deconseilles sauf raison imperative, ce qui contraint les itineraires logistiques terrestres vers le sud et l'ouest du pays."
+    }
+  },
+  "neighbors": [
+    { "name": "Algerie", "slug": "algerie", "available": true },
+    { "name": "Libye", "slug": "libye", "available": false }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Dispositif militaire renforce signale dans le sud desertique.", "time": "Il y a 12h" },
+    { "tag": "SOCIAL", "text": "Restriction de circulation signalee a Tunis suite a un mouvement social.", "time": "Il y a 1j" },
+    { "tag": "INFRA", "text": "Perturbation logistique signalee sur un axe du gouvernorat de Jendouba.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/tunisie/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 07/09/2026)"
+  ]
+}
