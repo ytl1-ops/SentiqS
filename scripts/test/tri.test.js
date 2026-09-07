@@ -252,3 +252,27 @@ test('les flux réparés le 06/09/2026 ne repointent pas vers leur adresse morte
   const trouvees = MORTES.filter((u) => HTML.includes(u));
   assert.deepStrictEqual(trouvees, [], 'adresses mesurées mortes, revenues dans le registre : ' + trouvees.join(', '));
 });
+
+test('la methode declaree correspond a l adresse reelle du flux', () => {
+  // Invariant introduit apres la reparation du 07/09/2026 : STP-Press etait
+  // interrogee par une requete Google News alors que l'agence publie un flux
+  // natif. Corriger l'adresse SANS corriger rss_method laisserait le registre
+  // mentir sur ce qu'il interroge — et rss_method sert a lire le registre,
+  // a compter les proxys, et a decider comment traiter la reponse.
+  const SRCS = exposer(bac(tranche('const SRCS=[', '\n];') + '\n];'), 'SRCS').SRCS;
+  const menteurs = [];
+  for (const s of SRCS) {
+    // L'hote est lu par URL, pas par expression : un premier jet cherchait
+    // « (^|.)news.google.com/ » et ne reconnaissait aucune des 318 requetes
+    // Google News du registre, faute du « // » qui les precede.
+    let hote = '';
+    try { hote = new URL(s.rss || '').hostname.toLowerCase(); } catch (_) { hote = ''; }
+    const estGoogle = hote === 'news.google.com';
+    const ditGoogle = /google news/i.test(s.rss_method || '');
+    if (estGoogle !== ditGoogle) {
+      menteurs.push(s.id + ' : rss=' + (estGoogle ? 'Google News' : 'natif')
+        + ' mais rss_method=' + (s.rss_method || '(absent)'));
+    }
+  }
+  assert.deepStrictEqual(menteurs, [], 'sources dont la methode ne correspond pas au flux :\n  ' + menteurs.join('\n  '));
+});
