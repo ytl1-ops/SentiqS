@@ -331,6 +331,28 @@ function borneRougeVerifie(niveauCalcule, niveauPlancher) {
   return (rang >= requis) ? 'rouge' : NIVEAU_MIN_POUR_ROUGE_AUTO;
 }
 
+// Seconde borne, décidée par l'éditeur le 07/09/2026 : le point qui fait
+// FRANCHIR le rouge ne peut pas venir d'un article seul.
+//
+// Collecte n° 851 : Centrafrique, Niger et Ouganda sont passés au rouge sur
+// un seul article élevé chacun — une fraude alimentaire à Bangui, un congrès
+// de médecine militaire à Niamey, un sermon de mariage sur les violences
+// domestiques. Six pays ont un socle à un ou deux points du seuil : n'importe
+// quel titre classé élevé par une source à 70 les faisait basculer, recoupé
+// ou non. borneRougeVerifie ne jouait pas, le socle étant déjà marron.
+//
+// Le rouge automatique exige donc qu'au moins un signal du jour soit
+// recoupé par une seconde source (fusion au dédoublonnage) ou classé critique
+// (un critique n'entre dans getLiveAlertEvents que corroboré). Là où le
+// dossier humain place déjà le pays au rouge, la collecte n'a rien à prouver.
+// Effet mesuré sur le cache publié : rouge 8 -> 5, rien d'autre ne bouge.
+function borneRougeRecoupe(niveauCalcule, niveauPlancher, eventsLive) {
+  if (niveauCalcule !== 'rouge') return niveauCalcule;
+  if (niveauPlancher === 'rouge') return 'rouge';
+  const porte = (eventsLive || []).some(e => e && (e.recoupe === true || e.niveauArticle === 'crit'));
+  return porte ? 'rouge' : NIVEAU_MIN_POUR_ROUGE_AUTO;
+}
+
 
 // ── Fraîcheur d'un facteur structurel ──────────────────────────────────────
 //
@@ -473,7 +495,7 @@ const API = {
   getNivKey,
   MOIS_FR_IDX, dateEvenementMs, facteurFraicheur, poidsVerifie,
   DECROISSANCE_PLEIN_J, DECROISSANCE_NULLE_J, POIDS_CONTEXTE_NON_DATE,
-  NIVEAUX_ORDRE, NIVEAU_MIN_POUR_ROUGE_AUTO, borneRougeVerifie,
+  NIVEAUX_ORDRE, NIVEAU_MIN_POUR_ROUGE_AUTO, borneRougeVerifie, borneRougeRecoupe,
   REVUE_RECOMMANDEE_MOIS, ageRevueMois, revueDepassee,
   DISJONCTEUR_SEUIL, creerDisjoncteur, avecDisjoncteur,
   tendanceNiveaux,
