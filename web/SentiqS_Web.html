@@ -312,6 +312,17 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .nav-arrow-l{border-right:1px solid var(--bd)}
 .nav-arrow-r{border-left:1px solid var(--bd)}
 .nav-arrow:active{background:var(--bb)}
+/* Debordement de la barre de modules : MESURE, jamais deduit d'une largeur.
+   Audit du 07/09/2026 — a 768 px la barre debordait (823 px pour 768) et les
+   fleches restaient cachees, parce que la regle qui les affiche vit dans
+   @media (max-width:760px). « Tableau de bord » etait hors champ sans que
+   rien ne l'indique. La regle ci-dessous l'emporte volontairement sur les
+   modes forces : si la barre deborde, la sortie doit rester visible. */
+.nav-wrap.nav-deborde .nav-arrow{display:flex !important;width:28px;min-height:36px}
+.nav-wrap.nav-deborde .nav{
+  -webkit-mask-image:linear-gradient(to right,transparent 0,#000 10px,#000 calc(100% - 14px),transparent 100%);
+  mask-image:linear-gradient(to right,transparent 0,#000 10px,#000 calc(100% - 14px),transparent 100%);
+}
 /* Barre de filtre compacte : remplace les listes verticales Portee/Pays de
    la sidebar par 2 menus deroulants, sur une seule ligne fine, pour degager
    de l'espace vertical et faciliter la prise en main de l'app (moins de
@@ -4902,6 +4913,8 @@ function setLang(lang) {
   // Les durees ecrites en dur dans le HTML statique sont remplies ici, a
   // partir de la constante — jamais recopiees (audit du 07/09/2026).
   document.querySelectorAll('[data-fenetre-h]').forEach(el => { el.textContent = libelleFenetre(); });
+  majDebordementOnglets();
+  window.addEventListener('resize', majDebordementOnglets);
   const _barreOnglets = document.getElementById('navTabs');
   if (_barreOnglets && !_barreOnglets.dataset.clavierBranche) {
     _barreOnglets.addEventListener('keydown', clavierOnglets);
@@ -13014,6 +13027,22 @@ function toggleGeo(e){e.stopPropagation();document.getElementById('geoDd').class
 function setGeo(code,name){fGeo=code;document.getElementById('geoLbl').textContent=name;document.getElementById('geoDd').classList.remove('op');renderFeed();renderGeo();}
 document.addEventListener('click',()=>document.getElementById('geoDd').classList.remove('op'));
 
+// majDebordementOnglets : la barre de modules deborde-t-elle VRAIMENT ?
+//
+// Une largeur d'ecran ne le dit pas : le nombre de modules visibles change
+// avec la langue, avec le mode force WEB/MOBILE, et avec les modules masques.
+// Audit du 07/09/2026 : a 768 px la barre mesurait 823 px et « Tableau de
+// bord » etait hors champ, sans fleche ni indice, parce que la regle
+// d'affichage etait accrochee a un point de rupture a 760 px.
+function majDebordementOnglets() {
+  const barre = document.getElementById('navTabs');
+  if (!barre) return;
+  const enveloppe = barre.closest('.nav-wrap');
+  if (!enveloppe) return;
+  const deborde = barre.scrollWidth > barre.clientWidth + 1;
+  enveloppe.classList.toggle('nav-deborde', deborde);
+}
+
 // clavierOnglets : la barre de modules se pilote au clavier.
 //
 // Audit du 07/09/2026 : les huit modules etaient des <div onclick>, donc
@@ -13075,6 +13104,10 @@ function switchView(name,el){
   // ecran etroit) : sans ca, activer un onglet situe hors champ (via un
   // lien ailleurs dans l'app, cf. showDet/setGeo...) le laissait invisible,
   // l'utilisateur ne voyait pas quel module etait realmente actif.
+  // Un module peut apparaitre ou disparaitre (Parametres n'est visible qu'aux
+  // administrateurs) : la largeur de la barre change alors sans que la
+  // fenetre bouge.
+  if (typeof majDebordementOnglets === 'function') majDebordementOnglets();
   if (el && typeof el.scrollIntoView === 'function') {
     try { el.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'}); } catch(_) {}
   }
