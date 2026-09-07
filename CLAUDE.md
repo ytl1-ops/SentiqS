@@ -832,10 +832,11 @@ ANG Guinée-Bissau) passent de Google News au flux natif. Le cliquet
 `PLAFOND_PAYS_SOURCE_UNIQUE` descend de **3 à 1** : reste l'Érythrée. Il ne
 descendra à zéro qu'avec une source érythréenne réelle.
 
-**Diario Rombe (Guinée équatoriale) est écarté et soumis à part** : publication
-d'opposition éditée depuis l'Espagne, principale voix indépendante sur un pays
-sans presse libre — mais ce n'est pas de la presse locale, et ce choix
-n'appartient pas au code.
+**Diario Rombe (Guinée équatoriale) a été écarté du lot puis soumis à part** :
+publication d'opposition éditée depuis l'Espagne, principale voix indépendante
+sur un pays sans presse libre — mais ce n'est pas de la presse locale, et ce
+choix n'appartenait pas au code. **L'éditeur l'a accepté le 07/09/2026**, en
+connaissance de cause ; l'entrée du registre porte une `note:` qui le dit.
 
 ---
 
