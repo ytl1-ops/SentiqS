@@ -3688,7 +3688,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // « Guineenews » etait en plus rattache a la Guinee-Bissau. Un test refuse
 // desormais deux entrees sur le meme flux.
 const SRCS=[
- {id:'rfi',n:'RFI Afrique',col:'#7F77DD',cy:'INT',sc:'regional',cat:'securite',score:93,url:'https://www.rfi.fr/fr/afrique/',rss:'https://www.rfi.fr/fr/rss/actualite-afrique.xml'},
+ {id:'rfi',n:'RFI Afrique',col:'#7F77DD',cy:'INT',sc:'regional',cat:'securite',score:93,url:'https://www.rfi.fr/fr/afrique/',rss:'https://www.rfi.fr/fr/afrique/rss'},
  {id:'bbc',n:'BBC Afrique',col:'#5C5CCA',cy:'INT',sc:'regional',cat:'securite',score:91,url:'https://www.bbc.com/afrique/topics/c404v14nk9xt',rss:'https://feeds.bbci.co.uk/afrique/rss.xml'},
  {id:'dw',n:'DW Afrique',col:'#C23B22',cy:'INT',sc:'regional',cat:'politique',score:89,url:'https://www.dw.com/fr/afrique/s-31400',rss:'https://rss.dw.com/rdf/rss-fr-afrique'},
  {id:'jeuneafrique',n:'Jeune Afrique',col:'#1D9E75',cy:'INT',sc:'regional',cat:'politique',score:90,url:'https://www.jeuneafrique.com/pays/zone-sahel/',rss:'https://www.jeuneafrique.com/feed/'},
@@ -3709,7 +3709,7 @@ const SRCS=[
  {id:'guineenews',n:'Guineenews',col:'#7C3AED',cy:'GN',sc:'national',cat:'politique',score:70,url:'https://guineenews.org/?s=guinee+securite',rss:'https://guineenews.org/feed/'},
  {id:'conakrylive',n:'Conakrylive',col:'#6D28D9',cy:'GN',sc:'local',cat:'politique',score:65,url:'https://conakrylive.com/?s=conakry',rss:'https://conakrylive.com/feed/'},
  {id:'koaci',n:'KOACI',col:'#F97316',cy:'CI',sc:'national',cat:'securite',score:72,url:'https://koaci.com/?s=securite+cote+ivoire',rss:'https://koaci.com/feed/'},
- {id:'linfodrome',n:'Linfodrome',col:'#EA580C',cy:'CI',sc:'national',cat:'politique',score:70,url:'https://linfodrome.com/?s=securite',rss:'https://www.linfodrome.com/feed'},
+ {id:'linfodrome',n:'Linfodrome',col:'#EA580C',cy:'CI',sc:'national',cat:'politique',score:70,url:'https://linfodrome.com/?s=securite',rss:'https://www.linfodrome.com/rss'},
  {id:'abidjannet',n:'Abidjan.net',col:'#F97316',cy:'CI',sc:'national',cat:'securite',score:75,url:'https://news.abidjan.net/?s=securite',rss:'https://news.abidjan.net/rss/'},
  {id:'fratmat',n:'Fratmat',col:'#EA580C',cy:'CI',sc:'local',cat:'politique',score:68,url:'https://fratmat.info/?s=politique',rss:'https://fratmat.info/feed/'},
  // Couverture supplementaire Cote d'Ivoire (demande explicite) : feeds Google
@@ -3732,7 +3732,7 @@ const SRCS=[
  {id:'haubenin',n:'24h Benin',col:'#8B1A1A',cy:'BJ',sc:'local',cat:'securite',score:66,url:'https://24haubenin.info/?s=securite',rss:'https://www.24haubenin.info/feed/'},
  {id:'lanation',n:'La Nation Benin',col:'#991B1B',cy:'BJ',sc:'national',cat:'politique',score:70,url:'https://lnation-benin.com/?s=securite',rss:'https://lnation-benin.com/feed/'},
  {id:'togofirst',n:'Togo First',col:'#4B5563',cy:'TG',sc:'national',cat:'economique',score:72,url:'https://togo-first.com/?s=togo',rss:'https://togo-first.com/feed/'},
- {id:'togoweb',n:'Togoweb',col:'#0F766E',cy:'TG',sc:'national',cat:'politique',score:68,url:'https://togoweb.net/?s=securite',rss:'https://www.togoweb.net/rss.xml'},
+ {id:'togoweb',n:'Togoweb',col:'#0F766E',cy:'TG',sc:'national',cat:'politique',score:68,url:'https://togoweb.net/?s=securite',rss:'https://togoweb.net/feed/'},
  {id:'icilome',n:'Icilome',col:'#0F766E',cy:'TG',sc:'local',cat:'politique',score:65,url:'https://icilome.com/?s=togo+politique',rss:'https://icilome.com/feed/'},
  {id:'ghanaweb',n:'GhanaWeb',col:'#0F4F2A',cy:'GH',sc:'national',cat:'politique',score:78,url:'https://ghanaweb.com/GhanaHomePage/s-results.php?query=security',rss:'https://www.ghanaweb.com/GhanaHomePage/rss/rss.php'},
  {id:'joyonline',n:'JoyOnline',col:'#047857',cy:'GH',sc:'national',cat:'securite',score:80,url:'https://myjoyonline.com/?s=security',rss:'https://www.myjoyonline.com/feed/'},
@@ -3748,7 +3748,7 @@ const SRCS=[
  {id:'aip',n:'AIP — Agence Ivoirienne Presse',col:'#F97316',cy:'CI',sc:'national',cat:'securite',score:90,url:'https://www.aip.ci/',rss:'https://news.google.com/rss/search?q=site:aip.ci&hl=fr&gl=CI&ceid=CI:fr',rss_method:'Google News RSS'},
  {id:'aib',n:'AIB — Agence Info Burkina',col:'#92400E',cy:'BF',sc:'national',cat:'securite',score:88,url:'https://www.aib.media/',rss:'https://news.google.com/rss/search?q=site:aib.media&hl=fr&gl=BF&ceid=BF:fr',rss_method:'Google News RSS'},
  {id:'amap',n:'AMAP — Agence Malienne Presse',col:'#854F0B',cy:'ML',sc:'national',cat:'securite',score:85,url:'https://www.maliweb.net/',rss:'https://www.maliweb.net/feed/',rss_method:'RSS natif'},
- {id:'anp',n:'ANP — Agence Nigérienne Presse',col:'#0E7490',cy:'NE',sc:'national',cat:'securite',score:82,url:'https://anp.ne/',rss:'https://news.google.com/rss/search?q=site:anp.ne&hl=fr&gl=NE&ceid=NE:fr',rss_method:'Google News RSS'},
+ {id:'anp',n:'ANP — Agence Nigérienne Presse',col:'#0E7490',cy:'NE',sc:'national',cat:'securite',score:82,url:'https://anp.ne/',rss:'https://anp.ne/feed/',rss_method:'RSS natif'},
  {id:'agp_gh',n:'GNA — Ghana News Agency',col:'#0F4F2A',cy:'GH',sc:'national',cat:'securite',score:86,url:'https://www.ghananewsagency.org/',rss:'https://www.ghananewsagency.org/rss.php',rss_method:'RSS natif'},
  {id:'nan_ng',n:'NAN — News Agency Nigeria',col:'#B91C1C',cy:'NG',sc:'national',cat:'securite',score:87,url:'https://www.nannews.ng/',rss:'https://www.nannews.ng/feed/',rss_method:'RSS natif'},
  {id:'abp_bj',n:'ABP — Agence Bénin Presse',col:'#8B1A1A',cy:'BJ',sc:'national',cat:'securite',score:80,url:'https://agencebeninpresse.info/',rss:'https://news.google.com/rss/search?q=site:agencebeninpresse.info&hl=fr&gl=BJ&ceid=BJ:fr',rss_method:'Google News RSS'},
@@ -3834,7 +3834,7 @@ const SRCS=[
  {id:'atpe_td',n:'ATPE — Agence Tchadienne de Presse et d Edition',col:'#C60C30',cy:'TD',sc:'national',cat:'securite',score:62,url:'https://atpe.td/',rss:'https://news.google.com/rss/search?q=site:atpe.td&hl=fr&gl=TD&ceid=TD:fr',rss_method:'Google News RSS'},
  {id:'newziana_zw',n:'New Ziana (Zimbabwe)',col:'#FCE300',cy:'ZW',sc:'national',cat:'securite',score:60,url:'https://newziana.co.zw/',rss:'https://news.google.com/rss/search?q=site:newziana.co.zw&hl=en&gl=ZW&ceid=ZW:en',rss_method:'Google News RSS',note:'Agence nationale, filiale du Zimbabwe Mass Media Trust (structure publique).'},
  {id:'adiac_cg',n:'Adiac-Congo — Les Depeches de Brazzaville',col:'#FBDE4A',cy:'CG',sc:'national',cat:'securite',score:64,url:'https://www.adiac-congo.com/',rss:'https://news.google.com/rss/search?q=site:adiac-congo.com&hl=fr&gl=CG&ceid=CG:fr',rss_method:'Google News RSS',note:'Editeur proche du pouvoir congolais.'},
- {id:'ang_gw',n:'ANG — Agencia de Noticias da Guine (Guinee-Bissau)',col:'#009639',cy:'GW',sc:'national',cat:'securite',score:64,url:'https://ang.gw/',rss:'https://news.google.com/rss/search?q=site:ang.gw&hl=pt&gl=GW&ceid=GW:pt',rss_method:'Google News RSS'},
+ {id:'ang_gw',n:'ANG — Agencia de Noticias da Guine (Guinee-Bissau)',col:'#009639',cy:'GW',sc:'national',cat:'securite',score:64,url:'https://ang.gw/',rss:'https://ang.gw/feed/',rss_method:'RSS natif'},
  {id:'lina_lr',n:'LINA — Liberia News Agency',col:'#002868',cy:'LR',sc:'national',cat:'securite',score:64,url:'https://www.liberianewsagency.net/',rss:'https://news.google.com/rss/search?q=site:liberianewsagency.net&hl=en&gl=LR&ceid=LR:en',rss_method:'Google News RSS'},
  {id:'slena_sl',n:'SLENA — Sierra Leone News Agency',col:'#0072C6',cy:'SL',sc:'national',cat:'securite',score:64,url:'https://www.slena.gov.sl/',rss:'https://news.google.com/rss/search?q=site:slena.gov.sl&hl=en&gl=SL&ceid=SL:en',rss_method:'Google News RSS'},
 
@@ -3863,10 +3863,10 @@ const SRCS=[
  {id:'presidenceci',n:'Presidence de la Republique de Cote d Ivoire',col:'#F77F00',cy:'CI',sc:'national',cat:'politique',score:85,url:'https://www.presidence.ci/',rss:'https://news.google.com/rss/search?q=conseil+des+ministres+Cote+Ivoire&hl=fr&gl=CI&ceid=CI:fr',rss_method:'Google News RSS'},
  {id:'presidencebf',n:'Gouvernement de transition Burkina Faso',col:'#EF2B2D',cy:'BF',sc:'national',cat:'politique',score:70,url:'https://www.gouvernement.gov.bf/',rss:'https://news.google.com/rss/search?q=conseil+des+ministres+Burkina+Faso+transition&hl=fr&gl=BF&ceid=BF:fr',rss_method:'Google News RSS'},
  {id:'gouv_mali',n:'Gouvernement de transition du Mali',col:'#14B53A',cy:'ML',sc:'national',cat:'politique',score:65,url:'https://www.koulouba.ml/',rss:'https://news.google.com/rss/search?q=conseil+des+ministres+Mali+gouvernement&hl=fr&gl=ML&ceid=ML:fr',rss_method:'Google News RSS'},
- {id:'cedeao_off',n:'CEDEAO — Communiques officiels',col:'#0072BC',cy:'INT',sc:'regional',cat:'politique',score:92,url:'https://www.ecowas.int/',rss:'https://www.ecowas.int/category/press-releases/feed/',rss_method:'RSS natif'},
+ {id:'cedeao_off',n:'CEDEAO — Communiques officiels',col:'#0072BC',cy:'INT',sc:'regional',cat:'politique',score:92,url:'https://www.ecowas.int/',rss:'https://www.ecowas.int/feed/',rss_method:'RSS natif'},
  {id:'ua_comm',n:'Commission de l Union africaine',col:'#1F6DB5',cy:'INT',sc:'regional',cat:'politique',score:90,url:'https://au.int/fr',rss:'https://news.google.com/rss/search?q=Union+africaine+communique+decision&hl=fr&gl=ET&ceid=ET:fr',rss_method:'Google News RSS'},
  {id:'parlement_cedeao',n:'Parlement CEDEAO',col:'#0072BC',cy:'INT',sc:'regional',cat:'politique',score:80,url:'https://parl.ecowas.int/',rss:'https://news.google.com/rss/search?q=parlement+CEDEAO+session+resolution&hl=fr&gl=NG&ceid=NG:fr',rss_method:'Google News RSS'},
- {id:'bceao_pub',n:'BCEAO — Publications officielles',col:'#003087',cy:'INT',sc:'regional',cat:'economique',score:92,url:'https://www.bceao.int/fr/publications',rss:'https://www.bceao.int/fr/rss',rss_method:'RSS natif'},
+ {id:'bceao_pub',n:'BCEAO — Publications officielles',col:'#003087',cy:'INT',sc:'regional',cat:'economique',score:92,url:'https://www.bceao.int/fr/publications',rss:'https://www.bceao.int/rss.xml',rss_method:'RSS natif'},
  {id:'festival_africa',n:'Agenda festivals et colloques Afrique',col:'#FF6B35',cy:'INT',sc:'regional',cat:'politique',score:65,url:'https://www.cityzeum.com/evenement/afrique',rss:'https://news.google.com/rss/search?q=festival+colloque+seminaire+Afrique+Ouest+2026&hl=fr&gl=SN&ceid=SN:fr',rss_method:'Google News RSS'},
 
  // ══ CANAUX TELEGRAM D'ALERTE SECURITAIRE VIA RSSHub ══════════════════════
@@ -3925,12 +3925,12 @@ const SRCS=[
 // ── SOURCES PANAFRICAINES — Couverture complete du continent ─────────────
  // Afrique Centrale
  {id:'radio_ndeke_cf',n:'Radio Ndeke Luka (RCA)',col:'#003082',cy:'CF',sc:'national',cat:'securite',score:72,url:'https://www.radiondekeluka.org/',rss:'https://www.radiondekeluka.org/feed/',rss_method:'RSS natif'},
- {id:'alwihda_td',n:'Alwihda Info (Tchad)',col:'#003082',cy:'TD',sc:'national',cat:'securite',score:70,url:'https://www.alwihda.com/',rss:'https://www.alwihda.com/feed/',rss_method:'RSS natif'},
+ {id:'alwihda_td',n:'Alwihda Info (Tchad)',col:'#003082',cy:'TD',sc:'national',cat:'securite',score:70,url:'https://alwihdainfo.com/',rss:'https://alwihdainfo.com/feed/',rss_method:'RSS natif'},
  // Afrique de l Ouest manquants
  {id:'awoko_sl',n:'Awoko Newspaper (Sierra Leone)',col:'#1EB53A',cy:'SL',sc:'national',cat:'securite',score:68,url:'https://awoko.org/',rss:'https://awoko.org/feed/',rss_method:'RSS natif'},
  // Afrique de l Est
  {id:'nation_ke',n:'Daily Nation (Kenya)',col:'#006600',cy:'KE',sc:'national',cat:'securite',score:88,url:'https://nation.africa/',rss:'https://nation.africa/kenya/rss/',rss_method:'RSS natif'},
- {id:'addisfortune_et',n:'Addis Fortune (Ethiopie)',col:'#078930',cy:'ET',sc:'national',cat:'securite',score:75,url:'https://addisfortune.net/',rss:'https://addisfortune.net/feed/',rss_method:'RSS natif'},
+ {id:'addisfortune_et',n:'Addis Fortune (Ethiopie)',col:'#078930',cy:'ET',sc:'national',cat:'securite',score:75,url:'https://addisfortune.news/',rss:'https://addisfortune.news/feed/',rss_method:'RSS natif'},
  {id:'thecitizen_tz',n:'The Citizen (Tanzanie)',col:'#1EB53A',cy:'TZ',sc:'national',cat:'securite',score:78,url:'https://www.thecitizen.co.tz/',rss:'https://www.thecitizen.co.tz/rss.xml',rss_method:'RSS natif'},
  {id:'newsoftime_rw',n:'New Times Rwanda',col:'#20603D',cy:'RW',sc:'national',cat:'politique',score:72,url:'https://www.newtimes.co.rw/',rss:'https://www.newtimes.co.rw/rss',rss_method:'RSS natif'},
  {id:'igihe_rw',n:'Igihe Rwanda',col:'#20603D',cy:'RW',sc:'national',cat:'securite',score:70,url:'https://igihe.com/',rss:'https://igihe.com/rss',rss_method:'RSS natif'},
@@ -3946,8 +3946,8 @@ const SRCS=[
  {id:'voa_afrique',n:'VOA Afrique',col:'#0033A0',cy:'INT',sc:'regional',cat:'securite',score:88,url:'https://www.voaafrique.com/',rss:'https://www.voaafrique.com/api/z-oyoyqm$yipmqfk_q-yopmy/rss',rss_method:'RSS natif'},
  {id:'jeune_afrique',n:'Jeune Afrique',col:'#CC0000',cy:'INT',sc:'regional',cat:'politique',score:85,url:'https://www.jeuneafrique.com/',rss:'https://www.jeuneafrique.com/feed/rss/',rss_method:'RSS natif'},
  {id:'theafricareport',n:'The Africa Report',col:'#CC0000',cy:'INT',sc:'regional',cat:'politique',score:90,url:'https://www.theafricareport.com/',rss:'https://www.theafricareport.com/feed/',rss_method:'RSS natif'},
- {id:'africanews_tv',n:'Africanews',col:'#FF6B35',cy:'INT',sc:'regional',cat:'securite',score:82,url:'https://www.africanews.com/',rss:'https://www.africanews.com/rss',rss_method:'RSS natif'},
- {id:'allafrica_fr',n:'AllAfrica francais',col:'#003082',cy:'INT',sc:'regional',cat:'politique',score:78,url:'https://fr.allafrica.com/',rss:'https://fr.allafrica.com/feed/',rss_method:'RSS natif'},
+ {id:'africanews_tv',n:'Africanews',col:'#FF6B35',cy:'INT',sc:'regional',cat:'securite',score:82,url:'https://www.africanews.com/',rss:'https://www.africanews.com/feed/',rss_method:'RSS natif'},
+ {id:'allafrica_fr',n:'AllAfrica francais',col:'#003082',cy:'INT',sc:'regional',cat:'politique',score:78,url:'https://fr.allafrica.com/',rss:'https://fr.allafrica.com/tools/headlines/rdf/latest/headlines.rdf',rss_method:'RSS natif'},
  // ── Filet de securite AllAfrica par pays (couverture des 54 pays sans exception) ──
  {id:'allafrica_ao',n:'AllAfrica (AO)',col:'#0C447C',cy:'AO',sc:'national',cat:'securite',score:80,url:'https://fr.allafrica.com/angola/',rss:'https://fr.allafrica.com/tools/headlines/rdf/angola/headlines.rdf'},
  {id:'allafrica_bf',n:'AllAfrica (BF)',col:'#0C447C',cy:'BF',sc:'national',cat:'securite',score:80,url:'https://fr.allafrica.com/burkinafaso/',rss:'https://fr.allafrica.com/tools/headlines/rdf/burkinafaso/headlines.rdf'},
@@ -4301,6 +4301,38 @@ const SRCS=[
  // Trois titres supplementaires existent mais publiaient au-dela de la fenetre
  // de 36 h au recensement (The Voice BW 38 h, Lesotho Times 43 h, The Standard
  // GM 64 h). Non retenus ici : ils n'ont pas ete soumis a l'arbitrage.
+ // ── Second passage nominatif du 07/09/2026 : quinze medias locaux ──
+ // Meme methode que les cinq ci-dessous — les grands titres connus de chaque
+ // pays, testes un par un — etendue aux deux derniers pays a source d'alerte
+ // unique (Guinee equatoriale, Guinee-Bissau), a deux pays qui respirent
+ // d'un passage a l'autre (Tchad, Niger), et aux titres deja trouves mais
+ // non soumis la premiere fois. Chaque flux interroge, ses titres lus ; age
+ // du dernier article au recensement entre parentheses.
+ //
+ // Notes 72 EN BLOC, par extension de l'arbitrage de l'editeur sur les cinq
+ // precedents (« 72 — comme les 71 precedents »), sur son instruction
+ // « pousse au max ». La note ne vient pas d'une lecture editoriale titre
+ // par titre. Les organes d'Etat portent une note qui le dit.
+ //
+ // Ecarte volontairement, soumis a part a l'editeur : Diario Rombe (GQ),
+ // publication d'opposition editee depuis l'Espagne — c'est la principale
+ // voix independante sur ce pays, mais ce n'est pas de la presse locale, et
+ // ce choix-la n'appartient pas au code.
+ {id:'ahoraeg_gq',n:'Ahora EG',col:'#4B5563',cy:'GQ',sc:'national',cat:'securite',score:72,url:'https://ahoraeg.com/',rss:'https://ahoraeg.com/feed/',rss_method:'RSS natif'},
+ {id:'odemocrata_gw',n:'O Democrata GB',col:'#4B5563',cy:'GW',sc:'national',cat:'securite',score:72,url:'https://odemocratagb.com/',rss:'https://odemocratagb.com/?feed=rss2',rss_method:'RSS natif'},
+ {id:'tchadinfos_td',n:'Tchadinfos',col:'#4B5563',cy:'TD',sc:'national',cat:'securite',score:72,url:'https://tchadinfos.com/',rss:'https://tchadinfos.com/feed/',rss_method:'RSS natif'},
+ {id:'journaldutchad_td',n:'Journal du Tchad',col:'#4B5563',cy:'TD',sc:'national',cat:'securite',score:72,url:'https://journaldutchad.com/',rss:'https://journaldutchad.com/feed/',rss_method:'RSS natif'},
+ {id:'lesahel_ne',n:'Le Sahel',col:'#4B5563',cy:'NE',sc:'national',cat:'securite',score:72,url:'https://lesahel.org/',rss:'https://lesahel.org/feed/',rss_method:'RSS natif',note:'Quotidien d Etat nigerien. Ligne editoriale gouvernementale. A recouper.'},
+ {id:'studiokalangou_ne',n:'Studio Kalangou',col:'#4B5563',cy:'NE',sc:'national',cat:'securite',score:72,url:'https://studiokalangou.org/',rss:'https://studiokalangou.org/feed/',rss_method:'RSS natif'},
+ {id:'nigerinter_ne',n:'Nigerinter',col:'#4B5563',cy:'NE',sc:'national',cat:'securite',score:72,url:'https://nigerinter.com/',rss:'https://nigerinter.com/feed/',rss_method:'RSS natif'},
+ {id:'airinfo_ne',n:'Aïr Info (Agadez)',col:'#4B5563',cy:'NE',sc:'national',cat:'securite',score:72,url:'https://airinfoagadez.com/',rss:'https://airinfoagadez.com/feed/',rss_method:'RSS natif'},
+ {id:'rtd_dj',n:'RTD — Radiodiffusion-Télévision de Djibouti',col:'#4B5563',cy:'DJ',sc:'national',cat:'securite',score:72,url:'https://rtd.dj/',rss:'https://rtd.dj/feed/',rss_method:'RSS natif',note:'Radiodiffusion publique djiboutienne. Ligne editoriale gouvernementale. A recouper.'},
+ {id:'thevoice_bw',n:'The Voice',col:'#4B5563',cy:'BW',sc:'national',cat:'securite',score:72,url:'https://thevoicebw.com/',rss:'https://thevoicebw.com/feed/',rss_method:'RSS natif'},
+ {id:'sundaystandard_bw',n:'Sunday Standard',col:'#4B5563',cy:'BW',sc:'national',cat:'securite',score:72,url:'https://sundaystandard.info/',rss:'https://sundaystandard.info/feed/',rss_method:'RSS natif'},
+ {id:'lestimes_ls',n:'Lesotho Times',col:'#4B5563',cy:'LS',sc:'national',cat:'securite',score:72,url:'https://lestimes.com/',rss:'https://lestimes.com/?feed=rss2',rss_method:'RSS natif'},
+ {id:'thepost_ls',n:'The Post',col:'#4B5563',cy:'LS',sc:'national',cat:'securite',score:72,url:'https://thepost.co.ls/',rss:'https://thepost.co.ls/feed/',rss_method:'RSS natif'},
+ {id:'standard_gm',n:'The Standard',col:'#4B5563',cy:'GM',sc:'national',cat:'securite',score:72,url:'https://standard.gm/',rss:'https://standard.gm/feed/',rss_method:'RSS natif'},
+ {id:'fatunetwork_gm',n:'The Fatu Network',col:'#4B5563',cy:'GM',sc:'national',cat:'securite',score:72,url:'https://thefatunetwork.com/',rss:'https://thefatunetwork.com/feed/',rss_method:'RSS natif'},
  {id:'weekendpost_bw',n:'Weekend Post',col:'#4B5563',cy:'BW',sc:'national',cat:'securite',score:72,url:'https://weekendpost.co.bw/',rss:'https://weekendpost.co.bw/feed/',rss_method:'RSS natif'},
  {id:'businessweekly_bw',n:'The Business Weekly & Review',col:'#4B5563',cy:'BW',sc:'national',cat:'economique',score:72,url:'https://businessweekly.co.bw/',rss:'https://businessweekly.co.bw/feed/',rss_method:'RSS natif'},
  {id:'kerrfatou_gm',n:'Kerr Fatou',col:'#4B5563',cy:'GM',sc:'national',cat:'securite',score:72,url:'https://kerrfatou.com/',rss:'https://kerrfatou.com/feed/',rss_method:'RSS natif'},
@@ -8249,7 +8281,14 @@ function parseRSS(xml, src) {
     const descRaw = item.querySelector('description,summary,content')?.textContent || '';
     const _media = extractMediaFromItem(item, descRaw);
 
-    const pubRaw = item.querySelector('pubDate,published,updated')?.textContent || '';
+    // .trim() : Jeune Afrique enveloppe sa date dans un CDATA entoure de
+    // retours a la ligne et d'espaces (« \n      2026-09-07T08:50:13+00:00\n  »).
+    // new Date() n'en fait rien : les 30 articles du flux etaient sans date,
+    // donc ecartes en aval — la source paraissait muette alors qu'elle
+    // publiait toutes les heures. Mesure du 07/09/2026 en rejouant le flux
+    // sur la page : 0 article retenu sur 12, 12 sans date. Le titre, lui,
+    // etait deja trim() deux lignes plus haut.
+    const pubRaw = (item.querySelector('pubDate,published,updated')?.textContent || '').trim();
     let pubTs = pubRaw ? new Date(pubRaw).getTime() : 0;
     // Date manquante/invalide : voir note detaillee dans parseJSON ci-dessus.
     // On n'invente plus de date recente — exclusion automatique en aval.

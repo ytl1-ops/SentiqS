@@ -40,11 +40,19 @@
 // publications de la diaspora. Les Seychelles ne sont PAS dans cette liste
 // mais meritent la meme prudence : leur seul flux vivant (SBC) publie en
 // creole seychellois, que les lexiques ne lisent pas.
+//
+// Descente du 07/09/2026, second passage : 3 -> 1. La Guinee equatoriale
+// (Ahora EG) et la Guinee-Bissau (O Democrata GB, plus l'agence ANG lue en
+// flux natif) sortent de la liste, par la meme methode nominative. Reste
+// l'Erythree, seule, et c'est mesure : la presse d'Etat n'expose aucun flux
+// et les sites trouves sont des publications de la diaspora. Ce plafond ne
+// descendra a zero qu'avec une source erythreenne reelle, pas avec une
+// source de complaisance.
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const PLAFOND_PAYS_SOURCE_UNIQUE = 3;
+const PLAFOND_PAYS_SOURCE_UNIQUE = 1;
 
 const cible = process.argv[2] || path.join(__dirname, '../web/SentiqS_Web.html');
 const HTML = fs.readFileSync(cible, 'utf8');

@@ -793,6 +793,52 @@ sort. Restent l'Érythrée, la Guinée équatoriale et la Guinée-Bissau.
 
 ---
 
+## Le registre vieillit : 74 flux natifs en panne, et ce qu'on peut en faire
+
+Second recensement du 07/09/2026, sur les 560 sources : **74 flux natifs ne
+répondaient pas** (les 319 requêtes Google News sont à part). Quatre familles,
+et une seule se répare par du code :
+
+| Famille | Combien | Ce qu'on fait |
+|---|---:|---|
+| Adresse changée, même média, **même périmètre** | 9 | réparé (RFI Afrique, Africanews, AllAfrica FR, L'Infodrome, Alwihda, Addis Fortune, CEDEAO, BCEAO, Togoweb) |
+| Adresse vivante mais **autre périmètre** | 5 | **laissé mort** : HRW, OCHA, ReliefWeb, VOA, Almarsad n'ont plus que des flux mondiaux ou en arabe. Un flux « Afrique » remplacé par un flux « monde » n'est pas une réparation, c'est une autre source |
+| Défi Cloudflare depuis ce bac à sable | 15 | non concluant d'ici — Punch, Nation, Monitor, L'Express, Igihe… Le journal du job planifié dit s'ils passent depuis GitHub |
+| Accueil vivant, aucun flux déclaré | 29 | rien à faire côté code — dont tous les canaux Telegram via `rsshub.app`, instance publique morte |
+| Domaine disparu (DNS vide) | 5 | à retirer, décision éditoriale : `togofirst`, `lanation`, `beninwebs`, `acap_cf`, `conakrylive` |
+
+**Deux « réparations » étaient des doublons.** `jeune_afrique` et `citizen_tz`
+pointaient vers une adresse morte alors que `jeuneafrique` et `thecitizen_tz`
+lisent déjà le bon flux. Les remettre d'aplomb aurait créé deux entrées sur
+le même flux — le cliquet de `tri.test.js` l'a refusé, c'est son travail. Ils
+sont laissés tels quels et signalés : supprimer un doublon est une décision
+de registre, pas un correctif.
+
+**La panne qui ne se voyait pas : Jeune Afrique publiait toutes les heures et
+paraissait muet.** Son flux enveloppe la date dans un CDATA entouré de
+retours à la ligne ; `new Date()` n'en fait rien, donc ses 30 articles
+étaient sans date, donc écartés. Un `.trim()` dans `parseRSS` — le titre en
+avait déjà un deux lignes plus haut. Le test de fumée le vérifie désormais
+sur un flux synthétique de cette forme exacte, et il a été vu dire « PERDUE »
+sans le trim.
+
+**Sur les 15 sites derrière Cloudflare, ne pas conclure d'ici.** Ce bac à
+sable sort par un proxy ; `curl` obtient un défi là où le runner GitHub peut
+passer. « Injoignable » ne veut dire « mort » qu'avec un DNS vide.
+
+Douze pays ont reçu un média local de plus par la méthode nominative
+(GQ, GW, TD ×2, NE ×4, DJ, BW ×2, LS ×2, GM ×2), et deux agences (ANP Niger,
+ANG Guinée-Bissau) passent de Google News au flux natif. Le cliquet
+`PLAFOND_PAYS_SOURCE_UNIQUE` descend de **3 à 1** : reste l'Érythrée. Il ne
+descendra à zéro qu'avec une source érythréenne réelle.
+
+**Diario Rombe (Guinée équatoriale) est écarté et soumis à part** : publication
+d'opposition éditée depuis l'Espagne, principale voix indépendante sur un pays
+sans presse libre — mais ce n'est pas de la presse locale, et ce choix
+n'appartient pas au code.
+
+---
+
 ## Par où commencer la revue du socle
 
 `revue-socle.js` transforme « relire les 172 incidents » en liste ordonnée,
