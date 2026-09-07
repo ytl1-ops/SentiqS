@@ -50,6 +50,11 @@ const TERMES_AMBIGUS_MASQUES = {
   // traverse cinq pays. Sans masquage, chaque article du delta nigerian
   // faisait gagner des points au Niger — le piege existait deja en francais.
   niger:   ['niger delta', 'niger state', 'niger river', 'delta du niger', 'fleuve niger', 'etat du niger', 'état du niger'],
+  // « Maurice Kamto » est un opposant camerounais. Mesure de la collecte
+  // n° 851 (07/09/2026) : un article d'AllAfrica Cameroun sur sa candidature
+  // etait rattache a l'ile Maurice, classe eleve, et faisait passer l'ile de
+  // jaune a orange. Un prenom n'est pas un pays.
+  maurice: ['maurice kamto'],
 };
 function masquerTermesComposes(texte, terme) {
   const masques = TERMES_AMBIGUS_MASQUES[terme];

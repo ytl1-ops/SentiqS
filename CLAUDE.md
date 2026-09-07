@@ -1012,6 +1012,44 @@ AMI et KNA répondent en quarante secondes deux fois sur trois : ils
 retomberont peut-être en veille. Ce n'est pas pire qu'une requête Google
 News muette, et la prochaine collecte le mesure.
 
+**Mesuré sur la collecte n° 851, la première après la bascule.** Huit des
+douze produisent depuis GitHub : AMAP 9 articles, Radio Okapi 9, Daily
+Monitor 12, AGP Gabon 8, SIG Burkina 3, AIB 1, AIP 1, ATOP 1 — 44 articles,
+13 au-dessus du normal, le plus frais à douze minutes. Quatre ne donnent
+rien : AMI et KNA (les deux lents), FrontPageAfrica (flux vivant d'ici,
+muet depuis le runner), Parlement CEDEAO (rien publié depuis juin). Le
+cache passe de 1 412 à 1 522 articles ; les Comores en sortent, non à
+cause de la bascule mais parce que leur dernier article a vieilli hors
+fenêtre.
+
+**Et la même collecte a fait passer trois pays au rouge sur un seul
+article chacun.** `calcAlertScore` rejoué hors ligne sur le cache publié,
+pays par pays :
+
+| Pays | Socle vérifié + facteurs | Ce qui ajoute le dernier point |
+|---|---:|---|
+| Centrafrique | 13 | « Fraude alimentaire : à Bangui, des consommateurs dénoncent des produits frelatés » (élevé) |
+| Niger | 13 | « Santé militaire dans l'espace AES : le médecin-colonel … prend les rênes » (élevé, congrès de médecine) |
+| Ouganda | 12 | « Bishop Suubi, leaders link domestic violence to school dropouts at Bugiri wedding » (élevé, mot « violence ») + un portrait de Jeune Afrique (élevé, mot « menace ») |
+
+Le seuil du rouge est 14. Six pays ont un socle à 12 ou 13 — CF MZ NE SS
+CM UG — et **n'importe quel article classé élevé par une source à 70 les
+fait basculer**, recoupé ou non. `borneRougeVerifie` ne joue pas : le
+socle est déjà marron, c'est le cas qu'elle autorise. La collecte change
+le niveau de 7 pays sur 54 ce soir-là ; les trois passages au rouge
+tiennent tous à un titre qui n'est pas un incident. La question posée à
+l'éditeur : le point qui fait franchir le rouge peut-il venir d'un article
+seul, ou doit-il être recoupé ou critique ? Effet mesuré de la seconde
+règle sur ce cache : rouge 8 → 5, rien d'autre ne bouge. À passer par
+`tableau-niveaux.js` avant toute décision.
+
+**Un prénom n'est pas un pays.** « Anicet Ekanè - Son dernier combat
+politique pour Kamto », article camerounais dont le corps commence par
+« Maurice Kamto a choisi le Manidem », était rattaché à l'**île Maurice**,
+ville Port-Louis, classé élevé, et faisait passer l'île de jaune à orange.
+Masque `maurice kamto` dans `TERMES_AMBIGUS_MASQUES`, test vu tomber sans
+le masque.
+
 ---
 
 ## Le même fait en trois langues

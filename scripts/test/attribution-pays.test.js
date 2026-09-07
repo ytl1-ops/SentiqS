@@ -201,3 +201,18 @@ test('chaque pays a au moins un nom non français dans sa liste de détection', 
   const sansEtranger = pays.filter((cy) => PAYS_DETECT[cy].length < 3);
   assert.deepStrictEqual(sansEtranger, [], 'pays à liste trop courte : ' + sansEtranger.join(', '));
 });
+
+test('« Maurice Kamto » est un homme politique camerounais, pas l\'île Maurice', () => {
+  // Mesure de la collecte n° 851 du 07/09/2026 : « Anicet Ekanè - Son dernier
+  // combat politique pour Kamto », article d'AllAfrica Cameroun dont le corps
+  // commence par « Maurice Kamto a choisi le Manidem... », etait rattache a
+  // MAURICE (ville Port-Louis), classe eleve, et faisait passer l'ile de
+  // jaune a orange. Le prenom d'un opposant camerounais ne designe pas un
+  // pays. Le masque retire l'expression avant la detection ; l'ile Maurice
+  // nommee pour elle-meme reste reconnue.
+  const r = ou('Anicet Ekanè - Son dernier combat politique pour Kamto',
+    '[Camer.be] Maurice Kamto a choisi le Manidem pour déjouer les pièges du régime.', 'CM');
+  assert.strictEqual(r.cy, 'CM');
+  assert.strictEqual(ou('Cyclone : l\'île Maurice en alerte', '', 'CM').cy, 'MU');
+  assert.strictEqual(ou('Port-Louis : manifestation devant le Parlement', '', 'CM').cy, 'MU');
+});
