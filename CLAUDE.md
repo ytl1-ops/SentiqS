@@ -1274,6 +1274,45 @@ seuil, code de sortie 1.
 
 ---
 
+## CK_ECO élargi le 07/09/2026 : risque financier, sanctions, notation, groupes
+
+À la demande de l'éditeur, pour l'usage intelligence économique/sûreté :
+risque financier sur partenaires et fournisseurs (difficultés de trésorerie,
+procédures collectives), sanctions économiques et embargos, notations
+financières et risque pays, évolution des groupes stratégiques en Afrique
+(fusions-acquisitions, cessions, prises de participation). Vingt-neuf mots-clés
+ajoutés à `CK_ECO`, bilingues, sans nom d'agence de notation (trop rares et
+sujets à confusion pour peser dans un lexique de mots isolés).
+
+**Comme le reste de `CK_ECO`, ces mots ne pèsent que sur la catégorie, jamais
+sur le niveau d'alerte** — `lienSecuriteFaible` ne les lit pas. Un test le
+vérifie sur dix titres synthétiques (`scripts/test/classification.test.js`).
+
+**Non mesuré sur cache réel** : cet environnement n'a pas accès au cache
+partagé (`verifier-fraicheur-cache.js` répond HTTP 403 ici, question de réseau
+sandbox, pas du changement). À rejouer avec `scripts/banc-tri.js` sur un cache
+de production avant la prochaine revue de lexique, comme pour tout élargissement
+précédent de `CK_ECO`.
+
+**Piège rencontré en écrivant le test** : « sanctions economiques » seul ne
+suffit pas à classer en économique — `CK_POL` porte déjà le mot nu
+« sanctions », et sur ce titre les deux scores sont à égalité, ce qui laisse
+`classify()` sur politique (premier arrivé dans l'ordre d'itération). Ce n'est
+pas un défaut : une sanction économique est aussi un fait politique. D'où
+« gel des avoirs » comme exemple de test plutôt que « sanctions economiques »
+seul, qui n'a pas cette collision.
+
+Sources du registre non touchées dans ce lot : plusieurs candidats
+(Agence Ecofin, Financial Afrik, Sika Finance) ont été explorés pour enrichir
+la couverture native de ces thèmes, mais le flux `finance-rss` d'Agence Ecofin
+s'est révélé figé (`lastBuildDate` à jour, articles bloqués à mars 2025) — le
+piège exact que ce dépôt documente déjà ailleurs (une source qui semble vivre
+et ne l'est pas). Ajouter une source sur cette seule apparence de fraîcheur
+aurait recréé le défaut. À reprendre avec la méthode qui marche pour ce dépôt :
+tester nominativement les flux candidats sur la vraie page avant intégration,
+pas sur la seule date d'en-tête du flux.
+
+---
 ## Conventions
 
 - **Tout en français** : commits, commentaires, noms de fonctions et de

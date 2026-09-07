@@ -6322,7 +6322,32 @@ const CK_ECO  = ['economie','marche','prix','croissance','investissement','entre
   // seuls 25 d'entre eux portaient un mot economique, d'ou 3,9 % de la
   // repartition. CK_ECO n'entre PAS dans lienSecuriteFaible : l'elargir ne
   // touche donc aucun niveau d'alerte, seulement la categorie.
-  'fmi','dette','budget','penurie','carburant','filiere','chomage','banque mondiale'];
+  'fmi','dette','budget','penurie','carburant','filiere','chomage','banque mondiale',
+  // Elargi le 07/09/2026 a la demande de l'editeur, pour l'usage intelligence
+  // economique/surete : risque financier sur partenaires et fournisseurs,
+  // sanctions et embargos, notations et risque pays, evolution des groupes
+  // strategiques en Afrique. Non mesure sur cache reel (pas d'acces au cache
+  // partage depuis cet environnement) : a rejouer avec scripts/banc-tri.js
+  // avant la prochaine revue de lexique. Comme le reste de CK_ECO, ces mots ne
+  // pesent que sur la categorie, jamais sur le niveau d'alerte.
+  //
+  // Difficultes financieres / tresorerie (partenaires, fournisseurs) :
+  'redressement judiciaire','liquidation judiciaire','faillite','cessation de paiement',
+  'cessation des paiements','insolvabilite','defaut de paiement','difficultes de tresorerie',
+  'restructuration de dette','bankruptcy','insolvency','receivership','liquidation',
+  'debt default','debt restructuring',
+  // Sanctions et embargos :
+  'embargo','sanctions economiques','sanctions internationales','gel des avoirs',
+  'liste noire financiere','economic sanctions','asset freeze',
+  // Notations financieres et risque pays (les noms d'agences ne sont pas
+  // retenus comme mots-cles : trop rares et sujets a confusion pour peser) :
+  'notation financiere','notation souveraine','note souveraine','agence de notation',
+  'degradation de la note','perspective negative','risque pays','credit rating',
+  'sovereign rating','credit downgrade',
+  // Evolution des groupes strategiques (fusions, cessions, prises de
+  // participation) :
+  'fusion-acquisition','prise de participation','cession de filiale','privatisation','opa',
+  'merger','acquisition','takeover','divestment'];
 
 // CK_HUM_DOMAINE : vocabulaire humanitaire de DOMAINE, qui n'est pas du
 // vocabulaire de CRISE.
