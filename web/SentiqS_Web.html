@@ -1907,7 +1907,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
     </div>
     <div class="auth-stats" id="authStats">
       <div class="as-item"><div class="as-n" id="asPays">54</div><div class="as-l" data-i18n="auth_stat_pays">Pays sous veille</div></div>
-      <div class="as-item"><div class="as-n" id="asActus">—</div><div class="as-l" data-i18n="auth_stat_actus">Actus /36h</div></div>
+      <div class="as-item"><div class="as-n" id="asActus">—</div><div class="as-l" data-i18n="auth_stat_actus">Actus /{hc}</div></div>
       <div class="as-item"><div class="as-n" id="asAlertes">—</div><div class="as-l" data-i18n="auth_stat_alertes">Pays en alerte</div></div>
     </div>
     <div class="auth-stats-sync" id="authStatsSync"></div>
@@ -2348,7 +2348,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
           </span>
         </div>
       </div>
-      <div class="view-note"><i class="ti ti-info-circle"></i><span data-i18n="note_flux">Flux opérationnel : actualités sourcées des 12 dernières heures, triables et filtrables par pays, catégorie et niveau d'alerte.</span></div>
+      <div class="view-note"><i class="ti ti-info-circle"></i><span data-i18n="note_flux">Flux opérationnel : actualités sourcées des dernières {h}, triables et filtrables par pays, catégorie et niveau d'alerte.</span></div>
     </div>
 
     <!-- RECHERCHE -->
@@ -3594,7 +3594,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               <div>
                 <div style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:4px;">Fraîcheur et fiabilité des dates</div>
                 <div style="font-size:11px;color:var(--t2);line-height:1.6;">
-                  Le Flux principal n'affiche que les faits survenus dans les 12 dernières heures. Les contenus plus anciens,
+                  Le Flux principal n'affiche que les faits survenus dans la fenêtre d'actualité (<span data-fenetre-h></span>). Les contenus plus anciens,
                   ou dont la date n'est pas jugée fiable (ex. flux de recherche classés par pertinence plutôt que par date),
                   sont écartés du Flux et conservés séparément comme référence historique pour le calcul des tendances —
                   jamais présentés comme des faits du jour.
@@ -4667,7 +4667,7 @@ const I18N = {
     ph_recherche:'Rechercher...',
     flashinfo_lbl:'FLASH INFO',
     sb_geo:'Filtrer par pays / agence de presse', sb_agences:'Agences nationales',
-    note_flux:'Flux opérationnel : actualités sourcées des 12 dernières heures, triables et filtrables par pays, catégorie et niveau d\'alerte. Le badge « recoupé » signale un fait rapporté par plusieurs sources.',
+    note_flux:'Flux opérationnel : actualités sourcées des dernières {h}, triables et filtrables par pays, catégorie et niveau d\'alerte. Le badge « recoupé » signale un fait rapporté par plusieurs sources.',
     note_recherche:'Recherche : retrouvez un pays, un événement, un thème ou une source dans l\'ensemble des données collectées par SentiqS.',
     note_analyse:'Synthèse : rapport analytique thématique généré automatiquement à partir du Flux, filtrable par zone ou par pays.',
     note_agenda:'Agenda : événements en cours, à venir et échéances de sûreté, classés par statut et par zone.',
@@ -4681,7 +4681,7 @@ const I18N = {
     auth_ops_veille:'Veille active · 54 pays', auth_ops_reseau1:'Réseau de surveillance', auth_ops_reseau2:'Afrique · temps réel',
     auth_ops_flux:'Flux · Corrélations · Alertes', auth_ops_surete:'Sûreté opérationnelle',
     auth_logo_sub:"Veille sûreté · 54 pays d'Afrique",
-    auth_stat_pays:'Pays sous veille', auth_stat_actus:'Actus /36h', auth_stat_alertes:'Pays en alerte',
+    auth_stat_pays:'Pays sous veille', auth_stat_actus:'Actus /{hc}', auth_stat_alertes:'Pays en alerte',
     login_title:'Connexion', login_sub:'Accès restreint aux responsables sûreté autorisés',
     login_email_label:'Adresse e-mail', login_code_label:"Mot de passe", login_btn:'Se connecter',
     login_first_time:'Première connexion ?', login_request_access:'Demander un accès', login_reset:"Mot de passe oublié ?",
@@ -4805,7 +4805,7 @@ const I18N = {
     ph_recherche:'Search...',
     flashinfo_lbl:'BREAKING NEWS',
     sb_geo:'Filter by country / press agency', sb_agences:'National agencies',
-    note_flux:'Feed: sourced news from the last 36 hours, sortable and filterable by country, category and alert level. The cross-checked badge marks a fact reported by several sources.',
+    note_flux:'Feed: sourced news from the last {h}, sortable and filterable by country, category and alert level. The cross-checked badge marks a fact reported by several sources.',
     note_recherche:'Search: find a country, event, theme or source across all data collected by SentiqS.',
     note_analyse:'Summary: thematic analytical report automatically generated from the Feed, filterable by zone or country.',
     note_agenda:'Agenda: ongoing and upcoming security events and deadlines, classified by status and zone.',
@@ -4819,7 +4819,7 @@ const I18N = {
     auth_ops_veille:'Active monitoring · 54 countries', auth_ops_reseau1:'Surveillance network', auth_ops_reseau2:'Africa · real-time',
     auth_ops_flux:'Feed · Correlations · Alerts', auth_ops_surete:'Operational security',
     auth_logo_sub:'Security monitoring · 54 African countries',
-    auth_stat_pays:'Countries monitored', auth_stat_actus:'News /36h', auth_stat_alertes:'Countries on alert',
+    auth_stat_pays:'Countries monitored', auth_stat_actus:'News /{hc}', auth_stat_alertes:'Countries on alert',
     login_title:'Log in', login_sub:'Access restricted to authorized security officers',
     login_email_label:'Email address', login_code_label:'Password', login_btn:'Log in',
     login_first_time:'First time here?', login_request_access:'Request access', login_reset:'Forgot password?',
@@ -4899,16 +4899,22 @@ function setLang(lang) {
   LANG = (lang === 'en') ? 'en' : 'fr';
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('on', b.dataset.lang === LANG));
   document.documentElement.setAttribute('lang', LANG);
+  // Les durees ecrites en dur dans le HTML statique sont remplies ici, a
+  // partir de la constante — jamais recopiees (audit du 07/09/2026).
+  document.querySelectorAll('[data-fenetre-h]').forEach(el => { el.textContent = libelleFenetre(); });
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const dict = I18N[LANG] || I18N.fr;
     const val = dict[el.getAttribute('data-i18n')];
-    if (val !== undefined) el.textContent = val;
+    // {h} : la fenetre d'actualite, substituee au rendu. Une duree ecrite
+    // dans le dictionnaire echapperait a tout calcul et se perimerait au
+    // premier arbitrage editorial (audit du 07/09/2026).
+    if (val !== undefined) el.textContent = val.replace(/\{hc\}/g, libelleFenetreCourt()).replace(/\{h\}/g, libelleFenetre());
   });
   // Placeholders traduisibles (champs de saisie)
   document.querySelectorAll('[data-i18n-ph]').forEach(el => {
     const dict = I18N[LANG] || I18N.fr;
     const val = dict[el.getAttribute('data-i18n-ph')];
-    if (val !== undefined) el.setAttribute('placeholder', val);
+    if (val !== undefined) el.setAttribute('placeholder', val.replace(/\{hc\}/g, libelleFenetreCourt()).replace(/\{h\}/g, libelleFenetre()));
   });
   try { localStorage.setItem('sentinel_lang', LANG); } catch(_) {}
   // Le libelle du bouton theme (Clair/Sombre) depend de l'etat ACTUEL, pas
@@ -7701,6 +7707,18 @@ function sourceDateNonFiable(article) {
 // le pays calme avec le pays sur lequel on ne sait rien.
 const FENETRE_ACTUALITE_MS = 36 * 60 * 60 * 1000;
 
+// libelleFenetre() / libelleFenetreCourt() : la fenetre telle qu'on l'ECRIT
+// a l'ecran et dans les exports, DERIVEE de la constante ci-dessus.
+//
+// Audit d'interface du 07/09/2026 : trente-deux etiquettes annoncaient encore
+// « 12h » — le compteur du Flux, la tuile « Pays couverts », les etats vides,
+// et les titres des rapports PDF/Word/PowerPoint envoyes aux clients — alors
+// que la fenetre valait 36 h depuis la veille. Seule la tuile « Actus /Xh »
+// avait ete recalee, parce qu'elle seule avait un test. Une duree recopiee se
+// perime au premier arbitrage editorial ; celles-ci se recalculent.
+function libelleFenetre() { return Math.round(FENETRE_ACTUALITE_MS / 3600000) + ' h'; }
+function libelleFenetreCourt() { return Math.round(FENETRE_ACTUALITE_MS / 3600000) + 'h'; }
+
 // estimeEvenementAncien(article) : vrai si la date de survenance estimee
 // remonte a plus que la fenetre d'actualite, meme si la publication est
 // recente.
@@ -7734,8 +7752,8 @@ function antiHalluFilter(arts, maxAgeMs) {
   const now = Date.now();
   return arts.filter(a =>
     a.pubDate &&                              // horodaté
-    (now - a.pubDate) < maxAgeMs &&           // < 12h de PUBLICATION
-    !estimeEvenementAncien(a) &&              // et pas un evenement > 12h de SURVENANCE
+    (now - a.pubDate) < maxAgeMs &&           // dans la fenetre, en PUBLICATION
+    !estimeEvenementAncien(a) &&              // et pas un evenement plus ancien en SURVENANCE
     a.primary &&                              // source identifiée
     a.title && a.title.length >= 8            // contenu non vide
   );
@@ -11082,7 +11100,7 @@ async function renderFeed() {
     const isnew=NEW_IDS.has(a.id)?' new-art':'';
     const surv=fmtSurvenance(a);
     const survSuf = surv.inconnue ? '<span class="meta-neutre" style="margin-left:2px;">à vérifier</span>'
-                  : (surv.ancien ? ' ⚠ +12h' : '');
+                  : (surv.ancien ? ' ⚠ +' + libelleFenetreCourt() : '');
     const sico = sourcesVisibles()
       ? '<div class="sico" style="background:'+ps.col+'">'+ps.n.slice(0,2).toUpperCase()+'</div>'
       : '<div class="sico" style="background:'+levelMeta(a.level).col+'"><i class="ti ti-news" style="font-size:13px;color:#fff;"></i></div>';
@@ -11348,7 +11366,7 @@ async function showDet(id) {
       (a.fromRSS?'<span class="rtag" style="margin-left:6px">RSS live</span>':'')+
     '</div>'+
     '<div class="det-pubdate"><i class="ti ti-calendar-time"></i><strong>Publié :</strong> '+fmtFull(a.pubDate)+'</div>'+
-    (()=>{ const s=fmtSurvenance(a); const suf = s.inconnue ? ' <span style="font-size:9px;">(à vérifier)</span>' : (s.ancien?' <span style="font-size:9px;">⚠ plus de 12h</span>':''); return '<div class="det-pubdate" style="'+(s.ancien?'color:#8B1A1A;font-weight:700;':'')+'"><i class="ti ti-history"></i><strong>Survenance estimée :</strong> '+s.texte+suf+'</div>'; })()+
+    (()=>{ const s=fmtSurvenance(a); const suf = s.inconnue ? ' <span style="font-size:9px;">(à vérifier)</span>' : (s.ancien?' <span style="font-size:9px;">⚠ plus de '+libelleFenetreCourt()+'</span>':''); return '<div class="det-pubdate" style="'+(s.ancien?'color:#8B1A1A;font-weight:700;':'')+'"><i class="ti ti-history"></i><strong>Survenance estimée :</strong> '+s.texte+suf+'</div>'; })()+
     (sourcesVisibles() ?
       '<div class="dsrcs"><span style="font-size:9px;font-weight:700;color:var(--gr);text-transform:uppercase;letter-spacing:.05em">Sources :</span>'+srcHtml+'</div>'+
       '<div style="font-size:8px;color:var(--lg);padding:4px 0 0;font-style:italic;">'+
@@ -11479,9 +11497,9 @@ async function showKpiDrill(kind) {
 
   if (kind==='articles' || kind==='crit' || kind==='high') {
     let list = artsActifs;
-    if (kind==='crit') { list = list.filter(a=>a.level==='crit'); title='Articles critiques (moins de 12h)'; icon='ti-alert-triangle'; }
-    else if (kind==='high') { list = list.filter(a=>a.level==='high'); title='Articles à niveau élevé (moins de 12h)'; icon='ti-alert-circle'; }
-    else { title='Articles actifs (moins de 12h)'; icon='ti-file-text'; }
+    if (kind==='crit') { list = list.filter(a=>a.level==='crit'); title='Articles critiques (moins de '+libelleFenetre()+')'; icon='ti-alert-triangle'; }
+    else if (kind==='high') { list = list.filter(a=>a.level==='high'); title='Articles à niveau élevé (moins de '+libelleFenetre()+')'; icon='ti-alert-circle'; }
+    else { title='Articles actifs (moins de '+libelleFenetre()+')'; icon='ti-file-text'; }
     list = list.slice().sort((a,b)=>(b.pubDate||0)-(a.pubDate||0));
     await preTraduireRapport(list.map(a => a.title));
     rows = list.length ? list.map(rowArticle).join('') : '<div style="padding:16px;text-align:center;color:var(--lg);font-size:11px;">Aucun article.</div>';
@@ -11492,7 +11510,7 @@ async function showKpiDrill(kind) {
     });
     let list;
     if (kind==='tension') { list = scores.filter(s=>s.key==='orange'||s.key==='marron'||s.key==='rouge').sort((a,b)=>b.score-a.score); title='Pays en tension (Orange, Marron ou Rouge)'; icon='ti-trending-up'; }
-    else { list = scores.filter(s=>s.n>0).sort((a,b)=>b.n-a.n); title='Pays couverts (articles actifs < 12h)'; icon='ti-world'; }
+    else { list = scores.filter(s=>s.n>0).sort((a,b)=>b.n-a.n); title='Pays couverts (articles actifs < '+libelleFenetre()+')'; icon='ti-world'; }
     rows = list.length ? list.map(s=>`
       <div onclick="closeKpiDrill();ouvrirVuePays('${s.cy}')" style="padding:9px 0;border-bottom:.5px solid var(--bd);cursor:pointer;display:flex;align-items:center;gap:8px;">
         <span style="font-size:18px;">${s.pays.flag}</span>
@@ -11504,7 +11522,7 @@ async function showKpiDrill(kind) {
   } else if (kind==='sources') {
     // Detail par source reserve aux administrateurs (voir sourcesVisibles) —
     // le KPI en tete de tableau de bord reste un simple compte, visible de tous.
-    title = 'Sources actives (moins de 12h)'; icon = 'ti-antenna';
+    title = 'Sources actives (moins de '+libelleFenetre()+')'; icon = 'ti-antenna';
     if (!sourcesVisibles()) {
       rows = '<div style="padding:16px;text-align:center;color:var(--lg);font-size:11px;">Détail réservé à l\'administration.</div>';
     } else {
@@ -11645,13 +11663,13 @@ async function renderPanelATraiter(cyFiltre, zoneFiltre) {
   if (!arts.length) {
     return `<div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:16px;margin-bottom:12px;text-align:center;color:var(--lg);font-size:11px;">
       <i class="ti ti-circle-check" style="font-size:22px;color:#0F4F2A;display:block;margin-bottom:6px;"></i>
-      Aucune actualité de moins de 12h en attente de traitement.
+      Aucune actualité de moins de ${libelleFenetre()} en attente de traitement.
     </div>`;
   }
   return `<div style="background:var(--w);border:1px solid var(--bd);border-left:3px solid var(--b);border-radius:9px;padding:12px;margin-bottom:12px;">
     <div style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
       <i class="ti ti-clock-exclamation" style="color:var(--b)"></i>
-      Actualités à traiter (moins de 12h)
+      Actualités à traiter (moins de ${libelleFenetre()})
       <span style="margin-left:auto;background:var(--b);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;">${arts.length}</span>
     </div>
     <div style="max-height:280px;overflow-y:auto;">
@@ -11781,11 +11799,11 @@ function marqueSilence(cy) {
   // Le second est le plus trompeur : l'interface a l'air alimentee.
   var libelle = muet ? 'muet' : 'hors alerte';
   var infobulle = muet
-    ? 'Aucune source n\'a publi\u00e9 sur ce pays depuis 12 h. Le niveau affich\u00e9 repose uniquement sur le socle v\u00e9rifi\u00e9 et le contexte structurel — absence de signal ne veut pas dire absence de risque.'
+    ? 'Aucune source n\'a publi\u00e9 sur ce pays depuis ' + libelleFenetre() + '. Le niveau affich\u00e9 repose uniquement sur le socle v\u00e9rifi\u00e9 et le contexte structurel — absence de signal ne veut pas dire absence de risque.'
     : 'Des articles existent, mais aucun ne vient d\'une source assez fiable pour faire \u00e9voluer le niveau (seuil ' + SEUIL_SOURCE_ALERTE + '). Le niveau affich\u00e9 ne peut pas monter tant que cela dure.';
 
   return '<span title="' + infobulle + '" '
-    + 'aria-label="' + (muet ? 'Aucune actualit\u00e9 depuis 12 heures' : 'Aucune source fiable depuis 12 heures') + '" '
+    + 'aria-label="' + (muet ? 'Aucune actualit\u00e9 depuis ' + libelleFenetre() : 'Aucune source fiable depuis ' + libelleFenetre()) + '" '
     + 'style="font-family:var(--font-mono,\'Roboto Mono\',monospace);font-size:8.5px;font-weight:700;'
     + 'color:var(--lg);border:1px dashed var(--bd);border-radius:3px;padding:0 3px;margin-left:4px;white-space:nowrap;">'
     + libelle + '</span>';
@@ -11918,7 +11936,7 @@ const profilView = () => {
       ? ((PAYS_INFO[GLOBAL_CY_FILTER]||{}).name || GLOBAL_CY_FILTER) : null;
     return `<div style="padding:26px 16px;text-align:center;color:var(--lg);font-size:11px;line-height:1.7;">
       <i class="ti ti-chart-radar" style="font-size:24px;display:block;margin-bottom:8px;opacity:.5;"></i>
-      ${nom ? escHtml(nom)+' n\'a aucune actualité de moins de 12 h.' : 'Aucun pays n\'a d\'actualité de moins de 12 h.'}<br>
+      ${nom ? escHtml(nom)+' n\'a aucune actualité de moins de '+libelleFenetre()+'.' : 'Aucun pays n\'a d\'actualité de moins de '+libelleFenetre()+'.'}<br>
       <span style="opacity:.75;">Sans actualité récente, ce pays n'a pas un profil plat — il n'a pas de profil.
       Le niveau d'alerte reste porté par le socle vérifié.</span>
     </div>`;
@@ -11968,7 +11986,7 @@ const profilView = () => {
     </div>
     <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:8px;">${legende}</div>
     <div style="text-align:center;font-size:9px;color:var(--lg);margin-top:8px;opacity:.8;">
-      Nombre d'articles de moins de 12 h par dimension. Choisissez un pays dans le filtre pour l'isoler.
+      Nombre d'articles de moins de ${libelleFenetre()} par dimension. Choisissez un pays dans le filtre pour l'isoler.
     </div>`;
 };
 
@@ -12024,14 +12042,14 @@ const cartogramme = () => {
       <!-- KPI globaux -->
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-bottom:10px;">
         ${kpiCard(artsActifs.length,'Articles actifs','var(--t)','ti-file-text','articles')}
-        ${kpiCard(nbPays,'Pays couverts','#2C5AAE','ti-world','pays','Dernières 12h')}
+        ${kpiCard(nbPays,'Pays couverts','#2C5AAE','ti-world','pays','Dernières '+libelleFenetre())}
         ${kpiCard(nbCrit,'Critiques','#8B1A1A','ti-alert-triangle','crit')}
         ${kpiCard(nbHigh,'Élevés','#7C4A00','ti-alert-circle','high')}
         ${kpiCard(nbSrcs,_tentees?'Sources joignables':'Sources ayant publié','#0F4F2A','ti-antenna','sources',_tentees?('sur '+_tentees+' interrogées · '+nbSrcsFraiches+' ont publié'):'Aucune mesure sur cet appareil')}
         ${kpiCard(enTension.length,'Pays en tension','#CA8A04','ti-trending-up','tension','Niveau orange, marron ou rouge')}
       </div>
 
-      <!-- Actualités a traiter (< 12h) -->
+      <!-- Actualites a traiter (dans la fenetre) -->
       ${panelATraiterHTML}
 
       <!-- Cartogramme régional des scores par pays -->
@@ -15121,7 +15139,7 @@ const DL_REPORTS = [
     icon:'ti-leaf', bg:'#0A1A10', color:'#4ade80',
     roles:['admin','user'] },
   { id:'rp_flux', name:'Flux opérationnel (Word)',
-    desc:'Articles des dernières 12h, filtrés sur le périmètre sélectionné.',
+    desc:'Articles des dernières '+libelleFenetre()+', filtrés sur le périmètre sélectionné.',
     file:null, exportFn:"exportWord('flux')",
     icon:'ti-shield', bg:'#1A0A0A', color:'#ff8080',
     roles:['admin'] },
@@ -17735,7 +17753,7 @@ async function ouvrirVuePays(cy) {
     <div style="padding:7px 0;border-bottom:.5px solid var(--bd);cursor:pointer;" onclick="showDet('${a.id}');document.getElementById('vuePaysOverlay').remove();switchView('flux',document.querySelector('.ntab[onclick*=flux]'));">
       <div style="font-size:11px;font-weight:600;color:var(--t);line-height:1.4;" id="vpa-${a.id}">${escHtml(L(a.title))}</div>
       ${sourcesVisibles() ? `<div style="font-size:9px;color:var(--lg);margin-top:2px;">${(a.crosses||[])[0] || ''}</div>` : ''}
-      ${(()=>{ const s=fmtSurvenance(a); if (s.inconnue) return `<div style="font-size:8.5px;color:#B45309;font-weight:700;margin-top:1px;">Survenance : ${s.texte} (à vérifier)</div>`; return s.ancien ? `<div style="font-size:8.5px;color:#8B1A1A;font-weight:700;margin-top:1px;">⚠ Survenance : ${s.texte} (plus de 12h)</div>` : `<div style="font-size:8.5px;color:var(--lg);margin-top:1px;">Survenance : ${s.texte}</div>`; })()}
+      ${(()=>{ const s=fmtSurvenance(a); if (s.inconnue) return `<div style="font-size:8.5px;color:#B45309;font-weight:700;margin-top:1px;">Survenance : ${s.texte} (à vérifier)</div>`; return s.ancien ? `<div style="font-size:8.5px;color:#8B1A1A;font-weight:700;margin-top:1px;">⚠ Survenance : ${s.texte} (plus de ${libelleFenetreCourt()})</div>` : `<div style="font-size:8.5px;color:var(--lg);margin-top:1px;">Survenance : ${s.texte}</div>`; })()}
     </div>`).join('') : '<div style="font-size:11px;color:var(--lg);font-style:italic;padding:6px 0;">Aucun article recent</div>';
 
   const htmlRegio = regionaux.length ? regionaux.map(a => `
@@ -18227,7 +18245,7 @@ function ouvrirMethodologiePublique() {
     + '<div><div style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:4px;">Niveau d\'une actualité vs niveau d\'alerte pays</div>'
     + 'Ce sont deux échelles distinctes, jamais confondues : le niveau d\'une actualité (Critique/Élevé/Modéré/Stable) dépend uniquement de son propre contenu, pas du pays où elle survient — une actualité économique dans un pays classé Rouge n\'est pas automatiquement critique. Le niveau d\'alerte du pays (Vert/Jaune/Orange/Marron/Rouge) est recalculé en continu à partir des incidents documentés et des signaux collectés en direct.</div>'
     + '<div><div style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:4px;">Fraîcheur des données</div>'
-    + 'Le Flux principal n\'affiche que les faits survenus dans les 12 dernières heures. Les contenus plus anciens sont écartés du Flux et conservés séparément comme référence historique — jamais présentés comme des faits du jour.</div>'
+    + 'Le Flux principal n\'affiche que les faits survenus dans les dernières ' + libelleFenetre() + '. Les contenus plus anciens sont écartés du Flux et conservés séparément comme référence historique — jamais présentés comme des faits du jour.</div>'
     + '<div style="background:var(--al);border:1px solid var(--ab);border-radius:8px;padding:10px 12px;">'
     + '<div style="font-size:11px;font-weight:700;color:var(--a);margin-bottom:4px;"><i class="ti ti-alert-triangle"></i> Limites à connaître</div>'
     + '<span style="color:var(--t2)">Outil d\'aide à la veille, pas une source unique de vérité : les flux RSS publics peuvent être incomplets, en retard, ou temporairement indisponibles. L\'absence d\'alerte sur un pays ne signifie pas l\'absence d\'événement. Toute décision opérationnelle doit recouper ces données avec d\'autres canaux de renseignement.</span>'
@@ -19009,7 +19027,7 @@ function updateDLCounts(){
   const el=document.getElementById('dlFluxCount');
   if(el){
     const nSocial=getExportData().filter(a=>a.platform).length;
-    el.textContent=n+' article'+(n>1?'s':'')+' (<12h)'+(nSocial?' · '+nSocial+' sociaux':'');
+    el.textContent=n+' article'+(n>1?'s':'')+' (<'+libelleFenetreCourt()+')'+(nSocial?' · '+nSocial+' sociaux':'');
   }
   const el2=document.getElementById('dlSyntheseDate');
   if(el2) el2.textContent='Données du '+nowStr();
@@ -19086,7 +19104,7 @@ async function exportExcel(type){
     const wsMeta=XLSX.utils.aoa_to_sheet([
       [nomMarqueActuelle()+' — Export de données'],[''],
       ['Généré le',nowStr()],
-      ['Filtre','Articles <12h uniquement'],
+      ['Filtre','Articles <'+libelleFenetreCourt()+' uniquement'],
       ['Sources actives',Object.values(SRC_ST).filter(s=>s?.ok).length+'/'+SRCS.length],
       ['Articles exportés',getExportData().length],
       ['Contact',_maskEmail('yorot225@gmail.com')],
@@ -19537,7 +19555,7 @@ async function exportPPTX(type) {
       for (let ci = 0; ci < evenementsFlux.length; ci += chunkSizeF) {
         const chunk = evenementsFlux.slice(ci, ci+chunkSizeF);
         s = newSlide('FFFFFF');
-        sectionHead(s, 'Flux opérationnel', ci===0 ? (evenementsFlux.length+' événements des dernières 12 heures — '+perimetre) : (perimetre+' (suite)'));
+        sectionHead(s, 'Flux opérationnel', ci===0 ? (evenementsFlux.length+' événements des dernières '+libelleFenetre()+' — '+perimetre) : (perimetre+' (suite)'));
         chunk.forEach((a,i)=>{
           const y = 1.55 + i*0.46;
           const pays = infoPays(a.cy);
@@ -19588,7 +19606,7 @@ async function exportPPTX(type) {
       sectionHead(s, 'Corrélations entre pays', 'Signaux régionaux — '+perimetre);
       s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:1.55,w:12.13,h:0.9,fill:{color:PAPER},line:{color:LINE,width:0.75}});
       s.addText('CONSTATATIONS', {x:0.85,y:1.68,w:4,h:0.3,fontSize:10,bold:true,color:'4B5563',fontFace:'IBM Plex Sans',charSpacing:1});
-      s.addText(signauxPPTX.length+' thème'+(signauxPPTX.length>1?'s':'')+' détecté'+(signauxPPTX.length>1?'s':'')+' simultanément dans au moins 2 pays sur la période <12h — une dynamique régionale qu\'une lecture pays par pays ne révèle pas isolément.',
+      s.addText(signauxPPTX.length+' thème'+(signauxPPTX.length>1?'s':'')+' détecté'+(signauxPPTX.length>1?'s':'')+' simultanément dans au moins 2 pays sur la période <'+libelleFenetreCourt()+' — une dynamique régionale qu\'une lecture pays par pays ne révèle pas isolément.',
         {x:0.85,y:1.98,w:11.6,h:0.45,fontSize:11,color:'374151',fontFace:'IBM Plex Sans'});
 
       const cartes = signauxPPTX.slice(0,8);
@@ -20184,8 +20202,8 @@ async function genererModeEmploiPDF() {
 
     b.y = H-280;
     const introTxt = LANG==='en'
-      ? "SentiqS continuously cross-references hundreds of African media and social sources (54 countries) to turn media noise into actionable security decisions — real-time, with a strict anti-hallucination filter (no article older than 12h shown as current news)."
-      : "SentiqS croise en continu des centaines de sources africaines (médias et réseaux sociaux) sur 54 pays pour transformer le bruit médiatique en décisions de sûreté exploitables — en temps réel, avec un filtre anti-hallucination strict (aucune actu de plus de 12h affichée comme actualité du jour).";
+      ? "SentiqS continuously cross-references hundreds of African media and social sources (54 countries) to turn media noise into actionable security decisions — real-time, with a strict anti-hallucination filter (no article older than '+libelleFenetreCourt()+' shown as current news)."
+      : "SentiqS croise en continu des centaines de sources africaines (médias et réseaux sociaux) sur 54 pays pour transformer le bruit médiatique en décisions de sûreté exploitables — en temps réel, avec un filtre anti-hallucination strict (aucune actu de plus de "+libelleFenetreCourt()+" affichée comme actualité du jour).";
     b.wrap(introTxt, 10.5, fontReg, W-M*2).forEach(line => { b.page.drawText(line, {x:M,y:b.y,size:10.5,font:fontReg,color:INK}); b.y -= 15.5; });
     b.y -= 14;
 
@@ -20236,7 +20254,7 @@ async function genererModeEmploiPDF() {
     const rowW = W - M*2;
     drawBox(M, schemaTop, rowW, boxH, LANG==='en' ? 'RSS sources + social networks — 484+ sources, 54 African countries' : 'Sources RSS + réseaux sociaux — 484+ sources, 54 pays africains', NAVY, rgb(1,1,1));
     arrow(M+rowW/2, schemaTop-boxH, M+rowW/2, schemaTop-boxH-16);
-    drawBox(M, schemaTop-boxH-16-boxH, rowW, boxH, LANG==='en' ? 'Automatic collection <12h — anti-hallucination filter' : 'Collecte automatique <12h — filtre anti-hallucination', BLUE, rgb(1,1,1));
+    drawBox(M, schemaTop-boxH-16-boxH, rowW, boxH, LANG==='en' ? 'Automatic collection <'+libelleFenetreCourt()+' — anti-hallucination filter' : 'Collecte automatique <'+libelleFenetreCourt()+' — filtre anti-hallucination', BLUE, rgb(1,1,1));
     arrow(M+rowW/2, schemaTop-2*boxH-16, M+rowW/2, schemaTop-2*boxH-32);
     drawBox(M, schemaTop-2*boxH-32-boxH, rowW, boxH, LANG==='en' ? 'Classification — real country of the content, severity, category' : 'Classification — pays réel du contenu, gravité, catégorie', PAPER, INK);
     const y4 = schemaTop-3*boxH-48;
@@ -20247,12 +20265,12 @@ async function genererModeEmploiPDF() {
     b.y = y4-boxH-14-boxH-24;
 
     const modTxt = LANG==='en' ? [
-      ['Flux', 'Live feed of the last 12h, one card per article: content severity, the country\'s overall alert level, and — when relevant — an "impacts country score" badge showing this specific article counted toward the alert calculation.'],
+      ['Flux', 'Live feed of the last '+libelleFenetreCourt()+', one card per article: content severity, the country\'s overall alert level, and — when relevant — an "impacts country score" badge showing this specific article counted toward the alert calculation.'],
       ['Alertes', "Risk level per country (5 tiers, green to red), computed from verified reference incidents plus corroborated live signals. Each card shows the last verified incident AND the latest tracked news, side by side."],
       ['Tableau de bord', 'Regional heatmap of all 54 countries by risk score, KPIs (active articles, critical/high counts, countries under tension).'],
       ['Agenda', 'Upcoming and ongoing planned events (official meetings, roadworks, closures) automatically detected and separated from breaking news.'],
     ] : [
-      ['Flux', "Fil d'actualités des 12 dernières heures, une carte par article : gravité de l'actu, niveau d'alerte global du pays, et — quand pertinent — un badge « impacte le score pays » indiquant que cette actu précise compte dans le calcul du niveau d'alerte."],
+      ['Flux', "Fil d'actualités des dernières "+libelleFenetre()+", une carte par article : gravité de l'actu, niveau d'alerte global du pays, et — quand pertinent — un badge « impacte le score pays » indiquant que cette actu précise compte dans le calcul du niveau d'alerte."],
       ['Alertes', "Niveau de risque par pays (5 paliers, du vert au rouge), calculé à partir d'incidents de référence vérifiés et de signaux live corroborés. Chaque carte affiche le dernier incident vérifié ET la dernière actu suivie, côte à côte."],
       ['Tableau de bord', "Carte thermique régionale des 54 pays par score de risque, indicateurs clés (articles actifs, critiques/élevés, pays en tension)."],
       ['Agenda', "Événements planifiés à venir ou en cours (réunions officielles, travaux, fermetures) détectés automatiquement et séparés de l'actualité factuelle."],
@@ -20464,7 +20482,7 @@ async function exportPDF(type) {
         const signauxP = _corrBuildSignaux(arts);
         if (signauxP.length) {
           b.bulletinSection(LANG==='en'?'F. Cross-Country Correlations — Regional Signals':'F. Corrélations Entre Pays — Signaux Régionaux');
-          b.box('CONSTATATIONS', [signauxP.length+' thème'+(signauxP.length>1?'s':'')+' détecté'+(signauxP.length>1?'s':'')+' simultanément dans au moins 2 pays sur la période <12h — une dynamique régionale qu\'une lecture pays par pays ne révèle pas isolément.']);
+          b.box('CONSTATATIONS', [signauxP.length+' thème'+(signauxP.length>1?'s':'')+' détecté'+(signauxP.length>1?'s':'')+' simultanément dans au moins 2 pays sur la période <'+libelleFenetreCourt()+' — une dynamique régionale qu\'une lecture pays par pays ne révèle pas isolément.']);
           b.correlationGrid(signauxP.slice(0,10));
         }
       }
@@ -20479,9 +20497,9 @@ async function exportPDF(type) {
       const nbSrcActifsF = new Set(arts.map(a=>a.primary)).size;
       b.bulletinHeader(titre, dateGenStr, creneauStr,
         (LANG==='en'
-          ? arts.length+' events collected over the last 12 hours, across '+nbSrcActifsF+' consolidated feeds.'
-          : arts.length+' événements collectés sur les 12 dernières heures, à partir de '+nbSrcActifsF+' flux consolidés.'));
-      b.bulletinSection(LANG==='en'?'Events of the Last 12 Hours':'Événements des Dernières 12 Heures');
+          ? arts.length+' events collected over the last '+libelleFenetre()+', across '+nbSrcActifsF+' consolidated feeds.'
+          : arts.length+' événements collectés sur les dernières '+libelleFenetre()+', à partir de '+nbSrcActifsF+' flux consolidés.'));
+      b.bulletinSection(LANG==='en'?'Events of the Last '+libelleFenetre():'Événements des Dernières '+libelleFenetre());
       // Classées par pays (pays hors Afrique -> International), pastille de
       // niveau + titre + date de publication par article — plus de simple
       // liste chronologique brute.
@@ -20688,14 +20706,14 @@ async function exportPDF(type) {
         const signauxC = _corrBuildSignaux(arts);
         if (signauxC.length) {
           b.bulletinSection(LANG==='en'?'F. Cross-Country Correlations — Regional Signals':'F. Corrélations Entre Pays — Signaux Régionaux');
-          b.box('CONSTATATIONS', [signauxC.length+' thème'+(signauxC.length>1?'s':'')+' détecté'+(signauxC.length>1?'s':'')+' simultanément dans au moins 2 pays sur la période <12h — une dynamique régionale qu\'une lecture pays par pays ne révèle pas isolément.']);
+          b.box('CONSTATATIONS', [signauxC.length+' thème'+(signauxC.length>1?'s':'')+' détecté'+(signauxC.length>1?'s':'')+' simultanément dans au moins 2 pays sur la période <'+libelleFenetreCourt()+' — une dynamique régionale qu\'une lecture pays par pays ne révèle pas isolément.']);
           b.correlationGrid(signauxC.slice(0,10));
         }
       }
 
       // II. Flux opérationnel — classé par pays (International pour les
       // pays hors Afrique), sans répéter les articles déjà montrés en I.
-      b.bulletinSection(LANG==='en'?'II. Operational Feed — Events of the Last 12 Hours':'II. Flux Opérationnel — Événements des Dernières 12 Heures');
+      b.bulletinSection(LANG==='en'?'II. Operational Feed — Events of the Last '+libelleFenetre():'II. Flux Opérationnel — Événements des Dernières '+libelleFenetre());
       const artsFluxC = arts.filter(a => !usedKeysC.has(_articleKey(a)));
       const groupesFluxC = groupeArticlesParPays(artsFluxC);
       if (groupesFluxC.length) {
@@ -20961,7 +20979,7 @@ async function _buildRapportFluxHTML(arts) {
     ...[...new Set(arts.map(a=>a.cy))].map(cy=>infoPays(cy).name),
   ]);
   const groupes = groupeArticlesParPays(arts);
-  let body = _apSectionBand('FLUX OPÉRATIONNEL — ÉVÉNEMENTS DES DERNIÈRES 12 HEURES');
+  let body = _apSectionBand('FLUX OPÉRATIONNEL — ÉVÉNEMENTS DES DERNIÈRES '+libelleFenetre().toUpperCase());
   groupes.forEach(g => {
     body += '<h2 style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:15px;color:#16233A;border-bottom:1px solid #16233A;padding-bottom:5px;margin:20px 0 12px;">'+_apEsc(g.pays.flag+' '+L(g.pays.name))+'</h2>';
     body += g.items.map(_apArticleItem).join('');
@@ -20971,7 +20989,7 @@ async function _buildRapportFluxHTML(arts) {
     {value:groupes.filter(g=>g.cy!=='INT').length, label:'PAYS', color:'#2C5AAE'},
     {value:new Set(arts.map(a=>a.primary)).size, label:'SOURCES', color:'#0F4F2A'},
   ]);
-  return _apPageWrap('Flux opérationnel', 'Événements des 12 dernières heures', stats, body, 'flux');
+  return _apPageWrap('Flux opérationnel', 'Événements des dernières '+libelleFenetre(), stats, body, 'flux');
 }
 async function _buildRapportAgendaHTML(agenda) {
   await preTraduireRapport(agenda.flatMap(e => [e.title, e.desc]));
@@ -21094,7 +21112,7 @@ function _buildRapportSyntheseHTML(arts) {
       corrHTML = '<h2 style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:16px;color:#4B5563;border-bottom:2px solid #4B5563;padding-bottom:6px;margin:26px 0 14px;">F. Corrélations entre pays — Signaux régionaux</h2>'
         + '<div style="background:#F4F7FB;border:1px solid #D1D9E0;border-radius:4px;padding:14px 16px;margin-bottom:18px;break-inside:avoid;">'
         + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.08em;font-weight:600;color:#4B5563;margin-bottom:6px;">CONSTATATIONS</div>'
-        + '<div style="font-size:13.5px;color:#3A4658;line-height:1.55;">'+signaux.length+' thème'+(signaux.length>1?'s':'')+' détecté'+(signaux.length>1?'s':'')+' simultanément dans au moins 2 pays sur la période &lt;12h — une dynamique régionale qu\'une lecture pays par pays ne révèle pas isolément.</div>'
+        + '<div style="font-size:13.5px;color:#3A4658;line-height:1.55;">'+signaux.length+' thème'+(signaux.length>1?'s':'')+' détecté'+(signaux.length>1?'s':'')+' simultanément dans au moins 2 pays sur la période &lt;'+libelleFenetreCourt()+' — une dynamique régionale qu\'une lecture pays par pays ne révèle pas isolément.</div>'
         + '</div>'
         + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">'
         + signaux.slice(0,10).map(_apCorrelationCard).join('')
@@ -21127,7 +21145,7 @@ function _buildRapportSyntheseHTML(arts) {
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.16em;color:#9CA3AF;text-transform:uppercase;margin-bottom:10px;">Rapport opérationnel — '+_apEsc(perimetre)+'</div>'
     + '<h1 style="font-family:\'Source Serif 4\',serif;font-weight:800;font-size:40px;letter-spacing:0.01em;color:#16233A;margin:0 0 8px;">'+_apEsc(nomMarqueActuelle())+'</h1>'
     + '<div style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:600;font-size:16px;color:#0B1A27;margin-bottom:14px;">Analyse sécuritaire opérationnelle</div>'
-    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#6B7280;">'+SRCS.length+' sources ('+nbSrcsMedia+' médias + '+nbSrcsSociales+' réseaux sociaux) &nbsp;·&nbsp; filtre anti-hallucination &lt;12h &nbsp;·&nbsp; '+arts.length+' articles analysés</div>'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#6B7280;">'+SRCS.length+' sources ('+nbSrcsMedia+' médias + '+nbSrcsSociales+' réseaux sociaux) &nbsp;·&nbsp; filtre anti-hallucination &lt;'+libelleFenetreCourt()+' &nbsp;·&nbsp; '+arts.length+' articles analysés</div>'
     + '</div>'
 
     + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:26px 0 30px;border-top:1px solid #D1D9E0;border-bottom:1px solid #D1D9E0;padding:18px 0;">'
@@ -21350,8 +21368,8 @@ async function exportWord(type){
       ];
     } else if (type==='flux') {
       syntheseTxtW = LANG==='en'
-        ? arts.length+' events collected over the last 12 hours, across '+nbSrcActifsW+' consolidated feeds.'
-        : arts.length+' événements collectés sur les 12 dernières heures, à partir de '+nbSrcActifsW+' flux consolidés.';
+        ? arts.length+' events collected over the last '+libelleFenetre()+', across '+nbSrcActifsW+' consolidated feeds.'
+        : arts.length+' événements collectés sur les dernières '+libelleFenetre()+', à partir de '+nbSrcActifsW+' flux consolidés.';
       // Pas de bandeau de stats pour ce type (cf. exportPDF) : une liste
       // chronologique n'appelle pas de lecture par indicateurs clés.
     } else if (type==='agenda') {
@@ -21469,7 +21487,7 @@ async function exportWord(type){
           children.push(para(L(a.analysis)||''));
           const survW=fmtSurvenance(a);
           children.push(new Paragraph({
-            children:[new TextRun({text:'Survenance : '+survW.texte+(survW.inconnue?' — à vérifier':(survW.ancien?' — plus de 12h':'')),size:17,bold:survW.ancien,color:survW.inconnue?'B45309':(survW.ancien?'DC2626':'9CA3AF'),font:FONT_MONO})],
+            children:[new TextRun({text:'Survenance : '+survW.texte+(survW.inconnue?' — à vérifier':(survW.ancien?' — plus de '+libelleFenetreCourt():'')),size:17,bold:survW.ancien,color:survW.inconnue?'B45309':(survW.ancien?'DC2626':'9CA3AF'),font:FONT_MONO})],
             spacing:{after:40}
           }));
           const cyNivW1=_cyNivTexteEtCouleur(a.cy);
@@ -21552,7 +21570,7 @@ async function exportWord(type){
         const signauxW = _corrBuildSignaux(arts);
         children.push(heading('F. Corrélations entre pays — Signaux régionaux', 2, '4B5563'));
         if (signauxW.length) {
-          children.push(calloutBox('CONSTATATIONS', signauxW.length+' thème'+(signauxW.length>1?'s':'')+' détecté'+(signauxW.length>1?'s':'')+' simultanément dans au moins 2 pays sur la période <12h — une dynamique régionale qu\'une lecture pays par pays ne révèle pas isolément.', '4B5563'));
+          children.push(calloutBox('CONSTATATIONS', signauxW.length+' thème'+(signauxW.length>1?'s':'')+' détecté'+(signauxW.length>1?'s':'')+' simultanément dans au moins 2 pays sur la période <'+libelleFenetreCourt()+' — une dynamique régionale qu\'une lecture pays par pays ne révèle pas isolément.', '4B5563'));
           children.push(new Paragraph({spacing:{after:160}}));
           children.push(correlationTable(signauxW.slice(0, 10)));
         } else {
@@ -21563,7 +21581,7 @@ async function exportWord(type){
 
     if(type==='flux'||type==='rapport_complet'){
       children.push(divider());
-      children.push(topBar('II. FLUX OPÉRATIONNEL — Articles <12h'));
+      children.push(topBar('II. FLUX OPÉRATIONNEL — Articles <'+libelleFenetreCourt()));
       children.push(para(arts.length+' articles collectés · Filtre anti-hallucination actif · Sources : '+SRCS.length+' flux RSS'));
 
       // Classé par pays (International pour les pays hors Afrique), sans

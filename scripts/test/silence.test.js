@@ -9,10 +9,11 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const vm = require('node:vm');
-const { tranche, bac, exposer } = require('./_bac.js');
+const { HTML, tranche, bac, exposer } = require('./_bac.js');
 
 function bacSilence(articles) {
-  const ctx = bac(tranche('// ── SILENCE N\'EST PAS CALME', '// Rendu compact'));
+  const ctx = bac(tranche('const FENETRE_ACTUALITE_MS =', 'function estimeEvenementAncien'),
+      tranche('// ── SILENCE N\'EST PAS CALME', '// Rendu compact'));
   vm.runInContext('var ALL = ' + JSON.stringify(articles) + ';', ctx);
   return exposer(ctx, 'paysMuet', 'paysAveugleAlerte', 'marqueSilence', 'SEUIL_SOURCE_ALERTE');
 }
@@ -40,7 +41,8 @@ test('sans flux du tout, on ne marque rien plutot que tout', () => {
   // Au demarrage, avant la premiere collecte, ALL est vide : marquer les 54
   // pays « muets » serait exact mais inutilisable, et ferait passer un etat
   // transitoire pour un constat.
-  const ctx = bac(tranche('// ── SILENCE N\'EST PAS CALME', '// Rendu compact'));
+  const ctx = bac(tranche('const FENETRE_ACTUALITE_MS =', 'function estimeEvenementAncien'),
+      tranche('// ── SILENCE N\'EST PAS CALME', '// Rendu compact'));
   vm.runInContext('var ALL = undefined;', ctx);
   exposer(ctx, 'paysMuet');
   assert.strictEqual(ctx.paysMuet('TD'), false);
@@ -50,7 +52,11 @@ test('la marque dit ce qu elle signifie, et ce qu elle ne signifie pas', () => {
   const ctx = bacSilence([]);
   const html = ctx.marqueSilence('TD');
   assert.match(html, />muet</);
-  assert.match(html, /depuis 12 h/);
+  // La duree annoncee est DERIVEE de la fenetre, jamais recopiee : la marque
+  // disait « depuis 12 h » alors que la fenetre en valait 36 (audit du
+  // 07/09/2026). On verifie qu'elle dit ce que la constante dit.
+  const heures = Number(/const FENETRE_ACTUALITE_MS = (\d+) \* 60/.exec(HTML)[1]);
+  assert.match(html, new RegExp('depuis ' + heures + ' h'));
   assert.match(html, /absence de signal ne veut pas dire absence de risque/,
     'la nuance est tout l\'interet de la marque');
   assert.match(html, /aria-label="[^"]+"/, 'lisible au lecteur d\'ecran');

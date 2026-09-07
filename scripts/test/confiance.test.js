@@ -63,11 +63,19 @@ test('les libellés qui annoncent une durée disent la vraie fenêtre', () => {
   // le compteur disait 36 h de collecte sous une étiquette de 24 h. C'est
   // la même classe de mensonge que isWithin12h dont le nom survivait au
   // changement de seuil.
-  const attendu = FENETRE_H + 'h';
-  const etiquettes = [...HTML.matchAll(/(?:Actus|News) \/(\d+h)/g)].map((m) => m[1]);
+  //
+  // 07/09/2026 : la valeur n'est plus recopiée du tout. L'audit d'interface a
+  // trouvé trente-deux AUTRES étiquettes restées à « 12h » — celle-ci avait
+  // été recalée à la main parce qu'elle seule avait un test. Les libellés
+  // portent désormais le marqueur {hc}, substitué au rendu par
+  // libelleFenetreCourt(). Ce test garde la même propriété : ce que la tuile
+  // annonce est ce que la constante dit.
+  const etiquettes = [...HTML.matchAll(/(?:Actus|News) \/(\{hc\}|\d+h)/g)].map((m) => m[1]);
   assert.ok(etiquettes.length >= 3, 'trois occurrences attendues : le HTML, le dictionnaire fr, le dictionnaire en');
-  const fausses = etiquettes.filter((e) => e !== attendu);
-  assert.deepStrictEqual(fausses, [], 'étiquettes qui annoncent une autre durée que ' + attendu + ' : ' + fausses.join(', '));
+  const recopiees = etiquettes.filter((e) => e !== '{hc}');
+  assert.deepStrictEqual(recopiees, [], 'ces étiquettes recopient la durée au lieu de la dériver : ' + recopiees.join(', '));
+  assert.match(HTML, /function libelleFenetreCourt\(\) \{ return Math\.round\(FENETRE_ACTUALITE_MS \/ 3600000\) \+ 'h'; \}/,
+    'le libellé court doit être dérivé de la constante');
   // Les autres « 24h » de la page ne sont pas des étiquettes de la fenêtre :
   // l'audience du site, l'historique social, et un média qui s'appelle
   // « 24h Benin ». On ne les touche pas.

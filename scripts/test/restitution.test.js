@@ -44,7 +44,8 @@ test('la liste de triage porte la provenance et la confiance', () => {
 });
 
 test('le compteur de sources dit l\'accessibilité, pas la fraîcheur', () => {
-  const dash = tranche('  // KPI globaux', '<!-- Actualités a traiter');
+  const dash = tranche('const FENETRE_ACTUALITE_MS =', 'function estimeEvenementAncien')
+    + tranche('  // KPI globaux', '<!-- Actualites a traiter');
   assert.match(dash, /SRC_HEALTH/,
     'l\'accessibilité doit être lue dans SRC_HEALTH — « la source a-t-elle répondu ? »');
   assert.doesNotMatch(dash, /'Sources actives'/,
@@ -52,7 +53,8 @@ test('le compteur de sources dit l\'accessibilité, pas la fraîcheur', () => {
 });
 
 test('« pays en tension » porte sa définition à l\'écran', () => {
-  const dash = tranche('  // KPI globaux', '<!-- Actualités a traiter');
+  const dash = tranche('const FENETRE_ACTUALITE_MS =', 'function estimeEvenementAncien')
+    + tranche('  // KPI globaux', '<!-- Actualites a traiter');
   assert.match(dash, /Niveau orange, marron ou rouge/,
     'un chiffre qu\'un professionnel ne peut pas définir, il ne peut pas le citer');
 });
