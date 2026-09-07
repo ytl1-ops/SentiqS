@@ -78,11 +78,25 @@ const serveur = http.createServer((req, res) => {
         classifieCritique: typeof classify === 'function'
           && classify('Attentat revendique dans la capitale', { cy: 'SN', cat: 'securite' }).lvl === 'crit',
         nbSources: typeof SRCS !== 'undefined' ? SRCS.length : 0,
+        // Un flux dont la date est enveloppee d'espaces et de retours a la
+        // ligne (la forme exacte de Jeune Afrique) doit etre date. Sans le
+        // trim() de parseRSS, ses 30 articles etaient sans date, donc
+        // ecartes : la source paraissait muette. Mesure du 07/09/2026.
+        dateEntoureeLue: (() => {
+          if (typeof parseRSS !== 'function') return false;
+          const xml = '<?xml version="1.0"?><rss version="2.0"><channel><title>t</title><item>'
+            + '<title><![CDATA[Attaque contre un convoi pres de Gao]]></title>'
+            + '<link>https://exemple.test/a</link>'
+            + '<pubDate>\n                            <![CDATA[2026-09-07T08:50:13+00:00]]>\n                        </pubDate>'
+            + '<description><![CDATA[Depeche.]]></description></item></channel></rss>';
+          const arts = parseRSS(xml, { id: 'fumee', cy: 'ML', score: 80, cat: 'securite', n: 'fumee' }) || [];
+          return arts.length === 1 && arts[0].pubDate > 0;
+        })(),
       };
       } catch (e) {
         // La sonde elle-meme ne doit jamais planter : quand le script inline
         // n'a pas pu s'executer, c'est le diagnostic qui compte, pas la trace.
-        return { manquants: ['sonde interrompue'], score: null, classifieCritique: false,
+        return { manquants: ['sonde interrompue'], score: null, classifieCritique: false, dateEntoureeLue: false,
                  nbSources: 0, panne: String(e && e.message ? e.message : e) };
       }
     });
@@ -97,11 +111,12 @@ const serveur = http.createServer((req, res) => {
   console.log('Sources chargees : ' + sonde.nbSources);
   console.log('Score de pays calculable : ' + sonde.score);
   console.log('Classification d\'un incident : ' + (sonde.classifieCritique ? 'critique, comme attendu' : 'INATTENDUE'));
+  console.log('Date de flux entouree d\'espaces : ' + (sonde.dateEntoureeLue ? 'lue' : 'PERDUE'));
   console.log('Erreurs JS non liees au reseau : ' + bloquantes.length);
   bloquantes.slice(0, 8).forEach((e) => console.error('   ' + e.slice(0, 200)));
 
   const ko = sonde.manquants.length || bloquantes.length || !sonde.nbSources
-    || !sonde.classifieCritique || !sonde.score || String(sonde.score).startsWith('ERREUR');
+    || !sonde.classifieCritique || !sonde.dateEntoureeLue || !sonde.score || String(sonde.score).startsWith('ERREUR');
   if (ko) {
     if (sonde.panne) console.error('\n✗ Le script inline n\'a pas pu s\'executer : ' + sonde.panne);
     if (sonde.manquants.length) console.error('\n✗ Absentes de la page : ' + sonde.manquants.join(', '));
