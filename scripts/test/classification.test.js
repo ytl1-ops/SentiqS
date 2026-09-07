@@ -158,3 +158,22 @@ test('le lexique économique élargi ne touche pas les niveaux', () => {
   assert.strictEqual(classify('Le FMI annonce un programme de 2,2 milliards de dollars', src('SN')).cat, 'economique');
   assert.strictEqual(classify('Le FMI annonce un programme de 2,2 milliards de dollars', src('SN')).lvl, 'ok');
 });
+
+test('une competition continentale de clubs ou une categorie d\'age reste du sport', () => {
+  // Mesure du 07/09/2026 sur la moisson des 560 flux : ces deux titres
+  // etaient classes CRITIQUE — « s'incline », « frappe fort » ne figuraient
+  // dans aucune liste sportive, et « Coupe de la Confederation », « CAN U20 »,
+  // « handball » non plus. Un match ne peut pas etre une alerte.
+  // Comme en production : le premier argument est le titre suivi du corps,
+  // le troisieme le titre seul. Un premier jet ne passait que le titre en
+  // troisieme et laissait le premier vide — le filtre sport ne voyait rien.
+  const src = { cy: 'TN', cat: 'securite' };
+  const t1 = "Coupe de la Confédération - Le CS Sfaxien s'incline face à Shooting Stars";
+  const a = classify(t1, src, t1);
+  assert.strictEqual(a.lvl, 'ok', 'un match de coupe n\'est pas un incident');
+  assert.strictEqual(a.cat, 'sport');
+  const t2 = "CAN U20 de handball : le Syli Juniors frappe fort d'entrée face au Rwanda";
+  const b = classify(t2, { cy: 'GN', cat: 'securite' }, t2);
+  assert.strictEqual(b.lvl, 'ok', 'un match de handball n\'est pas un incident');
+  assert.strictEqual(b.cat, 'sport');
+});
