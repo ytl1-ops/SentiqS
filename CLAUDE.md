@@ -980,6 +980,38 @@ que faire des cinquante sources de premier rang (agences nationales, ACLED,
 Crisis Group, ISS) dont la seule route est une requête Google News ? Leur
 trouver un flux natif est la réponse qui rend la note à ce qu'elle mesure.
 
+**L'éditeur a dit oui le soir même, et la sonde a rendu douze flux.** Même
+méthode que pour les médias locaux : emplacements RSS usuels et
+auto-découverte, avec `curl`, sur les cinquante domaines. Douze flux natifs
+vivants, tous avec des articles du jour : AIB, AMAP (la vraie agence est
+`amap.ml` ; l'accueil du registre pointait sur Maliweb), Radio Okapi, SIG
+Burkina, AIP, Daily Monitor (`/rss.xml`, l'ancien `/uganda/rss` était
+mort), ATOP, FrontPageAfrica, AGP Gabon, AMI, KNA, Parlement CEDEAO. Le
+cliquet descend de **26 à 21** : GA, LR, MR, TG et CD sortent de la source
+unique.
+
+Ce qui n'a pas été basculé, et pourquoi :
+
+- **Punch** : son flux natif répond d'ici, mais c'est l'adresse exacte qui
+  a produit zéro article sur huit caches publiés depuis GitHub. Le remettre
+  serait remettre l'état mesuré mort.
+- **Crisis Group** : deux flux, l'un mélange des titres de suivi
+  (« Washington 27 August 2026 #3 »), l'autre écrit ses dates en toutes
+  lettres (« Friday, August 28, 2026 - 12:46 »), que `new Date()` refuse.
+  Il faudrait un analyseur de date de plus pour une seule source
+  internationale.
+- **Union africaine** : `au.int/rss.xml` n'a rien publié depuis mai 2025.
+- **Cinq requêtes doublonnent un flux natif déjà lu** : Koaci, L'Infodrome,
+  Abidjan.net, ACLED, ISS. Les retirer est une décision de registre.
+- **Le reste** : défi Cloudflare (Sudan Tribune, Nation, Herald, Igihe, MAP,
+  MENA, L'Express, ABP, SNA, APA), ou aucun flux trouvé (APS, ENA, ANGOP,
+  i24, Graphic, présidences et assemblée du Sénégal), ou site injoignable
+  d'ici (TAP, certificat ; AGuinée, NAMPA, présidence ivoirienne).
+
+AMI et KNA répondent en quarante secondes deux fois sur trois : ils
+retomberont peut-être en veille. Ce n'est pas pire qu'une requête Google
+News muette, et la prochaine collecte le mesure.
+
 ---
 
 ## Le même fait en trois langues
