@@ -1,0 +1,39 @@
+{
+  "iso2": "GQ",
+  "slug": "guinee-equatoriale",
+  "name": "Guinee equatoriale",
+  "namePrep": "en Guinee equatoriale",
+  "region": "Afrique centrale",
+  "capital": "Malabo",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire en Guinee equatoriale : vigilance renforcee, criminalite en hausse a Malabo et Bata, piraterie dans le golfe de Guinee, alertes en temps reel avec SentiqS.",
+  "keywords": "Guinee equatoriale securite, risque pays Guinee equatoriale, veille geopolitique Malabo Bata, surete entreprise Afrique centrale, SentiqS",
+  "summary": "L'integralite de la Guinee equatoriale est en vigilance renforcee ; les autorites recommandent de se tenir a l'ecart des rassemblements, notamment a proximite des edifices publics. Depuis la crise economique, une augmentation des actes criminels est observee a Malabo (quartiers de Semu, Ela Nguema et Ewaiso) et a Bata, avec plusieurs taxis impliques dans des vols et agressions visant particulierement les femmes ; ces actes restent toutefois isoles et ne visent pas specifiquement la communaute expatriee. La region des trois frontieres autour d'Ebebiyin, au nord-est, et la frontiere avec le Cameroun appellent une vigilance particuliere. Le risque de piraterie est eleve dans le golfe de Guinee.",
+  "threats": {
+    "terrorism": {
+      "title": "Niveau de Vigilance",
+      "text": "L'integralite du pays est en vigilance renforcee. Les autorites recommandent de se tenir a l'ecart des rassemblements, notamment a proximite des edifices publics. Aucun risque terroriste specifique n'est mentionne."
+    },
+    "crime": {
+      "title": "Criminalite Urbaine et Zones Frontalieres",
+      "text": "Depuis la crise economique, une augmentation des actes criminels a ete observee : a Malabo, les quartiers de Semu, Ela Nguema et Ewaiso sont concernes ; a Bata, ville continentale, la delinquance touche egalement la population. Plusieurs taxis ont ete impliques dans des vols et des agressions, particulierement contre les femmes. Ces actes restent isoles et ne visent pas specifiquement la communaute expatriee. La frontiere nord avec le Cameroun et la region dite des trois frontieres autour d'Ebebiyin, au nord-est, appellent une vigilance particuliere."
+    },
+    "infra": {
+      "title": "Risques Routiers et Piraterie Maritime",
+      "text": "La circulation de nuit est deconseillee en raison de l'insecurite et de controles policiers potentiellement abusifs. Le risque de piraterie est eleve dans le golfe de Guinee : la navigation de plaisance est fortement deconseillee et le transport aerien est recommande face aux attaques visant des ferries. Les structures medicales locales sont par ailleurs limitees."
+    }
+  },
+  "neighbors": [
+    { "name": "Cameroun", "slug": "cameroun", "available": true },
+    { "name": "Gabon", "slug": "gabon", "available": true }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Agression signalee dans un taxi a Malabo.", "time": "Il y a 6h" },
+    { "tag": "INFRA", "text": "Alerte piraterie relayee dans le golfe de Guinee.", "time": "Il y a 1j" },
+    { "tag": "SOCIAL", "text": "Vigilance rappelee pres des edifices publics.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/guinee-equatoriale/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}

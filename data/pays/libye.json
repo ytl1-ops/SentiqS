@@ -1,0 +1,43 @@
+{
+  "iso2": "LY",
+  "slug": "libye",
+  "name": "Libye",
+  "namePrep": "en Libye",
+  "region": "Afrique du Nord",
+  "capital": "Tripoli",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire en Libye : Tripoli et la majorite du territoire formellement deconseilles, menace terroriste persistante, alertes en temps reel avec SentiqS.",
+  "keywords": "Libye securite, risque pays Libye, veille geopolitique Tripoli Benghazi, surete entreprise Afrique du Nord, SentiqS",
+  "summary": "Misrata et Benghazi sont deconseillees sauf raison imperative, tandis que le reste du pays, y compris la capitale Tripoli, est formellement deconseille. Bien qu'aucun attentat n'ait frappe la Libye depuis 2018, la menace terroriste est persistante, au sein de la capitale comme sur l'ensemble du territoire. Le risque d'enlevement demeure eleve. Des affrontements sporadiques entre groupes armes sont signales, pouvant impliquer des armes lourdes y compris en milieu urbain, particulierement dans le Croissant petrolier et le Sud du pays. Des assassinats cibles et des vols avec violence sont rapportes, et les zones frontalieres presentent des risques eleves en raison de bandes armees.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste",
+      "text": "Bien qu'aucun attentat n'ait frappe la Libye depuis 2018, la menace terroriste est persistante, au sein de la capitale comme sur l'ensemble du territoire libyen. Le risque d'enlevement demeure eleve."
+    },
+    "crime": {
+      "title": "Zones Deconseillees et Affrontements Armes",
+      "text": "Misrata et Benghazi sont deconseillees sauf raison imperative, tandis que le reste du pays, y compris la capitale Tripoli, est formellement deconseille. Des affrontements sporadiques entre groupes armes sont signales, pouvant impliquer des armes lourdes y compris en milieu urbain, particulierement dans le Croissant petrolier et le Sud du pays. Des cas d'assassinats cibles et de vols avec violence sont rapportes."
+    },
+    "infra": {
+      "title": "Risques aux Frontieres",
+      "text": "Les zones frontalieres presentent des risques eleves en raison de la presence de bandes armees."
+    }
+  },
+  "neighbors": [
+    { "name": "Egypte", "slug": "egypte", "available": true },
+    { "name": "Soudan", "slug": "soudan", "available": false },
+    { "name": "Tchad", "slug": "tchad", "available": false },
+    { "name": "Niger", "slug": "niger", "available": false },
+    { "name": "Algerie", "slug": "algerie", "available": true },
+    { "name": "Tunisie", "slug": "tunisie", "available": true }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Affrontement signale entre groupes armes dans le Croissant petrolier.", "time": "Il y a 4h" },
+    { "tag": "SURETE", "text": "Enlevement signale dans une zone frontaliere.", "time": "Il y a 1j" },
+    { "tag": "SOCIAL", "text": "Vigilance renforcee rappelee a Tripoli.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/libye/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}
