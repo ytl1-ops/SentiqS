@@ -1,0 +1,40 @@
+{
+  "iso2": "BI",
+  "slug": "burundi",
+  "name": "Burundi",
+  "namePrep": "au Burundi",
+  "region": "Afrique de l'Est",
+  "capital": "Gitega",
+  "datePublished": "2026-09-07",
+  "dateModified": "2026-09-07",
+  "metaDescription": "Situation securitaire au Burundi : frontiere RDC deconseillee, risque Al-Shabab a Bujumbura, alertes en temps reel avec SentiqS.",
+  "keywords": "Burundi securite, risque pays Burundi, veille geopolitique Bujumbura, surete entreprise Afrique de l'Est, SentiqS",
+  "summary": "Le risque d'attentats par le groupe somalien Al-Shabab ne peut etre exclu au Burundi, en particulier a Bujumbura. L'ensemble de la frontiere avec la Republique democratique du Congo est formellement deconseille en raison d'affrontements nocturnes reguliers avec des groupes armes, plusieurs attaques meurtrieres y ayant ete recensees (Ruhagarika, Gatumba en 2018, Vugizo en decembre 2023, Buringa en fevrier 2024). La foret de Kibira et la frontiere rwandaise appellent egalement a la prudence face au banditisme transfrontalier. La delinquance de droit commun est par ailleurs en hausse a Bujumbura.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste et Insurrectionnel",
+      "text": "Le risque d'attentats par le groupe somalien Al-Shabab ne peut etre exclu, en particulier a Bujumbura. La totalite de la frontiere avec la Republique democratique du Congo est formellement deconseillee du fait d'affrontements militaires nocturnes reguliers avec des groupes armes ; plusieurs attaques meurtrieres y ont ete recensees (Ruhagarika, Gatumba en 2018, Vugizo en decembre 2023, Buringa en fevrier 2024), de meme que des incidents dans le nord de la foret de Kibira pres de la frontiere rwandaise."
+    },
+    "crime": {
+      "title": "Risque Criminel et Volatilite Urbaine",
+      "text": "Une augmentation de la delinquance de droit commun, notamment a Bujumbura, a ete observee : vols a main armee, vols de vehicules et cambriolages. Les vols a la tire et les agressions sont frequents, avec des restrictions specifiques sur les deplacements nocturnes dans la capitale. La partie centrale de la foret de Kibira et la zone frontaliere avec le Rwanda restent deconseillees sauf raison imperative, en raison de risques de banditisme transfrontalier."
+    },
+    "infra": {
+      "title": "Risques Infrastructures et Transport",
+      "text": "Les accidents de la route representent une cause majeure de mortalite, aggraves par le mauvais etat des routes, un eclairage insuffisant et un manque de signalisation. Les capacites d'intervention en cas d'urgence sont quasi inexistantes, ce qui rend une assurance evacuation indispensable."
+    }
+  },
+  "neighbors": [
+    { "name": "Rwanda", "slug": "rwanda", "available": false },
+    { "name": "RD Congo", "slug": "rdc", "available": false },
+    { "name": "Tanzanie", "slug": "tanzanie", "available": false }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Affrontement signale pres de la frontiere avec la RDC.", "time": "Il y a 7h" },
+    { "tag": "SURETE", "text": "Vol a main armee signale a Bujumbura.", "time": "Il y a 1j" },
+    { "tag": "INFRA", "text": "Route degradee signalee sur un axe secondaire.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/burundi/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 07/09/2026)"
+  ]
+}

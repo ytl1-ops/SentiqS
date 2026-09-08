@@ -1,0 +1,41 @@
+{
+  "iso2": "BJ",
+  "slug": "benin",
+  "name": "Benin",
+  "namePrep": "au Benin",
+  "region": "Afrique de l'Ouest",
+  "capital": "Porto-Novo",
+  "datePublished": "2026-09-07",
+  "dateModified": "2026-09-07",
+  "metaDescription": "Situation securitaire au Benin : menace terroriste au nord, parcs de la Pendjari et du W deconseilles, alertes en temps reel avec SentiqS.",
+  "keywords": "Benin securite, risque pays Benin, veille geopolitique Cotonou Pendjari, surete entreprise Afrique de l'Ouest, SentiqS",
+  "summary": "Le risque terroriste ne peut etre totalement ecarte au Benin, dans le prolongement de l'activite de groupes armes originaires du Sahel : enlevement de deux touristes francais en 2019 au parc de la Pendjari et plusieurs attaques recensees aux frontieres depuis 2021. Les zones frontalieres avec le Burkina Faso et une grande partie du Niger, la totalite des parcs nationaux de la Pendjari et du W, ainsi que la frontiere nord-est avec le Nigeria entre Malanville et Nikki, sont formellement deconseillees. La criminalite globale reste faible mais des cambriolages et agressions sont signales, notamment sur les plages de Cotonou.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste et Insurrectionnel",
+      "text": "Le risque terroriste ne peut etre totalement ecarte au Benin en raison de l'activite de groupes armes dans les pays voisins. L'enlevement de deux touristes francais en 2019 au parc de la Pendjari et plusieurs attaques recensees aux frontieres depuis 2021 en attestent. Les zones frontalieres du Burkina Faso et d'une grande partie du Niger, la totalite des parcs nationaux de la Pendjari et du W et leurs abords, ainsi que la frontiere nord-est avec le Nigeria (de Malanville a Nikki), sont formellement deconseillees. Les axes autour de Banikoara, Kandi et Malanville sont deconseilles sauf raison imperative, les zones frontalieres avec le Nigeria etant en outre affectees par des trafics exposant a des agressions violentes."
+    },
+    "crime": {
+      "title": "Risque Criminel et Volatilite Urbaine",
+      "text": "La criminalite globale est faible, mais des cambriolages et des agressions, parfois avec violence, sont signales. A Cotonou, les plages de la capitale ne sont pas sures, de jour comme de nuit."
+    },
+    "infra": {
+      "title": "Risques Infrastructures et Transport",
+      "text": "Les accidents de la route constituent une cause importante de mortalite, lies a des vehicules usages et a de mauvaises routes. La circulation nocturne est particulierement dangereuse et deconseillee."
+    }
+  },
+  "neighbors": [
+    { "name": "Togo", "slug": "togo", "available": true },
+    { "name": "Burkina Faso", "slug": "burkina-faso", "available": true },
+    { "name": "Niger", "slug": "niger", "available": false },
+    { "name": "Nigeria", "slug": "nigeria", "available": true }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Vigilance renforcee signalee pres d'un parc national du nord.", "time": "Il y a 5h" },
+    { "tag": "SURETE", "text": "Trafic transfrontalier signale pres de la frontiere nigeriane.", "time": "Il y a 1j" },
+    { "tag": "SOCIAL", "text": "Agression signalee sur une plage de Cotonou.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/conseils-aux-voyageurs/conseils-par-pays-destination/benin/ (France Diplomatie, consulte le 07/09/2026)"
+  ]
+}
