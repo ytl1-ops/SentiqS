@@ -1,0 +1,40 @@
+{
+  "iso2": "SO",
+  "slug": "somalie",
+  "name": "Somalie",
+  "namePrep": "en Somalie",
+  "region": "Afrique de l'Est",
+  "capital": "Mogadiscio",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire en Somalie : controle territorial d'Al Shabaab, zones formellement deconseillees, risque d'enlevement extremement eleve, piraterie maritime, alertes en temps reel avec SentiqS.",
+  "keywords": "Somalie securite, risque pays Somalie, veille geopolitique Mogadiscio Al Shabaab, surete entreprise Afrique de l'Est, SentiqS",
+  "summary": "Al Shabaab, milice islamiste liee a Al Qaida, controle une part importante du pays : la moitie est des provinces de Gedo et Bas-Djouba, l'integralite du Moyen-Djouba, ainsi que de larges portions de Bay, Bakool, Bas et Moyen-Shabelle, Hiran et Galgadud. Des actes terroristes quotidiens y sont commis (assassinats cibles, engins explosifs improvises, jets de grenade, attentats a la voiture piegee, commandos suicide). Tout ressortissant francais tentant d'entrer dans les territoires controles par Al Shabaab s'expose a un risque maximum d'enlevement ou d'assassinat ; Mogadiscio presente un risque d'enlevement extremement eleve. Le Puntland demeure volatile (miliciens d'Al Shabaab, Etat islamique, affrontements locaux, criminalite liee a la piraterie) avec un risque d'enlevement tres eleve, et le Somaliland, malgre l'absence d'attentat depuis douze ans, reste formellement deconseille hors de l'axe Hargeisa-Berbera. Les actes de piraterie maritime restent actuels au large des cotes somaliennes.",
+  "threats": {
+    "terrorism": {
+      "title": "Controle Territorial d'Al Shabaab et Zones Formellement Deconseillees",
+      "text": "Al Shabaab, milice islamiste liee a Al Qaida, controle une part importante du pays : la moitie est des provinces de Gedo et Bas-Djouba, l'integralite du Moyen-Djouba, ainsi que de larges portions de Bay, Bakool, Bas et Moyen-Shabelle, Hiran et Galgadud. Des actes terroristes quotidiens y sont commis (assassinats cibles, engins explosifs improvises, jets de grenade, attentats a la voiture piegee, commandos suicide). Tout ressortissant francais tentant d'entrer dans les territoires controles par Al Shabaab s'expose a un risque maximum d'enlevement ou d'assassinat ; Mogadiscio presente un risque d'enlevement extremement eleve."
+    },
+    "crime": {
+      "title": "Puntland et Somaliland : Risque d'Enlevement Eleve",
+      "text": "Le Puntland demeure volatile, avec presence de miliciens d'Al Shabaab, de l'Etat islamique, des affrontements locaux et une criminalite liee a la piraterie ; le risque d'enlevement y est tres eleve. Le Somaliland, malgre l'absence d'attentat depuis douze ans, reste formellement deconseille hors de l'axe Hargeisa-Berbera, ou le risque demeure eleve. Hargeisa et Berbera necessitent des escortes, une reduction de la duree de sejour et des hebergements securises (sas d'entree rigoureusement fermes, gardes armes, murs d'enceinte)."
+    },
+    "infra": {
+      "title": "Piraterie Maritime",
+      "text": "Les actes de piraterie restent actuels au large des cotes somaliennes. Les navires de plaisance doivent eviter la zone ; les batiments avec une vitesse inferieure a 18 noeuds et un franc-bord bas sont particulierement vulnerables."
+    }
+  },
+  "neighbors": [
+    { "name": "Djibouti", "slug": "djibouti", "available": true },
+    { "name": "Ethiopie", "slug": "ethiopie", "available": true },
+    { "name": "Kenya", "slug": "kenya", "available": true }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Attentat a la voiture piegee signale a Mogadiscio.", "time": "Il y a 3h" },
+    { "tag": "SURETE", "text": "Enlevement signale dans une zone controlee par Al Shabaab.", "time": "Il y a 1j" },
+    { "tag": "SURETE", "text": "Acte de piraterie signale au large des cotes somaliennes.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/somalie/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}

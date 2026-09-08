@@ -1,0 +1,39 @@
+{
+  "iso2": "SL",
+  "slug": "sierra-leone",
+  "name": "Sierra Leone",
+  "namePrep": "en Sierra Leone",
+  "region": "Afrique de l'Ouest",
+  "capital": "Freetown",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire en Sierra Leone : risque terroriste regional, criminalite a Freetown, risques routiers nocturnes, alertes en temps reel avec SentiqS.",
+  "keywords": "Sierra Leone securite, risque pays Sierra Leone, veille geopolitique Freetown, surete entreprise Afrique de l'Ouest, SentiqS",
+  "summary": "Le risque terroriste existe en Sierra Leone en raison du contexte regional : les attentats en Cote d'Ivoire (2016) et au Burkina Faso (2018) montrent que les groupes terroristes de la region ciblent les lieux frequentes par les expatries, ce qui impose une vigilance dans ces espaces. A Freetown, l'insecurite reste faible mais des cas de Francais victimes de vols a main armee ou de cambriolages ont ete rapportes, ainsi que des agressions et vols a la tire dans les quartiers de Congo Cross, Wilkinson Road, Lumley Beach, Aberdeen et le Centre-Ville ; les deplacements nocturnes sont deconseilles, notamment dans les quartiers du nord-est de Freetown et autour du port. Des emeutes sont possibles en raison de la hausse du cout de la vie. Les accidents routiers graves sont frequents, les routes etant rarement eclairees et les vehicules peu entretenus.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste Lie au Contexte Regional",
+      "text": "Le risque terroriste existe en Sierra Leone en raison du contexte regional : les attentats en Cote d'Ivoire (2016) et au Burkina Faso (2018) montrent que les groupes terroristes de la region ciblent les lieux frequentes par les expatries, ce qui impose une vigilance particuliere dans ces espaces."
+    },
+    "crime": {
+      "title": "Criminalite a Freetown",
+      "text": "A Freetown, l'insecurite reste faible mais des cas de Francais victimes de vols a main armee ou de cambriolages ont ete rapportes, ainsi que des agressions et des vols a la tire dans les quartiers de Congo Cross, Wilkinson Road, Lumley Beach, Aberdeen et le Centre-Ville. Les deplacements nocturnes sont deconseilles, notamment dans les quartiers du nord-est de Freetown et autour du port. Des emeutes sont possibles en raison de la hausse du cout de la vie."
+    },
+    "infra": {
+      "title": "Risques Routiers et Naturels",
+      "text": "Les accidents routiers graves sont frequents : les routes sont rarement eclairees et les vehicules peu entretenus. La circulation de nuit en dehors de la peninsule est fortement deconseillee, et les taxis-motos ou taxis tricycles sont formellement deconseilles. Les routes deviennent impraticables en saison des pluies. Les pluies torrentielles (mai a novembre) provoquent des crues et des glissements de terrain, tandis que l'harmattan (vent de poussiere) reduit la visibilite le reste de l'annee."
+    }
+  },
+  "neighbors": [
+    { "name": "Guinee", "slug": "guinee", "available": true },
+    { "name": "Liberia", "slug": "liberia", "available": true }
+  ],
+  "alertsSample": [
+    { "tag": "SOCIAL", "text": "Vol a main armee signale dans le quartier d'Aberdeen a Freetown.", "time": "Il y a 5h" },
+    { "tag": "INFRA", "text": "Route impraticable signalee en raison des pluies.", "time": "Il y a 1j" },
+    { "tag": "SOCIAL", "text": "Manifestation liee au cout de la vie signalee a Freetown.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/sierra-leone/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}

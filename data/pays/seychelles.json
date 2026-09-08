@@ -1,0 +1,36 @@
+{
+  "iso2": "SC",
+  "slug": "seychelles",
+  "name": "Seychelles",
+  "namePrep": "aux Seychelles",
+  "region": "Afrique de l'Est",
+  "capital": "Victoria",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire aux Seychelles : hausse de la petite delinquance, piraterie maritime au nord de l'archipel, risques naturels, alertes en temps reel avec SentiqS.",
+  "keywords": "Seychelles securite, risque pays Seychelles, veille geopolitique Victoria Mahe, surete entreprise Afrique de l'Est, SentiqS",
+  "summary": "Aucune menace terroriste specifique n'est signalee aux Seychelles. Une hausse de la petite delinquance est constatee (vols sur les plages ou en ville et cambriolages, y compris parfois dans les hotels) ; il est recommande de laisser documents et objets precieux dans un coffre-fort. Les iles interieures (Mahe, Praslin, La Digue, Silhouette) demeurent relativement sures, mais la prudence reste necessaire, particulierement apres la tombee de la nuit en zone urbaine et sur les plages. La navigation au nord des Seychelles est formellement deconseillee en raison de la menace de piraterie ; la navigation de plaisance dans les iles interieures reste possible mais exige une vigilance renforcee, de meme que la zone sud-ouest en raison de trafics illicites.",
+  "threats": {
+    "terrorism": {
+      "title": "Absence de Menace Terroriste Identifiee",
+      "text": "Aucune menace terroriste specifique n'est signalee aux Seychelles a ce jour."
+    },
+    "crime": {
+      "title": "Hausse de la Petite Delinquance",
+      "text": "Une hausse de la petite delinquance est constatee (vols sur les plages ou en ville et cambriolages, y compris parfois dans les hotels) ; il est recommande de laisser documents et objets precieux dans un coffre-fort. Les iles interieures (Mahe, Praslin, La Digue, Silhouette) demeurent relativement sures, mais la prudence reste necessaire, particulierement apres la tombee de la nuit en zone urbaine et sur les plages."
+    },
+    "infra": {
+      "title": "Piraterie Maritime et Risques Naturels",
+      "text": "La navigation au nord des Seychelles est formellement deconseillee en raison de la menace de piraterie. La navigation de plaisance dans les iles interieures reste possible mais exige une vigilance renforcee, de meme que la zone sud-ouest en raison de trafics illicites. L'archipel peut subir des pluies torrentielles et des vents violents. Les baignades presentent des risques (courants, recifs, faune dangereuse), des attaques de requins mortelles s'etant produites a Praslin. Les randonnees mal balisees causent regulierement des disparitions, et les capacites de secours sont limitees : un seul caisson hyperbare existe aux Seychelles."
+    }
+  },
+  "neighbors": [],
+  "alertsSample": [
+    { "tag": "SOCIAL", "text": "Cambriolage signale dans un hotel de Mahe.", "time": "Il y a 7h" },
+    { "tag": "SURETE", "text": "Activite de piraterie signalee au nord de l'archipel.", "time": "Il y a 1j" },
+    { "tag": "INFRA", "text": "Alerte pluies torrentielles sur l'archipel.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/seychelles/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}
