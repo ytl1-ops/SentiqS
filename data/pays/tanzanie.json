@@ -1,0 +1,45 @@
+{
+  "iso2": "TZ",
+  "slug": "tanzanie",
+  "name": "Tanzanie",
+  "namePrep": "en Tanzanie",
+  "region": "Afrique de l'Est",
+  "capital": "Dodoma",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire en Tanzanie : menace terroriste sur la bande frontaliere avec le Mozambique, criminalite a Dar-Es-Salam et Zanzibar, alertes en temps reel avec SentiqS.",
+  "keywords": "Tanzanie securite, risque pays Tanzanie, veille geopolitique Dar-Es-Salam Zanzibar, surete entreprise Afrique de l'Est, SentiqS",
+  "summary": "La menace terroriste est averee en Tanzanie, consideree comme une cible potentielle du terrorisme en raison de la porosite des frontieres et des reseaux terroristes internationaux ; une vigilance accrue s'impose dans les lieux frequentes par des etrangers (hotels, bars, restaurants, centres commerciaux) sur tout le territoire, particulierement a Dar-Es-Salam. La bande frontaliere avec le Mozambique et la region de Mtwara sont formellement deconseillees en raison du risque d'attaques terroristes et d'enlevements. A Dar-Es-Salam, les actes de delinquance (viols, vols a la tire, agressions, cambriolages) sont en hausse. A Zanzibar, les agressions se concentrent a Stone Town, Nungwi, Paje et Jambiani, avec des cambriolages nocturnes de chambres et villas occupees a Paje et Jambiani, et des cas de viols ou tentatives de viol de touristes ont ete documentes. La Tanzanie est le sixieme pays au monde par le taux de mortalite routiere.",
+  "threats": {
+    "terrorism": {
+      "title": "Menace Terroriste et Frontiere avec le Mozambique",
+      "text": "La menace terroriste est averee en Tanzanie, consideree comme une cible potentielle du terrorisme en raison de la porosite des frontieres et des reseaux terroristes internationaux. Une vigilance accrue s'impose dans les lieux frequentes par des etrangers (hotels, bars, restaurants, centres commerciaux) sur tout le territoire, particulierement a Dar-Es-Salam. La bande frontaliere avec le Mozambique et la region de Mtwara sont formellement deconseillees en raison du risque d'attaques terroristes et d'enlevements."
+    },
+    "crime": {
+      "title": "Criminalite a Dar-Es-Salam et Zanzibar",
+      "text": "A Dar-Es-Salam, les actes de delinquance (viols, vols a la tire, agressions, cambriolages) connaissent une hausse ; il convient d'eviter les promenades isolees, notamment sur les plages et la nuit. A Zanzibar, les agressions se concentrent a Stone Town, Nungwi, Paje et Jambiani ; a Paje et Jambiani, des cambriolages nocturnes de chambres et villas occupees ont ete signales, et des cas de viols ou tentatives de viol de touristes ont ete documentes, les femmes voyageant seules devant etre particulierement vigilantes. Des faux taxis circulent ; les taxis officiels possedent une plaque de couleur blanche."
+    },
+    "infra": {
+      "title": "Risques Routiers, Sismiques et Maritimes",
+      "text": "La Tanzanie est le sixieme pays au monde par le taux de mortalite routiere. Les routes sont en etat vetuste, sans signalisation ni eclairage, et la conduite de nuit en dehors des agglomerations est formellement deconseillee ; il est recommande de privilegier l'avion pour les longs trajets. Un risque sismique existe, et la navigation vers l'ocean Indien demeure dangereuse en raison d'actes ponctuels de piraterie."
+    }
+  },
+  "neighbors": [
+    { "name": "Kenya", "slug": "kenya", "available": true },
+    { "name": "Ouganda", "slug": "ouganda", "available": true },
+    { "name": "Rwanda", "slug": "rwanda", "available": true },
+    { "name": "Burundi", "slug": "burundi", "available": true },
+    { "name": "RD Congo", "slug": "rdc", "available": true },
+    { "name": "Zambie", "slug": "zambie", "available": true },
+    { "name": "Malawi", "slug": "malawi", "available": true },
+    { "name": "Mozambique", "slug": "mozambique", "available": true }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Risque d'enlevement signale pres de la frontiere avec le Mozambique.", "time": "Il y a 5h" },
+    { "tag": "SOCIAL", "text": "Cambriolage nocturne signale a Paje, Zanzibar.", "time": "Il y a 1j" },
+    { "tag": "INFRA", "text": "Accident routier signale de nuit hors agglomeration.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/tanzanie/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}

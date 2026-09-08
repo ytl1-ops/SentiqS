@@ -20,7 +20,7 @@ Le script `scripts/generate-country-fiche.js` refuse de generer une fiche si le 
 3. Le fichier `web/pays/<slug>.html` est genere a partir du gabarit `scripts/templates/fiche-country.template.html`.
 4. Ajouter manuellement l'entree dans `sitemap.xml` et dans `web/pays/index.html`.
 
-## Checklist des 45 pays restants (9/54 deja publies : Burkina Faso, Cote d'Ivoire, Ghana, Guinee, Liberia, Mali, Nigeria, Senegal, Togo)
+## Checklist des 45 pays restants (14/54 deja publies : Burkina Faso, Cote d'Ivoire, Ghana, Guinee, Liberia, Mali, Nigeria, Senegal, Togo, Tanzanie, Tchad, Zambie, Zimbabwe, Afrique du Sud)
 
 | Pays | Slug prevu | ISO2 | Statut |
 |---|---|---|---|
@@ -65,12 +65,12 @@ Le script `scripts/generate-country-fiche.js` refuse de generer une fiche si le 
 | Somalie | `somalie` | SO | ☐ a faire |
 | Soudan | `soudan` | SD | ☐ a faire |
 | Soudan du Sud | `soudan-du-sud` | SS | ☐ a faire |
-| Tanzanie | `tanzanie` | TZ | ☐ a faire |
-| Tchad | `tchad` | TD | ☐ a faire |
+| Tanzanie | `tanzanie` | TZ | publiee (source France Diplomatie) |
+| Tchad | `tchad` | TD | publiee (source France Diplomatie) |
 | Togo | `togo` | TG | publiee (source France Diplomatie) |
 | Tunisie | `tunisie` | TN | ☐ a faire |
-| Zambie | `zambie` | ZM | ☐ a faire |
-| Zimbabwe | `zimbabwe` | ZW | ☐ a faire |
-| Afrique du Sud | `afrique-du-sud` | ZA | ☐ a faire |
+| Zambie | `zambie` | ZM | publiee (source France Diplomatie) |
+| Zimbabwe | `zimbabwe` | ZW | publiee (source France Diplomatie) |
+| Afrique du Sud | `afrique-du-sud` | ZA | publiee (source France Diplomatie) |
 
 Chaque ligne passe a "fait" uniquement lorsque le fichier `data/pays/<slug>.json` correspondant existe, est rempli avec des sources verifiees, et que la fiche a ete generee et relue.
