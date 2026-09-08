@@ -20,7 +20,7 @@ Le script `scripts/generate-country-fiche.js` refuse de generer une fiche si le 
 3. Le fichier `web/pays/<slug>.html` est genere a partir du gabarit `scripts/templates/fiche-country.template.html`.
 4. Ajouter manuellement l'entree dans `sitemap.xml` et dans `web/pays/index.html`.
 
-## Checklist des 45 pays restants (9/54 deja publies : Burkina Faso, Cote d'Ivoire, Ghana, Guinee, Liberia, Mali, Nigeria, Senegal, Togo)
+## Checklist des pays restants (14/54 deja publies : Burkina Faso, Cote d'Ivoire, Ghana, Guinee, Liberia, Mali, Nigeria, Senegal, Togo, Gambie, Guinee-Bissau, Guinee equatoriale, Lesotho, Libye)
 
 | Pays | Slug prevu | ISO2 | Statut |
 |---|---|---|---|
@@ -41,12 +41,12 @@ Le script `scripts/generate-country-fiche.js` refuse de generer une fiche si le 
 | Eswatini | `eswatini` | SZ | ☐ a faire |
 | Ethiopie | `ethiopie` | ET | ☐ a faire |
 | Gabon | `gabon` | GA | ☐ a faire |
-| Gambie | `gambie` | GM | ☐ a faire |
-| Guinee-Bissau | `guinee-bissau` | GW | ☐ a faire |
-| Guinee equatoriale | `guinee-equatoriale` | GQ | ☐ a faire |
+| Gambie | `gambie` | GM | publiee (source France Diplomatie) |
+| Guinee-Bissau | `guinee-bissau` | GW | publiee (source France Diplomatie) |
+| Guinee equatoriale | `guinee-equatoriale` | GQ | publiee (source France Diplomatie) |
 | Kenya | `kenya` | KE | ☐ a faire |
-| Lesotho | `lesotho` | LS | ☐ a faire |
-| Libye | `libye` | LY | ☐ a faire |
+| Lesotho | `lesotho` | LS | publiee (source France Diplomatie) |
+| Libye | `libye` | LY | publiee (source France Diplomatie) |
 | Madagascar | `madagascar` | MG | ☐ a faire |
 | Malawi | `malawi` | MW | ☐ a faire |
 | Maroc | `maroc` | MA | ☐ a faire |

@@ -1,0 +1,38 @@
+{
+  "iso2": "GM",
+  "slug": "gambie",
+  "name": "Gambie",
+  "namePrep": "en Gambie",
+  "region": "Afrique de l'Ouest",
+  "capital": "Banjul",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire en Gambie : vigilance renforcee sur tout le territoire, delinquance touristique a Banjul, alertes en temps reel avec SentiqS.",
+  "keywords": "Gambie securite, risque pays Gambie, veille geopolitique Banjul, surete entreprise Afrique de l'Ouest, SentiqS",
+  "summary": "L'ensemble du territoire gambien est classe en vigilance renforcee. Aucun risque terroriste specifique n'est identifie. Les actes de delinquance de droit commun (vols a la tire, vols de sacs) sont frequents, principalement dans les lieux touristiques ou sevissent des pickpockets. Le parc automobile est vetuste et les accidents routiers sont nombreux ; la circulation nocturne est deconseillee. La saison des pluies (juin a octobre) provoque inondations et degats routiers, et les baignades sont dangereuses en raison de courants puissants. L'antenne diplomatique francaise a Banjul dispose de capacites limitees pour l'assistance consulaire.",
+  "threats": {
+    "terrorism": {
+      "title": "Niveau de Vigilance",
+      "text": "L'ensemble du territoire gambien est classe en vigilance renforcee. Aucun risque terroriste specifique n'est identifie a ce jour."
+    },
+    "crime": {
+      "title": "Delinquance Touristique",
+      "text": "Les actes de delinquance de droit commun (vols a la tire, vols de sacs) sont frequents, principalement dans les lieux touristiques ou sevissent des pickpockets. Il est recommande d'eviter de circuler avec des objets de valeur, de garder ses documents en lieu sur et de verrouiller les portieres des vehicules."
+    },
+    "infra": {
+      "title": "Risques Routiers et Naturels",
+      "text": "Le parc automobile est vetuste et les accidents sont nombreux. La circulation nocturne est deconseillee. La saison des pluies, de juin a octobre, provoque des inondations et des degats sur le reseau routier. Les baignades sont dangereuses en raison de courants puissants et de vagues violentes. L'antenne diplomatique francaise a Banjul dispose de capacites limitees pour l'assistance consulaire."
+    }
+  },
+  "neighbors": [
+    { "name": "Senegal", "slug": "senegal", "available": true }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Vol a la tire signale dans une zone touristique.", "time": "Il y a 5h" },
+    { "tag": "INFRA", "text": "Route inondee signalee en saison des pluies.", "time": "Il y a 1j" },
+    { "tag": "SOCIAL", "text": "Vigilance renforcee rappelee sur tout le territoire.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/gambie/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}

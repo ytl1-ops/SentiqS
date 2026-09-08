@@ -1,0 +1,38 @@
+{
+  "iso2": "LS",
+  "slug": "lesotho",
+  "name": "Lesotho",
+  "namePrep": "au Lesotho",
+  "region": "Afrique australe",
+  "capital": "Maseru",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire au Lesotho : delinquance visant les etrangers a Maseru, routes de montagne dangereuses, alertes en temps reel avec SentiqS.",
+  "keywords": "Lesotho securite, risque pays Lesotho, veille geopolitique Maseru, surete entreprise Afrique australe, SentiqS",
+  "summary": "Aucune menace terroriste specifique n'est identifiee au Lesotho. A Maseru, les actes de delinquance (vols a l'arrachee, vols de vehicules) sont courants et peuvent parfois etre assortis de violence ; les etrangers constituent des cibles privilegiees, particulierement entre le quartier d'affaires et les hotels. Les accidents de la circulation, dus a l'imprudence des conducteurs ou au terrain defavorable, sont nombreux et souvent mortels, et la circulation nocturne est particulierement dangereuse en raison des animaux errants et de l'absence d'eclairage. Le pays, enclave dans l'Afrique du Sud, connait des conditions meteorologiques montagnardes changeantes, avec de la neige bloquant frequemment la circulation de juin a octobre, et une secheresse prolongee affectant l'acces a l'eau.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste",
+      "text": "Aucune menace terroriste specifique n'est identifiee au Lesotho a ce jour."
+    },
+    "crime": {
+      "title": "Delinquance Visant les Etrangers",
+      "text": "A Maseru, les actes de delinquance (vols a l'arrachee, vols de vehicules) sont courants et peuvent parfois etre assortis de violence. Les etrangers constituent des cibles privilegiees, particulierement entre le quartier d'affaires et les hotels."
+    },
+    "infra": {
+      "title": "Risques Routiers et Montagnards",
+      "text": "Les accidents de la circulation, dus a l'imprudence des conducteurs ou au terrain defavorable, sont nombreux et souvent mortels. La circulation nocturne est particulierement dangereuse en raison des animaux errants et de l'absence d'eclairage. Les conditions meteorologiques peuvent changer rapidement en altitude, la neige bloquant frequemment la circulation de juin a octobre ; une secheresse prolongee affecte par ailleurs l'acces a l'eau depuis plusieurs annees."
+    }
+  },
+  "neighbors": [
+    { "name": "Afrique du Sud", "slug": "afrique-du-sud", "available": false }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Vol de vehicule avec violence signale a Maseru.", "time": "Il y a 5h" },
+    { "tag": "INFRA", "text": "Route de montagne bloquee par la neige.", "time": "Il y a 1j" },
+    { "tag": "SOCIAL", "text": "Vigilance rappelee pres du quartier d'affaires.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/lesotho/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}
