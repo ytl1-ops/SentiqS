@@ -20,7 +20,7 @@ Le script `scripts/generate-country-fiche.js` refuse de generer une fiche si le 
 3. Le fichier `web/pays/<slug>.html` est genere a partir du gabarit `scripts/templates/fiche-country.template.html`.
 4. Ajouter manuellement l'entree dans `sitemap.xml` et dans `web/pays/index.html`.
 
-## Checklist des 45 pays restants (9/54 deja publies : Burkina Faso, Cote d'Ivoire, Ghana, Guinee, Liberia, Mali, Nigeria, Senegal, Togo)
+## Checklist des 45 pays restants (14/54 deja publies : Burkina Faso, Cote d'Ivoire, Ghana, Guinee, Liberia, Mali, Nigeria, Senegal, Togo, Madagascar, Malawi, Maurice, Mauritanie, Mozambique)
 
 | Pays | Slug prevu | ISO2 | Statut |
 |---|---|---|---|
@@ -47,12 +47,12 @@ Le script `scripts/generate-country-fiche.js` refuse de generer une fiche si le 
 | Kenya | `kenya` | KE | ☐ a faire |
 | Lesotho | `lesotho` | LS | ☐ a faire |
 | Libye | `libye` | LY | ☐ a faire |
-| Madagascar | `madagascar` | MG | ☐ a faire |
-| Malawi | `malawi` | MW | ☐ a faire |
+| Madagascar | `madagascar` | MG | publiee (source France Diplomatie) |
+| Malawi | `malawi` | MW | publiee (source France Diplomatie) |
 | Maroc | `maroc` | MA | ☐ a faire |
-| Maurice | `maurice` | MU | ☐ a faire |
-| Mauritanie | `mauritanie` | MR | ☐ a faire |
-| Mozambique | `mozambique` | MZ | ☐ a faire |
+| Maurice | `maurice` | MU | publiee (source France Diplomatie) |
+| Mauritanie | `mauritanie` | MR | publiee (source France Diplomatie) |
+| Mozambique | `mozambique` | MZ | publiee (source France Diplomatie) |
 | Namibie | `namibie` | NA | ☐ a faire |
 | Niger | `niger` | NE | ☐ a faire |
 | Nigeria | `nigeria` | NG | publiee (source France Diplomatie) |

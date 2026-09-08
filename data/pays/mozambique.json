@@ -1,0 +1,43 @@
+{
+  "iso2": "MZ",
+  "slug": "mozambique",
+  "name": "Mozambique",
+  "namePrep": "au Mozambique",
+  "region": "Afrique australe",
+  "capital": "Maputo",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire au Mozambique : attaques djihadistes dans le Cabo Delgado depuis 2017, criminalite en hausse a Maputo, alertes en temps reel avec SentiqS.",
+  "keywords": "Mozambique securite, risque pays Mozambique, veille geopolitique Cabo Delgado Maputo, surete entreprise Afrique australe, SentiqS",
+  "summary": "Depuis octobre 2017, l'Etat islamique au Mozambique mene un grand nombre d'attaques terroristes d'inspiration islamiste dans la province du Cabo Delgado, visant installations gouvernementales et civils par massacres, pillages et kidnappings ; des attaques notables ont frappe Mocimboa da Praia et Palma en 2021. Malgre les interventions militaires mozambicaines et rwandaises, les groupes restent actifs. L'ensemble de la province du Cabo Delgado (incluant Pemba), le tiers Est du Niassa et la frontiere tanzanienne, les archipels d'Ibo et Quirimbas, ainsi que plusieurs districts de Nampula (Memba, Errati, Mecuburi, Lalaua, Nacaroa) sont formellement deconseilles. A Maputo, depuis 2025, une hausse significative des agressions et vols a main armee, de jour comme de nuit, est constatee, et les enlevements contre rancon demeurent recurrents.",
+  "threats": {
+    "terrorism": {
+      "title": "Menace Terroriste dans le Cabo Delgado",
+      "text": "Depuis octobre 2017, l'Etat islamique au Mozambique mene un grand nombre d'attaques terroristes d'inspiration islamiste dans la province du Cabo Delgado, visant installations gouvernementales et civils par massacres, pillages et kidnappings. Des attaques notables ont frappe Mocimboa da Praia et Palma en 2021. Malgre les interventions militaires mozambicaines et rwandaises, les groupes restent actifs avec des modes operatoires changeants."
+    },
+    "crime": {
+      "title": "Zones Formellement Deconseillees et Criminalite Urbaine",
+      "text": "L'ensemble de la province du Cabo Delgado (incluant Pemba), le tiers Est du Niassa et la frontiere tanzanienne, les archipels d'Ibo et Quirimbas, ainsi que plusieurs districts de Nampula (Memba, Errati, Mecuburi, Lalaua, Nacaroa) sont formellement deconseilles. A Maputo, depuis 2025, une hausse significative des agressions et vols a main armee, de jour comme de nuit, est constatee. Les enlevements contre rancon demeurent recurrents ; a ce stade, les etrangers residant au Mozambique et les touristes ne sont pas specifiquement vises, mais le risque persiste."
+    },
+    "infra": {
+      "title": "Risques Routiers et Cycloniques",
+      "text": "Les routes sont degradees et l'imprudence routiere est frequente. La saison cyclonique s'etend de decembre a mars, avec des inondations. Des courants marins forts sont signales, et des attaques de requins restent exceptionnelles."
+    }
+  },
+  "neighbors": [
+    { "name": "Tanzanie", "slug": "tanzanie", "available": false },
+    { "name": "Malawi", "slug": "malawi", "available": true },
+    { "name": "Zambie", "slug": "zambie", "available": false },
+    { "name": "Zimbabwe", "slug": "zimbabwe", "available": false },
+    { "name": "Afrique du Sud", "slug": "afrique-du-sud", "available": false },
+    { "name": "Eswatini", "slug": "eswatini", "available": true }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Attaque signalee attribuee a un groupe arme dans le Cabo Delgado.", "time": "Il y a 3h" },
+    { "tag": "SURETE", "text": "Enlevement contre rancon signale pres de Maputo.", "time": "Il y a 1j" },
+    { "tag": "SOCIAL", "text": "Vol a main armee signale a Maputo.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/mozambique/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}
