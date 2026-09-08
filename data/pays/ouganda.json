@@ -1,0 +1,42 @@
+{
+  "iso2": "UG",
+  "slug": "ouganda",
+  "name": "Ouganda",
+  "namePrep": "en Ouganda",
+  "region": "Afrique de l'Est",
+  "capital": "Kampala",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire en Ouganda : menace terroriste des ADF affilies a Daesh, zones frontalieres RDC et Soudan du Sud, criminalite a Kampala, alertes en temps reel avec SentiqS.",
+  "keywords": "Ouganda securite, risque pays Ouganda, veille geopolitique Kampala Karamoja, surete entreprise Afrique de l'Est, SentiqS",
+  "summary": "Deux groupes terroristes sont identifies comme menace : les Shebab somaliens et les Allied Democratic Forces (ADF), affilies a Daesh, ce qui impose une vigilance dans les lieux publics (eglises, centres commerciaux, hotels). Le passage de la frontiere avec la RD Congo est formellement interdit en raison de possibles incursions de groupes armes, dont des groupes terroristes, la ville de Bwera et ses environs etant egalement interdits d'acces ; la penetration depuis le Soudan du Sud est formellement deconseillee du fait d'incursions regulieres de groupes armes et de raids sur le betail. Le parc Semuliki et la region du Karamoja (nord-est), notamment l'axe Moroto-Kotido-Kabong, sont deconseilles sauf raison imperative. A Kampala, la criminalite est en hausse notable, y compris dans les quartiers residentiels de Kololo, Nakasero et Naguru, de meme qu'a Entebbe et Jinja.",
+  "threats": {
+    "terrorism": {
+      "title": "Menace Terroriste et Zones Frontalieres Formellement Deconseillees",
+      "text": "Deux groupes terroristes sont identifies comme menace : les Shebab somaliens et les Allied Democratic Forces (ADF), affilies a Daesh, ce qui impose une vigilance dans les lieux publics (eglises, centres commerciaux, hotels). Le passage de la frontiere avec la RD Congo est formellement interdit en raison de possibles incursions de groupes armes, dont des groupes terroristes ; la ville de Bwera et ses environs sont egalement interdits d'acces. La penetration depuis le Soudan du Sud est formellement deconseillee du fait d'incursions regulieres de groupes armes et de raids sur le betail. Le parc Semuliki est deconseille sauf raison imperative en raison d'incursions de cellules terroristes depuis la RD Congo, et les parcs frontaliers avec la RD Congo (Queen Elizabeth, Rwenzori, foret de Bwindi) necessitent une vigilance renforcee."
+    },
+    "crime": {
+      "title": "Criminalite en Hausse a Kampala et dans le Karamoja",
+      "text": "La region du Karamoja (nord-est) connait des troubles frontaliers et des conflits entre eleveurs ; l'axe Moroto-Kotido-Kabong presente des risques particuliers, des attaques de vehicules ayant ete recensees, en particulier la nuit. A Kampala, la criminalite est en hausse notable, y compris dans les quartiers residentiels de Kololo, Nakasero et Naguru, avec des vols a l'arrache, des cambriolages et des braquages parfois accompagnes de violence ; des coupeurs de route operent la nuit sur les grands axes. Entebbe et Jinja connaissent egalement une hausse recente de la criminalite et de la violence contre les expatries."
+    },
+    "infra": {
+      "title": "Risques Routiers",
+      "text": "Le nombre d'accidents routiers est particulierement eleve, surtout la nuit, du fait de l'imprudence, de vehicules mal entretenus et de l'absence d'eclairage public. Les services d'urgence de type SAMU sont absents."
+    }
+  },
+  "neighbors": [
+    { "name": "Kenya", "slug": "kenya", "available": true },
+    { "name": "Soudan du Sud", "slug": "soudan-du-sud", "available": false },
+    { "name": "RD Congo", "slug": "rdc", "available": true },
+    { "name": "Rwanda", "slug": "rwanda", "available": true },
+    { "name": "Tanzanie", "slug": "tanzanie", "available": false }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Incursion armee signalee pres de la frontiere avec la RD Congo.", "time": "Il y a 6h" },
+    { "tag": "SOCIAL", "text": "Braquage signale dans un quartier residentiel de Kampala.", "time": "Il y a 1j" },
+    { "tag": "SURETE", "text": "Attaque de vehicule signalee sur l'axe Moroto-Kotido-Kabong.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/ouganda/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}
