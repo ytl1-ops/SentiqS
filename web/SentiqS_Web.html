@@ -10803,7 +10803,7 @@ function lbg(l){return {crit:'#8B1A1A',high:'#7C4A00',mod:'#4B5563',ok:'#0F4F2A'
 function lic(l){return l==='crit'?'ti-alert-triangle':l==='high'?'ti-alert-circle':'ti-info-circle';}
 
 function getFiltered() {
-  const MAX_AGE = 12*60*60*1000; // 12 heures en ms
+  const MAX_AGE = 12*60*60*1000;
   // Filtre anti-hallucination : seules les données sourcées, horodatées et < 12h
   let a = (typeof antiHalluFilter === 'function')
     ? antiHalluFilter([...ALL], MAX_AGE)
@@ -17162,7 +17162,16 @@ const WEIGHT_PAR_LEVEL      = {crit:3, high:2, mod:1};
 
 function getLiveAlertEvents(cy) {
   if (typeof ALL === 'undefined') return [];
-  const MAX_AGE = 12*60*60*1000;
+  // MISE A JOUR du 08/09/2026 : 12h -> 24h, pour capter davantage d'actualite
+  // recente dans le score d'alerte. Mesure sur le cache reel publie (1119
+  // articles, 54 pays) avant generalisation : 17/54 pays gagnent des signaux
+  // live supplementaires, 8/54 voient leur score bouger (+1 a +3 points), et
+  // AUCUN pays ne change de niveau affiche — les garde-fous (plafond de 5
+  // evenements live, poids nul pour les niveaux moderes, borneRougeVerifie/
+  // borneRougeRecoupe) absorbent l'ecart. Reste deliberement plus court que
+  // FENETRE_ACTUALITE_MS (36h, fenetre du Flux) : un signal qui alimente le
+  // score d'alerte doit rester plus recent que ce qui s'affiche comme actu.
+  const MAX_AGE = 24*60*60*1000;
   const now = Date.now();
 
   // Filtre strict : articles sourcés, horodatés, provenant d'une source fiable.
@@ -17174,7 +17183,7 @@ function getLiveAlertEvents(cy) {
   // pays meme s'il resume une periode passee — il etait auparavant exclu a
   // tort, laissant "Alertes" figee sur d'anciens incidents verifies alors
   // que des sources fiables publiaient bel et bien du contenu recent. La
-  // fraicheur de PUBLICATION (a.pubDate < 12h, deja verifiee ci-dessus) plus
+  // fraicheur de PUBLICATION (a.pubDate < 24h, deja verifiee ci-dessus) plus
   // la fiabilite de la source (score>=70) et la corroboration (niveau
   // critique) restent les garde-fous.
   const candidats = ALL.filter(a =>
