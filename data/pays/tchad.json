@@ -1,0 +1,43 @@
+{
+  "iso2": "TD",
+  "slug": "tchad",
+  "name": "Tchad",
+  "namePrep": "au Tchad",
+  "region": "Afrique centrale",
+  "capital": "N'Djamena",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire au Tchad : menace de Boko Haram au lac Tchad, zones formellement deconseillees, criminalite a N'Djamena, alertes en temps reel avec SentiqS.",
+  "keywords": "Tchad securite, risque pays Tchad, veille geopolitique N'Djamena lac Tchad, surete entreprise Afrique centrale, SentiqS",
+  "summary": "Le groupe Boko Haram est toujours actif dans la region du lac Tchad, ainsi que dans les autres pays riverains (Nigeria, Niger et Cameroun), et mene regulierement des actions de predation aux abords du lac et sur les iles ; le risque d'enlevement visant les Occidentaux y est particulierement eleve, et des tentatives d'attentats sont possibles dans les villes du sud du pays, y compris a N'Djamena. Sont formellement deconseilles : les provinces du Tibesti, de l'Ennedi et l'est du Borkou (operations militaires frontalieres depuis 2018, mines, trafics), la zone du lac Tchad (sauf Bol), ainsi que les zones frontalieres avec la Libye (fermee depuis 2017), le Darfour, la Republique centrafricaine et le sud-ouest avec le Cameroun, ou les enlevements contre rancon sont frequents. A N'Djamena, la delinquance de droit commun (vols, agressions, cambriolages, parfois avec violences) est en hausse reguliere.",
+  "threats": {
+    "terrorism": {
+      "title": "Boko Haram au Lac Tchad et Zones Formellement Deconseillees",
+      "text": "Le groupe Boko Haram est toujours actif dans la region du lac Tchad, ainsi que dans les autres pays riverains (Nigeria, Niger et Cameroun), et mene regulierement des actions de predation aux abords du lac et sur les iles ; le risque d'enlevement visant les Occidentaux y est particulierement eleve, et des tentatives d'attentats sont possibles dans les villes du sud du pays, y compris a N'Djamena. Sont formellement deconseilles : les provinces du Tibesti, de l'Ennedi et l'est du Borkou (operations militaires frontalieres depuis 2018, mines, trafics), la zone du lac Tchad (sauf Bol), ainsi que les zones frontalieres avec la Libye (fermee depuis 2017), le Darfour, la Republique centrafricaine et le sud-ouest avec le Cameroun, ou les enlevements contre rancon sont frequents."
+    },
+    "crime": {
+      "title": "Delinquance en Hausse a N'Djamena",
+      "text": "La delinquance de droit commun (vols, agressions, cambriolages, parfois avec violences) est en hausse reguliere dans la capitale. Les deplacements a pied sont a eviter, notamment dans les quartiers est de N'Djamena (Moursal, Sabangali, Chagoua)."
+    },
+    "infra": {
+      "title": "Routes Degradees et Coupeurs de Route",
+      "text": "Les routes sont en mauvais etat ou reduites a des pistes, avec presence de coupeurs de route armes et organises. Tout deplacement terrestre doit s'effectuer de jour, en convoi avec escorte militaire tchadienne."
+    }
+  },
+  "neighbors": [
+    { "name": "Libye", "slug": "libye", "available": true },
+    { "name": "Soudan", "slug": "soudan", "available": true },
+    { "name": "Centrafrique", "slug": "centrafrique", "available": true },
+    { "name": "Cameroun", "slug": "cameroun", "available": true },
+    { "name": "Nigeria", "slug": "nigeria", "available": true },
+    { "name": "Niger", "slug": "niger", "available": true }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Action de predation signalee aux abords du lac Tchad.", "time": "Il y a 4h" },
+    { "tag": "SURETE", "text": "Enlevement contre rancon signale pres de la frontiere camerounaise.", "time": "Il y a 1j" },
+    { "tag": "SOCIAL", "text": "Cambriolage avec violence signale a N'Djamena.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/tchad/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}

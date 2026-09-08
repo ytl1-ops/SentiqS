@@ -1,0 +1,43 @@
+{
+  "iso2": "ZA",
+  "slug": "afrique-du-sud",
+  "name": "Afrique du Sud",
+  "namePrep": "en Afrique du Sud",
+  "region": "Afrique australe",
+  "capital": "Pretoria",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire en Afrique du Sud : taux de criminalite tres eleve, zones a risque a Johannesburg, Le Cap et Durban, car-jackings, alertes en temps reel avec SentiqS.",
+  "keywords": "Afrique du Sud securite, risque pays Afrique du Sud, veille geopolitique Johannesburg Le Cap, surete entreprise Afrique australe, SentiqS",
+  "summary": "Aucune menace terroriste specifique n'est signalee, mais le taux de criminalite en Afrique du Sud est tres eleve, concentre principalement dans les zones urbaines defavorisees tout en affectant aussi les quartiers aises. Les agressions contre les touristes visent leurs biens materiels et peuvent s'accompagner de violences graves (vols sous la menace de couteaux ou d'armes a feu). A Johannesburg, plusieurs zones sont a risque eleve (Melville, Hillbrow, Berea, Alexandra, Yeoville, le vieux centre-ville, le Maboneng Precinct), avec une mise en garde specifique sur la recrudescence des vols a main armee a l'aeroport OR Tambo. Au Cap, plusieurs quartiers et plages presentent des risques (Woodstock, Observatory, Bokaap, Noordhoek, Long Street), ainsi que les townships du Cape Flats (Khayelitsha, Delft, Mitchell's Plain, Langa, Nyanga, Gugulethu, Manenberg), a eviter sans guide. Les car-jackings sont tres importants en volume, pres de la moitie des 20 000 cas annuels survenant dans la province du Gauteng.",
+  "threats": {
+    "terrorism": {
+      "title": "Absence de Menace Terroriste Identifiee",
+      "text": "Aucune menace terroriste specifique n'est signalee en Afrique du Sud a ce jour."
+    },
+    "crime": {
+      "title": "Criminalite Tres Elevee : Johannesburg, Le Cap, Durban",
+      "text": "Le taux de criminalite en Afrique du Sud est tres eleve, concentre principalement dans les zones urbaines defavorisees mais affectant aussi les quartiers aises. Les agressions contre les touristes visent leurs biens materiels et peuvent s'accompagner de violences graves (vols sous la menace de couteaux ou d'armes a feu). A Johannesburg, les zones de Melville, Hillbrow, Berea, Alexandra, Yeoville, le vieux centre-ville (hors secteur Newtown) et le Maboneng Precinct sont a risque eleve, de meme que la gare routiere du centre-ville ; Soweto doit se limiter aux tours organises. L'aeroport OR Tambo connait une recrudescence des vols a main armee a l'arrivee. Au Cap, les quartiers de Woodstock, Observatory et Bokaap, la plage de Noordhoek (agressions de touristes isoles), la plage de Diaz Beach (forts courants), Long Street le soir, ainsi que les townships du Cape Flats (Khayelitsha, Delft, Mitchell's Plain, Langa, Nyanga, Gugulethu, Manenberg) sont a eviter sans guide ; la region viticole de Stellenbosch est deconseillee apres la tombee de la nuit. A Durban, le quai Victoria, les passages souterrains du Workshop Shopping Centre, Point Road et le front de mer necessitent une vigilance constante. Dans l'Eastern Cape, les townships de Port Elizabeth et East London, Port St Johns et Coffee Bay (Wild Coast) ont connu des attaques violentes contre des touristes. Les car-jackings sont tres importants en volume, pres de la moitie des 20 000 cas annuels survenant dans la province du Gauteng, de meme que la fraude bancaire et les arnagues en ligne."
+    },
+    "infra": {
+      "title": "Risques Routiers et Naturels",
+      "text": "Des braquages surviennent sur les trajets entre les aeroports et les centres-villes, et les GPS peuvent diriger vers des zones dangereuses. Les routes de nuit hors agglomeration sont a eviter, de meme que les arrets sur certaines autoroutes comme la N2 au Cap, signalees comme zones a forte criminalite. De faux controles de police par des vehicules banalises sont signales a l'arrivee. Les requins sont presents sur l'ensemble du littoral, avec un systeme d'alerte au Cap, et les vents et courants marins tres changeants entrainent des risques de noyade eleves sur l'ensemble des cotes. Des conflits sociaux violents sont possibles, notamment dans les regions minieres et sur les campus universitaires."
+    }
+  },
+  "neighbors": [
+    { "name": "Namibie", "slug": "namibie", "available": true },
+    { "name": "Botswana", "slug": "botswana", "available": true },
+    { "name": "Zimbabwe", "slug": "zimbabwe", "available": true },
+    { "name": "Mozambique", "slug": "mozambique", "available": true },
+    { "name": "Eswatini", "slug": "eswatini", "available": true },
+    { "name": "Lesotho", "slug": "lesotho", "available": true }
+  ],
+  "alertsSample": [
+    { "tag": "SOCIAL", "text": "Vol a main armee signale a l'aeroport OR Tambo, Johannesburg.", "time": "Il y a 3h" },
+    { "tag": "SOCIAL", "text": "Car-jacking signale dans la province du Gauteng.", "time": "Il y a 1j" },
+    { "tag": "SOCIAL", "text": "Agression signalee sur une plage isolee pres du Cap.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/afrique-du-sud/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}

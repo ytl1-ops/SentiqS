@@ -1,0 +1,41 @@
+{
+  "iso2": "ZW",
+  "slug": "zimbabwe",
+  "name": "Zimbabwe",
+  "namePrep": "au Zimbabwe",
+  "region": "Afrique australe",
+  "capital": "Harare",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire au Zimbabwe : criminalite globalement faible mais cambriolages en hausse a Harare, risques routiers nocturnes, alertes en temps reel avec SentiqS.",
+  "keywords": "Zimbabwe securite, risque pays Zimbabwe, veille geopolitique Harare, surete entreprise Afrique australe, SentiqS",
+  "summary": "Aucune menace terroriste specifique n'est signalee au Zimbabwe. Le niveau general de delinquance a Harare reste globalement faible, mais la petite criminalite survient a la tombee de la nuit, aux abords des grands hotels et des banques, et les cambriolages augmentent, generalement perpetres a partir de la tombee de la nuit par des individus parfois armes ; le centre-ville est vivement deconseille la nuit a pied. Des vols de vehicules ont ete signales, notamment sur la route de l'aeroport la nuit. Les manifestations restent possibles en raison du contexte socio-economique degrade. En zones rurales, l'etat des pistes et la presence de faune sauvage causent des accidents reguliers.",
+  "threats": {
+    "terrorism": {
+      "title": "Absence de Menace Terroriste Identifiee",
+      "text": "Aucune menace terroriste specifique n'est signalee au Zimbabwe a ce jour."
+    },
+    "crime": {
+      "title": "Cambriolages en Hausse a Harare",
+      "text": "Le niveau general de delinquance a Harare reste globalement faible, mais la petite criminalite survient a la tombee de la nuit, aux abords des grands hotels et des banques. Les cambriolages augmentent, generalement perpetres a partir de la tombee de la nuit par des individus parfois armes ; le centre-ville est vivement deconseille la nuit a pied. Des vols de vehicules ont ete signales, notamment sur la route de l'aeroport la nuit. Les manifestations restent possibles en raison du contexte socio-economique degrade."
+    },
+    "infra": {
+      "title": "Risques Routiers et Naturels",
+      "text": "L'etat degrade de certaines routes et l'absence d'eclairage public rendent les trajets de nuit deconseilles ; il est recommande de garder les portes verrouillees en voiture. En zones rurales, l'etat des pistes et la presence de faune sauvage causent des accidents reguliers. Les randonnees solo ne sont pas recommandees, et la baignade en lacs et rivieres est a proscrire en raison des parasites et animaux dangereux."
+    }
+  },
+  "neighbors": [
+    { "name": "Zambie", "slug": "zambie", "available": true },
+    { "name": "Mozambique", "slug": "mozambique", "available": true },
+    { "name": "Afrique du Sud", "slug": "afrique-du-sud", "available": true },
+    { "name": "Botswana", "slug": "botswana", "available": true }
+  ],
+  "alertsSample": [
+    { "tag": "SOCIAL", "text": "Cambriolage arme signale a Harare a la tombee de la nuit.", "time": "Il y a 5h" },
+    { "tag": "SOCIAL", "text": "Vol de vehicule signale sur la route de l'aeroport.", "time": "Il y a 1j" },
+    { "tag": "INFRA", "text": "Accident routier signale en zone rurale.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/zimbabwe/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}
