@@ -5450,7 +5450,11 @@ const PAYS_INFO = {
          if (res.type === 'json' && res.data && res.data.items && res.data.items.length) {
            const it = res.data.items[0];
            date = it.pubDate || null;
-           resume = (it.description || it.title || '').replace(/<[^>]+>/g, '').trim().slice(0, 400);
+           // coupePhraseComplete (definie plus bas, mais declaration hoistee
+           // comme toute fonction top-level) : ce resume est affiche
+           // directement au lecteur, il doit s'arreter sur une phrase
+           // complete, pas en plein mot.
+           resume = coupePhraseComplete((it.description || it.title || '').replace(/<[^>]+>/g, ''), 400);
      } else if (res.type === 'xml' && res.data) {
            const doc = new DOMParser().parseFromString(res.data, 'text/xml');
            const entry = doc.querySelector('entry');
@@ -5458,7 +5462,7 @@ const PAYS_INFO = {
              const upd = entry.querySelector('updated');
              date = upd ? upd.textContent : null;
              const sum = entry.querySelector('summary') || entry.querySelector('title');
-             resume = sum ? sum.textContent.replace(/<[^>]+>/g, '').trim().slice(0, 400) : null;
+             resume = sum ? coupePhraseComplete(sum.textContent.replace(/<[^>]+>/g, ''), 400) : null;
            }
          }
          const data = { date, resume, url: 'https://www.gov.uk/foreign-travel-advice/' + slug };
@@ -6234,9 +6238,13 @@ function parseJSON(d, src) {
     if (isSocial && title.length < 15) return null;
     if (!isSocial && title.length < 8) return null;
 
-    const desc = _decodeEntitesHTML((item.description || item.content || item.title || '')
-      .replace(/<[^>]+>/g,''))
-      .replace(/\s+/g,' ').trim().slice(0, 400);
+    // coupePhraseComplete (pas un simple slice) : une description RSS plus
+    // longue que 400 caracteres doit s'arreter sur la derniere phrase
+    // complete, jamais en plein mot — sinon l'actu affichee (analysis)
+    // s'arrete a un endroit arbitraire et ne se comprend plus sans rouvrir
+    // le lien source.
+    const desc = coupePhraseComplete(_decodeEntitesHTML((item.description || item.content || item.title || '')
+      .replace(/<[^>]+>/g,'')), 400);
 
     // Extraction des médias depuis les champs rss2json (enclosure, thumbnail)
     const _mediaJSON = (() => {
@@ -8130,25 +8138,73 @@ function estDansFenetreActualite(dateStr) {
   return (Date.now() - d.getTime()) < FENETRE_ACTUALITE_MS && (Date.now() - d.getTime()) >= 0;
 }
 
+// ── PHRASES ENTIERES : une actu doit se comprendre sans rouvrir le lien ──
+// Demande editoriale du 08/09/2026 : une actu tronquee en plein mot (ou en
+// pleine phrase) oblige a cliquer vers la source pour comprendre le
+// contexte — exactement ce que les responsables surete non-admin ne peuvent
+// pas faire (sourcesVisibles() masque les liens pour eux, voir plus haut).
+// coupePhraseComplete() est le point unique de troncature d'un texte
+// d'actu : collecte (parseJSON/parseRSS), extrait "usage loyal"
+// (extraitLoyal), synthese, et tout ce qui est partage (texte ou image,
+// voir construireContenuPartage/genererImageActuBlob) doivent s'arreter sur
+// un point, jamais en plein mot.
+function coupePhraseComplete(texte, maxCar) {
+  if (!texte) return '';
+  const t = String(texte).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  if (t.length <= maxCar) return t;
+  const zone = t.slice(0, maxCar);
+  // Fins de phrase : . ! ou ? suivis d'une espace, d'une fermeture de
+  // guillemet/parenthese, ou de la fin de la zone consideree.
+  const finsPhrase = [...zone.matchAll(/[.!?](?=["'»)]?(?:\s|$))/g)];
+  if (finsPhrase.length) {
+    const fin = finsPhrase[finsPhrase.length - 1].index + 1;
+    // Une ponctuation trouvee tres tot est plus probablement une abreviation
+    // ou un sigle (« M. » , « E.U. ») qu'une vraie fin de phrase : exiger une
+    // phrase un minimum substantielle avant de s'y arreter.
+    if (fin >= Math.min(40, maxCar * 0.15)) return t.slice(0, fin).trim();
+  }
+  // Aucune phrase complete ne tient dans la limite (une seule phrase tres
+  // longue, ou une depeche source sans ponctuation) : impossible de garantir
+  // une phrase entiere. Repli honnete sur la coupe au dernier mot, avec des
+  // points de suspension explicites qui signalent que le texte est
+  // incomplet — jamais une coupure silencieuse en plein mot.
+  const dernierEspace = zone.lastIndexOf(' ');
+  return (dernierEspace > 40 ? zone.slice(0, dernierEspace) : zone).trim() + '…';
+}
+
+// retenirPhrasesDansLimite(texte, tientDansLimite) : variante de
+// coupePhraseComplete pour une limite qui ne se mesure pas en caracteres
+// (ex. un nombre de lignes dessinees sur un canevas, voir
+// genererImageActuBlob). Accumule le texte phrase par phrase tant que le
+// predicat repond vrai, et s'arrete a la derniere phrase entiere qui rentre
+// encore — jamais en coupant une phrase en plein mot. Factorisee a part
+// (plutot qu'un parametre de plus sur coupePhraseComplete) pour rester
+// testable sans canevas : le predicat est injecte par l'appelant.
+function retenirPhrasesDansLimite(texte, tientDansLimite) {
+  if (!texte) return '';
+  if (tientDansLimite(texte)) return texte;
+  const phrases = texte.match(/[^.!?]+[.!?]+(?:\s|$)|[^.!?]+$/g) || [texte];
+  let retenu = '';
+  for (const p of phrases) {
+    const essai = (retenu + p).trim();
+    if (!tientDansLimite(essai)) break;
+    retenu = retenu + p;
+  }
+  return retenu.trim();
+}
+
 // ── ANTI-PLAGIAT / RESPECT DU DROIT D'AUTEUR ─────────────────────────────
 // SentiqS n'est pas un agregateur qui republie les articles : il affiche un
 // EXTRAIT court a fin d'information/veille (usage loyal), toujours accompagne
 // de l'attribution de la source et d'un lien renvoyant vers l'original. Cette
 // fonction garantit une limite stricte et uniforme de longueur d'extrait dans
-// TOUS les modules, coupee proprement sur un mot, pour ne jamais reproduire
-// l'integralite d'une depeche.
+// TOUS les modules, coupee sur une phrase complete (coupePhraseComplete),
+// pour ne jamais reproduire l'integralite d'une depeche NI laisser une
+// phrase tranchee en plein mot.
 const EXTRAIT_MAX_CARACTERES = 280; // limite volontairement courte (usage loyal / fair use)
 
 function extraitLoyal(texte, maxCar) {
-  if (!texte) return '';
-  const limite = maxCar || EXTRAIT_MAX_CARACTERES;
-  // Retirer un eventuel HTML residuel et normaliser les espaces
-  let t = String(texte).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-  if (t.length <= limite) return t;
-  // Couper au dernier espace avant la limite pour ne pas trancher un mot
-  const coupe = t.slice(0, limite);
-  const dernierEspace = coupe.lastIndexOf(' ');
-  return (dernierEspace > 40 ? coupe.slice(0, dernierEspace) : coupe).trim() + '…';
+  return coupePhraseComplete(texte, maxCar || EXTRAIT_MAX_CARACTERES);
 }
 
 function fmtAge(ts) {
@@ -8365,8 +8421,11 @@ function parseRSS(xml, src) {
               || item.querySelector('link')?.textContent?.trim()
               || src.url;
 
-    let desc = _decodeEntitesHTML((item.querySelector('description,summary,content')?.textContent||'')
-      .replace(/<[^>]+>/g,'')).replace(/\s+/g,' ').trim().slice(0,400);
+    // coupePhraseComplete (pas un simple slice) : voir la note equivalente
+    // dans parseJSON — une description tronquee doit s'arreter sur une
+    // phrase complete, jamais en plein mot.
+    let desc = coupePhraseComplete(_decodeEntitesHTML((item.querySelector('description,summary,content')?.textContent||'')
+      .replace(/<[^>]+>/g,'')), 400);
 
     const descRaw = item.querySelector('description,summary,content')?.textContent || '';
     const _media = extractMediaFromItem(item, descRaw);
@@ -9729,11 +9788,22 @@ async function genererImageActuBlob(a, canal) {
   let lignesCorpsAffichees = [];
   if (corpsComplet) {
     ctxMesure.font = '500 ' + corpsSize + 'px "IBM Plex Sans", sans-serif';
-    const lignesCorpsTotal = _wrapCanvasText(ctxMesure, corpsComplet, maxW);
     const hAvantCorps = zoneEntete + (lignesAffichees.length * titreSize * 1.28) + gapTitreCorps + zonePied;
     const maxLignesCorps = Math.max(0, Math.min(10, Math.floor((dim.maxH - hAvantCorps) / corpsLigneH)));
-    lignesCorpsAffichees = lignesCorpsTotal.slice(0, maxLignesCorps);
-    if (lignesCorpsAffichees.length && lignesCorpsAffichees.length < lignesCorpsTotal.length) {
+    // Ne coupe plus en plein mot au milieu de la derniere ligne : une image
+    // partagee doit se comprendre seule (demande editoriale du 08/09/2026,
+    // meme principe que coupePhraseComplete pour le texte). On accumule le
+    // corps phrase par phrase tant qu'il tient dans l'espace disponible.
+    const tientDansLimite = (txt) => _wrapCanvasText(ctxMesure, txt, maxW).length <= maxLignesCorps;
+    const corpsRetenu = retenirPhrasesDansLimite(corpsComplet, tientDansLimite);
+    if (corpsRetenu) {
+      lignesCorpsAffichees = _wrapCanvasText(ctxMesure, corpsRetenu, maxW);
+    } else if (maxLignesCorps > 0) {
+      // Repli : meme une seule phrase est trop longue pour l'espace dispo.
+      // Mieux vaut un corps tronque en plein mot (ancien comportement, avec
+      // points de suspension explicites) qu'aucun corps du tout.
+      const lignesCorpsTotal = _wrapCanvasText(ctxMesure, corpsComplet, maxW);
+      lignesCorpsAffichees = lignesCorpsTotal.slice(0, maxLignesCorps);
       const derniere = lignesCorpsAffichees[lignesCorpsAffichees.length - 1];
       lignesCorpsAffichees[lignesCorpsAffichees.length - 1] = derniere.replace(/\s*\S*$/, '') + '…';
     }
@@ -12171,12 +12241,17 @@ async function updSynthese() {
       const cc=CYS.find(x=>x.code===a.cy)||{flag:'🌍',name:a.cy};
       const geo=detectGeo(a.cy, a.title+' '+(a.analysis||''));
       const villeTxt=geo.ville?(' · '+geo.ville+(geo.estime?' (estime)':'')):'';
-      const analyseL=escHtml(L(a.analysis));
+      // extraitLoyal AVANT escHtml (jamais l'inverse) : trancher un texte
+      // deja echappe risquait de couper une entite HTML en deux (« &amp »
+      // sans son « ; ») en plus de couper la phrase en plein mot avec des
+      // points de suspension litteraux non homogenes avec le reste de
+      // l'interface (extraitLoyal utilise « … », pas « ... »).
+      const analyseTronquee=escHtml(extraitLoyal(L(a.analysis), 280));
       html+='<div class="sy-ar">'+
         '<div class="sy-lvl '+lc+'"><i class="ti '+lic(a.level)+'"></i>'+lt+' — '+cc.flag+' '+cc.name+villeTxt+' — '+catFr(a.cat)+'</div>'+
         '<div class="sy-tt2" id="sytt-'+a.id+'">'+escHtml(L(a.title))+'</div>'+
         '<div style="font-size:9px;color:var(--lg);font-weight:600;margin:2px 0 4px;"><i class="ti ti-clock" style="font-size:9px;vertical-align:-1px"></i> Publie le '+fmtFull(a.pubDate)+' ('+fmtAge(a.pubDate)+')'+((a.pubDate&&(Date.now()-a.pubDate)<12*3600000)?' <span style="font-size:8px;font-weight:700;color:#fff;background:#15803D;padding:1px 6px;border-radius:3px;">−12H</span>':'')+'</div>'+
-        '<div class="sy-bd" id="sybd-'+a.id+'">'+analyseL.slice(0,280)+(analyseL.length>280?'...':'')+'</div>'+
+        '<div class="sy-bd" id="sybd-'+a.id+'">'+analyseTronquee+'</div>'+
         '<div class="sy-sr">'+
           (sourcesVisibles() ? '<a href="'+safeUrl(articleLienDirect(a), ps.n+' actualite')+'" target="_blank" class="ssrc">'+
           '<span class="dot" style="background:'+ps.col+'"></span>'+ps.n+'<i class="ti ti-external-link"></i></a>' : '')+
