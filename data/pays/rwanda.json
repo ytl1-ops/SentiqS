@@ -1,0 +1,41 @@
+{
+  "iso2": "RW",
+  "slug": "rwanda",
+  "name": "Rwanda",
+  "namePrep": "au Rwanda",
+  "region": "Afrique de l'Est",
+  "capital": "Kigali",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire au Rwanda : risque terroriste faible, vigilance sur la frontiere avec la RD Congo, criminalite limitee a Kigali, alertes en temps reel avec SentiqS.",
+  "keywords": "Rwanda securite, risque pays Rwanda, veille geopolitique Kigali Virunga, surete entreprise Afrique de l'Est, SentiqS",
+  "summary": "Le risque terroriste demeure faible au Rwanda, mais les autorites ont mis en place des controles renforces a l'aeroport international de Kigali, dans les parcs nationaux, les administrations, les centres commerciaux, les hotels et les lieux publics. L'ensemble du territoire figure en zone de vigilance renforcee. Une attention particuliere est requise aux abords de la frontiere avec la RD Congo, en raison de mouvements reguliers de groupes rebelles ; les postes-frontieres de Gisenyi/Goma et Cyangugu/Bukavu ne fonctionnent qu'en journee et peuvent fermer sans preavis. Des incidents transfrontaliers ont egalement ete signales a la frontiere avec le Burundi. Le taux de criminalite reste faible, mais des vols a l'arrache et des faits de pickpocketing sont signales a Kigali dans les zones de forte affluence.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste Faible mais Controles Renforces",
+      "text": "Le risque terroriste demeure faible au Rwanda. Les autorites ont neanmoins mis en place des controles renforces a l'aeroport international de Kigali, dans les parcs nationaux, les administrations, les centres commerciaux, les hotels et les lieux publics."
+    },
+    "crime": {
+      "title": "Vigilance Frontaliere et Criminalite Limitee a Kigali",
+      "text": "L'ensemble du territoire figure en zone de vigilance renforcee. Une attention particuliere est requise aux abords de la frontiere avec la RD Congo, en raison de mouvements reguliers de groupes rebelles ; les postes-frontieres de Gisenyi/Goma et Cyangugu/Bukavu ne fonctionnent qu'en journee et peuvent fermer sans preavis. Des incidents transfrontaliers ont egalement ete signales a la frontiere avec le Burundi. Le taux de criminalite reste faible, mais des vols a l'arrache et des faits de pickpocketing dans les zones de forte affluence, ainsi que des cambriolages, demeurent possibles a Kigali."
+    },
+    "infra": {
+      "title": "Risques Routiers et Randonnee en Altitude",
+      "text": "Les accidents constituent le principal risque au Rwanda, en raison du manque d'eclairage des axes routiers en dehors de Kigali, et les services de secours manquent de capacites d'intervention rapide. Avant une randonnee dans le massif des Virunga, entre 2400 et 4500 metres d'altitude, il convient de verifier son aptitude physique et de disposer d'un equipement adapte."
+    }
+  },
+  "neighbors": [
+    { "name": "Ouganda", "slug": "ouganda", "available": true },
+    { "name": "RD Congo", "slug": "rdc", "available": true },
+    { "name": "Burundi", "slug": "burundi", "available": true },
+    { "name": "Tanzanie", "slug": "tanzanie", "available": false }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Mouvement de groupe rebelle signale pres de la frontiere avec la RD Congo.", "time": "Il y a 5h" },
+    { "tag": "SOCIAL", "text": "Vol a l'arrache signale dans une zone de forte affluence a Kigali.", "time": "Il y a 1j" },
+    { "tag": "INFRA", "text": "Accident routier signale de nuit hors de Kigali.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/rwanda/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}
