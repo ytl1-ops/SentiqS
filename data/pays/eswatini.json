@@ -1,0 +1,39 @@
+{
+  "iso2": "SZ",
+  "slug": "eswatini",
+  "name": "Eswatini",
+  "namePrep": "en Eswatini",
+  "region": "Afrique australe",
+  "capital": "Mbabane",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire en Eswatini : vigilance renforcee sur tout le territoire, carjacking sur les axes frontaliers, alertes en temps reel avec SentiqS.",
+  "keywords": "Eswatini securite, risque pays Eswatini, veille geopolitique Mbabane Manzini, surete entreprise Afrique australe, SentiqS",
+  "summary": "L'ensemble du territoire d'Eswatini est place en vigilance renforcee depuis la mise a jour du 05/03/2026. Le pays est decrit comme globalement sur, mais des agressions violentes restent possibles : les deplacements nocturnes a pied sont deconseilles a Mbabane et a Manzini, et des vols de vehicules avec violence (carjacking) sont frequemment signales sur les routes principales menant vers l'Afrique du Sud et le Mozambique. Les accidents routiers sont nombreux et parfois mortels, en raison notamment de la presence d'animaux sur la chaussee ; la conduite nocturne est formellement deconseillee.",
+  "threats": {
+    "terrorism": {
+      "title": "Niveau de Vigilance",
+      "text": "L'ensemble du territoire d'Eswatini est place en vigilance renforcee (mise a jour du 05/03/2026). Aucun risque terroriste specifique n'est identifie a ce jour."
+    },
+    "crime": {
+      "title": "Risque Criminel",
+      "text": "Eswatini est decrit comme globalement sur, mais des agressions violentes restent possibles. Les deplacements nocturnes a pied sont deconseilles a Mbabane et a Manzini. Les vols de vehicules avec violence (carjacking) sont frequemment signales sur les routes principales menant vers l'Afrique du Sud et le Mozambique."
+    },
+    "infra": {
+      "title": "Risques Routiers",
+      "text": "Les accidents routiers sont nombreux, et parfois mortels. Les risques identifies incluent la presence d'animaux domestiques et sauvages sur la chaussee, un comportement dangereux de certains conducteurs, et un brouillard pouvant perturber la circulation. La conduite nocturne est formellement deconseillee."
+    }
+  },
+  "neighbors": [
+    { "name": "Afrique du Sud", "slug": "afrique-du-sud", "available": false },
+    { "name": "Mozambique", "slug": "mozambique", "available": false }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Vol de vehicule avec violence signale pres de la frontiere.", "time": "Il y a 5h" },
+    { "tag": "INFRA", "text": "Accident de la route signale de nuit.", "time": "Il y a 1j" },
+    { "tag": "SOCIAL", "text": "Agression signalee a Manzini en soiree.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/eswatini/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}

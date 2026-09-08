@@ -20,7 +20,7 @@ Le script `scripts/generate-country-fiche.js` refuse de generer une fiche si le 
 3. Le fichier `web/pays/<slug>.html` est genere a partir du gabarit `scripts/templates/fiche-country.template.html`.
 4. Ajouter manuellement l'entree dans `sitemap.xml` et dans `web/pays/index.html`.
 
-## Checklist des 45 pays restants (9/54 deja publies : Burkina Faso, Cote d'Ivoire, Ghana, Guinee, Liberia, Mali, Nigeria, Senegal, Togo)
+## Checklist des pays restants (14/54 deja publies : Burkina Faso, Cote d'Ivoire, Ghana, Guinee, Liberia, Mali, Nigeria, Senegal, Togo, Egypte, Erythree, Eswatini, Ethiopie, Gabon)
 
 | Pays | Slug prevu | ISO2 | Statut |
 |---|---|---|---|
@@ -36,11 +36,11 @@ Le script `scripts/generate-country-fiche.js` refuse de generer une fiche si le 
 | Congo-Brazzaville | `congo-brazzaville` | CG | ☐ a faire |
 | RD Congo | `rdc` | CD | ☐ a faire |
 | Djibouti | `djibouti` | DJ | ☐ a faire |
-| Egypte | `egypte` | EG | ☐ a faire |
-| Erythree | `erythree` | ER | ☐ a faire |
-| Eswatini | `eswatini` | SZ | ☐ a faire |
-| Ethiopie | `ethiopie` | ET | ☐ a faire |
-| Gabon | `gabon` | GA | ☐ a faire |
+| Egypte | `egypte` | EG | publiee (source France Diplomatie) |
+| Erythree | `erythree` | ER | publiee (source France Diplomatie) |
+| Eswatini | `eswatini` | SZ | publiee (source France Diplomatie) |
+| Ethiopie | `ethiopie` | ET | publiee (source France Diplomatie) |
+| Gabon | `gabon` | GA | publiee (source France Diplomatie) |
 | Gambie | `gambie` | GM | ☐ a faire |
 | Guinee-Bissau | `guinee-bissau` | GW | ☐ a faire |
 | Guinee equatoriale | `guinee-equatoriale` | GQ | ☐ a faire |
