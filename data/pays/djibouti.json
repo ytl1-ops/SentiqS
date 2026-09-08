@@ -1,0 +1,40 @@
+{
+  "iso2": "DJ",
+  "slug": "djibouti",
+  "name": "Djibouti",
+  "namePrep": "a Djibouti",
+  "region": "Afrique de l'Est",
+  "capital": "Djibouti",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire a Djibouti : vigilance urbaine, frontiere erythreenne deconseillee, piraterie au large, alertes en temps reel avec SentiqS.",
+  "keywords": "Djibouti securite, risque pays Djibouti, veille geopolitique Bab el-Mandeb, surete entreprise Afrique de l'Est, SentiqS",
+  "summary": "Djibouti demeure relativement stable, aucune attaque n'ayant eu lieu dans la capitale depuis l'attentat suicide du 24 mai 2014 au restaurant La Chaumiere, mais la vigilance reste recommandee dans les lieux publics, notamment le centre historique, les lieux de culte et les zones portuaires et aeroportuaires. La zone frontaliere avec l'Erythree au nord est formellement deconseillee, quelle que soit la voie d'acces, en raison d'un differend frontalier actif ; la frontiere avec le Somaliland au sud-est reste incertaine et egalement a eviter au-dela du Refuge Decan. Des actes de piraterie maritime peuvent survenir dans le detroit de Bab el-Mandeb et le golfe d'Aden.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste",
+      "text": "Bien qu'aucune attaque n'ait eu lieu a Djibouti-ville depuis l'attentat suicide du 24 mai 2014 au restaurant La Chaumiere, la vigilance reste recommandee dans les lieux publics : centre historique, lieux de culte, zones portuaires et aeroportuaires."
+    },
+    "crime": {
+      "title": "Risque Frontalier et Volatilite Regionale",
+      "text": "Au nord, il demeure formellement deconseille d'approcher la zone frontaliere avec l'Erythree par voie terrestre, maritime ou aerienne, en raison d'un differend frontalier actif. Au sud-est, les delimitations frontalieres avec le Somaliland sont incertaines ; la zone au-dela du Refuge Decan est a eviter, l'absence de representation francaise au Somaliland rendant la protection consulaire aleatoire."
+    },
+    "infra": {
+      "title": "Risques Infrastructures et Maritimes",
+      "text": "Le reseau routier est globalement en mauvais etat (nids de poule, routes irregulieres) ; les deplacements nocturnes sont deconseilles et doivent s'effectuer en convois de deux vehicules minimum hors des villes. Des actes de piraterie maritime peuvent avoir lieu a partir du detroit de Bab el-Mandeb, dans le golfe d'Aden, avec des attaques et prises d'otages qui restent possibles."
+    }
+  },
+  "neighbors": [
+    { "name": "Erythree", "slug": "erythree", "available": false },
+    { "name": "Ethiopie", "slug": "ethiopie", "available": false },
+    { "name": "Somalie", "slug": "somalie", "available": false }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Vigilance renforcee signalee dans une zone portuaire.", "time": "Il y a 5h" },
+    { "tag": "INFRA", "text": "Alerte piraterie relayee dans le golfe d'Aden.", "time": "Il y a 1j" },
+    { "tag": "SOCIAL", "text": "Tension frontaliere signalee au nord du pays.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/djibouti/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "iso2": "CD",
+  "slug": "rdc",
+  "name": "RD Congo",
+  "namePrep": "en RD Congo",
+  "region": "Afrique centrale",
+  "capital": "Kinshasa",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire en RD Congo : menace ADF en Ituri et Nord-Kivu, groupes armes a l'Est, alertes en temps reel avec SentiqS.",
+  "keywords": "RD Congo securite, risque pays RDC, veille geopolitique Kinshasa Goma Kivu, surete entreprise Afrique centrale, SentiqS",
+  "summary": "La menace terroriste est confirmee dans plusieurs territoires des provinces de l'Ituri ainsi que dans le grand Nord-Kivu, ou le groupe islamique des Forces democratiques alliees (ADF) a mene des attaques contre des lieux de culte, marches et hotels, particulierement aux heures d'affluence. L'Est du pays demeure marque par la presence de nombreux groupes armes, dont les milices Mai-Mai, avec des enlevements contre rancon reguliers, notamment dans les parcs nationaux (Virunga, Kahuzi-Biega, Garamba) ; ces zones sont formellement deconseillees. Kinshasa et les grandes villes de province connaissent une criminalite elevee, les etrangers seuls a pied etant particulierement cibles.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste et Insurrectionnel",
+      "text": "La menace terroriste est confirmee dans plusieurs territoires des provinces de l'Ituri ainsi que dans le grand Nord-Kivu. Le groupe islamique des Forces democratiques alliees (ADF) y opere principalement et a mene des attaques contre des lieux de culte, marches et hotels, particulierement aux heures d'affluence. L'Est du pays est marque par la presence de nombreux groupes armes, incluant les milices Mai-Mai et d'autres factions, avec des enlevements contre rancon reguliers, notamment dans les parcs nationaux (Virunga, Kahuzi-Biega, Garamba). Ces zones sont formellement deconseillees."
+    },
+    "crime": {
+      "title": "Risque Criminel et Volatilite Urbaine",
+      "text": "Kinshasa et les provinces (Goma, Bukavu, Kisangani, Matadi, Lubumbashi) connaissent une criminalite elevee : des agressions violentes sont regulierement rapportees (vols a main armee, vols avec effraction, enlevements). Les etrangers seuls a pied sont particulierement cibles. A Kinshasa, une degradation de la securite est constatee, les embouteillages favorisant les agressions."
+    },
+    "infra": {
+      "title": "Risques Infrastructures et Transport",
+      "text": "Les deplacements de nuit sont deconseilles. Le parc automobile est tres vetuste et le reseau routier en mauvais etat. Les taxis collectifs et transports en commun presentent des risques eleves d'accidents et d'agressions."
+    }
+  },
+  "neighbors": [
+    { "name": "Congo-Brazzaville", "slug": "congo-brazzaville", "available": true },
+    { "name": "Centrafrique", "slug": "centrafrique", "available": true },
+    { "name": "Soudan du Sud", "slug": "soudan-du-sud", "available": false },
+    { "name": "Ouganda", "slug": "ouganda", "available": false },
+    { "name": "Rwanda", "slug": "rwanda", "available": false },
+    { "name": "Burundi", "slug": "burundi", "available": true },
+    { "name": "Zambie", "slug": "zambie", "available": false },
+    { "name": "Angola", "slug": "angola", "available": true }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Attaque signalee attribuee a un groupe arme en Ituri.", "time": "Il y a 3h" },
+    { "tag": "SURETE", "text": "Enlevement signale pres d'un parc national du Nord-Kivu.", "time": "Il y a 1j" },
+    { "tag": "SOCIAL", "text": "Agression violente signalee a Kinshasa.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/republique-democratique-du-congo/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}
