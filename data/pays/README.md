@@ -20,7 +20,7 @@ Le script `scripts/generate-country-fiche.js` refuse de generer une fiche si le 
 3. Le fichier `web/pays/<slug>.html` est genere a partir du gabarit `scripts/templates/fiche-country.template.html`.
 4. Ajouter manuellement l'entree dans `sitemap.xml` et dans `web/pays/index.html`.
 
-## Checklist des 45 pays restants (9/54 deja publies : Burkina Faso, Cote d'Ivoire, Ghana, Guinee, Liberia, Mali, Nigeria, Senegal, Togo)
+## Checklist des 45 pays restants (14/54 deja publies : Burkina Faso, Cote d'Ivoire, Ghana, Guinee, Liberia, Mali, Nigeria, Senegal, Togo, Seychelles, Sierra Leone, Somalie, Soudan, Soudan du Sud)
 
 | Pays | Slug prevu | ISO2 | Statut |
 |---|---|---|---|
@@ -60,11 +60,11 @@ Le script `scripts/generate-country-fiche.js` refuse de generer une fiche si le 
 | Rwanda | `rwanda` | RW | ☐ a faire |
 | Sao Tome-et-Principe | `sao-tome-et-principe` | ST | ☐ a faire |
 | Senegal | `senegal` | SN | publiee (source France Diplomatie) |
-| Seychelles | `seychelles` | SC | ☐ a faire |
-| Sierra Leone | `sierra-leone` | SL | ☐ a faire |
-| Somalie | `somalie` | SO | ☐ a faire |
-| Soudan | `soudan` | SD | ☐ a faire |
-| Soudan du Sud | `soudan-du-sud` | SS | ☐ a faire |
+| Seychelles | `seychelles` | SC | publiee (source France Diplomatie) |
+| Sierra Leone | `sierra-leone` | SL | publiee (source France Diplomatie) |
+| Somalie | `somalie` | SO | publiee (source France Diplomatie) |
+| Soudan | `soudan` | SD | publiee (source France Diplomatie) |
+| Soudan du Sud | `soudan-du-sud` | SS | publiee (source France Diplomatie) |
 | Tanzanie | `tanzanie` | TZ | ☐ a faire |
 | Tchad | `tchad` | TD | ☐ a faire |
 | Togo | `togo` | TG | publiee (source France Diplomatie) |
