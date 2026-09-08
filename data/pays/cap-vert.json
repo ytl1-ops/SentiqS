@@ -1,0 +1,36 @@
+{
+  "iso2": "CV",
+  "slug": "cap-vert",
+  "name": "Cap-Vert",
+  "namePrep": "au Cap-Vert",
+  "region": "Afrique de l'Ouest",
+  "capital": "Praia",
+  "datePublished": "2026-09-07",
+  "dateModified": "2026-09-07",
+  "metaDescription": "Situation securitaire au Cap-Vert : agressions armees en hausse a Praia et sur les iles touristiques, alertes en temps reel avec SentiqS.",
+  "keywords": "Cap-Vert securite, risque pays Cap-Vert, veille geopolitique Praia Sal Boa Vista, surete entreprise Afrique de l'Ouest, SentiqS",
+  "summary": "L'ensemble du territoire capverdien est classe en vigilance renforcee, l'ambassade de France disposant de capacites limitees pour venir en aide aux ressortissants francais en cas de crise. La principale preoccupation securitaire est une progression constatee des agressions violentes a main armee, de jour comme de nuit, dans les centres urbains, en particulier a Praia, ainsi que sur les sentiers de randonnee des iles de Santiago, Boa Vista et Fogo. Des cambriolages avec violence a bord de voiliers ont egalement ete signales sur plusieurs iles. Aucune menace terroriste specifique n'est identifiee.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste",
+      "text": "Aucune menace terroriste specifique n'est identifiee par les autorites consulaires francaises au Cap-Vert a ce jour."
+    },
+    "crime": {
+      "title": "Risque Criminel et Volatilite Urbaine",
+      "text": "Une progression recente des agressions violentes a main armee est constatee, de jour comme de nuit, dans les centres urbains, en particulier a Praia, et sur les sentiers de randonnee des iles de Santiago, Boa Vista et Fogo. Vols, braquages et cambriolages sont frequemment accompagnes d'armes (couteaux et armes a feu) et de violence, y compris en journee. Les lieux a frequentation touristique sont propices aux vols a l'arrache et une hausse des agressions sexuelles visant en particulier les femmes voyageant seules est documentee. Des cambriolages avec violence a bord de voiliers ont ete signales a Santiago (Praia, Tarrafal), Sao Vicente (Mindelo), Fogo (Sao Filipe) et Sao Nicolau (Tarrafal)."
+    },
+    "infra": {
+      "title": "Risques Infrastructures et Maritimes",
+      "text": "L'archipel ne dispose d'aucun dispositif de secours en mer. Les elements naturels (vents soutenus, vagues puissantes, courants forts) sont marques, et aucun caisson de decompression n'est disponible en cas d'accident de plongee."
+    }
+  },
+  "neighbors": [],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Agression armee signalee dans un centre urbain de Praia.", "time": "Il y a 5h" },
+    { "tag": "SURETE", "text": "Cambriolage a bord d'un voilier signale sur une ile touristique.", "time": "Il y a 1j" },
+    { "tag": "INFRA", "text": "Conditions maritimes difficiles signalees dans l'archipel.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/cap-vert/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 07/09/2026)"
+  ]
+}
