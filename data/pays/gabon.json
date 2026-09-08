@@ -1,0 +1,40 @@
+{
+  "iso2": "GA",
+  "slug": "gabon",
+  "name": "Gabon",
+  "namePrep": "au Gabon",
+  "region": "Afrique centrale",
+  "capital": "Libreville",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire au Gabon : criminalite moderee a Libreville, piraterie dans le golfe de Guinee, alertes en temps reel avec SentiqS.",
+  "keywords": "Gabon securite, risque pays Gabon, veille geopolitique Libreville golfe de Guinee, surete entreprise Afrique centrale, SentiqS",
+  "summary": "Aucun risque terroriste specifique n'est identifie au Gabon, et le niveau de delinquance et de criminalite reste modere jusqu'a present dans le pays. A Libreville, plusieurs zones presentent toutefois des risques accrus (plages en dehors des sites frequentes, quartiers de Petit Louis, Mont Bouet, gare routiere), avec des cambriolages nocturnes par des bandes armees pouvant recourir a la violence. Une vigilance est recommandee au risque de franchissement non autorise de la frontiere avec la Guinee equatoriale, au nord. Les routes sont en mauvais etat et la conduite de nuit est formellement deconseillee hors de la capitale. Le risque de piraterie maritime est eleve dans le golfe de Guinee, avec plusieurs attaques et prises d'otages depuis decembre 2019.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste",
+      "text": "Aucun risque terroriste specifique n'est identifie au Gabon a ce jour. Le niveau de delinquance et de criminalite reste modere jusqu'a present dans le pays."
+    },
+    "crime": {
+      "title": "Risque Criminel Urbain",
+      "text": "A Libreville, plusieurs zones presentent des risques accrus : les plages en dehors des sites les plus frequentes, ainsi que certains quartiers (Petit Louis, Mont Bouet, gare routiere, entre autres). Des cambriolages nocturnes par des bandes armees, qui dejouent ou neutralisent les dispositifs de surveillance et peuvent recourir a la violence, sont signales, de meme que des escroqueries bancaires par usurpation d'identite. Une vigilance particuliere est recommandee la nuit sur l'ensemble du territoire, ainsi qu'au risque de franchissement non autorise de la frontiere avec la Guinee equatoriale, au nord du pays."
+    },
+    "infra": {
+      "title": "Risques Routiers et Piraterie Maritime",
+      "text": "Les routes sont en mauvais etat, avec un eclairage inexistant et une accidentologie particulierement elevee ; la conduite de nuit est formellement deconseillee en dehors de la capitale. Le risque de piraterie maritime est eleve dans le golfe de Guinee : depuis decembre 2019, plusieurs attaques de piraterie menees depuis le Nigeria, avec prises d'otages, ont eu lieu dans les eaux territoriales gabonaises."
+    }
+  },
+  "neighbors": [
+    { "name": "Cameroun", "slug": "cameroun", "available": true },
+    { "name": "Guinee equatoriale", "slug": "guinee-equatoriale", "available": false },
+    { "name": "Congo-Brazzaville", "slug": "congo-brazzaville", "available": true }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Cambriolage nocturne signale a Libreville.", "time": "Il y a 4h" },
+    { "tag": "SURETE", "text": "Alerte piraterie relayee dans le golfe de Guinee.", "time": "Il y a 1j" },
+    { "tag": "SOCIAL", "text": "Vigilance signalee pres de la frontiere equato-guineenne.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/gabon/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}
