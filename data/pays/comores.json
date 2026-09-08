@@ -1,0 +1,36 @@
+{
+  "iso2": "KM",
+  "slug": "comores",
+  "name": "Comores",
+  "namePrep": "aux Comores",
+  "region": "Afrique de l'Est",
+  "capital": "Moroni",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire aux Comores : piraterie maritime, risque volcanique et alertes en temps reel avec SentiqS.",
+  "keywords": "Comores securite, risque pays Comores, veille geopolitique Moroni Anjouan, surete entreprise Afrique de l'Est, SentiqS",
+  "summary": "L'ensemble de l'archipel comorien est classe en vigilance renforcee, les autorites locales disposant de capacites tres limitees pour repondre aux risques sanitaires et securitaires. La delinquance reste relativement rare mais des cambriolages, vols a l'arrache et vols dans les vehicules sont signales, en particulier dans les marches et sur les plages. Un risque de piraterie existe dans les eaux entourant l'archipel, deconseillant fortement la navigation de plaisance et l'usage des kwassa-kwassa pour les liaisons inter-iles. Le volcan Karthala, actif, presente une activite sismique elevee depuis 2022.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste",
+      "text": "Aucune information specifique sur un risque terroriste n'est mentionnee par les autorites consulaires francaises aux Comores a ce jour."
+    },
+    "crime": {
+      "title": "Risque Criminel et Volatilite Urbaine",
+      "text": "Des cambriolages, des vols a l'arrache et des vols dans les voitures peuvent survenir. Une vigilance accrue est recommandee dans les zones frequentees comme les marches et les plages ; il est conseille d'eviter de porter des sommes d'argent importantes ou des objets de valeur."
+    },
+    "infra": {
+      "title": "Risques Infrastructures, Maritimes et Naturels",
+      "text": "Un risque de piraterie existe dans la region entourant l'archipel, deconseillant fortement la navigation de plaisance avec des embarcations privees ; il est egalement deconseille d'embarquer sur les kwassa-kwassa pour la navigation inter-iles, sous peine d'emprisonnement et d'amendes. Les capacites sanitaires sont quasi inexistantes sur Anjouan et Moheli et insatisfaisantes a Moroni, la voie aerienne etant preferable aux liaisons maritimes dont la plupart ne respectent pas les normes de securite internationales. Le volcan Karthala (2361 m) reste actif avec une activite sismique elevee depuis 2022 ; le camping a l'interieur de la caldeira est fortement deconseille."
+    }
+  },
+  "neighbors": [],
+  "alertsSample": [
+    { "tag": "INFRA", "text": "Activite sismique signalee pres du volcan Karthala.", "time": "Il y a 6h" },
+    { "tag": "SURETE", "text": "Vol a l'arrache signale dans un marche de Moroni.", "time": "Il y a 1j" },
+    { "tag": "INFRA", "text": "Alerte piraterie relayee dans les eaux de l'archipel.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/comores/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}

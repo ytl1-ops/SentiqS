@@ -1,0 +1,42 @@
+{
+  "iso2": "CG",
+  "slug": "congo-brazzaville",
+  "name": "Congo-Brazzaville",
+  "namePrep": "au Congo-Brazzaville",
+  "region": "Afrique centrale",
+  "capital": "Brazzaville",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire au Congo-Brazzaville : vigilance dans le Pool et aux frontieres, delinquance urbaine, alertes en temps reel avec SentiqS.",
+  "keywords": "Congo-Brazzaville securite, risque pays Congo, veille geopolitique Brazzaville Pointe-Noire, surete entreprise Afrique centrale, SentiqS",
+  "summary": "Le Congo-Brazzaville ne presente pas de menace terroriste identifiee, mais un risque de petite et moyenne delinquance (vols avec ou sans violence, cambriolages, agressions) existe, concentre principalement dans les grandes villes et s'intensifiant aux fetes de fin d'annee. Le departement du Pool, au sud pres de la capitale, a ete le theatre de troubles et d'affrontements armes depuis les annees 1990 ; une accalmie est intervenue apres un accord de 2017, mais une vigilance accrue reste recommandee en raison de la presence persistante d'ex-combattants. Les zones frontalieres avec la Centrafrique et la RDC/Cabinda sont deconseillees sauf raison imperative en raison de trafics.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste",
+      "text": "Aucune menace terroriste specifique n'est identifiee par les autorites consulaires francaises au Congo-Brazzaville a ce jour."
+    },
+    "crime": {
+      "title": "Risque Criminel et Volatilite Urbaine",
+      "text": "Il existe un risque de petite et moyenne delinquance (vols avec ou sans violence, cambriolages, agressions), concentre principalement dans les grandes villes et s'intensifiant au moment des fetes de fin d'annee. Le departement du Pool, au sud du pays pres de la capitale, a ete le theatre de troubles et d'affrontements armes depuis les annees 1990 ; une accalmie est survenue apres un accord de 2017, mais une vigilance accrue reste recommandee en raison de la presence persistante d'ex-combattants. Les zones frontalieres nord (30 km avec la Centrafrique) et sud (10 km avec la RDC/Cabinda) sont deconseillees sauf raison imperative en raison de trafics."
+    },
+    "infra": {
+      "title": "Risques Infrastructures et Transport",
+      "text": "Le nombre d'accidents de la route, tres eleve, est en hausse continue. Les services de secours restent limites dans la capitale et inexistants en dehors. Les deplacements interurbains doivent imperativement s'effectuer de jour et en convoi."
+    }
+  },
+  "neighbors": [
+    { "name": "Gabon", "slug": "gabon", "available": false },
+    { "name": "Cameroun", "slug": "cameroun", "available": true },
+    { "name": "Centrafrique", "slug": "centrafrique", "available": true },
+    { "name": "RD Congo", "slug": "rdc", "available": true },
+    { "name": "Angola", "slug": "angola", "available": true }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Presence d'ex-combattants signalee dans le departement du Pool.", "time": "Il y a 5h" },
+    { "tag": "SURETE", "text": "Trafic transfrontalier signale pres de la RDC.", "time": "Il y a 1j" },
+    { "tag": "INFRA", "text": "Accident de la route signale sur un axe interurbain.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/congo/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}
