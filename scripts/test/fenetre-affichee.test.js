@@ -34,12 +34,25 @@ test('les libelles de fenetre sont derives de la constante, jamais recopies', ()
   assert.strictEqual(ctx.libelleFenetreCourt(), FENETRE_H + 'h');
 });
 
+// Mise a jour du 08/09/2026 (12h -> 24h) : mesuree sur le cache reel publie
+// (1119 articles, 54 pays) avant generalisation — 17/54 pays gagnent des
+// signaux live, 8/54 voient leur score bouger (+1 a +3 points), 0/54 change
+// de niveau affiche. Un test pin la valeur pour qu'un futur changement de ce
+// seuil soit delibere, pas accidentel.
+test('la fenetre de getLiveAlertEvents reste a 24 h (etait 12 h avant le 08/09/2026)', () => {
+  const corps = tranche('function getLiveAlertEvents(cy)', '\nfunction ');
+  const m = /const MAX_AGE = (\d+)\*60\*60\*1000;/.exec(corps);
+  assert.ok(m, 'MAX_AGE introuvable dans getLiveAlertEvents');
+  assert.strictEqual(Number(m[1]), 24,
+    'la fenetre des signaux d\'alerte live a change sans mise a jour deliberee de ce test');
+});
+
 // Les seules durees de 12 h qui restent legitimes, et pourquoi. Toute autre
 // occurrence dans un texte d'ecran decrit la fenetre d'actualite et ment.
 const EXCEPTIONS = [
   // getLiveAlertEvents : fenetre PROPRE aux signaux d'alerte, volontairement
-  // plus courte que celle du Flux.
-  /const MAX_AGE = 12\*60\*60\*1000;/,
+  // plus courte que celle du Flux (24 h depuis le 08/09/2026, etait 12 h).
+  /const MAX_AGE = 24\*60\*60\*1000;/,
   // Badge « -12H » : met en avant les articles publies depuis moins de douze
   // heures A L'INTERIEUR de la fenetre. Il dit vrai.
   /Date\.now\(\)-a\.pubDate\)<12\*3600000\)/,

@@ -1184,8 +1184,9 @@ dernières heures » contre « the last 36 hours »).
 constante ; les textes traduisibles portent `{h}` / `{hc}`, substitués au
 rendu ; le HTML statique porte `data-fenetre-h`. Un test refuse toute durée
 d'actualité écrite en dur, avec trois exceptions justifiées : la fenêtre
-propre à `getLiveAlertEvents` (12 h, volontairement plus courte), le badge
-« -12H » (qui dit vrai), et la validité de l'essai gratuit.
+propre à `getLiveAlertEvents` (24 h depuis le 08/09/2026, était 12 h ;
+volontairement plus courte que celle du Flux), le badge « -12H » (qui dit
+vrai), et la validité de l'essai gratuit.
 
 **Un « a » collé devant une déclaration faisait disparaître le vert.** Ligne
 100 : `a--g:#0F4F2A`. Déclaration invalide, donc `--g` n'existait pas dans le
@@ -1273,6 +1274,39 @@ seuil, code de sortie 1.
   85,3 / 84) est en 9 px et « ROUGE » est répété cinq fois par carte.
 
 ---
+
+## La fenêtre de `getLiveAlertEvents` élargie à 24 h (08/09/2026)
+
+Demande du propriétaire : insérer les actualités de moins de 24 h pour obtenir
+plus d'actualités dans le score d'alerte pays. `getLiveAlertEvents` ne
+retenait jusque-là que les articles publiés depuis moins de 12 h — une fenêtre
+**délibérément plus courte** que celle du Flux (`FENETRE_ACTUALITE_MS`, 36 h) :
+un signal qui fait bouger un score doit rester plus frais que ce qui
+s'affiche simplement comme actualité du jour. Élargie à 24 h, elle reste sous
+ce plafond.
+
+**Mesuré avant généralisation**, sur le cache réellement collecté en
+production (1 119 articles, 574 sources, 54 pays), en rejouant la vraie
+fonction de la page à fenêtre variable (12 h vs 24 h), comme l'exige la
+discipline de mesure de ce dépôt :
+
+- **17 pays sur 54** voient entrer au moins un signal live supplémentaire
+  (BF, ML, NE, SN, NG, CF, CD, MA et neuf autres).
+- **8 pays sur 54** voient leur score bouger : +1 à +3 points selon le pays,
+  jamais plus — `MAX_LIVE_EVENTS_PAR_PAYS` (5) plafonne déjà l'apport de la
+  collecte, et `WEIGHT_PAR_LEVEL_LIVE` ne compte rien pour un niveau modéré.
+- **0 pays ne change de niveau affiché.** Les garde-fous posés lors des
+  arbitrages précédents (`borneRougeVerifie`, `borneRougeRecoupe`) absorbent
+  l'écart : un score qui franchit un seuil sur la seule foi de signaux live
+  non recoupés reste plafonné à son niveau vérifié.
+
+Seule `getLiveAlertEvents` a bougé. Restent à 12 h, hors du périmètre de cette
+demande : le badge « -12H » (fraîcheur affichée par article, qui dit vrai),
+et le filtre anti-hallucination de `getFiltered()` (fenêtre d'affichage du
+Flux, indépendante — voir « Silence n'est pas calme » et « La fenêtre
+d'actualité » plus haut). Un test (`fenetre-affichee.test.js`) pin désormais
+la valeur 24 h dans `getLiveAlertEvents`, pour qu'un futur changement de ce
+seuil soit délibéré plutôt qu'accidentel.
 
 ## Conventions
 
