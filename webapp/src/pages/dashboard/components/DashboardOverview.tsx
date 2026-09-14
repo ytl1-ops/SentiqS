@@ -78,15 +78,15 @@ export default function DashboardOverview() {
       <div className="anim-entry-down space-y-2">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h1 className="text-lg font-bold text-sentiqs-navy dark:text-white">{t('dashboard.welcome')}</h1>
-            <p className="text-xs text-sentiqs-gray-text dark:text-gray-400 mt-0.5">{today}</p>
+            <h1 className="text-lg font-bold text-sentiqs-navy dark:text-sentiqs-crisis-text">{t('dashboard.welcome')}</h1>
+            <p className="text-xs text-sentiqs-gray-text dark:text-sentiqs-crisis-text-faint mt-0.5">{today}</p>
           </div>
           <div className="flex items-center gap-3">
             <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg ${overallStatus.color} ${overallStatus.pulse} text-xs font-bold`}>
               <span className="w-2 h-2 rounded-full bg-white/60 animate-pulse" />
               {t('dashboard.riskContext', { count: levelCounts.rouge + levelCounts.orange })}
             </span>
-            <span className="text-[10px] text-sentiqs-gray-text dark:text-gray-400">
+            <span className="text-[10px] text-sentiqs-gray-text dark:text-sentiqs-crisis-text-faint">
               {stats.activeAlerts} {t('dashboard.activeAlerts')} · {levelCounts.rouge + levelCounts.orange} {t('dashboard.countriesAtRisk')}
             </span>
           </div>
@@ -171,19 +171,19 @@ export default function DashboardOverview() {
             }`} />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-bold text-gray-900 dark:text-white">
+            <div className="text-xs font-bold text-gray-900 dark:text-sentiqs-crisis-text">
               {t('dashboard.postureChange')} — {latestChange.country}
               <span className="mx-1.5">:</span>
               <span className="uppercase font-black">{latestChange.oldLevel}</span>
               <i className="ri-arrow-right-line mx-1 text-gray-400" />
               <span className="uppercase font-black">{latestChange.newLevel}</span>
             </div>
-            <div className="text-[10px] text-gray-500 dark:text-gray-400">{formatTimeRel(latestChange.at)}</div>
+            <div className="text-[10px] text-gray-500 dark:text-sentiqs-crisis-text-faint">{formatTimeRel(latestChange.at)}</div>
           </div>
           <button
             type="button"
             onClick={() => navigate('/dashboard/situation')}
-            className="px-3 py-1.5 bg-sentiqs-navy dark:bg-red-700 text-white rounded-lg text-[10px] font-semibold hover:opacity-90 whitespace-nowrap"
+            className="px-3 py-1.5 bg-sentiqs-navy dark:bg-sentiqs-crisis-accent text-white rounded-lg text-[10px] font-semibold hover:opacity-90 whitespace-nowrap"
           >
             {t('dashboard.viewSituation')}
             <i className="ri-arrow-right-line ml-1" />
@@ -194,11 +194,11 @@ export default function DashboardOverview() {
       {/* ===== MAIN GRID: Heatmap + Threat List + Timeline ===== */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* Heatmap preview */}
-        <div className="xl:col-span-2 bg-white dark:bg-[#111827] rounded-xl border border-gray-100 dark:border-[#1e293b] overflow-hidden" style={{ minHeight: '420px' }}>
-          <div className="px-4 py-3 border-b border-gray-100 dark:border-[#1e293b] flex items-center justify-between">
+        <div className="xl:col-span-2 bg-white dark:bg-sentiqs-crisis-panel rounded-xl border border-gray-100 dark:border-sentiqs-crisis-panel-border overflow-hidden" style={{ minHeight: '420px' }}>
+          <div className="px-4 py-3 border-b border-gray-100 dark:border-sentiqs-crisis-panel-border flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-sentiqs-navy dark:text-white">{t('dashboard.operationalMap')}</h3>
-              <p className="text-[10px] text-sentiqs-gray-text dark:text-gray-400 mt-0.5">{t('dashboard.operationalMapSubtitle')}</p>
+              <h3 className="text-sm font-bold text-sentiqs-navy dark:text-sentiqs-crisis-text">{t('dashboard.operationalMap')}</h3>
+              <p className="text-[10px] text-sentiqs-gray-text dark:text-sentiqs-crisis-text-faint mt-0.5">{t('dashboard.operationalMapSubtitle')}</p>
             </div>
             <button
               type="button"
@@ -206,7 +206,7 @@ export default function DashboardOverview() {
                 const el = document.querySelector('[data-heatmap-full]');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="text-[10px] font-semibold text-sentiqs-navy dark:text-gray-300 hover:underline whitespace-nowrap"
+              className="text-[10px] font-semibold text-sentiqs-navy dark:text-sentiqs-crisis-text-muted hover:underline whitespace-nowrap"
             >
               {t('dashboard.fullscreen')}
               <i className="ri-external-link-line ml-1" />
@@ -221,7 +221,7 @@ export default function DashboardOverview() {
         <div className="space-y-4">
           {/* Critical threats */}
           {criticalCountries.length > 0 && (
-            <div className="bg-white dark:bg-[#111827] rounded-xl border border-red-200 dark:border-red-900/60 p-4">
+            <div className="bg-white dark:bg-sentiqs-crisis-panel rounded-xl border border-red-200 dark:border-red-900/60 p-4">
               <h3 className="text-xs font-bold text-red-700 dark:text-red-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                 {t('dashboard.criticalThreats')}
@@ -238,8 +238,8 @@ export default function DashboardOverview() {
                       {c.countryCode}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs font-semibold text-gray-900 dark:text-white">{c.country}</div>
-                      <div className="text-[10px] text-gray-500 dark:text-gray-400">
+                      <div className="text-xs font-semibold text-gray-900 dark:text-sentiqs-crisis-text">{c.country}</div>
+                      <div className="text-[10px] text-gray-500 dark:text-sentiqs-crisis-text-faint">
                         Score {c.score}/100 · {c.incidents} {t('dashboard.incidents')}
                       </div>
                     </div>
@@ -254,7 +254,7 @@ export default function DashboardOverview() {
 
           {/* High risk threats */}
           {highRiskCountries.length > 0 && (
-            <div className="bg-white dark:bg-[#111827] rounded-xl border border-orange-200 dark:border-orange-900/60 p-4">
+            <div className="bg-white dark:bg-sentiqs-crisis-panel rounded-xl border border-orange-200 dark:border-orange-900/60 p-4">
               <h3 className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-orange-500" />
                 {t('dashboard.highRiskThreats')}
@@ -271,8 +271,8 @@ export default function DashboardOverview() {
                       {c.countryCode}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs font-semibold text-gray-900 dark:text-white">{c.country}</div>
-                      <div className="text-[10px] text-gray-500 dark:text-gray-400">
+                      <div className="text-xs font-semibold text-gray-900 dark:text-sentiqs-crisis-text">{c.country}</div>
+                      <div className="text-[10px] text-gray-500 dark:text-sentiqs-crisis-text-faint">
                         Score {c.score}/100 · {c.incidents} {t('common.short')}
                       </div>
                     </div>
@@ -283,23 +283,23 @@ export default function DashboardOverview() {
           )}
 
           {/* Quick stats */}
-          <div className="bg-white dark:bg-[#111827] rounded-xl border border-gray-100 dark:border-[#1e293b] p-4">
+          <div className="bg-white dark:bg-sentiqs-crisis-panel rounded-xl border border-gray-100 dark:border-sentiqs-crisis-panel-border p-4">
             <div className="grid grid-cols-2 gap-3">
-              <div className="text-center p-2 bg-gray-50 dark:bg-[#1a2232] rounded-lg">
-                <div className="text-lg font-bold text-sentiqs-navy dark:text-white">{alertStats.totalIncidents}</div>
-                <div className="text-[9px] text-sentiqs-gray-text dark:text-gray-400">Incidents</div>
+              <div className="text-center p-2 bg-gray-50 dark:bg-sentiqs-crisis-input rounded-lg">
+                <div className="text-lg font-bold text-sentiqs-navy dark:text-sentiqs-crisis-text">{alertStats.totalIncidents}</div>
+                <div className="text-[9px] text-sentiqs-gray-text dark:text-sentiqs-crisis-text-faint">Incidents</div>
               </div>
-              <div className="text-center p-2 bg-gray-50 dark:bg-[#1a2232] rounded-lg">
-                <div className="text-lg font-bold text-sentiqs-navy dark:text-white">{alertStats.totalVerified}</div>
-                <div className="text-[9px] text-sentiqs-gray-text dark:text-gray-400">{t('common.verifiedCount')}</div>
+              <div className="text-center p-2 bg-gray-50 dark:bg-sentiqs-crisis-input rounded-lg">
+                <div className="text-lg font-bold text-sentiqs-navy dark:text-sentiqs-crisis-text">{alertStats.totalVerified}</div>
+                <div className="text-[9px] text-sentiqs-gray-text dark:text-sentiqs-crisis-text-faint">{t('common.verifiedCount')}</div>
               </div>
-              <div className="text-center p-2 bg-gray-50 dark:bg-[#1a2232] rounded-lg">
-                <div className="text-lg font-bold text-sentiqs-navy dark:text-white">{stats.newFeeds24h}</div>
-                <div className="text-[9px] text-sentiqs-gray-text dark:text-gray-400">{t('dashboard.feeds24h')}</div>
+              <div className="text-center p-2 bg-gray-50 dark:bg-sentiqs-crisis-input rounded-lg">
+                <div className="text-lg font-bold text-sentiqs-navy dark:text-sentiqs-crisis-text">{stats.newFeeds24h}</div>
+                <div className="text-[9px] text-sentiqs-gray-text dark:text-sentiqs-crisis-text-faint">{t('dashboard.feeds24h')}</div>
               </div>
-              <div className="text-center p-2 bg-gray-50 dark:bg-[#1a2232] rounded-lg">
-                <div className="text-lg font-bold text-sentiqs-navy dark:text-white">{stats.countriesInAlert}</div>
-                <div className="text-[9px] text-sentiqs-gray-text dark:text-gray-400">{t('dashboard.countriesConcerned')}</div>
+              <div className="text-center p-2 bg-gray-50 dark:bg-sentiqs-crisis-input rounded-lg">
+                <div className="text-lg font-bold text-sentiqs-navy dark:text-sentiqs-crisis-text">{stats.countriesInAlert}</div>
+                <div className="text-[9px] text-sentiqs-gray-text dark:text-sentiqs-crisis-text-faint">{t('dashboard.countriesConcerned')}</div>
               </div>
             </div>
           </div>
@@ -318,10 +318,10 @@ export default function DashboardOverview() {
 
       {/* ===== RECENT ESCALATIONS ===== */}
       {recentEscalations.length > 0 && (
-        <div className="bg-white dark:bg-[#111827] rounded-xl border border-gray-100 dark:border-[#1e293b] p-4">
+        <div className="bg-white dark:bg-sentiqs-crisis-panel rounded-xl border border-gray-100 dark:border-sentiqs-crisis-panel-border p-4">
           <div className="flex items-center gap-2 mb-3">
             <i className="ri-bar-chart-grouped-line text-red-500" />
-            <h3 className="text-sm font-bold text-sentiqs-navy dark:text-white">{t('dashboard.topTenseCountries')}</h3>
+            <h3 className="text-sm font-bold text-sentiqs-navy dark:text-sentiqs-crisis-text">{t('dashboard.topTenseCountries')}</h3>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
             {recentEscalations.map((c) => (
@@ -334,13 +334,13 @@ export default function DashboardOverview() {
                 }`}
               >
                 <div className="flex items-center gap-1.5 mb-1">
-                  <span className="text-[10px] font-bold text-gray-900 dark:text-white">{c.countryCode}</span>
+                  <span className="text-[10px] font-bold text-gray-900 dark:text-sentiqs-crisis-text">{c.countryCode}</span>
                   <span className={`px-1 py-0.5 rounded text-[8px] font-bold uppercase ${
                     c.level === 'rouge' ? 'bg-red-700 text-white' : 'bg-orange-600 text-white'
                   }`}>{c.level}</span>
                 </div>
-                <div className="text-lg font-black font-mono text-gray-900 dark:text-white">{c.score}</div>
-                <div className="text-[9px] text-gray-500 dark:text-gray-400 mt-0.5">{c.incidents} {t('common.short')} · {c.incidentsBySeverity.critical} {t('common.criticalShort')}</div>
+                <div className="text-lg font-black font-mono text-gray-900 dark:text-sentiqs-crisis-text">{c.score}</div>
+                <div className="text-[9px] text-gray-500 dark:text-sentiqs-crisis-text-faint mt-0.5">{c.incidents} {t('common.short')} · {c.incidentsBySeverity.critical} {t('common.criticalShort')}</div>
               </button>
             ))}
           </div>
