@@ -53,12 +53,12 @@ export default function Sidebar({ activeItem = 'overview' }: SidebarProps) {
   ];
 
   return (
-    <aside className="w-14 lg:w-56 bg-white border-r border-gray-100 flex flex-col flex-shrink-0 transition-all">
+    <aside className="w-14 lg:w-56 bg-white border-r border-gray-100 flex flex-col flex-shrink-0 transition-all dark:bg-sentiqs-crisis-surface-alt dark:border-sentiqs-crisis-border">
       <nav className="flex-1 py-2">
         {sections.map((section) => (
           <div key={section.title} className="mb-1">
             <div className="hidden lg:block px-4 py-1.5">
-              <span className="text-[9px] font-bold tracking-[0.2em] text-gray-400 uppercase">
+              <span className="text-[9px] font-bold tracking-[0.2em] text-gray-400 dark:text-sentiqs-crisis-text-faint uppercase">
                 {section.title}
               </span>
             </div>
@@ -70,8 +70,8 @@ export default function Sidebar({ activeItem = 'overview' }: SidebarProps) {
                   onClick={item.id === 'alerts' ? handleAlertsClick : () => navigate(item.path)}
                   className={`w-full flex items-center gap-3 px-3 lg:px-4 py-2 text-xs transition-colors whitespace-nowrap cursor-pointer relative ${
                     activeItem === item.id
-                      ? 'bg-sentiqs-navy/5 text-sentiqs-navy font-semibold border-r-2 border-sentiqs-navy'
-                      : 'text-sentiqs-gray-text hover:bg-gray-50 hover:text-sentiqs-navy'
+                      ? 'bg-sentiqs-navy/5 text-sentiqs-navy font-semibold border-r-2 border-sentiqs-navy dark:bg-sentiqs-crisis-accent/10 dark:text-sentiqs-crisis-text dark:border-sentiqs-crisis-accent-bright'
+                      : 'text-sentiqs-gray-text hover:bg-gray-50 hover:text-sentiqs-navy dark:text-sentiqs-crisis-text-muted dark:hover:bg-sentiqs-crisis-input dark:hover:text-sentiqs-crisis-text'
                   }`}
                 >
                   <div className="w-5 h-5 flex items-center justify-center flex-shrink-0 relative">
@@ -95,14 +95,14 @@ export default function Sidebar({ activeItem = 'overview' }: SidebarProps) {
         ))}
       </nav>
 
-      <div className="p-3 lg:p-4 border-t border-gray-100">
+      <div className="p-3 lg:p-4 border-t border-gray-100 dark:border-sentiqs-crisis-border">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
-          <span className="hidden lg:inline text-[10px] font-semibold tracking-[0.15em] text-sentiqs-gray-text uppercase">
+          <span className="hidden lg:inline text-[10px] font-semibold tracking-[0.15em] text-sentiqs-gray-text dark:text-sentiqs-crisis-text-muted uppercase">
             {t('common.activeMonitoring')}
           </span>
         </div>
-        <p className="hidden lg:block text-[10px] text-sentiqs-gray-text mt-1">{t('common.monitoredCountries')}</p>
+        <p className="hidden lg:block text-[10px] text-sentiqs-gray-text dark:text-sentiqs-crisis-text-faint mt-1">{t('common.monitoredCountries')}</p>
       </div>
     </aside>
   );
