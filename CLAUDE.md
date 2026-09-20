@@ -1397,10 +1397,40 @@ Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`, et une capture
 Playwright du tableau de bord rendu (thème clair, jeton collecteur) comparée
 à la version d'avant.
 
-**Ce qui reste hors scope de cet incrément** : Flux, Alertes, Agenda,
-Géopolitique, Synthèse et Rapports n'ont pas été touchés. L'amplification de
-l'identité doit s'y poursuivre au même rythme — un module à la fois, chacun
-vérifié avant le suivant — pas en un seul passage sur 20 900 lignes.
+**Deuxième incrément : le Flux.** Un seul changement, volontairement
+minuscule : le bandeau diviseur par pays (visible en mode « Tous les pays »,
+`renderFeed()`, ligne ~11385) passe le nom du pays en `var(--font-serif)` —
+le seul autre vrai « titre de section » du Flux, au même rang que l'en-tête
+du cartogramme. Les titres d'actu eux-mêmes (`.atit`) n'ont **pas** été
+touchés.
+
+**Ce qui a été vérifié avant de ne pas y toucher, et pourquoi c'est
+important à noter.** `.atit`/`.asum`/`.rtg` sont déclarés deux fois dans la
+feuille de style : une première fois ligne 568 (13px/700), une seconde ligne
+1670, sous le commentaire « Titre des cartes » et avec `!important` sur
+chaque propriété. Les deux ont la même spécificité ; à spécificité égale
+c'est la déclaration la plus tardive dans le fichier qui l'emporte, donc
+c'est la seconde qui régit réellement l'écran — mesuré par style calculé
+dans Chromium (12,5px/600/IBM Plex Sans), pas supposé. Le commentaire laisse
+penser qu'elle vise `.acard` (les cartes KPI/Alertes) ; en réalité `.atit`
+n'est utilisé nulle part dans du `.acard`, seulement dans les cartes `.art`
+du Flux et de la mini-liste « Articles source » de Géopolitique — c'est donc
+bien le Flux qu'elle régit, sous un commentaire qui décrit autre chose.
+Retenu comme **lecture plausible plutôt que bug tranché** : alléger le poids
+d'un titre répété plusieurs centaines de fois à l'écran est un choix de
+densité défendable, pas forcément un accident. N'a donc pas été « corrigé »
+sans arbitrage — seulement mesuré et écrit ici, pour que la prochaine passe
+sur le Flux parte de l'état réel plutôt que du commentaire trompeur.
+
+Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`, et le Flux rendu
+avec le cache réel du 20/09 injecté dans `ALL` (la collecte réelle est
+inatteignable depuis ce bac à sable — voir « Contraintes de cet
+environnement d'exécution »).
+
+**Ce qui reste hors scope** : Alertes, Agenda, Géopolitique, Synthèse et
+Rapports n'ont pas été touchés. L'amplification de l'identité doit s'y
+poursuivre au même rythme — un module à la fois, chacun vérifié avant le
+suivant — pas en un seul passage sur 20 900 lignes.
 
 ---
 

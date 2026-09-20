@@ -11382,8 +11382,13 @@ async function renderFeed() {
     if (fGeo === 'all') {
       const cc = CYS.find(x=>x.code===cyCode) || {flag:'🌍', name:cyCode};
       const totalPays = artsCe.length;
+      // Refonte du 21/09/2026 : nom de pays en serif, meme traitement que
+      // l'en-tete de section du tableau de bord — c'est la seule autre
+      // rupture de ce niveau dans le Flux (le reste reste dense/sans-serif
+      // pour la lisibilite d'une liste de plusieurs centaines d'actus).
       html += '<div style="background:var(--b);color:#fff;padding:9px 14px;font-size:13px;font-weight:800;display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer;" onclick="ouvrirVuePays(\''+cyCode+'\')">'+
-        '<span style="font-size:16px">'+cc.flag+'</span>'+cc.name+
+        '<span style="font-size:16px">'+cc.flag+'</span>'+
+        '<span style="font-family:var(--font-serif);font-weight:600;letter-spacing:.005em;">'+cc.name+'</span>'+
         '<span style="margin-left:auto;font-size:10px;font-weight:600;color:rgba(255,255,255,.7)">'+totalPays+' article'+(totalPays>1?'s':'')+'</span>'+
       '</div>';
     }
