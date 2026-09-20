@@ -1481,7 +1481,26 @@ Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`, et les trois vues
 (liste, calendrier, année) rendues avec le cache réel du 20/09 injecté dans
 `ALL` (105 événements dérivés via `articleVersAgenda`).
 
-**Ce qui reste hors scope** : Géopolitique, Synthèse et Rapports.
+**Cinquième incrément : la Géopolitique.** Un seul changement : le titre de
+module `#geoTitre` passe en `var(--font-serif)`, via un attribut `style`
+propre (même raison que pour `#agTitreZone` : la classe `.ag-tt` est
+partagée entre les deux titres, seul celui du module en cours de passage
+doit changer). `#geoTitre` sert aussi bien à l'aperçu (« Géopolitique ») qu'à
+la fiche d'un pays sélectionné (« Géopolitique — 🇨🇫 Centrafrique »,
+texte remplacé par `childNodes[0].nodeValue`, jamais l'attribut `style`) : le
+changement couvre donc les deux vues sans édition supplémentaire.
+
+Pas d'autre section de ce module ne s'y prêtait : les libellés restants
+(« PUBLICATIONS GÉOPOLITIQUES — SOURCES OUVERTES & GRATUITES », « ARTICLES
+SOURCE », les cartes-thème dans `genererAnalyseGeopolitique`) sont soit des
+petites capitales structurelles, soit des cartes de contenu répétées — même
+distinction que dans les quatre incréments précédents.
+
+Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`, et les deux vues
+(aperçu et détail pays) rendues avec le cache réel du 20/09 injecté dans
+`ALL`.
+
+**Ce qui reste hors scope** : Synthèse et Rapports.
 L'amplification de l'identité doit s'y poursuivre au même rythme — un module
 à la fois, chacun vérifié avant le suivant — pas en un seul passage sur
 20 900 lignes.
