@@ -1523,10 +1523,38 @@ rendue avec le cache réel du 20/09 injecté dans `ALL` (`updSynthese()`
 appelé directement après `switchView('analyse', ...)` — le nom de vue
 interne, pas le libellé affiché).
 
-**Ce qui reste hors scope** : Rapports.
-L'amplification de l'identité doit s'y poursuivre au même rythme — un module
-à la fois, chacun vérifié avant le suivant — pas en un seul passage sur
-20 900 lignes.
+**Septième et dernier incrément : les Rapports.** Le titre de module
+« Rapports & exports » (static HTML, sans id, pas de classe partagée) passe
+en `var(--font-serif)`.
+
+**Et une trouvaille qui referme la boucle plutôt que d'ouvrir un nouveau
+chantier.** En cherchant s'il existait, comme pour la Synthèse, un vrai
+« masthead » de couverture à amplifier dans ce module, il s'est avéré que
+les documents générés pour impression/aperçu (`_apPageWrap`, utilisée par
+Flux/Agenda/Alertes/Rapport complet, et son équivalent autonome
+`_buildRapportSyntheseHTML`) importent **déjà** Source Serif 4 depuis
+Google Fonts et l'utilisent pour leur `<h1>` (40px/800) et leurs chiffres
+de synthèse (32px/700) — cohérent avec `--sig`/`--font-serif`, mais écrit
+indépendamment, avant cette série d'incréments. Les documents exportés
+(Word/PDF/PowerPoint envoyés aux clients) étaient donc déjà à l'identité
+cible ; c'est l'interface live qui était en retard, exactement ce que ces
+sept incréments viennent de rattraper. Rien à changer côté export.
+
+Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`, et le module
+rendu avec le cache réel du 20/09 injecté dans `ALL`.
+
+**Bilan des sept incréments (21/09/2026).** Tableau de bord, Flux, Alertes,
+Agenda, Géopolitique, Synthèse, Rapports — chaque titre de section réel
+amplifie maintenant `var(--font-serif)`, jamais les petites capitales
+structurelles ni les titres d'articles/cartes répétés en liste, cette
+distinction étant tenue identique d'un module à l'autre. Un seul effet de
+bord trouvé et corrigé en cours de route, documenté à son incrément : la
+ligne de debug qui fuitait dans chaque fiche d'alerte (3/N) — le reste de
+chaque passage s'est limité à la typographie. Aucun test cassé sur les sept
+commits ; deux points restent volontairement écrits ici plutôt que corrigés
+sans arbitrage éditorial (la répétition « ROUGE » et le score en 9px des
+Alertes ; le fait que `.atit` du Flux soit piloté par une règle plus tardive
+que celle qu'on lit en premier dans le fichier).
 
 ---
 
