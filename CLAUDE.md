@@ -1459,6 +1459,29 @@ du 07/09/2026, n'ont pas été repris ici — ce sont des questions de hiérarch
 visuelle de la carte, pas d'amplification de l'identité, et elles mériteraient
 leur propre passage mesuré plutôt qu'un ajout à celui-ci. Agenda,
 Géopolitique, Synthèse et Rapports n'ont pas non plus été touchés.
+
+**Quatrième incrément : l'Agenda.** Trois titres, tous de vrais moments de
+« masthead » plutôt que des étiquettes structurelles, passent en
+`var(--font-serif)` :
+
+- Le titre de module « Agenda sûreté — [zone] » (`#agTitreZone`, mis à jour
+  dynamiquement par `renderAgenda()` — c'est un attribut `style`, pas la
+  classe `.ag-tt` partagée avec `#geoTitre` de Géopolitique, pour ne pas
+  faire déborder ce changement sur un module qui n'est pas encore passé).
+- Le libellé mois de la vue Calendrier (« Septembre 2026 »,
+  `renderAgendaCalendrierHtml`).
+- Le libellé année de la vue Année (« 2026 », `renderAgendaAnneeHtml`).
+
+Les en-têtes de section internes (« ÉVÉNEMENTS PASSÉS DE 2026 », les
+étiquettes de statut EN COURS/URGENT/PLANIFIÉ) restent en petites capitales
+sans-serif — même logique que la tuile « TABLEAU DE BORD » et les libellés
+de ville du Flux : ce sont des repères de structure, pas des titres.
+
+Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`, et les trois vues
+(liste, calendrier, année) rendues avec le cache réel du 20/09 injecté dans
+`ALL` (105 événements dérivés via `articleVersAgenda`).
+
+**Ce qui reste hors scope** : Géopolitique, Synthèse et Rapports.
 L'amplification de l'identité doit s'y poursuivre au même rythme — un module
 à la fois, chacun vérifié avant le suivant — pas en un seul passage sur
 20 900 lignes.

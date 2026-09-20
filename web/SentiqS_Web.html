@@ -2460,7 +2460,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         <div class="ag-wrap">
           <div class="ag-hdr">
             <div>
-              <div class="ag-tt" id="agTitreZone">Agenda — Toutes zones</div>
+              <div class="ag-tt" id="agTitreZone" style="font-family:var(--font-serif);font-weight:600;">Agenda — Toutes zones</div>
               <div class="ag-sb">Evenements en cours · A venir · Echeances · Colloques · Concerts · Festivals</div>
             </div>
             <div class="ag-flt">
@@ -12813,7 +12813,7 @@ function renderAgendaCalendrierHtml(filt, SL, IC, TYP) {
         '<button onclick="agendaAnneePrecedente()" title="Année précédente" style="padding:5px 7px;background:var(--sf);border:1px solid var(--bd);border-radius:5px;color:var(--t);cursor:pointer;font-weight:700;">«</button>' +
         '<button onclick="agendaMoisPrecedent()" title="Mois précédent" style="padding:5px 7px;background:var(--sf);border:1px solid var(--bd);border-radius:5px;color:var(--t);cursor:pointer;"><i class="ti ti-chevron-left"></i></button>' +
       '</div>' +
-      '<div style="font-size:13px;font-weight:700;color:var(--t);display:flex;align-items:center;gap:8px;">' + MOIS_NOMS_LONGS[m] + ' ' + y +
+      '<div style="font-family:var(--font-serif);font-weight:600;font-size:14px;color:var(--t);display:flex;align-items:center;gap:8px;">' + MOIS_NOMS_LONGS[m] + ' ' + y +
         (fAgMoisAffiche ? '<button onclick="agendaMoisCourant()" style="font-size:9px;font-weight:700;color:var(--b);background:var(--bl);border:1px solid var(--bb);border-radius:4px;padding:2px 6px;cursor:pointer;">Aujourd\'hui</button>' : '') +
       '</div>' +
       '<div style="display:flex;align-items:center;gap:3px;">' +
@@ -12870,7 +12870,7 @@ function renderAgendaAnneeHtml(filt, SL, IC, TYP) {
   const nav =
     '<div class="ag-cal-nav" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">' +
       '<button onclick="agendaAnneePrecedente()" title="Année précédente" style="padding:5px 10px;background:var(--sf);border:1px solid var(--bd);border-radius:5px;color:var(--t);cursor:pointer;"><i class="ti ti-chevron-left"></i></button>' +
-      '<div style="font-size:16px;font-weight:800;color:var(--t);">' + y + '</div>' +
+      '<div style="font-family:var(--font-serif);font-weight:700;font-size:17px;color:var(--t);">' + y + '</div>' +
       '<button onclick="agendaAnneeSuivante()" title="Année suivante" style="padding:5px 10px;background:var(--sf);border:1px solid var(--bd);border-radius:5px;color:var(--t);cursor:pointer;"><i class="ti ti-chevron-right"></i></button>' +
     '</div>' +
     '<div style="display:flex;justify-content:flex-end;margin-bottom:14px;">' + _agendaGranulariteToggleHtml() + '</div>';
