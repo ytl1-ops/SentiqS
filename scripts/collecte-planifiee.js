@@ -30,6 +30,7 @@ const { creerIntercepteur } = require('./lib/interception-proxy-directe');
 const { evaluerAccessibilite } = require('./lib/couverture');
 const historique = require('./lib/historique');
 const alerteSortante = require('./lib/alerte-sortante');
+const alerteCouverture = require('./lib/alerte-couverture');
 const santeCollecte = require('./lib/sante-collecte');
 
 // Firebase Hosting retire (sentinel-surete.web.app ne recoit plus de
@@ -501,6 +502,44 @@ function ecrireResumeActions(md) {
         + couverture.paysSansArticleFrais.join(', '));
     }
     lignesCouverture.forEach(l => console.log('  ' + l));
+
+    // ── ALERTE COUVERTURE : PAYS SANS ACTUALITE ──────────────────────────
+    // Ce qui precede (lignesCouverture) est journalise a CHAQUE cycle mais
+    // seulement dans les journaux GitHub Actions — voir
+    // scripts/lib/alerte-couverture.js pour la mesure qui justifie ce bloc
+    // et la raison de ne PAS alerter sur couverture.enVeille. Meme canal,
+    // meme etat persiste a cote de l'archive que l'alerte de niveau
+    // ci-dessus ; en son propre fichier pour rester independant d'elle (un
+    // echec ici ne doit pas empecher son ecriture, ni l'inverse).
+    try {
+      const cheminEtatCouverture = path.join(RACINE_HISTORIQUE, 'couverture-signalee.json');
+      let etatCouverture = null;
+      try {
+        if (fs.existsSync(cheminEtatCouverture)) etatCouverture = JSON.parse(fs.readFileSync(cheminEtatCouverture, 'utf8'));
+      } catch (_) { etatCouverture = null; }   // etat illisible : on repart de zero, donc silencieux si rien n'a change
+
+      const messageCouverture = alerteCouverture.construireMessage(couverture.paysSansArticleFrais, etatCouverture);
+
+      if (!messageCouverture) {
+        console.log('  Alerte couverture : ensemble des pays sans actualite inchange depuis le dernier signalement.');
+      } else if (!process.env.WEBHOOK_ALERTES) {
+        console.log('  Alerte couverture : ' + couverture.paysSansArticleFrais.length
+          + ' pays sans actualite — aucun canal configure (WEBHOOK_ALERTES absent). Message qui serait parti :');
+        messageCouverture.text.split('\n').forEach((l) => console.log('    | ' + l));
+      } else {
+        const envoiCouverture = await alerteSortante.envoyer(process.env.WEBHOOK_ALERTES, messageCouverture);
+        console.log('  Alerte couverture : '
+          + (envoiCouverture.ok ? 'envoyee.' : 'NON envoyee (' + envoiCouverture.raison + ').'));
+        if (!envoiCouverture.ok) console.warn('::warning::Sortie d\'alerte couverture en echec : ' + envoiCouverture.raison);
+      }
+
+      fs.writeFileSync(cheminEtatCouverture,
+        JSON.stringify(alerteCouverture.etatSuivant(couverture.paysSansArticleFrais), null, 1) + '\n');
+    } catch (e) {
+      // Meme raisonnement que l'archive : ce bloc ne doit jamais faire
+      // tomber une collecte qui, elle, a reussi.
+      console.warn('  Alerte couverture : non evaluee (' + ((e && e.message) || e) + ')');
+    }
 
     // Seuil d'alerte. Il ne porte QUE sur l'accessibilité : la fraîcheur varie
     // légitimement avec l'heure et la taille du pays, et un seuil posé dessus

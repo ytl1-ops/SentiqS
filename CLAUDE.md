@@ -380,6 +380,30 @@ Trois règles à ne pas défaire :
 Sans `WEBHOOK_ALERTES`, le job journalise le message qui *serait* parti. C'est
 la façon de mesurer le bruit avant de brancher quoi que ce soit.
 
+**Le 20/09/2026, une seconde sortie a été ajoutée sur le même canal** :
+`scripts/lib/alerte-couverture.js` annonce les changements de l'*ensemble*
+des pays sans actualité de moins de 12 h (`couverture.paysSansArticleFrais`),
+jusque-là calculé et journalisé à chaque cycle sans que personne ne le
+relise ailleurs que dans les journaux GitHub Actions. Trois collectes
+réelles indépendantes ce jour-là, étalées sur quatre heures, ont donné
+**exactement le même septuor** (BI, BJ, ER, KM, LS, MR, SC) — un signal
+stable, pas un accident de collecte, et pourtant invisible sans aller le
+chercher à la main. C'est le pendant côté exploitation de ce que `paysMuet()`
+fait déjà côté interface (voir « Silence n'est pas calme »).
+
+Même règle « on n'annonce que les changements » que ci-dessus, avec une
+différence : contrairement à un changement de niveau, un pays sans actualité
+dès le tout premier signalement est une information utile, pas un faux
+départ — rien n'est donc supprimé au premier run. État propre dans
+`web/historique/couverture-signalee.json`, à côté de `dernier-signale.json`
+mais indépendant de lui.
+
+**Délibérément PAS branché sur `couverture.enVeille`** (sources en échec
+répété) : ce chiffre est mesuré volatile d'un cycle à l'autre selon la
+saturation des proxys CORS publics — 43 → 96 en quatre heures le 20/09/2026,
+sans rien de cassé entre les deux passages — et alerter dessus produirait
+justement le canal qu'on finit par couper.
+
 ---
 
 ## Le cliquet sur les facteurs structurels
