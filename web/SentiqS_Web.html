@@ -9361,11 +9361,11 @@ function saveMarquePerso(m) {
 }
 
 // planUtilisateurActuel() : plan de l'utilisateur connecte ('gratuit' par
-// defaut). L'administrateur racine (ADMIN_EMAIL) beneficie toujours de
-// l'acces complet, meme sans enregistrement explicite de plan.
+// defaut). L'administrateur racine (role 'admin', voir estAdmin) beneficie
+// toujours de l'acces complet, meme sans enregistrement explicite de plan.
 function planUtilisateurActuel() {
   const session = (typeof getSession === 'function') ? getSession() : {};
-  if (session.email === ADMIN_EMAIL) return 'entreprise';
+  if (estAdmin(session)) return 'entreprise';
   const u = (typeof getUsers === 'function' ? getUsers() : []).find(x => x.email === session.email);
   return (u && u.plan) || 'gratuit';
 }
@@ -13942,16 +13942,41 @@ async function init() {
 
 // ════════════════════════════════════════════════════════════════════
 //  SentiqS — Authentification et gestion des acces
-//  Admin : yorot225@gmail.com
+//  Admin
 // ════════════════════════════════════════════════════════════════════
-const ADMIN_EMAIL = 'yorot225@gmail.com';
+// Audit de securite du 21/09/2026 : l'adresse reelle de l'administrateur
+// vivait ici en clair, dans le HTML public servi a chaque visiteur — n'
+// importe qui pouvait la lire via « Afficher le code source ». Elle
+// n'avait pourtant pas besoin d'y etre : seule l'adresse indiquee dans la
+// migration profiles_auth.sql (cote serveur, jamais servie par Pages)
+// recoit le role 'admin' a l'inscription (trigger before insert) — c'est
+// deja la ou vit la vraie frontiere de securite. Le client n'a besoin que
+// de LIRE ce role, jamais de comparer une adresse.
+//
+// estAdmin(u) remplace toutes les anciennes comparaisons a une adresse en
+// dur : accepte un objet utilisateur/session (lit .role), ou a defaut une
+// adresse email brute (cas des stats agregees par email seul, ex.
+// statsTelechargements/statsTrafic) — repli par recherche dans les profils
+// deja charges, jamais par comparaison a une adresse figee dans ce fichier.
+function estAdmin(u) {
+  if (!u) return false;
+  if (typeof u === 'object' && u.role) return u.role === 'admin';
+  const email = typeof u === 'string' ? u : u.email;
+  if (!email) return false;
+  const profil = (typeof getUsers === 'function' ? getUsers() : []).find(x => x.email === email);
+  return !!profil && profil.role === 'admin';
+}
+// SUPPORT_CONTACT_EMAIL : adresse affichee a un utilisateur bloque (compte
+// suspendu, essai gratuit expire) pour qu'il sache qui contacter — un
+// besoin different de estAdmin() ci-dessus, jamais utilisee pour une
+// verification de droits. A remplacer par une adresse professionnelle
+// degagee de l'identite personnelle du proprietaire des que l'une existe.
+const SUPPORT_CONTACT_EMAIL = 'yorot225@gmail.com';
 // _maskEmail(email) : masque l'adresse de l'administrateur/proprietaire du
 // compte partout ou elle est affichee a l'ecran ou dans un rapport genere
 // (statut, profil, tableau des comptes, rapports) — garde les 2 premiers
 // caracteres + le domaine visibles (reconnaissable sans exposer l'adresse
-// complete), jamais utilisee pour la logique d'authentification elle-meme
-// (comparaisons a ADMIN_EMAIL, session.email, mailto de depannage) qui
-// continue d'utiliser l'adresse reelle.
+// complete).
 function _maskEmail(email) {
   if (!email || email.indexOf('@') < 2) return email;
   const at = email.indexOf('@');
@@ -14714,7 +14739,7 @@ function zonePrioritaireActuelle() {
 // racine et tout compte deja sur un plan payant ne sont jamais concernes.
 const COMPTE_GRATUIT_VALIDITE_MS = 72 * 60 * 60 * 1000;
 function compteGratuitExpire(user) {
-  if (!user || user.email === ADMIN_EMAIL) return false;
+  if (!user || estAdmin(user)) return false;
   // Prolongation/raccourcissement manuel (Parametres > Gestion clientele >
   // "Acces valide jusqu'au") : remplace la regle automatique des 72h, dans
   // les deux sens (extension ou coupure anticipee decidee par l'admin).
@@ -14906,13 +14931,13 @@ async function _ouvrirSessionDepuisSupabase(authUser) {
   const user = _profilVersUtilisateur(row);
   if (user.status !== 'active') {
     await client.auth.signOut();
-    if (errEl) { errEl.textContent = t('err_suspended')+ADMIN_EMAIL; errEl.classList.add('show'); }
+    if (errEl) { errEl.textContent = t('err_suspended')+SUPPORT_CONTACT_EMAIL; errEl.classList.add('show'); }
     return false;
   }
   if (compteGratuitExpire(user)) {
     await client.auth.signOut();
     const causeManuelle = !!user.accesJusquau;
-    if (errEl) { errEl.textContent = t(causeManuelle ? 'err_acces_expire' : 'err_trial_expired')+ADMIN_EMAIL+'.'; errEl.classList.add('show'); }
+    if (errEl) { errEl.textContent = t(causeManuelle ? 'err_acces_expire' : 'err_trial_expired')+SUPPORT_CONTACT_EMAIL+'.'; errEl.classList.add('show'); }
     return false;
   }
   if (user.doitDefinirMdp) {
@@ -14954,7 +14979,7 @@ function finaliserConnexion(user) {
   if (!window._appInitialized) { window._appInitialized = true; init(); }
   // Rappel discret de la validite du plan gratuit (72h a compter de la creation
   // du compte) — n'affecte jamais les plans payants ni l'administrateur.
-  if (user.email !== ADMIN_EMAIL && (user.plan || 'gratuit') === 'gratuit' && user.createdAt && typeof _toastRapide === 'function') {
+  if (!estAdmin(user) && (user.plan || 'gratuit') === 'gratuit' && user.createdAt && typeof _toastRapide === 'function') {
     const resteMs = COMPTE_GRATUIT_VALIDITE_MS - (Date.now() - new Date(user.createdAt).getTime());
     const resteH = Math.max(0, Math.ceil(resteMs / 3600000));
     _toastRapide('Compte gratuit — ' + resteH + 'h restantes avant expiration. ' + PARTAGE_LIMITE_GRATUIT + ' partages/mode inclus.', 'ti-clock');
@@ -15174,12 +15199,12 @@ async function addUser() {
 
 function toggleUserStatus(email) {
   const users=getUsers();const u=users.find(x=>x.email===email);
-  if(!u||u.email===ADMIN_EMAIL)return;
+  if(!u||estAdmin(u))return;
   u.status=u.status==='active'?'suspended':'active';
   saveUsers(users);renderUsersTable();renderAdminStats();
 }
 function deleteUser(email) {
-  if(email===ADMIN_EMAIL)return;
+  if(estAdmin(email))return;
   if(!confirm('Supprimer definitvement '+email+' ?'))return;
   saveUsers(getUsers().filter(u=>u.email!==email));
   renderUsersTable();renderAdminStats();
@@ -15209,7 +15234,7 @@ function renderUsersTable() {
   document.getElementById('usersTableBody').innerHTML=users.map(u=>{
     const[rc,rl]=rL[u.role]||['br-reader','Lecteur'];
     const ll=u.lastLogin?new Date(u.lastLogin).toLocaleDateString('fr-FR'):'Jamais';
-    const isA=u.email===ADMIN_EMAIL;
+    const isA=estAdmin(u);
     return '<tr><td>'+(isA?_maskEmail(u.email):escHtml(u.email))+'</td><td>'+escHtml(u.name)+'</td>'+
       '<td><span class="badge-role '+rc+'">'+rl+'</span></td>'+
       '<td><span class="badge-status '+(u.status==='active'?'bs-active':'bs-suspend')+'">'+(u.status==='active'?'Actif':'Suspendu')+'</span></td>'+
@@ -15550,7 +15575,7 @@ async function pmRenderUsers() {
   document.getElementById('pmUsersBody').innerHTML = users.map(u => {
     const [rc, rl] = rL[u.role] || ['br-reader','Lecteur'];
     const dernierTs = dernierParEmail[u.email] || null;
-    const isA = u.email === ADMIN_EMAIL;
+    const isA = estAdmin(u);
     return '<tr>' +
       '<td>' + (isA ? _maskEmail(u.email) : escHtml(u.email)) + '</td>' +
       '<td>' + escHtml(u.name)  + '</td>' +
@@ -15604,12 +15629,12 @@ async function pmAddUser() {
 function pmToggleStatus(email) {
   const users = getUsers();
   const u = users.find(x => x.email === email);
-  if (!u || u.email === ADMIN_EMAIL) return;
+  if (!u || estAdmin(u)) return;
   u.status = u.status === 'active' ? 'suspended' : 'active';
   saveUsers(users); pmRenderUsers(); renderClientele();
 }
 function pmDeleteUser(email) {
-  if (email === ADMIN_EMAIL) return;
+  if (estAdmin(email)) return;
   if (!confirm('Supprimer definitvement ' + email + ' ?')) return;
   saveUsers(getUsers().filter(u => u.email !== email));
   pmRenderUsers(); renderClientele();
@@ -15653,7 +15678,7 @@ function renderAdminProfile() {
   if (!session) return;
   document.getElementById('pmAvatar').textContent = (session.name||session.email).charAt(0).toUpperCase();
   document.getElementById('pmName').textContent   = session.name || 'Administrateur';
-  document.getElementById('pmEmail').textContent  = session.email === ADMIN_EMAIL ? _maskEmail(session.email) : session.email;
+  document.getElementById('pmEmail').textContent  = estAdmin(session) ? _maskEmail(session.email) : session.email;
 }
 
 // pmChangerMotDePassePersonnel() : changement de mot de passe VOLONTAIRE
@@ -15826,7 +15851,7 @@ function renderMonAbonnement() {
   const el = document.getElementById('monAbonnementBody');
   if (!el) return;
   const session = getSession();
-  if (session.email === ADMIN_EMAIL) {
+  if (estAdmin(session)) {
     el.innerHTML = '<div style="font-size:12px;color:var(--t2)">Compte administrateur — accès illimité, aucune expiration.</div>';
     return;
   }
@@ -15940,7 +15965,7 @@ async function renderConnexionsSupabase() {
   body.innerHTML = '<table class="pm-users-table"><thead><tr>'
     + '<th>Email</th><th>Nom</th><th>Rôle</th><th>Appareil</th><th>Connexion</th>'
     + '</tr></thead><tbody>' + rows.map(r => {
-      const label = r.email === ADMIN_EMAIL ? _maskEmail(r.email) : r.email;
+      const label = estAdmin(r) ? _maskEmail(r.email) : r.email;
       const dt = new Date(r.created_at);
       return '<tr><td>' + label + '</td><td>' + (r.name||'—') + '</td>'
         + '<td>' + (r.role||'—') + '</td>'
@@ -16534,7 +16559,7 @@ function renderDLStats() {
     // lui-meme est masque, comme partout ailleurs dans l'application.
     usersEl.innerHTML = s.topUtilisateurs.length
       ? s.topUtilisateurs.map(u => {
-          const label = u.email === ADMIN_EMAIL ? _maskEmail(u.email) : u.email;
+          const label = estAdmin(u.email) ? _maskEmail(u.email) : u.email;
           const pct = maxN ? Math.round(u.n / maxN * 100) : 0;
           return '<div class="traffic-bar-row"><span style="width:130px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+_apEsc(label)+'">'+_apEsc(label)+'</span>'+
             '<div class="traffic-bar-track"><div class="traffic-bar-fill" style="width:'+pct+'%"></div></div>'+
@@ -16798,7 +16823,7 @@ function renderTraffic() {
     barsUsers.innerHTML = usersTries.length ? usersTries.map(email => {
       const n = parUser[email];
       const pct = maxU ? Math.round(n/maxU*100) : 0;
-      const label = email === ADMIN_EMAIL ? _maskEmail(email) : email;
+      const label = estAdmin(email) ? _maskEmail(email) : email;
       return '<div class="traffic-bar-row"><span style="width:130px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+_apEsc(label)+'">'+_apEsc(label)+'</span>'+
         '<div class="traffic-bar-track"><div class="traffic-bar-fill" style="width:'+pct+'%"></div></div>'+
         '<span style="width:30px;text-align:right;flex-shrink:0">'+n+'</span></div>';

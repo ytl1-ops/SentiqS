@@ -428,6 +428,38 @@ sur l'ancien code (`identiteEnvoiActuelle is not defined`).
 
 ---
 
+## L'adresse de l'administrateur ne vit plus dans le code servi
+
+Audit de sécurité du 21/09/2026 : `const ADMIN_EMAIL = '...'` vivait en clair
+dans `web/SentiqS_Web.html` — n'importe quel visiteur pouvait la lire via
+« Afficher le code source ». Une vingtaine de comparaisons (`user.email ===
+ADMIN_EMAIL`) décidaient qui garde un accès illimité, qui ne peut pas être
+suspendu/supprimé, qui voit son adresse masquée dans les tableaux d'admin.
+
+La vraie frontière de sécurité vivait déjà ailleurs et n'a pas bougé : la
+migration `app/sentinel-app/supabase/migrations/20260718020000_profiles_auth.sql`
+attribue le rôle `admin` par un trigger `before insert` côté serveur — ce
+fichier-là n'est jamais servi par Pages. Le client n'avait donc jamais
+besoin de connaître l'adresse elle-même, seulement de lire un rôle déjà
+posé par le serveur.
+
+`estAdmin(u)` remplace toutes les comparaisons : lit `.role` sur un objet
+utilisateur/session, et ne retombe sur une recherche par e-mail dans
+`getUsers()` que pour les rares agrégats qui n'en portent pas (stats de
+téléchargement/trafic par e-mail seul). Six tests dans
+`scripts/test/est-admin.test.js`, vus échouer sur l'ancien code avant le
+correctif.
+
+**Ce qui reste, et pourquoi.** Deux messages affichés à un utilisateur
+suspendu ou dont l'essai a expiré ont toujours besoin d'indiquer une
+adresse de contact réelle — ce n'est pas une vérification de droits, c'est
+une information utile qu'on ne peut pas supprimer sans casser le parcours
+de récupération. Isolée dans `SUPPORT_CONTACT_EMAIL`, avec la même valeur
+qu'avant faute d'adresse professionnelle à y mettre : à remplacer dès qu'il
+en existe une, dans cette seule constante.
+
+---
+
 ## Le cliquet sur les facteurs structurels
 
 38 facteurs de `FACTEURS_SPECIAUX` pèsent leur bonus plein sans date de revue.
