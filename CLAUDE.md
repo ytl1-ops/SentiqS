@@ -406,6 +406,28 @@ justement le canal qu'on finit par couper.
 
 ---
 
+## L'identité d'envoi ignorée par le format image
+
+Le menu de partage d'une actu ou d'un rapport propose « Signer en tant que »
+dès que plus d'une identité d'envoi est configurée (`identite1/2/3`,
+Paramètres > Marque personnalisée). Jusqu'au 21/09/2026, ce choix
+n'atteignait que le format **texte** (`signatureEnvoiActuelle()`, en pied de
+message) — le format **image** (`genererImageActuBlob`,
+`genererImageRapportBlob`, dessin `<canvas>`) ne dessinait que
+`nomMarqueActuelle()`, le nom de *marque*, un champ différent de l'identité
+choisie pour ce partage précis. Un utilisateur signant « Jean Dupont » en
+texte mais partageant en image voyait cette identité disparaître sans le
+moindre message.
+
+`identiteEnvoiActuelle()` porte maintenant la résolution partagée par les
+deux formats (nom seul, sans les `\n\n— ` du format texte, que `<canvas>` ne
+sait pas interpréter comme un saut de ligne) ; les deux fonctions de dessin
+l'affichent en bas à droite de l'image, symétrique à la date en bas à
+gauche. Neuf tests dans `scripts/test/identite-envoi.test.js`, vus échouer
+sur l'ancien code (`identiteEnvoiActuelle is not defined`).
+
+---
+
 ## Le cliquet sur les facteurs structurels
 
 38 facteurs de `FACTEURS_SPECIAUX` pèsent leur bonus plein sans date de revue.

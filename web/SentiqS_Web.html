@@ -9410,17 +9410,33 @@ function identitesMarquePerso(m) {
 // fonction d'envoi a chaque appel — ne "fuit" jamais vers un partage suivant
 // qui ne precise pas d'identite (bulletin, alerte pays...).
 let _partageIdentiteChoisie = null;
-function signatureEnvoiActuelle() {
+// identiteEnvoiActuelle() : le NOM SEUL de l'identite active pour CE partage
+// (voir _partageIdentiteChoisie), sans mise en forme — chaine vide si aucune
+// identite n'est configuree ou si le plan ne l'autorise pas.
+//
+// Factorise hors de signatureEnvoiActuelle() le 21/09/2026 : le format image
+// d'un partage (genererImageActuBlob/genererImageRapportBlob, dessin canvas)
+// ne peut pas interpreter les sauts de ligne « \n\n— » de la version texte,
+// et jusque-la n'appelait cette resolution nulle part — seul nomMarqueActuelle()
+// (le nom de MARQUE, un champ different) apparaissait sur l'image. Un
+// utilisateur choisissant une identite au moment du partage ("Signer en tant
+// que") la voyait donc appliquee au texte mais jamais a l'image, sans le
+// moindre message d'erreur. Les deux formats partagent maintenant cette
+// meme resolution.
+function identiteEnvoiActuelle() {
   if (!fonctionnalitePayante()) return '';
   const { identite1, identite2, identite3, active } = identitesMarquePerso(getMarquePerso());
   const identites = { 1: identite1, 2: identite2, 3: identite3 };
   const choix = (_partageIdentiteChoisie && identites[_partageIdentiteChoisie]) ? _partageIdentiteChoisie : active;
+  return identites[choix] || '';
+}
+function signatureEnvoiActuelle() {
+  const identite = identiteEnvoiActuelle();
+  if (!identite) return '';
   // Nom/pseudo uniquement (demande explicite) : jamais de coordonnee
   // personnelle (telephone/email) dans la signature d'un partage, meme si
   // un contact a ete enregistre par le passe (champ retire du panneau
   // Parametres, valeur eventuellement encore en localStorage mais ignoree ici).
-  const identite = identites[choix];
-  if (!identite) return '';
   return '\n\n— ' + identite;
 }
 
@@ -9898,6 +9914,17 @@ async function genererImageActuBlob(a, canal) {
   ctx.font = '500 ' + Math.round(w * 0.02) + 'px "IBM Plex Mono", monospace';
   ctx.textBaseline = 'bottom';
   ctx.fillText((typeof fmtFull === 'function' ? fmtFull(a.pubDate) : ''), pad, h - Math.round(w * 0.05));
+
+  // Identite d'envoi choisie pour CE partage (voir identiteEnvoiActuelle) —
+  // absente jusqu'au 21/09/2026 : seul le format texte l'appliquait, le
+  // format image ne dessinait que le nom de marque (nomMarqueActuelle, un
+  // champ different) sans jamais tenir compte du choix "Signer en tant que".
+  const identiteImg = identiteEnvoiActuelle();
+  if (identiteImg) {
+    ctx.textAlign = 'right';
+    ctx.fillText('— ' + identiteImg, w - pad, h - Math.round(w * 0.05));
+    ctx.textAlign = 'left'; // repli par defaut pour un appel canvas ulterieur
+  }
 
   return new Promise(resolve => cv.toBlob(resolve, 'image/png'));
 }
@@ -18934,6 +18961,16 @@ async function genererImageRapportBlob(type, canal) {
   ctx.font = '500 ' + Math.round(w * 0.02) + 'px "IBM Plex Mono", monospace';
   ctx.textBaseline = 'bottom';
   ctx.fillText(nowStr(), pad, h - Math.round(w * 0.05));
+
+  // Meme correctif que genererImageActuBlob (voir identiteEnvoiActuelle) :
+  // l'identite choisie pour CE partage doit apparaitre sur l'image comme
+  // elle apparait deja dans le texte, pas seulement le nom de marque.
+  const identiteImgRapport = identiteEnvoiActuelle();
+  if (identiteImgRapport) {
+    ctx.textAlign = 'right';
+    ctx.fillText('— ' + identiteImgRapport, w - pad, h - Math.round(w * 0.05));
+    ctx.textAlign = 'left';
+  }
 
   return new Promise(resolve => cv.toBlob(resolve, 'image/png'));
 }
