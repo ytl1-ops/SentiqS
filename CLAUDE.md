@@ -1500,7 +1500,30 @@ Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`, et les deux vues
 (aperçu et détail pays) rendues avec le cache réel du 20/09 injecté dans
 `ALL`.
 
-**Ce qui reste hors scope** : Synthèse et Rapports.
+**Sixième incrément : la Synthèse** (module interne « analyse »,
+`id="v-analyse"` — le nom d'affichage a changé sans que l'id ni les
+identifiants JS suivent). Un seul changement, mais le plus net des six :
+`.sy-tt`, le titre de la page de couverture du rapport (« Synthèse
+sécuritaire — [zone] »), passe en `var(--font-serif)`. Classe éditée
+directement (un seul usage dans tout le fichier, contrairement à `.ag-tt`
+partagée entre Agenda et Géopolitique) plutôt qu'un attribut `style`.
+
+C'est le bloc `.sy-cv` qui s'en rapproche le plus d'une vraie couverture de
+rapport dans toute l'appli : une étiquette d'usage restreint au-dessus, le
+titre, la date, puis les compteurs critiques/élevés/sources — la mesure
+avant/après est nette, le titre se détache maintenant clairement de
+l'étiquette au-dessus et des sections en dessous, plutôt que de n'être
+qu'une ligne plus grosse dans la même famille sans-serif. `.sy-tg`
+(étiquette d'usage restreint, petites capitales) et `.sy-shd` (en-têtes de
+catégorie — Situation sécuritaire, Axe humanitaire, Pouls réseaux
+sociaux...) restent sans-serif, même distinction que partout ailleurs.
+
+Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`, et la synthèse
+rendue avec le cache réel du 20/09 injecté dans `ALL` (`updSynthese()`
+appelé directement après `switchView('analyse', ...)` — le nom de vue
+interne, pas le libellé affiché).
+
+**Ce qui reste hors scope** : Rapports.
 L'amplification de l'identité doit s'y poursuivre au même rythme — un module
 à la fois, chacun vérifié avant le suivant — pas en un seul passage sur
 20 900 lignes.
