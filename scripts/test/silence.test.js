@@ -117,6 +117,9 @@ test('muet prime sur hors alerte quand il n y a rien du tout', () => {
 });
 
 test('la marque est cablee dans la tuile du cartogramme', () => {
+  // Refonte du 21/09/2026 : la marque a quitte la ligne du score pour se
+  // placer a cote du nom du niveau (NIV[s.key].sous) ; ce test verifie
+  // desormais cette adjacence-la, pas l'ancienne.
   const { HTML } = require('./_bac.js');
-  assert.match(HTML, /\$\{Math\.round\(s\.score\)\}\$\{chipTendance\(s\.cy\)\}\$\{marqueSilence\(s\.cy\)\}/);
+  assert.match(HTML, /\$\{NIV\[s\.key\]\.sous\}<\/span>\s*\$\{marqueSilence\(s\.cy\)\}/);
 });

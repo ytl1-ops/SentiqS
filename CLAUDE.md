@@ -1352,6 +1352,58 @@ seuil, code de sortie 1.
 
 ---
 
+## La refonte visuelle du 21/09/2026 : amplifier l'identité existante
+
+L'audit du même soir (sécurité / marketing / design) jugeait le design « trop
+classique ». Deux éléments d'identité existaient déjà, choisis lors du 3ᵉ
+rebranding (« Horizon Cobalt & Bronze »), mais quasi invisibles à l'usage :
+`--font-serif` (3 usages réels sur 20 900 lignes, tous dans des wordmarks) et
+l'accent bronze `--sig` (1 seul usage, sur une balise de thème). La refonte
+n'invente donc pas une nouvelle palette — elle amplifie une identité déjà
+tranchée mais sous-employée.
+
+**Un mockup séparé, comparé avant de toucher au fichier servi.** Deux
+artboards (`Connexion`, `Tableau de bord`) ont d'abord été construits comme
+Artifact, en fond sombre par défaut. Confronté au `:root` du fichier réel, qui
+porte une consigne explicite — pas de fond très sombre par défaut — l'écart a
+été posé à l'éditeur plutôt que tranché seul : le thème clair reste celui par
+défaut. Seules les idées typographiques et de hiérarchie du mockup passent en
+production, pas sa palette sombre en tant que défaut.
+
+**Premier incrément, scope volontairement restreint au tableau de bord.**
+Deux changements dans `renderDashboard()` :
+
+- Les tuiles pays du cartogramme (`zonePanel()`, dans `cartogramme()`)
+  passent d'un fond simplement teinté par le niveau à une carte blanche,
+  bordure supérieure colorée, ombre portée, score en 17px mono, et surtout un
+  **nom de niveau en toutes lettres** (`NIV[s.key].sous` — Stable / Modéré /
+  Élevé / Critique / Grave), absent jusqu'ici : seule la couleur portait le
+  niveau, ce qui ne sert à rien pour un lecteur qui la distingue mal.
+- L'en-tête « Carte régionale des risques » (et ses variantes Radar / Profil)
+  passe en `var(--font-serif)`, seul vrai usage de titre de section avec ce
+  traitement — l'étiquette « TABLEAU DE BORD » en tout-petit-capitales n'y
+  passe pas, le serif y nuirait à la lisibilité plutôt que d'aider.
+
+**`marqueSilence(s.cy)` a changé de voisin dans la tuile**, pas de rôle : elle
+s'affiche désormais à côté du nom du niveau plutôt qu'à côté du score. Le
+test `la marque est cablee dans la tuile du cartogramme`
+(`scripts/test/silence.test.js`) vérifiait l'ancienne adjacence par une
+regex exacte ; il a été mis à jour pour vérifier la nouvelle, pas supprimé —
+c'est le genre de test qui doit casser bruyamment si `marqueSilence` disparaît
+de la tuile, casser au premier remaniement de mise en page n'est pas une
+raison de l'affaiblir.
+
+Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`, et une capture
+Playwright du tableau de bord rendu (thème clair, jeton collecteur) comparée
+à la version d'avant.
+
+**Ce qui reste hors scope de cet incrément** : Flux, Alertes, Agenda,
+Géopolitique, Synthèse et Rapports n'ont pas été touchés. L'amplification de
+l'identité doit s'y poursuivre au même rythme — un module à la fois, chacun
+vérifié avant le suivant — pas en un seul passage sur 20 900 lignes.
+
+---
+
 ## Conventions
 
 - **Tout en français** : commits, commentaires, noms de fonctions et de
