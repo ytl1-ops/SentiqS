@@ -2652,7 +2652,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
           <div style="display:flex;align-items:center;gap:8px;">
             <i class="ti ti-shield-exclamation" style="font-size:20px;color:#9CA3AF"></i>
             <div>
-              <div style="font-size:14px;font-weight:700;color:var(--t)">Module Niveau d'Alerte Sûreté</div>
+              <div style="font-family:var(--font-serif);font-weight:600;font-size:15px;color:var(--t)">Module Niveau d'Alerte Sûreté</div>
               <div style="font-size:10px;color:var(--lg)" id="alerteLastUpdate">Mis à jour le 29/06/2026 à 12h45 UTC — Calculé sur les 24 dernières heures</div>
             </div>
           </div>
@@ -2675,7 +2675,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         <div style="background:var(--w);border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-bottom:16px;">
           <div style="background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 14px;display:flex;align-items:center;gap:8px;">
             <i class="ti ti-table" style="color:var(--b);font-size:14px"></i>
-            <span style="font-size:12px;font-weight:700;color:var(--t);">Tableau récapitulatif — Niveaux d'alerte par pays</span>
+            <span style="font-family:var(--font-serif);font-weight:600;font-size:13.5px;color:var(--t);">Tableau récapitulatif — Niveaux d'alerte par pays</span>
           </div>
           <div style="overflow-x:auto;"><table id="alerteTable" style="width:100%;border-collapse:collapse;font-size:11px;"></table></div>
         </div>
@@ -17759,7 +17759,6 @@ async function renderAlertCard(score) {
     <div style="padding:6px 12px;display:flex;gap:14px;background:var(--sf);border-bottom:1px solid var(--bd);">
       <div style="font-size:9px;color:var(--lg);">Incidents : <strong style="color:var(--t);">${score.baseScore}</strong></div>
       <div style="font-size:9px;color:var(--lg);">Aggravants : <strong style="color:${n.col};">${score.specialScore}</strong></div>
-      ${score.debug ? `<div style="font-size:8px;color:var(--lg);margin-top:2px;" title="Decomposition du score">Verifies: ${score.debug.verifies} | RSS applique: ${score.debug.liveApplique}/${score.debug.live} | Facteurs: ${score.debug.specials}</div>` : ''}
       <div style="font-size:9px;color:var(--lg);">Total : <strong style="color:${n.col};">${score.total100}/100</strong></div>
     </div>
     <!-- CONTENU EN COLONNES -->

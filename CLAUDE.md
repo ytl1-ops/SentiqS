@@ -1427,10 +1427,41 @@ avec le cache réel du 20/09 injecté dans `ALL` (la collecte réelle est
 inatteignable depuis ce bac à sable — voir « Contraintes de cet
 environnement d'exécution »).
 
-**Ce qui reste hors scope** : Alertes, Agenda, Géopolitique, Synthèse et
-Rapports n'ont pas été touchés. L'amplification de l'identité doit s'y
-poursuivre au même rythme — un module à la fois, chacun vérifié avant le
-suivant — pas en un seul passage sur 20 900 lignes.
+**Troisième incrément : les Alertes.** Deux changements dans `v-alertes`
+(HTML statique) : le titre « Module Niveau d'Alerte Sûreté » et l'en-tête
+« Tableau récapitulatif — Niveaux d'alerte par pays » passent tous les deux
+en `var(--font-serif)` — mêmes titres de section que le tableau de bord et
+le Flux, même traitement.
+
+**Et un troisième changement, hors typographie mais découvert en lisant
+`renderAlertCard` pour ce pass.** Chaque fiche pays affichait une ligne de
+debug interne, inconditionnelle (`score.debug` est toujours renseigné, le
+`?:` qui semblait la gater ne gate donc jamais rien) : `Verifies: X | RSS
+applique: Y/Z | Facteurs: N`. C'est exactement les deux défauts nommés dans
+l'audit du 07/09/2026 (« Ce qui n'a pas été touché, et pourquoi ») :
+`RSS applique: 0/0` illisible pour un lecteur, et `Facteurs: N` qui
+redouble — même valeur, `score.debug.specials` n'étant que
+`score.specialScore` recopié — le « Aggravants : N » déjà affiché juste
+au-dessus dans la bande de score. Contrairement aux autres points de cette
+liste, celui-ci n'avait pas de justification éditoriale associée dans
+CLAUDE.md : ligne supprimée du rendu de la carte. L'objet `score.debug`
+reste en place (rien d'autre n'en dépendait, vérifié par recherche dans
+`scripts/test/`) — seul son affichage dans la carte disparaît.
+
+Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`, et les 54 fiches
+pays rendues avec le cache réel du 20/09 injecté dans `ALL` (`recalcAlertes()`
+appelé directement, `switchView` seul ne suffit pas à peupler la grille dans
+ce contexte de test).
+
+**Ce qui reste hors scope** : la répétition « ROUGE » (badge + libellé) et le
+9 px qui distingue les scores les plus élevés, tous deux nommés dans l'audit
+du 07/09/2026, n'ont pas été repris ici — ce sont des questions de hiérarchie
+visuelle de la carte, pas d'amplification de l'identité, et elles mériteraient
+leur propre passage mesuré plutôt qu'un ajout à celui-ci. Agenda,
+Géopolitique, Synthèse et Rapports n'ont pas non plus été touchés.
+L'amplification de l'identité doit s'y poursuivre au même rythme — un module
+à la fois, chacun vérifié avant le suivant — pas en un seul passage sur
+20 900 lignes.
 
 ---
 
