@@ -11959,7 +11959,16 @@ function setDashCartoMode(m) { window.dashCartoMode = m; if (typeof renderDashbo
   // "En tension" = tout ce qui n'est pas Stable/Modere (orange, marron, rouge)
   const enTension = scores.filter(s=>s.key==='orange'||s.key==='marron'||s.key==='rouge');
 
-  const cv = (n,f) => { try { return (getComputedStyle(document.documentElement).getPropertyValue(n).trim())||f; } catch(_) { return f; } }; const scoreColor = s => ({rouge:cv('--r','#8B1A1A'),marron:cv('--m','#78350F'),orange:cv('--a','#7C4A00'),jaune:cv('--j','#CA8A04'),vert:cv('--g','#0F4F2A')}[s.key]) || (NIV[s.key] ? NIV[s.key].col : '#0F4F2A'); const cartoMode = window.dashCartoMode || 'grid';
+  const cv = (n,f) => { try { return (getComputedStyle(document.documentElement).getPropertyValue(n).trim())||f; } catch(_) { return f; } }; const scoreColor = s => ({rouge:cv('--r','#8B1A1A'),marron:cv('--m','#78350F'),orange:cv('--a','#7C4A00'),jaune:cv('--j','#CA8A04'),vert:cv('--g','#0F4F2A')}[s.key]) || (NIV[s.key] ? NIV[s.key].col : '#0F4F2A');
+  // textColor(s) : meme mapping que scoreColor, sauf jaune qui bascule sur
+  // --j-txt au lieu de --j. #CA8A04 (le jaune d'alerte) ne fait que 2,94:1
+  // en texte sur blanc, sous le seuil AA (4,5:1) — voir CLAUDE.md, audit
+  // d'interface du 07/09/2026. --j-txt existe deja pour exactement ce cas :
+  // la pastille/bordure gardent la couleur de gravite, le texte prend sa
+  // variante lisible. A reserver aux usages TEXTE (score, libelle de
+  // niveau) ; border-top/outline restent sur scoreColor.
+  const textColor = s => ({rouge:cv('--r','#8B1A1A'),marron:cv('--m','#78350F'),orange:cv('--a','#7C4A00'),jaune:cv('--j-txt','#854D0E'),vert:cv('--g','#0F4F2A')}[s.key]) || (NIV[s.key] ? NIV[s.key].txt : '#0F4F2A');
+  const cartoMode = window.dashCartoMode || 'grid';
 
   // Cartes KPI reduites de ~45% en hauteur (padding/police resserres, voir
   // demande) : le bandeau du haut du Tableau de bord occupait trop de place
@@ -12092,18 +12101,22 @@ const cartogramme = () => {
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(116px,1fr));gap:6px;">
           ${liste.map(s => {
             const col = scoreColor(s);
+            const txt = textColor(s);
             // Refonte du 21/09/2026 : score en gros chiffre mono + nom du niveau en
             // toutes lettres (NIV[s.key].sous — meme source que la legende), plutot
             // qu'un simple chiffre sur fond teinte. Le nom du niveau aide aussi un
             // lecteur qui distingue mal les couleurs, pas seulement la lisibilite.
+            // col (couleur d'alerte brute) reste reserve au non-texte
+            // (border-top, outline) ; le texte (score, libelle) prend txt,
+            // sa variante lisible — voir textColor ci-dessus.
             return `<div class="carto-tile" onclick="ouvrirVuePays('${s.cy}')" title="${s.pays.name} — ${s.score}/100 — ${NIV[s.key].sous}" style="cursor:pointer;padding:8px 9px;border-radius:6px;background:var(--w);border:1px solid var(--bd);border-top:2px solid ${col};box-shadow:var(--card-shadow);transition:transform .12s,box-shadow .12s;min-width:0;${GLOBAL_CY_FILTER===s.cy?`outline:2px solid ${col};outline-offset:-1px;`:''}">
               <div style="font-size:10px;font-weight:700;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px;">${s.pays.flag} ${s.pays.name}</div>
               <div style="display:flex;align-items:baseline;gap:2px;flex-wrap:wrap;">
-                <span style="font-family:var(--font-mono,'Roboto Mono',monospace);font-size:17px;font-weight:700;color:${col};line-height:1;">${Math.round(s.score)}</span>
+                <span style="font-family:var(--font-mono,'Roboto Mono',monospace);font-size:17px;font-weight:700;color:${txt};line-height:1;">${Math.round(s.score)}</span>
                 ${chipTendance(s.cy)}
               </div>
               <div style="display:flex;align-items:center;gap:4px;margin-top:4px;flex-wrap:wrap;">
-                <span style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:${col};">${NIV[s.key].sous}</span>
+                <span style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:${txt};">${NIV[s.key].sous}</span>
                 ${marqueSilence(s.cy)}
               </div>
             </div>`;

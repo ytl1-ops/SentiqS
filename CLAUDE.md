@@ -1786,6 +1786,37 @@ et la mesure Playwright ci-dessus rejouée sur `web/SentiqS_Web.html`.
 
 ---
 
+## La refonte des tuiles du cartogramme avait réintroduit le jaune illisible
+
+CI (`Moteur de collecte`, PR #94) a fait échouer `verifier-accessibilite-interface.js`
+sur les tuiles pays du tableau de bord : 32 textes sous le seuil AA, tous
+`rgb(202,138,4)` — le jaune d'alerte brut (`--j`, `#CA8A04`), 2,94:1 sur
+blanc contre un seuil de 4,5:1. Exactement le défaut déjà corrigé une fois
+(voir « L'audit d'interface du 07/09/2026 », `--j-txt` existe justement pour
+ce cas) — réintroduit par le premier incrément de la refonte du 21/09/2026
+(score en 17px + nom du niveau en toutes lettres dans `zonePanel()`), qui
+réutilisait `scoreColor(s)` — pensée pour les bordures/pastilles — comme
+couleur de **texte**.
+
+`textColor(s)` ajouté à côté de `scoreColor(s)` (`renderDashboard()`,
+même portée) : mapping identique sauf jaune, qui bascule sur `--j-txt` au
+lieu de `--j`. `col` (brut) reste réservé au non-texte (`border-top`,
+`outline`) ; le score et le libellé de niveau prennent `txt`.
+
+**Ce script ne s'exécute pas dans ce bac à sable par défaut** — il cherche
+`chromium_headless_shell`, absent ici — mais `CHROMIUM_PATH` le fait
+pointer vers le binaire disponible localement :
+
+```bash
+CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome \
+  node scripts/verifier-accessibilite-interface.js
+```
+
+Vérifié ainsi, avant/après : 32 → **0** texte(s) sous le seuil. Puis
+`npm test` (407/407) et `verifier-syntaxe-html.js`.
+
+---
+
 ## Conventions
 
 - **Tout en français** : commits, commentaires, noms de fonctions et de
