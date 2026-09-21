@@ -1706,6 +1706,86 @@ Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`.
 
 ---
 
+## Le Flux appliquait encore 12h, trois cycles après le passage à 36h
+
+Signalement du 21/09/2026 : « la zone de consultation des actus est très
+réduite et pénible à parcourir ». Le symptôme pointait vers l'affichage,
+la cause était dans le filtre. `FENETRE_ACTUALITE_MS` (36h depuis le
+06/09/2026, voir « La fenêtre d'actualité » plus haut) est censée
+gouverner le Flux — mais `getFiltered()`, la fonction qui peuple
+concrètement le Flux, portait son propre `MAX_AGE = 12*60*60*1000` en dur
+et l'imposait à `antiHalluFilter()` en second argument, écrasant le repli
+de cette dernière sur `FENETRE_ACTUALITE_MS`. Reste de l'ancienne fenêtre,
+jamais mis à jour au moment du passage à 36h : le Flux affichait moins
+d'un tiers de ce que la fenêtre documentée autorise, alors que le tableau
+de bord et le compteur de pays couverts (qui appellent `estRecentReel()`
+directement, sans ce second argument) affichaient déjà, eux, la bonne
+fenêtre — deux modules de la même page en désaccord sur ce qui compte
+comme actualité, sans qu'aucun contrôle ne le détecte.
+
+**Mesuré sur un jeu synthétique de 746 articles répartis uniformément sur
+0 à 39h** (rejoue `getFiltered()` sur la vraie page, comme `tableau-niveaux.js`
+et les autres scripts de mesure de ce dépôt) :
+
+| | Avant | Après |
+|---|---:|---:|
+| Articles affichés | 207 | **582** |
+| Pays couverts | 35 | **48** |
+
+Une distribution synthétique uniforme n'est pas la distribution réelle des
+publications (voir « La fenêtre d'actualité » : les sources ne publient pas
+à rythme constant), donc ces chiffres précis ne sont pas ceux d'une
+collecte réelle — mais l'écart de nature (moins d'un tiers du contenu
+promis par la fenêtre documentée) est la mesure qui compte ici, pas le
+chiffre exact.
+
+**Même défaut, deuxième endroit, plus grave car cumulatif.**
+`publierCollectePartagee()` — la fonction qui écrit le cache partagé que
+*tous* les visiteurs lisent (voir « Collecte planifiée ») — fusionne le
+cache existant avec les articles fraîchement collectés, puis purge de la
+fusion tout ce qui dépasse un âge donné avant de republier. Cette purge
+portait le même `12*60*60*1000` en dur. Le job tourne plusieurs fois par
+jour (3h24 à 5h51 d'écart réel, voir « Collecte planifiée ») : à chaque
+cycle, tout article de 12 à 36h hérité d'un cycle précédent et non
+re-collecté ce coup-ci (le cas courant pour la presse africaine qui publie
+une fois par jour, voir « La fenêtre d'actualité ») sortait purement et
+simplement du cache partagé — invisible pour quiconque le lit ensuite,
+alors que la fenêtre documentée dit qu'il devait encore compter comme
+actualité pendant jusqu'à 24h de plus.
+
+**Troisième endroit, mineur** : `compteurRegional()` (statistique
+« Régional » de la bande repliée du Flux) comptait aussi à 12h — même
+correctif, impact visuel faible (bande repliée par défaut).
+
+**Six autres occurrences du même `12*60*60*1000` étaient du code mort** :
+une variable locale déclarée puis jamais lue, le filtre réel juste
+en-dessous appelant déjà `estRecentReel()` (36h, correct) — dans le
+purgeur de collecte, `updStats()`, `showKpiDrill()`, `renderDashboard()`,
+le chargement du cache au démarrage, et `updateSocialCounts()`. Retirées :
+un nom qui dit « 12h » a beau ne servir à rien, il ment à qui lit le code
+ensuite.
+
+**Deux occurrences restent, et sont légitimes — un cliquet nouveau les
+distingue explicitement.** `getLiveAlertEvents()` garde volontairement une
+fenêtre plus courte que le Flux (documenté plus haut, « La règle qui
+compte »). `FCDO_CACHE_MS` n'a rien à voir avec la fraîcheur d'un article :
+c'est la durée de cache d'un appel à l'API de conseils aux voyageurs du
+Foreign Office britannique, une limitation de fréquence réseau qui
+partage la même valeur numérique par coïncidence. `scripts/test/fenetre-flux.test.js`
+compte les occurrences de `12*60*60*1000` dans tout le fichier et exige
+exactement deux, nommées ; toute troisième future doit justifier
+pourquoi elle échappe à `FENETRE_ACTUALITE_MS`, exactement le silence qui
+a permis à ce défaut de durer trois passages d'arbitrage éditorial sans
+être vu.
+
+Les quatre tests de ce fichier ont d'abord été vus échouer sur le code
+d'avant correctif (0/4).
+
+Vérifié : `npm test` (407/407), `verifier-syntaxe-html.js`, `verifier-i18n.js`,
+et la mesure Playwright ci-dessus rejouée sur `web/SentiqS_Web.html`.
+
+---
+
 ## Conventions
 
 - **Tout en français** : commits, commentaires, noms de fonctions et de

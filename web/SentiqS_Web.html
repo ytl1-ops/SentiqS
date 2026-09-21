@@ -8890,27 +8890,27 @@ async function doCollect() {
     await Promise.all(batch.map(collectOne));
   }
 
-  // Fusionner et purger les articles de plus de 12h
+  // Fusionner et purger les articles au-dela de FENETRE_ACTUALITE_MS
   const map={};
   ALL.forEach(a=>map[a.id]=a);
   reconcilierDatesPremiereVue(fresh); // neutralise les sources qui re-timbrent du vieux contenu comme "aujourd'hui"
   Object.assign(map,fresh);
-  const MAX_AGE=12*60*60*1000;
-  // Separation stricte : ALL = uniquement le temps reel (<12h, Flux/alertes
-  // affichees). Tout le reste (survenance ancienne, source non fiable, ou
-  // simplement > 12h) part dans HISTORIQUE : jamais affiche comme actualite
-  // du jour, mais conserve comme element de REFERENCE pour le calcul des
-  // niveaux d'alerte (tendance/contexte), au lieu d'etre purement jete.
+  // Separation stricte : ALL = uniquement le temps reel (< FENETRE_ACTUALITE_MS,
+  // Flux/alertes affichees). Tout le reste (survenance ancienne, source non
+  // fiable, ou simplement hors fenetre) part dans HISTORIQUE : jamais
+  // affiche comme actualite du jour, mais conserve comme element de
+  // REFERENCE pour le calcul des niveaux d'alerte (tendance/contexte), au
+  // lieu d'etre purement jete.
   const toutesValeurs = Object.values(map);
   ALL = toutesValeurs.filter(a=>estRecentReel(a));
   ALL = dedupliquerArticles(ALL); // fusionne les articles quasi-identiques rapportes par plusieurs sources (ex. AllAfrica + source nationale sur le meme fait)
   const rejetes = toutesValeurs.filter(a => !estRecentReel(a) && a && a.cy && a.title);
-  // Le dernier incident (encore actif, <12h) est integre a l'historique DES
-  // MAINTENANT plutot que d'attendre qu'il expire pour y entrer : un incident
-  // qui vient de se produire fait deja partie du dossier de reference d'un
-  // pays, pas seulement une fois "perime". ALL (live) + rejetes (expires)
-  // couvrent ainsi ensemble tout ce qui a ete vu, sans trou des 12 dernieres
-  // heures dans le suivi historique.
+  // Le dernier incident (encore actif, dans la fenetre) est integre a
+  // l'historique DES MAINTENANT plutot que d'attendre qu'il expire pour y
+  // entrer : un incident qui vient de se produire fait deja partie du
+  // dossier de reference d'un pays, pas seulement une fois "perime". ALL
+  // (live) + rejetes (expires) couvrent ainsi ensemble tout ce qui a ete
+  // vu, sans trou dans le suivi historique.
   if (typeof archiverHistorique === 'function') archiverHistorique([...ALL, ...rejetes]);
   if (typeof rehydrateArticles === 'function') rehydrateArticles(ALL);
   // Agent correcteur de texte : repare en place les entites HTML residuelles
@@ -10787,10 +10787,16 @@ function lbg(l){return {crit:'#8B1A1A',high:'#7C4A00',mod:'#4B5563',ok:'#0F4F2A'
 function lic(l){return l==='crit'?'ti-alert-triangle':l==='high'?'ti-alert-circle':'ti-info-circle';}
 
 function getFiltered() {
-  const MAX_AGE = 12*60*60*1000; // 12 heures en ms
-  // Filtre anti-hallucination : seules les données sourcées, horodatées et < 12h
+  // Filtre anti-hallucination : seules les données sourcées, horodatées et
+  // dans FENETRE_ACTUALITE_MS. N'impose plus son propre MAX_AGE : la valeur
+  // en dur ici est restee a 12h apres le passage de la fenetre a 36h le
+  // 06/09/2026 (voir CLAUDE.md), ecartant du Flux tout article de 12 a 36h
+  // que le reste de l'appli (tableau de bord, compteur pays couverts)
+  // continuait pourtant de compter comme actualite. antiHalluFilter() sans
+  // second argument retombe sur FENETRE_ACTUALITE_MS, la meme fenetre que
+  // partout ailleurs.
   let a = (typeof antiHalluFilter === 'function')
-    ? antiHalluFilter([...ALL], MAX_AGE)
+    ? antiHalluFilter([...ALL])
     : [...ALL].filter(x=>estRecentReel(x));
   // Les evenements planifies (colloque, seminaire, concert, conseil des
   // ministres, senat, CESE...) sont achemines vers le module Agenda, pas le
@@ -11477,7 +11483,6 @@ async function showDet(id) {
 
 // ── STATS ────────────────────────────────────────────────────────────────────
 function updStats() {
-  const MAX_AGE=12*60*60*1000;
   const visible=ALL.filter(a=>estRecentReel(a));
   document.getElementById('stTot').textContent=visible.length;
   document.getElementById('stCrit').textContent=ALL.filter(x=>x.level==='crit').length;
@@ -11557,7 +11562,6 @@ function calcScorePays(cy) {
 function closeKpiDrill() { const o = document.getElementById('kpiDrillOverlay'); if (o) o.remove(); }
 
 async function showKpiDrill(kind) {
-  const MAX = 12*60*60*1000;
   const artsActifs = (ALL||[]).filter(a=>estRecentReel(a));
   const scoreCol = key => (typeof NIV !== 'undefined' && NIV[key]) ? NIV[key].col : '#0F4F2A';
   let title = '', icon = 'ti-list', rows = '';
@@ -11912,7 +11916,6 @@ function setDashCartoMode(m) { window.dashCartoMode = m; if (typeof renderDashbo
   chargerHistorique();
 
   // KPI globaux
-  const MAX = 12*60*60*1000;
   const artsActifs = (ALL||[]).filter(a=>estRecentReel(a));
   const nbCrit  = artsActifs.filter(a=>a.level==='crit').length;
   const nbHigh  = artsActifs.filter(a=>a.level==='high').length;
@@ -13790,7 +13793,6 @@ async function init() {
       if (typeof chargerHistorique === 'function') chargerHistorique();
       const saved=await dbAll();
       if(saved.length){
-        const MAX=12*60*60*1000;
         const fresh=saved.filter(a=>estRecentReel(a));
         if(fresh.length){
           ALL=fresh; ALL.forEach(a=>{a.time=fmtAge(a.pubDate||0);});
@@ -14204,13 +14206,17 @@ async function publierCollectePartagee(articles, force) {
     // La fusion accumule la couverture sur plusieurs cycles successifs (un
     // pays couvert il y a 20 min reste visible meme si CE run ne l'a pas
     // re-atteint) ; dedup par id (le run le plus recent l'emporte en cas de
-    // doublon) ; purge des entrees au-dela de la fenetre "recent reel" (12h,
-    // voir estRecentReel) — inutile de les garder, _appliquerArticlesPartages
-    // les filtrerait de toute facon cote client, et ca eviterait juste de
-    // faire grossir la ligne indefiniment.
+    // doublon) ; purge des entrees au-dela de la fenetre "recent reel"
+    // (FENETRE_ACTUALITE_MS, voir estRecentReel) — inutile de les garder,
+    // _appliquerArticlesPartages les filtrerait de toute facon cote client,
+    // et ca eviterait juste de faire grossir la ligne indefiniment. Cette
+    // purge portait un 12h en dur, reste de l'ancienne fenetre : chaque
+    // publication du cache partage ecartait silencieusement les articles de
+    // 12 a 36h que le reste de l'appli continuait pourtant de compter comme
+    // actualite (voir CLAUDE.md, passage a 36h du 06/09/2026).
     const parId = new Map();
     const existantsRecents = (existant && Array.isArray(existant.articles) ? existant.articles : [])
-      .filter(a => a && a.pubDate && (Date.now() - a.pubDate) < 12*60*60*1000);
+      .filter(a => a && a.pubDate && (Date.now() - a.pubDate) < FENETRE_ACTUALITE_MS);
     existantsRecents.forEach(a => parId.set(a.id, a));
     articles.forEach(a => parId.set(a.id, a));
     let fusionnes = [...parId.values()];
@@ -16797,7 +16803,6 @@ getFiltered = function() {
 
 // Mettre à jour les compteurs de sources sociales après collecte
 function updateSocialCounts() {
-  const MAX = 12*60*60*1000;
   const recent = ALL.filter(a => estRecentReel(a));
   ['twitter','telegram','youtube','reddit'].forEach(p => {
     const el = document.getElementById('cnt-'+p);
@@ -16855,15 +16860,15 @@ const REG_SOURCES = SRCS.filter(s =>
   ['aip','aib','amap','anp','agp_gh','nan_ng','abp_bj','atop_tg','agi_gn','aps_sn','ami_mr'].includes(s.id))
 );
 
-// compteurRegional() : nombre d'articles actifs (<12h) issus de REG_SOURCES.
-// Alimente la statistique "Régional" de la barre du Flux (voir updStats) —
-// aucun filtre isolant necessaire, la donnee est deja melangee au flux
-// principal et simplement comptee ici pour en montrer le poids reel.
+// compteurRegional() : nombre d'articles actifs (< FENETRE_ACTUALITE_MS)
+// issus de REG_SOURCES. Alimente la statistique "Régional" de la barre du
+// Flux (voir updStats) — aucun filtre isolant necessaire, la donnee est
+// deja melangee au flux principal et simplement comptee ici pour en
+// montrer le poids reel.
 function compteurRegional() {
   if (typeof ALL === 'undefined' || !ALL.length) return 0;
   const regIds = new Set(REG_SOURCES.map(s => s.id));
-  const MAX_AGE = 12*60*60*1000;
-  return ALL.filter(a => regIds.has(a.primary) && a.pubDate && (Date.now()-a.pubDate) < MAX_AGE).length;
+  return ALL.filter(a => regIds.has(a.primary) && a.pubDate && (Date.now()-a.pubDate) < FENETRE_ACTUALITE_MS).length;
 }
 
 const ZONE_TYPE_META = {
