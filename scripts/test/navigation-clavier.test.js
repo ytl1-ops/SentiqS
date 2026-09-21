@@ -19,7 +19,13 @@ const test = require('node:test');
 const assert = require('node:assert');
 const { HTML, tranche } = require('./_bac');
 
-const nav = tranche('<div class="nav" id="navTabs"', '</div>\n</div>');
+// Refonte du 21/09/2026 : le rail passe en colonne verticale dans .layout ;
+// la fin de tranche visait un « </div>\n</div> » incidentellement present
+// plus loin dans le fichier (jamais la vraie fin de #navTabs), qui a cesse
+// d'exister apres le deplacement. Bornee desormais sur le bouton
+// nav-arrow-r qui suit reellement la liste d'onglets — present dans les
+// deux dispositions (rail vertical ou barre horizontale mobile).
+const nav = tranche('<div class="nav" id="navTabs"', '<button class="nav-arrow nav-arrow-r"');
 const onglets = [...nav.matchAll(/<div class="ntab[^"]*"([^>]*)>/g)].map((m) => m[1]);
 
 test('les huit modules sont annonces comme des onglets', () => {

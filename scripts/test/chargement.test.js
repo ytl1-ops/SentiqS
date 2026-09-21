@@ -55,8 +55,13 @@ test('SheetJS est pris a une version corrigee, depuis un CDN que la CSP autorise
   assert.ok(csp.includes('https://cdn.sheetjs.com'), 'la CSP doit autoriser cdn.sheetjs.com, sinon le chargement echoue en silence');
 });
 
-test('l\'encart publicitaire vide n\'est plus affiche', () => {
-  // Le script AdSense est desactive ; un cadre « emplacement publicitaire »
-  // vide sur un outil de surete ne rassure personne.
-  assert.match(HTML, /<div class="ad-banner" id="adBanner" style="display:none">/);
+test('le bandeau publicitaire a ete retire, pas seulement masque', () => {
+  // 21/09/2026 : le bandeau etait deja masque par defaut (initAdBanner()
+  // etait un no-op) et un cadre « emplacement publicitaire » vide sur un
+  // outil de surete ne rassurait personne. Demande explicite de retirer la
+  // pub : plutot que de laisser du balisage mort en attente d'une
+  // reactivation qui n'est plus prevue, HTML/CSS/JS/i18n sont retires.
+  assert.doesNotMatch(HTML, /class="ad-banner/, 'le balisage .ad-banner doit avoir disparu');
+  assert.doesNotMatch(HTML, /function (dismiss|init)AdBanner/, 'les fonctions du bandeau doivent avoir disparu');
+  assert.doesNotMatch(HTML, /ADSENSE_CLIENT_ID|adsbygoogle/, 'aucune trace d\'AdSense ne doit subsister');
 });

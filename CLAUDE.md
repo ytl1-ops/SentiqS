@@ -1615,6 +1615,97 @@ c'était tout l'intérêt de l'avoir isolée.
 
 ---
 
+## Le rail de navigation vertical du 21/09/2026
+
+Demande explicite : passer les neuf onglets de modules (Flux, Recherche,
+Synthèse, Agenda, Géopolitique, Rapports, Alertes, Tableau de bord,
+Paramètres) d'une barre horizontale à un rail vertical, sans rien changer
+au fonctionnement. `.nav-wrap` (jusque-là frère de `.layout`, tous deux
+enfants directs de `<body>`) devient le premier enfant de `.layout`, à
+côté de `.main` : `.layout{display:flex}` range les deux côte à côte sur
+ordinateur, `.ntab` passe de `border-bottom` à `border-left` pour son
+accent de sélection, et `clavierOnglets(ev)` gagne `ArrowDown`/`ArrowUp`
+comme alias de `ArrowRight`/`ArrowLeft` — un rail vertical se parcourt
+naturellement de haut en bas.
+
+**Mobile reste inchangé, mais ça ne va pas de soi.** Le rail vertical est
+scopé au bureau ; sur petit écran (`html:not(.force-web)`) et en mode
+mobile forcé (`html.force-mobile`) une règle restaure explicitement
+`.nav-wrap{flex-direction:row}` pour retrouver la barre horizontale du
+haut. Un premier jet laissait `.layout{display:flex}` (donc **ligne**, pas
+colonne) sur mobile aussi, avec `align-items:stretch` hérité : `.nav-wrap`,
+qui n'a plus de largeur fixe sur mobile, se dimensionnait alors à son
+contenu (861 px, neuf onglets côte à côte) au lieu de la largeur de
+l'écran, et s'étirait sur toute la hauteur disponible (`align-items:stretch`
+sur l'axe croisé d'une ligne, c'est la hauteur) — un immense bandeau vide
+avec les onglets perdus au milieu, mesuré et vu à l'écran avant d'être
+compris. Correctif : `.layout{flex-direction:column}` sur mobile
+uniquement, pour que `.nav-wrap` redevienne une bande horizontale de
+hauteur naturelle au-dessus de `.main`, comme avant le passage au rail.
+
+**Le module plein écran cassait aussi, silencieusement au premier clic.**
+`ouvrirModulePleinEcran()` déplaçait explicitement `.nav-wrap` ET `.layout`
+(`document.querySelector('body > .nav-wrap')`) vers l'overlay, parce que
+les deux étaient jusque-là des frères directs du `<body>`. Une fois
+`.nav-wrap` imbriqué dans `.layout`, ce sélecteur ne trouvait plus rien —
+`navWrap.parentNode` levait `Cannot read properties of null`, détecté par
+Playwright, pas par les 403 tests (aucun ne couvrait cette fonctionnalité).
+Simplifié plutôt que rafistolé : `.nav-wrap` étant maintenant le premier
+enfant de `.layout`, déplacer `.layout` seul suffit, il l'emporte avec lui.
+`fermerModulePleinEcran()` simplifiée à l'identique.
+
+`scripts/test/navigation-clavier.test.js` bornait sa tranche sur un
+`</div>\n</div>` qui n'avait jamais été la vraie fin de `#navTabs` — une
+coïncidence ailleurs dans le fichier, cessée d'exister après le
+déplacement (piège récurrent de `tranche()`, déjà documenté plus haut).
+Rebornée sur `<button class="nav-arrow nav-arrow-r"`, qui suit réellement
+la liste d'onglets dans les deux dispositions.
+
+Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`, et Playwright
+sur trois configurations — bureau (rail vertical 208px, changement de
+module au clic, `ArrowDown` déplace le focus), mobile auto-détecté à
+390px (barre horizontale, largeur correcte), mobile forcé sur écran large
+(barre horizontale identique) — plus l'aller-retour plein écran
+(ouverture, fermeture, `.nav-wrap` restauré à sa place, changement de
+module encore fonctionnel après).
+
+---
+
+## La bannière publicitaire retirée, pas seulement masquée
+
+`initAdBanner()` était un no-op depuis un incident antérieur (Auto Ads
+injectant des formats plein écran incontrôlables) et `.ad-banner` restait
+`display:none` en dur dans le HTML — aucune publicité ne s'affichait plus
+nulle part, mais tout le balisage (HTML, CSS, i18n FR/EN, les fonctions
+`dismissAdBanner`/`initAdBanner`, les constantes `ADSENSE_CLIENT_ID`/
+`ADSENSE_SLOT_ID`, la balise `<script>` AdSense commentée et le meta de
+vérification de compte) restait en place, en attente d'une réactivation
+qui n'était plus prévue. Demande explicite de retirer la pub : plutôt que
+de laisser cette dette de code mort grandir, l'ensemble est supprimé —
+`web/SentiqS_Web.html` ne contient plus aucune trace d'AdSense.
+
+Effet de bord sur `ouvrirModulePleinEcran()` (voir section précédente) :
+la liste des éléments masqués en plein écran perd `.ad-banner`.
+
+**Ce qui reste, volontairement.** Le panneau d'administration
+« Tarification & abonnements » décrit encore le modèle économique
+(« La version gratuite reste financée par les publicités affichées... »)
+et les grilles de fonctionnalités des offres portent « Publicités
+affichées » / « Sans publicité ». C'est la description d'un modèle
+tarifaire, pas du code d'affichage — retirer le bandeau ne change rien à
+ce que ces offres promettent commercialement. Ce texte n'a pas été
+touché : le faire aurait été un arbitrage sur l'offre commerciale, pas un
+nettoyage de code mort, et il appartient à l'éditeur.
+
+`scripts/test/chargement.test.js` portait déjà un test qui vérifiait que
+le bandeau restait masqué (`display:none`) ; il est remplacé par un test
+qui vérifie l'absence complète du balisage, des fonctions et de toute
+trace AdSense — vu échouer sur l'ancien code avant le retrait.
+
+Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`.
+
+---
+
 ## Conventions
 
 - **Tout en français** : commits, commentaires, noms de fonctions et de
