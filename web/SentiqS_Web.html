@@ -3656,7 +3656,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
 
 <div class="stbar">
   <span id="stbarLeft">Initialisation de la veille en direct...</span>
-  <span>SentiqS · RSS live · Sans API · <a href="mailto:yorot225@gmail.com">yo•••••@gmail.com</a></span>
+  <span>SentiqS · RSS live · Sans API · <a id="stbarContact" href="mailto:yorot225@gmail.com">yo•••••@gmail.com</a></span>
 </div>
 
 <script>
@@ -13998,6 +13998,15 @@ function _maskEmail(email) {
   const at = email.indexOf('@');
   return email.slice(0, 2) + '•••••' + email.slice(at);
 }
+// Le lien de contact du bandeau de pied de page (HTML statique, avant tout
+// script) portait sa propre copie de l'adresse de contact — deux endroits a
+// tenir a jour au lieu d'un seul, exactement ce que ce fichier deconseille
+// ailleurs (voir "L'adresse de l'administrateur ne vit plus dans le code
+// servi"). Synchronise ici depuis SUPPORT_CONTACT_EMAIL, seule source.
+(() => {
+  const el = document.getElementById('stbarContact');
+  if (el) { el.href = 'mailto:' + SUPPORT_CONTACT_EMAIL; el.textContent = _maskEmail(SUPPORT_CONTACT_EMAIL); }
+})();
 const STORE_KEY   = 'sentinel_auth_v1';
 const USERS_KEY   = 'sentinel_users_v1';
 const PENDING_KEY = 'sentinel_pending_v1';
@@ -19352,7 +19361,7 @@ async function exportExcel(type){
       ['Filtre','Articles <'+libelleFenetreCourt()+' uniquement'],
       ['Sources actives',Object.values(SRC_ST).filter(s=>s?.ok).length+'/'+SRCS.length],
       ['Articles exportés',getExportData().length],
-      ['Contact',_maskEmail('yorot225@gmail.com')],
+      ['Contact',_maskEmail(SUPPORT_CONTACT_EMAIL)],
     ]);
     XLSX.utils.book_append_sheet(wb, wsMeta, 'Métadonnées');
 
@@ -19456,9 +19465,14 @@ async function exportPPTX(type) {
     const INK='0B1622', MUTED='6B7280', PAPER='F5F8FB', LINE='E2E8EF';
     const LVL_COL = {crit:RED, high:ORANGE, mod:BLUE, ok:GREEN};
 
+    // Identite d'envoi ("Signer en tant que") — meme correctif que Word/PDF/
+    // l'apercu HTML : voir identiteRapportW dans exportWord. L'auteur du
+    // fichier (metadonnee Proprietes de PowerPoint) est la personne qui
+    // partage CE rapport, distincte de la marque/organisation (Societe).
+    const identitePptx = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle() : '';
     const pres = new PptxGenJS();
     pres.layout = 'LAYOUT_WIDE';
-    pres.author = nomMarqueActuelle();
+    pres.author = identitePptx || nomMarqueActuelle();
     pres.company = nomMarqueActuelle();
     pres.title = titrePPTX + ' ' + periode.label + ' — ' + perimetre;
 
@@ -19509,11 +19523,15 @@ async function exportPPTX(type) {
     let s = newSlide(EEF);
     s.addText((LANG==='en'?'Operational report — All zones · Africa':'Rapport opérationnel — Toutes zones · Afrique'),
       {x:0.6,y:2.15,w:7.2,h:0.4,fontSize:13,color:SLATE,fontFace:'IBM Plex Sans',charSpacing:2});
-    s.addText('SentiqS', {x:0.6,y:2.6,w:7.2,h:1.1,fontSize:52,bold:true,color:NAVY,fontFace:'Source Serif 4'});
+    // nomMarqueActuelle() plutot que 'SentiqS' en dur : seul endroit du
+    // fichier ou la couverture PPTX ignorait une marque personnalisee alors
+    // que Word/PDF/l'apercu HTML l'affichent tous correctement — un compte
+    // avec une marque configuree voyait "SentiqS" s'afficher quand meme ici.
+    s.addText(nomMarqueActuelle(), {x:0.6,y:2.6,w:7.2,h:1.1,fontSize:52,bold:true,color:NAVY,fontFace:'Source Serif 4'});
     s.addText(titrePPTX.charAt(0)+titrePPTX.slice(1).toLowerCase()+' '+periode.label.toLowerCase()+' — '+perimetre,
       {x:0.6,y:3.7,w:7.2,h:0.55,fontSize:19,bold:true,color:DARK2,fontFace:'IBM Plex Sans'});
     const nowPPTX = new Date();
-    s.addText((LANG==='en'?'Generated on ':'Généré le ')+nowPPTX.toLocaleDateString('fr-FR')+' '+(LANG==='en'?'at ':'à ')+nowPPTX.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'   ·   '+(LANG==='en'?'Slot ':'Créneau ')+nowPPTX.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),
+    s.addText((LANG==='en'?'Generated on ':'Généré le ')+nowPPTX.toLocaleDateString('fr-FR')+' '+(LANG==='en'?'at ':'à ')+nowPPTX.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'   ·   '+(LANG==='en'?'Slot ':'Créneau ')+nowPPTX.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+(identitePptx?'   ·   '+(LANG==='en'?'Shared by ':'Partagé par ')+identitePptx:''),
       {x:0.6,y:4.35,w:7.2,h:0.4,fontSize:13,color:SLATE,fontFace:'IBM Plex Sans'});
     s.addText(fmtD(dateDebut)+'  →  '+fmtD(dateFin), {x:0.6,y:4.72,w:7.2,h:0.35,fontSize:11.5,italic:true,color:SLATE,fontFace:'IBM Plex Sans'});
     s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:5.35,w:4.4,h:0.42,fill:{type:'none'},line:{color:RED,width:1}});
@@ -20061,7 +20079,14 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
 
       // Bandeau meta superieur
       b.page.drawLine({start:{x:M,y:H-30},end:{x:W-M,y:H-30},thickness:1,color:NAVY});
-      const metaL = (LANG==='en'?'Generated on: ':'Généré le : ')+dateGenStr+'   |   '+(LANG==='en'?'Slot: ':'Créneau : ')+creneauStr;
+      // Identite d'envoi ("Signer en tant que") — meme correctif que Word/
+      // PowerPoint/l'apercu HTML : voir identiteRapportW dans exportWord.
+      // Tronquee (contrairement a Word) car dessinee a position fixe sans
+      // retour a la ligne, au risque sinon de chevaucher le bandeau
+      // "USAGE RESTREINT" aligne a droite sur la meme ligne.
+      const identitePdf = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle() : '';
+      const identitePdfTxt = identitePdf.length>28 ? identitePdf.slice(0,27)+'…' : identitePdf;
+      const metaL = (LANG==='en'?'Generated on: ':'Généré le : ')+dateGenStr+'   |   '+(LANG==='en'?'Slot: ':'Créneau : ')+creneauStr+(identitePdfTxt?'   |   '+(LANG==='en'?'Shared by: ':'Partagé par : ')+identitePdfTxt:'');
       b.page.drawText(_pdfSafe(metaL), {x:M, y:H-26, size:7.5, font:fontReg, color:MUTED});
       const metaR = _pdfSafe(LANG==='en'?'RESTRICTED USE — SECURITY OFFICERS':'USAGE RESTREINT — RESPONSABLES SÛRETÉ');
       const metaRw = fontBold.widthOfTextAtSize(metaR, 7.5);
@@ -21159,6 +21184,9 @@ function _apPageWrap(titreSection, sousTitre, statsHTML, bodyHTML, type) {
   const now = new Date();
   const dateGenLong = now.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' à '+now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
   const perimetre = (typeof libellePerimetreRapport === 'function') ? libellePerimetreRapport() : '';
+  // Identite d'envoi ("Signer en tant que") — meme correctif que Word/PDF/
+  // PowerPoint : voir identiteRapportW dans exportWord.
+  const _apIdentiteEnvoi = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle() : '';
   return '<!DOCTYPE html><html><head><meta charset="utf-8">'
     + '<title>SentiqS '+_apEsc(titreSection)+' — '+_apEsc(now.toLocaleDateString('fr-FR'))+'</title>'
     + '<link rel="preconnect" href="https://fonts.googleapis.com">'
@@ -21173,7 +21201,7 @@ function _apPageWrap(titreSection, sousTitre, statsHTML, bodyHTML, type) {
     + _apToolbar(type)
     + '<div class="sheet">'
     + '<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #16233A;padding-bottom:10px;margin-bottom:18px;">'
-    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#6B7280;text-transform:uppercase;">Généré le '+_apEsc(dateGenLong)+'</div>'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#6B7280;text-transform:uppercase;">Généré le '+_apEsc(dateGenLong)+(_apIdentiteEnvoi?' &nbsp;·&nbsp; Partagé par '+_apEsc(_apIdentiteEnvoi):'')+'</div>'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#8B1A1A;font-weight:600;text-transform:uppercase;">Usage restreint — responsables sûreté</div>'
     + '</div>'
     + '<div style="text-align:center;margin-bottom:6px;">'
@@ -21327,6 +21355,9 @@ function _buildRapportSyntheseHTML(arts) {
   const dateGenLong = now.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' à '+now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
   const creneau = now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
   const perimetre = libellePerimetreRapport();
+  // Identite d'envoi ("Signer en tant que") — meme correctif que Word/PDF/
+  // PowerPoint/_apPageWrap : voir identiteRapportW dans exportWord.
+  const _synthIdentiteEnvoi = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle() : '';
 
   const nbSrcsMedia = SRCS.filter(s => !(s.rss_method||'').match(/Twitter|Telegram|Facebook/)).length;
   const nbSrcsSociales = SRCS.length - nbSrcsMedia;
@@ -21382,7 +21413,7 @@ function _buildRapportSyntheseHTML(arts) {
     + '<div class="sheet">'
 
     + '<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #16233A;padding-bottom:10px;margin-bottom:18px;">'
-    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#6B7280;text-transform:uppercase;">Généré le '+_apEsc(dateGenLong)+' &nbsp;·&nbsp; Créneau '+_apEsc(creneau)+'</div>'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#6B7280;text-transform:uppercase;">Généré le '+_apEsc(dateGenLong)+' &nbsp;·&nbsp; Créneau '+_apEsc(creneau)+(_synthIdentiteEnvoi?' &nbsp;·&nbsp; Partagé par '+_apEsc(_synthIdentiteEnvoi):'')+'</div>'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#8B1A1A;font-weight:600;text-transform:uppercase;">Usage restreint — responsables sûreté</div>'
     + '</div>'
 
@@ -21981,10 +22012,18 @@ async function exportWord(type){
     }
 
     // Pied de rapport — pas d'adresse e-mail (usage interne uniquement).
+    // Identite d'envoi ("Signer en tant que", voir identiteEnvoiActuelle) —
+    // le menu de partage du module Rapports la propose toujours, mais avant
+    // le 21/09/2026 aucun format bureautique (Word/PDF/PowerPoint) ne la
+    // reprenait nulle part dans le document genere : seul le format image
+    // l'affichait (correctif du meme jour sur genererImageActuBlob/
+    // genererImageRapportBlob). Ajoutee ici en suffixe, jamais a la place de
+    // la marque.
+    const identiteRapportW = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle() : '';
     children.push(divider());
     children.push(new Paragraph({
       alignment:AlignmentType.CENTER,
-      children:[new TextRun({text:nomMarqueActuelle()+' · '+dateStr+' UTC',size:18,italic:true,color:'9CA3AF'})],
+      children:[new TextRun({text:nomMarqueActuelle()+' · '+dateStr+' UTC'+(identiteRapportW?' · '+(LANG==='en'?'Shared by ':'Partagé par ')+identiteRapportW:''),size:18,italic:true,color:'9CA3AF'})],
     }));
 
     // En-tête/pied de page systématiques (marque + périmètre + numéro de

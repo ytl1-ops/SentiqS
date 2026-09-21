@@ -1558,6 +1558,63 @@ que celle qu'on lit en premier dans le fichier).
 
 ---
 
+## L'identité d'envoi manquait aussi dans les rapports bureautiques
+
+Suite du correctif du 21/09/2026 sur le format image (voir « L'identité
+d'envoi ignorée par le format image ») : le menu de partage du module
+Rapports propose *toujours* « Signer en tant que » (contrairement au partage
+d'une actu, où il ne s'affiche qu'à partir de 2 identités configurées — un
+rapport partagé au nom d'une organisation doit pouvoir préciser qui l'envoie
+même avec une seule identité renseignée). Mais `_partageIdentiteChoisie`,
+posée par `envoyerRapportCanal()` avant de générer le document, n'était lue
+nulle part dans les cinq générateurs de document : `exportWord`, `exportPDF`,
+`exportPPTX`, `_apPageWrap` (aperçu HTML de Flux/Agenda/Alertes/Rapport
+complet) et `_buildRapportSyntheseHTML` (aperçu HTML de la Synthèse)
+n'affichaient tous que `nomMarqueActuelle()` — le nom de *marque*, jamais
+l'identité choisie pour ce partage précis. Un utilisateur choisissant
+« Jean Dupont » voyait ce choix appliqué à l'image mais disparaître
+silencieusement dès qu'il téléchargeait un Word, un PDF, un PowerPoint ou un
+aperçu imprimable.
+
+`identiteEnvoiActuelle()` est désormais lue dans les cinq, toujours en
+**suffixe** du pied de page ou du bandeau de date/créneau existant, jamais à
+la place de la marque : « Généré le [date] · Partagé par [identité] » (PDF
+tronqué à 28 caractères, seul format à dessiner ce bandeau à position fixe
+sans retour à la ligne — les autres sont en flux HTML/Word et absorbent
+naturellement un nom plus long). Dans le PowerPoint, l'auteur du fichier
+(métadonnée « Propriétés ») porte l'identité plutôt que la marque — la
+Société (`pres.company`), elle, reste la marque, comme le veut la
+convention Word/PowerPoint habituelle.
+
+**Trouvée en même temps, sans lien avec l'identité :** la diapositive de
+couverture du PowerPoint écrivait `'SentiqS'` en dur au lieu d'appeler
+`nomMarqueActuelle()` — seul endroit du fichier où une marque personnalisée
+restait ignorée alors que Word/PDF/l'aperçu HTML l'affichent tous
+correctement. Corrigé au même endroit.
+
+Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`, et les deux
+aperçus HTML (Flux, Synthèse) ouverts dans Chromium avec deux identités
+configurées — le texte généré contient bien « Partagé par Jean Dupont ».
+Word/PDF/PowerPoint n'ont pas pu être exécutés dans ce bac à sable (leurs
+bibliothèques — docx.js, pdf-lib, pptxgenjs — se chargent depuis
+`cdn.jsdelivr.net`/`cdn.sheetjs.com`, injoignables ici, voir « Contraintes de
+cet environnement d'exécution ») : le correctif y est strictement le même
+motif, déjà prouvé sur les deux formats testables.
+
+**Trouvée en creusant la même zone, une deuxième adresse en clair.** Le
+métadonnées Excel (`exportExcel`, onglet « Métadonnées ») portait
+`_maskEmail('yorot225@gmail.com')` — une deuxième copie littérale de
+l'adresse à côté de `SUPPORT_CONTACT_EMAIL`, exactement la duplication que
+cette constante devait éviter (voir « L'adresse de l'administrateur ne vit
+plus dans le code servi »). Remplacée par `_maskEmail(SUPPORT_CONTACT_EMAIL)`.
+Une troisième copie vivait dans le lien de contact du bandeau de pied de
+page (HTML statique, avant tout script) : l'élément porte désormais un id
+et son `href`/texte sont synchronisés depuis `SUPPORT_CONTACT_EMAIL` au
+chargement, pour qu'un changement de cette constante se propage partout —
+c'était tout l'intérêt de l'avoir isolée.
+
+---
+
 ## Conventions
 
 - **Tout en français** : commits, commentaires, noms de fonctions et de
