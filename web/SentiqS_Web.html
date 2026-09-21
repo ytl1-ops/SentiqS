@@ -1,22 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
-<!-- Balise de verification/proprietaire Google AdSense — DESACTIVEE
-     temporairement (voir initAdBanner() plus bas pour le detail complet) :
-     signalement repete d'une banniere qui empechait l'usage de l'appli sur
-     mobile ET web meme apres plafonnement CSS de .ad-banner. Cause la plus
-     probable : le parametre "Auto ads" du compte AdSense (Annonces >
-     Aperçu), qui peut injecter des formats plein ecran (ancre/vignette) HORS
-     du conteneur .ad-banner des que ce script est charge, quel que soit
-     l'endroit ou le tag est place sur la page — un simple plafond CSS local
-     ne peut pas s'en proteger. Reactiver seulement apres avoir verifie/
-     desactive "Auto ads" (ou restreint aux formats "In-page") dans le
-     tableau de bord AdSense.
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5506503144248267"
-     crossorigin="anonymous"></script>
--->
-<meta name="google-adsense-account" content="ca-pub-5506503144248267">
-
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <!-- Content-Security-Policy — audit de securite : limite les scripts/styles/
      connexions/medias aux domaines effectivement utilises par l'app (CDN des
@@ -297,14 +281,22 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .cstat i{font-size:11px}
 .cstat.ok{color:var(--g)}.cstat.er{color:var(--r)}.cstat.nw{color:var(--a)}
 
-/* NAV */
-.nav{background:var(--w);border-bottom:1px solid var(--bd);
-  display:flex;padding:0 14px;overflow-x:auto;flex-shrink:0}
+/* NAV — rail vertical par defaut (refonte du 21/09/2026) : colonne de
+   gauche dans .layout plutot que bandeau horizontal. padding devient
+   vertical (haut/bas), overflow bascule sur l'axe Y — un rail de 8-9
+   modules courts ne deborde normalement jamais en hauteur sur un ecran de
+   bureau, mais reste defilable si besoin (fenetre tres basse, zoom fort).
+   Le mode mobile (largeur <=760px ou force-mobile) restaure explicitement
+   flex-direction:row plus bas — voir ces regles pour le detail. */
+.nav{background:var(--w);
+  display:flex;flex-direction:column;padding:10px 8px;overflow-x:visible;overflow-y:auto;flex-shrink:0}
 /* Enrobage de la barre de modules + fleches de navigation (mobile
    uniquement, cf. media queries plus bas) — permet de passer d'un module
    a l'autre d'un tap au lieu de devoir deviner qu'il faut faire defiler
-   la barre horizontalement. */
-.nav-wrap{display:flex;align-items:stretch;min-width:0;flex-shrink:0;background:var(--w)}
+   la barre horizontalement. En rail vertical, .nav-wrap est la colonne
+   elle-meme (largeur fixe, bordure de separation a droite) plutot qu'un
+   simple habillage d'une barre horizontale. */
+.nav-wrap{display:flex;flex-direction:column;align-items:stretch;width:208px;flex-shrink:0;background:var(--w);border-right:1px solid var(--bd)}
 .nav-wrap .nav{flex:1;min-width:0}
 .nav-arrow{display:none;flex-shrink:0;border:none;cursor:pointer;
   background:var(--bl);color:var(--b);font-size:16px;
@@ -370,37 +362,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .flashinfo.collapsed{height:22px;}
 .flashinfo.collapsed .flashinfo-piste{display:none;}
 .flashinfo.collapsed #flashInfoChevron{transform:rotate(180deg);}
-/* Bandeau publicitaire (version gratuite) : au-dessus du contenu, present
-   quelle que soit la page active. Tant qu'aucun identifiant AdSense reel
-   n'est configure (voir ADSENSE_CLIENT_ID/ADSENSE_SLOT_ID), affiche un
-   simple encart "emplacement publicitaire" — aucun script Google charge.
-   max-height+overflow:hidden : le body de l'app est en hauteur fixe
-   (height:100vh;overflow:hidden, voir plus haut) sans scroll possible —
-   un bandeau "auto"/full-width-responsive Google peut, sur certains
-   telephones etroits, s'auto-dimensionner bien au-dela de 50px une fois la
-   creative chargee (comportement documente de ce format), poussant tout le
-   reste (barre du haut, navigation, contenu) hors de l'ecran visible sans
-   aucun moyen d'y acceder. Le plafond ici garantit que le bandeau ne peut
-   plus jamais degrader l'utilisabilite de l'appli, quoi que Google injecte
-   a l'interieur. */
-.ad-banner{background:var(--sf);border-bottom:1px solid var(--bd);flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;min-height:50px;
-  max-height:60px;overflow:hidden;
-  padding:6px 10px;position:relative}
-.ad-banner-tag{position:absolute;top:2px;left:10px;font-size:8px;font-weight:700;
-  color:var(--lg);text-transform:uppercase;letter-spacing:.06em}
-.ad-banner-placeholder{font-size:10px;color:var(--lg);text-align:center;
-  border:1px dashed var(--bd);border-radius:6px;padding:8px 16px;width:100%;max-width:100%}
-.ad-banner-close{position:absolute;top:2px;right:6px;font-size:13px;line-height:1;
-  color:var(--lg);background:none;border:none;cursor:pointer;padding:4px 6px;
-  border-radius:4px;opacity:.55}
-.ad-banner-close:hover{opacity:1;background:var(--bd)}
 .ntab{padding:10px 14px;font-size:11px;font-weight:700;
-  color:rgba(255,255,255,.38);cursor:pointer;border-bottom:2px solid transparent;
+  color:rgba(255,255,255,.38);cursor:pointer;border-left:3px solid transparent;
   white-space:nowrap;display:flex;align-items:center;gap:5px;
   letter-spacing:.05em;text-transform:uppercase;transition:color .12s}
 .ntab i{font-size:13px}
-.ntab.on{color:#9CA3AF;border-bottom-color:#9CA3AF}
+.ntab.on{color:#9CA3AF;border-left-color:#9CA3AF}
 .ntab:hover:not(.on){color:rgba(255,255,255,.65)}
 .nbadge{font-size:8px;background:#7C4A00;color:#fff;border-radius:8px;
   padding:1px 5px;font-weight:700;margin-left:2px;display:none}
@@ -774,7 +741,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
   border:1px solid var(--bd);border-radius:9px;padding:18px 22px;margin-bottom:15px}
 .sy-tg{font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;
   letter-spacing:.1em;margin-bottom:5px}
-.sy-tt{font-size:18px;font-weight:700;color:var(--t);margin-bottom:4px;line-height:1.3}
+.sy-tt{font-family:var(--font-serif);font-size:19px;font-weight:600;color:var(--t);margin-bottom:4px;line-height:1.3}
 .sy-sb{font-size:11px;color:var(--lg)}
 .sy-bg{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
 .sbg{font-size:9px;font-weight:700;padding:3px 9px;border-radius:4px;
@@ -857,14 +824,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .view{display:none}.view.on{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
 
 /* ── Module en plein ecran (clic sur un onglet du menu) ────────────────────
-   Masque le "chrome" (en-tete, bandeau collecte, flash info, pub, barre de
-   statut) — .nav-wrap et .layout sont deplaces (pas clones, pour conserver
-   IDs/listeners) dans #modulePleinEcranOverlay, voir ouvrirModulePleinEcran. */
+   Masque le "chrome" (en-tete, bandeau collecte, flash info, barre de
+   statut) — .layout (qui embarque .nav-wrap, son premier enfant) est
+   deplace (pas clone, pour conserver IDs/listeners) dans
+   #modulePleinEcranOverlay, voir ouvrirModulePleinEcran. */
 body.plein-ecran-module > .tb,
 body.plein-ecran-module > .proxy-bar,
 body.plein-ecran-module > .cbar,
 body.plein-ecran-module > .flashinfo,
-body.plein-ecran-module > .ad-banner,
 body.plein-ecran-module > .compact-filters,
 body.plein-ecran-module > .stbar { display:none !important; }
 #modulePleinEcranOverlay{position:fixed;inset:0;z-index:100000;background:var(--w);
@@ -1367,8 +1334,11 @@ html:not(.force-web) [onclick="runDiagnostic()"]{padding:5px 8px;min-height:36px
 html:not(.force-web) #tbTime{display:none}
 html:not(.force-web) .user-name{display:none}
 html:not(.force-web) .user-chip{padding:4px 6px;gap:0}
-html:not(.force-web) .nav{padding:0 6px}
-html:not(.force-web) .ntab{padding:9px 10px;font-size:10px;flex-shrink:0;min-height:36px;display:flex;align-items:center;}
+html:not(.force-web) .layout{flex-direction:column}
+html:not(.force-web) .nav-wrap{flex-direction:row;width:auto;border-right:none;align-self:stretch}
+html:not(.force-web) .nav{padding:0 6px;flex-direction:row;overflow-x:auto;overflow-y:visible}
+html:not(.force-web) .ntab{padding:9px 10px;font-size:10px;flex-shrink:0;min-height:36px;display:flex;align-items:center;border-left:none !important;border-bottom:2px solid transparent !important;border-radius:0 !important;}
+html:not(.force-web) .ntab.on{border-bottom-color:var(--b) !important;border-bottom-width:2px !important;}
 html:not(.force-web) .ntab span{white-space:nowrap}
 html:not(.force-web) .nav-arrow{display:flex !important;width:28px;min-height:36px;}
 html:not(.force-web) .flashinfo-label{font-size:9px;padding:0 6px}
@@ -1457,8 +1427,11 @@ html.force-mobile [onclick="runDiagnostic()"]{padding:5px 8px;min-height:36px;mi
 html.force-mobile #tbTime{display:none}
 html.force-mobile .user-name{display:none}
 html.force-mobile .user-chip{padding:4px 6px;gap:0}
-html.force-mobile .nav{padding:0 6px}
-html.force-mobile .ntab{padding:9px 10px;font-size:10px;flex-shrink:0;min-height:36px;display:flex;align-items:center;}
+html.force-mobile .layout{flex-direction:column}
+html.force-mobile .nav-wrap{flex-direction:row;width:auto;border-right:none;align-self:stretch}
+html.force-mobile .nav{padding:0 6px;flex-direction:row;overflow-x:auto;overflow-y:visible}
+html.force-mobile .ntab{padding:9px 10px;font-size:10px;flex-shrink:0;min-height:36px;display:flex;align-items:center;border-left:none !important;border-bottom:2px solid transparent !important;border-radius:0 !important;}
+html.force-mobile .ntab.on{border-bottom-color:var(--b) !important;border-bottom-width:2px !important;}
 html.force-mobile .ntab span{white-space:nowrap}
 html.force-mobile .nav-arrow{display:flex !important;width:28px;min-height:36px;}
 html.force-mobile .flashinfo-label{font-size:9px;padding:0 6px}
@@ -1524,7 +1497,7 @@ html.force-web .lp-backdrop{display:none !important}
 html.force-web .nav-arrow{display:none !important}
 
 @media print{
-  .tb,.nav,.layout .lp,.dl-toolbar,.statusbar,.cbar,.setup-bar,
+  .tb,.nav,.nav-wrap,.layout .lp,.dl-toolbar,.statusbar,.cbar,.setup-bar,
   .auth-overlay,.admin-panel,.user-menu,.ent-kpi-bar{display:none!important}
   .layout{display:block!important}
   .main{width:100%!important}
@@ -1596,10 +1569,9 @@ html.force-web .nav-arrow{display:none !important}
   box-shadow:0 0 0 1px rgba(44,90,174,.3);
 }
 
-/* ── Navigation onglets claire ───────────────────────────────────────── */
+/* ── Navigation modules claire, rail vertical ─────────────────────────── */
 .nav{
   background:var(--w) !important;
-  border-bottom:1px solid var(--bd) !important;
 }
 .nav-wrap{ background:var(--w) !important; }
 .ntab{
@@ -1608,7 +1580,8 @@ html.force-web .nav-arrow{display:none !important}
   font-weight:600 !important;
   letter-spacing:.07em !important;
   color:var(--lg) !important;
-  padding:10px 13px !important;
+  padding:11px 16px !important;
+  border-radius:0 6px 6px 0 !important;
   transition:color .18s, border-color .18s, background .18s !important;
 }
 .ntab:hover:not(.on){
@@ -1617,8 +1590,8 @@ html.force-web .nav-arrow{display:none !important}
 }
 .ntab.on{
   color:var(--b) !important;
-  border-bottom-color:var(--b) !important;
-  border-bottom-width:2px !important;
+  border-left-color:var(--b) !important;
+  border-left-width:3px !important;
   background:var(--bl);
 }
 
@@ -2228,46 +2201,11 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
   </div>
 </div>
 
-<!-- NAV -->
-<div class="nav-wrap" role="navigation" aria-label="Modules de l'application">
-  <button class="nav-arrow nav-arrow-l" onclick="navScrollModule(-1)" aria-label="Module précédent" title="Module précédent"><i class="ti ti-chevron-left"></i></button>
-  <div class="nav" id="navTabs" role="tablist" aria-label="Modules de l'application">
-    <div class="ntab" role="tab" aria-selected="false" tabindex="-1" data-view="flux" onclick="ouvrirModulePleinEcran(&#39;flux&#39;,this)"><i class="ti ti-radar-2"></i><span data-i18n="nav_flux">Flux</span><span class="nbadge" id="nbadge" style="display: none;">0</span></div>
-    <div class="ntab" role="tab" aria-selected="false" tabindex="-1" id="tabRecherche" data-view="recherche" onclick="ouvrirModulePleinEcran(&#39;recherche&#39;,this)"><i class="ti ti-search"></i><span data-i18n="nav_recherche">Recherche</span></div>
-    <div class="ntab" role="tab" aria-selected="false" tabindex="-1" data-view="analyse" onclick="ouvrirModulePleinEcran(&#39;analyse&#39;,this)"><i class="ti ti-chart-dots"></i><span data-i18n="nav_analyse">Synthèse</span></div>
-    <div class="ntab" role="tab" aria-selected="false" tabindex="-1" id="tabAgenda" data-view="agenda" onclick="ouvrirModulePleinEcran(&#39;agenda&#39;,this)"><i class="ti ti-calendar-event"></i><span data-i18n="nav_agenda">Agenda</span></div>
-    <div class="ntab" role="tab" aria-selected="false" tabindex="-1" id="tabGeopolitique" data-view="geopolitique" onclick="ouvrirModulePleinEcran(&#39;geopolitique&#39;,this)"><i class="ti ti-world"></i><span data-i18n="nav_geopolitique">Géopolitique</span></div>
-    <div class="ntab" role="tab" aria-selected="false" tabindex="-1" data-view="rapports" onclick="ouvrirModulePleinEcran(&#39;rapports&#39;,this)"><i class="ti ti-download"></i><span data-i18n="nav_rapports">Rapports</span></div>
-    <div class="ntab" role="tab" aria-selected="false" tabindex="-1" id="tabAlertes" data-view="alertes" onclick="ouvrirModulePleinEcran(&#39;alertes&#39;,this)"><i class="ti ti-shield-exclamation"></i><span data-i18n="nav_alertes">Alertes</span></div>
-    <div class="ntab on" role="tab" aria-selected="true" tabindex="0" data-view="dashboard" onclick="ouvrirModulePleinEcran(&#39;dashboard&#39;,this)"><i class="ti ti-layout-dashboard"></i><span data-i18n="lbl_tableau_de_bord">Tableau de bord</span></div>
-    <div class="ntab" role="tab" aria-selected="false" tabindex="-1" id="tabParams" data-view="params" onclick="ouvrirModulePleinEcran(&#39;params&#39;,this)" style="display:none"><i class="ti ti-settings"></i><span>Parametres</span></div>
-  </div>
-  <button class="nav-arrow nav-arrow-r" onclick="navScrollModule(1)" aria-label="Module suivant" title="Module suivant"><i class="ti ti-chevron-right"></i></button>
-</div>
-
 <div class="flashinfo" id="flashInfoBar">
   <div class="flashinfo-label" onclick="toggleFlashInfo()" style="cursor:pointer;" title="Replier/déplier le bandeau"><span class="fi-dot"></span> <span data-i18n="flashinfo_lbl">FLASH INFO</span><i class="ti ti-chevron-up" id="flashInfoChevron" style="font-size:11px;margin-left:2px;transition:transform .15s;"></i></div>
   <div class="flashinfo-piste">
     <div class="flashinfo-list" id="flashInfoList"></div>
   </div>
-</div>
-
-<!-- Bandeau publicitaire — version gratuite, affiche au-dessus de chaque page.
-     Voir ADSENSE_CLIENT_ID/ADSENSE_SLOT_ID pour l'activation reelle une fois
-     le compte Google AdSense approuve (initAdBanner()). -->
-<!-- Encart publicitaire masque par defaut : le script AdSense est desactive
-     (voir <head>) et un cadre vide « emplacement publicitaire » sur un outil
-     de surete professionnel ne rassure personne. Le balisage reste pour le
-     jour ou la publicite serait reactivee, In-page uniquement. -->
-<div class="ad-banner" id="adBanner" style="display:none">
-  <span class="ad-banner-tag" data-i18n="ad_tag">PUBLICITÉ</span>
-  <div class="ad-banner-placeholder" id="adBannerPlaceholder" data-i18n="ad_placeholder">Emplacement publicitaire — Google AdSense non configuré (voir Paramètres)</div>
-  <ins class="adsbygoogle" id="adBannerIns" style="display:none;width:100%;max-width:100%;height:50px"
-       data-ad-client="" data-ad-slot="" data-ad-format="auto" data-full-width-responsive="true"></ins>
-  <!-- Echappatoire manuelle : si le bandeau gene malgre le plafond CSS
-       ci-dessus (voir ad-banner), l'utilisateur peut le masquer lui-meme,
-       de façon persistante sur cet appareil (voir dismissAdBanner()). -->
-  <button class="ad-banner-close" onclick="dismissAdBanner()" title="Masquer" aria-label="Masquer la bannière">✕</button>
 </div>
 
 <!-- Barre de filtre compacte : remplace les listes verticales Portee/Pays
@@ -2285,6 +2223,27 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
 </div>
 
 <div class="layout">
+  <!-- NAV — rail vertical (refonte du 21/09/2026, voir CLAUDE.md « Les
+       modules passent en rail vertical ») : deplace dans .layout pour
+       devenir la colonne de gauche plutot qu'un bandeau horizontal
+       au-dessus. Memes elements, memes onclick, meme role="tablist" —
+       seule la disposition change. Le mode mobile (force-mobile ou
+       largeur <=760px) reste horizontal, voir les regles dediees. -->
+  <div class="nav-wrap" role="navigation" aria-label="Modules de l'application">
+    <button class="nav-arrow nav-arrow-l" onclick="navScrollModule(-1)" aria-label="Module précédent" title="Module précédent"><i class="ti ti-chevron-left"></i></button>
+    <div class="nav" id="navTabs" role="tablist" aria-label="Modules de l'application" aria-orientation="vertical">
+      <div class="ntab" role="tab" aria-selected="false" tabindex="-1" data-view="flux" onclick="ouvrirModulePleinEcran(&#39;flux&#39;,this)"><i class="ti ti-radar-2"></i><span data-i18n="nav_flux">Flux</span><span class="nbadge" id="nbadge" style="display: none;">0</span></div>
+      <div class="ntab" role="tab" aria-selected="false" tabindex="-1" id="tabRecherche" data-view="recherche" onclick="ouvrirModulePleinEcran(&#39;recherche&#39;,this)"><i class="ti ti-search"></i><span data-i18n="nav_recherche">Recherche</span></div>
+      <div class="ntab" role="tab" aria-selected="false" tabindex="-1" data-view="analyse" onclick="ouvrirModulePleinEcran(&#39;analyse&#39;,this)"><i class="ti ti-chart-dots"></i><span data-i18n="nav_analyse">Synthèse</span></div>
+      <div class="ntab" role="tab" aria-selected="false" tabindex="-1" id="tabAgenda" data-view="agenda" onclick="ouvrirModulePleinEcran(&#39;agenda&#39;,this)"><i class="ti ti-calendar-event"></i><span data-i18n="nav_agenda">Agenda</span></div>
+      <div class="ntab" role="tab" aria-selected="false" tabindex="-1" id="tabGeopolitique" data-view="geopolitique" onclick="ouvrirModulePleinEcran(&#39;geopolitique&#39;,this)"><i class="ti ti-world"></i><span data-i18n="nav_geopolitique">Géopolitique</span></div>
+      <div class="ntab" role="tab" aria-selected="false" tabindex="-1" data-view="rapports" onclick="ouvrirModulePleinEcran(&#39;rapports&#39;,this)"><i class="ti ti-download"></i><span data-i18n="nav_rapports">Rapports</span></div>
+      <div class="ntab" role="tab" aria-selected="false" tabindex="-1" id="tabAlertes" data-view="alertes" onclick="ouvrirModulePleinEcran(&#39;alertes&#39;,this)"><i class="ti ti-shield-exclamation"></i><span data-i18n="nav_alertes">Alertes</span></div>
+      <div class="ntab on" role="tab" aria-selected="true" tabindex="0" data-view="dashboard" onclick="ouvrirModulePleinEcran(&#39;dashboard&#39;,this)"><i class="ti ti-layout-dashboard"></i><span data-i18n="lbl_tableau_de_bord">Tableau de bord</span></div>
+      <div class="ntab" role="tab" aria-selected="false" tabindex="-1" id="tabParams" data-view="params" onclick="ouvrirModulePleinEcran(&#39;params&#39;,this)" style="display:none"><i class="ti ti-settings"></i><span>Parametres</span></div>
+    </div>
+    <button class="nav-arrow nav-arrow-r" onclick="navScrollModule(1)" aria-label="Module suivant" title="Module suivant"><i class="ti ti-chevron-right"></i></button>
+  </div>
   <!-- MAIN -->
   <div class="main" id="contenuPrincipal" role="main" tabindex="-1">
 
@@ -2460,7 +2419,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         <div class="ag-wrap">
           <div class="ag-hdr">
             <div>
-              <div class="ag-tt" id="agTitreZone">Agenda — Toutes zones</div>
+              <div class="ag-tt" id="agTitreZone" style="font-family:var(--font-serif);font-weight:600;">Agenda — Toutes zones</div>
               <div class="ag-sb">Evenements en cours · A venir · Echeances · Colloques · Concerts · Festivals</div>
             </div>
             <div class="ag-flt">
@@ -2521,7 +2480,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         <div class="ag-wrap">
           <div class="ag-hdr">
             <div>
-              <div class="ag-tt" id="geoTitre" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">Géopolitique <span id="geoNiveauBadge"></span></div>
+              <div class="ag-tt" id="geoTitre" style="font-family:var(--font-serif);font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">Géopolitique <span id="geoNiveauBadge"></span></div>
               <div class="ag-sb" id="geoSousTitre">Analyses géopolitiques par pays et leur impact sur la sûreté — fenêtre de 14 jours, du plus critique au plus stable.</div>
             </div>
           </div>
@@ -2545,7 +2504,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
       <div style="overflow-y:auto;flex:1;padding:16px">
         <div style="max-width:920px;margin:0 auto">
           <div style="margin-bottom:14px">
-            <div style="font-size:15px;font-weight:700;color:var(--t)">Rapports & exports</div>
+            <div style="font-family:var(--font-serif);font-weight:600;font-size:16px;color:var(--t)">Rapports & exports</div>
             <div style="font-size:11px;color:var(--lg);margin-top:2px">Génère des documents à partir des données collectées, filtrés par zone ou par pays.</div>
           </div>
           <div class="tlbr" style="margin-bottom:6px">
@@ -2652,7 +2611,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
           <div style="display:flex;align-items:center;gap:8px;">
             <i class="ti ti-shield-exclamation" style="font-size:20px;color:#9CA3AF"></i>
             <div>
-              <div style="font-size:14px;font-weight:700;color:var(--t)">Module Niveau d'Alerte Sûreté</div>
+              <div style="font-family:var(--font-serif);font-weight:600;font-size:15px;color:var(--t)">Module Niveau d'Alerte Sûreté</div>
               <div style="font-size:10px;color:var(--lg)" id="alerteLastUpdate">Mis à jour le 29/06/2026 à 12h45 UTC — Calculé sur les 24 dernières heures</div>
             </div>
           </div>
@@ -2675,7 +2634,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         <div style="background:var(--w);border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-bottom:16px;">
           <div style="background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 14px;display:flex;align-items:center;gap:8px;">
             <i class="ti ti-table" style="color:var(--b);font-size:14px"></i>
-            <span style="font-size:12px;font-weight:700;color:var(--t);">Tableau récapitulatif — Niveaux d'alerte par pays</span>
+            <span style="font-family:var(--font-serif);font-weight:600;font-size:13.5px;color:var(--t);">Tableau récapitulatif — Niveaux d'alerte par pays</span>
           </div>
           <div style="overflow-x:auto;"><table id="alerteTable" style="width:100%;border-collapse:collapse;font-size:11px;"></table></div>
         </div>
@@ -3656,7 +3615,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
 
 <div class="stbar">
   <span id="stbarLeft">Initialisation de la veille en direct...</span>
-  <span>SentiqS · RSS live · Sans API · <a href="mailto:yorot225@gmail.com">yo•••••@gmail.com</a></span>
+  <span>SentiqS · RSS live · Sans API · <a id="stbarContact" href="mailto:yorot225@gmail.com">yo•••••@gmail.com</a></span>
 </div>
 
 <script>
@@ -4687,7 +4646,6 @@ const I18N = {
     note_alertes:'Alertes : niveau de risque calculé automatiquement par pays, consultable en grille ou en chronologie des incidents.',
     note_dashboard:'Tableau de bord : vision d\'ensemble en temps réel des 54 pays d\'Afrique, scores de risque et zones de tension.',
     note_params:'Paramètres : gestion des accès, des droits de téléchargement et de la configuration de la plateforme.',
-    ad_tag:'PUBLICITÉ', ad_placeholder:'Emplacement publicitaire — Google AdSense non configuré (voir Paramètres)',
     // ── Écran de connexion / inscription ──
     auth_ops_veille:'Veille active · 54 pays', auth_ops_reseau1:'Réseau de surveillance', auth_ops_reseau2:'Afrique · temps réel',
     auth_ops_flux:'Flux · Corrélations · Alertes', auth_ops_surete:'Sûreté opérationnelle',
@@ -4825,7 +4783,6 @@ const I18N = {
     note_alertes:'Alerts: risk level automatically computed per country, viewable as a grid or as an incident timeline.',
     note_dashboard:'Dashboard: real-time overview of all 54 African countries, risk scores and tension zones.',
     note_params:'Settings: manage access, download rights and platform configuration.',
-    ad_tag:'ADVERTISEMENT', ad_placeholder:'Ad placeholder — Google AdSense not configured yet (see Settings)',
     // ── Login / registration screen ──
     auth_ops_veille:'Active monitoring · 54 countries', auth_ops_reseau1:'Surveillance network', auth_ops_reseau2:'Africa · real-time',
     auth_ops_flux:'Feed · Correlations · Alerts', auth_ops_surete:'Operational security',
@@ -8933,27 +8890,27 @@ async function doCollect() {
     await Promise.all(batch.map(collectOne));
   }
 
-  // Fusionner et purger les articles de plus de 12h
+  // Fusionner et purger les articles au-dela de FENETRE_ACTUALITE_MS
   const map={};
   ALL.forEach(a=>map[a.id]=a);
   reconcilierDatesPremiereVue(fresh); // neutralise les sources qui re-timbrent du vieux contenu comme "aujourd'hui"
   Object.assign(map,fresh);
-  const MAX_AGE=12*60*60*1000;
-  // Separation stricte : ALL = uniquement le temps reel (<12h, Flux/alertes
-  // affichees). Tout le reste (survenance ancienne, source non fiable, ou
-  // simplement > 12h) part dans HISTORIQUE : jamais affiche comme actualite
-  // du jour, mais conserve comme element de REFERENCE pour le calcul des
-  // niveaux d'alerte (tendance/contexte), au lieu d'etre purement jete.
+  // Separation stricte : ALL = uniquement le temps reel (< FENETRE_ACTUALITE_MS,
+  // Flux/alertes affichees). Tout le reste (survenance ancienne, source non
+  // fiable, ou simplement hors fenetre) part dans HISTORIQUE : jamais
+  // affiche comme actualite du jour, mais conserve comme element de
+  // REFERENCE pour le calcul des niveaux d'alerte (tendance/contexte), au
+  // lieu d'etre purement jete.
   const toutesValeurs = Object.values(map);
   ALL = toutesValeurs.filter(a=>estRecentReel(a));
   ALL = dedupliquerArticles(ALL); // fusionne les articles quasi-identiques rapportes par plusieurs sources (ex. AllAfrica + source nationale sur le meme fait)
   const rejetes = toutesValeurs.filter(a => !estRecentReel(a) && a && a.cy && a.title);
-  // Le dernier incident (encore actif, <12h) est integre a l'historique DES
-  // MAINTENANT plutot que d'attendre qu'il expire pour y entrer : un incident
-  // qui vient de se produire fait deja partie du dossier de reference d'un
-  // pays, pas seulement une fois "perime". ALL (live) + rejetes (expires)
-  // couvrent ainsi ensemble tout ce qui a ete vu, sans trou des 12 dernieres
-  // heures dans le suivi historique.
+  // Le dernier incident (encore actif, dans la fenetre) est integre a
+  // l'historique DES MAINTENANT plutot que d'attendre qu'il expire pour y
+  // entrer : un incident qui vient de se produire fait deja partie du
+  // dossier de reference d'un pays, pas seulement une fois "perime". ALL
+  // (live) + rejetes (expires) couvrent ainsi ensemble tout ce qui a ete
+  // vu, sans trou dans le suivi historique.
   if (typeof archiverHistorique === 'function') archiverHistorique([...ALL, ...rejetes]);
   if (typeof rehydrateArticles === 'function') rehydrateArticles(ALL);
   // Agent correcteur de texte : repare en place les entites HTML residuelles
@@ -9361,11 +9318,11 @@ function saveMarquePerso(m) {
 }
 
 // planUtilisateurActuel() : plan de l'utilisateur connecte ('gratuit' par
-// defaut). L'administrateur racine (ADMIN_EMAIL) beneficie toujours de
-// l'acces complet, meme sans enregistrement explicite de plan.
+// defaut). L'administrateur racine (role 'admin', voir estAdmin) beneficie
+// toujours de l'acces complet, meme sans enregistrement explicite de plan.
 function planUtilisateurActuel() {
   const session = (typeof getSession === 'function') ? getSession() : {};
-  if (session.email === ADMIN_EMAIL) return 'entreprise';
+  if (estAdmin(session)) return 'entreprise';
   const u = (typeof getUsers === 'function' ? getUsers() : []).find(x => x.email === session.email);
   return (u && u.plan) || 'gratuit';
 }
@@ -9410,17 +9367,33 @@ function identitesMarquePerso(m) {
 // fonction d'envoi a chaque appel — ne "fuit" jamais vers un partage suivant
 // qui ne precise pas d'identite (bulletin, alerte pays...).
 let _partageIdentiteChoisie = null;
-function signatureEnvoiActuelle() {
+// identiteEnvoiActuelle() : le NOM SEUL de l'identite active pour CE partage
+// (voir _partageIdentiteChoisie), sans mise en forme — chaine vide si aucune
+// identite n'est configuree ou si le plan ne l'autorise pas.
+//
+// Factorise hors de signatureEnvoiActuelle() le 21/09/2026 : le format image
+// d'un partage (genererImageActuBlob/genererImageRapportBlob, dessin canvas)
+// ne peut pas interpreter les sauts de ligne « \n\n— » de la version texte,
+// et jusque-la n'appelait cette resolution nulle part — seul nomMarqueActuelle()
+// (le nom de MARQUE, un champ different) apparaissait sur l'image. Un
+// utilisateur choisissant une identite au moment du partage ("Signer en tant
+// que") la voyait donc appliquee au texte mais jamais a l'image, sans le
+// moindre message d'erreur. Les deux formats partagent maintenant cette
+// meme resolution.
+function identiteEnvoiActuelle() {
   if (!fonctionnalitePayante()) return '';
   const { identite1, identite2, identite3, active } = identitesMarquePerso(getMarquePerso());
   const identites = { 1: identite1, 2: identite2, 3: identite3 };
   const choix = (_partageIdentiteChoisie && identites[_partageIdentiteChoisie]) ? _partageIdentiteChoisie : active;
+  return identites[choix] || '';
+}
+function signatureEnvoiActuelle() {
+  const identite = identiteEnvoiActuelle();
+  if (!identite) return '';
   // Nom/pseudo uniquement (demande explicite) : jamais de coordonnee
   // personnelle (telephone/email) dans la signature d'un partage, meme si
   // un contact a ete enregistre par le passe (champ retire du panneau
   // Parametres, valeur eventuellement encore en localStorage mais ignoree ici).
-  const identite = identites[choix];
-  if (!identite) return '';
   return '\n\n— ' + identite;
 }
 
@@ -9898,6 +9871,17 @@ async function genererImageActuBlob(a, canal) {
   ctx.font = '500 ' + Math.round(w * 0.02) + 'px "IBM Plex Mono", monospace';
   ctx.textBaseline = 'bottom';
   ctx.fillText((typeof fmtFull === 'function' ? fmtFull(a.pubDate) : ''), pad, h - Math.round(w * 0.05));
+
+  // Identite d'envoi choisie pour CE partage (voir identiteEnvoiActuelle) —
+  // absente jusqu'au 21/09/2026 : seul le format texte l'appliquait, le
+  // format image ne dessinait que le nom de marque (nomMarqueActuelle, un
+  // champ different) sans jamais tenir compte du choix "Signer en tant que".
+  const identiteImg = identiteEnvoiActuelle();
+  if (identiteImg) {
+    ctx.textAlign = 'right';
+    ctx.fillText('— ' + identiteImg, w - pad, h - Math.round(w * 0.05));
+    ctx.textAlign = 'left'; // repli par defaut pour un appel canvas ulterieur
+  }
 
   return new Promise(resolve => cv.toBlob(resolve, 'image/png'));
 }
@@ -10803,10 +10787,16 @@ function lbg(l){return {crit:'#8B1A1A',high:'#7C4A00',mod:'#4B5563',ok:'#0F4F2A'
 function lic(l){return l==='crit'?'ti-alert-triangle':l==='high'?'ti-alert-circle':'ti-info-circle';}
 
 function getFiltered() {
-  const MAX_AGE = 12*60*60*1000; // 12 heures en ms
-  // Filtre anti-hallucination : seules les données sourcées, horodatées et < 12h
+  // Filtre anti-hallucination : seules les données sourcées, horodatées et
+  // dans FENETRE_ACTUALITE_MS. N'impose plus son propre MAX_AGE : la valeur
+  // en dur ici est restee a 12h apres le passage de la fenetre a 36h le
+  // 06/09/2026 (voir CLAUDE.md), ecartant du Flux tout article de 12 a 36h
+  // que le reste de l'appli (tableau de bord, compteur pays couverts)
+  // continuait pourtant de compter comme actualite. antiHalluFilter() sans
+  // second argument retombe sur FENETRE_ACTUALITE_MS, la meme fenetre que
+  // partout ailleurs.
   let a = (typeof antiHalluFilter === 'function')
-    ? antiHalluFilter([...ALL], MAX_AGE)
+    ? antiHalluFilter([...ALL])
     : [...ALL].filter(x=>estRecentReel(x));
   // Les evenements planifies (colloque, seminaire, concert, conseil des
   // ministres, senat, CESE...) sont achemines vers le module Agenda, pas le
@@ -11355,8 +11345,13 @@ async function renderFeed() {
     if (fGeo === 'all') {
       const cc = CYS.find(x=>x.code===cyCode) || {flag:'🌍', name:cyCode};
       const totalPays = artsCe.length;
+      // Refonte du 21/09/2026 : nom de pays en serif, meme traitement que
+      // l'en-tete de section du tableau de bord — c'est la seule autre
+      // rupture de ce niveau dans le Flux (le reste reste dense/sans-serif
+      // pour la lisibilite d'une liste de plusieurs centaines d'actus).
       html += '<div style="background:var(--b);color:#fff;padding:9px 14px;font-size:13px;font-weight:800;display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer;" onclick="ouvrirVuePays(\''+cyCode+'\')">'+
-        '<span style="font-size:16px">'+cc.flag+'</span>'+cc.name+
+        '<span style="font-size:16px">'+cc.flag+'</span>'+
+        '<span style="font-family:var(--font-serif);font-weight:600;letter-spacing:.005em;">'+cc.name+'</span>'+
         '<span style="margin-left:auto;font-size:10px;font-weight:600;color:rgba(255,255,255,.7)">'+totalPays+' article'+(totalPays>1?'s':'')+'</span>'+
       '</div>';
     }
@@ -11488,7 +11483,6 @@ async function showDet(id) {
 
 // ── STATS ────────────────────────────────────────────────────────────────────
 function updStats() {
-  const MAX_AGE=12*60*60*1000;
   const visible=ALL.filter(a=>estRecentReel(a));
   document.getElementById('stTot').textContent=visible.length;
   document.getElementById('stCrit').textContent=ALL.filter(x=>x.level==='crit').length;
@@ -11568,7 +11562,6 @@ function calcScorePays(cy) {
 function closeKpiDrill() { const o = document.getElementById('kpiDrillOverlay'); if (o) o.remove(); }
 
 async function showKpiDrill(kind) {
-  const MAX = 12*60*60*1000;
   const artsActifs = (ALL||[]).filter(a=>estRecentReel(a));
   const scoreCol = key => (typeof NIV !== 'undefined' && NIV[key]) ? NIV[key].col : '#0F4F2A';
   let title = '', icon = 'ti-list', rows = '';
@@ -11923,7 +11916,6 @@ function setDashCartoMode(m) { window.dashCartoMode = m; if (typeof renderDashbo
   chargerHistorique();
 
   // KPI globaux
-  const MAX = 12*60*60*1000;
   const artsActifs = (ALL||[]).filter(a=>estRecentReel(a));
   const nbCrit  = artsActifs.filter(a=>a.level==='crit').length;
   const nbHigh  = artsActifs.filter(a=>a.level==='high').length;
@@ -11967,7 +11959,16 @@ function setDashCartoMode(m) { window.dashCartoMode = m; if (typeof renderDashbo
   // "En tension" = tout ce qui n'est pas Stable/Modere (orange, marron, rouge)
   const enTension = scores.filter(s=>s.key==='orange'||s.key==='marron'||s.key==='rouge');
 
-  const cv = (n,f) => { try { return (getComputedStyle(document.documentElement).getPropertyValue(n).trim())||f; } catch(_) { return f; } }; const scoreColor = s => ({rouge:cv('--r','#8B1A1A'),marron:cv('--m','#78350F'),orange:cv('--a','#7C4A00'),jaune:cv('--j','#CA8A04'),vert:cv('--g','#0F4F2A')}[s.key]) || (NIV[s.key] ? NIV[s.key].col : '#0F4F2A'); const cartoMode = window.dashCartoMode || 'grid';
+  const cv = (n,f) => { try { return (getComputedStyle(document.documentElement).getPropertyValue(n).trim())||f; } catch(_) { return f; } }; const scoreColor = s => ({rouge:cv('--r','#8B1A1A'),marron:cv('--m','#78350F'),orange:cv('--a','#7C4A00'),jaune:cv('--j','#CA8A04'),vert:cv('--g','#0F4F2A')}[s.key]) || (NIV[s.key] ? NIV[s.key].col : '#0F4F2A');
+  // textColor(s) : meme mapping que scoreColor, sauf jaune qui bascule sur
+  // --j-txt au lieu de --j. #CA8A04 (le jaune d'alerte) ne fait que 2,94:1
+  // en texte sur blanc, sous le seuil AA (4,5:1) — voir CLAUDE.md, audit
+  // d'interface du 07/09/2026. --j-txt existe deja pour exactement ce cas :
+  // la pastille/bordure gardent la couleur de gravite, le texte prend sa
+  // variante lisible. A reserver aux usages TEXTE (score, libelle de
+  // niveau) ; border-top/outline restent sur scoreColor.
+  const textColor = s => ({rouge:cv('--r','#8B1A1A'),marron:cv('--m','#78350F'),orange:cv('--a','#7C4A00'),jaune:cv('--j-txt','#854D0E'),vert:cv('--g','#0F4F2A')}[s.key]) || (NIV[s.key] ? NIV[s.key].txt : '#0F4F2A');
+  const cartoMode = window.dashCartoMode || 'grid';
 
   // Cartes KPI reduites de ~45% en hauteur (padding/police resserres, voir
   // demande) : le bandeau du haut du Tableau de bord occupait trop de place
@@ -12095,14 +12096,29 @@ const cartogramme = () => {
       if (!liste.length) return '';
       const nom = (ZONES_GEO[zc]||{}).nom || zc;
       const area = zoneArea[zc] || zc;
-      return `<div style="grid-area:${area};background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:8px;min-width:0;">
-        <div style="font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${nom}</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:4px;">
+      return `<div style="grid-area:${area};background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:10px;min-width:0;">
+        <div style="font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${nom}</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(116px,1fr));gap:6px;">
           ${liste.map(s => {
             const col = scoreColor(s);
-            return `<div class="carto-tile" onclick="ouvrirVuePays('${s.cy}')" title="${s.pays.name} — ${s.score}/100" style="cursor:pointer;padding:5px 6px;border-radius:5px;background:${col}14;border:1px solid ${col}44;transition:transform .12s,box-shadow .12s;${GLOBAL_CY_FILTER===s.cy?`box-shadow:0 0 0 2px ${col};`:''}">
-              <div style="font-size:9.5px;font-weight:700;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.pays.flag} ${s.pays.name}</div>
-              <div style="font-family:var(--font-mono,'Roboto Mono',monospace);font-size:9px;font-weight:700;color:${col};display:flex;align-items:baseline;flex-wrap:wrap;">${Math.round(s.score)}${chipTendance(s.cy)}${marqueSilence(s.cy)}</div>
+            const txt = textColor(s);
+            // Refonte du 21/09/2026 : score en gros chiffre mono + nom du niveau en
+            // toutes lettres (NIV[s.key].sous — meme source que la legende), plutot
+            // qu'un simple chiffre sur fond teinte. Le nom du niveau aide aussi un
+            // lecteur qui distingue mal les couleurs, pas seulement la lisibilite.
+            // col (couleur d'alerte brute) reste reserve au non-texte
+            // (border-top, outline) ; le texte (score, libelle) prend txt,
+            // sa variante lisible — voir textColor ci-dessus.
+            return `<div class="carto-tile" onclick="ouvrirVuePays('${s.cy}')" title="${s.pays.name} — ${s.score}/100 — ${NIV[s.key].sous}" style="cursor:pointer;padding:8px 9px;border-radius:6px;background:var(--w);border:1px solid var(--bd);border-top:2px solid ${col};box-shadow:var(--card-shadow);transition:transform .12s,box-shadow .12s;min-width:0;${GLOBAL_CY_FILTER===s.cy?`outline:2px solid ${col};outline-offset:-1px;`:''}">
+              <div style="font-size:10px;font-weight:700;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px;">${s.pays.flag} ${s.pays.name}</div>
+              <div style="display:flex;align-items:baseline;gap:2px;flex-wrap:wrap;">
+                <span style="font-family:var(--font-mono,'Roboto Mono',monospace);font-size:17px;font-weight:700;color:${txt};line-height:1;">${Math.round(s.score)}</span>
+                ${chipTendance(s.cy)}
+              </div>
+              <div style="display:flex;align-items:center;gap:4px;margin-top:4px;flex-wrap:wrap;">
+                <span style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:${txt};">${NIV[s.key].sous}</span>
+                ${marqueSilence(s.cy)}
+              </div>
             </div>`;
           }).join('')}
         </div>
@@ -12146,9 +12162,9 @@ const cartogramme = () => {
 
       <!-- Cartogramme régional des scores par pays -->
       <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:14px;margin-bottom:12px;">
-        <div style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+        <div style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:12px;display:flex;align-items:center;gap:7px;">
           <i class="ti ti-map-2" style="color:#2C5AAE"></i>
-          ${cartoMode==='profil' ? 'Profil de risque — nature du risque par dimension' : cartoMode==='radar' ? 'Vue radar — pays par zone et niveau de risque' : 'Carte régionale des risques — Score 0-100 par pays, regroupés par zone'}<span style="margin-left:auto;display:flex;gap:4px;"><button onclick="setDashCartoMode('grid')" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:5px;border:1px solid var(--bd);cursor:pointer;background:${cartoMode==='grid'?'var(--b)':'var(--sf)'};color:${cartoMode==='grid'?'#fff':'var(--lg)'};">Cartogramme</button><button onclick="setDashCartoMode('radar')" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:5px;border:1px solid var(--bd);cursor:pointer;background:${cartoMode==='radar'?'var(--b)':'var(--sf)'};color:${cartoMode==='radar'?'#fff':'var(--lg)'};">Radar</button><button onclick="setDashCartoMode('profil')" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:5px;border:1px solid var(--bd);cursor:pointer;background:${cartoMode==='profil'?'var(--b)':'var(--sf)'};color:${cartoMode==='profil'?'#fff':'var(--lg)'};">Profil</button></span>
+          <span style="font-family:var(--font-serif);font-weight:600;font-size:13.5px;letter-spacing:.005em;">${cartoMode==='profil' ? 'Profil de risque — nature du risque par dimension' : cartoMode==='radar' ? 'Vue radar — pays par zone et niveau de risque' : 'Carte régionale des risques — Score 0-100 par pays, regroupés par zone'}</span><span style="margin-left:auto;display:flex;gap:4px;"><button onclick="setDashCartoMode('grid')" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:5px;border:1px solid var(--bd);cursor:pointer;background:${cartoMode==='grid'?'var(--b)':'var(--sf)'};color:${cartoMode==='grid'?'#fff':'var(--lg)'};">Cartogramme</button><button onclick="setDashCartoMode('radar')" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:5px;border:1px solid var(--bd);cursor:pointer;background:${cartoMode==='radar'?'var(--b)':'var(--sf)'};color:${cartoMode==='radar'?'#fff':'var(--lg)'};">Radar</button><button onclick="setDashCartoMode('profil')" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:5px;border:1px solid var(--bd);cursor:pointer;background:${cartoMode==='profil'?'var(--b)':'var(--sf)'};color:${cartoMode==='profil'?'#fff':'var(--lg)'};">Profil</button></span>
         </div>
         ${cartoMode==='profil' ? profilView() : cartoMode==='radar' ? radarView() : cartogramme()}
       </div>
@@ -12770,7 +12786,7 @@ function renderAgendaCalendrierHtml(filt, SL, IC, TYP) {
         '<button onclick="agendaAnneePrecedente()" title="Année précédente" style="padding:5px 7px;background:var(--sf);border:1px solid var(--bd);border-radius:5px;color:var(--t);cursor:pointer;font-weight:700;">«</button>' +
         '<button onclick="agendaMoisPrecedent()" title="Mois précédent" style="padding:5px 7px;background:var(--sf);border:1px solid var(--bd);border-radius:5px;color:var(--t);cursor:pointer;"><i class="ti ti-chevron-left"></i></button>' +
       '</div>' +
-      '<div style="font-size:13px;font-weight:700;color:var(--t);display:flex;align-items:center;gap:8px;">' + MOIS_NOMS_LONGS[m] + ' ' + y +
+      '<div style="font-family:var(--font-serif);font-weight:600;font-size:14px;color:var(--t);display:flex;align-items:center;gap:8px;">' + MOIS_NOMS_LONGS[m] + ' ' + y +
         (fAgMoisAffiche ? '<button onclick="agendaMoisCourant()" style="font-size:9px;font-weight:700;color:var(--b);background:var(--bl);border:1px solid var(--bb);border-radius:4px;padding:2px 6px;cursor:pointer;">Aujourd\'hui</button>' : '') +
       '</div>' +
       '<div style="display:flex;align-items:center;gap:3px;">' +
@@ -12827,7 +12843,7 @@ function renderAgendaAnneeHtml(filt, SL, IC, TYP) {
   const nav =
     '<div class="ag-cal-nav" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">' +
       '<button onclick="agendaAnneePrecedente()" title="Année précédente" style="padding:5px 10px;background:var(--sf);border:1px solid var(--bd);border-radius:5px;color:var(--t);cursor:pointer;"><i class="ti ti-chevron-left"></i></button>' +
-      '<div style="font-size:16px;font-weight:800;color:var(--t);">' + y + '</div>' +
+      '<div style="font-family:var(--font-serif);font-weight:700;font-size:17px;color:var(--t);">' + y + '</div>' +
       '<button onclick="agendaAnneeSuivante()" title="Année suivante" style="padding:5px 10px;background:var(--sf);border:1px solid var(--bd);border-radius:5px;color:var(--t);cursor:pointer;"><i class="ti ti-chevron-right"></i></button>' +
     '</div>' +
     '<div style="display:flex;justify-content:flex-end;margin-bottom:14px;">' + _agendaGranulariteToggleHtml() + '</div>';
@@ -13133,9 +13149,13 @@ function clavierOnglets(ev) {
   if (!courant || !visibles.length) return;
   const i = visibles.indexOf(courant);
   let cible = null;
+  // ArrowDown/ArrowUp ajoutees pour le rail vertical (refonte du
+  // 21/09/2026) — memes cibles que ArrowRight/ArrowLeft, jamais retirees :
+  // le rail redevient une barre horizontale en mobile (voir CSS), ou les
+  // fleches gauche/droite restent la convention attendue.
   if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); courant.click(); return; }
-  else if (ev.key === 'ArrowRight') cible = visibles[(i + 1) % visibles.length];
-  else if (ev.key === 'ArrowLeft') cible = visibles[(i - 1 + visibles.length) % visibles.length];
+  else if (ev.key === 'ArrowRight' || ev.key === 'ArrowDown') cible = visibles[(i + 1) % visibles.length];
+  else if (ev.key === 'ArrowLeft' || ev.key === 'ArrowUp') cible = visibles[(i - 1 + visibles.length) % visibles.length];
   else if (ev.key === 'Home') cible = visibles[0];
   else if (ev.key === 'End') cible = visibles[visibles.length - 1];
   if (!cible) return;
@@ -13209,14 +13229,16 @@ function switchView(name,el){
 // Demande explicite : au clic sur un onglet (Flux, Agenda, Alertes...), le
 // module occupe TOUT l'ecran (meme principe que les fiches article/pays/
 // alerte — fond plein, bord a bord, bouton Fermer + Partager) au lieu de
-// rester confine sous l'en-tete/bandeau collecte/pub. .nav-wrap et .layout
-// sont DEPLACES (pas clones : cloner dupliquerait des IDs comme #agTl,
-// casserait tous les document.getElementById existants) dans l'overlay, puis
-// restaures a leur emplacement d'origine a la fermeture — voir les
-// placeholders ci-dessous. Reste actif en changeant d'onglet DEPUIS
-// l'interieur (nav-wrap reste utilisable, deplace avec .layout) : seule la
-// premiere entree cree l'overlay, les clics suivants mettent juste a jour le
-// contenu deja en place.
+// rester confine sous l'en-tete/bandeau collecte/pub. .layout est DEPLACE
+// (pas clone : cloner dupliquerait des IDs comme #agTl, casserait tous les
+// document.getElementById existants) dans l'overlay, puis restaure a son
+// emplacement d'origine a la fermeture — voir le placeholder ci-dessous.
+// Depuis le rail vertical du 21/09/2026, .nav-wrap est un enfant de .layout
+// (plus un frere au niveau du body) : le deplacer avec .layout suffit, il
+// n'y a plus besoin de le deplacer separement. Reste actif en changeant
+// d'onglet DEPUIS l'interieur (nav-wrap reste utilisable, deplace avec
+// .layout) : seule la premiere entree cree l'overlay, les clics suivants
+// mettent juste a jour le contenu deja en place.
 let _modulePleinEcranActif = false;
 let _modulePleinEcranCourant = null;
 const MODULE_PLEIN_ECRAN_NOMS = {
@@ -13240,14 +13262,10 @@ function ouvrirModulePleinEcran(name, el) {
       '</div>' +
       '<div id="modulePleinEcranCorps"></div>';
     document.body.appendChild(overlay);
-    const navWrap = document.querySelector('body > .nav-wrap');
     const layout = document.querySelector('body > .layout');
     const corps = document.getElementById('modulePleinEcranCorps');
-    const navPh = document.createElement('div'); navPh.id = 'navWrapPlaceholder'; navPh.style.display = 'none';
-    navWrap.parentNode.insertBefore(navPh, navWrap);
     const layoutPh = document.createElement('div'); layoutPh.id = 'layoutPlaceholder'; layoutPh.style.display = 'none';
     layout.parentNode.insertBefore(layoutPh, layout);
-    corps.appendChild(navWrap);
     corps.appendChild(layout);
     document.addEventListener('keydown', _fermerModulePleinEcranEscape);
   }
@@ -13257,11 +13275,8 @@ function ouvrirModulePleinEcran(name, el) {
 function fermerModulePleinEcran() {
   const overlay = document.getElementById('modulePleinEcranOverlay');
   if (!overlay) return;
-  const navWrap = document.getElementById('modulePleinEcranCorps').querySelector('.nav-wrap');
   const layout = document.getElementById('modulePleinEcranCorps').querySelector('.layout');
-  const navPh = document.getElementById('navWrapPlaceholder');
   const layoutPh = document.getElementById('layoutPlaceholder');
-  if (navWrap && navPh) { navPh.parentNode.insertBefore(navWrap, navPh); navPh.remove(); }
   if (layout && layoutPh) { layoutPh.parentNode.insertBefore(layout, layoutPh); layoutPh.remove(); }
   overlay.remove();
   document.body.classList.remove('plein-ecran-module');
@@ -13791,7 +13806,6 @@ async function init() {
       if (typeof chargerHistorique === 'function') chargerHistorique();
       const saved=await dbAll();
       if(saved.length){
-        const MAX=12*60*60*1000;
         const fresh=saved.filter(a=>estRecentReel(a));
         if(fresh.length){
           ALL=fresh; ALL.forEach(a=>{a.time=fmtAge(a.pubDate||0);});
@@ -13915,21 +13929,55 @@ async function init() {
 
 // ════════════════════════════════════════════════════════════════════
 //  SentiqS — Authentification et gestion des acces
-//  Admin : yorot225@gmail.com
+//  Admin
 // ════════════════════════════════════════════════════════════════════
-const ADMIN_EMAIL = 'yorot225@gmail.com';
+// Audit de securite du 21/09/2026 : l'adresse reelle de l'administrateur
+// vivait ici en clair, dans le HTML public servi a chaque visiteur — n'
+// importe qui pouvait la lire via « Afficher le code source ». Elle
+// n'avait pourtant pas besoin d'y etre : seule l'adresse indiquee dans la
+// migration profiles_auth.sql (cote serveur, jamais servie par Pages)
+// recoit le role 'admin' a l'inscription (trigger before insert) — c'est
+// deja la ou vit la vraie frontiere de securite. Le client n'a besoin que
+// de LIRE ce role, jamais de comparer une adresse.
+//
+// estAdmin(u) remplace toutes les anciennes comparaisons a une adresse en
+// dur : accepte un objet utilisateur/session (lit .role), ou a defaut une
+// adresse email brute (cas des stats agregees par email seul, ex.
+// statsTelechargements/statsTrafic) — repli par recherche dans les profils
+// deja charges, jamais par comparaison a une adresse figee dans ce fichier.
+function estAdmin(u) {
+  if (!u) return false;
+  if (typeof u === 'object' && u.role) return u.role === 'admin';
+  const email = typeof u === 'string' ? u : u.email;
+  if (!email) return false;
+  const profil = (typeof getUsers === 'function' ? getUsers() : []).find(x => x.email === email);
+  return !!profil && profil.role === 'admin';
+}
+// SUPPORT_CONTACT_EMAIL : adresse affichee a un utilisateur bloque (compte
+// suspendu, essai gratuit expire) pour qu'il sache qui contacter — un
+// besoin different de estAdmin() ci-dessus, jamais utilisee pour une
+// verification de droits. A remplacer par une adresse professionnelle
+// degagee de l'identite personnelle du proprietaire des que l'une existe.
+const SUPPORT_CONTACT_EMAIL = 'yorot225@gmail.com';
 // _maskEmail(email) : masque l'adresse de l'administrateur/proprietaire du
 // compte partout ou elle est affichee a l'ecran ou dans un rapport genere
 // (statut, profil, tableau des comptes, rapports) — garde les 2 premiers
 // caracteres + le domaine visibles (reconnaissable sans exposer l'adresse
-// complete), jamais utilisee pour la logique d'authentification elle-meme
-// (comparaisons a ADMIN_EMAIL, session.email, mailto de depannage) qui
-// continue d'utiliser l'adresse reelle.
+// complete).
 function _maskEmail(email) {
   if (!email || email.indexOf('@') < 2) return email;
   const at = email.indexOf('@');
   return email.slice(0, 2) + '•••••' + email.slice(at);
 }
+// Le lien de contact du bandeau de pied de page (HTML statique, avant tout
+// script) portait sa propre copie de l'adresse de contact — deux endroits a
+// tenir a jour au lieu d'un seul, exactement ce que ce fichier deconseille
+// ailleurs (voir "L'adresse de l'administrateur ne vit plus dans le code
+// servi"). Synchronise ici depuis SUPPORT_CONTACT_EMAIL, seule source.
+(() => {
+  const el = document.getElementById('stbarContact');
+  if (el) { el.href = 'mailto:' + SUPPORT_CONTACT_EMAIL; el.textContent = _maskEmail(SUPPORT_CONTACT_EMAIL); }
+})();
 const STORE_KEY   = 'sentinel_auth_v1';
 const USERS_KEY   = 'sentinel_users_v1';
 const PENDING_KEY = 'sentinel_pending_v1';
@@ -14171,13 +14219,17 @@ async function publierCollectePartagee(articles, force) {
     // La fusion accumule la couverture sur plusieurs cycles successifs (un
     // pays couvert il y a 20 min reste visible meme si CE run ne l'a pas
     // re-atteint) ; dedup par id (le run le plus recent l'emporte en cas de
-    // doublon) ; purge des entrees au-dela de la fenetre "recent reel" (12h,
-    // voir estRecentReel) — inutile de les garder, _appliquerArticlesPartages
-    // les filtrerait de toute facon cote client, et ca eviterait juste de
-    // faire grossir la ligne indefiniment.
+    // doublon) ; purge des entrees au-dela de la fenetre "recent reel"
+    // (FENETRE_ACTUALITE_MS, voir estRecentReel) — inutile de les garder,
+    // _appliquerArticlesPartages les filtrerait de toute facon cote client,
+    // et ca eviterait juste de faire grossir la ligne indefiniment. Cette
+    // purge portait un 12h en dur, reste de l'ancienne fenetre : chaque
+    // publication du cache partage ecartait silencieusement les articles de
+    // 12 a 36h que le reste de l'appli continuait pourtant de compter comme
+    // actualite (voir CLAUDE.md, passage a 36h du 06/09/2026).
     const parId = new Map();
     const existantsRecents = (existant && Array.isArray(existant.articles) ? existant.articles : [])
-      .filter(a => a && a.pubDate && (Date.now() - a.pubDate) < 12*60*60*1000);
+      .filter(a => a && a.pubDate && (Date.now() - a.pubDate) < FENETRE_ACTUALITE_MS);
     existantsRecents.forEach(a => parId.set(a.id, a));
     articles.forEach(a => parId.set(a.id, a));
     let fusionnes = [...parId.values()];
@@ -14512,44 +14564,6 @@ async function dernieresConnexionsParEmail() {
   return { map, source };
 }
 
-// ── Google AdSense (bandeau publicitaire, version gratuite) ───────────────
-// Renseignez ces deux valeurs une fois le compte AdSense créé et approuvé
-// par Google (console.google.com/adsense) : ADSENSE_CLIENT_ID = "Publisher
-// ID" du compte (ex. 'ca-pub-1234567890123456'), ADSENSE_SLOT_ID = l'ID du
-// bloc d'annonce créé dans AdSense pour ce bandeau (ex. '1234567890'). Tant
-// qu'elles restent vides, l'encart "emplacement publicitaire" reste affiché
-// à leur place et aucun script Google n'est chargé — pas d'appel réseau
-// externe tant que le compte n'est pas configuré.
-const ADSENSE_CLIENT_ID = 'ca-pub-5506503144248267';
-const ADSENSE_SLOT_ID   = '6860837643';
-
-const AD_BANNER_DISMISS_KEY = 'sentinel_ad_banner_dismissed_v1';
-// Echappatoire manuelle (voir bouton ✕ dans le HTML) : masque le bandeau
-// definitivement sur cet appareil si, malgre le plafond CSS (max-height sur
-// .ad-banner), il continue de gener l'utilisation sur certains telephones.
-function dismissAdBanner() {
-  _ls(() => localStorage.setItem(AD_BANNER_DISMISS_KEY, '1'));
-  const el = document.getElementById('adBanner');
-  if (el) el.style.display = 'none';
-}
-// DESACTIVE (voir la balise commentee en tete de <head>) : signalement
-// repete d'une banniere publicitaire qui empechait l'usage de l'appli sur
-// mobile ET web, meme apres plafonnement CSS strict de .ad-banner
-// (max-height/overflow:hidden). Cause la plus probable : le parametre
-// "Auto ads" du compte AdSense, qui peut injecter des formats plein ecran
-// (ancre en bas d'ecran, vignette interstitielle) des que adsbygoogle.js
-// est charge — CES formats s'affichent HORS de tout conteneur choisi cote
-// site, donc aucun plafond CSS local ne peut s'en proteger : seul le fait
-// de ne jamais charger le script l'empeche entierement. Ne pas reactiver
-// tant que "Auto ads" n'a pas ete verifie/desactive (ou restreint aux
-// formats "In-page" uniquement) dans Annonces > Aperçu du tableau de bord
-// AdSense — l'encart "emplacement publicitaire" reste affiche a la place,
-// sans le moindre appel reseau vers Google entre-temps.
-function initAdBanner() {
-  return;
-}
-initAdBanner();
-
 let _MEM_USERS=[], _MEM_SESSION=null;
 function _ls(fn,fb){try{return fn();}catch(e){return fb;}}
 // getUsers() : interface SYNCHRONE historique, INCHANGEE — 30+ points
@@ -14687,7 +14701,7 @@ function zonePrioritaireActuelle() {
 // racine et tout compte deja sur un plan payant ne sont jamais concernes.
 const COMPTE_GRATUIT_VALIDITE_MS = 72 * 60 * 60 * 1000;
 function compteGratuitExpire(user) {
-  if (!user || user.email === ADMIN_EMAIL) return false;
+  if (!user || estAdmin(user)) return false;
   // Prolongation/raccourcissement manuel (Parametres > Gestion clientele >
   // "Acces valide jusqu'au") : remplace la regle automatique des 72h, dans
   // les deux sens (extension ou coupure anticipee decidee par l'admin).
@@ -14879,13 +14893,13 @@ async function _ouvrirSessionDepuisSupabase(authUser) {
   const user = _profilVersUtilisateur(row);
   if (user.status !== 'active') {
     await client.auth.signOut();
-    if (errEl) { errEl.textContent = t('err_suspended')+ADMIN_EMAIL; errEl.classList.add('show'); }
+    if (errEl) { errEl.textContent = t('err_suspended')+SUPPORT_CONTACT_EMAIL; errEl.classList.add('show'); }
     return false;
   }
   if (compteGratuitExpire(user)) {
     await client.auth.signOut();
     const causeManuelle = !!user.accesJusquau;
-    if (errEl) { errEl.textContent = t(causeManuelle ? 'err_acces_expire' : 'err_trial_expired')+ADMIN_EMAIL+'.'; errEl.classList.add('show'); }
+    if (errEl) { errEl.textContent = t(causeManuelle ? 'err_acces_expire' : 'err_trial_expired')+SUPPORT_CONTACT_EMAIL+'.'; errEl.classList.add('show'); }
     return false;
   }
   if (user.doitDefinirMdp) {
@@ -14927,7 +14941,7 @@ function finaliserConnexion(user) {
   if (!window._appInitialized) { window._appInitialized = true; init(); }
   // Rappel discret de la validite du plan gratuit (72h a compter de la creation
   // du compte) — n'affecte jamais les plans payants ni l'administrateur.
-  if (user.email !== ADMIN_EMAIL && (user.plan || 'gratuit') === 'gratuit' && user.createdAt && typeof _toastRapide === 'function') {
+  if (!estAdmin(user) && (user.plan || 'gratuit') === 'gratuit' && user.createdAt && typeof _toastRapide === 'function') {
     const resteMs = COMPTE_GRATUIT_VALIDITE_MS - (Date.now() - new Date(user.createdAt).getTime());
     const resteH = Math.max(0, Math.ceil(resteMs / 3600000));
     _toastRapide('Compte gratuit — ' + resteH + 'h restantes avant expiration. ' + PARTAGE_LIMITE_GRATUIT + ' partages/mode inclus.', 'ti-clock');
@@ -15147,12 +15161,12 @@ async function addUser() {
 
 function toggleUserStatus(email) {
   const users=getUsers();const u=users.find(x=>x.email===email);
-  if(!u||u.email===ADMIN_EMAIL)return;
+  if(!u||estAdmin(u))return;
   u.status=u.status==='active'?'suspended':'active';
   saveUsers(users);renderUsersTable();renderAdminStats();
 }
 function deleteUser(email) {
-  if(email===ADMIN_EMAIL)return;
+  if(estAdmin(email))return;
   if(!confirm('Supprimer definitvement '+email+' ?'))return;
   saveUsers(getUsers().filter(u=>u.email!==email));
   renderUsersTable();renderAdminStats();
@@ -15182,7 +15196,7 @@ function renderUsersTable() {
   document.getElementById('usersTableBody').innerHTML=users.map(u=>{
     const[rc,rl]=rL[u.role]||['br-reader','Lecteur'];
     const ll=u.lastLogin?new Date(u.lastLogin).toLocaleDateString('fr-FR'):'Jamais';
-    const isA=u.email===ADMIN_EMAIL;
+    const isA=estAdmin(u);
     return '<tr><td>'+(isA?_maskEmail(u.email):escHtml(u.email))+'</td><td>'+escHtml(u.name)+'</td>'+
       '<td><span class="badge-role '+rc+'">'+rl+'</span></td>'+
       '<td><span class="badge-status '+(u.status==='active'?'bs-active':'bs-suspend')+'">'+(u.status==='active'?'Actif':'Suspendu')+'</span></td>'+
@@ -15523,7 +15537,7 @@ async function pmRenderUsers() {
   document.getElementById('pmUsersBody').innerHTML = users.map(u => {
     const [rc, rl] = rL[u.role] || ['br-reader','Lecteur'];
     const dernierTs = dernierParEmail[u.email] || null;
-    const isA = u.email === ADMIN_EMAIL;
+    const isA = estAdmin(u);
     return '<tr>' +
       '<td>' + (isA ? _maskEmail(u.email) : escHtml(u.email)) + '</td>' +
       '<td>' + escHtml(u.name)  + '</td>' +
@@ -15577,12 +15591,12 @@ async function pmAddUser() {
 function pmToggleStatus(email) {
   const users = getUsers();
   const u = users.find(x => x.email === email);
-  if (!u || u.email === ADMIN_EMAIL) return;
+  if (!u || estAdmin(u)) return;
   u.status = u.status === 'active' ? 'suspended' : 'active';
   saveUsers(users); pmRenderUsers(); renderClientele();
 }
 function pmDeleteUser(email) {
-  if (email === ADMIN_EMAIL) return;
+  if (estAdmin(email)) return;
   if (!confirm('Supprimer definitvement ' + email + ' ?')) return;
   saveUsers(getUsers().filter(u => u.email !== email));
   pmRenderUsers(); renderClientele();
@@ -15626,7 +15640,7 @@ function renderAdminProfile() {
   if (!session) return;
   document.getElementById('pmAvatar').textContent = (session.name||session.email).charAt(0).toUpperCase();
   document.getElementById('pmName').textContent   = session.name || 'Administrateur';
-  document.getElementById('pmEmail').textContent  = session.email === ADMIN_EMAIL ? _maskEmail(session.email) : session.email;
+  document.getElementById('pmEmail').textContent  = estAdmin(session) ? _maskEmail(session.email) : session.email;
 }
 
 // pmChangerMotDePassePersonnel() : changement de mot de passe VOLONTAIRE
@@ -15799,7 +15813,7 @@ function renderMonAbonnement() {
   const el = document.getElementById('monAbonnementBody');
   if (!el) return;
   const session = getSession();
-  if (session.email === ADMIN_EMAIL) {
+  if (estAdmin(session)) {
     el.innerHTML = '<div style="font-size:12px;color:var(--t2)">Compte administrateur — accès illimité, aucune expiration.</div>';
     return;
   }
@@ -15913,7 +15927,7 @@ async function renderConnexionsSupabase() {
   body.innerHTML = '<table class="pm-users-table"><thead><tr>'
     + '<th>Email</th><th>Nom</th><th>Rôle</th><th>Appareil</th><th>Connexion</th>'
     + '</tr></thead><tbody>' + rows.map(r => {
-      const label = r.email === ADMIN_EMAIL ? _maskEmail(r.email) : r.email;
+      const label = estAdmin(r) ? _maskEmail(r.email) : r.email;
       const dt = new Date(r.created_at);
       return '<tr><td>' + label + '</td><td>' + (r.name||'—') + '</td>'
         + '<td>' + (r.role||'—') + '</td>'
@@ -16191,9 +16205,9 @@ function pmSetClientQuota(email, valeur) {
 
 // ── ENVOI AUTOMATIQUE DU CODE D'ACTIVATION PAR EMAIL (EmailJS) ───────────
 // EmailJS envoie un email directement depuis le navigateur, sans serveur —
-// meme principe que la cle publique AdSense deja utilisee ici
-// (Service ID / Template ID / Public Key sont concus pour etre visibles
-// cote client, voir emailjs.com). Renseignez ces trois valeurs dans
+// meme principe qu'une cle publique de style AdSense (Service ID / Template
+// ID / Public Key sont concus pour etre visibles cote client, voir
+// emailjs.com). Renseignez ces trois valeurs dans
 // Parametres pour activer l'envoi automatique ; sans configuration, le code
 // reste affiche a l'administrateur pour transmission manuelle (aucun echec
 // silencieux — le flux de confirmation fonctionne dans les deux cas).
@@ -16507,7 +16521,7 @@ function renderDLStats() {
     // lui-meme est masque, comme partout ailleurs dans l'application.
     usersEl.innerHTML = s.topUtilisateurs.length
       ? s.topUtilisateurs.map(u => {
-          const label = u.email === ADMIN_EMAIL ? _maskEmail(u.email) : u.email;
+          const label = estAdmin(u.email) ? _maskEmail(u.email) : u.email;
           const pct = maxN ? Math.round(u.n / maxN * 100) : 0;
           return '<div class="traffic-bar-row"><span style="width:130px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+_apEsc(label)+'">'+_apEsc(label)+'</span>'+
             '<div class="traffic-bar-track"><div class="traffic-bar-fill" style="width:'+pct+'%"></div></div>'+
@@ -16771,7 +16785,7 @@ function renderTraffic() {
     barsUsers.innerHTML = usersTries.length ? usersTries.map(email => {
       const n = parUser[email];
       const pct = maxU ? Math.round(n/maxU*100) : 0;
-      const label = email === ADMIN_EMAIL ? _maskEmail(email) : email;
+      const label = estAdmin(email) ? _maskEmail(email) : email;
       return '<div class="traffic-bar-row"><span style="width:130px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+_apEsc(label)+'">'+_apEsc(label)+'</span>'+
         '<div class="traffic-bar-track"><div class="traffic-bar-fill" style="width:'+pct+'%"></div></div>'+
         '<span style="width:30px;text-align:right;flex-shrink:0">'+n+'</span></div>';
@@ -16802,7 +16816,6 @@ getFiltered = function() {
 
 // Mettre à jour les compteurs de sources sociales après collecte
 function updateSocialCounts() {
-  const MAX = 12*60*60*1000;
   const recent = ALL.filter(a => estRecentReel(a));
   ['twitter','telegram','youtube','reddit'].forEach(p => {
     const el = document.getElementById('cnt-'+p);
@@ -16860,15 +16873,15 @@ const REG_SOURCES = SRCS.filter(s =>
   ['aip','aib','amap','anp','agp_gh','nan_ng','abp_bj','atop_tg','agi_gn','aps_sn','ami_mr'].includes(s.id))
 );
 
-// compteurRegional() : nombre d'articles actifs (<12h) issus de REG_SOURCES.
-// Alimente la statistique "Régional" de la barre du Flux (voir updStats) —
-// aucun filtre isolant necessaire, la donnee est deja melangee au flux
-// principal et simplement comptee ici pour en montrer le poids reel.
+// compteurRegional() : nombre d'articles actifs (< FENETRE_ACTUALITE_MS)
+// issus de REG_SOURCES. Alimente la statistique "Régional" de la barre du
+// Flux (voir updStats) — aucun filtre isolant necessaire, la donnee est
+// deja melangee au flux principal et simplement comptee ici pour en
+// montrer le poids reel.
 function compteurRegional() {
   if (typeof ALL === 'undefined' || !ALL.length) return 0;
   const regIds = new Set(REG_SOURCES.map(s => s.id));
-  const MAX_AGE = 12*60*60*1000;
-  return ALL.filter(a => regIds.has(a.primary) && a.pubDate && (Date.now()-a.pubDate) < MAX_AGE).length;
+  return ALL.filter(a => regIds.has(a.primary) && a.pubDate && (Date.now()-a.pubDate) < FENETRE_ACTUALITE_MS).length;
 }
 
 const ZONE_TYPE_META = {
@@ -17691,7 +17704,6 @@ async function renderAlertCard(score) {
     <div style="padding:6px 12px;display:flex;gap:14px;background:var(--sf);border-bottom:1px solid var(--bd);">
       <div style="font-size:9px;color:var(--lg);">Incidents : <strong style="color:var(--t);">${score.baseScore}</strong></div>
       <div style="font-size:9px;color:var(--lg);">Aggravants : <strong style="color:${n.col};">${score.specialScore}</strong></div>
-      ${score.debug ? `<div style="font-size:8px;color:var(--lg);margin-top:2px;" title="Decomposition du score">Verifies: ${score.debug.verifies} | RSS applique: ${score.debug.liveApplique}/${score.debug.live} | Facteurs: ${score.debug.specials}</div>` : ''}
       <div style="font-size:9px;color:var(--lg);">Total : <strong style="color:${n.col};">${score.total100}/100</strong></div>
     </div>
     <!-- CONTENU EN COLONNES -->
@@ -18935,6 +18947,16 @@ async function genererImageRapportBlob(type, canal) {
   ctx.textBaseline = 'bottom';
   ctx.fillText(nowStr(), pad, h - Math.round(w * 0.05));
 
+  // Meme correctif que genererImageActuBlob (voir identiteEnvoiActuelle) :
+  // l'identite choisie pour CE partage doit apparaitre sur l'image comme
+  // elle apparait deja dans le texte, pas seulement le nom de marque.
+  const identiteImgRapport = identiteEnvoiActuelle();
+  if (identiteImgRapport) {
+    ctx.textAlign = 'right';
+    ctx.fillText('— ' + identiteImgRapport, w - pad, h - Math.round(w * 0.05));
+    ctx.textAlign = 'left';
+  }
+
   return new Promise(resolve => cv.toBlob(resolve, 'image/png'));
 }
 
@@ -19275,7 +19297,7 @@ async function exportExcel(type){
       ['Filtre','Articles <'+libelleFenetreCourt()+' uniquement'],
       ['Sources actives',Object.values(SRC_ST).filter(s=>s?.ok).length+'/'+SRCS.length],
       ['Articles exportés',getExportData().length],
-      ['Contact',_maskEmail('yorot225@gmail.com')],
+      ['Contact',_maskEmail(SUPPORT_CONTACT_EMAIL)],
     ]);
     XLSX.utils.book_append_sheet(wb, wsMeta, 'Métadonnées');
 
@@ -19379,9 +19401,14 @@ async function exportPPTX(type) {
     const INK='0B1622', MUTED='6B7280', PAPER='F5F8FB', LINE='E2E8EF';
     const LVL_COL = {crit:RED, high:ORANGE, mod:BLUE, ok:GREEN};
 
+    // Identite d'envoi ("Signer en tant que") — meme correctif que Word/PDF/
+    // l'apercu HTML : voir identiteRapportW dans exportWord. L'auteur du
+    // fichier (metadonnee Proprietes de PowerPoint) est la personne qui
+    // partage CE rapport, distincte de la marque/organisation (Societe).
+    const identitePptx = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle() : '';
     const pres = new PptxGenJS();
     pres.layout = 'LAYOUT_WIDE';
-    pres.author = nomMarqueActuelle();
+    pres.author = identitePptx || nomMarqueActuelle();
     pres.company = nomMarqueActuelle();
     pres.title = titrePPTX + ' ' + periode.label + ' — ' + perimetre;
 
@@ -19432,11 +19459,15 @@ async function exportPPTX(type) {
     let s = newSlide(EEF);
     s.addText((LANG==='en'?'Operational report — All zones · Africa':'Rapport opérationnel — Toutes zones · Afrique'),
       {x:0.6,y:2.15,w:7.2,h:0.4,fontSize:13,color:SLATE,fontFace:'IBM Plex Sans',charSpacing:2});
-    s.addText('SentiqS', {x:0.6,y:2.6,w:7.2,h:1.1,fontSize:52,bold:true,color:NAVY,fontFace:'Source Serif 4'});
+    // nomMarqueActuelle() plutot que 'SentiqS' en dur : seul endroit du
+    // fichier ou la couverture PPTX ignorait une marque personnalisee alors
+    // que Word/PDF/l'apercu HTML l'affichent tous correctement — un compte
+    // avec une marque configuree voyait "SentiqS" s'afficher quand meme ici.
+    s.addText(nomMarqueActuelle(), {x:0.6,y:2.6,w:7.2,h:1.1,fontSize:52,bold:true,color:NAVY,fontFace:'Source Serif 4'});
     s.addText(titrePPTX.charAt(0)+titrePPTX.slice(1).toLowerCase()+' '+periode.label.toLowerCase()+' — '+perimetre,
       {x:0.6,y:3.7,w:7.2,h:0.55,fontSize:19,bold:true,color:DARK2,fontFace:'IBM Plex Sans'});
     const nowPPTX = new Date();
-    s.addText((LANG==='en'?'Generated on ':'Généré le ')+nowPPTX.toLocaleDateString('fr-FR')+' '+(LANG==='en'?'at ':'à ')+nowPPTX.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'   ·   '+(LANG==='en'?'Slot ':'Créneau ')+nowPPTX.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),
+    s.addText((LANG==='en'?'Generated on ':'Généré le ')+nowPPTX.toLocaleDateString('fr-FR')+' '+(LANG==='en'?'at ':'à ')+nowPPTX.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'   ·   '+(LANG==='en'?'Slot ':'Créneau ')+nowPPTX.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+(identitePptx?'   ·   '+(LANG==='en'?'Shared by ':'Partagé par ')+identitePptx:''),
       {x:0.6,y:4.35,w:7.2,h:0.4,fontSize:13,color:SLATE,fontFace:'IBM Plex Sans'});
     s.addText(fmtD(dateDebut)+'  →  '+fmtD(dateFin), {x:0.6,y:4.72,w:7.2,h:0.35,fontSize:11.5,italic:true,color:SLATE,fontFace:'IBM Plex Sans'});
     s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:5.35,w:4.4,h:0.42,fill:{type:'none'},line:{color:RED,width:1}});
@@ -19984,7 +20015,14 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
 
       // Bandeau meta superieur
       b.page.drawLine({start:{x:M,y:H-30},end:{x:W-M,y:H-30},thickness:1,color:NAVY});
-      const metaL = (LANG==='en'?'Generated on: ':'Généré le : ')+dateGenStr+'   |   '+(LANG==='en'?'Slot: ':'Créneau : ')+creneauStr;
+      // Identite d'envoi ("Signer en tant que") — meme correctif que Word/
+      // PowerPoint/l'apercu HTML : voir identiteRapportW dans exportWord.
+      // Tronquee (contrairement a Word) car dessinee a position fixe sans
+      // retour a la ligne, au risque sinon de chevaucher le bandeau
+      // "USAGE RESTREINT" aligne a droite sur la meme ligne.
+      const identitePdf = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle() : '';
+      const identitePdfTxt = identitePdf.length>28 ? identitePdf.slice(0,27)+'…' : identitePdf;
+      const metaL = (LANG==='en'?'Generated on: ':'Généré le : ')+dateGenStr+'   |   '+(LANG==='en'?'Slot: ':'Créneau : ')+creneauStr+(identitePdfTxt?'   |   '+(LANG==='en'?'Shared by: ':'Partagé par : ')+identitePdfTxt:'');
       b.page.drawText(_pdfSafe(metaL), {x:M, y:H-26, size:7.5, font:fontReg, color:MUTED});
       const metaR = _pdfSafe(LANG==='en'?'RESTRICTED USE — SECURITY OFFICERS':'USAGE RESTREINT — RESPONSABLES SÛRETÉ');
       const metaRw = fontBold.widthOfTextAtSize(metaR, 7.5);
@@ -21082,6 +21120,9 @@ function _apPageWrap(titreSection, sousTitre, statsHTML, bodyHTML, type) {
   const now = new Date();
   const dateGenLong = now.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' à '+now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
   const perimetre = (typeof libellePerimetreRapport === 'function') ? libellePerimetreRapport() : '';
+  // Identite d'envoi ("Signer en tant que") — meme correctif que Word/PDF/
+  // PowerPoint : voir identiteRapportW dans exportWord.
+  const _apIdentiteEnvoi = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle() : '';
   return '<!DOCTYPE html><html><head><meta charset="utf-8">'
     + '<title>SentiqS '+_apEsc(titreSection)+' — '+_apEsc(now.toLocaleDateString('fr-FR'))+'</title>'
     + '<link rel="preconnect" href="https://fonts.googleapis.com">'
@@ -21096,7 +21137,7 @@ function _apPageWrap(titreSection, sousTitre, statsHTML, bodyHTML, type) {
     + _apToolbar(type)
     + '<div class="sheet">'
     + '<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #16233A;padding-bottom:10px;margin-bottom:18px;">'
-    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#6B7280;text-transform:uppercase;">Généré le '+_apEsc(dateGenLong)+'</div>'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#6B7280;text-transform:uppercase;">Généré le '+_apEsc(dateGenLong)+(_apIdentiteEnvoi?' &nbsp;·&nbsp; Partagé par '+_apEsc(_apIdentiteEnvoi):'')+'</div>'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#8B1A1A;font-weight:600;text-transform:uppercase;">Usage restreint — responsables sûreté</div>'
     + '</div>'
     + '<div style="text-align:center;margin-bottom:6px;">'
@@ -21250,6 +21291,9 @@ function _buildRapportSyntheseHTML(arts) {
   const dateGenLong = now.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' à '+now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
   const creneau = now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
   const perimetre = libellePerimetreRapport();
+  // Identite d'envoi ("Signer en tant que") — meme correctif que Word/PDF/
+  // PowerPoint/_apPageWrap : voir identiteRapportW dans exportWord.
+  const _synthIdentiteEnvoi = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle() : '';
 
   const nbSrcsMedia = SRCS.filter(s => !(s.rss_method||'').match(/Twitter|Telegram|Facebook/)).length;
   const nbSrcsSociales = SRCS.length - nbSrcsMedia;
@@ -21305,7 +21349,7 @@ function _buildRapportSyntheseHTML(arts) {
     + '<div class="sheet">'
 
     + '<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #16233A;padding-bottom:10px;margin-bottom:18px;">'
-    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#6B7280;text-transform:uppercase;">Généré le '+_apEsc(dateGenLong)+' &nbsp;·&nbsp; Créneau '+_apEsc(creneau)+'</div>'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#6B7280;text-transform:uppercase;">Généré le '+_apEsc(dateGenLong)+' &nbsp;·&nbsp; Créneau '+_apEsc(creneau)+(_synthIdentiteEnvoi?' &nbsp;·&nbsp; Partagé par '+_apEsc(_synthIdentiteEnvoi):'')+'</div>'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#8B1A1A;font-weight:600;text-transform:uppercase;">Usage restreint — responsables sûreté</div>'
     + '</div>'
 
@@ -21904,10 +21948,18 @@ async function exportWord(type){
     }
 
     // Pied de rapport — pas d'adresse e-mail (usage interne uniquement).
+    // Identite d'envoi ("Signer en tant que", voir identiteEnvoiActuelle) —
+    // le menu de partage du module Rapports la propose toujours, mais avant
+    // le 21/09/2026 aucun format bureautique (Word/PDF/PowerPoint) ne la
+    // reprenait nulle part dans le document genere : seul le format image
+    // l'affichait (correctif du meme jour sur genererImageActuBlob/
+    // genererImageRapportBlob). Ajoutee ici en suffixe, jamais a la place de
+    // la marque.
+    const identiteRapportW = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle() : '';
     children.push(divider());
     children.push(new Paragraph({
       alignment:AlignmentType.CENTER,
-      children:[new TextRun({text:nomMarqueActuelle()+' · '+dateStr+' UTC',size:18,italic:true,color:'9CA3AF'})],
+      children:[new TextRun({text:nomMarqueActuelle()+' · '+dateStr+' UTC'+(identiteRapportW?' · '+(LANG==='en'?'Shared by ':'Partagé par ')+identiteRapportW:''),size:18,italic:true,color:'9CA3AF'})],
     }));
 
     // En-tête/pied de page systématiques (marque + périmètre + numéro de

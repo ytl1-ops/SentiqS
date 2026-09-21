@@ -380,6 +380,84 @@ Trois règles à ne pas défaire :
 Sans `WEBHOOK_ALERTES`, le job journalise le message qui *serait* parti. C'est
 la façon de mesurer le bruit avant de brancher quoi que ce soit.
 
+**Le 20/09/2026, une seconde sortie a été ajoutée sur le même canal** :
+`scripts/lib/alerte-couverture.js` annonce les changements de l'*ensemble*
+des pays sans actualité de moins de 12 h (`couverture.paysSansArticleFrais`),
+jusque-là calculé et journalisé à chaque cycle sans que personne ne le
+relise ailleurs que dans les journaux GitHub Actions. Trois collectes
+réelles indépendantes ce jour-là, étalées sur quatre heures, ont donné
+**exactement le même septuor** (BI, BJ, ER, KM, LS, MR, SC) — un signal
+stable, pas un accident de collecte, et pourtant invisible sans aller le
+chercher à la main. C'est le pendant côté exploitation de ce que `paysMuet()`
+fait déjà côté interface (voir « Silence n'est pas calme »).
+
+Même règle « on n'annonce que les changements » que ci-dessus, avec une
+différence : contrairement à un changement de niveau, un pays sans actualité
+dès le tout premier signalement est une information utile, pas un faux
+départ — rien n'est donc supprimé au premier run. État propre dans
+`web/historique/couverture-signalee.json`, à côté de `dernier-signale.json`
+mais indépendant de lui.
+
+**Délibérément PAS branché sur `couverture.enVeille`** (sources en échec
+répété) : ce chiffre est mesuré volatile d'un cycle à l'autre selon la
+saturation des proxys CORS publics — 43 → 96 en quatre heures le 20/09/2026,
+sans rien de cassé entre les deux passages — et alerter dessus produirait
+justement le canal qu'on finit par couper.
+
+---
+
+## L'identité d'envoi ignorée par le format image
+
+Le menu de partage d'une actu ou d'un rapport propose « Signer en tant que »
+dès que plus d'une identité d'envoi est configurée (`identite1/2/3`,
+Paramètres > Marque personnalisée). Jusqu'au 21/09/2026, ce choix
+n'atteignait que le format **texte** (`signatureEnvoiActuelle()`, en pied de
+message) — le format **image** (`genererImageActuBlob`,
+`genererImageRapportBlob`, dessin `<canvas>`) ne dessinait que
+`nomMarqueActuelle()`, le nom de *marque*, un champ différent de l'identité
+choisie pour ce partage précis. Un utilisateur signant « Jean Dupont » en
+texte mais partageant en image voyait cette identité disparaître sans le
+moindre message.
+
+`identiteEnvoiActuelle()` porte maintenant la résolution partagée par les
+deux formats (nom seul, sans les `\n\n— ` du format texte, que `<canvas>` ne
+sait pas interpréter comme un saut de ligne) ; les deux fonctions de dessin
+l'affichent en bas à droite de l'image, symétrique à la date en bas à
+gauche. Neuf tests dans `scripts/test/identite-envoi.test.js`, vus échouer
+sur l'ancien code (`identiteEnvoiActuelle is not defined`).
+
+---
+
+## L'adresse de l'administrateur ne vit plus dans le code servi
+
+Audit de sécurité du 21/09/2026 : `const ADMIN_EMAIL = '...'` vivait en clair
+dans `web/SentiqS_Web.html` — n'importe quel visiteur pouvait la lire via
+« Afficher le code source ». Une vingtaine de comparaisons (`user.email ===
+ADMIN_EMAIL`) décidaient qui garde un accès illimité, qui ne peut pas être
+suspendu/supprimé, qui voit son adresse masquée dans les tableaux d'admin.
+
+La vraie frontière de sécurité vivait déjà ailleurs et n'a pas bougé : la
+migration `app/sentinel-app/supabase/migrations/20260718020000_profiles_auth.sql`
+attribue le rôle `admin` par un trigger `before insert` côté serveur — ce
+fichier-là n'est jamais servi par Pages. Le client n'avait donc jamais
+besoin de connaître l'adresse elle-même, seulement de lire un rôle déjà
+posé par le serveur.
+
+`estAdmin(u)` remplace toutes les comparaisons : lit `.role` sur un objet
+utilisateur/session, et ne retombe sur une recherche par e-mail dans
+`getUsers()` que pour les rares agrégats qui n'en portent pas (stats de
+téléchargement/trafic par e-mail seul). Six tests dans
+`scripts/test/est-admin.test.js`, vus échouer sur l'ancien code avant le
+correctif.
+
+**Ce qui reste, et pourquoi.** Deux messages affichés à un utilisateur
+suspendu ou dont l'essai a expiré ont toujours besoin d'indiquer une
+adresse de contact réelle — ce n'est pas une vérification de droits, c'est
+une information utile qu'on ne peut pas supprimer sans casser le parcours
+de récupération. Isolée dans `SUPPORT_CONTACT_EMAIL`, avec la même valeur
+qu'avant faute d'adresse professionnelle à y mettre : à remplacer dès qu'il
+en existe une, dans cette seule constante.
+
 ---
 
 ## Le cliquet sur les facteurs structurels
@@ -1271,6 +1349,471 @@ seuil, code de sortie 1.
   deux noms — et « RSS applique: 0/0 », qui ne veut rien dire pour un
   lecteur. Pendant ce temps ce qui distingue les pays rouges (87,5 / 86,5 /
   85,3 / 84) est en 9 px et « ROUGE » est répété cinq fois par carte.
+
+---
+
+## La refonte visuelle du 21/09/2026 : amplifier l'identité existante
+
+L'audit du même soir (sécurité / marketing / design) jugeait le design « trop
+classique ». Deux éléments d'identité existaient déjà, choisis lors du 3ᵉ
+rebranding (« Horizon Cobalt & Bronze »), mais quasi invisibles à l'usage :
+`--font-serif` (3 usages réels sur 20 900 lignes, tous dans des wordmarks) et
+l'accent bronze `--sig` (1 seul usage, sur une balise de thème). La refonte
+n'invente donc pas une nouvelle palette — elle amplifie une identité déjà
+tranchée mais sous-employée.
+
+**Un mockup séparé, comparé avant de toucher au fichier servi.** Deux
+artboards (`Connexion`, `Tableau de bord`) ont d'abord été construits comme
+Artifact, en fond sombre par défaut. Confronté au `:root` du fichier réel, qui
+porte une consigne explicite — pas de fond très sombre par défaut — l'écart a
+été posé à l'éditeur plutôt que tranché seul : le thème clair reste celui par
+défaut. Seules les idées typographiques et de hiérarchie du mockup passent en
+production, pas sa palette sombre en tant que défaut.
+
+**Premier incrément, scope volontairement restreint au tableau de bord.**
+Deux changements dans `renderDashboard()` :
+
+- Les tuiles pays du cartogramme (`zonePanel()`, dans `cartogramme()`)
+  passent d'un fond simplement teinté par le niveau à une carte blanche,
+  bordure supérieure colorée, ombre portée, score en 17px mono, et surtout un
+  **nom de niveau en toutes lettres** (`NIV[s.key].sous` — Stable / Modéré /
+  Élevé / Critique / Grave), absent jusqu'ici : seule la couleur portait le
+  niveau, ce qui ne sert à rien pour un lecteur qui la distingue mal.
+- L'en-tête « Carte régionale des risques » (et ses variantes Radar / Profil)
+  passe en `var(--font-serif)`, seul vrai usage de titre de section avec ce
+  traitement — l'étiquette « TABLEAU DE BORD » en tout-petit-capitales n'y
+  passe pas, le serif y nuirait à la lisibilité plutôt que d'aider.
+
+**`marqueSilence(s.cy)` a changé de voisin dans la tuile**, pas de rôle : elle
+s'affiche désormais à côté du nom du niveau plutôt qu'à côté du score. Le
+test `la marque est cablee dans la tuile du cartogramme`
+(`scripts/test/silence.test.js`) vérifiait l'ancienne adjacence par une
+regex exacte ; il a été mis à jour pour vérifier la nouvelle, pas supprimé —
+c'est le genre de test qui doit casser bruyamment si `marqueSilence` disparaît
+de la tuile, casser au premier remaniement de mise en page n'est pas une
+raison de l'affaiblir.
+
+Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`, et une capture
+Playwright du tableau de bord rendu (thème clair, jeton collecteur) comparée
+à la version d'avant.
+
+**Deuxième incrément : le Flux.** Un seul changement, volontairement
+minuscule : le bandeau diviseur par pays (visible en mode « Tous les pays »,
+`renderFeed()`, ligne ~11385) passe le nom du pays en `var(--font-serif)` —
+le seul autre vrai « titre de section » du Flux, au même rang que l'en-tête
+du cartogramme. Les titres d'actu eux-mêmes (`.atit`) n'ont **pas** été
+touchés.
+
+**Ce qui a été vérifié avant de ne pas y toucher, et pourquoi c'est
+important à noter.** `.atit`/`.asum`/`.rtg` sont déclarés deux fois dans la
+feuille de style : une première fois ligne 568 (13px/700), une seconde ligne
+1670, sous le commentaire « Titre des cartes » et avec `!important` sur
+chaque propriété. Les deux ont la même spécificité ; à spécificité égale
+c'est la déclaration la plus tardive dans le fichier qui l'emporte, donc
+c'est la seconde qui régit réellement l'écran — mesuré par style calculé
+dans Chromium (12,5px/600/IBM Plex Sans), pas supposé. Le commentaire laisse
+penser qu'elle vise `.acard` (les cartes KPI/Alertes) ; en réalité `.atit`
+n'est utilisé nulle part dans du `.acard`, seulement dans les cartes `.art`
+du Flux et de la mini-liste « Articles source » de Géopolitique — c'est donc
+bien le Flux qu'elle régit, sous un commentaire qui décrit autre chose.
+Retenu comme **lecture plausible plutôt que bug tranché** : alléger le poids
+d'un titre répété plusieurs centaines de fois à l'écran est un choix de
+densité défendable, pas forcément un accident. N'a donc pas été « corrigé »
+sans arbitrage — seulement mesuré et écrit ici, pour que la prochaine passe
+sur le Flux parte de l'état réel plutôt que du commentaire trompeur.
+
+Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`, et le Flux rendu
+avec le cache réel du 20/09 injecté dans `ALL` (la collecte réelle est
+inatteignable depuis ce bac à sable — voir « Contraintes de cet
+environnement d'exécution »).
+
+**Troisième incrément : les Alertes.** Deux changements dans `v-alertes`
+(HTML statique) : le titre « Module Niveau d'Alerte Sûreté » et l'en-tête
+« Tableau récapitulatif — Niveaux d'alerte par pays » passent tous les deux
+en `var(--font-serif)` — mêmes titres de section que le tableau de bord et
+le Flux, même traitement.
+
+**Et un troisième changement, hors typographie mais découvert en lisant
+`renderAlertCard` pour ce pass.** Chaque fiche pays affichait une ligne de
+debug interne, inconditionnelle (`score.debug` est toujours renseigné, le
+`?:` qui semblait la gater ne gate donc jamais rien) : `Verifies: X | RSS
+applique: Y/Z | Facteurs: N`. C'est exactement les deux défauts nommés dans
+l'audit du 07/09/2026 (« Ce qui n'a pas été touché, et pourquoi ») :
+`RSS applique: 0/0` illisible pour un lecteur, et `Facteurs: N` qui
+redouble — même valeur, `score.debug.specials` n'étant que
+`score.specialScore` recopié — le « Aggravants : N » déjà affiché juste
+au-dessus dans la bande de score. Contrairement aux autres points de cette
+liste, celui-ci n'avait pas de justification éditoriale associée dans
+CLAUDE.md : ligne supprimée du rendu de la carte. L'objet `score.debug`
+reste en place (rien d'autre n'en dépendait, vérifié par recherche dans
+`scripts/test/`) — seul son affichage dans la carte disparaît.
+
+Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`, et les 54 fiches
+pays rendues avec le cache réel du 20/09 injecté dans `ALL` (`recalcAlertes()`
+appelé directement, `switchView` seul ne suffit pas à peupler la grille dans
+ce contexte de test).
+
+**Ce qui reste hors scope** : la répétition « ROUGE » (badge + libellé) et le
+9 px qui distingue les scores les plus élevés, tous deux nommés dans l'audit
+du 07/09/2026, n'ont pas été repris ici — ce sont des questions de hiérarchie
+visuelle de la carte, pas d'amplification de l'identité, et elles mériteraient
+leur propre passage mesuré plutôt qu'un ajout à celui-ci. Agenda,
+Géopolitique, Synthèse et Rapports n'ont pas non plus été touchés.
+
+**Quatrième incrément : l'Agenda.** Trois titres, tous de vrais moments de
+« masthead » plutôt que des étiquettes structurelles, passent en
+`var(--font-serif)` :
+
+- Le titre de module « Agenda sûreté — [zone] » (`#agTitreZone`, mis à jour
+  dynamiquement par `renderAgenda()` — c'est un attribut `style`, pas la
+  classe `.ag-tt` partagée avec `#geoTitre` de Géopolitique, pour ne pas
+  faire déborder ce changement sur un module qui n'est pas encore passé).
+- Le libellé mois de la vue Calendrier (« Septembre 2026 »,
+  `renderAgendaCalendrierHtml`).
+- Le libellé année de la vue Année (« 2026 », `renderAgendaAnneeHtml`).
+
+Les en-têtes de section internes (« ÉVÉNEMENTS PASSÉS DE 2026 », les
+étiquettes de statut EN COURS/URGENT/PLANIFIÉ) restent en petites capitales
+sans-serif — même logique que la tuile « TABLEAU DE BORD » et les libellés
+de ville du Flux : ce sont des repères de structure, pas des titres.
+
+Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`, et les trois vues
+(liste, calendrier, année) rendues avec le cache réel du 20/09 injecté dans
+`ALL` (105 événements dérivés via `articleVersAgenda`).
+
+**Cinquième incrément : la Géopolitique.** Un seul changement : le titre de
+module `#geoTitre` passe en `var(--font-serif)`, via un attribut `style`
+propre (même raison que pour `#agTitreZone` : la classe `.ag-tt` est
+partagée entre les deux titres, seul celui du module en cours de passage
+doit changer). `#geoTitre` sert aussi bien à l'aperçu (« Géopolitique ») qu'à
+la fiche d'un pays sélectionné (« Géopolitique — 🇨🇫 Centrafrique »,
+texte remplacé par `childNodes[0].nodeValue`, jamais l'attribut `style`) : le
+changement couvre donc les deux vues sans édition supplémentaire.
+
+Pas d'autre section de ce module ne s'y prêtait : les libellés restants
+(« PUBLICATIONS GÉOPOLITIQUES — SOURCES OUVERTES & GRATUITES », « ARTICLES
+SOURCE », les cartes-thème dans `genererAnalyseGeopolitique`) sont soit des
+petites capitales structurelles, soit des cartes de contenu répétées — même
+distinction que dans les quatre incréments précédents.
+
+Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`, et les deux vues
+(aperçu et détail pays) rendues avec le cache réel du 20/09 injecté dans
+`ALL`.
+
+**Sixième incrément : la Synthèse** (module interne « analyse »,
+`id="v-analyse"` — le nom d'affichage a changé sans que l'id ni les
+identifiants JS suivent). Un seul changement, mais le plus net des six :
+`.sy-tt`, le titre de la page de couverture du rapport (« Synthèse
+sécuritaire — [zone] »), passe en `var(--font-serif)`. Classe éditée
+directement (un seul usage dans tout le fichier, contrairement à `.ag-tt`
+partagée entre Agenda et Géopolitique) plutôt qu'un attribut `style`.
+
+C'est le bloc `.sy-cv` qui s'en rapproche le plus d'une vraie couverture de
+rapport dans toute l'appli : une étiquette d'usage restreint au-dessus, le
+titre, la date, puis les compteurs critiques/élevés/sources — la mesure
+avant/après est nette, le titre se détache maintenant clairement de
+l'étiquette au-dessus et des sections en dessous, plutôt que de n'être
+qu'une ligne plus grosse dans la même famille sans-serif. `.sy-tg`
+(étiquette d'usage restreint, petites capitales) et `.sy-shd` (en-têtes de
+catégorie — Situation sécuritaire, Axe humanitaire, Pouls réseaux
+sociaux...) restent sans-serif, même distinction que partout ailleurs.
+
+Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`, et la synthèse
+rendue avec le cache réel du 20/09 injecté dans `ALL` (`updSynthese()`
+appelé directement après `switchView('analyse', ...)` — le nom de vue
+interne, pas le libellé affiché).
+
+**Septième et dernier incrément : les Rapports.** Le titre de module
+« Rapports & exports » (static HTML, sans id, pas de classe partagée) passe
+en `var(--font-serif)`.
+
+**Et une trouvaille qui referme la boucle plutôt que d'ouvrir un nouveau
+chantier.** En cherchant s'il existait, comme pour la Synthèse, un vrai
+« masthead » de couverture à amplifier dans ce module, il s'est avéré que
+les documents générés pour impression/aperçu (`_apPageWrap`, utilisée par
+Flux/Agenda/Alertes/Rapport complet, et son équivalent autonome
+`_buildRapportSyntheseHTML`) importent **déjà** Source Serif 4 depuis
+Google Fonts et l'utilisent pour leur `<h1>` (40px/800) et leurs chiffres
+de synthèse (32px/700) — cohérent avec `--sig`/`--font-serif`, mais écrit
+indépendamment, avant cette série d'incréments. Les documents exportés
+(Word/PDF/PowerPoint envoyés aux clients) étaient donc déjà à l'identité
+cible ; c'est l'interface live qui était en retard, exactement ce que ces
+sept incréments viennent de rattraper. Rien à changer côté export.
+
+Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`, et le module
+rendu avec le cache réel du 20/09 injecté dans `ALL`.
+
+**Bilan des sept incréments (21/09/2026).** Tableau de bord, Flux, Alertes,
+Agenda, Géopolitique, Synthèse, Rapports — chaque titre de section réel
+amplifie maintenant `var(--font-serif)`, jamais les petites capitales
+structurelles ni les titres d'articles/cartes répétés en liste, cette
+distinction étant tenue identique d'un module à l'autre. Un seul effet de
+bord trouvé et corrigé en cours de route, documenté à son incrément : la
+ligne de debug qui fuitait dans chaque fiche d'alerte (3/N) — le reste de
+chaque passage s'est limité à la typographie. Aucun test cassé sur les sept
+commits ; deux points restent volontairement écrits ici plutôt que corrigés
+sans arbitrage éditorial (la répétition « ROUGE » et le score en 9px des
+Alertes ; le fait que `.atit` du Flux soit piloté par une règle plus tardive
+que celle qu'on lit en premier dans le fichier).
+
+---
+
+## L'identité d'envoi manquait aussi dans les rapports bureautiques
+
+Suite du correctif du 21/09/2026 sur le format image (voir « L'identité
+d'envoi ignorée par le format image ») : le menu de partage du module
+Rapports propose *toujours* « Signer en tant que » (contrairement au partage
+d'une actu, où il ne s'affiche qu'à partir de 2 identités configurées — un
+rapport partagé au nom d'une organisation doit pouvoir préciser qui l'envoie
+même avec une seule identité renseignée). Mais `_partageIdentiteChoisie`,
+posée par `envoyerRapportCanal()` avant de générer le document, n'était lue
+nulle part dans les cinq générateurs de document : `exportWord`, `exportPDF`,
+`exportPPTX`, `_apPageWrap` (aperçu HTML de Flux/Agenda/Alertes/Rapport
+complet) et `_buildRapportSyntheseHTML` (aperçu HTML de la Synthèse)
+n'affichaient tous que `nomMarqueActuelle()` — le nom de *marque*, jamais
+l'identité choisie pour ce partage précis. Un utilisateur choisissant
+« Jean Dupont » voyait ce choix appliqué à l'image mais disparaître
+silencieusement dès qu'il téléchargeait un Word, un PDF, un PowerPoint ou un
+aperçu imprimable.
+
+`identiteEnvoiActuelle()` est désormais lue dans les cinq, toujours en
+**suffixe** du pied de page ou du bandeau de date/créneau existant, jamais à
+la place de la marque : « Généré le [date] · Partagé par [identité] » (PDF
+tronqué à 28 caractères, seul format à dessiner ce bandeau à position fixe
+sans retour à la ligne — les autres sont en flux HTML/Word et absorbent
+naturellement un nom plus long). Dans le PowerPoint, l'auteur du fichier
+(métadonnée « Propriétés ») porte l'identité plutôt que la marque — la
+Société (`pres.company`), elle, reste la marque, comme le veut la
+convention Word/PowerPoint habituelle.
+
+**Trouvée en même temps, sans lien avec l'identité :** la diapositive de
+couverture du PowerPoint écrivait `'SentiqS'` en dur au lieu d'appeler
+`nomMarqueActuelle()` — seul endroit du fichier où une marque personnalisée
+restait ignorée alors que Word/PDF/l'aperçu HTML l'affichent tous
+correctement. Corrigé au même endroit.
+
+Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`, et les deux
+aperçus HTML (Flux, Synthèse) ouverts dans Chromium avec deux identités
+configurées — le texte généré contient bien « Partagé par Jean Dupont ».
+Word/PDF/PowerPoint n'ont pas pu être exécutés dans ce bac à sable (leurs
+bibliothèques — docx.js, pdf-lib, pptxgenjs — se chargent depuis
+`cdn.jsdelivr.net`/`cdn.sheetjs.com`, injoignables ici, voir « Contraintes de
+cet environnement d'exécution ») : le correctif y est strictement le même
+motif, déjà prouvé sur les deux formats testables.
+
+**Trouvée en creusant la même zone, une deuxième adresse en clair.** Le
+métadonnées Excel (`exportExcel`, onglet « Métadonnées ») portait
+`_maskEmail('yorot225@gmail.com')` — une deuxième copie littérale de
+l'adresse à côté de `SUPPORT_CONTACT_EMAIL`, exactement la duplication que
+cette constante devait éviter (voir « L'adresse de l'administrateur ne vit
+plus dans le code servi »). Remplacée par `_maskEmail(SUPPORT_CONTACT_EMAIL)`.
+Une troisième copie vivait dans le lien de contact du bandeau de pied de
+page (HTML statique, avant tout script) : l'élément porte désormais un id
+et son `href`/texte sont synchronisés depuis `SUPPORT_CONTACT_EMAIL` au
+chargement, pour qu'un changement de cette constante se propage partout —
+c'était tout l'intérêt de l'avoir isolée.
+
+---
+
+## Le rail de navigation vertical du 21/09/2026
+
+Demande explicite : passer les neuf onglets de modules (Flux, Recherche,
+Synthèse, Agenda, Géopolitique, Rapports, Alertes, Tableau de bord,
+Paramètres) d'une barre horizontale à un rail vertical, sans rien changer
+au fonctionnement. `.nav-wrap` (jusque-là frère de `.layout`, tous deux
+enfants directs de `<body>`) devient le premier enfant de `.layout`, à
+côté de `.main` : `.layout{display:flex}` range les deux côte à côte sur
+ordinateur, `.ntab` passe de `border-bottom` à `border-left` pour son
+accent de sélection, et `clavierOnglets(ev)` gagne `ArrowDown`/`ArrowUp`
+comme alias de `ArrowRight`/`ArrowLeft` — un rail vertical se parcourt
+naturellement de haut en bas.
+
+**Mobile reste inchangé, mais ça ne va pas de soi.** Le rail vertical est
+scopé au bureau ; sur petit écran (`html:not(.force-web)`) et en mode
+mobile forcé (`html.force-mobile`) une règle restaure explicitement
+`.nav-wrap{flex-direction:row}` pour retrouver la barre horizontale du
+haut. Un premier jet laissait `.layout{display:flex}` (donc **ligne**, pas
+colonne) sur mobile aussi, avec `align-items:stretch` hérité : `.nav-wrap`,
+qui n'a plus de largeur fixe sur mobile, se dimensionnait alors à son
+contenu (861 px, neuf onglets côte à côte) au lieu de la largeur de
+l'écran, et s'étirait sur toute la hauteur disponible (`align-items:stretch`
+sur l'axe croisé d'une ligne, c'est la hauteur) — un immense bandeau vide
+avec les onglets perdus au milieu, mesuré et vu à l'écran avant d'être
+compris. Correctif : `.layout{flex-direction:column}` sur mobile
+uniquement, pour que `.nav-wrap` redevienne une bande horizontale de
+hauteur naturelle au-dessus de `.main`, comme avant le passage au rail.
+
+**Le module plein écran cassait aussi, silencieusement au premier clic.**
+`ouvrirModulePleinEcran()` déplaçait explicitement `.nav-wrap` ET `.layout`
+(`document.querySelector('body > .nav-wrap')`) vers l'overlay, parce que
+les deux étaient jusque-là des frères directs du `<body>`. Une fois
+`.nav-wrap` imbriqué dans `.layout`, ce sélecteur ne trouvait plus rien —
+`navWrap.parentNode` levait `Cannot read properties of null`, détecté par
+Playwright, pas par les 403 tests (aucun ne couvrait cette fonctionnalité).
+Simplifié plutôt que rafistolé : `.nav-wrap` étant maintenant le premier
+enfant de `.layout`, déplacer `.layout` seul suffit, il l'emporte avec lui.
+`fermerModulePleinEcran()` simplifiée à l'identique.
+
+`scripts/test/navigation-clavier.test.js` bornait sa tranche sur un
+`</div>\n</div>` qui n'avait jamais été la vraie fin de `#navTabs` — une
+coïncidence ailleurs dans le fichier, cessée d'exister après le
+déplacement (piège récurrent de `tranche()`, déjà documenté plus haut).
+Rebornée sur `<button class="nav-arrow nav-arrow-r"`, qui suit réellement
+la liste d'onglets dans les deux dispositions.
+
+Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`, et Playwright
+sur trois configurations — bureau (rail vertical 208px, changement de
+module au clic, `ArrowDown` déplace le focus), mobile auto-détecté à
+390px (barre horizontale, largeur correcte), mobile forcé sur écran large
+(barre horizontale identique) — plus l'aller-retour plein écran
+(ouverture, fermeture, `.nav-wrap` restauré à sa place, changement de
+module encore fonctionnel après).
+
+---
+
+## La bannière publicitaire retirée, pas seulement masquée
+
+`initAdBanner()` était un no-op depuis un incident antérieur (Auto Ads
+injectant des formats plein écran incontrôlables) et `.ad-banner` restait
+`display:none` en dur dans le HTML — aucune publicité ne s'affichait plus
+nulle part, mais tout le balisage (HTML, CSS, i18n FR/EN, les fonctions
+`dismissAdBanner`/`initAdBanner`, les constantes `ADSENSE_CLIENT_ID`/
+`ADSENSE_SLOT_ID`, la balise `<script>` AdSense commentée et le meta de
+vérification de compte) restait en place, en attente d'une réactivation
+qui n'était plus prévue. Demande explicite de retirer la pub : plutôt que
+de laisser cette dette de code mort grandir, l'ensemble est supprimé —
+`web/SentiqS_Web.html` ne contient plus aucune trace d'AdSense.
+
+Effet de bord sur `ouvrirModulePleinEcran()` (voir section précédente) :
+la liste des éléments masqués en plein écran perd `.ad-banner`.
+
+**Ce qui reste, volontairement.** Le panneau d'administration
+« Tarification & abonnements » décrit encore le modèle économique
+(« La version gratuite reste financée par les publicités affichées... »)
+et les grilles de fonctionnalités des offres portent « Publicités
+affichées » / « Sans publicité ». C'est la description d'un modèle
+tarifaire, pas du code d'affichage — retirer le bandeau ne change rien à
+ce que ces offres promettent commercialement. Ce texte n'a pas été
+touché : le faire aurait été un arbitrage sur l'offre commerciale, pas un
+nettoyage de code mort, et il appartient à l'éditeur.
+
+`scripts/test/chargement.test.js` portait déjà un test qui vérifiait que
+le bandeau restait masqué (`display:none`) ; il est remplacé par un test
+qui vérifie l'absence complète du balisage, des fonctions et de toute
+trace AdSense — vu échouer sur l'ancien code avant le retrait.
+
+Vérifié : `npm test` (403/403), `verifier-syntaxe-html.js`.
+
+---
+
+## Le Flux appliquait encore 12h, trois cycles après le passage à 36h
+
+Signalement du 21/09/2026 : « la zone de consultation des actus est très
+réduite et pénible à parcourir ». Le symptôme pointait vers l'affichage,
+la cause était dans le filtre. `FENETRE_ACTUALITE_MS` (36h depuis le
+06/09/2026, voir « La fenêtre d'actualité » plus haut) est censée
+gouverner le Flux — mais `getFiltered()`, la fonction qui peuple
+concrètement le Flux, portait son propre `MAX_AGE = 12*60*60*1000` en dur
+et l'imposait à `antiHalluFilter()` en second argument, écrasant le repli
+de cette dernière sur `FENETRE_ACTUALITE_MS`. Reste de l'ancienne fenêtre,
+jamais mis à jour au moment du passage à 36h : le Flux affichait moins
+d'un tiers de ce que la fenêtre documentée autorise, alors que le tableau
+de bord et le compteur de pays couverts (qui appellent `estRecentReel()`
+directement, sans ce second argument) affichaient déjà, eux, la bonne
+fenêtre — deux modules de la même page en désaccord sur ce qui compte
+comme actualité, sans qu'aucun contrôle ne le détecte.
+
+**Mesuré sur un jeu synthétique de 746 articles répartis uniformément sur
+0 à 39h** (rejoue `getFiltered()` sur la vraie page, comme `tableau-niveaux.js`
+et les autres scripts de mesure de ce dépôt) :
+
+| | Avant | Après |
+|---|---:|---:|
+| Articles affichés | 207 | **582** |
+| Pays couverts | 35 | **48** |
+
+Une distribution synthétique uniforme n'est pas la distribution réelle des
+publications (voir « La fenêtre d'actualité » : les sources ne publient pas
+à rythme constant), donc ces chiffres précis ne sont pas ceux d'une
+collecte réelle — mais l'écart de nature (moins d'un tiers du contenu
+promis par la fenêtre documentée) est la mesure qui compte ici, pas le
+chiffre exact.
+
+**Même défaut, deuxième endroit, plus grave car cumulatif.**
+`publierCollectePartagee()` — la fonction qui écrit le cache partagé que
+*tous* les visiteurs lisent (voir « Collecte planifiée ») — fusionne le
+cache existant avec les articles fraîchement collectés, puis purge de la
+fusion tout ce qui dépasse un âge donné avant de republier. Cette purge
+portait le même `12*60*60*1000` en dur. Le job tourne plusieurs fois par
+jour (3h24 à 5h51 d'écart réel, voir « Collecte planifiée ») : à chaque
+cycle, tout article de 12 à 36h hérité d'un cycle précédent et non
+re-collecté ce coup-ci (le cas courant pour la presse africaine qui publie
+une fois par jour, voir « La fenêtre d'actualité ») sortait purement et
+simplement du cache partagé — invisible pour quiconque le lit ensuite,
+alors que la fenêtre documentée dit qu'il devait encore compter comme
+actualité pendant jusqu'à 24h de plus.
+
+**Troisième endroit, mineur** : `compteurRegional()` (statistique
+« Régional » de la bande repliée du Flux) comptait aussi à 12h — même
+correctif, impact visuel faible (bande repliée par défaut).
+
+**Six autres occurrences du même `12*60*60*1000` étaient du code mort** :
+une variable locale déclarée puis jamais lue, le filtre réel juste
+en-dessous appelant déjà `estRecentReel()` (36h, correct) — dans le
+purgeur de collecte, `updStats()`, `showKpiDrill()`, `renderDashboard()`,
+le chargement du cache au démarrage, et `updateSocialCounts()`. Retirées :
+un nom qui dit « 12h » a beau ne servir à rien, il ment à qui lit le code
+ensuite.
+
+**Deux occurrences restent, et sont légitimes — un cliquet nouveau les
+distingue explicitement.** `getLiveAlertEvents()` garde volontairement une
+fenêtre plus courte que le Flux (documenté plus haut, « La règle qui
+compte »). `FCDO_CACHE_MS` n'a rien à voir avec la fraîcheur d'un article :
+c'est la durée de cache d'un appel à l'API de conseils aux voyageurs du
+Foreign Office britannique, une limitation de fréquence réseau qui
+partage la même valeur numérique par coïncidence. `scripts/test/fenetre-flux.test.js`
+compte les occurrences de `12*60*60*1000` dans tout le fichier et exige
+exactement deux, nommées ; toute troisième future doit justifier
+pourquoi elle échappe à `FENETRE_ACTUALITE_MS`, exactement le silence qui
+a permis à ce défaut de durer trois passages d'arbitrage éditorial sans
+être vu.
+
+Les quatre tests de ce fichier ont d'abord été vus échouer sur le code
+d'avant correctif (0/4).
+
+Vérifié : `npm test` (407/407), `verifier-syntaxe-html.js`, `verifier-i18n.js`,
+et la mesure Playwright ci-dessus rejouée sur `web/SentiqS_Web.html`.
+
+---
+
+## La refonte des tuiles du cartogramme avait réintroduit le jaune illisible
+
+CI (`Moteur de collecte`, PR #94) a fait échouer `verifier-accessibilite-interface.js`
+sur les tuiles pays du tableau de bord : 32 textes sous le seuil AA, tous
+`rgb(202,138,4)` — le jaune d'alerte brut (`--j`, `#CA8A04`), 2,94:1 sur
+blanc contre un seuil de 4,5:1. Exactement le défaut déjà corrigé une fois
+(voir « L'audit d'interface du 07/09/2026 », `--j-txt` existe justement pour
+ce cas) — réintroduit par le premier incrément de la refonte du 21/09/2026
+(score en 17px + nom du niveau en toutes lettres dans `zonePanel()`), qui
+réutilisait `scoreColor(s)` — pensée pour les bordures/pastilles — comme
+couleur de **texte**.
+
+`textColor(s)` ajouté à côté de `scoreColor(s)` (`renderDashboard()`,
+même portée) : mapping identique sauf jaune, qui bascule sur `--j-txt` au
+lieu de `--j`. `col` (brut) reste réservé au non-texte (`border-top`,
+`outline`) ; le score et le libellé de niveau prennent `txt`.
+
+**Ce script ne s'exécute pas dans ce bac à sable par défaut** — il cherche
+`chromium_headless_shell`, absent ici — mais `CHROMIUM_PATH` le fait
+pointer vers le binaire disponible localement :
+
+```bash
+CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome \
+  node scripts/verifier-accessibilite-interface.js
+```
+
+Vérifié ainsi, avant/après : 32 → **0** texte(s) sous le seuil. Puis
+`npm test` (407/407) et `verifier-syntaxe-html.js`.
 
 ---
 
