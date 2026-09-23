@@ -1433,6 +1433,24 @@ html:not(.force-web) .mob-toggle{display:flex !important;align-items:center;gap:
     color:var(--b);cursor:pointer;flex-shrink:0;}
 html:not(.force-web) .mob-toggle i{font-size:11px;transition:transform .15s}
 html:not(.force-web) .mob-toggle.open i{transform:rotate(180deg)}
+/* Budget vertical mobile du 23/09/2026 (voir CLAUDE.md) : .proxy-bar pesait
+   175px sur les 844px d'un ecran de telephone type, plus que la zone de
+   lecture elle-meme (290px). pb-title et pb-step-detail masques (voir le
+   commentaire pres du HTML de #proxyBar : aucune information retiree,
+   seulement moins dense) ; .tlbr resserre sans rien cacher (la recherche,
+   les chips et le tri restent tous accessibles, juste sur une hauteur
+   moindre). */
+html:not(.force-web) .proxy-bar{padding:7px 12px;gap:8px}
+html:not(.force-web) .pb-ico{font-size:15px;margin-top:0}
+html:not(.force-web) .pb-title{display:none}
+html:not(.force-web) .pb-step-detail{display:none}
+html:not(.force-web) .pb-step{font-size:11px}
+html:not(.force-web) .pb-body{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+html:not(.force-web) .pb-steps{flex-shrink:0}
+html:not(.force-web) .pb-pills{margin-top:0}
+html:not(.force-web) .tlbr{padding:5px 10px;gap:5px}
+html:not(.force-web) .srch{padding:2px 7px}
+html:not(.force-web) .chip{padding:3px 8px}
 }
 @media (min-width:761px){
 html:not(.force-mobile) .mob-toggle{display:none !important}
@@ -1526,6 +1544,17 @@ html.force-mobile .mob-toggle{display:flex !important;align-items:center;gap:5px
     color:var(--b);cursor:pointer;flex-shrink:0;}
 html.force-mobile .mob-toggle i{font-size:11px;transition:transform .15s}
 html.force-mobile .mob-toggle.open i{transform:rotate(180deg)}
+html.force-mobile .proxy-bar{padding:7px 12px;gap:8px}
+html.force-mobile .pb-ico{font-size:15px;margin-top:0}
+html.force-mobile .pb-title{display:none}
+html.force-mobile .pb-step-detail{display:none}
+html.force-mobile .pb-step{font-size:11px}
+html.force-mobile .pb-body{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+html.force-mobile .pb-steps{flex-shrink:0}
+html.force-mobile .pb-pills{margin-top:0}
+html.force-mobile .tlbr{padding:5px 10px;gap:5px}
+html.force-mobile .srch{padding:2px 7px}
+html.force-mobile .chip{padding:3px 8px}
 html.force-mobile .ntab span{font-size:9px}
 html.force-mobile .ntab i{font-size:13px}
 html.force-web .mob-toggle{display:none !important}
@@ -2219,10 +2248,20 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
 <div class="proxy-bar" id="proxyBar">
   <div class="pb-ico">⚡</div>
   <div class="pb-body">
+    <!-- Refonte mobile du 23/09/2026 : ce bandeau pesait 175px sur un ecran
+         de 844px de haut (voir CLAUDE.md, budget vertical du Flux), plus que
+         la zone de lecture elle-meme. pb-title redoublait le debut de
+         pb-step ("Collecte RSS automatique — Cliquez Actualiser" /
+         "Cliquez sur Actualiser") ; masque sur mobile, l'action reste ecrite
+         en gras dans pb-step. Le detail (pb-step-detail) suit la meme
+         logique — masque sur mobile, visible partout ailleurs : aucune
+         information n'est retiree, seule sa densite change avec l'espace
+         disponible, comme le fait deja majDebordementOnglets() pour la
+         barre de navigation. -->
     <div class="pb-title" data-i18n="proxy_title">Collecte RSS automatique — Cliquez Actualiser</div>
     <div class="pb-steps">
       <div class="pb-step">
-        <b>Cliquez sur Actualiser</b> — la veille se met a jour depuis le cache partage, ou relance une collecte si celui-ci a vieilli. Aucune installation requise.
+        <b>Cliquez sur Actualiser</b><span class="pb-step-detail"> — la veille se met a jour depuis le cache partage, ou relance une collecte si celui-ci a vieilli. Aucune installation requise.</span>
       </div>
     </div>
     <div class="pb-pills" id="pbPills">
