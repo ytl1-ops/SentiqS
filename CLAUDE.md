@@ -1817,6 +1817,146 @@ Vérifié ainsi, avant/après : 32 → **0** texte(s) sous le seuil. Puis
 
 ---
 
+## Le système de design du 23/09/2026 : échelle typographique, espacement, rayons
+
+Audit du 23/09/2026 sur le DOM rendu des 8 modules (mesure, pas estimation) :
+**22 tailles de police distinctes**, et **70 % du texte** (12 114 nœuds sur
+17 262) **sous 10px**. La taille la plus utilisée de toute l'application
+était 8px, 207 textes étaient à 7px, et le haut de l'échelle était quasi
+vide (165 nœuds à 17px seulement) : pas de hiérarchie, seulement « du petit
+avec des variantes ». Même constat sur l'espacement (21 valeurs, tous les
+entiers de 1 à 16px) et les rayons (11 distincts). Sur un outil consulté sur
+un portable en plein jour par un professionnel de la sûreté, c'est le défaut
+qui coûte le plus cher en lisibilité.
+
+**La dette était concentrée, pas diffuse.** 79 signatures de composants pour
+14 898 nœuds sous 11px, dont 20 faisaient 90 % du volume — presque toutes
+des pastilles de carte d'actu (`.stag` 1677×, `.balise` 1183×,
+`.cy-niv-pill`, `.conf-badge`, `.rtag`, `.social-badge`, `.utg`, `.rpill`).
+Chaque carte portait une dizaine de micro-étiquettes à 8px autour d'un
+titre à 12,5px.
+
+Sept tailles dans `:root` (`--fs-micro` à `--fs-xl`), un **plancher à
+10px** (aucune pastille ne descend plus bas), six espacements
+(`--sp-1` à `--sp-6`, base 4), trois rayons + une pilule. Appliqués à la
+carte d'actu (`.art`, `.atit`, `.asum`, `.stag`, `.balise`, `.rtag`,
+`.cy-niv-pill`, `.rpill`, `.tr-btn`, `.share-trigger`…) et aux badges à 7px
+des fiches d'alerte (`-12H`, `Signal RSS`, `Vérifié`).
+
+Le titre d'actu (`.atit`) était régi par une déclaration `!important` plus
+tardive que celle qu'on lit en premier dans le fichier (même piège que
+l'audit du 21/09/2026) : corrigée en même temps, 12,5px/600 → 15px/700.
+
+Mesuré avant → après : texte sous 10px **70 % → 18 %** (12 114 → 3 065).
+
+Vérifié : `npm test` (407/407), `verifier-syntaxe-html.js`,
+`verifier-accessibilite-interface.js` (0 texte sous le seuil AA).
+
+---
+
+## Le budget vertical mobile du Flux : 175px de bandeau, 87px après
+
+Suite directe de l'audit ci-dessus : la carte d'actu agrandie aggravait le
+scan mobile tant que la moitié de l'écran restait mangée par des bandeaux.
+Mesure précise, poste par poste, sur un écran de téléphone type (844px de
+haut) : `.tb` 46px, **`.proxy-bar` 175px**, `.cbar` 31px, `.flashinfo`
+26px, `.compact-filters` 28px, `.tlbr` 85px, `.sstrip-hd` 17px — 554px de
+chrome avant la première actu, contre 290px de zone de lecture (34 % de
+l'écran). Le bandeau « Collecte RSS automatique » à lui seul valait plus
+que la zone de lecture.
+
+`pb-title` (« Collecte RSS automatique — Cliquez Actualiser ») masqué sur
+mobile uniquement : il redoublait le début, en gras, de `pb-step`
+(« **Cliquez sur Actualiser**… »). Le détail explicatif
+(`pb-step-detail`, « la veille se met à jour depuis le cache partagé… »)
+masqué sur mobile mais intact sur bureau (vérifié inchangé, 74px). La
+pastille « Détection en cours » rejoint le texte sur la même ligne
+(`pb-body` en flex) au lieu d'une ligne séparée. **Aucune information
+retirée** — la croix de fermeture et son `localStorage` restent
+identiques, et tout redevient visible sur bureau ou en re-largissant la
+fenêtre.
+
+Mesuré avant → après : bandeau 175px → **87px**, zone de lecture 290px →
+**380px** (34 % → 45 % de l'écran).
+
+Vérifié : `npm test` (407/407), `verifier-syntaxe-html.js`,
+`verifier-accessibilite-interface.js`, capture bureau confirmant qu'il n'a
+pas bougé.
+
+---
+
+## La palette du 23/09/2026 : direction B, « bronze en avant »
+
+Signalement du 23/09/2026 après l'audit typographique : « ressemble à une
+appli démo ». Mesure, pas impression : `var(--b)` (l'accent cobalt,
+`#2C5AAE`) et ses dérivés servaient **à la fois** la structure (rien, elle
+était déjà navy), l'action (boutons, liens) **et** les états actifs
+(onglets, chips, filtres) — un seul bleu générique faisait tout le travail
+d'interface, exactement le registre visuel d'un gabarit SaaS non
+personnalisé. Le bronze de marque (`--sig`, choisi au 3ᵉ rebranding
+« Horizon Cobalt & Bronze ») n'avait qu'un usage réel avant le 21/09/2026
+(audit du même jour).
+
+**Trois maquettes comparées avant de toucher au fichier servi** (même
+méthode que le 21/09/2026 pour la typographie serif) : l'état actuel, une
+direction « cobalt approfondi » (même identité, plus dense), et une
+direction « bronze en avant » (structure navy, action bronze — deux rôles
+distincts au lieu d'un bleu unique partout). L'éditeur a tranché pour la
+troisième : donner un rôle distinct à chaque couleur de la palette déjà
+choisie, plutôt qu'inventer une nouvelle palette.
+
+**Un seul jeu de tokens, tout le produit suit** : `--b` (155 usages),
+`--bl`/`--bb` (38+14 usages) passent du cobalt au bronze — la même valeur
+que `--sig`/`--sigl`/`--sigb`, jusque-là quasi inutilisés. `--n`/
+`--nav-bg`/`--nav-border` restent navy : c'est le rôle structurel de
+Direction B, il n'a pas besoin de changer. Neutres (`--t`, `--t2`, `--gr`,
+`--lg`, `--sf`, `--bd`, `--page-bg`) reteintés chaud (gris-bleu → gris-brun)
+pour que le blanc/gris froid restant ne jure pas à côté du bronze.
+
+**Chaque remplacement mesuré au moins égal au ratio de contraste WCAG
+d'origine**, jamais estimé à l'œil — calculé avant d'écrire la moindre
+valeur dans `:root` (luminance relative, formule WCAG). Aucun n'est
+descendu sous 4,5:1 ; la plupart dépassent l'ancien ratio (`--lg` sur
+blanc : 5,43:1 → 6,21:1). Vérifié ensuite sur le DOM rendu :
+`verifier-accessibilite-interface.js`, 0 texte sous le seuil.
+
+**Le vert/jaune/orange/marron/rouge de sévérité n'a pas bougé, et c'est
+délibéré** — c'est la garantie que ce changement de palette ne peut
+silencieusement faire dire à un pays qu'il est plus ou moins dangereux
+qu'il ne l'est. Ni les couleurs d'identité des sources dans le registre
+(`SRCS`, `col:`, 500+ entrées) ni les cartes de classification sémantique
+(`NIVEAU_COL`, `lbg()`, `TT_NIV_COL`, `LVL_COL`, `COULEUR_STATUT`, `TYP`
+des types d'événements d'agenda, la catégorie « politique » de
+Géopolitique/Synthèse) n'ont été touchées : ce sont des cartes de
+signification, pas du chrome décoratif, et les modifier aurait été un
+arbitrage différent, plus risqué, jamais demandé.
+
+**Une trentaine d'usages de `#2C5AAE`/`rgba(44,90,174,…)` codés en dur**,
+hors du système de tokens, ont été retrouvés et alignés à la main —
+boutons « Actualiser » de chaque module (Flux, Recherche, Synthèse,
+Agenda, Rapports, Diagnostic), logo, barre de progression de collecte,
+badges « Auto »/« Nouveau », carte pays mise en avant, halos et
+soulignés des images générées pour le partage. Les générateurs de rapports
+exportés (`_apPageWrap`, `_apCorrelationCard`) codent déjà toutes leurs
+couleurs en dur (pas de `var()`, contexte hors de `:root`) : la même valeur
+bronze y est recopiée littéralement pour rester cohérente avec le motif
+existant.
+
+**Le thème sombre avait sa propre surcharge**, oubliée si elle n'avait pas
+été relue : `--bl`/`--bb` y restaient teintés cobalt alors que le thème
+clair venait de passer au bronze — un bouton bronze à côté de pastilles
+encore bleues dès l'activation du thème sombre. Corrigé au minimum
+nécessaire (`--b`/`--bl`/`--bb` alignés sur la variante bronze déjà
+définie pour `--sig` en sombre) ; **les neutres du thème sombre n'ont pas
+été reteintés** — hors du périmètre comparé sur maquette (le thème clair
+reste celui par défaut), à reprendre dans un passage dédié si besoin.
+
+Vérifié : `npm test` (407/407), `verifier-syntaxe-html.js`,
+`verifier-accessibilite-interface.js` (0 texte sous le seuil AA), capture
+des 9 modules (bureau + mobile) sans erreur JavaScript.
+
+---
+
 ## Conventions
 
 - **Tout en français** : commits, commentaires, noms de fonctions et de
