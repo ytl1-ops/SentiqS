@@ -1,132 +1,111 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --sentiqs-bg: #081018;
+    --sentiqs-surface: #0f172a;
+    --sentiqs-surface-2: #111c2e;
+    --sentiqs-panel: rgba(15, 23, 42, 0.82);
+    --sentiqs-border: rgba(148, 163, 184, 0.18);
+    --sentiqs-text: #e2e8f0;
+    --sentiqs-muted: #94a3b8;
+    --sentiqs-accent: #22d3ee;
+    --sentiqs-accent-soft: #67e8f9;
+    --sentiqs-accent-blue: #3b82f6;
+  }
+
   html {
     font-family: 'Inter', system-ui, sans-serif;
+    scroll-behavior: smooth;
+    background: var(--sentiqs-bg);
   }
+
   body {
-    background-color: #eef2f7;
-    color: #1a2d4a;
+    margin: 0;
+    background:
+      radial-gradient(circle at top left, rgba(34, 211, 238, 0.12), transparent 25%),
+      radial-gradient(circle at bottom right, rgba(96, 165, 250, 0.10), transparent 30%),
+      linear-gradient(180deg, #081018 0%, #0f172a 100%);
+    color: var(--sentiqs-text);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  ::selection {
+    background: rgba(103, 232, 249, 0.25);
+    color: #f8fafc;
+  }
+
+  a {
+    text-decoration: none;
+  }
+
   .dark body {
-    background-color: #0a0e17;
-    color: #e8ecf4;
+    background:
+      radial-gradient(circle at top left, rgba(34, 211, 238, 0.12), transparent 25%),
+      radial-gradient(circle at bottom right, rgba(96, 165, 250, 0.10), transparent 30%),
+      linear-gradient(180deg, #081018 0%, #0f172a 100%);
+    color: var(--sentiqs-text);
   }
 
-  /*
-   * Harmonisation "Salle de crise" pour les modules qui n'ont pas encore
-   * leurs propres classes dark: (Feeds, Reports, Alerts, Situation, Agenda,
-   * Settings, DashboardOverview, StatsCards, CountryGrid, etc.).
-   *
-   * Ces règles vivent dans @layer base : Tailwind compile toujours les
-   * classes utilitaires (y compris les variantes dark:) dans @layer
-   * utilities, qui passe après @layer base dans la feuille finale. À
-   * spécificité égale (.dark .xxx, 0-2-0), une classe dark: explicite posée
-   * sur un composant (TopBar, Sidebar, DashboardLayout) l'emporte donc
-   * toujours sur ce filet de sécurité — aucun risque d'écraser un réglage
-   * déjà fait à la main. Rien ici ne s'applique hors du mode sombre : le
-   * mode clair est strictement inchangé.
-   */
-  .dark .bg-white {
-    background-color: #111826;
-  }
+  .dark .bg-white,
+  .dark .bg-slate-900\/70,
+  .dark .bg-slate-900,
+  .dark .bg-slate-950,
+  .dark .bg-slate-950\/80,
   .dark .bg-sentiqs-gray-bg {
-    background-color: #0a0e17;
-  }
-  .dark .bg-gray-50,
-  .dark .hover\:bg-gray-50:hover,
-  .dark .bg-gray-100,
-  .dark .hover\:bg-gray-100:hover {
-    background-color: #141b2c;
-  }
-  .dark .bg-gray-200,
-  .dark .hover\:bg-gray-200:hover,
-  .dark .bg-gray-300 {
-    background-color: #1e2942;
-  }
-  .dark .bg-gray-400,
-  .dark .bg-gray-800,
-  .dark .bg-gray-900 {
-    background-color: #465066;
-  }
-  .dark .bg-sentiqs-navy,
-  .dark .hover\:bg-sentiqs-navy:hover {
-    background-color: #0891a8;
-  }
-  .dark .bg-sentiqs-blue {
-    background-color: #22d3ee;
-  }
-
-  .dark .border-gray-50,
-  .dark .border-gray-100,
-  .dark .border-gray-150 {
-    border-color: #1e2536;
-  }
-  .dark .border-gray-200,
-  .dark .hover\:border-gray-200:hover {
-    border-color: #1b2434;
-  }
-  .dark .border-gray-300,
-  .dark .hover\:border-gray-300:hover,
-  .dark .border-sentiqs-gray-border {
-    border-color: #1e2942;
-  }
-  .dark .border-gray-800,
-  .dark .border-gray-900,
-  .dark .border-white,
-  .dark .hover\:border-white:hover {
-    border-color: #1e2942;
-  }
-  .dark .border-sentiqs-navy,
-  .dark .hover\:border-sentiqs-navy:hover {
-    border-color: #22d3ee;
-  }
-  .dark .ring-sentiqs-navy {
-    --tw-ring-color: #0891a8;
-  }
-  .dark .divide-gray-50 > :not([hidden]) ~ :not([hidden]) {
-    border-color: #1e2536;
+    background-color: rgba(15, 23, 42, 0.82);
   }
 
   .dark .text-sentiqs-navy,
-  .dark .hover\:text-sentiqs-navy:hover {
-    color: #e8ecf4;
-  }
-  .dark .text-sentiqs-gray-text {
-    color: #7c8aa8;
-  }
-  .dark .text-gray-300,
-  .dark .text-gray-400,
-  .dark .placeholder\:text-gray-300::placeholder {
-    color: #465066;
-  }
-  .dark .text-gray-500,
-  .dark .hover\:text-gray-600:hover {
-    color: #7c8aa8;
-  }
-  .dark .text-gray-600,
-  .dark .text-gray-700 {
-    color: #8b98b8;
-  }
   .dark .text-gray-800,
-  .dark .hover\:text-gray-800:hover,
-  .dark .text-gray-900 {
-    color: #e8ecf4;
+  .dark .text-gray-900,
+  .dark .text-sentiqs-gray-text,
+  .dark .text-gray-600,
+  .dark .text-gray-700,
+  .dark .text-slate-300,
+  .dark .text-slate-400,
+  .dark .text-slate-500 {
+    color: #dfe7f5;
   }
-  .dark .text-sentiqs-blue,
-  .dark .text-sentiqs-blue-dark,
-  .dark .hover\:text-sentiqs-blue:hover,
-  .dark .hover\:text-sentiqs-blue-dark:hover {
-    color: #22d3ee;
+
+  .dark .bg-sentiqs-navy,
+  .dark .bg-sentiqs-blue,
+  .dark .bg-cyan-400,
+  .dark .hover\:bg-sentiqs-navy:hover,
+  .dark .hover\:bg-sentiqs-blue:hover {
+    background-color: #22d3ee;
+  }
+
+  .dark .border-gray-100,
+  .dark .border-gray-200,
+  .dark .border-sentiqs-gray-border,
+  .dark .border-sentiqs-navy,
+  .dark .border-slate-700,
+  .dark .border-slate-800\/80 {
+    border-color: rgba(148, 163, 184, 0.2);
+  }
+
+  .dark .ring-sentiqs-navy {
+    --tw-ring-color: rgba(103, 232, 249, 0.6);
   }
 }
 
 @layer utilities {
+  .glass-panel {
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    box-shadow: 0 20px 60px rgba(2, 6, 23, 0.4);
+    backdrop-filter: blur(14px);
+  }
+
   .globe-rings {
     position: relative;
     width: 500px;
@@ -135,7 +114,7 @@
 
   .globe-ring {
     position: absolute;
-    border: 1px solid rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(103, 232, 249, 0.15);
     border-radius: 50%;
     top: 50%;
     left: 50%;
@@ -146,7 +125,7 @@
     position: absolute;
     width: 8px;
     height: 8px;
-    background: rgba(37, 99, 235, 0.5);
+    background: rgba(103, 232, 249, 0.5);
     border-radius: 50%;
   }
 
