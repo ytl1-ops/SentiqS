@@ -20034,8 +20034,28 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
   // levelMeta()) en rgb() pdf-lib (0-1) : mêmes couleurs de niveau que
   // Word et l'aperçu HTML, pour une identité visuelle cohérente entre
   // tous les formats d'export.
-  const hexRgb = (hex) => {
-    const h = (hex||'#4B5563').replace('#','');
+  // Robuste : accepte '#RRGGBB', '#RGB', 'RRGGBB', 'rgb()/rgba()' et les
+  // variables CSS (jetons du thème) de levelMeta() (fonds de pastille). Les
+  // variables sont résolues sur la palette CLAIRE (le PDF est un document
+  // imprimable, indépendant du thème sombre de l'écran). Toute valeur non
+  // reconnue retombe sur le gris neutre au lieu de produire NaN (pdf-lib
+  // lève alors « red must be of type number »).
+  const PDF_VARS_CLAIRS = { '--rl':'#FEF2F2', '--al':'#FFFBEB', '--bl':'#FBF3E7',
+    '--gl':'#F0FDF4', '--sf':'#FBF9F5', '--r':'#8B1A1A', '--a':'#7C4A00',
+    '--g':'#0F4F2A', '--b':'#8A5D1A', '--n':'#16233A', '--w':'#FFFFFF' };
+  const hexRgb = (val) => {
+    const DEF = rgb(0.294, 0.333, 0.388); // #4B5563
+    let v = String(val == null ? '' : val).trim().replace(/^#(?=var\(|rgb)/i, '');
+    const mVar = v.match(/^var\(\s*(--[\w-]+)\s*(?:,\s*([^)]+))?\)$/);
+    if (mVar) v = PDF_VARS_CLAIRS[mVar[1]] || (mVar[2]||'').trim();
+    const mRgb = v.match(/^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/i);
+    if (mRgb) {
+      const c = [mRgb[1],mRgb[2],mRgb[3]].map(n => Math.min(1, Math.max(0, Number(n)/255)));
+      return c.every(Number.isFinite) ? rgb(c[0],c[1],c[2]) : DEF;
+    }
+    let h = v.replace('#','');
+    if (/^[0-9a-f]{3}$/i.test(h)) h = h.split('').map(c=>c+c).join('');
+    if (!/^[0-9a-f]{6}/i.test(h)) return DEF;
     return rgb(parseInt(h.slice(0,2),16)/255, parseInt(h.slice(2,4),16)/255, parseInt(h.slice(4,6),16)/255);
   };
   const b = {
