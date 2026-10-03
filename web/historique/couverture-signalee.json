@@ -1,6 +1,7 @@
 {
- "cle": "CV",
+ "cle": "CV,LR",
  "pays": [
-  "CV"
+  "CV",
+  "LR"
  ]
 }
