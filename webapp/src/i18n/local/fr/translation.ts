@@ -130,6 +130,16 @@ export default {
   'dashboard.risk.medium': 'Moyen',
   'dashboard.risk.low': 'Faible',
 
+  // Échelle de country_posture_state (score-countries) — distincte de
+  // dashboard.risk.critical/high/medium/low ci-dessus, qui reste utilisée
+  // par les vues dérivées du Flux (veille.ts). Pas de "marron" dans cette
+  // échelle : c'est une décision du moteur score-countries, pas un oubli.
+  'dashboard.posture.vert': 'Stable',
+  'dashboard.posture.jaune': 'Vigilance',
+  'dashboard.posture.orange': 'Élevé',
+  'dashboard.posture.rouge': 'Critique',
+  'dashboard.posture.non_cote': 'Non coté',
+
   'dashboard.welcome': 'Bon retour',
   'dashboard.welcomeSub': 'Voici votre aperçu opérationnel de sécurité pour aujourd\'hui.',
   'dashboard.correlations.title': 'Corrélations',

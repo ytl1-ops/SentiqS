@@ -38,22 +38,22 @@ export default function TopBar({ notificationCount = 3, onLogout }: TopBarProps)
   }, []);
 
   return (
-    <header className="h-16 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl flex items-center justify-between px-4 sm:px-6 flex-shrink-0 dark:bg-[#0b1220]/90 dark:border-slate-700/80">
+    <header className="h-[60px] border-b border-white/[0.08] bg-[#17181c] flex items-center justify-between px-4 sm:px-6 flex-shrink-0">
       <div className="flex items-center gap-3 min-w-0">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.35)]">
-          <i className="ri-radar-line text-white text-sm" />
+        <div className="w-8 h-8 rounded-lg bg-[#d9a85c] flex items-center justify-center">
+          <i className="ri-radar-line text-[#17181c] text-sm" />
         </div>
         <div className="min-w-0">
-          <span className="block text-sm font-semibold text-white tracking-tight">SentiqS</span>
-          <span className="hidden sm:block text-[9px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+          <span className="block text-sm font-semibold text-slate-50 tracking-tight">SentiqS</span>
+          <span className="hidden sm:block text-[9px] font-semibold tracking-[0.16em] text-slate-500 uppercase">
             {t('header.subtitle')}
           </span>
         </div>
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
-        <div className="hidden md:flex items-center bg-slate-900/80 rounded-xl border border-slate-700/80 px-3 py-1.5 shadow-inner shadow-slate-950/30">
-          <i className="ri-search-line text-slate-400 text-sm mr-2" />
+        <div className="hidden md:flex items-center bg-[#1e1f24] rounded-lg border border-white/[0.08] px-3 py-1.5">
+          <i className="ri-search-line text-slate-500 text-sm mr-2" />
           <input
             type="text"
             placeholder={t('dashboard.search')}
@@ -64,7 +64,7 @@ export default function TopBar({ notificationCount = 3, onLogout }: TopBarProps)
         <button
           type="button"
           onClick={toggleDarkMode}
-          className="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-700 bg-slate-900/80 text-slate-300 hover:border-cyan-400/50 hover:text-cyan-300 transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/[0.08] bg-[#1e1f24] text-slate-400 hover:border-[#d9a85c]/40 hover:text-[#d9a85c] transition-colors"
           title={darkMode ? 'Mode clair' : 'Mode sombre'}
         >
           {darkMode ? (
@@ -74,24 +74,24 @@ export default function TopBar({ notificationCount = 3, onLogout }: TopBarProps)
           )}
         </button>
 
-        <div className="hidden sm:flex rounded-xl border border-slate-700 bg-slate-900/80 overflow-hidden">
+        <div className="hidden sm:flex rounded-lg border border-white/[0.08] bg-[#1e1f24] overflow-hidden">
           <button
             type="button"
             onClick={() => switchLang('fr')}
-            className={`px-2.5 py-1.5 text-[10px] font-semibold tracking-[0.15em] transition ${currentLang === 'fr' ? 'bg-cyan-400 text-slate-950' : 'text-slate-300 hover:text-white'}`}
+            className={`px-2.5 py-1.5 text-[10px] font-semibold tracking-[0.15em] transition ${currentLang === 'fr' ? 'bg-[#d9a85c] text-[#17181c]' : 'text-slate-400 hover:text-white'}`}
           >
             FR
           </button>
           <button
             type="button"
             onClick={() => switchLang('en')}
-            className={`px-2.5 py-1.5 text-[10px] font-semibold tracking-[0.15em] transition ${currentLang === 'en' ? 'bg-cyan-400 text-slate-950' : 'text-slate-300 hover:text-white'}`}
+            className={`px-2.5 py-1.5 text-[10px] font-semibold tracking-[0.15em] transition ${currentLang === 'en' ? 'bg-[#d9a85c] text-[#17181c]' : 'text-slate-400 hover:text-white'}`}
           >
             EN
           </button>
         </div>
 
-        <button type="button" className="relative w-9 h-9 flex items-center justify-center rounded-xl border border-slate-700 bg-slate-900/80 text-slate-300 transition hover:border-cyan-400/50 hover:text-cyan-300">
+        <button type="button" className="relative w-8 h-8 flex items-center justify-center rounded-lg border border-white/[0.08] bg-[#1e1f24] text-slate-400 transition hover:border-[#d9a85c]/40 hover:text-[#d9a85c]">
           <i className="ri-notification-3-line text-base" />
           {notificationCount > 0 && (
             <span className="absolute -top-1 -right-1 min-w-[16px] h-4 rounded-full bg-red-500 text-[9px] font-bold text-white flex items-center justify-center px-1">
@@ -100,8 +100,8 @@ export default function TopBar({ notificationCount = 3, onLogout }: TopBarProps)
           )}
         </button>
 
-        <div className="hidden sm:flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/80 px-2 py-1.5">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-[10px] font-bold text-slate-950">
+        <div className="hidden sm:flex items-center gap-2 rounded-lg border border-white/[0.08] bg-[#1e1f24] px-2 py-1.5">
+          <div className="w-7 h-7 rounded-full bg-[#d9a85c] flex items-center justify-center text-[10px] font-bold text-[#17181c]">
             RS
           </div>
           <span className="text-xs text-slate-200 font-medium hidden lg:inline">{userName}</span>
@@ -110,7 +110,7 @@ export default function TopBar({ notificationCount = 3, onLogout }: TopBarProps)
         <button
           type="button"
           onClick={onLogout}
-          className="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-700 bg-slate-900/80 text-slate-300 transition hover:border-cyan-400/50 hover:text-cyan-300"
+          className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/[0.08] bg-[#1e1f24] text-slate-400 transition hover:border-[#d9a85c]/40 hover:text-[#d9a85c]"
           title={t('dashboard.logout')}
         >
           <i className="ri-home-3-line text-base" />

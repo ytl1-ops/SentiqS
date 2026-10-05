@@ -622,6 +622,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .atm{font-size:var(--fs-micro);color:var(--lg);margin-left:auto;
   white-space:nowrap;font-weight:500}
 
+/* Barre de couverture : visualise a.score (deja calcule, memes seuils que
+   rc() -> rh/rm/rl ci-dessus) au lieu de l'exposer seulement en texte
+   (.rtg). Purement additif : ne remplace aucun badge existant. */
+.score-bar{display:inline-block;width:42px;height:4px;border-radius:999px;
+  background:var(--bd);overflow:hidden;vertical-align:middle}
+.score-bar-fill{display:block;height:100%;border-radius:999px}
+
 /* ── Carte article restructuree : priorite au titre, meta condensee ──────
    La ligne art-top (pays + heure de survenance, en monospace comme un
    horodatage de tableau de bord) precede immediatement le titre : c'est
@@ -912,6 +919,22 @@ body.plein-ecran-module > .stbar { display:none !important; }
   z-index:9000;display:flex;align-items:center;justify-content:center;
   overflow-y:auto;-webkit-overflow-scrolling:touch;padding:32px 16px}
 .auth-overlay.hidden{display:none}
+
+/* ═══ VIDÉO DE DÉMARRAGE ════════════════════════════════════════════════
+   Joue une fois par onglet (sessionStorage, voir afficherIntroVideo) avant
+   l'écran de connexion — jamais pour le job de collecte planifiée
+   (checkCollectorSession() revient avant d'appeler afficherEcranConnexion)
+   ni pour une reconnexion automatique du jour (_ouvrirSessionDepuisSupabase,
+   même raison : aucune des deux ne passe par cette fonction). */
+.intro-video-overlay{position:absolute;inset:0;z-index:10;background:#000;
+  display:flex;align-items:center;justify-content:center;overflow:hidden}
+.intro-video-overlay.hidden{display:none}
+.intro-video-el{width:100%;height:100%;object-fit:cover}
+.intro-video-skip{position:absolute;bottom:20px;right:20px;z-index:11;
+  padding:8px 16px;border-radius:8px;background:rgba(0,0,0,.45);
+  border:1px solid rgba(255,255,255,.25);color:#fff;font-size:11px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;cursor:pointer;backdrop-filter:blur(4px)}
+.intro-video-skip:hover{background:rgba(0,0,0,.65);border-color:var(--sig)}
 
 /* ═══ SCÈNE D'ACCUEIL — centre d'opérations (écran de connexion) ══════════
    Esthétique inspirée des interfaces de renseignement/data-ops (globe
@@ -1937,6 +1960,12 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
 
 <!-- ═══ AUTH OVERLAY ═══════════════════════════════════════════════ -->
 <div class="auth-overlay" id="authOverlay">
+<div class="intro-video-overlay hidden" id="introVideoOverlay">
+  <video id="introVideoEl" class="intro-video-el" muted playsinline poster="assets/intro-sentiqs-poster.jpg">
+    <source src="assets/intro-sentiqs.mp4" type="video/mp4">
+  </video>
+  <button type="button" id="introVideoSkip" class="intro-video-skip" data-i18n="intro_video_skip">Passer</button>
+</div>
 <div class="skyline-scene" aria-hidden="true">
   <div class="ops-grid"></div>
   <div class="ops-globe-wrap">
@@ -4749,6 +4778,7 @@ const I18N = {
     // ── Écran de connexion / inscription ──
     auth_ops_veille:'Veille active · 54 pays', auth_ops_reseau1:'Réseau de surveillance', auth_ops_reseau2:'Afrique · temps réel',
     auth_ops_flux:'Flux · Corrélations · Alertes', auth_ops_surete:'Sûreté opérationnelle',
+    intro_video_skip:'Passer',
     auth_logo_sub:"Veille sûreté · 54 pays d'Afrique",
     auth_stat_pays:'Pays sous veille', auth_stat_actus:'Actus /{hc}', auth_stat_alertes:'Pays en alerte',
     login_title:'Connexion', login_sub:'Accès restreint aux responsables sûreté autorisés',
@@ -4886,6 +4916,7 @@ const I18N = {
     // ── Login / registration screen ──
     auth_ops_veille:'Active monitoring · 54 countries', auth_ops_reseau1:'Surveillance network', auth_ops_reseau2:'Africa · real-time',
     auth_ops_flux:'Feed · Correlations · Alerts', auth_ops_surete:'Operational security',
+    intro_video_skip:'Skip',
     auth_logo_sub:'Security monitoring · 54 African countries',
     auth_stat_pays:'Countries monitored', auth_stat_actus:'News /{hc}', auth_stat_alertes:'Countries on alert',
     login_title:'Log in', login_sub:'Access restricted to authorized security officers',
@@ -11342,6 +11373,10 @@ async function renderFeed() {
         '<div class="aftr conf-group">'+chips+
           '<button class="share-trigger" onclick="toggleShareMenu(event,\''+a.id+'\')" title="'+(LANG==='en'?'Share':'Partager')+'"><i class="ti ti-share-2"></i>'+(LANG==='en'?'Share':'Partager')+'</button>'+
           (typeof confBadge==='function' ? confBadge(a) : '')+
+          // Barre de couverture : meme donnee que .rtg juste apres (a.score,
+          // memes seuils rc()), visualisee en plus d'etre ecrite en toutes
+          // lettres — rien n'est invente, voir CSS .score-bar.
+          '<span class="score-bar" title="Fiabilite '+a.score+'%"><span class="score-bar-fill" style="width:'+a.score+'%;background:var(--'+({rh:'g',rm:'a',rl:'r'}[rc(a.score)])+')"></span></span>'+
           '<span class="rtg '+rc(a.score)+'">'+a.score+'%</span>'+
           (a.verified?'<span class="vtg" title="'+(LANG==='en'?'Reported by several sources':'Rapporte par plusieurs sources')+'"><i class="ti ti-shield-check"></i>'+(a.crosses?.length||1)+' src</span>':
                       '<span class="utg" title="'+(LANG==='en'?'Single source':'Source unique')+'">1 src</span>')+
@@ -15331,6 +15366,42 @@ function openAdmin() {
 }
 function closeAdmin() { document.getElementById('adminPanel').classList.add('hidden'); }
 
+// Page de demarrage : la video d'intro ne joue qu'une fois par onglet
+// (sessionStorage), jamais a chaque retour a l'ecran de connexion
+// (deconnexion explicite, formulaire d'inscription, mot de passe oublie...).
+// Echec de lecture sessionStorage (navigation privee stricte) -> on saute
+// l'intro plutot que de bloquer l'acces a la connexion.
+function afficherIntroVideo() {
+  let vue = false;
+  try { vue = sessionStorage.getItem('sentinel_intro_vue') === '1'; } catch (_) {}
+  if (vue) return;
+  const overlay = document.getElementById('introVideoOverlay');
+  const video = document.getElementById('introVideoEl');
+  if (!overlay || !video) return;
+  const masquer = () => {
+    overlay.classList.add('hidden');
+    video.pause();
+    try { sessionStorage.setItem('sentinel_intro_vue', '1'); } catch (_) {}
+  };
+  overlay.classList.remove('hidden');
+  video.onended = masquer;
+  video.play().catch(() => masquer()); // autoplay bloque -> ecran de connexion direct
+  const skipBtn = document.getElementById('introVideoSkip');
+  if (skipBtn) skipBtn.onclick = masquer;
+}
+
+// Factorise les trois lignes identiques des deux points de checkAuth() ou
+// un etre humain doit effectivement voir l'ecran de connexion — jamais
+// appelee pour le job de collecte planifiee (checkCollectorSession) ni pour
+// une reconnexion automatique du jour (_ouvrirSessionDepuisSupabase), qui
+// retournent toutes deux avant ce point.
+function afficherEcranConnexion() {
+  document.getElementById('authOverlay').classList.remove('hidden');
+  document.getElementById('userWrap').style.display='none';
+  afficherIntroVideo();
+  showLoginForm();
+}
+
 async function checkAuth() {
   // Applique au DOM la langue chargee au demarrage (voir LANG plus haut) —
   // necessaire meme si LANG!=='fr' par defaut, car le HTML statique est
@@ -15357,9 +15428,7 @@ async function checkAuth() {
     // chargement...) : aucune authentification reelle possible sans le
     // serveur d'identite — ecran de connexion avec message explicite,
     // jamais de mode degrade qui ferait croire a une session valide.
-    document.getElementById('authOverlay').classList.remove('hidden');
-    document.getElementById('userWrap').style.display='none';
-    showLoginForm();
+    afficherEcranConnexion();
     const errEl = document.getElementById('loginErr');
     if (errEl) { errEl.textContent = 'Service d\'authentification indisponible pour le moment. Réessayez dans un instant.'; errEl.classList.add('show'); }
     return;
@@ -15394,9 +15463,7 @@ async function checkAuth() {
     try { await client.auth.signOut(); } catch (_) {}
     clearSession();
   }
-  document.getElementById('authOverlay').classList.remove('hidden');
-  document.getElementById('userWrap').style.display='none';
-  showLoginForm();
+  afficherEcranConnexion();
 }
 
 

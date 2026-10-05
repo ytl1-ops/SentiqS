@@ -1,9 +1,11 @@
 // Dérivations du tableau de bord à partir de la collecte RSS réelle.
 //
 // Source unique : la table collecte_partagee (id='global'), alimentée par
-// src/lib/collecte/doCollect.ts — exactement le cache que lit déjà la page
-// Flux. Toutes les vues du tableau de bord en descendent, plus aucune ne lit
-// src/mocks/dashboard.ts.
+// la seule méthode de collecte du produit — la collecte planifiée
+// (GitHub Actions, voir CLAUDE.md) — exactement le cache que lit déjà la
+// page Flux (src/pages/dashboard/feeds/page.tsx, lecture seule depuis le
+// 05/10/2026). Toutes les vues du tableau de bord en descendent, plus
+// aucune ne lit src/mocks/dashboard.ts.
 //
 // Règle tenue partout : rien n'est inventé. Un champ qui n'existe pas dans
 // l'article réel n'est pas rempli au jugé — il est soit calculé à partir de
