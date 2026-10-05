@@ -2034,6 +2034,83 @@ cassée, aucune erreur JS.
 
 ---
 
+## Le cache partagé quitte Supabase pour la lecture, 05/10/2026
+
+Incident réel le 05/10/2026 : connexion impossible sur le site principal,
+quel que soit le mot de passe — `zpdwqmliogxbuwirziny` (projet Supabase du
+site principal, « SENTINEL SURETE ») était suspendu, `exceed_egress_quota`,
+par l'organisation Supabase gratuite qui héberge aussi le projet de la
+webapp. Un projet suspendu bloque *tout*, Auth comprise — le mot de passe
+n'y était pour rien.
+
+Cause trouvée avant tout correctif : `lireCollectePartagee()`
+(`web/SentiqS_Web.html`) faisait lire à **chaque visiteur**, directement
+depuis Supabase, le JSONB complet de `collecte_partagee` — plus de 1 500
+articles aux dernières mesures de ce fichier. C'est exactement le genre de
+lecture qui épuise un quota d'egress gratuit, et le précédent existait déjà
+dans ce dépôt pour un autre jeu de données : `web/historique/*.json` est
+publié en statique précisément parce que « c'est `web/` que Pages sert, sans
+Supabase ni API » (voir « L'archive des niveaux » plus haut). La même
+recette s'applique ici.
+
+**Le job planifié écrit désormais aussi `web/cache/collecte-partagee.json`**
+(`scripts/collecte-planifiee.js`, bloc « CACHE PARTAGE STATIQUE ») —
+`{articles, updated_at}`, la même forme que la ligne Supabase qu'il
+remplace comme source principale. Écrit **indépendamment** du succès de la
+publication Supabase (RAG, Agenda, repli de lecture) : coupler les deux
+aurait laissé une panne Supabase — exactement celle du 05/10/2026 —
+empêcher aussi le cache statique d'atteindre les visiteurs, alors que
+rien ne l'empêche d'être à jour.
+
+**Le client lit ce fichier en premier.** `lireCollectePartageeStatique()`
+fait un `fetch('cache/collecte-partagee.json')` simple ; `lireCollectePartagee()`
+ne retombe sur Supabase que si ce fichier est absent, illisible, vide ou
+périmé (même seuil `COLLECTE_PARTAGEE_LECTURE_MAX_MS`, 6 h). Supabase reste
+donc un vrai repli — utile pour les quelques minutes entre deux publications
+du job, ou si ce fichier n'a pas encore été déployé — jamais la voie
+principale.
+
+**L'étape qui commite l'archive passe de `if: success()` à `if: always()`.**
+Avant ce changement, un échec de publication Supabase faisait échouer tout
+le job (`collecte-planifiee.js` lève `process.exitCode = 1` volontairement
+« bruyant », voir plus haut) — ce qui, avec `if: success()`, empêchait
+*aussi* l'étape de commit de tourner, donc aucun fichier, pas même l'archive
+quotidienne historique, n'était jamais poussé. Le garde-fou interne
+(`git status --porcelain web/historique web/cache` vide → sortie sans rien
+commiter) protège contre un commit vide si la collecte a échoué avant même
+de produire quoi que ce soit. Le message de commit distingue les trois cas
+(archive seule, cache seul, les deux) ; `gh workflow run gh-pages-deploy.yml`
+part dans tous les cas où quelque chose a été poussé, pas seulement pour
+l'archive comme avant.
+
+**`verifier-fraicheur-cache.js` vérifie désormais le fichier statique en
+premier**, lu sur disque local (pas de dépendance réseau pour ce contrôle)
+— c'est lui qui dit si *ce que les visiteurs liront réellement* est à jour.
+La vérification Supabase est conservée mais rétrogradée en information
+(`console.warn`, jamais `process.exit(1)`) : un incident Supabase reste
+visible dans les journaux, mais ne fait plus échouer, à lui seul, le
+contrôle qui compte.
+
+**Ce que ce changement ne répare pas.** Le déblocage du projet Supabase
+suspendu (upgrade du plan ou retrait du plafond de dépenses de
+l'organisation `ytl1-ops's Org`, plan gratuit) reste une décision de
+facturation du propriétaire, hors de portée du code. Et l'organisation
+héberge un troisième projet (`BourseClix`) sans lien apparent avec SentiqS
+— sa présence sur le même plan gratuit n'a pas été questionnée ici, faute
+de savoir ce que c'est.
+
+Vérifié : `npm test` (407/407), `verifier-syntaxe-html.js`. Trois scénarios
+rejoués en Playwright sur la page réelle, avec les appels Supabase
+interceptés/bloqués pour isoler ce qui est effectivement lu : fichier
+statique présent et frais → utilisé, **zéro appel Supabase** ; fichier
+absent (404) → repli sans exception ; fichier périmé (7 h, au-delà de
+`COLLECTE_PARTAGEE_LECTURE_MAX_MS`) → écarté comme prévu. `verifier-fraicheur-cache.js`
+rejoué sur trois cas synthétiques (frais, périmé, absent), Supabase
+injoignable dans les trois : code de sortie 0/1/1, conforme — c'est bien le
+fichier statique qui décide, plus Supabase.
+
+---
+
 ## Conventions
 
 - **Tout en français** : commits, commentaires, noms de fonctions et de

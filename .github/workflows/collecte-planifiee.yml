@@ -160,34 +160,56 @@ jobs:
         # donc l'effet, pas seulement l'absence d'erreur.
         run: node scripts/verifier-fraicheur-cache.js
 
-      - name: Archiver l'instantané du jour
-        # Un instantané par jour, écrit par le premier passage (voir
-        # scripts/lib/historique.js), plus l'état de dédoublonnage des
-        # alertes sortantes (dernier-signale.json), qui lui ne bouge que
-        # lorsqu'un niveau change. Les passages sans changement ne trouvent
-        # rien à commiter et sortent — d'où le test de diff.
+      - name: Archiver l'instantané du jour et publier le cache statique
+        # Un instantané par jour (web/historique/, voir scripts/lib/historique.js),
+        # plus le cache partage STATIQUE (web/cache/collecte-partagee.json,
+        # voir scripts/collecte-planifiee.js) — desormais la source que lit
+        # la quasi-totalite des visiteurs (lireCollectePartageeStatique()
+        # dans SentiqS_Web.html), a la place d'une lecture Supabase refaite
+        # par chacun d'eux. Les passages sans changement ne trouvent rien a
+        # commiter et sortent — d'ou le test de diff sur les deux chemins.
+        #
+        # if: always() et NON success() : une panne Supabase (publication,
+        # RAG, Agenda — voir l'etape "Lancer la collecte planifiee") fait
+        # echouer le JOB au sens de GitHub Actions, mais ne doit plus
+        # empecher le cache statique, ecrit sur disque independamment de
+        # cette publication, d'etre commite et deploye. C'est exactement
+        # cette dependance qui a laisse un incident Supabase (quota d'egress
+        # depasse le 05/10/2026) empecher toute mise a jour du site, alors
+        # que la collecte elle-meme avait reussi. Le garde-fou interne
+        # (git status --porcelain ci-dessous) empeche tout commit si la
+        # collecte a echoue avant meme de produire quoi que ce soit.
         #
         # Le rebase avant push est là pour le cas où un déploiement Pages ou
         # une fusion serait arrivé pendant les huit minutes de collecte :
         # perdre l'archive du jour pour un conflit de fast-forward serait
         # absurde, et la relancer coûte un cycle entier.
-        if: success()
+        if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          if [ -z "$(git status --porcelain web/historique)" ]; then
-            echo "Rien de neuf dans l'archive — journée déjà couverte."
+          if [ -z "$(git status --porcelain web/historique web/cache)" ]; then
+            echo "Rien de neuf (archive et cache statique déjà à jour) — rien à commiter."
             exit 0
           fi
+          changementHistorique="$(git status --porcelain web/historique)"
+          changementCache="$(git status --porcelain web/cache)"
           git config user.name  "collecte-planifiee[bot]"
           git config user.email "collecte-planifiee@users.noreply.github.com"
-          git add web/historique
+          git add web/historique web/cache
           jour=$(date -u +%Y-%m-%d)
-          git commit -m "Archive des niveaux d'alerte du $jour"
+          if [ -n "$changementHistorique" ] && [ -n "$changementCache" ]; then
+            message="Archive des niveaux d'alerte du $jour + mise à jour du cache partagé"
+          elif [ -n "$changementHistorique" ]; then
+            message="Archive des niveaux d'alerte du $jour"
+          else
+            message="Mise à jour du cache partagé statique"
+          fi
+          git commit -m "$message"
           for essai in 1 2 3; do
             if git push origin HEAD:main; then
-              echo "Archive du $jour poussée."
+              echo "Poussé : $message"
               # GitHub ne declenche AUCUN workflow sur un push fait avec le
               # GITHUB_TOKEN d'un job — garde-fou anti-recursion. Le
               # deploiement Pages ne partait donc jamais pour une archive :
@@ -201,23 +223,25 @@ jobs:
               # que par raccroc, poussees par la fusion d'une PR sans rapport.
               #
               # Consequence directe sur ce que voit un professionnel : la
-              # fleche de tendance a besoin de DEUX releves. Tant que le site
-              # n'en sert qu'un, elle ne s'affiche pour personne.
+              # fleche de tendance a besoin de DEUX releves, et desormais le
+              # cache partage statique a besoin du meme declenchement pour
+              # atteindre les visiteurs. Tant que le site n'est pas
+              # redeploye, rien de tout ca ne s'affiche pour personne.
               #
               # workflow_dispatch est l'exception documentee a ce garde-fou :
               # un workflow declenche par l'API avec le GITHUB_TOKEN part
               # bien. On ne fait pas echouer le run si l'appel echoue —
-              # l'archive, elle, est deja poussee.
+              # le commit, lui, est deja pousse.
               gh workflow run gh-pages-deploy.yml --ref main \
-                && echo "Déploiement Pages déclenché pour l'archive du $jour." \
-                || echo "::warning::Archive poussée mais déploiement Pages non déclenché."
+                && echo "Déploiement Pages déclenché." \
+                || echo "::warning::Poussé mais déploiement Pages non déclenché."
               exit 0
             fi
             echo "Push refusé (essai $essai) — rebase puis nouvelle tentative."
             git pull --rebase origin main
             sleep $((essai * 4))
           done
-          echo "::warning::Archive du $jour non poussée après trois tentatives."
+          echo "::warning::Non poussé après trois tentatives."
 
 
   alerte:

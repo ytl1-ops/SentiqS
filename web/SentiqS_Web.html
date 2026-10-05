@@ -14241,13 +14241,36 @@ const COLLECTE_PARTAGEE_LECTURE_MAX_MS = 6 * 60 * 60 * 1000;
 // publication recente existe deja. Inchangee (le job planifie la contourne
 // deliberement avec force=true).
 const COLLECTE_PARTAGEE_FRAICHEUR_MS = 40 * 60 * 1000;
-// Lit le cache partage le plus recent. Retourne null si Supabase n'est
-// pas configure/joignable, si la table n'existe pas encore (migration non
-// appliquee), si aucune ligne n'existe, OU si la ligne existante est trop
-// vieille (perimee) — dans tous ces cas l'appelant retombe sur une
-// collecte reseau locale normale, sans jamais bloquer ni faire echouer le
-// chargement de l'app.
+// Lecture STATIQUE du cache partage, publiee par le job planifie dans
+// web/cache/collecte-partagee.json (voir .github/workflows/collecte-planifiee.yml
+// et scripts/collecte-planifiee.js) — meme raisonnement que
+// web/historique/serie.json : c'est web/ que Pages sert, sans limite
+// d'egress pratique, contrairement a une lecture Supabase refaite par
+// CHAQUE visiteur. C'est exactement cette lecture-la qui a epuise le
+// quota d'egress gratuit du projet et fait suspendre tout le projet
+// Supabase, Auth comprise (incident du 05/10/2026). Supabase reste le
+// repli ci-dessous pour les quelques minutes entre deux publications du
+// job, ou si ce fichier n'est pas (encore) deploye.
+async function lireCollectePartageeStatique() {
+  try {
+    const r = await fetch('cache/collecte-partagee.json', { cache: 'no-cache' });
+    if (!r.ok) return null;
+    const data = await r.json();
+    if (!data || !Array.isArray(data.articles) || !data.articles.length) return null;
+    const age = Date.now() - new Date(data.updated_at).getTime();
+    if (age > COLLECTE_PARTAGEE_LECTURE_MAX_MS) return null; // perime — repli Supabase ci-dessous
+    return data.articles;
+  } catch (e) { return null; }
+}
+// Lit le cache partage le plus recent : d'abord le fichier statique
+// ci-dessus, puis Supabase en repli. Retourne null si aucune des deux
+// sources n'est configuree/joignable, si aucune donnee n'existe, OU si la
+// donnee existante est trop vieille (perimee) — dans tous ces cas
+// l'appelant retombe sur une collecte reseau locale normale, sans jamais
+// bloquer ni faire echouer le chargement de l'app.
 async function lireCollectePartagee() {
+  const statique = await lireCollectePartageeStatique();
+  if (statique) return statique;
   const client = getSentinelSupabase();
   if (!client) return null;
   try {

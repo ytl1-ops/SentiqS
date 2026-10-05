@@ -68,6 +68,11 @@ function fenetreCollecteMs() { return _fenetre(COLLECT_TIMEOUT_MS, process.env.C
 const RACINE_HISTORIQUE = process.env.RACINE_HISTORIQUE
   || path.join(__dirname, '..', 'web', 'historique');
 
+// Meme raisonnement que RACINE_HISTORIQUE ci-dessus, pour le cache partage
+// statique (voir le bloc "CACHE PARTAGE STATIQUE" plus bas).
+const RACINE_CACHE_PUBLIC = process.env.RACINE_CACHE_PUBLIC
+  || path.join(__dirname, '..', 'web', 'cache');
+
 // Mémoire inter-runs de SRC_HEALTH / PROXY_HEALTH_PAYS — HORS dépôt
 // (répertoire dans .gitignore), restaurée/sauvegardée par actions/cache
 // dans collecte-planifiee.yml. Voir scripts/lib/sante-collecte.js pour le
@@ -292,6 +297,38 @@ function ecrireResumeActions(md) {
       }
       return { ok: true, nbArticles: pub.nbArticles, bestProxy: String(typeof bestProxy !== 'undefined' ? bestProxy : '?') };
     });
+
+    // ── CACHE PARTAGE STATIQUE ───────────────────────────────────────────
+    // Ecrit dans web/cache/collecte-partagee.json, commite par l'etape
+    // "Archiver l'instantane du jour" ci-dessous — meme raisonnement que
+    // web/historique/ : c'est web/ que Pages sert, sans limite d'egress
+    // pratique, contrairement a une lecture Supabase refaite par CHAQUE
+    // visiteur (voir lireCollectePartageeStatique() dans SentiqS_Web.html).
+    // C'est exactement cette lecture repetee qui a epuise le quota
+    // d'egress gratuit du projet Supabase et fait suspendre tout le
+    // projet — Auth comprise — le 05/10/2026.
+    //
+    // Deliberement INDEPENDANT de resultat.ok : la publication Supabase
+    // (RAG, Agenda, repli de lecture) peut echouer sans empecher ce
+    // fichier-ci, qui est desormais la VRAIE source lue par la quasi-
+    // totalite des visiteurs, d'etre a jour. Coupler les deux reviendrait a
+    // laisser une panne Supabase remettre en cause la resilience que ce
+    // fichier est cense apporter.
+    try {
+      const articlesPourStatique = await page.evaluate(() => (Array.isArray(ALL) ? ALL : null));
+      if (articlesPourStatique && articlesPourStatique.length) {
+        fs.mkdirSync(RACINE_CACHE_PUBLIC, { recursive: true });
+        fs.writeFileSync(
+          path.join(RACINE_CACHE_PUBLIC, 'collecte-partagee.json'),
+          JSON.stringify({ articles: articlesPourStatique, updated_at: new Date().toISOString() }) + '\n'
+        );
+        console.log('  Cache statique : ' + articlesPourStatique.length + ' article(s) ecrit(s) dans web/cache/collecte-partagee.json.');
+      } else {
+        console.warn('  Cache statique : rien a ecrire (ALL vide).');
+      }
+    } catch (e) {
+      console.warn('  Cache statique : non ecrit (' + ((e && e.message) || e) + ')');
+    }
 
     // ── COUVERTURE DE LA COLLECTE ────────────────────────────────────────
     // Un run vert disait seulement « N articles publiés ». Il ne disait pas
