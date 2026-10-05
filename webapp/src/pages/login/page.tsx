@@ -15,6 +15,27 @@ export default function Login() {
   const [formError, setFormError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [checkingSession, setCheckingSession] = useState(true);
+  // Page de demarrage : l'intro video ne joue qu'une fois par session
+  // d'onglet (sessionStorage), jamais a chaque rechargement de /login.
+  // Echec de lecture sessionStorage (navigation privee stricte, etc.) ->
+  // on saute l'intro plutot que de bloquer l'acces a la connexion.
+  const [introSeen, setIntroSeen] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem('sentiqs-intro-seen') === '1';
+    } catch {
+      return true;
+    }
+  });
+
+  const dismissIntro = useCallback(() => {
+    setIntroSeen(true);
+    try {
+      sessionStorage.setItem('sentiqs-intro-seen', '1');
+    } catch {
+      // navigation privee stricte ou quota plein : rien a faire, l'etat
+      // React suffit pour la session en cours
+    }
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -97,6 +118,29 @@ export default function Login() {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-[#111114]">
         <div className="w-10 h-10 border-2 border-[#d9a85c]/20 border-t-[#d9a85c] rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!introSeen) {
+    return (
+      <div className="relative min-h-screen w-full bg-[#111114] overflow-hidden">
+        <video
+          autoPlay
+          muted
+          playsInline
+          onEnded={dismissIntro}
+          className="absolute inset-0 w-full h-full object-cover"
+        >
+          <source src="/intro-sentiqs.mp4" type="video/mp4" />
+        </video>
+        <button
+          type="button"
+          onClick={dismissIntro}
+          className="absolute bottom-6 right-6 sm:bottom-8 sm:right-8 px-4 py-2 rounded-lg bg-black/40 border border-white/20 text-white text-xs font-semibold tracking-[0.08em] uppercase backdrop-blur-sm hover:bg-black/60 hover:border-white/40 transition-colors"
+        >
+          {lang === 'fr' ? 'Passer' : 'Skip'} <i className="ri-arrow-right-line ml-1 align-middle" />
+        </button>
       </div>
     );
   }

@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 import ShareModal from '@/components/feature/ShareModal';
-import { doCollect, type CollecteProgress } from '@/lib/collecte/doCollect';
 
 // Forme reelle d'un article dans collecte_partagee.articles (voir
 // parseRSS/parseJSON dans web/SentiqS_Web.html) — seuls les champs
@@ -48,14 +47,17 @@ export default function FeedsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cacheAge, setCacheAge] = useState<string | null>(null);
-  const [collecting, setCollecting] = useState(false);
-  const [collecteProgress, setCollecteProgress] = useState<CollecteProgress | null>(null);
-  const [collecteError, setCollecteError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const loadFromCache = useCallback(async () => {
-    // Lit le cache RSS partage reel (collecte_partagee, id='global') — le
-    // meme chemin qu'un visiteur ordinaire de web/SentiqS_Web.html avant de
-    // lancer sa propre collecte. Aucune donnee fictive : liste vide + message
+    // Lit le cache RSS partage reel (collecte_partagee, id='global') — seule
+    // methode de collecte du produit : la planifiee (GitHub Actions, voir
+    // CLAUDE.md). "Actualiser" recharge cette lecture, il ne relance jamais
+    // de collecte depuis le navigateur — un bouton cote client qui
+    // parcourait les 495 sources aurait fait de chaque utilisateur connecte
+    // un second declencheur de collecte, en plus de la planifiee, contre
+    // les memes proxys CORS publics deja satures (voir CLAUDE.md,
+    // "Collecte planifiee"). Aucune donnee fictive : liste vide + message
     // explicite si le cache est absent/vide, jamais d'article invente.
     const { data, error: err } = await supabase
       .from('collecte_partagee')
@@ -75,25 +77,12 @@ export default function FeedsPage() {
     loadFromCache();
   }, [loadFromCache]);
 
-  // Lance une vraie collecte contre les 495 sources reelles (voir
-  // src/lib/collecte/) puis recharge le Flux depuis le cache partage mis a
-  // jour. Peut prendre du temps (jusqu'a plusieurs dizaines de secondes,
-  // comme sur le site reel) — la progression (sources traitees/total,
-  // succes/erreurs) est affichee pendant l'operation.
   const handleActualiser = useCallback(async () => {
-    setCollecting(true);
-    setCollecteError(null);
-    setCollecteProgress(null);
+    setRefreshing(true);
     try {
-      const { publication } = await doCollect((p) => setCollecteProgress(p));
-      if (publication.ok === false) {
-        setCollecteError(publication.raison);
-      }
       await loadFromCache();
-    } catch (e) {
-      setCollecteError(e instanceof Error ? e.message : 'Erreur inconnue pendant la collecte.');
     } finally {
-      setCollecting(false);
+      setRefreshing(false);
     }
   }, [loadFromCache]);
 
@@ -149,10 +138,10 @@ export default function FeedsPage() {
           <button
             type="button"
             onClick={handleActualiser}
-            disabled={collecting}
+            disabled={refreshing}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-[#d9a85c] text-[#17181c] hover:bg-[#c99b4e] transition-colors disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap"
           >
-            {collecting ? (
+            {refreshing ? (
               <span className="w-3.5 h-3.5 border-2 border-[#17181c]/30 border-t-[#17181c] rounded-full animate-spin" />
             ) : (
               <i className="ri-refresh-line" />
@@ -175,18 +164,6 @@ export default function FeedsPage() {
           </button>
         </div>
       </div>
-
-      {collecting && collecteProgress && (
-        <div className="bg-[#d9a85c]/[0.06] border border-[#d9a85c]/20 rounded-lg px-3 py-2 text-[11px] text-[#e9cda0] flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#d9a85c] animate-pulse flex-shrink-0" />
-          Collecte en cours : {collecteProgress.traitees}/{collecteProgress.total} sources ({collecteProgress.ok} ok, {collecteProgress.erreurs} en échec) — {collecteProgress.articlesTrouves} actualités trouvées
-        </div>
-      )}
-      {collecteError && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2 text-[11px] text-red-400">
-          La collecte a rencontré un problème : {collecteError}
-        </div>
-      )}
 
       {/* Filters bar */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center flex-wrap">
