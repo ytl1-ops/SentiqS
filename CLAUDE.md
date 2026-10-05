@@ -1996,6 +1996,44 @@ transition vers l'écran de connexion réel), revisite dans le même onglet
 
 ---
 
+## La barre de couverture du Flux, 05/10/2026
+
+Demande explicite de reprendre la direction visuelle d'une capture
+d'écran de l'app Ground News (bandes de couleur sous chaque article,
+ligne d'en-tête compacte, titres affirmés) sur les cartes d'actu du Flux
+— adaptée à l'identité déjà en place plutôt que copiée telle quelle.
+
+**La comparaison a d'abord tranché ce qui ne devait PAS être copié.** La
+carte d'actu de ce produit porte déjà, par carte : pays + niveau d'alerte
+pays + impact sur le score + survenance (`.art-top`), titre en 15px/700
+depuis la refonte du 23/09, portée/ville/catégorie/source/sentiment/
+viralité (`.meta2`), puis source(s) + confiance + score + recoupement +
+fraîcheur (`.aftr`). Ground News n'affiche que 4 éléments par carte
+(catégorie, lieu, titre, barre). Y plaquer cette sparsité aurait voulu
+dire supprimer des informations qu'un professionnel de la sûreté lit
+réellement (niveau d'alerte, recoupement, score de fiabilité) — personne
+ne l'a demandé, et ce n'est pas ce qu'« adapter plutôt que copier » veut
+dire. Le titre affirmé et la ligne d'en-tête compacte existaient déjà
+(passes du 21/09 et du 23/09) ; le seul élément réellement absent était
+la bande de couleur elle-même.
+
+**Donc : une seule addition, purement additive.** `.score-bar` /
+`.score-bar-fill` dans `.aftr`, juste avant le badge `.rtg` existant —
+même donnée (`a.score`), mêmes seuils de couleur que `rc()` (`var(--g)`
+≥85, `var(--a)` ≥65, `var(--r)` en dessous) : la barre illustre un chiffre
+déjà calculé et déjà affiché en toutes lettres, elle n'en invente aucun.
+Volontairement discrète (42×4px) plutôt qu'à la largeur de Ground News :
+la ligne `.aftr` porte déjà cinq à six badges, une barre large y aurait
+dominé au lieu de s'y glisser. Aucun badge existant retiré ni déplacé.
+
+Vérifié : `npm test` (407/407), `verifier-syntaxe-html.js`,
+`verifier-accessibilite-interface.js` (0 violation), capture Playwright du
+Flux avec le cache réel (`cache.json`) injecté dans `ALL` — la barre
+s'affiche et se colore correctement sur plusieurs cartes, aucune carte
+cassée, aucune erreur JS.
+
+---
+
 ## Conventions
 
 - **Tout en français** : commits, commentaires, noms de fonctions et de

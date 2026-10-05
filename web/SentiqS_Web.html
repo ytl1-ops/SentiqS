@@ -622,6 +622,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .atm{font-size:var(--fs-micro);color:var(--lg);margin-left:auto;
   white-space:nowrap;font-weight:500}
 
+/* Barre de couverture : visualise a.score (deja calcule, memes seuils que
+   rc() -> rh/rm/rl ci-dessus) au lieu de l'exposer seulement en texte
+   (.rtg). Purement additif : ne remplace aucun badge existant. */
+.score-bar{display:inline-block;width:42px;height:4px;border-radius:999px;
+  background:var(--bd);overflow:hidden;vertical-align:middle}
+.score-bar-fill{display:block;height:100%;border-radius:999px}
+
 /* ── Carte article restructuree : priorite au titre, meta condensee ──────
    La ligne art-top (pays + heure de survenance, en monospace comme un
    horodatage de tableau de bord) precede immediatement le titre : c'est
@@ -11366,6 +11373,10 @@ async function renderFeed() {
         '<div class="aftr conf-group">'+chips+
           '<button class="share-trigger" onclick="toggleShareMenu(event,\''+a.id+'\')" title="'+(LANG==='en'?'Share':'Partager')+'"><i class="ti ti-share-2"></i>'+(LANG==='en'?'Share':'Partager')+'</button>'+
           (typeof confBadge==='function' ? confBadge(a) : '')+
+          // Barre de couverture : meme donnee que .rtg juste apres (a.score,
+          // memes seuils rc()), visualisee en plus d'etre ecrite en toutes
+          // lettres — rien n'est invente, voir CSS .score-bar.
+          '<span class="score-bar" title="Fiabilite '+a.score+'%"><span class="score-bar-fill" style="width:'+a.score+'%;background:var(--'+({rh:'g',rm:'a',rl:'r'}[rc(a.score)])+')"></span></span>'+
           '<span class="rtg '+rc(a.score)+'">'+a.score+'%</span>'+
           (a.verified?'<span class="vtg" title="'+(LANG==='en'?'Reported by several sources':'Rapporte par plusieurs sources')+'"><i class="ti ti-shield-check"></i>'+(a.crosses?.length||1)+' src</span>':
                       '<span class="utg" title="'+(LANG==='en'?'Single source':'Source unique')+'">1 src</span>')+
