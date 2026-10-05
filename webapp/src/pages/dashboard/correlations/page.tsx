@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useVeille, correlations as derivedCorrelations, alertes, risquePays, type VeilleCorrelation } from '@/lib/veille';
+import { useVeille, correlations as derivedCorrelations, alertes, type VeilleCorrelation } from '@/lib/veille';
+import { useCountryPosture } from '@/hooks/useCountryPosture';
 import ShareModal from '@/components/feature/ShareModal';
 
 type CorrType = VeilleCorrelation;
@@ -35,7 +36,7 @@ export default function CorrelationsPage() {
   const { articles, loading, error, recharger } = useVeille();
   const correlations = useMemo(() => derivedCorrelations(articles), [articles]);
   const dashboardAlerts = useMemo(() => alertes(articles), [articles]);
-  const countryRiskLevels = useMemo(() => risquePays(articles), [articles]);
+  const { postures: countryRiskLevels } = useCountryPosture();
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [strengthFilter, setStrengthFilter] = useState<StrengthFilter>('all');
   const [regionFilter, setRegionFilter] = useState<RegionFilter>('all');
@@ -148,7 +149,7 @@ export default function CorrelationsPage() {
 
     // Create country nodes
     countrySet.forEach((cname) => {
-      const risk = countryRiskLevels.find((r) => r.country === cname);
+      const risk = countryRiskLevels.find((r) => r.name === cname);
       const pos = countryPositions[cname] || { x: Math.random() * 560 + 60, y: Math.random() * 340 + 50 };
       const node: GraphNode = {
         id: `country-${cname}`,
@@ -156,7 +157,7 @@ export default function CorrelationsPage() {
         type: 'country',
         x: pos.x,
         y: pos.y,
-        risk: risk?.risk || 'low',
+        risk: risk?.level || 'non_cote',
       };
       nodes.push(node);
       nodeMap.set(node.id, node);
@@ -237,12 +238,13 @@ export default function CorrelationsPage() {
       return map[node.severity || 'medium'] || '#64748b';
     }
     const map: Record<string, string> = {
-      critical: '#dc2626',
-      high: '#ea580c',
-      medium: '#ca8a04',
-      low: '#16a34a',
+      rouge: '#dc2626',
+      orange: '#ea580c',
+      jaune: '#ca8a04',
+      vert: '#16a34a',
+      non_cote: '#9ca3af',
     };
-    return map[node.risk || 'low'] || '#64748b';
+    return map[node.risk || 'non_cote'] || '#64748b';
   };
 
   const nodeBorderColor = (node: GraphNode) => {

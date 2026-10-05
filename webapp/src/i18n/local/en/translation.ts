@@ -109,6 +109,12 @@ export default {
   'dashboard.risk.medium': 'Medium',
   'dashboard.risk.low': 'Low',
 
+  'dashboard.posture.vert': 'Stable',
+  'dashboard.posture.jaune': 'Watch',
+  'dashboard.posture.orange': 'High',
+  'dashboard.posture.rouge': 'Critical',
+  'dashboard.posture.non_cote': 'Unrated',
+
   'dashboard.welcome': 'Welcome back',
   'dashboard.welcomeSub': 'Here is your operational security overview for today.',
   'dashboard.agenda.today': 'Today',

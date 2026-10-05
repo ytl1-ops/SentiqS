@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
 import { supabase } from '@/lib/supabase';
 import { useAlertLevels } from '@/hooks/useAlertLevels';
+import { useCountryPosture } from '@/hooks/useCountryPosture';
 import { useSupabaseStats } from '@/hooks/useSupabaseStats';
 import { formatTimeSince } from '@/utils/timeFormat';
 import AfricaHeatmap from '@/components/base/AfricaHeatmap';
@@ -14,8 +15,36 @@ import FeedsList from '@/pages/dashboard/components/FeedsList';
 export default function DashboardOverview() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { alertLevels, loading: levelsLoading, stats: alertStats } = useAlertLevels();
+  const { alertLevels: computedLevels, loading: levelsLoading, stats: alertStats } = useAlertLevels();
+  const { postures } = useCountryPosture();
   const { stats, loading: statsLoading } = useSupabaseStats();
+
+  // Le niveau affiche (couleur, compteurs, heatmap) vient de
+  // country_posture_state quand ce pays y est score — la meme source
+  // authentique que CountryRisk/Countries/Correlations (voir
+  // useCountryPosture.ts). useAlertLevels() garde la main sur tout le
+  // reste (incidents declencheurs, facteurs aggravants, tendance locale) :
+  // country_posture_state ne porte pas ces details, seulement le niveau.
+  // Un pays "non_cote" (pas de donnee recente) n'a pas d'equivalent dans
+  // l'echelle a 4 niveaux de ce hook : il garde alors la valeur par defaut
+  // deja calculee par useAlertLevels plutot que d'etre force a un niveau
+  // qu'il ne faut pas lui preter.
+  const alertLevels = useMemo(() => {
+    const postureParCode = new Map(postures.map((p) => [p.code, p]));
+    return computedLevels.map((l) => {
+      const posture = postureParCode.get(l.countryCode);
+      if (!posture || posture.level === 'non_cote') return l;
+      return {
+        ...l,
+        level: posture.level,
+        levelLabel: posture.level === 'rouge' ? 'Conflit majeur'
+          : posture.level === 'orange' ? 'Risque élevé'
+          : posture.level === 'jaune' ? 'Précautions renforcées'
+          : 'Situation normale',
+        score: posture.score,
+      };
+    });
+  }, [computedLevels, postures]);
   const [latestChange, setLatestChange] = useState<{ country: string; oldLevel: string; newLevel: string; at: string } | null>(null);
 
   const currentLang = i18n.language.startsWith('fr') ? 'fr-FR' : 'en-US';
