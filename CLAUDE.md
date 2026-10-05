@@ -1957,6 +1957,45 @@ des 9 modules (bureau + mobile) sans erreur JavaScript.
 
 ---
 
+## La vidéo de démarrage du 05/10/2026
+
+Courte animation de marque (10 s, logo puis signature « Expertise en
+sûreté et renseignement stratégique en Afrique ») jouée en plein écran
+avant l'écran de connexion — `web/assets/intro-sentiqs.mp4`, posée dans
+`#authOverlay` au-dessus de la scène d'accueil existante (`skyline-scene`
++ `auth-box`), pas à la place : au clic sur « Passer » ou à la fin de la
+vidéo, l'écran habituel (globe animé, carte de connexion) apparaît
+inchangé.
+
+**Ne doit jamais retarder ni modifier le chemin automatisé.** Le job de
+collecte planifiée ouvre cette page avec `#collecteur-<TOKEN>` ;
+`checkCollectorSession()` l'intercepte et masque `#authOverlay` en entier
+avant qu'aucune autre logique ne s'exécute — la vidéo, posée à l'intérieur
+de ce même conteneur, est donc masquée avec lui et ne se lance jamais. Une
+reconnexion automatique du jour (`_ouvrirSessionDepuisSupabase`) suit le
+même chemin de retour anticipé. Mesuré avec le jeton collecteur réel :
+`authOverlay` et la vidéo masqués, lecture jamais démarrée
+(`introVideoEl.paused === true`), aucune erreur JS.
+
+Ne joue qu'une fois par onglet (`sessionStorage`), jamais à chaque retour
+à l'écran de connexion (déconnexion explicite, inscription, mot de passe
+oublié — tous passent par `showLoginForm()`, jamais par la nouvelle
+`afficherEcranConnexion()` qui, elle, est le seul point d'appel de
+`afficherIntroVideo()`). Un navigateur en navigation privée stricte qui
+refuse `sessionStorage` fait sauter l'intro plutôt que de bloquer l'accès
+à la connexion ; un autoplay refusé par le navigateur révèle directement
+l'écran de connexion au lieu de rester bloqué sur un premier cadre figé.
+
+Vérifié : `npm test` (407/407), `verifier-syntaxe-html.js`,
+`verifier-i18n.js` (nouvelle clé `intro_video_skip`, FR/EN),
+`verifier-ressources.js`, `verifier-accessibilite.js` et
+`verifier-accessibilite-interface.js` (0 violation), et capture Playwright
+des trois chemins : visite normale (vidéo jouée, Passer fonctionnel,
+transition vers l'écran de connexion réel), revisite dans le même onglet
+(vidéo non rejouée), session collecteur (vidéo jamais lancée).
+
+---
+
 ## Conventions
 
 - **Tout en français** : commits, commentaires, noms de fonctions et de
