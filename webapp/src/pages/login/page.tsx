@@ -95,36 +95,36 @@ export default function Login() {
 
   if (checkingSession) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-[#081018]">
-        <div className="w-10 h-10 border-2 border-cyan-400/20 border-t-cyan-400 rounded-full animate-spin" />
+      <div className="min-h-screen w-full flex items-center justify-center bg-[#111114]">
+        <div className="w-10 h-10 border-2 border-[#d9a85c]/20 border-t-[#d9a85c] rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-[#081018] text-slate-100">
-      <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] relative flex-col overflow-hidden bg-[#07111a]">
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(circle at top left, rgba(34,211,238,0.25), transparent 30%), linear-gradient(135deg, rgba(8,16,24,0.96), rgba(15,23,42,0.88))' }} />
+    <div className="min-h-screen flex flex-col lg:flex-row bg-[#111114] text-slate-100">
+      <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] relative flex-col overflow-hidden bg-[#0e0f12]">
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(8,9,10,0.97), rgba(17,18,20,0.9))' }} />
         <img
           src="https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1400&q=80"
           alt=""
-          className="absolute inset-0 w-full h-full object-cover opacity-25"
+          className="absolute inset-0 w-full h-full object-cover opacity-20"
         />
 
         <div className="relative z-10 flex h-full flex-col p-8 xl:p-12">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl border border-cyan-400/30 bg-cyan-400/10 flex items-center justify-center shadow-[0_0_30px_rgba(34,211,238,0.25)]">
-              <i className="ri-earth-line text-xl text-cyan-300" />
+            <div className="w-12 h-12 rounded-xl border border-[#d9a85c]/30 bg-[#d9a85c]/10 flex items-center justify-center">
+              <i className="ri-earth-line text-xl text-[#d9a85c]" />
             </div>
             <div>
-              <div className="text-[10px] font-semibold tracking-[0.22em] text-cyan-300 uppercase">SentiqS</div>
+              <div className="text-[10px] font-semibold tracking-[0.22em] text-[#d9a85c] uppercase">SentiqS</div>
               <div className="text-sm font-medium text-slate-300">Global Security Intelligence</div>
             </div>
           </div>
 
           <div className="mt-auto max-w-lg">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-400/25 bg-cyan-400/5 px-3 py-1.5 text-[10px] font-semibold tracking-[0.2em] uppercase text-cyan-200">
-              <span className="h-2 w-2 rounded-full bg-cyan-300 animate-pulse" />
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#d9a85c]/25 bg-[#d9a85c]/5 px-3 py-1.5 text-[10px] font-semibold tracking-[0.2em] uppercase text-[#e9cda0]">
+              <span className="h-2 w-2 rounded-full bg-[#d9a85c] animate-pulse" />
               Active monitoring
             </div>
 
@@ -137,16 +137,16 @@ export default function Login() {
             </p>
 
             <div className="mt-8 grid grid-cols-3 gap-4 text-left">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-                <div className="text-2xl font-semibold text-cyan-300">54</div>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="text-2xl font-semibold text-[#d9a85c]">54</div>
                 <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-slate-400">countries</div>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-                <div className="text-2xl font-semibold text-cyan-300">24/7</div>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="text-2xl font-semibold text-[#d9a85c]">24/7</div>
                 <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-slate-400">coverage</div>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-                <div className="text-2xl font-semibold text-cyan-300">0.3s</div>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="text-2xl font-semibold text-[#d9a85c]">0.3s</div>
                 <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-slate-400">latency</div>
               </div>
             </div>
@@ -155,25 +155,25 @@ export default function Login() {
       </div>
 
       <div className="flex-1 flex items-center justify-center px-5 py-8 sm:px-8 lg:px-10">
-        <div className="w-full max-w-[430px] rounded-[28px] border border-white/10 bg-slate-900/70 p-6 shadow-[0_30px_80px_rgba(2,6,23,0.75)] backdrop-blur-xl sm:p-8">
+        <div className="w-full max-w-[430px] rounded-2xl border border-white/10 bg-[#17181c] p-6 sm:p-8">
           <div className="flex items-center justify-between mb-8">
             <div className="hidden lg:block">
               <div className="text-[10px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
                 Veille active · 54 pays
               </div>
             </div>
-            <div className="inline-flex rounded-lg border border-white/10 bg-slate-950/60 p-1">
+            <div className="inline-flex rounded-lg border border-white/10 bg-[#111114] p-1">
               <button
                 type="button"
                 onClick={() => switchLang('fr')}
-                className={`rounded-md px-3 py-1.5 text-[10px] font-semibold tracking-[0.18em] uppercase transition ${lang === 'fr' ? 'bg-cyan-400 text-slate-950 shadow-[0_0_20px_rgba(34,211,238,0.4)]' : 'text-slate-300 hover:text-white'}`}
+                className={`rounded-md px-3 py-1.5 text-[10px] font-semibold tracking-[0.18em] uppercase transition ${lang === 'fr' ? 'bg-[#d9a85c] text-[#17181c]' : 'text-slate-300 hover:text-white'}`}
               >
                 FR
               </button>
               <button
                 type="button"
                 onClick={() => switchLang('en')}
-                className={`rounded-md px-3 py-1.5 text-[10px] font-semibold tracking-[0.18em] uppercase transition ${lang === 'en' ? 'bg-cyan-400 text-slate-950 shadow-[0_0_20px_rgba(34,211,238,0.4)]' : 'text-slate-300 hover:text-white'}`}
+                className={`rounded-md px-3 py-1.5 text-[10px] font-semibold tracking-[0.18em] uppercase transition ${lang === 'en' ? 'bg-[#d9a85c] text-[#17181c]' : 'text-slate-300 hover:text-white'}`}
               >
                 EN
               </button>
@@ -182,8 +182,8 @@ export default function Login() {
 
           <div className="mb-7">
             <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-400/35 bg-cyan-400/10 shadow-[0_0_20px_rgba(34,211,238,0.2)]">
-                <i className="ri-earth-line text-lg text-cyan-300" />
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#d9a85c]/35 bg-[#d9a85c]/10">
+                <i className="ri-earth-line text-lg text-[#d9a85c]" />
               </div>
               <div>
                 <h1 className="text-2xl font-semibold tracking-[-0.04em] text-white">SentiqS</h1>
@@ -196,21 +196,21 @@ export default function Login() {
           </div>
 
           <div className="mb-6 grid grid-cols-3 gap-3">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-center">
-              <div className="text-xl font-semibold text-cyan-300">54</div>
+            <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-center">
+              <div className="text-xl font-semibold text-[#d9a85c]">54</div>
               <div className="mt-1 text-[9px] uppercase tracking-[0.12em] text-slate-400">{t('card.stats.countries')}</div>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-center">
-              <div className="text-xl font-semibold text-cyan-300">—</div>
+            <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-center">
+              <div className="text-xl font-semibold text-[#d9a85c]">—</div>
               <div className="mt-1 text-[9px] uppercase tracking-[0.12em] text-slate-400">{t('card.stats.news')}</div>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-center">
-              <div className="text-xl font-semibold text-cyan-300">—</div>
+            <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-center">
+              <div className="text-xl font-semibold text-[#d9a85c]">—</div>
               <div className="mt-1 text-[9px] uppercase tracking-[0.12em] text-slate-400">{t('card.stats.alerts')}</div>
             </div>
           </div>
 
-          <div className="mb-6 rounded-2xl border border-cyan-400/20 bg-cyan-400/5 px-4 py-3 text-center text-xs text-cyan-100 italic">
+          <div className="mb-6 rounded-xl border border-[#d9a85c]/20 bg-[#d9a85c]/5 px-4 py-3 text-center text-xs text-[#e9cda0] italic">
             {t('card.notice')}
           </div>
 
@@ -242,7 +242,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t('card.email.placeholder')}
-                className="w-full rounded-xl border border-white/10 bg-slate-950/70 px-3.5 py-3 text-sm text-white placeholder:text-slate-500 focus:border-cyan-400/60 focus:outline-none focus:ring-2 focus:ring-cyan-400/20"
+                className="w-full rounded-xl border border-white/10 bg-[#111114] px-3.5 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#d9a85c]/60 focus:outline-none focus:ring-2 focus:ring-[#d9a85c]/20"
               />
             </div>
 
@@ -256,7 +256,7 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={t('card.password.placeholder')}
-                className="w-full rounded-xl border border-white/10 bg-slate-950/70 px-3.5 py-3 text-sm text-white placeholder:text-slate-500 focus:border-cyan-400/60 focus:outline-none focus:ring-2 focus:ring-cyan-400/20"
+                className="w-full rounded-xl border border-white/10 bg-[#111114] px-3.5 py-3 text-sm text-white placeholder:text-slate-500 focus:border-[#d9a85c]/60 focus:outline-none focus:ring-2 focus:ring-[#d9a85c]/20"
               />
             </div>
 
@@ -268,15 +268,15 @@ export default function Login() {
                 name="zone"
                 value={zone}
                 onChange={(e) => setZone(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-slate-950/70 px-3.5 py-3 text-sm text-white focus:border-cyan-400/60 focus:outline-none focus:ring-2 focus:ring-cyan-400/20"
+                className="w-full rounded-xl border border-white/10 bg-[#111114] px-3.5 py-3 text-sm text-white focus:border-[#d9a85c]/60 focus:outline-none focus:ring-2 focus:ring-[#d9a85c]/20"
               >
-                <option value="" className="bg-slate-900">{t('card.zone.default')}</option>
-                <option value="golfe" className="bg-slate-900">Golfe de Guinée</option>
-                <option value="sahel" className="bg-slate-900">Sahel</option>
-                <option value="afrique-est" className="bg-slate-900">Afrique de l&apos;Est</option>
-                <option value="afrique-centrale" className="bg-slate-900">Afrique Centrale</option>
-                <option value="afrique-sud" className="bg-slate-900">Afrique du Sud</option>
-                <option value="maghreb" className="bg-slate-900">Maghreb</option>
+                <option value="" className="bg-[#17181c]">{t('card.zone.default')}</option>
+                <option value="golfe" className="bg-[#17181c]">Golfe de Guinée</option>
+                <option value="sahel" className="bg-[#17181c]">Sahel</option>
+                <option value="afrique-est" className="bg-[#17181c]">Afrique de l&apos;Est</option>
+                <option value="afrique-centrale" className="bg-[#17181c]">Afrique Centrale</option>
+                <option value="afrique-sud" className="bg-[#17181c]">Afrique du Sud</option>
+                <option value="maghreb" className="bg-[#17181c]">Maghreb</option>
               </select>
               <p className="mt-2 text-[10px] text-slate-400 leading-5">{t('card.zone.help')}</p>
             </div>
@@ -284,7 +284,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 px-4 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60 shadow-[0_0_30px_rgba(34,211,238,0.25)]"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#d9a85c] px-4 py-3.5 text-sm font-semibold text-[#17181c] transition hover:bg-[#c99b4e] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? (
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-900/30 border-t-slate-900" />
@@ -296,7 +296,7 @@ export default function Login() {
           </form>
 
           <div className="mt-5 flex items-center justify-center gap-4">
-            <Link to="/signup" className="text-xs text-cyan-300 hover:text-cyan-200 transition">{t('card.firstTime')}</Link>
+            <Link to="/signup" className="text-xs text-[#d9a85c] hover:text-[#c99b4e] transition">{t('card.firstTime')}</Link>
             <Link to="/forgot-password" className="text-xs text-slate-400 hover:text-slate-200 transition">{t('card.forgot')}</Link>
           </div>
 
@@ -306,7 +306,7 @@ export default function Login() {
                 type="button"
                 onClick={handleResendConfirmation}
                 disabled={isSubmitting}
-                className="text-xs text-cyan-300 hover:text-cyan-200 disabled:opacity-50"
+                className="text-xs text-[#d9a85c] hover:text-[#c99b4e] disabled:opacity-50"
               >
                 {lang === 'fr' ? 'Pas reçu l\'email de confirmation ? Renvoyer' : 'Didn\'t receive the confirmation email? Resend'}
               </button>
@@ -315,11 +315,11 @@ export default function Login() {
 
           <div className="mt-6 border-t border-white/10 pt-4">
             <div className="flex items-center justify-center gap-6 text-[10px] uppercase tracking-[0.18em] text-slate-400">
-              <a href="#" className="flex items-center gap-2 hover:text-cyan-200 transition" onClick={(e) => e.preventDefault()}>
+              <a href="#" className="flex items-center gap-2 hover:text-[#d9a85c] transition" onClick={(e) => e.preventDefault()}>
                 <i className="ri-newspaper-line" />
                 {t('card.publicBulletin')}
               </a>
-              <a href="#" className="flex items-center gap-2 hover:text-cyan-200 transition" onClick={(e) => e.preventDefault()}>
+              <a href="#" className="flex items-center gap-2 hover:text-[#d9a85c] transition" onClick={(e) => e.preventDefault()}>
                 <i className="ri-link" />
                 {t('card.methodology')}
               </a>

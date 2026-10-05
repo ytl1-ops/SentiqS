@@ -53,16 +53,16 @@ export default function Sidebar({ activeItem = 'overview' }: SidebarProps) {
   ];
 
   return (
-    <aside className="w-16 lg:w-60 bg-slate-950/80 border-r border-slate-800/80 backdrop-blur-xl flex flex-col flex-shrink-0 transition-all">
+    <aside className="w-16 lg:w-60 bg-[#0e0f12] border-r border-white/[0.07] flex flex-col flex-shrink-0 transition-all">
       <nav className="flex-1 py-3">
         {sections.map((section) => (
           <div key={section.title} className="mb-3">
             <div className="hidden lg:block px-4 pb-2 pt-1">
-              <span className="text-[9px] font-semibold tracking-[0.18em] text-slate-500 uppercase">
+              <span className="text-[9px] font-semibold tracking-[0.16em] text-slate-500 uppercase">
                 {section.title}
               </span>
             </div>
-            <div className="space-y-1.5 px-2">
+            <div className="space-y-0.5 px-2">
               {section.items.map((item) => {
                 const isActive = activeItem === item.id;
                 return (
@@ -70,14 +70,14 @@ export default function Sidebar({ activeItem = 'overview' }: SidebarProps) {
                     key={item.id}
                     type="button"
                     onClick={item.id === 'alerts' ? handleAlertsClick : () => navigate(item.path)}
-                    className={`group relative w-full flex items-center gap-3 rounded-xl px-2.5 lg:px-3 py-2.5 text-xs transition-all whitespace-nowrap cursor-pointer ${
+                    className={`group relative w-full flex items-center gap-3 border-l-2 pl-2.5 lg:pl-3 pr-2.5 py-2.5 text-xs transition-all whitespace-nowrap cursor-pointer ${
                       isActive
-                        ? 'bg-cyan-400/10 text-cyan-200 border border-cyan-400/25 shadow-[inset_0_0_0_1px_rgba(34,211,238,0.1)]'
-                        : 'text-slate-400 hover:bg-slate-900/80 hover:text-slate-100'
+                        ? 'border-[#d9a85c] bg-[#d9a85c]/[0.08] text-slate-50'
+                        : 'border-transparent text-slate-400 hover:bg-white/[0.04] hover:text-slate-100'
                     }`}
                   >
                     <div className="w-5 h-5 flex items-center justify-center flex-shrink-0 relative">
-                      <i className={`${item.icon} text-base ${isActive ? 'text-cyan-300' : 'text-slate-400 group-hover:text-slate-200'}`} />
+                      <i className={`${item.icon} text-base ${isActive ? 'text-[#d9a85c]' : 'text-slate-400 group-hover:text-slate-200'}`} />
                       {item.badge && item.badge > 0 && (
                         <span className="absolute -top-1 -right-1 min-w-[16px] h-4 flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-bold leading-none px-1">
                           {item.badge > 99 ? '99+' : item.badge}
@@ -98,7 +98,7 @@ export default function Sidebar({ activeItem = 'overview' }: SidebarProps) {
         ))}
       </nav>
 
-      <div className="p-3 lg:p-4 border-t border-slate-800/80">
+      <div className="p-3 lg:p-4 border-t border-white/[0.07]">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
           <span className="hidden lg:inline text-[10px] font-semibold tracking-[0.18em] text-slate-400 uppercase">

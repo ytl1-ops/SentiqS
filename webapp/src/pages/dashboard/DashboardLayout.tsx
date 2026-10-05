@@ -83,7 +83,7 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-sentiqs-gray-bg dark:bg-sentiqs-crisis-bg flex flex-col">
+    <div className="min-h-screen bg-[#111114] flex flex-col">
       <TopBar onLogout={handleLogout} />
 
       <div className="flex-1 flex overflow-hidden">
@@ -94,15 +94,15 @@ export default function DashboardLayout() {
             <Outlet />
           </PageTransition>
 
-          <div className="flex items-center justify-between py-3 mt-5 border-t border-gray-200 dark:border-sentiqs-crisis-border">
+          <div className="flex items-center justify-between py-3 mt-5 border-t border-white/[0.08]">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] font-semibold tracking-[0.15em] text-sentiqs-gray-text dark:text-sentiqs-crisis-text-muted uppercase">
+              <span className="text-[10px] font-semibold tracking-[0.15em] text-slate-400 uppercase">
                 {t('common.activeMonitoring')}
               </span>
-              <span className="text-[10px] text-sentiqs-gray-text dark:text-sentiqs-crisis-text-faint">• {t('dashboard.countries54')} • {t('dashboard.realTime')}</span>
+              <span className="text-[10px] text-slate-500">• {t('dashboard.countries54')} • {t('dashboard.realTime')}</span>
             </div>
-            <span className="text-[10px] text-sentiqs-gray-text dark:text-sentiqs-crisis-text-faint">
+            <span className="text-[10px] text-slate-500">
               {t('dashboard.lastUpdate')} : {new Date().toLocaleTimeString(i18n.language.startsWith('fr') ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
             </span>
           </div>
