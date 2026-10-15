@@ -48,7 +48,7 @@
 <style>
 :root{
 --bg:#05080B; --bg2:#070C11; --panel:#101A22; --panel-b:#1C2E3D; --line:#2E4E63; --line2:#1B2A36;
---ink:#F5F7FA; --ink2:rgba(245,247,250,.68); --ink3:rgba(245,247,250,.55); --ink4:rgba(245,247,250,.47);
+--ink:#F5F7FA; --ink2:rgba(245,247,250,.68); --ink3:rgba(245,247,250,.55); --ink4:rgba(245,247,250,.52);
 --blue:#2C5AAE; --sky:#7FB2CC; --navy:#16212C;
 --red:#8B1A1A; --amber:#7C4A00; --sblue:#2C5AAE; --green:#0F4F2A;
 --serif:'Source Serif 4',serif; --sans:'IBM Plex Sans',sans-serif; --mono:'IBM Plex Mono',monospace;
@@ -88,6 +88,17 @@ footer a{color:var(--ink3)}
 .alert-unlock{position:relative;margin:-8px -24px 0;padding:26px 24px 24px;text-align:center;background:linear-gradient(180deg,rgba(16,26,34,0) 0%,var(--panel) 55%)}
 .alert-unlock p{max-width:56ch;margin:0 auto 14px;font-size:13.5px;color:var(--ink2)}
 .alert-unlock a.btn{display:inline-block;background:var(--blue);color:#fff;padding:11px 22px;border-radius:6px;font-weight:700;font-size:14px}
+
+/* ── REVUE DE PRÉSENTATION (revue-pages-2026-10-15) ───────────────────────
+   Zones tactiles ≥ 24 px sans toucher à la mise en page (remplissage annulé par
+   une marge négative), anneau de focus visible, défilement doux coupé pour qui
+   réduit les animations. Le teaser d'alertes flouté est volontairement illisible :
+   il porte aria-hidden dans le HTML, pour que les lecteurs d'écran ne lisent pas
+   comme réels des exemples que l'œil ne peut pas lire. */
+a:focus-visible,button:focus-visible{outline:2px solid var(--sky);outline-offset:3px;border-radius:4px}
+.breadcrumb a,footer a{padding:5px 3px;margin:-5px -3px}
+.nav-brand{min-height:24px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
@@ -130,9 +141,9 @@ footer a{color:var(--ink3)}
 
 <h2>Alertes en temps réel pour le Ghana</h2>
 <div class="alert-live-wrap">
-<div class="alert-blur-item"><span class="alert-tag">SÛRETÉ</span><span class="alert-txt">Renforcement du dispositif sécuritaire signalé dans une localité frontalière de la région du Nord.</span><span class="alert-time">Il y a 4h</span></div>
-<div class="alert-blur-item"><span class="alert-tag">SOCIAL</span><span class="alert-txt">Mouvement de protestation localisé à Kumasi, circulation perturbée sur un axe secondaire.</span><span class="alert-time">Il y a 11h</span></div>
-<div class="alert-blur-item"><span class="alert-tag">INFRA</span><span class="alert-txt">Coupure d'électricité programmée annoncée par le gestionnaire du réseau dans le sud du pays.</span><span class="alert-time">Il y a 1j</span></div>
+<div class="alert-blur-item" aria-hidden="true"><span class="alert-tag">SÛRETÉ</span><span class="alert-txt">Renforcement du dispositif sécuritaire signalé dans une localité frontalière de la région du Nord.</span><span class="alert-time">Il y a 4h</span></div>
+<div class="alert-blur-item" aria-hidden="true"><span class="alert-tag">SOCIAL</span><span class="alert-txt">Mouvement de protestation localisé à Kumasi, circulation perturbée sur un axe secondaire.</span><span class="alert-time">Il y a 11h</span></div>
+<div class="alert-blur-item" aria-hidden="true"><span class="alert-tag">INFRA</span><span class="alert-txt">Coupure d'électricité programmée annoncée par le gestionnaire du réseau dans le sud du pays.</span><span class="alert-time">Il y a 1j</span></div>
 <div class="alert-unlock">
 <p>Débloquez le flux d'alertes en temps réel, la cartographie des zones à risque et la géolocalisation de vos équipes au Ghana avec notifications Push, SMS et WhatsApp.</p>
 <a class="btn" href="../SentiqS_Web.html">Débloquer les alertes en direct</a>
