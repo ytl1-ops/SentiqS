@@ -16,6 +16,7 @@ Ce fichier dit **où vit quoi**, **comment vérifier une modification**, et
 |---|---|---|
 | Le produit | `web/SentiqS_Web.html` (20 878 lignes, 1,46 Mo) | GitHub Pages, depuis `web/` |
 | Le noyau logique | `web/js/noyau.js` | `<script src="js/noyau.js">`, ligne 45 |
+| La page de garde (animation d'ouverture) | `web/js/intro.js` | `<script src="js/intro.js">` dans `SentiqS_Web.html` ET `index.html` |
 
 **Il n'y a pas d'étape de build pour `web/`.** Le HTML est du monolithe vanilla :
 ce qui est commité est, à l'octet près, ce qui est servi. Le déploiement Pages
@@ -2066,6 +2067,20 @@ refuse `sessionStorage` fait sauter l'intro plutôt que de bloquer l'accès
 à la connexion ; un autoplay refusé par le navigateur révèle directement
 l'écran de connexion au lieu de rester bloqué sur un premier cadre figé.
 
+**Mise à jour du 15/10/2026 — la logique a quitté la page.** Elle vit
+désormais dans `web/js/intro.js` (module à injection d'environnement, testé sans
+navigateur par `scripts/test/intro.test.js`), chargé en tête de
+`SentiqS_Web.html` ET de `index.html` : l'animation joue aussi à l'ouverture de
+la page d'accueil, avant tout contenu (donc avant le formulaire d'inscription et
+son mot de passe), et le drapeau `sentinel_intro_vue` est **partagé** — accueil →
+connexion ne la rejoue pas, connexion → accueil non plus. Voir la section
+« Pages hors appli, page de garde enchaînée et allègement » plus bas. Ce qui a
+changé pour l'écran de connexion : `afficherIntroVideo()` n'est plus qu'un appel
+à `SentiqIntro.lancer()` (et ne fait rien si le module n'a pas chargé : jamais
+d'obstacle à la connexion) ; la vidéo porte `preload="none"` (elle ne se
+télécharge qu'à la lecture) ; le stockage refusé fait **vraiment** sauter
+l'intro (l'ancien code la jouait malgré ce que disait ce paragraphe).
+
 Vérifié : `npm test` (407/407), `verifier-syntaxe-html.js`,
 `verifier-i18n.js` (nouvelle clé `intro_video_skip`, FR/EN),
 `verifier-ressources.js`, `verifier-accessibilite.js` et
@@ -2111,6 +2126,319 @@ Vérifié : `npm test` (407/407), `verifier-syntaxe-html.js`,
 Flux avec le cache réel (`cache.json`) injecté dans `ALL` — la barre
 s'affiche et se colore correctement sur plusieurs cartes, aucune carte
 cassée, aucune erreur JS.
+
+---
+
+## La revue de présentation du 15/10/2026 : lisibilité, clic, clavier — sur les 9 modules
+
+Demande : « revoir la présentation du Flux avec les skills de design », puis
+« appliquer les modifications à tous les modules ». Cadrage retenu avec le
+propriétaire : refonte **ciblée, rien de retiré** (aucune information de carte
+supprimée), livrée en demande de fusion à valider.
+
+**La mesure a précédé le dessin.** Chromium, réseau coupé, articles de
+démonstration dans `ALL`, les 9 modules × clair/sombre × bureau (1360px) /
+mobile (390px), mesure sur le DOM rendu (même principe que
+`verifier-accessibilite-interface.js`). Cumul des 36 combinaisons :
+
+| | avant | après |
+|---|---|---|
+| textes sous le seuil AA (4,5:1 / 3:1) | 1 836 | 10 (boutons désactivés, exemptés par WCAG 1.4.3) |
+| textes sous le plancher de 10px | 6 520 | 0 |
+| cliquables sans accès clavier | 948 | 0 |
+| cibles de clic < 24px (zone réelle, pseudo-éléments compris) | 1 274 | 8 (une case à cocher, un lien dans une phrase) |
+
+Le pire module était **Alertes en sombre : 349 textes sous le seuil**, puis
+Agenda (87), Flux (49), Tableau de bord (39). Les cartes d'actu, les résultats
+de Recherche (28) et les 54 tuiles pays n'avaient aucun arrêt de tabulation.
+
+**Causes racines — et donc où la correction a été posée.**
+
+1. *Couleurs de gravité écrites en dur pour un fond CLAIR dans des styles en
+   ligne* (`color:#78350F`, `#6B7280`, `#92400E`…). Le thème sombre ne les
+   retouchait jamais. Correction **unique, dans le bloc « REVISION DESIGN DU
+   15/10/2026 »** en fin de feuille : sélecteurs d'attribut
+   (`html[data-theme="dark"] body [style*="color:#78350F" i]`) qui renvoient
+   vers les jetons `--a/--r/--g/--m/--j-txt/--t2`. En clair, ces jetons valent
+   exactement les anciennes couleurs : seul le sombre change. Écrire ça dans
+   200 fonctions de rendu aurait été illisible et aurait dérivé ; le bloc se
+   relit, se mesure et se retire d'un coup.
+2. *Fonds PASTEL en dur* (`NIV.bg/bgLight` : `#FEF2F2`, `#F3E1CB`, `#DCFCE7`…).
+   **Piège rencontré** : éclaircir seulement le texte en sombre a fait passer
+   Alertes de 349 à 527 défauts — le texte clair se retrouvait sur un
+   rectangle clair. Les fonds ont donc leur équivalent sombre **opaque**
+   (`DARK_FOND`) ; des fonds translucides s'empilaient dans les cartes
+   imbriquées d'Alertes et re-éclaircissaient le fond. Un test lit `NIV` et
+   exige une règle sombre pour chacun de ses fonds : un nouveau niveau sans
+   équivalent échoue au lieu de réapparaître éblouissant.
+   `NIV` lui-même n'a PAS été touché : les exports Word/PDF/PowerPoint le lisent.
+3. *Tailles 7–9,5px restées hors du système de jetons du 23/09* (62 déclarations
+   de classes + des centaines de styles en ligne). Classes → `var(--fs-micro)`
+   (10px, le plancher) ; styles en ligne → un filet de sécurité
+   `[style*="font-size:9px" i]:not(svg *){font-size:var(--fs-micro) !important}`
+   (les étiquettes de carte SVG, à l'espace compté, sont exclues). `@media print`
+   n'est pas touché.
+4. *Zones de clic réduites au glyphe* (puces 20px, drapeau 14px). **Sans grossir
+   la mise en page** : un pseudo-élément `::after{inset:-7px -4px}` déborde de
+   l'élément ; seuls les boutons et champs de barre d'outils reçoivent un
+   `min-height:24px` (le seuil AA ; **pas** de palier 32/44px au doigt : un
+   premier essai à 36px a fait reculer la zone de lecture mobile de 45% à 40%,
+   le budget vertical du Flux étant le plus cher à gagner — le niveau AAA de
+   44px reste à arbitrer séparément). Sur mobile les
+   lignes de liens s'empilent à 15px : un débordement y chevaucherait la ligne
+   voisine, ces éléments (`.slink/.ev-cy/.ev-sc`) y prennent donc une vraie
+   hauteur de 24px.
+5. *Accès clavier* : `accessibiliserCliquables()` + un `MutationObserver` rendent
+   atteignable tout `onclick` posé sur un `<div>/<span>/<tr>`, y compris ce que
+   les rendus ajouteront. **Politique du dépôt conservée** : une carte qui
+   contient déjà des liens/boutons n'est pas un arrêt (rôle imbriqué) — son
+   TITRE l'est (`.atit` porte `role="button" tabindex="0"`, Entrée/Espace via
+   `clavierRolesBouton`). Un voile en `position:fixed`, un élément sans texte
+   ni nom, les onglets (tabindex glissant) et le SVG sont exclus. Le cliquet
+   `PLAFOND_CLIQUABLES_SANS_CLAVIER` passe de 61 à **0**.
+
+**Le Flux, en propre.** Avant : un bandeau BRONZE plein largeur par pays (38px)
+puis un sous-titre ville (28px) avant la première carte ; l'œil allait au
+bandeau, pas au niveau « CRITIQUE ». Après : en-tête de pays clair et
+**collant** (`.feed-pays-hd`, serif, `position:sticky`) qui annonce « N
+critiques · N élevées » avant les articles ; nom, total d'articles et lien vers
+la fiche pays conservés. Doublons retirés — jamais une information :
+
+- le nom du pays dans chaque carte, sous un en-tête de pays, est masqué à
+  l'écran (`.cy-nom`) mais **reste dans le DOM** pour les lecteurs d'écran ;
+- la pastille « RSS » générique (ligne secondaire) disparaît ; le badge RSS du
+  pied de carte reste, une seule fois, et s'efface quand la ligne secondaire
+  porte déjà le vrai type de source (`_srcBadge` : « RSS institutionnel »…) ;
+- la puce de catégorie n'est écrite qu'une fois (la balise thématique
+  « Sécurité » la porte déjà pour les niveaux critique/élevé) ;
+- « 2 src » / « 1 src » → « Recoupé · 2 sources » / « Source unique » ;
+- barre d'outils : recherche / pays / tri / Actualiser sur une ligne, filtres
+  sur la suivante (à 1360px, « Actualiser » restait seul sur sa ligne) ;
+- accents rétablis (« Plus récent », « Priorité », « Fiabilité », « Économique »,
+  « Ville non précisée », « ESTIMÉ ») ; le monogramme de source choisit son
+  texte (blanc ou foncé) selon la luminance du fond (`couleurTexteSur`, le
+  blanc sur orange `#F97316` faisait 2,8:1).
+
+Mobile : la colonne gauche de la carte (pastille de niveau + monogramme, ~100px)
+écrasait le texte ; première carte de **394px → 312px** (moyenne 343 → 289), la
+pastille de niveau passe sur la ligne pays/heure. Le gain est partiellement
+repris par les contrôles passés à 24px (barre d'outils +10px), net : le texte
+de la carte occupe toute la largeur au lieu de 60%. Les règles mobiles sont écrites **deux fois**
+(`@media (max-width:760px){html:not(.force-web) …}` ET `html.force-mobile …`,
+le bouton Web/Mobile) — aucun test historique ne garde cette parité ; celui du
+15/10 la vérifie pour les règles de cette passe.
+
+**Ce qui n'a pas été touché, et pourquoi.** Les documents exportés
+(Word/PDF/PowerPoint/rapport imprimable : autres documents, sans `data-theme` ni
+cette feuille) ; les valeurs de `NIV` ; les blocs `@media print` ; les textes
+SVG. Restent à 0,6–0,95 d'opacité par conception les cartes de moyens de
+paiement inactives (`.pm-inactif`) et deux boutons désactivés (« Recalculer »,
+« Tester l'envoi ») — des composants inactifs sont exemptés du contraste.
+
+**Pièges de méthode, pour la prochaine passe.**
+
+- Les sélecteurs d'attribut ne voient que le **texte exact** du style : `#6B7280`
+  est couvert, `rgb(107,114,128)` ne l'est pas. Les couleurs `rgb()` en ligne
+  restent à corriger au cas par cas.
+- Un commentaire contenant « @media print » a fait croire à mon script de
+  correction qu'un bloc d'impression commençait : la détection ne regarde que
+  les lignes qui COMMENCENT par `@media print`.
+- Le test `jetons-couleur` exige que tout `var(--x)` soit déclaré dans le `:root`
+  PRINCIPAL (pas dans un second `:root`) : les trois jetons ajoutés (`--on-b`,
+  `--bleu-txt`, `--violet-txt`) y sont, clair et sombre.
+- `[onclick^="f"]` rate `onclick="event.stopPropagation();f()"` : utiliser `*=`.
+- En banc hors ligne la police d'icônes Tabler ne charge pas : les boutons
+  d'icône y mesurent 16×8px. La mesure de zone de clic se fait donc sur
+  l'élément ET sur `elementFromPoint` à ±11px de son centre.
+- Le gris secondaire du sombre `--lg` passe de `#8CA0B4` à `#9AAEC2` (4,4:1 sur
+  certains fonds de Paramètres).
+
+Vérifié : `npm test`, `verifier-syntaxe-html.js` et les huit autres vérificateurs
+statiques, `test-fumee.js`, `verifier-accessibilite-interface.js` (plafond clavier
+61 → 0, contraste 0), `scripts/test/revision-design.test.js` (16 gardes, dont un
+contrôle par mutation : réintroduire une taille de 9px, retirer un fond sombre ou
+rétablir la pastille « RSS » les fait échouer).
+
+---
+
+## Pages hors appli, page de garde enchaînée et allègement — 15/10/2026
+
+Demande : « appliquer à tous les modules **et aux pages hors appli**. Reprendre
+la page de garde avec l'animation vidéo au début avant la zone d'insertion du mot
+de passe. Alléger l'appli pour rendre plus portable. » Cadrage retenu avec le
+propriétaire : page de garde **enchaînée** (accueil puis connexion, une seule
+lecture par onglet) ; allègement = **recompresser les deux vidéos**, même
+animation ; **une seule** demande de fusion pour tout (revue de présentation des
+modules + pages hors appli + page de garde + vidéos), à valider, non fusionnée.
+« Pages hors appli » = `web/index.html`, `web/pays/*.html` (+ le hub) et
+`web/legal/*.html`.
+
+### 1. Les pages hors appli — mesurées avant d'être corrigées
+
+Même banc que pour les modules (Chromium, réseau coupé, DOM rendu), 14 pages ×
+bureau/mobile, **clair et sombre pour les pages légales** (elles suivent la
+préférence du système ; `color-scheme: light dark`). Cumul :
+
+| | avant | après |
+|---|---|---|
+| textes sous le seuil AA | 212 | 0 |
+| textes sous 10 px | 22 | 0 |
+| cibles tactiles < 24 px (liens en ligne exemptés) | 106 | 0 |
+| pages qui défilent à l'horizontale à 390 px | 2 | 0 |
+
+Ce que la mesure a trouvé, et qu'aucun contrôle ne voyait :
+
+- **3 forfaits sur 4 avaient un bouton blanc sur gris clair (1,1:1).** Les
+  boutons « fantôme » sont des `<button class="btn btn-ghost">` ; `.btn` ne
+  réinitialisait pas `background`, donc le navigateur imposait son gris
+  `#EFEFEF` sous un texte blanc. Correction à la racine : `.btn{background:transparent}`.
+- **Le titre de l'accueil tombait à 1,4:1 sur certains plans de la vidéo** (la
+  parabole blanche, les écrans de code) et son mot clé, en bleu marine sur fond
+  sombre, à 1,0:1. Un contrôle DOM ne voit pas les pixels d'une vidéo : la
+  mesure s'est faite **image par image** (voir « Méthode » ci-dessous).
+- Pages légales en **mode sombre** : gris `#64748b` et liens `#2563eb` en dur
+  (3,6:1 et 3,4:1 sur fond sombre). Jetons `--maj/--lien/--bord`, valeurs sombres
+  dans `@media (prefers-color-scheme: dark)`.
+- La politique de confidentialité débordait à **509 px pour un écran de 390** (un
+  tableau de 4 colonnes) : sur mobile les tableaux s'empilent (étiquettes de
+  colonne par `data-l`, lues dans l'en-tête).
+- Accueil sans `<main>`, sans lien d'évitement ; titres qui sautaient de h2 à h4
+  puis h5 (`.step h4` → h3, titres de pied de page → h2) ; textes à 9–9,5 px ;
+  jetons `--ink3/--ink4` à .44/.28 (4,1:1 et 2,4:1 sur les cartes) → .64/.56, et
+  `--ink2` .68 → .78 pour garder la hiérarchie ; marque collée au bouton
+  « Se connecter » à 390 px.
+- Fiches pays : le **teaser d'alertes flouté** (`.alert-blur-item`, flou 3,5 px,
+  `user-select:none`) est illisible *par conception* — mais il l'était pour l'œil
+  seulement : les lecteurs d'écran en lisaient des exemples comme des alertes
+  réelles. Il porte maintenant `aria-hidden="true"` (gabarit, générateur **et** les
+  quatre fiches déjà produites). Jugement à connaître : c'est la seule chose
+  **retirée de la lecture** dans toute la passe ; le texte reste dans le HTML.
+
+**Où les corrections ont été posées.** Accueil : jetons de `:root` + un bloc
+`revue-pages-2026-10-15` en fin de feuille. Fiches pays : le **gabarit**
+(`scripts/templates/fiche-country.template.html`) et le **générateur**
+(`generate-country-fiche.js`) ont reçu les mêmes changements que les dix pages
+existantes — régénérer une fiche ne fait pas revenir les défauts.
+`verifier-fiches-pays.js` (jetons définis, AA, date visible) reste vert. Pages
+légales : **le texte juridique n'a pas bougé** (les 36 « À COMPLÉTER » sont là, le
+`noindex` aussi) ; seuls le style et la structure ont changé.
+
+**Méthode — texte sur vidéo.** Onze images de `hero.mp4` (1 par seconde) sont
+posées tour à tour en fond de `.scene` (la vidéo masquée), le texte de la page
+est rendu **transparent** (`color:transparent`, les `text-shadow` restent), une
+capture donne le fond réel sous chaque élément, et le contraste de la vraie
+couleur du texte est calculé pixel par pixel. Statistique retenue : le **10ᵉ
+centile** du contraste sous l'élément (90 % des pixels font mieux), pire image des
+onze. Avant → après, bureau :
+
+| élément | avant | après |
+|---|---|---|
+| titre `h1` (seuil 3:1) | 1,37 | 7,58 |
+| mot clé `h1 em` (3:1) | 1,03 | 5,92 |
+| sous-titre (4,5:1) | 1,24 | 8,55 |
+| étiquettes de chiffres (4,5:1) | 1,97 | 4,77 |
+| bouton secondaire (4,5:1) | 2,78 | 18,72 |
+| liens de navigation (4,5:1) | 2,29 | 5,68 |
+
+Mobile : mêmes éléments, pire cas 5,05 après (1,03–1,41 avant). Moyens : un
+**voile radial local** derrière le bloc de texte (`.hero-content::before`,
+`closest-side`, qui s'estompe à 0 — pas de rectangle visible), une ombre portée
+sur le titre, le mot clé en `--sky`, le fond de la barre de navigation à .72, un
+fond sous le bouton secondaire. La vidéo reste visible sur les bords.
+**Ce mesure-là n'est pas dans la CI** (il demande ffmpeg et Pillow) ; la CI
+garde le reste via `scripts/verifier-pages-hors-appli.js`, plafonds à 0, contrôle
+négatif fait sur les pages d'origine (il retrouve exactement 212 / 22 / 106 / 2).
+Si la vidéo de fond change, **refaire cette mesure**.
+
+### 2. La page de garde
+
+`web/js/intro.js` (une logique, deux pages) :
+
+| situation | effet |
+|---|---|
+| première visite de l'onglet, accueil | animation plein écran **avant** le contenu |
+| première visite de l'onglet, connexion directe | animation avant la carte de connexion |
+| accueil puis connexion (ou l'inverse), même onglet | **une seule lecture** (drapeau de session partagé) |
+| « Passer » ou Échap | s'arrête, le drapeau est posé |
+| `prefers-reduced-motion`, économiseur de données, 2G/slow-2g, stockage refusé | pas d'animation, page immédiate, drapeau non posé (sauf stockage) |
+| lien profond (`index.html#tarifs`) ou clic depuis une autre page du site | accueil sans animation (pas une « arrivée ») |
+| lecture refusée, fichier illisible, rien ne démarre en 6 s | la page s'ouvre, jamais de blocage |
+| `#collecteur-<JETON>` | **inchangé** : `checkCollectorSession()` retourne avant tout appel à `lancer()` |
+
+Pendant la lecture, le reste de la page est `inert` (clavier **et** lecteurs
+d'écran : on ne tabule pas dans des champs cachés par la vidéo) ; le focus est
+sur « Passer » ; l'overlay est un `role="dialog"` nommé par la signature de
+marque (la vidéo, sans son, n'a pas d'autre texte). Sur l'accueil, l'overlay est
+**masqué par défaut dans le HTML** : sans JavaScript ou pour un robot, le contenu
+est intact (rien de référencé n'est retardé). Le décor vidéo de l'accueil
+(`hero.mp4`) ne démarre **qu'après** l'animation : deux vidéos en parallèle, c'est
+ce qui pèse le plus sur mobile ; il a `preload="none"` et ne dépend plus de
+l'attribut `autoplay` (repli : si `intro.js` ne charge pas, il démarre quand même).
+
+Vérifié dans un vrai DOM (Chromium, lecture simulée — son build n'a pas H.264),
+15 scénarios : accueil→connexion sans rejeu, connexion→accueil, Passer, Échap,
+Tab prisonnier de l'overlay, lien profond, animations réduites, lecture refusée,
+démarrage bloqué (abandon à 6 s), économiseur de données, `sessionStorage` qui
+lève, `intro.js` bloqué, mobile 390 px. **Non vérifié** : la lecture réelle du
+H.264 dans le navigateur de production (même format qu'avant, ré-encodé : voir
+plus bas, et `ffprobe`), et la chaîne `#collecteur-<JETON>` avec un jeton réel
+(inchangée par construction ; mesurée le 05/10).
+
+### 3. L'allègement — deux vidéos recompressées, même animation
+
+`ffmpeg`, H.264 High, `yuv420p`, `-movflags +faststart` (lecture avant la fin du
+téléchargement), `-crf 28 -preset slower`. `hero.mp4` : 1080p conservé. `intro-sentiqs.mp4` :
+720p conservé, **piste audio AAC supprimée** (l'élément est `muted`, ~0,3 Mo
+inutiles). Similarité (SSIM) avec l'original : 0,989 et 0,974 ; contrôle visuel
+côte à côte à 1 s / 5 s / 9 s : indiscernables. Les affiches (`*-poster.jpg`)
+ne changent pas.
+
+| | avant | après |
+|---|---|---|
+| `hero.mp4` | 6 808 927 o | 1 955 294 o (÷ 3,5) |
+| `intro-sentiqs.mp4` | 2 555 144 o | 772 562 o (÷ 3,3) |
+| dossier `web/` | 11,8 Mo | 5,2 Mo |
+| accueil, première visite (octets transférés, texte gzippé) | 6,96 Mo | 2,93 Mo — **animation d'ouverture comprise** |
+| connexion, première visite, intro jouée | 3,04 Mo | 1,27 Mo |
+| parcours complet accueil → connexion, première visite | ≈ 10,0 Mo | ≈ 3,4 Mo |
+
+**Ce que ça ne fait pas** : le HTML de l'application *grossit* (1 586 175 → 1 621 880 o,
++8 Ko gzippé) — c'est le prix du bloc de revue de présentation du 15/10 ; l'allègement
+vient entièrement des vidéos. `SentiqS_Web.html` reste un fichier de 1,6 Mo : il n'y a
+pas d'étape de build pour `web/` (voir le début de ce fichier), et le découper en
+modules chargés à la demande serait un chantier d'architecture à décider à part.
+Un test (`intro.test.js`) plafonne les deux vidéos (2,5 Mo / 1,0 Mo) et vérifie
+l'absence de piste audio dans l'intro.
+
+### 4. Pièges de méthode, pour la prochaine passe
+
+- **Le DOM ne voit pas une vidéo.** Un contrôle de contraste sur `body *` mesurait
+  le titre blanc contre la couleur de la page (`#05080B`, ≈ 19:1) alors que l'œil le
+  voit sur l'image de la vidéo (1,4:1 au pire) : le fond mesuré n'est pas le fond vu.
+  Toute zone de texte posée sur une vidéo ou une photo se mesure sur les pixels.
+- **Un élément `<button>` n'hérite pas du fond de la page.** `background` reste le
+  gris système tant qu'une règle ne le réinitialise pas ; les `<a class="btn">`
+  n'avaient jamais le problème, d'où un défaut invisible tant qu'on regardait les liens.
+- **`opacity:0` n'est pas `display:none`.** Le formulaire d'inscription (fermé, `opacity:0`)
+  sortait comme 13 faux défauts par rendu, à 1,0:1 : le banc exclut les ancêtres à opacité
+  quasi nulle. Et dans les pages légales en sombre, la « toile » du navigateur
+  n'apparaît dans aucun `background-color` calculé (`#121212` par défaut) : sans
+  elle, tout sortait à 1,0:1.
+- **Le module de logique ne se charge pas au même moment sur les deux pages.** Sur
+  l'accueil, le script qui lance l'intro s'exécute avant que le reste du `<body>`
+  soit analysé : rendre « le reste de la page » inerte doit être refait à
+  `DOMContentLoaded`, sinon rien n'est inerte (une version l'oubliait : le test
+  Tab l'a attrapé).
+- **`git stash` n'est pas un outil de comparaison.** Une commande de vérification
+  a lancé un `git stash` par mégarde au milieu de cette passe ; tout a été restauré
+  (`git stash pop`), rien perdu — mais la comparaison avant/après se fait sur une
+  copie (`base-web/`), jamais sur l'arbre de travail.
+
+Vérifié : `npm test` (478), les onze vérificateurs statiques, `test-fumee.js`,
+`verifier-accessibilite-interface.js` (0/0), `verifier-pages-hors-appli.js` (0/0/0/0,
+nouveau, en CI), `verifier-ressources.js` (désormais aussi pour `index.html`, qui
+porte `js/intro.js` et les deux vidéos), tests `intro.test.js` (16) et
+`pages-hors-appli.test.js` (11).
 
 ---
 
