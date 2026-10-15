@@ -1615,6 +1615,86 @@ c'était tout l'intérêt de l'avoir isolée.
 
 ---
 
+## L'identité d'envoi se désigne désormais PAR MODULE de rapport
+
+Demande explicite du 15/10/2026 : pouvoir désigner « avec précision, sur chaque
+module » l'identité d'envoi, parmi les trois de Paramètres > Personnalisation
+de marque. Jusque-là il n'existait qu'une identité *active* globale et le choix
+ponctuel « Signer en tant que » du menu de partage, perdu après chaque envoi :
+impossible de dire « la Synthèse part toujours sous la Cellule de Veille,
+l'Agenda sous la Direction de la Sûreté ».
+
+**Donnée.** `identitesModules` dans la personnalisation de marque
+(`sentinel_marque_perso`) : `{ rapport_complet, flux, synthese, agenda,
+sources, alertes }` → `1`/`2`/`3`, ou `0` (absent) = « identité active ». Les
+six clés sont `MODULES_IDENTITE_ENVOI`. `identitesModulesMarquePerso(m)` les
+normalise : une valeur invalide, ou qui pointe vers une identité *vidée*
+depuis, redevient `0` — jamais une signature vide.
+
+**Résolution — `identiteEnvoiActuelle(module)`**, dans cet ordre :
+
+1. le choix explicite « Signer en tant que » fait *pour cet envoi* — mais
+   **seulement pendant un partage lancé depuis le module Rapports**
+   (`_rapportPartageEnCours`, posé par l'enveloppe `envoyerRapportCanal`) ;
+2. l'identité désignée pour le module ;
+3. l'identité active globale (comportement historique).
+
+Sans `module` (partage d'une actu, d'une fiche pays), rien ne change.
+
+**Piège évité : la fuite d'un ancien choix.** `_partageIdentiteChoisie` n'était
+remise à zéro *qu'au début* de chaque envoi, jamais à la fin : partager une actu
+en signant « Beta », puis exporter le Flux depuis sa barre d'export, signait le
+Word « Beta ». D'où le drapeau `_rapportPartageEnCours` : hors d'un partage
+Rapports, un export direct, un aperçu impression ou un rappel WhatsApp
+programmé ignorent tout choix resté en mémoire et lisent la désignation du
+module. `envoyerRapportCanal` est devenue une enveloppe `try/finally` autour de
+`_envoyerRapportCanalInterne` : le choix est remis à zéro même si l'envoi échoue
+ou est annulé (`AbortError`).
+
+**Où chaque générateur la lit.** Tous reçoivent leur module : `exportWord(type)`,
+`exportPPTX(type)`, `exportExcel(type)` (nouvelle ligne « Partagé par » dans
+l'onglet Métadonnées — seul format bureautique à ne la porter nulle part),
+`_apPageWrap(..., type)`, `_buildRapportSyntheseHTML` (`'synthese'`),
+`genererImageRapportBlob(type)`. Le PDF passe par `_pdfBuilder`, hors de portée
+de `type` : `exportPDF` pose `b.identiteEnvoi` et `bulletinHeader` le lit (repli
+sur la résolution globale pour le guide d'utilisation, qui ne le pose pas).
+`dlFile(blob, name, module)` retient le module du dernier document, pour que le
+message d'accompagnement de son partage (`_docShareMessage`) soit signé de la
+bonne identité. Le rappel WhatsApp programmé envoie la Synthèse : il annonce et
+signe l'identité du module `synthese`.
+
+**Interface.** Deux familles de listes, volontairement distinctes :
+`[data-id-module]` (les six cartes du module Rapports + les barres d'export
+Flux, Synthèse, Agenda) enregistre *immédiatement* — elles ne proposent que des
+identités déjà enregistrées ; `[data-id-module-param]` (tableau de Paramètres)
+s'enregistre avec « Enregistrer la personnalisation », car il propose aussi des
+identités saisies mais pas encore enregistrées. `changerIdentiteModule` /
+`renderIdentitesModules` / `renderIdentitesModulesParams` les resynchronisent
+toutes. Le menu « Signer en tant que » d'un rapport pré-sélectionne l'identité
+du module (`identiteParDefautModule`) au lieu de l'identité active ; le choisir
+autrement ne vaut que pour cet envoi. Plan gratuit : listes masquées, aucune
+identité signée (inchangé).
+
+**Non couvert, volontairement :** le partage d'une actu du Flux et d'une fiche
+pays (module Alertes) continuent d'utiliser « identité active + choix à
+l'envoi » — la désignation par module ne s'applique qu'aux rapports. Le CSV n'a
+aucun en-tête où loger une identité.
+
+Vérifié : `npm test` (435/435, dont 28 dans `identite-module.test.js`, tous vus
+échouer sur l'ancien code), les contrôles de la CI (syntaxe, i18n, accessibilité,
+ressources, fumée), et un banc Chromium (46 contrôles) qui génère de **vrais**
+Word, PDF et PowerPoint avec docx / pdf-lib / pptxgenjs servis en local et relit
+la ligne « Partagé par » dans les fichiers — Synthèse « Service de
+Renseignement », Agenda « Cellule de Veille Sécuritaire », Flux (non désigné)
+« Direction de la Sûreté » ; choix explicite prioritaire puis remis à zéro ;
+désignation orpheline supprimée quand son identité est vidée. Excel : SheetJS
+0.20.3 est injoignable ici, la vérification a donc utilisé un double minimal de
+`XLSX` qui capture les lignes de l'onglet « Métadonnées » — « Partagé par »
+présent et correct par module, absent en plan gratuit, jamais de ligne vide.
+Non vérifié avec la vraie bibliothèque.
+
+---
+
 ## Le rail de navigation vertical du 21/09/2026
 
 Demande explicite : passer les neuf onglets de modules (Flux, Recherche,
