@@ -39,7 +39,7 @@ aucune pub).
 <style>
 :root{
   --bg:#05080B; --bg2:#070C11; --panel:#101A22; --panel-b:#1C2E3D; --line:#2E4E63; --line2:#1B2A36;
-  --ink:#F5F7FA; --ink2:rgba(245,247,250,.68); --ink3:rgba(245,247,250,.44); --ink4:rgba(245,247,250,.28);
+  --ink:#F5F7FA; --ink2:rgba(245,247,250,.78); --ink3:rgba(245,247,250,.64); --ink4:rgba(245,247,250,.56);
   --blue:#2C5AAE; --sky:#7FB2CC; --navy:#16212C;
   --red:#8B1A1A; --amber:#7C4A00; --sblue:#2C5AAE; --green:#0F4F2A;
   --serif:'Source Serif 4',serif; --sans:'IBM Plex Sans',sans-serif; --mono:'IBM Plex Mono',monospace;
@@ -62,7 +62,7 @@ img,svg{display:block;max-width:100%}
 
 /* ── NAV ──────────────────────────────────────────────────────────── */
 .nav{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;align-items:center;justify-content:space-between;
-  padding:16px 28px;background:rgba(5,8,11,.4);backdrop-filter:blur(14px);border-bottom:1px solid transparent;
+  padding:16px 28px;background:rgba(5,8,11,.72);backdrop-filter:blur(14px);border-bottom:1px solid transparent;
   transition:background .25s,border-color .25s}
 .nav.scrolled{background:rgba(5,8,11,.86);border-color:var(--line2)}
 .nav-brand{display:flex;align-items:center;gap:10px}
@@ -73,7 +73,7 @@ img,svg{display:block;max-width:100%}
 .nav-links a:hover{color:#fff}
 .nav-cta{display:flex;align-items:center;gap:10px}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border-radius:7px;
-  font-size:12.5px;font-weight:700;letter-spacing:.03em;border:1px solid transparent;transition:all .15s;white-space:nowrap}
+  font-size:12.5px;font-weight:700;letter-spacing:.03em;border:1px solid transparent;background:transparent;transition:all .15s;white-space:nowrap}
 .btn-ghost{color:#fff;border-color:var(--line)}
 .btn-ghost:hover{background:rgba(255,255,255,.06)}
 .btn-primary{background:var(--navy);color:#fff}
@@ -89,19 +89,21 @@ img,svg{display:block;max-width:100%}
 @media (prefers-reduced-motion:reduce){.scene-video{display:none}.scene{background:#24384A}}
 
 .hero-inner{position:relative;z-index:2;width:100%;padding:150px 28px 90px}
-.hero-content{max-width:760px;margin:0 auto;text-align:center}
+.hero-content{position:relative;isolation:isolate;max-width:760px;margin:0 auto;text-align:center}
+.hero-content::before{content:"";position:absolute;z-index:-1;inset:-100px -200px -80px;pointer-events:none;
+  background:radial-gradient(ellipse closest-side at 50% 50%,rgba(4,6,8,.84) 0%,rgba(4,6,8,.78) 56%,rgba(4,6,8,0) 100%)}
 .hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--navy);color:#fff;
   padding:7px 16px;border-radius:20px;font-family:var(--mono);font-size:11px;font-weight:600;
   letter-spacing:.14em;text-transform:uppercase;border:1px solid #2E4E63}
 .hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--sky);flex-shrink:0}
-.hero h1{font-family:var(--serif);font-weight:800;font-size:clamp(34px,5.4vw,64px);line-height:1.08;letter-spacing:-.01em;color:#fff;margin:18px 0 20px}
-.hero h1 em{font-style:normal;color:var(--navy);text-shadow:0 1px 14px rgba(255,255,255,.4)}
+.hero h1{text-shadow:0 2px 18px rgba(0,0,0,.45);font-family:var(--serif);font-weight:800;font-size:clamp(34px,5.4vw,64px);line-height:1.08;letter-spacing:-.01em;color:#fff;margin:18px 0 20px}
+.hero h1 em{font-style:normal;color:var(--sky)}
 .hero-sub{font-size:16px;color:var(--ink2);max-width:600px;margin:0 auto 34px;line-height:1.65}
 .hero-ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:56px}
 .hero-stats{display:flex;justify-content:center;gap:0;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.1);padding-top:26px;max-width:640px;margin:0 auto}
 .hstat{flex:1;min-width:120px;text-align:center;padding:0 14px}
 .hstat b{display:block;font-family:var(--serif);font-weight:700;font-size:28px;color:#fff}
-.hstat span{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-top:4px}
+.hstat span{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin-top:4px}
 
 /* ── TICKER (moving live-feed strip) ─────────────────────────────── */
 .ticker-band{position:relative;z-index:2;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);
@@ -111,8 +113,8 @@ img,svg{display:block;max-width:100%}
 @keyframes tickmove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 .tick-item{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11.5px;color:var(--ink3)}
 .tick-item b{color:var(--ink2);font-weight:600}
-.tick-pill{font-size:9px;font-weight:700;letter-spacing:.05em;padding:1px 6px;border-radius:3px}
-.tick-mod{color:var(--sblue);background:rgba(61,100,134,.16)}
+.tick-pill{font-size:10px;font-weight:700;letter-spacing:.05em;padding:1px 6px;border-radius:3px}
+.tick-mod{color:var(--sky);background:rgba(61,100,134,.16)}
 .tick-crit{color:#ef6a6a;background:rgba(139,26,26,.22)}
 .tick-ok{color:#4ade80;background:rgba(15,79,42,.28)}
 @media (prefers-reduced-motion:reduce){.ticker-track{animation:none;overflow-x:auto}}
@@ -129,7 +131,7 @@ section{position:relative;padding:110px 0}
 .feat-row:first-of-type{border-top:none}
 .feat-row.rev .feat-text{order:2}
 .feat-row.rev .feat-visual{order:1}
-.feat-tag{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10.5px;font-weight:600;
+.feat-tag{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;font-weight:600;
   letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:20px;margin-bottom:16px}
 .feat-text h3{font-family:var(--serif);font-weight:700;font-size:26px;color:#fff;margin-bottom:14px;line-height:1.25}
 .feat-text p{color:var(--ink2);font-size:14.5px;line-height:1.75;margin-bottom:18px}
@@ -144,9 +146,9 @@ section{position:relative;padding:110px 0}
 /* mock: article rows with severity pills (mirrors the report design) */
 .mock-art{display:flex;align-items:baseline;gap:8px;padding:9px 0;border-bottom:1px solid var(--line2)}
 .mock-art:last-child{border:none}
-.mock-pill{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.03em;padding:2px 6px;border-radius:3px;flex-shrink:0}
+.mock-pill{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.03em;padding:2px 6px;border-radius:3px;flex-shrink:0}
 .mock-art-t{font-size:12.5px;color:#e7ecf2;font-weight:600;line-height:1.4}
-.mock-meta{font-family:var(--mono);font-size:10px;color:var(--ink4);margin-top:2px}
+.mock-meta{font-family:var(--mono);font-size:11px;color:var(--ink4);margin-top:2px}
 
 /* mock: correlation card grid */
 .mock-corr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -154,7 +156,7 @@ section{position:relative;padding:110px 0}
 .mock-card-hd{display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px}
 .mock-card-hd b{color:#e7ecf2}
 .mock-card-hd span{font-family:var(--mono);color:var(--sky);font-weight:600}
-.mock-card-sub{font-size:10px;color:var(--ink4);line-height:1.5}
+.mock-card-sub{font-size:11px;color:var(--ink4);line-height:1.5}
 
 /* mock: alert score radial */
 .mock-score{display:flex;align-items:center;gap:20px}
@@ -170,13 +172,13 @@ section{position:relative;padding:110px 0}
 .mock-formats{display:flex;flex-wrap:wrap;gap:10px}
 .mock-fmt{flex:1;min-width:120px;border:1px solid var(--line2);border-radius:8px;padding:14px;text-align:center}
 .mock-fmt b{display:block;font-size:12.5px;color:#e7ecf2;margin-bottom:2px}
-.mock-fmt span{font-family:var(--mono);font-size:9.5px;color:var(--ink4)}
+.mock-fmt span{font-family:var(--mono);font-size:10px;color:var(--ink4)}
 
 /* ── HOW IT WORKS ─────────────────────────────────────────────────── */
 .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
 .step{background:var(--panel);border:1px solid var(--line2);border-radius:12px;padding:26px}
 .step-n{font-family:var(--serif);font-size:34px;font-weight:700;color:var(--sky);opacity:.6;margin-bottom:14px}
-.step h4{font-size:15px;font-weight:700;color:#fff;margin-bottom:8px}
+.step h3{font-size:15px;font-weight:700;color:#fff;margin-bottom:8px}
 .step p{font-size:13px;color:var(--ink3);line-height:1.65}
 @media (max-width:860px){.steps{grid-template-columns:1fr}}
 
@@ -189,7 +191,7 @@ section{position:relative;padding:110px 0}
 .cov-stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line2);border:1px solid var(--line2);border-radius:12px;overflow:hidden}
 .cov-stat{background:var(--panel);padding:24px}
 .cov-stat b{display:block;font-family:var(--serif);font-size:30px;color:#fff}
-.cov-stat span{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-top:6px}
+.cov-stat span{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-top:6px}
 @media (max-width:860px){.cov-wrap{grid-template-columns:1fr}}
 
 /* ── PRICING ──────────────────────────────────────────────────────── */
@@ -197,12 +199,12 @@ section{position:relative;padding:110px 0}
 .plan{background:var(--panel);border:1px solid var(--line2);border-radius:14px;padding:26px 24px;display:flex;flex-direction:column}
 .plan.hi{border-color:var(--blue);background:linear-gradient(180deg,rgba(58,160,255,.07),var(--panel) 40%);position:relative}
 .plan.inst{border-color:#7FB2CC44}
-.plan-badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--blue);color:#04101c;font-family:var(--mono);
-  font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.plan-badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--blue);color:#fff;font-family:var(--mono);
+  font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border-radius:20px;white-space:nowrap}
 .plan-name{font-family:var(--serif);font-size:18px;font-weight:700;color:#fff;margin-bottom:6px}
 .plan-price{font-family:var(--serif);font-size:28px;font-weight:700;color:#fff;margin:12px 0 2px;line-height:1.15}
 .plan-price span{font-family:var(--sans);font-size:12px;font-weight:500;color:var(--ink3)}
-.plan-price-alt{font-family:var(--mono);font-size:10.5px;color:var(--ink4);margin-bottom:2px}
+.plan-price-alt{font-family:var(--mono);font-size:11px;color:var(--ink4);margin-bottom:2px}
 .plan-desc{font-size:11.5px;color:var(--ink3);margin-bottom:18px;line-height:1.55;min-height:32px}
 .plan ul{list-style:none;margin-bottom:20px;flex:1}
 .plan li{display:flex;gap:8px;font-size:12px;color:var(--ink2);margin-bottom:9px;line-height:1.45}
@@ -224,10 +226,10 @@ footer{padding:60px 0 36px;border-top:1px solid var(--line2);margin-top:60px}
 .foot-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:32px;margin-bottom:36px}
 .foot-brand{display:flex;align-items:center;gap:10px}
 .foot-cols{display:flex;gap:56px;flex-wrap:wrap}
-.foot-col h5{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink4);margin-bottom:12px}
+.foot-col h2{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink4);margin-bottom:12px}
 .foot-col a{display:block;font-size:13px;color:var(--ink2);margin-bottom:9px}
 .foot-col a:hover{color:#fff}
-.foot-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:10.5px;color:var(--ink4);padding-top:22px;border-top:1px solid var(--line2)}
+.foot-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:11px;color:var(--ink4);padding-top:22px;border-top:1px solid var(--line2)}
 @media (max-width:760px){.foot-top{flex-direction:column}}
 
 /* ── SIGNUP MODAL ─────────────────────────────────────────────────── */
@@ -243,7 +245,7 @@ footer{padding:60px 0 36px;border-top:1px solid var(--line2);margin-top:60px}
 .modal-title{font-family:var(--serif);font-size:21px;font-weight:700;color:#fff;margin-bottom:5px}
 .modal-sub{font-size:12px;color:var(--ink3);margin-bottom:24px;line-height:1.55}
 .field{margin-bottom:14px}
-.field label{display:block;font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
 .field input,.field select{width:100%;padding:10px 13px;background:#0F2A1E;border:1px solid #2E4E63;border-radius:7px;
   color:#fff;font-size:13px;font-family:inherit;outline:none;transition:border-color .15s}
 .field input:focus,.field select:focus{border-color:var(--blue)}
@@ -260,10 +262,95 @@ footer{padding:60px 0 36px;border-top:1px solid var(--line2);margin-top:60px}
   display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:24px;color:#4ade80}
 .code-box{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:.14em;color:#fff;
   background:#0F2A1E;border:1px solid #2E4E63;border-radius:8px;padding:14px;margin:16px 0;text-align:center}
+/* ── PAGE DE GARDE : animation d'ouverture plein écran ───────────────────
+   Joue une fois par onglet avant le contenu (et donc avant le formulaire
+   d'inscription, mot de passe compris). Logique : js/intro.js, partagée avec
+   l'écran de connexion de l'application — l'enchaînement accueil → connexion
+   ne la rejoue pas. Absente pour qui réduit les animations, économise ses
+   données ou arrive par un lien profond. */
+.intro-video-overlay{position:fixed;inset:0;z-index:3000;background:#000;
+  display:flex;align-items:center;justify-content:center;overflow:hidden}
+.intro-video-overlay.hidden{display:none}
+.intro-video-el{width:100%;height:100%;object-fit:cover}
+.intro-video-skip{position:absolute;bottom:24px;right:24px;z-index:1;min-height:40px;
+  padding:10px 18px;border-radius:8px;background:rgba(0,0,0,.55);
+  border:1px solid rgba(255,255,255,.35);color:#fff;font-size:12px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;cursor:pointer;backdrop-filter:blur(4px)}
+.intro-video-skip:hover{background:rgba(0,0,0,.75);border-color:var(--sky)}
+.intro-video-skip:focus-visible{outline:2px solid var(--sky);outline-offset:3px}
+html.intro-actif{overflow:hidden}
+/* ── REVUE DE PRÉSENTATION (revue-pages-2026-10-15) ───────────────────────
+   Corrige à la racine, sans rien retirer :
+   · zones tactiles ≥ 24 px (WCAG 2.5.8) par remplissage + marge négative : la
+     mise en page ne bouge pas ;
+   · anneau de focus visible partout (le navigateur le masquait sur les champs) ;
+   · lien d'évitement vers #main ;
+   · défilement doux coupé pour qui réduit les animations ;
+   · bouton fantôme de l'accueil lisible sur la vidéo. */
+.skip-link{position:absolute;left:12px;top:-64px;z-index:4000;background:#fff;color:#05080B;padding:10px 16px;
+  border-radius:8px;font-weight:700;font-size:13px;transition:top .15s}
+.skip-link:focus{top:12px}
+main:focus{outline:none}
+a:focus-visible,button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{
+  outline:2px solid var(--sky);outline-offset:3px;border-radius:4px}
+.field input:focus-visible,.field select:focus-visible{outline:2px solid var(--sky);outline-offset:1px}
+.nav-links a,.foot-col a,.foot-bottom a{padding:6px 3px;margin:-6px -3px}
+.foot-col a{display:block;margin-bottom:3px;margin-top:-6px;padding-top:6px;padding-bottom:6px}
+.modal-close{min-width:36px;min-height:36px;display:flex;align-items:center;justify-content:center;top:12px;right:14px}
+.hero .btn-ghost{background:rgba(5,8,11,.62)}
+.hero .btn-ghost:hover{background:rgba(255,255,255,.14)}
+section p a{padding:5px 0}
+@media (max-width:480px){
+  /* à 390 px la marque touchait le bouton « Se connecter » */
+  .nav{padding:12px 16px}
+  .nav-cta{gap:8px}
+  .nav-cta .btn{padding:10px 13px}
+  .nav-brand{gap:8px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
+<body>
 
+<!-- ═══ PAGE DE GARDE — animation d'ouverture (voir js/intro.js) ════════
+     Masquée par défaut : sans JavaScript (ou pour un robot) le contenu reste
+     intact. lancer() la révèle seulement si elle doit jouer. -->
+<div class="intro-video-overlay hidden" id="introVideoOverlay" role="dialog" aria-modal="true"
+     aria-label="SentiqS — Expertise en sûreté et renseignement stratégique en Afrique">
+  <video id="introVideoEl" class="intro-video-el" muted playsinline preload="none" aria-hidden="true"
+         poster="assets/intro-sentiqs-poster.jpg">
+    <source src="assets/intro-sentiqs.mp4" type="video/mp4">
+  </video>
+  <button type="button" id="introVideoSkip" class="intro-video-skip">Passer l'animation</button>
+</div>
+<script src="js/intro.js"></script>
+<script>
+// Le décor animé de l'accueil ne démarre qu'une fois l'animation d'ouverture
+// terminée ou écartée : deux vidéos téléchargées en parallèle, c'est ce qui
+// pèse le plus sur un mobile en réseau moyen.
+(function () {
+  var introFinie = false, domPret = false;
+  function demarrerDecor() {
+    if (!introFinie || !domPret) return;
+    var v = document.getElementById('heroVideo');
+    if (!v) return;
+    try { if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; } catch (_) {}
+    var p = v.play();
+    if (p && p.catch) p.catch(function () { /* lecture refusée : l'affiche reste */ });
+  }
+  document.addEventListener('DOMContentLoaded', function () { domPret = true; demarrerDecor(); });
+  try {
+    SentiqIntro.lancer({
+      overlay: document.getElementById('introVideoOverlay'),
+      video: document.getElementById('introVideoEl'),
+      skip: document.getElementById('introVideoSkip')
+    }, { ignorerNavigationInterne: true, onFin: function () { introFinie = true; demarrerDecor(); } });
+  } catch (_) { introFinie = true; }
+})();
+</script>
+
+<a class="skip-link" href="#main">Aller au contenu</a>
 <!-- ═══ NAV ═══════════════════════════════════════════════════════════ -->
 <nav class="nav" id="nav">
   <a class="nav-brand" href="#top">
@@ -286,10 +373,11 @@ footer{padding:60px 0 36px;border-top:1px solid var(--line2);margin-top:60px}
   </div>
 </nav>
 
+<main id="main" tabindex="-1">
 <!-- ═══ HERO ══════════════════════════════════════════════════════════ -->
 <header class="hero" id="top">
   <div class="scene" aria-hidden="true">
-    <video class="scene-video" autoplay muted loop playsinline poster="assets/hero-poster.jpg">
+    <video class="scene-video" id="heroVideo" muted loop playsinline preload="none" poster="assets/hero-poster.jpg">
       <source src="assets/hero.mp4" type="video/mp4">
     </video>
     <div class="scene-vignette"></div>
@@ -449,17 +537,17 @@ footer{padding:60px 0 36px;border-top:1px solid var(--line2);margin-top:60px}
     <div class="steps rv">
       <div class="step">
         <div class="step-n">01</div>
-        <h4>Collecte continue</h4>
+        <h3>Collecte continue</h3>
         <p>SentiqS interroge en continu les flux RSS de centaines de sources médias et réseaux sociaux africaines, avec un filtre anti-hallucination sur les 12 dernières heures.</p>
       </div>
       <div class="step">
         <div class="step-n">02</div>
-        <h4>Qualification & croisement</h4>
+        <h3>Qualification & croisement</h3>
         <p>Chaque article est catégorisé, localisé, noté par niveau de criticité, puis croisé avec les autres pays pour faire émerger les dynamiques régionales.</p>
       </div>
       <div class="step">
         <div class="step-n">03</div>
-        <h4>Décision & diffusion</h4>
+        <h3>Décision & diffusion</h3>
         <p>Synthèses, alertes et corrélations sont consultables dans l'application ou exportées en un clic vers Word, PDF ou PowerPoint pour vos équipes.</p>
       </div>
     </div>
@@ -497,7 +585,7 @@ footer{padding:60px 0 36px;border-top:1px solid var(--line2);margin-top:60px}
     </div>
     <div class="plans rv" id="pricingCards"></div>
     <div style="text-align:center;margin-top:24px;font-size:12px;color:var(--ink3)">
-      Facturation possible en USD/EUR pour les organismes internationaux — <a href="mailto:yorot225@gmail.com?subject=SentiqS%20S%C3%BBret%C3%A9%20—%20Facturation%20internationale" style="color:var(--sky);text-decoration:underline">nous contacter</a>.
+      Facturation possible en USD/EUR pour les organismes internationaux — <a href="mailto:yorot225@gmail.com?subject=SentiqS%20S%C3%BBret%C3%A9%20—%20Facturation%20internationale" style="color:var(--sky);text-decoration:underline;padding:5px 0">nous contacter</a>.
     </div>
   </div>
 </section>
@@ -514,6 +602,8 @@ footer{padding:60px 0 36px;border-top:1px solid var(--line2);margin-top:60px}
 </section>
 
 <!-- ═══ FOOTER ════════════════════════════════════════════════════════ -->
+</main>
+
 <footer>
   <div class="wrap">
     <div class="foot-top">
@@ -525,24 +615,24 @@ footer{padding:60px 0 36px;border-top:1px solid var(--line2);margin-top:60px}
         </svg></div>
         <div>
           <div style="font-size:13px;font-weight:700;color:#fff">SentiqS</div>
-          <div style="font-size:10.5px;color:var(--ink4);margin-top:1px">Veille sûreté · 54 pays d'Afrique</div>
+          <div style="font-size:11px;color:var(--ink4);margin-top:1px">Veille sûreté · 54 pays d'Afrique</div>
         </div>
       </div>
       <div class="foot-cols">
         <div class="foot-col">
-          <h5>Plateforme</h5>
+          <h2>Plateforme</h2>
           <a href="#plateforme">Fonctionnalités</a>
           <a href="#comment">Fonctionnement</a>
           <a href="#couverture">Couverture</a>
         </div>
         <div class="foot-col">
-          <h5>Compte</h5>
+          <h2>Compte</h2>
           <a href="SentiqS_Web.html">Se connecter</a>
           <a href="javascript:void(0)" onclick="openSignup()">Essai gratuit</a>
           <a href="#tarifs">Tarifs</a>
         </div>
         <div class="foot-col">
-          <h5>Contact</h5>
+          <h2>Contact</h2>
           <a href="mailto:yorot225@gmail.com">yorot225@gmail.com</a>
         </div>
       </div>
