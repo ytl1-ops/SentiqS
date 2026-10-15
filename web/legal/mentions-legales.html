@@ -15,14 +15,34 @@
          font: 16px/1.65 system-ui, -apple-system, sans-serif; }
   h1 { font-size: 1.8rem; margin-bottom: .25rem; }
   h2 { font-size: 1.15rem; margin-top: 2.25rem; }
-  .maj { color: #64748b; font-size: .85rem; }
+  .maj { color: var(--maj); font-size: .85rem; }
   .todo { background: #fef3c7; color: #7c2d12; padding: .1em .4em; border-radius: 3px;
           font-family: ui-monospace, monospace; font-size: .85em; }
-  a { color: #2563eb; }
-  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; font-size: .875rem; }
+  a { color: var(--lien); }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--bord); font-size: .875rem; }
+
+  /* revue-pages-2026-10-15 — mode sombre : les gris/bleus du mode clair tombaient
+     à 3,6:1 (gris) et 3,4:1 (liens) sur fond sombre. Les zones « À COMPLÉTER »
+     gardent leur propre fond. Tableaux empilés sur mobile (la politique de
+     confidentialité débordait à 509 px pour un écran de 390). */
+  :root { --maj: #475569; --lien: #1d4ed8; --bord: #cbd5e1; }
+  @media (prefers-color-scheme: dark) { :root { --maj: #a8b5c8; --lien: #8ab4f8; --bord: #334155; } }
+  .todo { overflow-wrap: anywhere; }
+  td, th { overflow-wrap: anywhere; }
+  footer a { display: inline-block; padding: .35rem .15rem; margin: -.35rem -.15rem; }
+  a:focus-visible { outline: 2px solid var(--lien); outline-offset: 3px; border-radius: 3px; }
+  @media (max-width: 40rem) {
+    table, thead, tbody, tr, th, td { display: block; }
+    thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    tr { border-bottom: 1px solid var(--bord); padding: .6rem 0; }
+    td { border: 0; padding: .2rem 0; }
+    td[data-l]::before { content: attr(data-l); display: block; font-size: .75rem; text-transform: uppercase;
+                         letter-spacing: .06em; color: var(--maj); }
+  }
 </style>
 </head>
 <body>
+<main>
 <h1>Mentions légales</h1>
 <p class="maj">Dernière mise à jour : <span class="todo">[[À COMPLÉTER : date de publication]]</span></p>
 
@@ -67,6 +87,8 @@
   <span class="todo">[[À COMPLÉTER : adresse de contact dédiée]]</span>.
   La demande est traitée sous <span class="todo">[[À COMPLÉTER : délai]]</span>.
 </p>
+
+</main>
 
 <footer><a href="../index.html">Retour à l'accueil</a></footer>
 </body>
