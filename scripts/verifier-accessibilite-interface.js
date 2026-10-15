@@ -47,12 +47,20 @@ const PLAFOND_TEXTES_SOUS_CONTRASTE = 0;
 // etroite que la pilotabilite.
 //
 // Ramene a 61 le meme jour (onglets en role="tab" avec tabindex glissant,
-// liens en <span onclick> rendus atteignables). Ce qui reste est presque
+// liens en <span onclick> rendus atteignables). Ce qui restait etait presque
 // entierement des cartes conteneurs (.acard...). Il DESCEND en convertissant
 // une action qui compte, jamais en posant un tabindex sur tout : faire de
 // chaque carte un arret de tabulation rendrait le parcours inutilisable, ce
 // qui serait une regression pour la personne qu'on pretend aider.
-const PLAFOND_CLIQUABLES_SANS_CLAVIER = 61;
+//
+// Ramene a 0 le 15/10/2026 (revision de presentation) : accessibiliserCliquables()
+// rend atteignable, a l'execution et pour tout ce qui sera rendu ensuite, chaque
+// element a `onclick` ECRIT en <div>/<span>/<tr>. Sur le DOM rendu des 9 modules :
+// 948 cliquables sans clavier -> 0 (dont 14 cartes d'actu, 28 resultats de
+// Recherche, 54 tuiles pays). Politique conservee : une carte qui contient deja
+// des liens/boutons n'est PAS un arret — son TITRE l'est ; seuls les elements
+// sans rien d'interactif dedans (tuile, ligne, puce) deviennent des arrets.
+const PLAFOND_CLIQUABLES_SANS_CLAVIER = 0;
 
 const RACINE = path.join(__dirname, '..', 'web');
 const PORT = Number(process.env.PORT_A11Y || 8767);
