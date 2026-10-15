@@ -676,6 +676,18 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .share-fmt.on{background:var(--b);color:#fff;border-color:var(--b)}
 .share-id-lbl{font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;
   letter-spacing:.04em;padding:4px 3px 2px;}
+/* Identite d'envoi PAR MODULE de rapport (cartes du module Rapports, barres
+   d'export Flux/Synthese/Agenda, tableau de Parametres) — voir
+   renderIdentitesModules / identiteEnvoiActuelle(module). */
+.idmod-row{display:flex;align-items:center;gap:6px;margin-bottom:10px;}
+.idmod-lbl{font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;
+  letter-spacing:.04em;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;}
+.idmod-lbl i{font-size:12px}
+.idmod-sel{flex:1;min-width:0;max-width:100%;padding:4px 6px;border:1px solid var(--bd);
+  border-radius:5px;background:var(--w);color:var(--t);font-size:11px;font-weight:600;}
+.idmod-sel:disabled{opacity:.6;cursor:not-allowed}
+.idmod-inline{display:inline-flex;align-items:center;gap:5px;flex-shrink:0}
+.idmod-inline .idmod-sel{flex:none;width:auto;max-width:240px;font-size:10px;padding:3px 5px}
 .share-mi{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:5px;
   cursor:pointer;color:var(--t);font-weight:600;white-space:nowrap;}
 .share-mi:hover{background:var(--sf)}
@@ -2417,6 +2429,8 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         <button class="btn-dl btn-dl-pdf" onclick="exportPDF(&#39;flux&#39;)"><i class="ti ti-file-type-pdf"></i>PDF</button>
         <button class="btn-dl btn-dl-csv" onclick="exportCSV(&#39;flux&#39;)"><i class="ti ti-file-spreadsheet"></i>CSV</button>
         <div class="dl-sep"></div>
+        <label class="idmod-inline" data-id-module-wrap="flux"><span class="dl-toolbar-label"><i class="ti ti-id" aria-hidden="true"></i><span data-idmod-lbl>Signé par</span></span><select class="idmod-sel" data-id-module="flux" onchange="changerIdentiteModule(this)"></select></label>
+        <div class="dl-sep"></div>
         <span style="font-size:9px;color:var(--lg)" id="dlFluxCount">19 articles (&lt;36h)</span>
       </div>
       <div class="sstrip-hd open" onclick="document.getElementById('fluxSstrip').classList.toggle('collapsed');this.classList.toggle('open')" style="display:flex;align-items:center;gap:5px;padding:3px 14px;font-size:9px;font-weight:700;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;cursor:pointer;user-select:none;border-bottom:1px solid var(--bd);">
@@ -2499,6 +2513,8 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
           <button class="btn-dl btn-dl-pdf" onclick="exportPDF(&#39;synthese&#39;)"><i class="ti ti-file-type-pdf"></i>PDF</button>
           <button class="btn-dl btn-dl-apercu" onclick="apercuSynthese()"><i class="ti ti-printer"></i><span data-i18n="btn_apercu_impression">Aperçu impression</span></button>
           <div class="dl-sep"></div>
+          <label class="idmod-inline" data-id-module-wrap="synthese"><span class="dl-toolbar-label"><i class="ti ti-id" aria-hidden="true"></i><span data-idmod-lbl>Signé par</span></span><select class="idmod-sel" data-id-module="synthese" onchange="changerIdentiteModule(this)"></select></label>
+          <div class="dl-sep"></div>
           <span style="font-size:9px;color:var(--lg)" id="dlSyntheseDate">Données non encore chargées</span>
         </div>
         <div class="tlbr" style="flex-shrink:0;">
@@ -2541,6 +2557,8 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
         <button class="btn-dl btn-dl-word" onclick="exportWord(&#39;agenda&#39;)"><i class="ti ti-file-text"></i>Word</button>
         <button class="btn-dl btn-dl-excel" onclick="exportExcel(&#39;agenda&#39;)"><i class="ti ti-table"></i>Excel</button>
         <button class="btn-dl btn-dl-pdf" onclick="exportPDF(&#39;agenda&#39;)"><i class="ti ti-file-type-pdf"></i>PDF</button>
+        <div class="dl-sep"></div>
+        <label class="idmod-inline" data-id-module-wrap="agenda"><span class="dl-toolbar-label"><i class="ti ti-id" aria-hidden="true"></i><span data-idmod-lbl>Signé par</span></span><select class="idmod-sel" data-id-module="agenda" onchange="changerIdentiteModule(this)"></select></label>
         <div class="dl-sep"></div>
         <span style="font-size:9px;color:var(--lg)" id="agTotalCount">25 événements</span>
       </div>
@@ -2663,6 +2681,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <span style="font-size:12px;font-weight:700;color:var(--t)">Rapport complet</span>
               </div>
               <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Synthèse + flux + agenda, en un seul document Word.</div>
+              <div class="idmod-row" data-id-module-wrap="rapport_complet"><span class="idmod-lbl"><i class="ti ti-id" aria-hidden="true"></i><span data-idmod-lbl>Signé par</span></span><select class="idmod-sel" data-id-module="rapport_complet" onchange="changerIdentiteModule(this)"></select></div>
               <div style="display:flex;gap:8px">
                 <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'rapport_complet')"><i class="ti ti-share-2"></i><span data-i18n="btn_partager">Partager</span></button>
                 <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('rapport_complet')" title="Aperçu impression"><i class="ti ti-printer"></i></button>
@@ -2675,6 +2694,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <span style="font-size:12px;font-weight:700;color:var(--t)">Flux opérationnel</span>
               </div>
               <div style="font-size:10px;color:var(--lg);margin-bottom:10px" id="dlFluxCount">Articles des dernières 36h.</div>
+              <div class="idmod-row" data-id-module-wrap="flux"><span class="idmod-lbl"><i class="ti ti-id" aria-hidden="true"></i><span data-idmod-lbl>Signé par</span></span><select class="idmod-sel" data-id-module="flux" onchange="changerIdentiteModule(this)"></select></div>
               <div style="display:flex;gap:8px">
                 <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'flux')"><i class="ti ti-share-2"></i><span data-i18n="btn_partager">Partager</span></button>
                 <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('flux')" title="Aperçu impression"><i class="ti ti-printer"></i></button>
@@ -2687,6 +2707,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <span style="font-size:12px;font-weight:700;color:var(--t)">Synthèse analytique</span>
               </div>
               <div style="font-size:10px;color:var(--lg);margin-bottom:10px" id="dlSyntheseDate">Analyse thématique régionale.</div>
+              <div class="idmod-row" data-id-module-wrap="synthese"><span class="idmod-lbl"><i class="ti ti-id" aria-hidden="true"></i><span data-idmod-lbl>Signé par</span></span><select class="idmod-sel" data-id-module="synthese" onchange="changerIdentiteModule(this)"></select></div>
               <div style="display:flex;gap:8px">
                 <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'synthese')"><i class="ti ti-share-2"></i><span data-i18n="btn_partager">Partager</span></button>
                 <button class="btn-dl btn-dl-apercu" onclick="apercuSynthese()" title="Aperçu impression"><i class="ti ti-printer"></i></button>
@@ -2699,6 +2720,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <span style="font-size:12px;font-weight:700;color:var(--t)">Agenda sûreté</span>
               </div>
               <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Événements en cours et à venir.</div>
+              <div class="idmod-row" data-id-module-wrap="agenda"><span class="idmod-lbl"><i class="ti ti-id" aria-hidden="true"></i><span data-idmod-lbl>Signé par</span></span><select class="idmod-sel" data-id-module="agenda" onchange="changerIdentiteModule(this)"></select></div>
               <div style="display:flex;gap:8px">
                 <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'agenda')"><i class="ti ti-share-2"></i><span data-i18n="btn_partager">Partager</span></button>
                 <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('agenda')" title="Aperçu impression"><i class="ti ti-printer"></i></button>
@@ -2711,6 +2733,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <span style="font-size:12px;font-weight:700;color:var(--t)">Matrice des sources</span>
               </div>
               <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Liste des sources suivies et leur fiabilité. Réservé à l'administration.</div>
+              <div class="idmod-row" data-id-module-wrap="sources"><span class="idmod-lbl"><i class="ti ti-id" aria-hidden="true"></i><span data-idmod-lbl>Signé par</span></span><select class="idmod-sel" data-id-module="sources" onchange="changerIdentiteModule(this)"></select></div>
               <div style="display:flex;gap:8px">
                 <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'sources')"><i class="ti ti-share-2"></i><span data-i18n="btn_partager">Partager</span></button>
               </div>
@@ -2722,6 +2745,7 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
                 <span style="font-size:12px;font-weight:700;color:var(--t)">Alertes pays</span>
               </div>
               <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Fiches pays, niveaux d'alerte, mesures et actualité nationale/régionale.</div>
+              <div class="idmod-row" data-id-module-wrap="alertes"><span class="idmod-lbl"><i class="ti ti-id" aria-hidden="true"></i><span data-idmod-lbl>Signé par</span></span><select class="idmod-sel" data-id-module="alertes" onchange="changerIdentiteModule(this)"></select></div>
               <div style="display:flex;gap:8px">
                 <button class="share-trigger" style="flex:1;justify-content:center;padding:7px 12px;font-size:11px;" onclick="toggleShareMenuRapport(event,'alertes')"><i class="ti ti-share-2"></i><span data-i18n="btn_partager">Partager</span></button>
                 <button class="btn-dl btn-dl-apercu" onclick="apercuRapport('alertes')" title="Aperçu impression"><i class="ti ti-printer"></i></button>
@@ -2937,6 +2961,20 @@ body.sentinel-protected img{ -webkit-user-drag:none; user-drag:none; pointer-eve
               <div style="margin-bottom:12px">
                 <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="marqueIdentiteActive">Identité utilisée dans les partages</label>
                 <select id="marqueIdentiteActive" style="width:100%;max-width:280px;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px"></select>
+              </div>
+              <!-- Identite d'envoi PAR MODULE de rapport : chaque module designe
+                   sa propre identite parmi les 3 ci-dessus (voir
+                   identiteEnvoiActuelle(module)). Enregistree par le meme
+                   bouton que le reste de la personnalisation. -->
+              <div style="margin-bottom:12px">
+                <div style="font-size:10px;font-weight:700;color:var(--lg);margin-bottom:3px">Identité d'envoi par module de rapport</div>
+                <div style="font-size:10px;color:var(--lg);margin-bottom:8px;line-height:1.6">
+                  Désignez, pour chaque module, l'identité qui signe ses rapports (Word, PDF, PowerPoint,
+                  Excel, image, aperçu impression, rappels WhatsApp). « Identité active » reprend le réglage
+                  ci-dessus. À l'envoi, « Signer en tant que » propose d'abord l'identité désignée ici —
+                  modifiable ponctuellement, sans changer cette désignation.
+                </div>
+                <div id="marqueModulesGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px 12px"></div>
               </div>
               <div style="display:flex;align-items:center;gap:10px">
                 <button class="btn-action btn-rest" id="marqueSaveBtn" onclick="pmSaveMarquePerso()"><i class="ti ti-device-floppy"></i> <span data-i18n="btn_enregistrer_la_personnalisation">Enregistrer la personnalisation</span></button>
@@ -5027,6 +5065,10 @@ function setLang(lang) {
     if (val !== undefined) el.setAttribute('placeholder', val.replace(/\{hc\}/g, libelleFenetreCourt()).replace(/\{h\}/g, libelleFenetre()));
   });
   try { localStorage.setItem('sentinel_lang', LANG); } catch(_) {}
+  // Listes « identite d'envoi par module » (cartes Rapports, barres d'export) :
+  // leurs libelles dependent de la langue. Silencieux si les constantes du
+  // module ne sont pas encore initialisees (premier appel au demarrage).
+  if (typeof renderIdentitesModules === 'function') { try { renderIdentitesModules(); } catch(_) {} }
   // Le libelle du bouton theme (Clair/Sombre) depend de l'etat ACTUEL, pas
   // seulement de la langue — le refresh generique [data-i18n] ci-dessus vient
   // de l'ecraser avec le texte statique du dictionnaire (toujours "Sombre"/
@@ -9511,15 +9553,71 @@ let _partageIdentiteChoisie = null;
 // que") la voyait donc appliquee au texte mais jamais a l'image, sans le
 // moindre message d'erreur. Les deux formats partagent maintenant cette
 // meme resolution.
-function identiteEnvoiActuelle() {
-  if (!fonctionnalitePayante()) return '';
-  const { identite1, identite2, identite3, active } = identitesMarquePerso(getMarquePerso());
+//
+// IDENTITE D'ENVOI PAR MODULE (ajoute le 15/10/2026) : chaque module de
+// rapport (MODULES_IDENTITE_ENVOI) peut designer SA PROPRE identite parmi les
+// 3 de Parametres (identitesModules dans la personnalisation de marque, valeur
+// 1/2/3 ; 0 ou absente = « identite active »). Ordre de resolution quand un
+// `module` est fourni :
+//   1. le choix explicite « Signer en tant que » fait POUR CET ENVOI — mais
+//      seulement pendant un partage lance depuis le module Rapports
+//      (_rapportPartageEnCours) : hors de ce cadre (export direct depuis la
+//      barre d'un module, apercu impression, rappel WhatsApp programme), un
+//      _partageIdentiteChoisie resté en memoire d'un partage ANTERIEUR (actu,
+//      alerte pays...) ne doit jamais signer un document d'un autre module ;
+//   2. l'identite designee pour ce module (si elle est encore renseignee) ;
+//   3. l'identite active globale (comportement historique).
+// Sans `module` (partage d'une actu, d'une fiche pays...), rien ne change :
+// choix explicite, puis identite active.
+const MODULES_IDENTITE_ENVOI = ['rapport_complet', 'flux', 'synthese', 'agenda', 'sources', 'alertes'];
+let _rapportPartageEnCours = false;
+// identitesModulesMarquePerso(m) : la designation de chaque module, normalisee
+// — 1/2/3 si l'identite visee est encore renseignee, sinon 0 (« identite
+// active »). Une identite videe dans Parametres retire donc d'elle-meme la
+// designation qui pointait vers elle, au lieu de signer a vide.
+function identitesModulesMarquePerso(m) {
+  m = m || {};
+  const brut = (m.identitesModules && typeof m.identitesModules === 'object') ? m.identitesModules : {};
+  const { identite1, identite2, identite3 } = identitesMarquePerso(m);
   const identites = { 1: identite1, 2: identite2, 3: identite3 };
-  const choix = (_partageIdentiteChoisie && identites[_partageIdentiteChoisie]) ? _partageIdentiteChoisie : active;
-  return identites[choix] || '';
+  const r = {};
+  MODULES_IDENTITE_ENVOI.forEach(t => {
+    const v = Number(brut[t]);
+    r[t] = ([1, 2, 3].includes(v) && identites[v]) ? v : 0;
+  });
+  return r;
 }
-function signatureEnvoiActuelle() {
-  const identite = identiteEnvoiActuelle();
+// identiteParDefautModule(module, m) : l'indice (1/2/3) qui signera ce module
+// SANS choix explicite a l'envoi — sa designation, a defaut l'identite active.
+function identiteParDefautModule(module, m) {
+  m = m || getMarquePerso();
+  return identitesModulesMarquePerso(m)[module] || identitesMarquePerso(m).active;
+}
+// definirIdentiteModule(module, idx) : enregistre la designation d'UN module
+// (idx 1/2/3, ou 0 pour revenir a l'identite active) sans toucher au reste de
+// la personnalisation. Refuse sur le plan gratuit, comme pmSaveMarquePerso.
+function definirIdentiteModule(module, idx) {
+  if (!fonctionnalitePayante() || !MODULES_IDENTITE_ENVOI.includes(module)) return false;
+  const m = getMarquePerso();
+  const mods = identitesModulesMarquePerso(m);
+  const v = Number(idx);
+  mods[module] = [1, 2, 3].includes(v) ? v : 0;
+  saveMarquePerso(Object.assign({}, m, { identitesModules: mods }));
+  return true;
+}
+function identiteEnvoiActuelle(module) {
+  if (!fonctionnalitePayante()) return '';
+  const m = getMarquePerso();
+  const { identite1, identite2, identite3, active } = identitesMarquePerso(m);
+  const identites = { 1: identite1, 2: identite2, 3: identite3 };
+  const choixExplicite = (module && !_rapportPartageEnCours) ? null : _partageIdentiteChoisie;
+  if (choixExplicite && identites[choixExplicite]) return identites[choixExplicite];
+  const designee = module ? identitesModulesMarquePerso(m)[module] : 0;
+  if (designee && identites[designee]) return identites[designee];
+  return identites[active] || '';
+}
+function signatureEnvoiActuelle(module) {
+  const identite = identiteEnvoiActuelle(module);
   if (!identite) return '';
   // Nom/pseudo uniquement (demande explicite) : jamais de coordonnee
   // personnelle (telephone/email) dans la signature d'un partage, meme si
@@ -13355,6 +13453,11 @@ function switchView(name,el){
   if(name==='analyse' && typeof updSynthese === 'function'){ _rendreOuSignaler('updSynthese', updSynthese); }
   if(name==='params') loadParamsModule();
   if(name==='rapports') peuplerFiltresRapports();
+  // Listes « identite d'envoi par module » des modules qui produisent des
+  // rapports (cartes Rapports + barres d'export Flux/Synthese/Agenda) :
+  // relues a chaque ouverture, la personnalisation de marque ayant pu changer
+  // depuis Parametres ou un autre onglet entre-temps.
+  if((name==='rapports'||name==='flux'||name==='analyse'||name==='agenda') && typeof renderIdentitesModules === 'function'){ try { renderIdentitesModules(); } catch(_) {} }
   if(name==='flux'){document.getElementById('nbadge').style.display='none';NEW_IDS.clear();renderFeed();}
   if(name==='recherche'){ peuplerFiltresRecherche(); renderRecherche(); }
   if (typeof logTraffic === 'function') logTraffic(name);
@@ -13751,7 +13854,10 @@ function afficherRappelWhatsappProgramme(hhmm, numero) {
       '<span style="font-size:11px;font-weight:700;color:var(--t);flex:1;min-width:0;">Rappel ' + hhmm + ' — Rapport d\'analyse</span>'+
       '<span style="font-size:13px;color:var(--lg);cursor:pointer;flex-shrink:0" onclick="document.getElementById(\''+id+'\').remove()" role="button" tabindex="0">✕</span>'+
     '</div>'+
-    '<div style="font-size:10px;color:var(--lg);margin-bottom:8px;">Vers +' + _apEsc(numero) + ' — identité ' + _apEsc(nomMarqueActuelle()) + '</div>'+
+    // Identite qui signera ce rappel = celle designee pour le module Synthese
+    // (le rappel envoie la Synthese analytique en PDF) ; a defaut, l'identite
+    // active, puis la marque si aucune identite n'est renseignee.
+    '<div style="font-size:10px;color:var(--lg);margin-bottom:8px;">Vers +' + _apEsc(numero) + ' — identité ' + _apEsc(identiteEnvoiActuelle('synthese') || nomMarqueActuelle()) + '</div>'+
     '<button class="share-trigger" style="width:100%;justify-content:center;" onclick="envoyerRappelWhatsappProgramme(\''+numero+'\',\''+id+'\')"><i class="ti ti-send"></i>Envoyer maintenant</button>';
   container.appendChild(el);
   requestAnimationFrame(() => { el.style.transform='translateX(0)'; el.style.opacity='1'; });
@@ -13785,7 +13891,7 @@ async function envoyerRappelWhatsappProgramme(numero, toastId) {
         const { blob, name } = _dernierDocGenere;
         const file = new File([blob], name, { type: blob.type });
         if (navigator.canShare({ files: [file] })) {
-          await navigator.share({ title: brand, text: brand + ' — Rapport d\'analyse (Synthèse analytique) du ' + dateTxt, files: [file] });
+          await navigator.share({ title: brand, text: brand + ' — Rapport d\'analyse (Synthèse analytique) du ' + dateTxt + signatureEnvoiActuelle('synthese'), files: [file] });
           return;
         }
       } catch (e) {
@@ -13793,7 +13899,7 @@ async function envoyerRappelWhatsappProgramme(numero, toastId) {
       }
     }
     const texte = brand + ' — Rapport d\'analyse (Synthèse analytique) du ' + dateTxt +
-      '.\n\nLe PDF vient d\'être téléchargé sur cet appareil — joignez-le à ce message.';
+      '.\n\nLe PDF vient d\'être téléchargé sur cet appareil — joignez-le à ce message.' + signatureEnvoiActuelle('synthese');
     window.open('https://wa.me/' + numero + '?text=' + encodeURIComponent(texte), '_blank', 'noopener');
   } catch (e) {
     alert((LANG==='en' ? 'Failed to send: ' : 'Échec de l\'envoi : ') + (e && e.message ? e.message : e));
@@ -16581,6 +16687,7 @@ function renderMarquePerso() {
   id2El.value = identite2;
   id3El.value = identite3;
   renderMarqueIdentiteChoix(active);
+  renderIdentitesModulesParams(true); // depuis l'enregistre (ouverture de Parametres)
 
   const payant = fonctionnalitePayante();
   const plan = planUtilisateurActuel();
@@ -16591,6 +16698,7 @@ function renderMarquePerso() {
   }
   if (upsellEl) upsellEl.style.display = payant ? 'none' : 'flex';
   [nomEl, id1El, id2El, id3El, document.getElementById('marqueIdentiteActive')].forEach(el => { if (el) { el.disabled = !payant; el.style.opacity = payant ? '1' : '.55'; } });
+  document.querySelectorAll('#marqueModulesGrid select').forEach(el => { el.disabled = !payant; el.style.opacity = payant ? '1' : '.55'; });
   if (saveBtn) saveBtn.disabled = !payant;
 }
 // renderMarqueIdentiteChoix(preferActive) : reconstruit la liste deroulante
@@ -16610,6 +16718,10 @@ function renderMarqueIdentiteChoix(preferActive) {
   if (id3) opts.push(`<option value="3">${_apEsc(id3)}</option>`);
   sel.innerHTML = opts.join('');
   sel.value = (prev === 3 && id3) ? '3' : (prev === 2 && id2) ? '2' : '1';
+  // Les listes « identite par module » dependent des MEMES 3 champs : elles
+  // suivent donc la frappe, comme celle-ci (selection conservee tant que
+  // l'identite visee existe encore).
+  renderIdentitesModulesParams(false);
 }
 function pmSaveMarquePerso() {
   // Double verification cote enregistrement (pas seulement l'UI grisee) :
@@ -16620,14 +16732,114 @@ function pmSaveMarquePerso() {
     return;
   }
   const activeVal = document.getElementById('marqueIdentiteActive').value;
-  saveMarquePerso({
+  const nouvelle = {
     nomMarque: (document.getElementById('marqueNom').value || '').trim(),
     identite1: (document.getElementById('marqueIdentite1').value || '').trim(),
     identite2: (document.getElementById('marqueIdentite2').value || '').trim(),
     identite3: (document.getElementById('marqueIdentite3').value || '').trim(),
     identiteActive: activeVal === '3' ? 3 : activeVal === '2' ? 2 : 1,
-  });
+  };
+  // Designations par module : celles du tableau de Parametres, par-dessus ce
+  // qui est deja enregistre (un module absent du tableau garde sa valeur),
+  // puis normalisees contre les identites QUI VIENNENT D'ETRE saisies — une
+  // identite videe retire la designation qui pointait vers elle.
+  nouvelle.identitesModules = Object.assign({}, identitesModulesMarquePerso(getMarquePerso()), lireIdentitesModulesParams());
+  nouvelle.identitesModules = identitesModulesMarquePerso(nouvelle);
+  saveMarquePerso(nouvelle);
+  renderIdentitesModulesParams(true);
+  renderIdentitesModules();
   pmMsg('Personnalisation enregistrée.', 'ok', 'marqueMsg');
+}
+
+// ── Identite d'envoi PAR MODULE de rapport — interface ─────────────────────
+// Voir identiteEnvoiActuelle(module) / definirIdentiteModule(module, idx) pour
+// la logique. Deux familles de listes, volontairement distinctes :
+//  · [data-id-module]       — cartes du module Rapports et barres d'export
+//    Flux/Synthese/Agenda : enregistrement IMMEDIAT au changement (ces listes
+//    ne proposent que des identites DEJA enregistrees) ;
+//  · [data-id-module-param] — tableau de Parametres : enregistre avec le
+//    bouton « Enregistrer la personnalisation », comme les noms d'identites
+//    qu'il propose (qui peuvent etre saisis mais pas encore enregistres).
+function _idmodTitre(module) {
+  return (typeof RAPPORT_TITRES !== 'undefined' && RAPPORT_TITRES[module]) || module;
+}
+function renderIdentitesModules() {
+  const payant = fonctionnalitePayante();
+  const m = getMarquePerso();
+  const { identite1, identite2, identite3, active } = identitesMarquePerso(m);
+  const noms = { 1: identite1, 2: identite2, 3: identite3 };
+  const designations = identitesModulesMarquePerso(m);
+  const en = LANG === 'en';
+  document.querySelectorAll('[data-idmod-lbl]').forEach(el => { el.textContent = en ? 'Signed by' : 'Signé par'; });
+  // Plan gratuit : aucune identite n'est jamais signee (voir
+  // identiteEnvoiActuelle) — les listes n'ont alors rien a designer.
+  document.querySelectorAll('[data-id-module-wrap]').forEach(el => { el.style.display = payant ? '' : 'none'; });
+  const aUneIdentite = !!(identite1 || identite2 || identite3);
+  document.querySelectorAll('select[data-id-module]').forEach(sel => {
+    const module = sel.getAttribute('data-id-module');
+    const nomActive = noms[active] || '';
+    const opts = ['<option value="0">' + (nomActive
+      ? (en ? 'Active identity: ' : 'Identité active : ') + _apEsc(nomActive)
+      : (en ? 'No identity set' : 'Aucune identité renseignée')) + '</option>'];
+    [1, 2, 3].forEach(i => { if (noms[i]) opts.push('<option value="' + i + '">' + _apEsc(noms[i]) + '</option>'); });
+    sel.innerHTML = opts.join('');
+    sel.value = String(designations[module] || 0);
+    sel.disabled = !payant || !aUneIdentite;
+    sel.setAttribute('aria-label', (en ? 'Sending identity — ' : 'Identité d\'envoi — ') + _idmodTitre(module));
+    sel.title = (en ? 'Identity that signs this module\'s reports' : 'Identité qui signe les rapports de ce module');
+  });
+}
+// changerIdentiteModule(sel) : une liste de carte/barre vient de changer —
+// enregistre, puis resynchronise toutes les autres vues du MEME reglage
+// (la carte ET la barre d'export d'un module, le tableau de Parametres).
+function changerIdentiteModule(sel) {
+  const module = sel.getAttribute('data-id-module');
+  const ok = definirIdentiteModule(module, sel.value);
+  renderIdentitesModules();
+  renderIdentitesModulesParams(true);
+  if (!ok) return;
+  const nom = identiteEnvoiActuelle(module);
+  if (nom && typeof _toastRapide === 'function') {
+    _toastRapide((LANG === 'en' ? _idmodTitre(module) + ' signed as: ' : _idmodTitre(module) + ' — signé en tant que : ') + nom, 'ti-check');
+  }
+}
+// renderIdentitesModulesParams(depuisEnregistre) : (re)construit le tableau de
+// Parametres a partir des 3 identites ACTUELLEMENT saisies (meme non
+// enregistrees). Selection : celle deja affichee quand `depuisEnregistre` est
+// faux (frappe en cours), l'enregistree quand il est vrai (ouverture, apres
+// enregistrement ou apres un changement depuis une carte).
+function renderIdentitesModulesParams(depuisEnregistre) {
+  const grid = document.getElementById('marqueModulesGrid');
+  if (!grid) return;
+  const lire = id => { const el = document.getElementById(id); return el ? (el.value || '').trim() : ''; };
+  const noms = { 1: lire('marqueIdentite1'), 2: lire('marqueIdentite2'), 3: lire('marqueIdentite3') };
+  const stocke = identitesModulesMarquePerso(getMarquePerso());
+  const en = LANG === 'en';
+  const payant = fonctionnalitePayante();
+  const html = MODULES_IDENTITE_ENVOI.map(module => {
+    const dom = grid.querySelector('select[data-id-module-param="' + module + '"]');
+    let choix = (!depuisEnregistre && dom) ? Number(dom.value) : stocke[module];
+    if (!noms[choix]) choix = 0; // l'identite visee n'existe plus (videe en cours de frappe)
+    const opts = ['<option value="0"' + (choix === 0 ? ' selected' : '') + '>' + (en ? 'Active identity (default)' : 'Identité active (par défaut)') + '</option>'];
+    [1, 2, 3].forEach(i => { if (noms[i]) opts.push('<option value="' + i + '"' + (choix === i ? ' selected' : '') + '>' + _apEsc(noms[i]) + '</option>'); });
+    const idSel = 'marqueModule_' + module;
+    return '<div>'
+      + '<label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="' + idSel + '">' + _apEsc(_idmodTitre(module)) + '</label>'
+      + '<select id="' + idSel + '" data-id-module-param="' + module + '"'
+      + ' style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px;' + (payant ? '' : 'opacity:.55;') + '"'
+      + (payant ? '' : ' disabled') + '>' + opts.join('') + '</select></div>';
+  }).join('');
+  grid.innerHTML = html;
+}
+// lireIdentitesModulesParams() : les designations affichees dans le tableau
+// de Parametres ({module: 0|1|2|3}) — {} si le tableau n'est pas construit.
+function lireIdentitesModulesParams() {
+  const r = {};
+  document.querySelectorAll('#marqueModulesGrid select[data-id-module-param]').forEach(sel => {
+    const v = Number(sel.value);
+    r[sel.getAttribute('data-id-module-param')] = [1, 2, 3].includes(v) ? v : 0;
+  });
+  return r;
 }
 
 // ── Statistiques de partage (voir enregistrerPartage/statsPartageAgregees) ──
@@ -18827,12 +19039,16 @@ function nowStr(){
 // l'utilisateur a deja selectionne son canal, inutile de lui reproposer le
 // meme choix juste apres le telechargement.
 let _suppressAfficherPartage = false;
-function dlFile(blob, name){
+// `module` (3e argument, optionnel) : le module de rapport dont est issu le
+// document (voir MODULES_IDENTITE_ENVOI) — retenu avec lui pour que le message
+// d'accompagnement de son partage (_docShareMessage) soit signe de l'identite
+// designee pour CE module, et non d'un module genere avant.
+function dlFile(blob, name, module){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url; a.download=name; a.click();
   setTimeout(()=>URL.revokeObjectURL(url), 1500);
-  _dernierDocGenere = { blob, name };
+  _dernierDocGenere = { blob, name, module: module || null };
   if (typeof enregistrerTelechargement === 'function') enregistrerTelechargement(name);
   if (!_suppressAfficherPartage && typeof afficherPartageDocument === 'function') afficherPartageDocument(name);
 }
@@ -18892,7 +19108,7 @@ async function partagerDernierDocument(ev) {
 // simple lien, cf. note en tete de section).
 function _docShareMessage() {
   const name = _dernierDocGenere ? _dernierDocGenere.name : '';
-  return (LANG==='en' ? 'Document generated: ' : 'Document généré : ') + name + (LANG==='en' ? ' — please attach it from your downloads.' : ' — joignez-le depuis vos téléchargements.') + signatureEnvoiActuelle();
+  return (LANG==='en' ? 'Document generated: ' : 'Document généré : ') + name + (LANG==='en' ? ' — please attach it from your downloads.' : ' — joignez-le depuis vos téléchargements.') + signatureEnvoiActuelle(_dernierDocGenere ? _dernierDocGenere.module : null);
 }
 // Fonctions dediees (plutot que des donnees serialisees dans l'attribut
 // onclick, ex. JSON.stringify) : un contact/groupe peut contenir des
@@ -19121,7 +19337,7 @@ async function genererImageRapportBlob(type, canal) {
   // Meme correctif que genererImageActuBlob (voir identiteEnvoiActuelle) :
   // l'identite choisie pour CE partage doit apparaitre sur l'image comme
   // elle apparait deja dans le texte, pas seulement le nom de marque.
-  const identiteImgRapport = identiteEnvoiActuelle();
+  const identiteImgRapport = identiteEnvoiActuelle(type);
   if (identiteImgRapport) {
     ctx.textAlign = 'right';
     ctx.fillText('— ' + identiteImgRapport, w - pad, h - Math.round(w * 0.05));
@@ -19160,11 +19376,17 @@ function toggleShareMenuRapport(ev, type) {
   // ligne vide).
   let identiteRow = '';
   {
-    const { identite1, identite2, identite3, active } = identitesMarquePerso(getMarquePerso());
+    const m = getMarquePerso();
+    const { identite1, identite2, identite3 } = identitesMarquePerso(m);
     const dispo = [[1, identite1 || nomMarqueActuelle()], [2, identite2], [3, identite3]].filter(([, v]) => v);
-    menu.dataset.identite = active;
+    // Pre-selectionnee : l'identite DESIGNEE pour ce module (voir
+    // identiteParDefautModule), a defaut l'identite active globale. Le choix
+    // reste modifiable pour CET envoi seulement — la designation du module,
+    // elle, ne change que depuis sa carte ou Parametres.
+    const defaut = identiteParDefautModule(type, m);
+    menu.dataset.identite = defaut;
     identiteRow = '<div class="share-id-lbl">'+(LANG==='en'?'Sign as':'Signer en tant que')+'</div><div class="share-fmt-row">'+
-      dispo.map(([idx, val]) => '<button type="button" class="share-fmt share-id-btn'+(idx===active?' on':'')+'" onclick="_choisirIdentitePartage(this,'+idx+')" title="'+_apEsc(val)+'">'+_apEsc(val.length>14?val.slice(0,13)+'…':val)+'</button>').join('')+
+      dispo.map(([idx, val]) => '<button type="button" class="share-fmt share-id-btn'+(idx===defaut?' on':'')+'" onclick="_choisirIdentitePartage(this,'+idx+')" title="'+_apEsc(val)+'">'+_apEsc(val.length>14?val.slice(0,13)+'…':val)+'</button>').join('')+
     '</div>';
   }
 
@@ -19200,8 +19422,24 @@ function toggleShareMenuRapport(ev, type) {
 // Telegram/Email/Copier ouvrent un message pret, le fichier deja telecharge
 // restant a joindre manuellement) ; le partage natif du systeme reste le
 // seul a pouvoir transmettre reellement le fichier en piece jointe.
+//
+// Enveloppe : pose le choix « Signer en tant que » de CET envoi et marque le
+// partage « en cours » (voir _rapportPartageEnCours dans identiteEnvoiActuelle)
+// le temps de generer le document et d'acheminer le message — puis les remet
+// a zero, que l'envoi ait abouti, ete annule (AbortError) ou ait echoue. Sans
+// cette remise a zero, le choix d'un partage resterait en memoire et signerait
+// l'export direct suivant d'un autre module.
 async function envoyerRapportCanal(type, canal, format, identiteIdx) {
   _partageIdentiteChoisie = identiteIdx || null;
+  _rapportPartageEnCours = true;
+  try {
+    await _envoyerRapportCanalInterne(type, canal, format, identiteIdx);
+  } finally {
+    _rapportPartageEnCours = false;
+    _partageIdentiteChoisie = null;
+  }
+}
+async function _envoyerRapportCanalInterne(type, canal, format, identiteIdx) {
   const cfg = RAPPORT_TYPES[type];
   if (!cfg) return;
   format = cfg.formats.includes(format) ? format : cfg.formats[0];
@@ -19237,7 +19475,7 @@ async function envoyerRapportCanal(type, canal, format, identiteIdx) {
     // peut transporter un fichier via un simple lien — telecharger, puis
     // ouvrir le canal avec un message pret invitant a joindre l'image.
     _telechargerImage(blob, nomFichier);
-    _dernierDocGenere = { blob, name: nomFichier };
+    _dernierDocGenere = { blob, name: nomFichier, module: type };
     if (canal === 'whatsapp') _docWhatsappContacts();
     else if (canal === 'whatsapp_groupe') _docWhatsappGroupes();
     else if (canal === 'telegram') _docTelegram();
@@ -19462,9 +19700,14 @@ async function exportExcel(type){
     }
 
     // Métadonnées
+    // Identite d'envoi propre au module exporte (voir identiteEnvoiActuelle) :
+    // seul format bureautique a ne la porter nulle part jusqu'ici. Ligne
+    // ajoutee seulement si une identite signe ce module (jamais de ligne vide).
+    const identiteXlsx = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle(type) : '';
     const wsMeta=XLSX.utils.aoa_to_sheet([
       [nomMarqueActuelle()+' — Export de données'],[''],
       ['Généré le',nowStr()],
+      ...(identiteXlsx ? [[(LANG==='en'?'Shared by':'Partagé par'),identiteXlsx]] : []),
       ['Filtre','Articles <'+libelleFenetreCourt()+' uniquement'],
       ['Sources actives',Object.values(SRC_ST).filter(s=>s?.ok).length+'/'+SRCS.length],
       ['Articles exportés',getExportData().length],
@@ -19477,7 +19720,7 @@ async function exportExcel(type){
     // directement sans exposer de Blob) : passe par dlFile comme les autres
     // formats pour beneficier du bouton de partage post-enregistrement.
     const wbArray = XLSX.write(wb, {bookType:'xlsx', type:'array'});
-    dlFile(new Blob([wbArray], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), fname);
+    dlFile(new Blob([wbArray], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), fname, type);
   }catch(e){alert('Erreur Excel: '+e.message);}
   finally{setTimeout(()=>btnReset(btn),800);}
 }
@@ -19508,7 +19751,7 @@ async function exportCSV(type){
       })
     ];
     const blob=new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
-    dlFile(blob,'SentiqS_Flux'+suffixePerimetre()+'_'+new Date().toISOString().slice(0,10)+'.csv');
+    dlFile(blob,'SentiqS_Flux'+suffixePerimetre()+'_'+new Date().toISOString().slice(0,10)+'.csv','flux');
   }catch(e){alert('Erreur CSV: '+e.message);}
   finally{setTimeout(()=>btnReset(btn),600);}
 }
@@ -19576,7 +19819,7 @@ async function exportPPTX(type) {
     // l'apercu HTML : voir identiteRapportW dans exportWord. L'auteur du
     // fichier (metadonnee Proprietes de PowerPoint) est la personne qui
     // partage CE rapport, distincte de la marque/organisation (Societe).
-    const identitePptx = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle() : '';
+    const identitePptx = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle(type) : '';
     const pres = new PptxGenJS();
     pres.layout = 'LAYOUT_WIDE';
     pres.author = identitePptx || nomMarqueActuelle();
@@ -20037,7 +20280,7 @@ async function exportPPTX(type) {
     // comme les autres formats pour beneficier du bouton de partage
     // post-enregistrement.
     const pptxBlob = await pres.write('blob');
-    dlFile(pptxBlob, 'SentiqS_'+titrePPTX.replace(/\s+/g,'_')+'_'+periode.label+suffixePerimetre()+'_'+new Date().toISOString().slice(0,10)+'.pptx');
+    dlFile(pptxBlob, 'SentiqS_'+titrePPTX.replace(/\s+/g,'_')+'_'+periode.label+suffixePerimetre()+'_'+new Date().toISOString().slice(0,10)+'.pptx', type);
   } catch(e) {
     alert('Erreur PowerPoint: '+e.message);
   } finally {
@@ -20128,6 +20371,11 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
   const b = {
     page: null, y: 0, n: 0, secNum: 0,
     footerPerimetre: '', footerDate: '',
+    // identiteEnvoi : l'identite d'envoi qui signe ce document, resolue PAR
+    // MODULE par exportPDF (voir identiteEnvoiActuelle(module)) — null tant
+    // qu'aucun appelant ne l'a posee (guide d'utilisation), auquel cas le
+    // bandeau retombe sur la resolution globale historique.
+    identiteEnvoi: null,
     // Ruban de bas de page — bandeau plein bord-a-bord (pas d'encadre), logo
     // radar + nom de marque, sur le modele du ruban utilise en pied de page
     // du site. Pas d'adresse e-mail (usage interne uniquement).
@@ -20211,7 +20459,8 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
       // Tronquee (contrairement a Word) car dessinee a position fixe sans
       // retour a la ligne, au risque sinon de chevaucher le bandeau
       // "USAGE RESTREINT" aligne a droite sur la meme ligne.
-      const identitePdf = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle() : '';
+      const identitePdf = (b.identiteEnvoi !== null) ? b.identiteEnvoi
+        : ((typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle() : '');
       const identitePdfTxt = identitePdf.length>28 ? identitePdf.slice(0,27)+'…' : identitePdf;
       const metaL = (LANG==='en'?'Generated on: ':'Généré le : ')+dateGenStr+'   |   '+(LANG==='en'?'Slot: ':'Créneau : ')+creneauStr+(identitePdfTxt?'   |   '+(LANG==='en'?'Shared by: ':'Partagé par : ')+identitePdfTxt:'');
       b.page.drawText(_pdfSafe(metaL), {x:M, y:H-26, size:7.5, font:fontReg, color:MUTED});
@@ -20777,6 +21026,9 @@ async function exportPDF(type) {
     const nbSrcsSocialesPDF = SRCS.length - nbSrcsMediaPDF;
     b.footerPerimetre = perimetre;
     b.footerDate = new Date().toLocaleDateString('fr-FR');
+    // Identite d'envoi propre au MODULE exporte (synthese/flux/agenda/...) :
+    // voir identiteEnvoiActuelle(module). Lue par bulletinHeader.
+    b.identiteEnvoi = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle(type) : '';
 
     // En-tête façon "Bulletin de veille" — logo radar, date/heure de
     // génération, créneau — utilisée pour tous les types de rapport PDF.
@@ -21168,7 +21420,7 @@ async function exportPDF(type) {
 
     const bytes = await doc.save();
     const blob = new Blob([bytes], {type:'application/pdf'});
-    dlFile(blob, 'SentiqS_'+titre.replace(/\s+/g,'_')+suffixePerimetre()+'_'+new Date().toISOString().slice(0,10)+'.pdf');
+    dlFile(blob, 'SentiqS_'+titre.replace(/\s+/g,'_')+suffixePerimetre()+'_'+new Date().toISOString().slice(0,10)+'.pdf', type);
   } catch(e) {
     console.error('SentiqS — Erreur export PDF ('+type+') :', e);
     alert('Erreur PDF ('+type+'): '+e.message+(e.stack?'\n\n'+e.stack.split('\n').slice(0,4).join('\n'):''));
@@ -21313,7 +21565,7 @@ function _apPageWrap(titreSection, sousTitre, statsHTML, bodyHTML, type) {
   const perimetre = (typeof libellePerimetreRapport === 'function') ? libellePerimetreRapport() : '';
   // Identite d'envoi ("Signer en tant que") — meme correctif que Word/PDF/
   // PowerPoint : voir identiteRapportW dans exportWord.
-  const _apIdentiteEnvoi = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle() : '';
+  const _apIdentiteEnvoi = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle(type) : '';
   return '<!DOCTYPE html><html><head><meta charset="utf-8">'
     + '<title>SentiqS '+_apEsc(titreSection)+' — '+_apEsc(now.toLocaleDateString('fr-FR'))+'</title>'
     + '<link rel="preconnect" href="https://fonts.googleapis.com">'
@@ -21484,7 +21736,7 @@ function _buildRapportSyntheseHTML(arts) {
   const perimetre = libellePerimetreRapport();
   // Identite d'envoi ("Signer en tant que") — meme correctif que Word/PDF/
   // PowerPoint/_apPageWrap : voir identiteRapportW dans exportWord.
-  const _synthIdentiteEnvoi = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle() : '';
+  const _synthIdentiteEnvoi = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle('synthese') : '';
 
   const nbSrcsMedia = SRCS.filter(s => !(s.rss_method||'').match(/Twitter|Telegram|Facebook/)).length;
   const nbSrcsSociales = SRCS.length - nbSrcsMedia;
@@ -22146,7 +22398,7 @@ async function exportWord(type){
     // l'affichait (correctif du meme jour sur genererImageActuBlob/
     // genererImageRapportBlob). Ajoutee ici en suffixe, jamais a la place de
     // la marque.
-    const identiteRapportW = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle() : '';
+    const identiteRapportW = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle(type) : '';
     children.push(divider());
     children.push(new Paragraph({
       alignment:AlignmentType.CENTER,
@@ -22186,7 +22438,7 @@ async function exportWord(type){
 
     const blob=await Packer.toBlob(doc);
     const tname={flux:'Flux',synthese:'Synthese',agenda:'Agenda',rapport_complet:'Rapport_Complet',alertes:'Alertes_Pays',sources:'Matrice_Sources'}[type]||type;
-    dlFile(blob,'SentiqS_'+tname+suffixePerimetre()+'_'+new Date().toISOString().slice(0,10)+'.docx');
+    dlFile(blob,'SentiqS_'+tname+suffixePerimetre()+'_'+new Date().toISOString().slice(0,10)+'.docx', type);
 
   }catch(e){
     console.error(e);
