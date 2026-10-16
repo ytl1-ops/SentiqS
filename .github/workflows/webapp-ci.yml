@@ -253,6 +253,14 @@ jobs:
         # alors que la grille d'evaluation notait l'accessibilite 3 sur 5.
         run: node scripts/verifier-accessibilite-interface.js
 
+      - name: Accueil, fiches pays et pages légales (rendu réel)
+        # Les pages que voit un visiteur avant de se connecter — celles que
+        # les moteurs indexent — n'étaient mesurées par rien. Le 15/10/2026 :
+        # 3 forfaits sur 4 avec un bouton blanc sur gris clair (1,1:1), 212
+        # textes sous 4,5:1, 106 cibles sous 24 px, 22 textes sous 10 px, deux
+        # pages qui débordaient à 390 px. Tous les plafonds sont à 0.
+        run: node scripts/verifier-pages-hors-appli.js
+
       - name: La page de production se charge
         # Tous les autres controles LISENT le fichier sans jamais l'executer :
         # aucun ne verrait une rupture d'execution (dependance manquante,

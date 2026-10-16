@@ -76,12 +76,12 @@ function buildNeighborsHtml(neighbors) {
 
 function buildAlertsHtml(alertsSample) {
   if (!alertsSample || alertsSample.length === 0) {
-    return '<div class="alert-blur-item"><span class="alert-tag">INFO</span>' +
+    return '<div class="alert-blur-item" aria-hidden="true"><span class="alert-tag">INFO</span>' +
       '<span class="alert-txt">Configurez les categories d\'alertes (Surete, Social, Infrastructures) dans l\'application SentiqS pour ce pays.</span>' +
       '<span class="alert-time"></span></div>';
   }
   return alertsSample.map(function (a) {
-    return '<div class="alert-blur-item"><span class="alert-tag">' + a.tag + '</span>' +
+    return '<div class="alert-blur-item" aria-hidden="true"><span class="alert-tag">' + a.tag + '</span>' +
       '<span class="alert-txt">' + a.text + '</span>' +
       '<span class="alert-time">' + a.time + '</span></div>';
   }).join('\n');
