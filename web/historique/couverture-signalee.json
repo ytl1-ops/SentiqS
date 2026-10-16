@@ -1,7 +1,33 @@
 {
- "cle": "SC,SL",
+ "cle": "BW,CF,CG,CM,DZ,EG,ER,GA,GM,GQ,GW,KM,LS,LY,MA,MR,MW,RW,SC,SD,SL,SS,ST,SZ,TD,TN,TZ,ZW",
  "pays": [
+  "BW",
+  "CF",
+  "CG",
+  "CM",
+  "DZ",
+  "EG",
+  "ER",
+  "GA",
+  "GM",
+  "GQ",
+  "GW",
+  "KM",
+  "LS",
+  "LY",
+  "MA",
+  "MR",
+  "MW",
+  "RW",
   "SC",
-  "SL"
+  "SD",
+  "SL",
+  "SS",
+  "ST",
+  "SZ",
+  "TD",
+  "TN",
+  "TZ",
+  "ZW"
  ]
 }
