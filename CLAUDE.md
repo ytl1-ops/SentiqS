@@ -2561,6 +2561,9 @@ La règle « capable d'alerter » (`peutAlerter`, `estRequeteGoogleNews`) a
 quitté `scripts/lib/capacite-alerte.js` pour le noyau, qui la partage avec la
 page ; la bibliothèque la réexporte. Mesuré sur la vraie page : 21 pays à
 source unique, exactement le cliquet `PLAFOND_PAYS_SOURCE_UNIQUE`.
+
+---
+
 ## La direction « Salle de veille » — 20/10/2026
 
 Demande : une présentation « robuste et sécuritaire », sur le modèle de
