@@ -2806,3 +2806,25 @@ sable n'a pas de réseau : un jeu d'images de test servi avec l'en-tête CORS a
 validé la mise en page seulement), et le rendu dans Word lui-même
 (LibreOffice a servi de lecteur). `exports-habillage.test.js` garde ces
 choix, tous vus échouer sur l'ancien code.
+
+---
+
+## Le chargement des actus, mesuré — 21/10/2026
+
+Signalement : « il plante sur PC et sur mobile », puis « actualisation 50 fois plus rapide ». Le banc (Chromium, 2 600 articles dans la fenêtre, page servie localement, script jetable) a trouvé trois causes, toutes de calcul et non de réseau — le bac à sable n'a pas Internet, la latence Supabase n'est donc **pas** mesurée ici.
+
+**1. Le Flux écrivait toutes les cartes d'un coup.** 112 742 nœuds DOM, 7 Mo de HTML, 871 images, 3,8 s de gel (1,9 s mobile) avant le premier pixel. `renderFeed()` n'en écrit plus que `FLUX_PAGE` (40) selon le tri courant, « Afficher plus » ajoute la page suivante, et un filtre, un tri ou une recherche qui change repart de la première. **Les totaux restent vrais** : bandeau pays, « N critiques », « À la une » se calculent sur la liste complète (`artsTous`), seuls les cartes et la traduction préalable portent sur la page. Après : 135 ms, 1 944 nœuds, 18 images.
+
+**2. Chaque lecture du cache reclassait tous les articles.** `rehydrateArticles` rappelait `detectPaysFromText` et `classify` (~14 ms par article) à l'ouverture, à chaque lecture du cache partagé et à chaque cycle : **15,8 s pour 2 600 articles**. Chaque article porte maintenant `_rv`, l'empreinte (`signatureCode()`, FNV-1a de **tout** le script inline, 13 ms) du code qui l'a classé ; le recalcul n'a lieu que si elle diffère, donc après un déploiement — ce qui garde le but du recalcul (un correctif de lexique prend effet sans attendre la collecte). Rien à incrémenter : changer une ligne change l'empreinte. Second passage : **5 ms**. Les deux analyseurs de flux estampillent à la création ; la publication du cache partagé rehydrate en entier avant d'écrire (les estampilles survivent : la fonction Edge ne filtre aucun champ).
+Après un déploiement, les navigateurs recalculent **par tranches de 40 ms** (`rehydraterParLots`, budget `budgetMs`) au lieu de geler l'écran, et redessinent les modules une fois à la fin. Le job et la publication recalculent **en entier** (pas de budget) : publier un cache à moitié recalculé serait pire que ne rien changer.
+**Limite connue** : l'empreinte ne couvre pas `web/js/noyau.js` (script externe). Aucune règle de classement n'en dépend aujourd'hui ; si `classify` en vient à en dépendre, il faudra l'y inclure.
+
+**3. `fmtAge` recréait un formateur `Intl` par appel** (248 ms pour 2 600 articles). Formateurs construits une fois : 9 ms.
+
+**Plantages répétés.** Les gestionnaires `error`/`unhandledrejection` ne faisaient que journaliser. Trois erreurs en dix secondes (`erreurRepetee`) affichent un bandeau « Réessayer » qui remet le Flux à zéro ; il ne bloque rien et se ferme.
+
+**Zone de lecture et boutons.** Hauteur de bandeaux avant le Flux : **343 → 299 px** (bureau), **403 → 366 px** (mobile). Thème, diagnostic et format d'affichage passent dans un menu « Plus » (Actualiser reste seul, visible) ; les barres d'export (Flux, Synthèse, Agenda) se replient derrière un bouton « Exporter » ; la bannière de collecte tient sur une ligne ; sur mobile, recherche pleine largeur, pays + tri + ⟳ sur une ligne, filtres en défilement horizontal. **Les boutons visibles n'ont baissé que sur bureau (34 → 31)** ; sur mobile ils restent à 26–31. Règles mobiles écrites deux fois (écran étroit et `html.force-mobile`), comme partout.
+
+**Ce que la mesure ne permet pas de promettre.** Lecture d'un cache partagé de 2 600 articles jusqu'à l'affichage : **20,2 s → ~1,5 s** (≈ 14×), le reste étant `updStats` (265 ms, `estRecentReel` rappelée sur toute la liste), `recalcAlertes` (~100 ms) et le rendu des fiches. Le passage répété (réouverture, cycle de 15 min) tombe de ~16 s à quelques millisecondes. **50× sur le chemin complet n'est pas atteint** ; la suite logique est de mémoïser `estRecentReel` et de ne recalculer les alertes que pour les pays dont les articles ont changé.
+
+`scripts/test/chargement-lecture.test.js` : 16 tests, tous vus échouer sur l'ancienne version. Piège rencontré : une règle CSS `html.force-mobile .a,.b{…}` — la virgule laisse `.b` sans préfixe et la règle fuit sur le bureau (le tri s'étirait sur 1 360 px) ; un test le refuse.
