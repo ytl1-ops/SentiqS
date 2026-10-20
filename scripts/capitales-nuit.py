@@ -33,8 +33,9 @@ VILLES = {
 # Henri Konan Bedie) dans la rotation. Pas forcement de nuit : un pont au
 # crepuscule passe sous la teinte bleu nuit de la page.
 if os.environ.get('PASSE') == 'pont':
-    VILLES = {'abidjan-pont': ['Pont Henri Konan Bedie', 'Henri Konan Bedie Bridge Abidjan', 'Pont HKB Abidjan night',
-                               'Abidjan cable-stayed bridge', 'Pont a haubans Abidjan']}
+    VILLES = {'abidjan-pont': ['Henri Konan Bedie Bridge pylon', 'HKB bridge Abidjan', 'Pont HKB Abidjan nuit',
+                               'Abidjan cable-stayed bridge', 'Pont a haubans Abidjan', 'Abidjan bridge night lights',
+                               'Abidjan pont Plateau lagune soir', 'Third bridge Abidjan', 'Pont Alassane Ouattara Abidjan']}
 LIBRES = re.compile(r'^(CC0|Public domain|PD|CC BY(-SA)? [0-9.]+)', re.I)
 UA = {'User-Agent': 'SentiqS-page-de-garde/1.0 (https://github.com/ytl1-ops/SentiqS)'}
 
@@ -55,7 +56,7 @@ for ville, requetes in VILLES.items():
                  'gsrlimit': 12, 'prop': 'imageinfo', 'iiprop': 'url|size|extmetadata', 'iiurlwidth': 1600})
         pages = sorted((d.get('query') or {}).get('pages', {}).values(), key=lambda p: p.get('index', 99))
         for p in pages:
-            if n >= 8 or p['title'] in vus:
+            if n >= 14 or p['title'] in vus:
                 continue
             vus.add(p['title'])
             ii = (p.get('imageinfo') or [{}])[0]
