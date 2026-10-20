@@ -2724,3 +2724,42 @@ le texte.
   (`.scene::after`, multiply) ; vérifiée à l'œil sur les six photos.
   **Le contraste sur pixels n'a pas été remesuré** comme le 15/10 pour la
   vidéo : à refaire si une photo plus claire entre dans la rotation.
+
+### Le pont à haubans d'Abidjan, et le contraste mesuré au pixel — 20/10/2026 (soir)
+
+L'éditeur a demandé d'alterner aussi des vues du pont à haubans d'Abidjan
+avec les capitales. `scripts/capitales-nuit.py` (`PASSE=pont`, workflow
+`capitales-nuit.yml`) a cherché sur Wikimedia Commons : les deux premières
+passes ont ramené des **péages et des skylines grises**, pas le pont —
+la requête « Pont HKB » désigne un autre ouvrage que le pont à haubans, dont
+les photos sont classées sous « Pont Hauban Abidjan ». Trois vues de Jean
+Yves ESSIGAN (CC BY 4.0) retenues, intercalées dans l'ordre :
+Abidjan, Lagos, **pont**, Nairobi, Le Caire, **pont**, Johannesburg,
+Addis-Abeba, **pont** (cycle de 63 s, 9 photos). Elles sont **de jour** :
+`data-diurne` les assombrit (`brightness(.6)`) pour tenir le niveau des vues
+de nuit. Un test refuse deux vues du pont de suite et exige un crédit par photo.
+
+**Contraste mesuré sur les pixels** (`scratchpad` : les 9 photos, au début et
+à la fin du zoom, texte rendu transparent, 10ᵉ centile du contraste sous
+chaque élément). Résultat : tout passe — pire cas du titre 11,4:1, du mot
+clé en bleu clair 5,1:1 (seuil 3), des boutons 14:1. Le mot clé tombait à
+**2,9:1 sur la vue du pont avant l'assombrissement** : c'est ce qui a imposé
+`data-diurne`. Piège de mesure : sans couper les transitions CSS, les
+boutons se mesuraient à 1,1:1 (mi-fondu) ; ce n'est pas un défaut de la page.
+Ce banc n'est pas en CI (il demande Pillow) : le refaire si une photo entre
+dans la rotation.
+
+### Images des sources dans les rapports bureautiques
+
+`chargerImagesRapport(arts, max)` embarque l'image de la source dans le PDF,
+le Word et le PowerPoint. Un document ne peut pas pointer vers une adresse :
+il faut les octets, que la page n'a pas le droit de demander par `fetch` (CSP
+`connect-src`) et qu'on ne cherche pas par un relais public. L'image est donc
+chargée comme l'écran le fait (`<img crossOrigin>`), redessinée à 480 px, et
+n'est embarquée que **si la source autorise le partage** (canevas non teinté) ;
+sinon le document garde le texte seul, sans repli. 24 images au plus par
+document (16 en PowerPoint), 4 s par image, les plus graves d'abord, rien
+si « économiser les données » est actif. **Non vérifié ici** : le résultat
+avec de vraies images de source, ce bac à sable n'ayant pas de réseau — seuls
+le câblage et le tri sont testés. Mesurer sur un export réel avant de parler
+d'un taux d'images.

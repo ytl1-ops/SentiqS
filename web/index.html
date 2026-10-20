@@ -90,13 +90,16 @@ img,svg{display:block;max-width:100%}
 .scene{background:#0A1733}
 .diapo{position:absolute;inset:-2%;width:104%;height:104%;object-fit:cover;opacity:0;will-change:opacity,transform}
 .diapo:first-child{opacity:1}
-.scene.en-mouvement .diapo{animation:diapo 42s linear infinite both}
+/* Vues de jour (pont à haubans) : assombries pour tenir le même niveau que les
+   vues de nuit sous le titre — mesuré au pixel, voir CLAUDE.md. */
+.diapo[data-diurne]{filter:brightness(.6) saturate(.85)}
+.scene.en-mouvement .diapo{animation:diapo 63s linear infinite both}
 .scene.en-mouvement .diapo:first-child{opacity:0}
 @keyframes diapo{
   0%{opacity:0;transform:scale(1.02) translate3d(0,0,0)}
-  3%{opacity:1}
-  17%{opacity:1}
-  21%{opacity:0;transform:scale(1.12) translate3d(-2%,-1%,0)}
+  2%{opacity:1}
+  11.5%{opacity:1}
+  13.5%{opacity:0;transform:scale(1.12) translate3d(-2%,-1%,0)}
   100%{opacity:0;transform:scale(1.12) translate3d(-2%,-1%,0)}
 }
 /* Voile bleu nuit : plus dense à gauche, sous le texte ; fondu vers la page en bas. */
@@ -110,9 +113,9 @@ img,svg{display:block;max-width:100%}
 .diapo-legende{position:absolute;right:0;bottom:0;white-space:nowrap;font-family:var(--mono);font-size:11px;color:rgba(245,247,250,.85);
   background:rgba(5,8,11,.6);padding:3px 9px;border-radius:3px;opacity:0}
 .diapo-legende:first-child{opacity:1}
-.scene.en-mouvement .diapo-legende{animation:legende 42s linear infinite both}
+.scene.en-mouvement .diapo-legende{animation:legende 63s linear infinite both}
 .scene.en-mouvement .diapo-legende:first-child{opacity:0}
-@keyframes legende{0%{opacity:0}3%{opacity:1}17%{opacity:1}20%{opacity:0}100%{opacity:0}}
+@keyframes legende{0%{opacity:0}2%{opacity:1}11.5%{opacity:1}13%{opacity:0}100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){.scene.en-mouvement .diapo,.scene.en-mouvement .diapo-legende{animation:none}
   .scene.en-mouvement .diapo:first-child,.scene.en-mouvement .diapo-legende:first-child{opacity:1}}
 
@@ -425,18 +428,24 @@ section p a{padding:5px 0}
   <div class="scene" aria-hidden="true">
       <img class="diapo" src="assets/capitales/abidjan.jpg" fetchpriority="high" alt="" decoding="async" style="animation-delay:0s">
       <img class="diapo" data-src="assets/capitales/lagos.jpg" alt="" decoding="async" style="animation-delay:7s">
-      <img class="diapo" data-src="assets/capitales/nairobi.jpg" alt="" decoding="async" style="animation-delay:14s">
-      <img class="diapo" data-src="assets/capitales/le-caire.jpg" alt="" decoding="async" style="animation-delay:21s">
-      <img class="diapo" data-src="assets/capitales/johannesburg.jpg" alt="" decoding="async" style="animation-delay:28s">
-      <img class="diapo" data-src="assets/capitales/addis-abeba.jpg" alt="" decoding="async" style="animation-delay:35s">
+      <img class="diapo" data-diurne data-src="assets/capitales/pont-haubans-1.jpg" alt="" decoding="async" style="animation-delay:14s">
+      <img class="diapo" data-src="assets/capitales/nairobi.jpg" alt="" decoding="async" style="animation-delay:21s">
+      <img class="diapo" data-src="assets/capitales/le-caire.jpg" alt="" decoding="async" style="animation-delay:28s">
+      <img class="diapo" data-diurne data-src="assets/capitales/pont-haubans-2.jpg" alt="" decoding="async" style="animation-delay:35s">
+      <img class="diapo" data-src="assets/capitales/johannesburg.jpg" alt="" decoding="async" style="animation-delay:42s">
+      <img class="diapo" data-src="assets/capitales/addis-abeba.jpg" alt="" decoding="async" style="animation-delay:49s">
+      <img class="diapo" data-diurne data-src="assets/capitales/pont-haubans-3.jpg" alt="" decoding="async" style="animation-delay:56s">
     <div class="scene-vignette"></div>
     <div class="diapo-legendes">
       <span class="diapo-legende" style="animation-delay:0s">Abidjan, de nuit · © abdallahh, CC BY 2.0</span>
       <span class="diapo-legende" style="animation-delay:7s">Lagos, de nuit · © S.aderogba, CC BY-SA 4.0</span>
-      <span class="diapo-legende" style="animation-delay:14s">Nairobi, de nuit · © Nbi101, CC BY-SA 4.0</span>
-      <span class="diapo-legende" style="animation-delay:21s">Le Caire, de nuit · © Daniel Nussbaum, CC BY-SA 3.0</span>
-      <span class="diapo-legende" style="animation-delay:28s">Johannesburg, de nuit · © Nico Roets, CC BY 2.0</span>
-      <span class="diapo-legende" style="animation-delay:35s">Addis-Abeba, de nuit · © PMO Ethiopia, domaine public</span>
+      <span class="diapo-legende" style="animation-delay:14s">Abidjan, le pont à haubans · © Jean Yves ESSIGAN, CC BY 4.0</span>
+      <span class="diapo-legende" style="animation-delay:21s">Nairobi, de nuit · © Nbi101, CC BY-SA 4.0</span>
+      <span class="diapo-legende" style="animation-delay:28s">Le Caire, de nuit · © Daniel Nussbaum, CC BY-SA 3.0</span>
+      <span class="diapo-legende" style="animation-delay:35s">Abidjan, le pont à haubans · © Jean Yves ESSIGAN, CC BY 4.0</span>
+      <span class="diapo-legende" style="animation-delay:42s">Johannesburg, de nuit · © Nico Roets, CC BY 2.0</span>
+      <span class="diapo-legende" style="animation-delay:49s">Addis-Abeba, de nuit · © PMO Ethiopia, domaine public</span>
+      <span class="diapo-legende" style="animation-delay:56s">Abidjan, le pont à haubans · © Jean Yves ESSIGAN, CC BY 4.0</span>
     </div>
   </div>
 
@@ -699,10 +708,13 @@ section p a{padding:5px 0}
       <ul>
         <li>Abidjan, de nuit — <a href="https://commons.wikimedia.org/wiki/File:Plateau_Abidjan_de_nuit.jpg" target="_blank" rel="noopener">abdallahh</a>, <a href="https://creativecommons.org/licenses/by/2.0" rel="license noopener" target="_blank">CC BY 2.0</a>, image redimensionnée</li>
         <li>Lagos, de nuit — <a href="https://commons.wikimedia.org/wiki/File:Night-view-of-lekki-link-bridge.jpg" target="_blank" rel="noopener">S.aderogba</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0" rel="license noopener" target="_blank">CC BY-SA 4.0</a>, image redimensionnée</li>
+        <li>Abidjan, le pont à haubans — <a href="https://commons.wikimedia.org/wiki/File:Vue_d%27ensemble_du_pont_Hauban_Abidjan_depuis_la_Cour_de_la_Cath%C3%A9drale_Saint_Paul_du_Plateau.jpg" target="_blank" rel="noopener">Jean Yves ESSIGAN</a>, <a href="https://creativecommons.org/licenses/by/4.0" rel="license noopener" target="_blank">CC BY 4.0</a>, image redimensionnée</li>
         <li>Nairobi, de nuit — <a href="https://commons.wikimedia.org/wiki/File:Nairobi_night_skyline_at_dusk_.jpg" target="_blank" rel="noopener">Nbi101</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0" rel="license noopener" target="_blank">CC BY-SA 4.0</a>, image redimensionnée</li>
         <li>Le Caire, de nuit — <a href="https://commons.wikimedia.org/wiki/File:Nile_and_Cairo_Tower_at_night_-_panoramio.jpg" target="_blank" rel="noopener">Daniel Nussbaum</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0" rel="license noopener" target="_blank">CC BY-SA 3.0</a>, image redimensionnée</li>
+        <li>Abidjan, le pont à haubans — <a href="https://commons.wikimedia.org/wiki/File:Vue_d%27ensemble_avec_Circulation_du_Pont_Hauban_Abidjan.jpg" target="_blank" rel="noopener">Jean Yves ESSIGAN</a>, <a href="https://creativecommons.org/licenses/by/4.0" rel="license noopener" target="_blank">CC BY 4.0</a>, image redimensionnée</li>
         <li>Johannesburg, de nuit — <a href="https://commons.wikimedia.org/wiki/File:Joburg_at_night.jpg" target="_blank" rel="noopener">Nico Roets</a>, <a href="https://creativecommons.org/licenses/by/2.0" rel="license noopener" target="_blank">CC BY 2.0</a>, image redimensionnée</li>
         <li>Addis-Abeba, de nuit — <a href="https://commons.wikimedia.org/wiki/File:Addis_Ababa_at_the_night_time.jpg" target="_blank" rel="noopener">PMO Ethiopia</a>, domaine public, image redimensionnée</li>
+        <li>Abidjan, le pont à haubans — <a href="https://commons.wikimedia.org/wiki/File:Pont_Hauban_Abidjan.jpg" target="_blank" rel="noopener">Jean Yves ESSIGAN</a>, <a href="https://creativecommons.org/licenses/by/4.0" rel="license noopener" target="_blank">CC BY 4.0</a>, image redimensionnée</li>
       </ul>
     </div>
     <div class="foot-bottom">

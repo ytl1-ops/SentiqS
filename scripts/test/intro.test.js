@@ -238,7 +238,7 @@ test('l\'animation et le décor de l\'accueil restent légers, sans piste audio 
   // aux photos de capitales de nuit : plafond sur leur poids total.
   const capitales = fs.readdirSync(path.join(dossier, 'capitales')).filter((f) => f.endsWith('.jpg'))
     .reduce((t, f) => t + fs.statSync(path.join(dossier, 'capitales', f)).size, 0);
-  assert.ok(capitales <= 1.2e6, `capitales : ${(capitales / 1e6).toFixed(2)} Mo > plafond 1,2 Mo`);
+  assert.ok(capitales <= 1.6e6, `capitales : ${(capitales / 1e6).toFixed(2)} Mo > plafond 1,6 Mo`);
   const plafonds = { 'intro-sentiqs.mp4': 1.0e6 };
   for (const [f, max] of Object.entries(plafonds)) {
     const taille = fs.statSync(path.join(dossier, f)).size;
@@ -247,4 +247,20 @@ test('l\'animation et le décor de l\'accueil restent légers, sans piste audio 
   // Pas de piste audio : l'élément est « muted », l'AAC ne servait à rien (~0,3 Mo).
   const intro = fs.readFileSync(path.join(dossier, 'intro-sentiqs.mp4'));
   assert.equal(intro.includes(Buffer.from('soun')), false, 'intro-sentiqs.mp4 ne doit plus contenir de piste audio');
+});
+
+test('page d accueil : chaque photo du diaporama est creditee, et le pont d Abidjan alterne avec les capitales', () => {
+  const accueil = fs.readFileSync(path.join(__dirname, '..', '..', 'web', 'index.html'), 'utf8');
+  const fichiers = [...accueil.matchAll(/<img class="diapo"[^>]*?(?:data-)?src="assets\/capitales\/([^"]+)\.jpg"/g)].map((m) => m[1]);
+  const legendes = [...accueil.matchAll(/<span class="diapo-legende"/g)].length;
+  assert.strictEqual(legendes, fichiers.length, 'une legende par photo');
+  const credits = accueil.slice(accueil.indexOf('id="credits-photos"'));
+  const json = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'web', 'assets', 'capitales', 'credits.json'), 'utf8')).map((c) => c.fichier);
+  fichiers.forEach((f) => assert.ok(json.includes('assets/capitales/' + f + '.jpg'), f + ' absent de credits.json'));
+  assert.strictEqual((credits.match(/image redimensionnée/g) || []).length >= fichiers.length, true, 'un credit en pied de page par photo');
+  const pont = fichiers.map((f) => /^pont-haubans/.test(f));
+  assert.ok(pont.filter(Boolean).length >= 3, 'le pont a haubans est dans la rotation');
+  for (let i = 1; i < pont.length; i++) assert.ok(!(pont[i] && pont[i - 1]), 'deux vues du pont de suite : ' + fichiers[i]);
+  // Les vues de jour sont assombries : le titre est mesure sur les pixels.
+  fichiers.forEach((f, i) => { if (pont[i]) assert.match(accueil, new RegExp('data-diurne data-src="assets/capitales/' + f + '\\.jpg"')); });
 });

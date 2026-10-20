@@ -9702,6 +9702,67 @@ function detailRapportActu(a) {
   };
 }
 
+// Images des sources dans les rapports Word, PDF et PowerPoint (20/10/2026).
+// Un document bureautique ne peut pas pointer vers l'adresse d'une image : il
+// faut ses octets. La page n'a pas le droit de les demander par fetch (la CSP
+// limite connect-src), et passer par un relais public pour contourner ce que
+// le site source ne partage pas n'est pas un choix du code. On charge donc
+// l'image comme l'ecran le fait (<img>, autorise par img-src), en mode CORS :
+// si la source l'autorise (YouTube, beaucoup de CDN), on la redessine reduite
+// et on l'embarque ; sinon le document garde le texte seul, sans repli
+// d'illustration. Jamais plus de IMAGES_RAPPORT_MAX par document, chacune
+// abandonnee apres IMAGES_RAPPORT_DELAI_MS : un export ne doit pas attendre
+// un serveur lent.
+const IMAGES_RAPPORT_MAX = 24;
+const IMAGES_RAPPORT_DELAI_MS = 4000;
+const IMAGES_RAPPORT_LARGEUR = 480;
+function articlesPourImagesRapport(arts, max) {
+  const rang = { crit:0, high:1, mod:2, ok:3 };
+  const vus = new Set();
+  return (arts || []).filter(a => a && a.id && !vus.has(a.id) && vus.add(a.id) && mediaActu(a).img)
+    .sort((x, y) => ((rang[x.level] ?? 4) - (rang[y.level] ?? 4)) || ((y.pubDate || 0) - (x.pubDate || 0)))
+    .slice(0, max == null ? IMAGES_RAPPORT_MAX : max);
+}
+function _imageRapport(url) {
+  return new Promise(resolve => {
+    const img = new Image();
+    let fini = false;
+    const fin = (v) => { if (!fini) { fini = true; clearTimeout(t); resolve(v); } };
+    const t = setTimeout(() => fin(null), IMAGES_RAPPORT_DELAI_MS);
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const w0 = img.naturalWidth || 1, h0 = img.naturalHeight || 1;
+        // Une vignette trop petite (pixel de suivi, icone) n'illustre rien.
+        if (w0 < 120 || h0 < 60) return fin(null);
+        const k = Math.min(1, IMAGES_RAPPORT_LARGEUR / w0);
+        const c = document.createElement('canvas');
+        c.width = Math.round(w0 * k); c.height = Math.round(h0 * k);
+        const g = c.getContext('2d');
+        g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, c.width, c.height);
+        g.drawImage(img, 0, 0, c.width, c.height);
+        // Leve si la source n'autorise pas le partage (canevas « teinte »).
+        const dataUrl = c.toDataURL('image/jpeg', 0.8);
+        fin({ dataUrl, ratio: c.width / c.height });
+      } catch (_) { fin(null); }
+    };
+    img.onerror = () => fin(null);
+    img.src = url;
+  });
+}
+// chargerImagesRapport(arts) -> Map id -> { dataUrl, ratio, octets() }.
+// Respecte « economiser les donnees » (Parametres > Affichage).
+async function chargerImagesRapport(arts, max) {
+  const res = new Map();
+  if (typeof affichageImagesActif === 'function' && !affichageImagesActif()) return res;
+  const choix = articlesPourImagesRapport(arts, max);
+  const lots = await Promise.all(choix.map(a => _imageRapport(mediaActu(a).img).then(v => [a.id, v])));
+  lots.forEach(([id, v]) => {
+    if (v) res.set(id, Object.assign(v, { octets: () => logoMarqueOctets(v) }));
+  });
+  return res;
+}
+
 function parseRSS(xml, src) {
   // Un flux qui commence par un retour a la ligne, un espace ou une marque
   // d'ordre d'octets (BOM) avant « <?xml » est REFUSE en bloc par DOMParser :
@@ -21213,6 +21274,8 @@ async function exportPPTX(type) {
     const periode = PERIODES[periodeSel] || PERIODES.mensuel;
 
     const arts = getExportDataPeriode(periode.jours);
+    // Images des sources (chargerImagesRapport), posees a droite du detail.
+    const imagesPptx = await chargerImagesRapport(arts, 16);
     const perimetre = libellePerimetreRapport();
     const scopeCy = fRapportCy !== 'all' ? fRapportCy : null;
     const scopeZone = fRapportZone !== 'all' ? fRapportZone : null;
@@ -21248,6 +21311,13 @@ async function exportPPTX(type) {
     const detailPptx = (slide, a, x, y, w, maxResume) => {
       const d = detailRapportActu(a);
       let h = 0;
+      // Image a droite : le texte se retrecit d'autant, jamais l'inverse.
+      const im = imagesPptx.get(a.id);
+      const ih = 0.62, iw = Math.min(1.5, ih * (im ? im.ratio : 1));
+      if (im) {
+        try { slide.addImage({data: im.dataUrl.replace(/^data:/, ''), x: x + w - iw, y, w: iw, h: ih}); w -= iw + 0.1; }
+        catch (_) {}
+      }
       if (d.resume) {
         slide.addText(resumeCourt(d.resume, maxResume), {x, y, w, h:0.62, fontSize:10, color:'1F2937', fontFace:'IBM Plex Sans', valign:'top', fit:'shrink'});
         h += 0.64;
@@ -22159,6 +22229,13 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
           b.addLink(M, b.y-2, fontBold.widthOfTextAtSize(vTxt, 8.5), 11, det.lienVideo);
           b.y -= 11;
         }
+        const im = b.imagesActus && b.imagesActus.get(a.id);
+        if (im) {
+          const iw = Math.min(150, 90 * im.ratio), ih = iw / im.ratio;
+          b.ensure(ih + 6);
+          b.page.drawImage(im.pdf, {x:M, y:b.y - ih, width:iw, height:ih});
+          b.y -= ih + 4;
+        }
         b.y -= 7;
       } else {
         b.y -= 18;
@@ -22502,6 +22579,17 @@ async function exportPDF(type) {
       try { b.logo = logoPdf.png ? await doc.embedPng(logoMarqueOctets(logoPdf)) : await doc.embedJpg(logoMarqueOctets(logoPdf)); }
       catch (e) { console.warn('SentiqS — logo illisible pour le PDF'); }
     }
+
+    // Images des sources (chargerImagesRapport) : embarquees une fois, dessinees
+    // sous le detail de chaque actu par articleItem. Une image refusee par le
+    // PDF n'empeche jamais l'export.
+    b.imagesActus = new Map();
+    try {
+      const imgs = await chargerImagesRapport(getExportData());
+      for (const [id, im] of imgs) {
+        try { b.imagesActus.set(id, { pdf: await doc.embedJpg(im.octets()), ratio: im.ratio }); } catch (_) {}
+      }
+    } catch (e) { console.warn('SentiqS — images des actus indisponibles pour le PDF'); }
 
     // En-tête façon "Bulletin de veille" — logo radar, date/heure de
     // génération, créneau — utilisée pour tous les types de rapport PDF.
@@ -23386,8 +23474,17 @@ async function exportWord(type){
     // Detail d'une actu sous son titre (voir detailRapportActu) : resume,
     // cotation et dates, lien video cliquable. avecResume:false quand la
     // section imprime deja l'analyse elle-meme.
+    // Image de la source, embarquee si elle l'autorise (chargerImagesRapport).
+    let imagesActus=new Map();
     const detailWord=(a, avecResume=true)=>{
       const d=detailRapportActu(a), out=[];
+      const im=imagesActus.get(a.id);
+      if(im && ImageRun){
+        try{
+          const w=Math.round(Math.min(260, 150*im.ratio)), h=Math.round(w/im.ratio);
+          out.push(new Paragraph({children:[new ImageRun({data:im.octets(),transformation:{width:w,height:h}})],spacing:{before:40,after:40}}));
+        }catch(e){ console.warn('SentiqS — image illisible pour Word'); }
+      }
       if(avecResume && d.resume) out.push(new Paragraph({children:[new TextRun({text:d.resume,size:19,color:'1F2937',font:'IBM Plex Sans'})],spacing:{after:40}}));
       const infos=d.infos.filter(t=>!/^Source/.test(t));
       if(infos.length) out.push(new Paragraph({children:[new TextRun({text:infos.join('   ·   '),size:16,color:'4B5563',font:'IBM Plex Mono'})],spacing:{after:d.lienVideo?20:80}}));
@@ -23398,6 +23495,7 @@ async function exportWord(type){
     const arts=getExportData();
     const now=new Date();
     const dateStr=now.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' à '+now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    imagesActus=await chargerImagesRapport(arts);
 
     // Traduction des titres/analyses/evenements vers la langue active avant
     // construction du document — aucune actu dans une autre langue que FR

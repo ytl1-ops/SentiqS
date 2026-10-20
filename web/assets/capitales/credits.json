@@ -52,5 +52,32 @@
   "licence": "Public domain",
   "licence_url": "",
   "source": "https://commons.wikimedia.org/wiki/File:Addis_Ababa_at_the_night_time.jpg"
+ },
+ {
+  "fichier": "assets/capitales/pont-haubans-1.jpg",
+  "ville": "Abidjan (pont à haubans)",
+  "titre": "File:Vue d'ensemble du pont Hauban Abidjan depuis la Cour de la Cathédrale Saint Paul du Plateau.jpg",
+  "auteur": "Jean Yves ESSIGAN",
+  "licence": "CC BY 4.0",
+  "licence_url": "https://creativecommons.org/licenses/by/4.0",
+  "source": "https://commons.wikimedia.org/wiki/File:Vue_d%27ensemble_du_pont_Hauban_Abidjan_depuis_la_Cour_de_la_Cath%C3%A9drale_Saint_Paul_du_Plateau.jpg"
+ },
+ {
+  "fichier": "assets/capitales/pont-haubans-2.jpg",
+  "ville": "Abidjan (pont à haubans)",
+  "titre": "File:Vue d'ensemble avec Circulation du Pont Hauban Abidjan.jpg",
+  "auteur": "Jean Yves ESSIGAN",
+  "licence": "CC BY 4.0",
+  "licence_url": "https://creativecommons.org/licenses/by/4.0",
+  "source": "https://commons.wikimedia.org/wiki/File:Vue_d%27ensemble_avec_Circulation_du_Pont_Hauban_Abidjan.jpg"
+ },
+ {
+  "fichier": "assets/capitales/pont-haubans-3.jpg",
+  "ville": "Abidjan (pont à haubans)",
+  "titre": "File:Pont Hauban Abidjan.jpg",
+  "auteur": "Jean Yves ESSIGAN",
+  "licence": "CC BY 4.0",
+  "licence_url": "https://creativecommons.org/licenses/by/4.0",
+  "source": "https://commons.wikimedia.org/wiki/File:Pont_Hauban_Abidjan.jpg"
  }
 ]
