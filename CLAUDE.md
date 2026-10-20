@@ -2599,3 +2599,52 @@ deux défauts antérieurs corrigés au passage : « FLASH INFO » blanc sur le
 rouge clair (2,8:1) et la pastille « Collecte » verte foncée (3:1).
 `scripts/test/salle-de-veille.test.js` garde la redéfinition locale des
 jetons et le seuil AA des couples de jetons.
+
+---
+
+## La direction « Bleu nuit » et les visuels d'actu — 20/10/2026 (soir)
+
+L'éditeur a jugé « Salle de veille » sans élégance, trop noire et sans
+impact, et écarté aussi une maquette claire : il veut des **fondus de bleu
+nuit** et une image liée à chaque actu, à la manière d'Opera News, partout,
+rapports compris.
+
+**Le sombre devient le défaut.** Le script du `<head>` pose `data-theme="dark"`
+et ne revient au clair que sur `sentinel_theme_choix === 'light'`, écrit
+**seulement** par le bouton (`toggleTheme`). L'ancienne clé `sentinel_theme`
+était réécrite à chaque chargement par `appliquerTheme` : la relire aurait
+figé en clair tous les utilisateurs existants sans qu'aucun l'ait choisi. Un
+test l'exige. La consigne « pas de fond très sombre par défaut » écrite plus
+haut dans ce fichier est **levée par l'éditeur**.
+
+Jetons sombres : surfaces bleu nuit étagées (`--page-bg` #071431 < `--sf` <
+`--w` #0F2450), action et signature en or `#E6BA6E` (texte bleu nuit dessus,
+9,8:1), texte le plus pâle `--lg` à 6,9:1 sur une carte et 5,7:1 sur le halo
+le plus clair du dégradé de page. Le bloc CSS « DIRECTION « BLEU NUIT » » ne
+touche que le sombre, sauf les visuels d'actu. Gravité inchangée.
+
+**Le visuel d'une actu : `visuelActu(a, taille)`**, une seule fonction pour la
+vignette du Flux, « À la une » (Flux) et « Les faits du jour »
+(`renderPanelATraiter`, donc tableau de bord et Synthèse) via `carteUneHtml`.
+
+- L'image est celle de la **source** (`_media` du flux, sinon aperçu Open
+  Graph pour une source fiable, au plus `VISUEL_OGP_MAX` = 24 par rendu),
+  affichée depuis son adresse, **jamais copiée**, avec le domaine en crédit.
+  Le crédit apparaît même quand `sourcesVisibles()` masque les noms de
+  source : afficher l'image d'un tiers sans dire d'où elle vient n'est pas
+  défendable. À trancher par l'éditeur s'il veut l'inverse.
+- `https` seulement (la CSP refuse le reste) et motif strict : une adresse
+  avec un guillemet ne devient jamais un `<img>`.
+- Une vidéo ne se lit pas sur place (la CSP n'autorise aucun cadre) :
+  vignette officielle YouTube (`i.ytimg.com`) ou repli, et un bouton qui
+  ouvre la source.
+- Sans image, un **repli de marque** dit pays, thème et gravité, au lieu
+  d'une photo d'illustration qui laisserait croire à un document. Il est
+  toujours sous l'image : une image qui ne charge pas le laisse apparaître.
+
+**Mesurer sur les données réelles.** Ce bac à sable n'a pas de réseau : il ne
+voit que des replis. `scripts/apercu-visuels.js` lit le cache publié, compte
+dans la page (`mediaActu`) la part d'actus avec image, et photographie le Flux
+et le tableau de bord ; le workflow `apercu-visuels.yml` le lance sur chaque
+PR qui touche la page et dépose les captures en artefact. Informatif, il
+n'échoue jamais une PR.

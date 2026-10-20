@@ -1,0 +1,41 @@
+name: Aperçu des visuels (données réelles)
+
+# Photographie la page avec le cache PUBLIÉ et mesure la part d'actus qui
+# portent une image de leur source (scripts/apercu-visuels.js). Le bac à sable
+# de développement n'a pas d'accès réseau et ne voit que des visuels de
+# repli : c'est ici qu'on voit ce que verront les utilisateurs.
+# Informatif : n'échoue jamais une PR (le cache peut être momentanément
+# illisible sans que la PR y soit pour rien).
+
+on:
+  pull_request:
+    paths:
+      - web/SentiqS_Web.html
+      - scripts/apercu-visuels.js
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apercu:
+    name: Visuels sur le cache publié
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Installe Chromium
+        run: |
+          npm install playwright@1 --no-save
+          npx playwright install --with-deps chromium
+      - name: Mesure et captures
+        run: node scripts/apercu-visuels.js apercu-visuels
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: apercu-visuels
+          path: apercu-visuels/
+          retention-days: 14
