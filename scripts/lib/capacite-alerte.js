@@ -21,17 +21,8 @@
 //
 // Cette fonction est le seul endroit ou la regle est ecrite pour les
 // scripts ; un test verifie qu'elle dit la meme chose que la page.
-function estRequeteGoogleNews(source) {
-  let hote = '', chemin = '';
-  try { const u = new URL(String((source && source.rss) || '')); hote = u.hostname; chemin = u.pathname; }
-  catch (_) { return false; }
-  return hote === 'news.google.com' && /^\/rss\/search/.test(chemin);
-}
-
-function peutAlerter(source, seuil) {
-  if (!source) return false;
-  if ((Number(source.score) || 0) < seuil) return false;
-  return !estRequeteGoogleNews(source);
-}
+// La regle vit desormais dans le noyau (web/js/noyau.js), pour que la page
+// compte les sources comme ces scripts : une seule implementation.
+const { estRequeteGoogleNews, peutAlerter } = require('../../web/js/noyau.js');
 
 module.exports = { estRequeteGoogleNews, peutAlerter };
