@@ -929,6 +929,40 @@ body.plein-ecran-module > .stbar { display:none !important; }
 /* Ligne de bas d'interface expliquant le role du module — un enfant flex
    supplementaire en fin de .view (flex-shrink:0), toujours visible sous le
    contenu scrollable, jamais a l'interieur de celui-ci. */
+/* ── Module Réseaux sociaux (phase 1 Facebook, 20/10/2026) ───────────────
+   Jetons seulement : aucune couleur d'alerte ici, un signalement social n'est
+   pas un niveau. */
+.soc-wrap{max-width:860px}
+.soc-note{display:flex;gap:var(--sp-2);align-items:flex-start;padding:var(--sp-3);margin-bottom:var(--sp-4);background:var(--sf);border:1px solid var(--bd);border-left:3px solid var(--sig);border-radius:var(--r-md);font-size:var(--fs-sm);line-height:1.5;color:var(--t2)}
+.soc-note i{color:var(--sig);font-size:16px;flex-shrink:0;margin-top:1px}
+.soc-form{display:flex;flex-direction:column;gap:var(--sp-2);margin-bottom:var(--sp-5)}
+.soc-form label,.soc-import-lbl{font-size:var(--fs-xs);font-weight:700;color:var(--t2)}
+.soc-form textarea,.soc-form input[type=url],.soc-form select{width:100%;box-sizing:border-box;padding:var(--sp-2) var(--sp-3);background:var(--w);color:var(--t);border:1px solid var(--bd);border-radius:var(--r-md);font:inherit;font-size:var(--fs-base)}
+.soc-row{display:flex;gap:var(--sp-3);flex-wrap:wrap}
+.soc-col{flex:1 1 220px;display:flex;flex-direction:column;gap:var(--sp-1)}
+.soc-actions{align-items:center;justify-content:space-between}
+.soc-check{display:flex;align-items:center;gap:var(--sp-2);font-weight:400!important;font-size:var(--fs-sm)!important;color:var(--t)!important}
+.soc-btn{padding:var(--sp-2) var(--sp-3);min-height:28px;background:var(--w);color:var(--t);border:1px solid var(--bd);border-radius:var(--r-md);font-size:var(--fs-xs);font-weight:700;cursor:pointer}
+.soc-btn-main{background:var(--b);color:var(--on-b);border-color:var(--b)}
+.soc-msg{min-height:16px;font-size:var(--fs-xs);color:var(--t2)}
+.soc-h{margin:var(--sp-5) 0 var(--sp-2);font-size:var(--fs-xs);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t2);border-bottom:1px solid var(--bd);padding-bottom:var(--sp-1)}
+.soc-h-barre{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--sp-2)}
+.soc-barre{display:flex;gap:var(--sp-2);text-transform:none;letter-spacing:0}
+.soc-vide{padding:var(--sp-3);font-size:var(--fs-sm);color:var(--t2)}
+.soc-buzz{display:flex;flex-wrap:wrap;gap:var(--sp-2)}
+.soc-buzz-item{padding:var(--sp-2) var(--sp-3);background:var(--w);border:1px solid var(--bd);border-radius:var(--r-md);font-size:var(--fs-sm);color:var(--t)}
+.soc-buzz-item.fort{border-color:var(--sig);background:var(--sigl)}
+.soc-card{padding:var(--sp-3);margin-bottom:var(--sp-2);background:var(--w);border:1px solid var(--bd);border-radius:var(--r-md)}
+.soc-card-top{display:flex;gap:var(--sp-2);align-items:center;flex-wrap:wrap;font-size:var(--fs-xs);color:var(--t2);margin-bottom:var(--sp-1)}
+.soc-pill{padding:2px var(--sp-2);border:1px solid var(--bd);border-radius:var(--r-sm);font-size:var(--fs-micro);font-weight:700;color:var(--t2);background:var(--sf)}
+.soc-card-txt{font-size:var(--fs-base);line-height:1.5;color:var(--t);overflow-wrap:anywhere}
+.soc-card-bas{display:flex;gap:var(--sp-3);align-items:center;flex-wrap:wrap;margin-top:var(--sp-2);font-size:var(--fs-xs)}
+.soc-card-bas a{color:var(--b);text-decoration:underline}
+.soc-presse{margin-top:var(--sp-2);padding-top:var(--sp-2);border-top:1px dashed var(--bd);font-size:var(--fs-xs);color:var(--t2)}
+.soc-presse a{color:var(--b);text-decoration:underline}
+.soc-pages{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-top:var(--sp-2)}
+.soc-page{padding:var(--sp-1) var(--sp-3);background:var(--sf);border:1px solid var(--bd);border-radius:var(--r-pill);font-size:var(--fs-xs);color:var(--t)}
+
 .view-note{flex-shrink:0;padding:6px 14px;font-size:var(--fs-micro);line-height:1.4;
   color:var(--lg);background:var(--w);border-top:1px solid var(--bd);
   display:flex;align-items:center;gap:6px}
@@ -2975,6 +3009,7 @@ html.force-mobile .tb .logo-n{letter-spacing:.16em}
       <div class="ntab" role="tab" aria-selected="false" tabindex="-1" data-view="analyse" onclick="ouvrirModulePleinEcran(&#39;analyse&#39;,this)"><i class="ti ti-chart-dots"></i><span data-i18n="nav_analyse">Synthèse</span></div>
       <div class="ntab" role="tab" aria-selected="false" tabindex="-1" id="tabAgenda" data-view="agenda" onclick="ouvrirModulePleinEcran(&#39;agenda&#39;,this)"><i class="ti ti-calendar-event"></i><span data-i18n="nav_agenda">Agenda</span></div>
       <div class="ntab" role="tab" aria-selected="false" tabindex="-1" id="tabGeopolitique" data-view="geopolitique" onclick="ouvrirModulePleinEcran(&#39;geopolitique&#39;,this)"><i class="ti ti-world"></i><span data-i18n="nav_geopolitique">Géopolitique</span></div>
+      <div class="ntab" role="tab" aria-selected="false" tabindex="-1" id="tabSocial" data-view="social" onclick="ouvrirModulePleinEcran(&#39;social&#39;,this)"><i class="ti ti-social"></i><span data-i18n="nav_social">Réseaux sociaux</span></div>
       <div class="ntab" role="tab" aria-selected="false" tabindex="-1" data-view="rapports" onclick="ouvrirModulePleinEcran(&#39;rapports&#39;,this)"><i class="ti ti-download"></i><span data-i18n="nav_rapports">Rapports</span></div>
       <div class="ntab" role="tab" aria-selected="false" tabindex="-1" id="tabAlertes" data-view="alertes" onclick="ouvrirModulePleinEcran(&#39;alertes&#39;,this)"><i class="ti ti-shield-exclamation"></i><span data-i18n="nav_alertes">Alertes</span></div>
       <div class="ntab on" role="tab" aria-selected="true" tabindex="0" data-view="dashboard" onclick="ouvrirModulePleinEcran(&#39;dashboard&#39;,this)"><i class="ti ti-layout-dashboard"></i><span data-i18n="lbl_tableau_de_bord">Tableau de bord</span></div>
@@ -3242,6 +3277,52 @@ html.force-mobile .tb .logo-n{letter-spacing:.16em}
         </div>
       </div>
       <div class="view-note"><i class="ti ti-info-circle"></i><span data-i18n="note_geopolitique">Géopolitique : analyses générées à partir des développements diplomatiques, militaires et régionaux détectés dans le flux, avec leur impact estimé sur la sûreté du pays — jamais générées par une IA externe, uniquement à partir des données collectées.</span></div>
+    </div>
+
+    <div class="view" id="v-social">
+      <div style="overflow-y:auto;flex:1">
+        <div class="ag-wrap soc-wrap">
+          <div class="ag-hdr">
+            <div>
+              <div class="ag-tt" style="font-family:var(--font-serif);font-weight:600;" data-i18n="soc_titre">Réseaux sociaux</div>
+              <div class="ag-sb" data-i18n="soc_sous_titre">Signalements Facebook que vous transmettez, rapprochés de la presse et regroupés quand ils s'accumulent.</div>
+            </div>
+          </div>
+          <div class="soc-note" role="note"><i class="ti ti-lock"></i><span data-i18n="soc_note">Facebook ne permet à aucune application de lire votre fil, vos amis ni vos groupes : SentiqS ne lit rien chez eux. Vous collez ici ce que vous jugez utile. Rien n'est envoyé à Facebook ; les données restent dans ce navigateur, rattachées à votre compte, et se suppriment seules après 30 jours. Ni nom d'auteur ni nom de groupe n'est conservé. Un signalement reste « Non confirmé » et ne modifie jamais un niveau d'alerte.</span></div>
+          <form class="soc-form" id="socForm" onsubmit="ajouterSignalFb(event)">
+            <label for="socTexte" data-i18n="soc_lbl_texte">Texte de la publication</label>
+            <textarea id="socTexte" rows="3" maxlength="1200" data-i18n-ph="soc_ph_texte" placeholder="Collez ici le texte de la publication (sans nom d'auteur)"></textarea>
+            <div class="soc-row">
+              <div class="soc-col">
+                <label for="socLien" data-i18n="soc_lbl_lien">Lien Facebook (facultatif)</label>
+                <input id="socLien" type="url" inputmode="url" autocomplete="off" data-i18n-ph="soc_ph_lien" placeholder="https://www.facebook.com/…">
+              </div>
+              <div class="soc-col">
+                <label for="socPays" data-i18n="soc_lbl_pays">Pays</label>
+                <select id="socPays"><option value="" data-i18n="soc_pays_auto">Détection automatique</option></select>
+              </div>
+            </div>
+            <div class="soc-row soc-actions">
+              <label class="soc-check"><input type="checkbox" id="socGroupe"><span data-i18n="soc_lbl_groupe">Vu dans un groupe</span></label>
+              <button type="submit" class="soc-btn soc-btn-main" data-i18n="soc_btn_ajouter">Ajouter le signalement</button>
+            </div>
+            <div class="soc-msg" id="socMsg" role="status" aria-live="polite"></div>
+          </form>
+          <div class="soc-h" data-i18n="soc_h_afflux">Afflux du jour</div>
+          <div id="socBuzz"></div>
+          <div class="soc-h soc-h-barre"><span data-i18n="soc_h_fil">Signalements</span>
+            <span class="soc-barre">
+              <button type="button" class="soc-btn" onclick="exporterSignauxFb()" data-i18n="soc_btn_csv">Exporter en CSV</button>
+              <button type="button" class="soc-btn" onclick="viderSignauxFb()" data-i18n="soc_btn_vider">Tout supprimer</button>
+            </span>
+          </div>
+          <div id="socListe"></div>
+          <div class="soc-h" data-i18n="soc_h_pages">Pages que vous suivez</div>
+          <label for="socImport" class="soc-import-lbl" data-i18n="soc_lbl_import">Importer votre export Facebook (fichier JSON des Pages)</label>
+          <input id="socImport" type="file" accept=".json,application/json" onchange="importerPagesFb(this)">
+          <div id="socPages"></div>
+        </div>
+      </div>
     </div>
 
     <div class="view" id="v-rapports">
@@ -5396,7 +5477,15 @@ const I18N = {
     proxy_title:'Collecte RSS automatique — Cliquez Actualiser',
     cbar_lbl:'Collecte RSS', cbar_init:'Collecte en parallèle : Malijet... (15/195)',
     nav_flux:'Flux', nav_analyse:'Synthèse', nav_agenda:'Agenda', nav_geopolitique:'Géopolitique', nav_rapports:'Rapports',
-    nav_alertes:'Alertes', nav_recherche:'Recherche',
+    nav_alertes:'Alertes', nav_recherche:'Recherche', nav_social:'Réseaux sociaux',
+    soc_titre:'Réseaux sociaux', soc_sous_titre:'Signalements Facebook que vous transmettez, rapprochés de la presse et regroupés quand ils s\'accumulent.',
+    soc_note:'Facebook ne permet à aucune application de lire votre fil, vos amis ni vos groupes : SentiqS ne lit rien chez eux. Vous collez ici ce que vous jugez utile. Rien n\'est envoyé à Facebook ; les données restent dans ce navigateur, rattachées à votre compte, et se suppriment seules après 30 jours. Ni nom d\'auteur ni nom de groupe n\'est conservé. Un signalement reste « Non confirmé » et ne modifie jamais un niveau d\'alerte.',
+    soc_lbl_texte:'Texte de la publication', soc_ph_texte:'Collez ici le texte de la publication (sans nom d\'auteur)',
+    soc_lbl_lien:'Lien Facebook (facultatif)', soc_ph_lien:'https://www.facebook.com/…',
+    soc_lbl_pays:'Pays', soc_pays_auto:'Détection automatique', soc_lbl_groupe:'Vu dans un groupe',
+    soc_btn_ajouter:'Ajouter le signalement', soc_h_afflux:'Afflux du jour', soc_h_fil:'Signalements',
+    soc_h_pages:'Pages que vous suivez', soc_lbl_import:'Importer votre export Facebook (fichier JSON des Pages)',
+    soc_btn_csv:'Exporter en CSV', soc_btn_vider:'Tout supprimer',
     chip_tout:'Tout', chip_critique:'Critique', chip_eleve:'Élevé', chip_securite:'Sécurité',
     ph_recherche:'Rechercher...',
     flashinfo_lbl:'FLASH INFO',
@@ -5534,7 +5623,15 @@ const I18N = {
     proxy_title:'Automatic RSS collection — Click Refresh',
     cbar_lbl:'RSS Collection', cbar_init:'Parallel collection: Malijet... (15/195)',
     nav_flux:'Feed', nav_analyse:'Synthesis', nav_agenda:'Agenda', nav_geopolitique:'Geopolitics', nav_rapports:'Reports',
-    nav_alertes:'Alerts', nav_recherche:'Search',
+    nav_alertes:'Alerts', nav_recherche:'Search', nav_social:'Social media',
+    soc_titre:'Social media', soc_sous_titre:'Facebook reports you submit, matched against the press and grouped when they pile up.',
+    soc_note:'Facebook does not let any application read your feed, friends or groups: SentiqS reads nothing there. You paste what you find useful. Nothing is sent to Facebook; data stays in this browser, tied to your account, and deletes itself after 30 days. No author name or group name is kept. A report stays "Unconfirmed" and never changes an alert level.',
+    soc_lbl_texte:'Post text', soc_ph_texte:'Paste the post text here (without the author name)',
+    soc_lbl_lien:'Facebook link (optional)', soc_ph_lien:'https://www.facebook.com/…',
+    soc_lbl_pays:'Country', soc_pays_auto:'Automatic detection', soc_lbl_groupe:'Seen in a group',
+    soc_btn_ajouter:'Add report', soc_h_afflux:'Surge of the day', soc_h_fil:'Reports',
+    soc_h_pages:'Pages you follow', soc_lbl_import:'Import your Facebook export (Pages JSON file)',
+    soc_btn_csv:'Export as CSV', soc_btn_vider:'Delete everything',
     chip_tout:'All', chip_critique:'Critical', chip_eleve:'High', chip_securite:'Security',
     ph_recherche:'Search...',
     flashinfo_lbl:'BREAKING NEWS',
@@ -8842,7 +8939,7 @@ const PLATFORM_INFO = {
   twitter:     {label:'X (ex Twitter)',  icon:'ti-brand-x',          col:'#000000', rmKey:null,
                 note:'Les API publiques X/Twitter nécessitent désormais une clé API payante. Les anciens flux RSSHub/Twitter ont été remplacés par des signaux terrain via Google News RSS.'},
   facebook:    {label:'Facebook',        icon:'ti-brand-facebook',   col:'#1877F2', rmKey:null,
-                note:'Facebook Pages API nécessite un token d\'accès officiel (Meta for Developers). Disponible sur demande.'},
+                note:'Facebook ne laisse aucune application tierce lire le fil, les amis ni les groupes d\'un profil personnel. Le module Réseaux sociaux analyse ce que vous lui transmettez (lien et texte d\'une publication, export « Vos informations Facebook »).'},
   instagram:   {label:'Instagram',       icon:'ti-brand-instagram',  col:'#E1306C', rmKey:null,
                 note:'Instagram ne propose pas d\'accès public stable compatible RSS.'},
   youtube:     {label:'YouTube',         icon:'ti-brand-youtube',    col:'#FF0000', rmKey:null,
@@ -8922,6 +9019,383 @@ function getSocialSummary(cy, platform) {
       dominant },
     themes, alertesLiees,
   };
+}
+
+// ── SIGNAUX FACEBOOK (phase 1) ──────────────────────────────────────────────
+// Facebook ne laisse aucune application tierce lire le fil, les amis ni les
+// groupes d'un profil personnel (note de cadrage du 20/10/2026). Ce module ne
+// lit donc RIEN chez Facebook : l'utilisateur colle lui-meme le texte d'une
+// publication vue dans son fil ou ses groupes, et importe, s'il le souhaite,
+// la liste des Pages de son export « Vos informations Facebook ».
+//
+// Trois regles a ne pas defaire :
+//  1. Un signal social reste « Non confirme » quoi qu'il arrive. Il n'entre ni
+//     dans calcAlertScore, ni dans getLiveAlertEvents, ni dans le flash : un
+//     test l'exige. Un article de presse rapproche porte SA cotation, pas la
+//     publication.
+//  2. Aucune donnee personnelle de tiers n'est conservee : ni auteur, ni nom
+//     de groupe, ni photo. On garde un extrait, le pays, un lien normalise.
+//  3. Tout reste dans le navigateur de l'utilisateur, cle par son compte, et
+//     se purge seul apres FB_RETENTION_J jours.
+const FB_RETENTION_J = 30;
+const FB_RETENTION_MS = FB_RETENTION_J * 24 * 3600 * 1000;
+const FB_BUZZ_FENETRE_MS = 24 * 3600 * 1000;
+const FB_TEXTE_MIN = 12;
+const FB_EXTRAIT_MAX = 280;
+const FB_PAGES_MAX = 500;
+const FB_HOTES = /^(?:(?:www|m|mbasic|web)\.)?facebook\.com$|^(?:fb\.com|fb\.watch|fb\.me)$/i;
+// Seuls ces parametres identifient une publication ; le reste (fbclid,
+// __cft__, __tn__, mibextid...) est du suivi publicitaire, jamais conserve.
+const FB_PARAMS_LIEN = ['story_fbid', 'id', 'fbid', 'v', 'p', 'set', 'multi_permalinks'];
+const FB_BUZZ_LIBELLES = {
+  aucun: 'Aucun signalement',
+  faible: 'Signalement isolé',
+  modere: 'Afflux modéré',
+  eleve: 'Afflux marqué',
+  viral: 'Afflux fort',
+};
+
+// normaliserLienFacebook : un lien Facebook propre, ou null. l.facebook.com
+// est refuse a dessein : c'est un redirecteur dont la cible peut etre
+// n'importe quel site.
+function normaliserLienFacebook(brut) {
+  let u;
+  try { u = new URL(String(brut || '').trim()); } catch (_) { return null; }
+  if (u.protocol !== 'https:' && u.protocol !== 'http:') return null;
+  if (!FB_HOTES.test(u.hostname)) return null;
+  u.protocol = 'https:';
+  u.hash = '';
+  u.username = ''; u.password = ''; u.port = '';
+  if (/facebook\.com$/i.test(u.hostname)) u.hostname = 'www.facebook.com';
+  for (const k of [...u.searchParams.keys()]) {
+    if (!FB_PARAMS_LIEN.includes(k)) u.searchParams.delete(k);
+  }
+  return u.toString();
+}
+
+function _hashFb(s) {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+  return h.toString(36);
+}
+
+// creerSignalSocial : {signal} ou {erreur}. `now` est passe explicitement
+// (jamais `now || Date.now()` : l'instant 0 serait pris pour absent).
+function creerSignalSocial(entree, now) {
+  const e = entree || {};
+  const texte = String(e.texte || '').replace(/\s+/g, ' ').trim();
+  if (texte.length < FB_TEXTE_MIN) return { erreur: 'texte_court' };
+  const lienBrut = String(e.lien || '').trim();
+  const lien = lienBrut ? normaliserLienFacebook(lienBrut) : '';
+  if (lienBrut && !lien) return { erreur: 'lien_invalide' };
+  const extrait = texte.length > FB_EXTRAIT_MAX ? texte.slice(0, FB_EXTRAIT_MAX - 1).trimEnd() + '…' : texte;
+  let cy = (e.cy && PAYS_INFO[e.cy]) ? e.cy : '';
+  let confiant = !!cy;
+  if (!cy) {
+    const r = _detecterPaysCoeur(texte, '', '');
+    if (r && r.cy && PAYS_INFO[r.cy]) { cy = r.cy; confiant = r.confiant !== false; }
+  }
+  const cl = classify(texte, { cy: cy || 'INT', cat: 'securite' }, texte);
+  return {
+    signal: {
+      id: 'fb_' + _hashFb(lien || normaliserAccents(texte.toLowerCase())),
+      lien, extrait, cy, paysIncertain: !confiant,
+      lvl: cl.lvl, cat: cl.cat,
+      groupe: !!e.groupe,
+      ts: now,
+    },
+  };
+}
+
+// La cotation d'un signal social ne depend de RIEN : ni du nombre de
+// signalements, ni d'un article rapproche. C'est le seul endroit ou elle se
+// decide, pour qu'un test puisse l'epingler.
+function cotationSignalSocial() {
+  return { cle: 'non_confirme', libelle: COTATION_LIBELLES.non_confirme };
+}
+
+function purgerSignauxFb(liste, now) {
+  return (Array.isArray(liste) ? liste : []).filter(s => s && typeof s.ts === 'number' && now - s.ts < FB_RETENTION_MS);
+}
+
+// fusionnerSignalFb : refuse le doublon (meme lien, ou meme texte sans lien).
+function fusionnerSignalFb(liste, signal) {
+  const base = Array.isArray(liste) ? liste : [];
+  if (base.some(s => s.id === signal.id)) return { liste: base, doublon: true };
+  return { liste: [signal].concat(base), doublon: false };
+}
+
+// rapprocherPresse : jusqu'a trois articles de presse du meme pays, publies
+// dans la fenetre d'actualite autour du signalement, qui parlent du meme
+// fait. Meme famille d'evenement ET deux mots significatifs communs, ou
+// quatre mots communs : un mot seul rapprocherait n'importe quoi.
+function rapprocherPresse(signal, articles) {
+  if (!signal || !signal.cy || !Array.isArray(articles)) return [];
+  const famS = famillesEvenement(signal.extrait);
+  const motsS = new Set(motsSignificatifs(signal.extrait));
+  return articles
+    .filter(a => {
+      if (!a || a._isSocial || a.cy !== signal.cy || !a.title) return false;
+      if (Math.abs((a.pubDate || 0) - signal.ts) > FENETRE_ACTUALITE_MS) return false;
+      const communs = motsSignificatifs(a.title).filter(m => motsS.has(m)).length;
+      const memeFamille = [...famillesEvenement(a.title)].some(f => famS.has(f));
+      return (memeFamille && communs >= 2) || communs >= 4;
+    })
+    .sort((x, y) => (y.pubDate || 0) - (x.pubDate || 0))
+    .slice(0, 3);
+}
+
+// detecterBuzzFb : par pays, la plus grosse grappe de signalements sur le
+// meme type de fait dans les dernieres 24 h. Un afflux est ce que
+// l'utilisateur voit passer plusieurs fois dans son fil, pas une mesure de
+// Facebook : le libelle ne dit jamais « viral ».
+function detecterBuzzFb(signaux, now) {
+  const recents = (Array.isArray(signaux) ? signaux : []).filter(s => s.cy && now - s.ts < FB_BUZZ_FENETRE_MS);
+  const parPays = {};
+  recents.forEach(s => { (parPays[s.cy] = parPays[s.cy] || []).push(s); });
+  const sortie = {};
+  Object.keys(parPays).forEach(cy => {
+    const liste = parPays[cy];
+    const compte = {};
+    liste.forEach(s => famillesEvenement(s.extrait).forEach(f => { compte[f] = (compte[f] || 0) + 1; }));
+    const n = Math.max(1, ...Object.values(compte));
+    const niveau = n >= 6 ? 'viral' : n >= 4 ? 'eleve' : n >= 2 ? 'modere' : 'faible';
+    sortie[cy] = { niveau, n, total: liste.length };
+  });
+  return sortie;
+}
+
+// Export Facebook : l'encodage des fichiers JSON est casse a l'origine
+// (octets UTF-8 ecrits comme des caracteres latin-1 : « BÃ©nin »).
+function corrigerEncodageFacebook(s) {
+  if (!/[ÃÂâ]/.test(s)) return s;
+  try { return decodeURIComponent(escape(s)); } catch (_) { return s; }
+}
+
+// extrairePagesSuivies : UNIQUEMENT les noms de Pages aimees ou suivies.
+// Tout le reste de l'export (amis, messages, publications) n'est ni lu ni
+// conserve : on ne descend que dans les cles qui parlent de pages.
+function extrairePagesSuivies(donnees) {
+  const noms = new Set();
+  const cleDePages = /page.*(like|follow|aim|suiv)|(like|follow).*page/i;
+  const nomDe = it => {
+    if (!it || typeof it !== 'object') return '';
+    let n = typeof it.name === 'string' ? it.name : (typeof it.title === 'string' ? it.title : '');
+    if (!n && Array.isArray(it.label_values)) {
+      const lv = it.label_values.find(x => x && /^(nom|name)$/i.test(x.label || '') && typeof x.value === 'string');
+      if (lv) n = lv.value;
+    }
+    return corrigerEncodageFacebook(n).replace(/\s+/g, ' ').trim().slice(0, 120);
+  };
+  const parcourir = (noeud, profondeur) => {
+    if (!noeud || typeof noeud !== 'object' || profondeur > 6) return;
+    if (Array.isArray(noeud)) { noeud.forEach(x => parcourir(x, profondeur + 1)); return; }
+    Object.keys(noeud).forEach(k => {
+      const v = noeud[k];
+      if (cleDePages.test(k) && Array.isArray(v)) {
+        v.forEach(it => { const n = nomDe(it); if (n && noms.size < FB_PAGES_MAX) noms.add(n); });
+      } else if (v && typeof v === 'object') parcourir(v, profondeur + 1);
+    });
+  };
+  parcourir(donnees, 0);
+  return [...noms].sort((a, b) => a.localeCompare(b, 'fr'));
+}
+
+// Stockage : navigateur seulement, cle par compte. Un stockage refuse
+// (navigation privee stricte) ne doit jamais casser le module.
+function cleStockageFb() {
+  const s = (typeof getSession === 'function') ? getSession() : null;
+  return 'sentinel_fb_signaux::' + ((s && s.email) || 'visiteur');
+}
+function lireDonneesFb(now) {
+  let d = null;
+  try { d = JSON.parse(localStorage.getItem(cleStockageFb()) || 'null'); } catch (_) {}
+  d = d && typeof d === 'object' ? d : {};
+  return {
+    signaux: purgerSignauxFb(d.signaux, now),
+    pages: Array.isArray(d.pages) ? d.pages.filter(p => typeof p === 'string').slice(0, FB_PAGES_MAX) : [],
+  };
+}
+function ecrireDonneesFb(d) {
+  try { localStorage.setItem(cleStockageFb(), JSON.stringify(d)); return true; } catch (_) { return false; }
+}
+
+// CSV : les cellules commencant par = + - @ sont neutralisees, un texte colle
+// ne doit pas devenir une formule dans Excel.
+function csvSignauxFb(signaux) {
+  const cel = v => {
+    let s = String(v == null ? '' : v).replace(/\r?\n/g, ' ');
+    if (/^[=+\-@\t]/.test(s)) s = "'" + s;
+    return '"' + s.replace(/"/g, '""') + '"';
+  };
+  const lignes = [['date', 'pays', 'niveau_estime', 'cotation', 'vu_dans_un_groupe', 'lien', 'extrait'].map(cel).join(',')];
+  signaux.forEach(s => lignes.push([
+    new Date(s.ts).toISOString(), s.cy || '', s.lvl, cotationSignalSocial().libelle,
+    s.groupe ? 'oui' : 'non', s.lien, s.extrait,
+  ].map(cel).join(',')));
+  return lignes.join('\n');
+}
+// ── FIN SIGNAUX FACEBOOK ────────────────────────────────────────────────────
+
+// ── Rendu du module Réseaux sociaux (phase 1 Facebook) ──────────────────────
+// Volontairement hors du bloc SIGNAUX FACEBOOK : ce bloc est de la logique
+// pure, testee sans DOM ; ici on touche au navigateur.
+const FB_LVL_LIBELLES = {
+  crit: ['Critique estimé', 'Estimated critical'],
+  high: ['Élevé estimé', 'Estimated high'],
+  mod:  ['Modéré estimé', 'Estimated moderate'],
+  ok:   ['Sans enjeu sûreté apparent', 'No apparent safety issue'],
+};
+function _tFb(fr, en) { return (typeof LANG !== 'undefined' && LANG === 'en') ? en : fr; }
+function _escFb(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function _heureFb(ts) {
+  try {
+    return new Date(ts).toLocaleString(LANG === 'en' ? 'en-GB' : 'fr-FR', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
+  } catch (_) { return ''; }
+}
+function _nomPaysFb(cy) { return cy && PAYS_INFO[cy] ? PAYS_INFO[cy].flag + ' ' + PAYS_INFO[cy].name : _tFb('Pays non identifié', 'Country not identified'); }
+
+function remplirPaysSocial() {
+  const sel = document.getElementById('socPays');
+  if (!sel || sel.options.length > 1) return;
+  Object.keys(PAYS_INFO)
+    .sort((a, b) => PAYS_INFO[a].name.localeCompare(PAYS_INFO[b].name, 'fr'))
+    .forEach(cy => { const o = document.createElement('option'); o.value = cy; o.textContent = PAYS_INFO[cy].flag + ' ' + PAYS_INFO[cy].name; sel.appendChild(o); });
+}
+
+function _messageFb(texte) {
+  const m = document.getElementById('socMsg');
+  if (m) m.textContent = texte || '';
+}
+
+function renderReseauxSociaux() {
+  remplirPaysSocial();
+  const now = Date.now();
+  const d = lireDonneesFb(now);
+  const articles = (typeof ALL !== 'undefined' && Array.isArray(ALL)) ? ALL : [];
+
+  const buzz = detecterBuzzFb(d.signaux, now);
+  const bz = document.getElementById('socBuzz');
+  if (bz) {
+    const cles = Object.keys(buzz).filter(cy => buzz[cy].n >= 2).sort((a, b) => buzz[b].n - buzz[a].n);
+    bz.innerHTML = cles.length
+      ? '<div class="soc-buzz">' + cles.map(cy => {
+          const b = buzz[cy];
+          return '<div class="soc-buzz-item' + (b.n >= 4 ? ' fort' : '') + '"><strong>' + _escFb(_nomPaysFb(cy)) + '</strong> · ' +
+            _escFb(FB_BUZZ_LIBELLES[b.niveau]) + ' (' + b.n + ' ' + _tFb('signalements du même type', 'reports of the same kind') + ')</div>';
+        }).join('') + '</div>'
+      : '<div class="soc-vide">' + _tFb('Aucun afflux : moins de deux signalements du même type sur un pays dans la journée.', 'No surge: fewer than two reports of the same kind for a country today.') + '</div>';
+  }
+
+  const li = document.getElementById('socListe');
+  if (li) {
+    li.innerHTML = d.signaux.length ? d.signaux.map(s => {
+      const lvl = FB_LVL_LIBELLES[s.lvl] || FB_LVL_LIBELLES.ok;
+      const presse = rapprocherPresse(s, articles);
+      return '<div class="soc-card">' +
+        '<div class="soc-card-top"><strong>' + _escFb(_nomPaysFb(s.cy)) + '</strong>' +
+          (s.paysIncertain ? '<span class="soc-pill">' + _tFb('pays à vérifier', 'country to check') + '</span>' : '') +
+          '<span class="soc-pill">' + _escFb(cotationSignalSocial().libelle) + '</span>' +
+          '<span class="soc-pill">' + _escFb(_tFb(lvl[0], lvl[1])) + '</span>' +
+          (s.groupe ? '<span class="soc-pill">' + _tFb('vu dans un groupe', 'seen in a group') + '</span>' : '') +
+          '<span>' + _escFb(_heureFb(s.ts)) + '</span></div>' +
+        '<div class="soc-card-txt">' + _escFb(s.extrait) + '</div>' +
+        '<div class="soc-card-bas">' +
+          (s.lien ? '<a href="' + _escFb(s.lien) + '" target="_blank" rel="noopener noreferrer">' + _tFb('Ouvrir la publication', 'Open the post') + '</a>' : '') +
+          '<button type="button" class="soc-btn" onclick="supprimerSignalFb(\'' + _escFb(s.id) + '\')">' + _tFb('Supprimer', 'Delete') + '</button></div>' +
+        (presse.length
+          ? '<div class="soc-presse">' + _tFb('Dans la presse (cotés à part) : ', 'In the press (rated separately): ') +
+            presse.map(a => '<a href="' + _escFb(a.url) + '" target="_blank" rel="noopener noreferrer">' + _escFb(a.title) + '</a>').join(' · ') + '</div>'
+          : '') +
+        '</div>';
+    }).join('') : '<div class="soc-vide">' + _tFb('Aucun signalement. Collez le texte d’une publication ci-dessus pour commencer.', 'No report yet. Paste the text of a post above to start.') + '</div>';
+  }
+
+  const pg = document.getElementById('socPages');
+  if (pg) {
+    pg.innerHTML = d.pages.length
+      ? '<div class="soc-pages">' + d.pages.map(n => '<span class="soc-page">' + _escFb(n) + '</span>').join('') + '</div>'
+      : '<div class="soc-vide">' + _tFb('Aucune Page importée. Dans Facebook : Paramètres > Vos informations Facebook > Télécharger vos informations, format JSON, rubrique Pages et profils que vous suivez.', 'No Page imported. In Facebook: Settings > Your Facebook information > Download your information, JSON format, Pages and profiles you follow.') + '</div>';
+  }
+}
+
+function ajouterSignalFb(ev) {
+  if (ev && ev.preventDefault) ev.preventDefault();
+  const now = Date.now();
+  const r = creerSignalSocial({
+    texte: document.getElementById('socTexte').value,
+    lien: document.getElementById('socLien').value,
+    cy: document.getElementById('socPays').value,
+    groupe: document.getElementById('socGroupe').checked,
+  }, now);
+  if (r.erreur) {
+    _messageFb(r.erreur === 'lien_invalide'
+      ? _tFb('Ce lien n’est pas un lien Facebook (facebook.com, fb.com, fb.watch).', 'This is not a Facebook link (facebook.com, fb.com, fb.watch).')
+      : _tFb('Texte trop court : collez au moins une phrase de la publication.', 'Text too short: paste at least one sentence of the post.'));
+    return;
+  }
+  const d = lireDonneesFb(now);
+  const f = fusionnerSignalFb(d.signaux, r.signal);
+  if (f.doublon) { _messageFb(_tFb('Ce signalement existe déjà.', 'This report already exists.')); return; }
+  d.signaux = f.liste;
+  if (!ecrireDonneesFb(d)) { _messageFb(_tFb('Le navigateur refuse l’enregistrement local : le signalement n’a pas été conservé.', 'The browser refuses local storage: the report was not kept.')); return; }
+  document.getElementById('socTexte').value = '';
+  document.getElementById('socLien').value = '';
+  document.getElementById('socGroupe').checked = false;
+  _messageFb(r.signal.cy
+    ? _tFb('Signalement ajouté (Non confirmé).', 'Report added (Unconfirmed).')
+    : _tFb('Signalement ajouté (Non confirmé), mais aucun pays reconnu : il ne compte dans aucun afflux. Recollez-le en choisissant le pays dans la liste.', 'Report added (Unconfirmed), but no country recognised: it counts toward no surge. Paste it again and pick the country in the list.'));
+  renderReseauxSociaux();
+}
+
+function supprimerSignalFb(id) {
+  const d = lireDonneesFb(Date.now());
+  d.signaux = d.signaux.filter(s => s.id !== id);
+  ecrireDonneesFb(d);
+  renderReseauxSociaux();
+}
+
+function viderSignauxFb() {
+  const d = lireDonneesFb(Date.now());
+  if (!d.signaux.length && !d.pages.length) return;
+  if (!window.confirm(_tFb('Supprimer tous les signalements et les Pages importées de ce navigateur ?', 'Delete all reports and imported Pages from this browser?'))) return;
+  ecrireDonneesFb({ signaux: [], pages: [] });
+  renderReseauxSociaux();
+}
+
+function exporterSignauxFb() {
+  const d = lireDonneesFb(Date.now());
+  if (!d.signaux.length) { _messageFb(_tFb('Rien à exporter.', 'Nothing to export.')); return; }
+  const blob = new Blob(['﻿' + csvSignauxFb(d.signaux)], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'signalements-reseaux-sociaux-' + new Date().toISOString().slice(0, 10) + '.csv';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+function importerPagesFb(input) {
+  const f = input && input.files && input.files[0];
+  if (!f) return;
+  if (f.size > 20 * 1024 * 1024) { _messageFb(_tFb('Fichier trop volumineux (20 Mo maximum) : importez le seul fichier des Pages.', 'File too large (20 MB max): import only the Pages file.')); input.value = ''; return; }
+  const lecteur = new FileReader();
+  lecteur.onload = () => {
+    let noms = [];
+    try { noms = extrairePagesSuivies(JSON.parse(String(lecteur.result))); } catch (_) { noms = null; }
+    if (noms === null) { _messageFb(_tFb('Fichier illisible : ce n’est pas un JSON.', 'Unreadable file: not valid JSON.')); }
+    else if (!noms.length) { _messageFb(_tFb('Aucune Page trouvée dans ce fichier (cherchez « pages » ou « page_likes » dans votre export).', 'No Page found in this file (look for "pages" or "page_likes" in your export).')); }
+    else {
+      const d = lireDonneesFb(Date.now());
+      d.pages = noms;
+      ecrireDonneesFb(d);
+      _messageFb(noms.length + ' ' + _tFb('Pages importées. Seuls leurs noms sont conservés.', 'Pages imported. Only their names are kept.'));
+    }
+    input.value = '';
+    renderReseauxSociaux();
+  };
+  lecteur.readAsText(f);
 }
 
 // ── Historique 24h/7j/30j ───────────────────────────────────────────────────
@@ -14265,6 +14739,7 @@ function switchView(name,el){
   const _lpEl = document.getElementById('lp');
   if (_lpEl) _lpEl.style.display=(name==='rapports'||name==='params')?'none':'flex';
   if(name==='agenda')    { renderAgenda(); }
+  if(name==='social' && typeof renderReseauxSociaux === 'function') { try { renderReseauxSociaux(); } catch(_) {} }
   if(name==='geopolitique') { geoVueApercu = true; renderGeopolitique(); }
   if(name==='dashboard') { renderDashboard(); }
   // Ouverture de l'onglet Alertes : force un recalcul/repeinture immediat.
@@ -14304,7 +14779,7 @@ let _modulePleinEcranActif = false;
 let _modulePleinEcranCourant = null;
 const MODULE_PLEIN_ECRAN_NOMS = {
   flux:'Flux', recherche:'Recherche', analyse:'Synthèse', agenda:'Agenda',
-  geopolitique:'Géopolitique', rapports:'Rapports', alertes:'Alertes',
+  geopolitique:'Géopolitique', social:'Réseaux sociaux', rapports:'Rapports', alertes:'Alertes',
   dashboard:'Tableau de bord', params:'Paramètres',
 };
 function ouvrirModulePleinEcran(name, el) {

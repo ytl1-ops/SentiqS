@@ -2599,3 +2599,49 @@ deux défauts antérieurs corrigés au passage : « FLASH INFO » blanc sur le
 rouge clair (2,8:1) et la pastille « Collecte » verte foncée (3:1).
 `scripts/test/salle-de-veille.test.js` garde la redéfinition locale des
 jetons et le seuil AA des couples de jetons.
+
+---
+
+## Le module « Réseaux sociaux » : Facebook sans lire Facebook — 20/10/2026
+
+Demande : alimenter un module réseau social « uniquement avec mon profil
+Facebook » pour repérer buzz et événements de sûreté. **Meta ne le permet pas** :
+aucune application tierce ne peut lire le fil, les amis ni les groupes d'un
+profil personnel (API Groupes supprimée en 2024, CrowdTangle fermé en août 2024,
+Meta Content Library réservée à la recherche, accès aux Pages publiques tierces
+soumis à vérification d'entreprise et revue Meta). Un robot est exclu : conditions
+de Meta et RGPD. Note de cadrage complète dans le fil du projet.
+
+**Phase 1 livrée : le module ne lit RIEN chez Facebook.** L'utilisateur colle le
+texte (et le lien, facultatif) d'une publication qu'il a vue ; il peut importer
+l'export « Vos informations Facebook » pour en tirer la seule liste des noms de
+Pages suivies. Code : bloc `SIGNAUX FACEBOOK` (logique pure, testée) et
+`renderReseauxSociaux` (DOM) dans `SentiqS_Web.html`, onglet « Réseaux sociaux »,
+tests dans `scripts/test/signaux-facebook.test.js`.
+
+Quatre règles à ne pas défaire :
+
+- **Un signal social est toujours « Non confirmé »** (`cotationSignalSocial`) et
+  **n'entre jamais dans un niveau d'alerte** : ni `calcAlertScore`, ni
+  `getLiveAlertEvents`, ni le flash. Un test lit ces fonctions et refuse toute
+  mention du module. Un article de presse rapproché porte sa propre cotation.
+- **Aucune donnée personnelle de tiers** : ni auteur, ni nom de groupe (seul un
+  indicateur « vu dans un groupe »), ni photo. Un extrait de 280 caractères, le
+  pays, un lien nettoyé de son suivi publicitaire. `l.facebook.com` est refusé :
+  c'est un redirecteur vers n'importe quel site.
+- **Local au compte** : `localStorage`, clé `sentinel_fb_signaux::<e-mail>`,
+  purge à 30 jours. Rien ne part vers Supabase ; le partage en équipe serait une
+  décision à prendre avec le propriétaire (écriture en production).
+- **L'import ne lit que les noms de Pages** : le parcours ne descend que dans les
+  clés qui parlent de pages aimées ou suivies, jamais dans les amis ni les
+  messages. Les fichiers de l'export Facebook ont leur UTF-8 écrit en latin-1
+  (« BÃ©nin ») : `corrigerEncodageFacebook`.
+
+**Limites connues.** Le pays vient des lexiques (`_detecterPaysCoeur`) : « Kayes »
+seul n'en donne pas, le signalement est alors sans pays et ne compte dans aucun
+afflux (le message le dit). L'« afflux » est ce que l'utilisateur voit passer,
+pas une mesure de Facebook : le libellé ne dit jamais « viral ».
+
+**Phase 2, non faite** : les Pages administrées par l'utilisateur, via la
+connexion officielle Meta (jeton configuré par lui, jamais dans le dépôt ni dans
+un fil). Les Pages publiques tierces exigent la revue Meta ; non demandée.
