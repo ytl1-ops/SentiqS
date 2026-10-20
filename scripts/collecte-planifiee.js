@@ -32,6 +32,7 @@ const historique = require('./lib/historique');
 const alerteSortante = require('./lib/alerte-sortante');
 const alerteCouverture = require('./lib/alerte-couverture');
 const bulletin = require('./lib/bulletin');
+const rapportGrsci = require('./lib/rapport-grsci');
 const santeCollecte = require('./lib/sante-collecte');
 
 // Firebase Hosting retire (sentinel-surete.web.app ne recoit plus de
@@ -71,6 +72,8 @@ const RACINE_HISTORIQUE = process.env.RACINE_HISTORIQUE
 // Bulletins quotidiens des pays pilotes, servis par Pages a cote de l'archive.
 const RACINE_BULLETINS = process.env.RACINE_BULLETINS
   || path.join(__dirname, '..', 'web', 'bulletins');
+const RACINE_GRSCI = process.env.RACINE_RAPPORTS_GRSCI
+  || path.join(__dirname, '..', 'web', 'rapports', 'GRSCI');
 
 // Mémoire inter-runs de SRC_HEALTH / PROXY_HEALTH_PAYS — HORS dépôt
 // (répertoire dans .gitignore), restaurée/sauvegardée par actions/cache
@@ -506,6 +509,32 @@ function ecrireResumeActions(md) {
           } catch (e) {
             console.warn('  Bulletin ' + cy + ' : non ecrit (' + ((e && e.message) || e) + ')');
           }
+        }
+
+        // ── RAPPORT MENSUEL GRSCI ───────────────────────────────────────
+        // Demande du 20/10/2026 : « Faits marquants en Côte d'Ivoire » et
+        // « Dynamiques régionales » dans la forme du modèle d'octobre 2024,
+        // automatisés. Un rapport par mois, le premier passage à partir du 24
+        // (la rencontre a lieu vers le 25) ; GRSCI_FORCER=1 le produit tout
+        // de suite. Voir scripts/lib/rapport-grsci.js.
+        try {
+          const force = process.env.GRSCI_FORCER === '1';
+          if (force || rapportGrsci.doitEcrire(RACINE_GRSCI, jour, 24)) {
+            const PptxGenJS = require('pptxgenjs');
+            const serie = historique.construireSerie(historique.lireSerie(RACINE_HISTORIQUE));
+            const lire = (cy) => page.evaluate((c) => (typeof donneesBulletinPays === 'function') ? donneesBulletinPays(c) : null, cy);
+            const avecTendance = (d) => d && Object.assign(d, { tendance: bulletin.tendanceDuJour(serie, d, jour) });
+            const ci = avecTendance(await lire('CI'));
+            const regionaux = [];
+            for (const cy of rapportGrsci.PAYS_REGIONAUX) { const d = avecTendance(await lire(cy)); if (d) regionaux.push(d); }
+            if (!ci) { console.warn('  GRSCI : la page ne fournit pas donneesBulletinPays.'); }
+            else {
+              const chemin = await rapportGrsci.ecrire(RACINE_GRSCI, PptxGenJS, { jour, ci, regionaux });
+              console.log('  GRSCI : rapport ecrit — ' + chemin + ' (' + regionaux.length + ' pays regionaux).');
+            }
+          }
+        } catch (e) {
+          console.warn('  GRSCI : rapport non ecrit (' + ((e && e.message) || e) + ')');
         }
       }
     } catch (e) {

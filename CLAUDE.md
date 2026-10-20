@@ -2486,6 +2486,36 @@ certains modèles n'acceptent qu'une carte adaptative.
 
 ---
 
+## Le rapport mensuel GRSCI — 20/10/2026
+
+Demande de YORO : un rapport « Faits marquants en Côte d'Ivoire » et
+« Dynamiques régionales » dans la forme du modèle de la rencontre mensuelle du
+GRSCI d'octobre 2024, automatisé comme le bulletin.
+
+`scripts/lib/rapport-grsci.js` produit un PowerPoint (pptxgenjs 3.12.0, la
+version déjà chargée par la page) : couverture, table des matières,
+intercalaires, une page « en bref » (niveau, confiance, tendance, ce qui porte
+le niveau), les faits par rubrique, un tableau régional, une page par pays
+(BF ML NE GH TG BJ GN LR SN) et « Ce que nous ne savons pas ». Logo, photo de
+couverture et carte d'Afrique viennent du modèle (`scripts/assets/grsci/`).
+Les données sont celles de `donneesBulletinPays` : rien n'est recalculé.
+
+**Le « Décryptage » du modèle est un jugement d'analyste ; ici il est
+construit uniquement à partir des mesures** (niveau, tendance, âge du socle,
+faits de la fenêtre) et porte la mention « lecture automatique, à valider ».
+Ne jamais lui faire écrire une cause ou une prévision que les données ne
+portent pas.
+
+Un rapport par mois sous `web/rapports/GRSCI/AAAA-MM.pptx`, écrit par le
+premier passage du job à partir du 24 (la rencontre a lieu vers le 25).
+`workflow_dispatch` avec `grsci` = vrai (variable `GRSCI_FORCER=1`) le produit
+tout de suite. Non fait, et pourquoi : le Social du modèle n'existe pas comme
+catégorie dans le flux (il est lu dans « humanitaire »), et les cartes
+(coupeurs de route, zones café-cacao, incidents du Burkina) sont des travaux
+d'analyste à partir de données que l'outil n'a pas.
+
+---
+
 ## Conventions
 
 - **Tout en français** : commits, commentaires, noms de fonctions et de
