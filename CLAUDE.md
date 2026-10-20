@@ -2457,3 +2457,32 @@ porte `js/intro.js` et les deux vidéos), tests `intro.test.js` (16) et
 Supabase en production, les clés, les paiements. La bascule des écritures
 partagées est **critique dans l'ordre des étapes** : inverser les étapes 3 et 1
 arrête la collecte. La procédure est dans `supabase/README.md`.
+
+---
+
+## La confiance s'affiche à côté du niveau — 20/10/2026
+
+Audit du 20/10/2026 sur l'archive `web/historique` : aucun des 172 incidents
+vérifiés n'avait moins de 112 jours, l'âge médian du socle des 22 pays marron
+ou rouge était de 115 jours, et la collecte du jour n'apportait que 4,6 % des
+points. Le socle est un plancher qui ne décroît pas (voir « Le calcul du
+niveau d'alerte ») : un rouge de juin s'affichait en octobre comme un rouge
+de la veille, rapports clients compris. L'âge n'était visible que sur la fiche
+d'alerte, en petit.
+
+Arbitrage : **le niveau ne bouge pas, la confiance s'affiche partout à côté
+de lui.** `indiceConfiance` (noyau) : faible si socle de plus de 90 jours (ou
+aucun incident daté) sans signal du jour ; moyenne si socle de plus de 45 jours
+(`DECROISSANCE_PLEIN_J`), sans signal du jour, ou pays muet ; élevée sinon.
+`calcAlertScore` l'expose en `confiance`, calculée **après** la clé et sans la
+toucher (un test l'exige). Affichée par `marqueConfiance` sur la tuile du
+cartogramme et la fiche d'alerte — sans couleur d'alerte, même parti pris que
+`marqueSilence` — et par `texteConfianceRapport` dans le PDF, le Word, la
+diapositive pays du PowerPoint et l'aperçu imprimable des alertes (FR/EN).
+
+La fiche disait « au-delà de ce délai, les signaux du jour pèsent davantage » :
+faux depuis que la décroissance a été retirée. Remplacé.
+
+**À savoir avant de lire l'écran hors ligne** : sans collecte, tous les pays
+sont muets, donc tous à confiance faible. C'est juste, pas un défaut.
+Mesuré dans Chromium : 54 marques sur les tuiles, 54 sur les fiches, 0 erreur.

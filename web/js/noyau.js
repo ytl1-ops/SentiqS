@@ -483,6 +483,51 @@ function tendanceNiveaux(points, fenetre) {
   };
 }
 
+// ── Confiance d'un niveau d'alerte ─────────────────────────────────────────
+//
+// Le socle vérifié est un plancher qui ne décroît pas (voir
+// borneRougeVerifie) : c'est voulu, une décroissance faisait tomber la
+// Somalie, le Kenya et l'Éthiopie au vert. Mais l'audit du 20/10/2026 a
+// mesuré le prix de ce choix quand il reste muet : aucun des 172 incidents
+// n'avait moins de 112 jours, et la collecte du jour n'apportait que 4,6 %
+// des points. Un rouge de juin s'affichait en octobre comme un rouge de la
+// veille, rapports clients compris.
+//
+// Arbitrage du même jour : le niveau ne bouge pas, la confiance s'affiche à
+// côté de lui. Elle répond à « depuis quand le sait-on, et qui le confirme
+// aujourd'hui ? » :
+//   - faible  : socle de plus de CONFIANCE_SOCLE_ANCIEN_J, ou aucun incident
+//               daté, et aucun signal du jour pour en témoigner ;
+//   - moyenne : socle de plus de CONFIANCE_SOCLE_RECENT_J, ou aucun signal du
+//               jour, ou pays muet (rien publié sur la fenêtre) ;
+//   - élevée  : socle récent ET au moins un signal du jour.
+// Une absence de date compte comme ancienne : on ne sait pas, donc on le dit.
+const CONFIANCE_SOCLE_RECENT_J = DECROISSANCE_PLEIN_J;
+const CONFIANCE_SOCLE_ANCIEN_J = 90;
+const CONFIANCE_LIBELLES = { elevee: 'élevée', moyenne: 'moyenne', faible: 'faible' };
+
+function indiceConfiance(o) {
+  o = o || {};
+  const now = (o.maintenant === undefined) ? Date.now() : o.maintenant;
+  const ms = (typeof o.dernierVerifieMs === 'number' && isFinite(o.dernierVerifieMs)) ? o.dernierVerifieMs : null;
+  const ageSocleJ = ms === null ? null : Math.max(0, Math.floor((now - ms) / 86400000));
+  const signaux = Number(o.signauxDuJour) || 0;
+  const muet = !!o.muet;
+
+  const ancien = ageSocleJ === null || ageSocleJ > CONFIANCE_SOCLE_ANCIEN_J;
+  const recent = ageSocleJ !== null && ageSocleJ <= CONFIANCE_SOCLE_RECENT_J;
+  let cle = 'elevee';
+  if (!recent || signaux === 0 || muet) cle = 'moyenne';
+  if (ancien && signaux === 0) cle = 'faible';
+
+  const socle = ageSocleJ === null ? 'aucun incident vérifié daté'
+    : ('incident vérifié le plus récent : ' + ageSocleJ + (ageSocleJ === 1 ? ' jour' : ' jours'));
+  const jour = muet ? 'aucune publication sur ce pays'
+    : signaux === 0 ? 'aucun signal du jour'
+    : (signaux + (signaux === 1 ? ' signal du jour' : ' signaux du jour'));
+  return { cle, libelle: CONFIANCE_LIBELLES[cle], ageSocleJ, signauxDuJour: signaux, muet, motif: socle + ' ; ' + jour };
+}
+
 // ── Exposition ─────────────────────────────────────────────────────────────
 // Navigateur : les noms deviennent globaux, exactement comme lorsqu'ils
 // etaient declares dans le script inline. Node : export CommonJS pour les
@@ -499,6 +544,7 @@ const API = {
   REVUE_RECOMMANDEE_MOIS, ageRevueMois, revueDepassee,
   DISJONCTEUR_SEUIL, creerDisjoncteur, avecDisjoncteur,
   tendanceNiveaux,
+  CONFIANCE_SOCLE_RECENT_J, CONFIANCE_SOCLE_ANCIEN_J, CONFIANCE_LIBELLES, indiceConfiance,
   MAX_LIVE_EVENTS_PAR_PAYS,
 };
 

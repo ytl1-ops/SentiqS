@@ -5882,6 +5882,9 @@ const RAPPORT_LBL = {
     incidents:'Incidents', verifies:'vérifiés', facteurs:'Facteurs aggravants',
     expatries:'Expatriés/étrangers', installations:'Installations',
     aucun_pays:'Aucun pays dans ce périmètre.', score:'score',
+    confiance:'Confiance', conf_niv:{elevee:'élevée',moyenne:'moyenne',faible:'faible'},
+    conf_socle:j=>'incident vérifié le plus récent : '+j+(j===1?' jour':' jours'), conf_sans_socle:'aucun incident vérifié daté',
+    conf_signaux:n=>n+(n===1?' signal du jour':' signaux du jour'), conf_sans_signal:'aucun signal du jour', conf_muet:'aucune publication sur ce pays',
     niv:{rouge:'ROUGE',marron:'MARRON',orange:'ORANGE',jaune:'JAUNE',vert:'VERT'},
     titres_rapport:{synthese:'Synthèse analytique', flux:'Flux opérationnel', agenda:'Agenda sûreté', alertes:'Alertes pays', rapport_complet:'Rapport complet', sources:'Matrice des sources'},
   },
@@ -5890,6 +5893,9 @@ const RAPPORT_LBL = {
     incidents:'Incidents', verifies:'verified', facteurs:'Aggravating factors',
     expatries:'Expats/Foreign nationals', installations:'Facilities',
     aucun_pays:'No country in this scope.', score:'score',
+    confiance:'Confidence', conf_niv:{elevee:'high',moyenne:'medium',faible:'low'},
+    conf_socle:j=>'latest verified incident: '+j+(j===1?' day':' days')+' old', conf_sans_socle:'no dated verified incident',
+    conf_signaux:n=>n+(n===1?' signal today':' signals today'), conf_sans_signal:'no signal today', conf_muet:'nothing published on this country',
     niv:{rouge:'RED',marron:'MAROON',orange:'ORANGE',jaune:'YELLOW',vert:'GREEN'},
     titres_rapport:{synthese:'Analytical summary', flux:'Operational feed', agenda:'Security agenda', alertes:'Country alerts', rapport_complet:'Full report', sources:'Sources matrix'},
   },
@@ -5897,6 +5903,16 @@ const RAPPORT_LBL = {
 function rl(cle) {
   const dict = RAPPORT_LBL[LANG] || RAPPORT_LBL.fr;
   return dict[cle] !== undefined ? dict[cle] : (RAPPORT_LBL.fr[cle] !== undefined ? RAPPORT_LBL.fr[cle] : cle);
+}
+// Ligne de confiance d'un pays dans les rapports exportes (PDF, Word,
+// PowerPoint, apercu imprimable). Arbitrage du 20/10/2026 : la confiance
+// accompagne le niveau jusque dans ce qui est envoye aux clients — un rouge
+// dont le socle a quatre mois ne doit pas partir sans le dire.
+function texteConfianceRapport(c) {
+  if (!c || !c.cle) return '';
+  const socle = c.ageSocleJ === null || c.ageSocleJ === undefined ? rl('conf_sans_socle') : rl('conf_socle')(c.ageSocleJ);
+  const jour = c.muet ? rl('conf_muet') : (c.signauxDuJour ? rl('conf_signaux')(c.signauxDuJour) : rl('conf_sans_signal'));
+  return rl('confiance') + ' ' + (rl('conf_niv')[c.cle] || c.cle) + ' — ' + socle + ' ; ' + jour;
 }
 // TR_CONCURRENCE_MAX : plafond de requetes de traduction simultanees. Un
 // rapport complet peut contenir plusieurs centaines de textes distincts a
@@ -12642,6 +12658,26 @@ function marqueSilence(cy) {
     + libelle + '</span>';
 }
 
+// Confiance d'un niveau d'alerte, posee a cote de lui (audit du 20/10/2026 :
+// les 172 incidents verifies avaient tous plus de 112 jours, et rien a
+// l'ecran ne le disait hors de la fiche d'alerte). Meme parti pris que
+// marqueSilence : pas de couleur d'alerte. Une confiance faible n'est pas un
+// danger de plus, c'est un savoir plus vieux ; la couleur reste au niveau.
+// `complet` : libelle entier (fiche d'alerte) ; sinon forme courte (tuile).
+function marqueConfiance(c, complet) {
+  if (!c || !c.cle) return '';
+  var court = { elevee: 'conf. \u00e9lev\u00e9e', moyenne: 'conf. moy.', faible: 'conf. faible' }[c.cle] || '';
+  var texte = complet ? ('Confiance ' + c.libelle) : court;
+  var titre = 'Confiance ' + c.libelle + ' \u2014 ' + c.motif
+    + '. Le niveau ne baisse pas avec l\u2019\u00e2ge du socle ; la confiance dit depuis quand on le sait.';
+  var appui = c.cle === 'faible' ? 'font-weight:700;color:var(--t);border:1px solid var(--t2);'
+    : 'font-weight:600;color:var(--t2);border:1px solid var(--bd);';
+  return '<span class="marque-confiance" data-confiance="' + c.cle + '" title="' + escHtml(titre) + '" '
+    + 'aria-label="' + escHtml(titre) + '" '
+    + 'style="font-size:var(--fs-micro,10px);' + appui + 'border-radius:3px;padding:0 4px;white-space:nowrap;">'
+    + texte + '</span>';
+}
+
 // Rendu compact : une fleche et le nombre de crans. Le detail complet est
 // dans l'infobulle, parce que la tuile fait 108 px de large.
 function chipTendance(code) {
@@ -12695,7 +12731,7 @@ function setDashCartoMode(m) { window.dashCartoMode = m; if (typeof renderDashbo
   const scores = typeof PAYS_INFO !== 'undefined'
     ? Object.keys(PAYS_INFO).map(cy => {
         const sc = (typeof calcAlertScore === 'function') ? calcAlertScore(cy) : {total100:0, key:'vert', niv:NIV.vert};
-        return {cy, pays:PAYS_INFO[cy], score:sc.total100, key:sc.key, niv:sc.niv};
+        return {cy, pays:PAYS_INFO[cy], score:sc.total100, key:sc.key, niv:sc.niv, confiance:sc.confiance};
       }).sort((a,b)=>b.score-a.score)
     : [];
 
@@ -12866,6 +12902,7 @@ const cartogramme = () => {
               <div style="display:flex;align-items:center;gap:4px;margin-top:4px;flex-wrap:wrap;">
                 <span style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:${txt};">${NIV[s.key].sous}</span>
                 ${marqueSilence(s.cy)}
+                ${marqueConfiance(s.confiance)}
               </div>
             </div>`;
           }).join('')}
@@ -18398,6 +18435,14 @@ function calcAlertScore(cy) {
   // pas venir d'un article seul — voir borneRougeRecoupe dans le noyau.
   const key   = borneRougeRecoupe(keyVerifie, keyPlancher, eventsLive);
   const niv   = NIV[key];
+  // Confiance du niveau (audit du 20/10/2026, voir indiceConfiance dans le
+  // noyau) : calculee APRES la cle et sans jamais la modifier. Le niveau dit
+  // l'exposition ; la confiance dit depuis quand on le sait et qui le confirme.
+  const confiance = indiceConfiance({
+    dernierVerifieMs, maintenant,
+    signauxDuJour: eventsLive.length,
+    muet: (typeof paysMuet === 'function') ? paysMuet(cy) : false,
+  });
   // Le bridage n'est pas silencieux : l'interface doit pouvoir dire POURQUOI
   // un pays ne monte pas plus haut malgre les signaux du jour.
   const motifPlafond = (keyVerifie !== keyBrut)
@@ -18406,7 +18451,7 @@ function calcAlertScore(cy) {
       ? 'niveau borne au marron : le point qui ferait passer au rouge vient d\'un article seul, ni recoupe par une seconde source ni critique'
       : null;
   return {cy, events, specials, baseScore: baseScoreVerifie + baseScoreLive, specialScore, total, total100, key, niv,
-          motifPlafond, dernierVerifieMs, fraicheurVerifiee,
+          motifPlafond, dernierVerifieMs, fraicheurVerifiee, confiance,
           debug: {verifies: baseScoreVerifie, live: baseScoreLive, liveApplique: liveBonusLimite, specials: specialScore,
                   historiqueRef: nbHisto, historiqueApplique: historiqueBonus,
                   plancher: totalSansLive, keyPlancher, keyBrut,
@@ -18569,7 +18614,7 @@ async function renderAlertCard(score) {
       lignes.push('<div style="font-size:9px;color:' + (perime ? n.col : 'var(--lg)') + ';">'
         + '<i class="ti ti-user-check" style="font-size:10px;margin-right:4px;"></i>'
         + 'Dernier incident verifie par un humain : <strong>' + quand + '</strong>'
-        + (perime ? ' — au-dela de ce delai, les signaux du jour pesent davantage' : '')
+        + (perime ? ' — le niveau ne baisse pas pour autant : voir la confiance' : '')
         + '</div>');
     } else {
       lignes.push('<div style="font-size:9px;color:var(--lg);">'
@@ -18655,6 +18700,7 @@ async function renderAlertCard(score) {
       <div style="font-size:9px;color:var(--lg);">Incidents : <strong style="color:var(--t);">${score.baseScore}</strong></div>
       <div style="font-size:9px;color:var(--lg);">Aggravants : <strong style="color:${n.col};">${score.specialScore}</strong></div>
       <div style="font-size:9px;color:var(--lg);">Total : <strong style="color:${n.col};">${score.total100}/100</strong></div>
+      <div style="font-size:9px;color:var(--lg);">${marqueConfiance(score.confiance, true)}</div>
     </div>
     <!-- CONTENU EN COLONNES -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
@@ -20613,6 +20659,7 @@ async function exportPPTX(type) {
         circle(s, 0.8, 1.9, 2.0, col);
         s.addText(String(sc.total100), {x:0.8,y:2.5,w:2.0,h:0.8,fontSize:34,bold:true,color:'FFFFFF',align:'center',fontFace:'IBM Plex Sans'});
         s.addText((NIV[sc.key]||{label:'—'}).label, {x:0.2,y:4.0,w:3.2,h:0.4,fontSize:13,bold:true,color:col.length===6?'#'+col:'#4B5563',align:'center',fontFace:'IBM Plex Sans'});
+        if (sc.confiance) s.addText(texteConfianceRapport(sc.confiance), {x:0.2,y:4.45,w:3.2,h:0.9,fontSize:10,bold:sc.confiance.cle==='faible',color:'#374151',align:'center',valign:'top',fontFace:'IBM Plex Sans'});
         const facteurs = (sc.specials||[]).slice(0,5);
         s.addText('Facteurs aggravants', {x:3.6,y:1.85,w:9,h:0.4,fontSize:14,bold:true,color:INK,fontFace:'IBM Plex Sans'});
         if (facteurs.length) {
@@ -21826,6 +21873,7 @@ async function exportPDF(type) {
           const nivLabel = rl('niv')[s.sc.key] || '—';
           b.sub(s.pays.flag+' '+L(s.pays.name)+'  —  '+nivLabel+'  ('+rl('score')+' '+s.sc.total100+'/100)', rgb(0.114,0.373,0.659));
           b.para(rl('incidents')+' : '+s.sc.baseScore+' '+rl('verifies')+' · '+rl('facteurs')+' : '+s.sc.specialScore, {size:8.5, color:rgb(0.42,0.46,0.5)});
+          if (s.sc.confiance) b.para(texteConfianceRapport(s.sc.confiance), {size:8.5, bold:s.sc.confiance.cle==='faible', color:rgb(0.2,0.24,0.29)});
           const mes = MESURES[s.sc.key];
           if (mes && mes.expatries && mes.expatries[0]) b.bullet(rl('expatries')+' : '+L(mes.expatries[0]));
           if (mes && mes.installations && mes.installations[0]) b.bullet(rl('installations')+' : '+L(mes.installations[0]));
@@ -22190,6 +22238,7 @@ function _apAlerteItem(score) {
     + '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;font-weight:700;color:'+n.col+';">'+_apEsc(n.label)+' — '+score.total100+'/100</span>'
     + '</div>'
     + '<div style="font-size:12px;color:#6B7280;">Incidents : '+score.baseScore+' &nbsp;·&nbsp; Aggravants : '+score.specialScore+'</div>'
+    + (score.confiance ? '<div style="font-size:12px;color:#374151;margin-top:2px;'+(score.confiance.cle==='faible'?'font-weight:700;':'')+'">'+_apEsc(texteConfianceRapport(score.confiance))+'</div>' : '')
     + '</div>';
 }
 async function _buildRapportFluxHTML(arts) {
@@ -22277,7 +22326,7 @@ async function apercuRapport(type) {
     else if (type === 'agenda') html = await _buildRapportAgendaHTML(getExportAgenda());
     else if (type === 'alertes') {
       const cysA = fRapportCy !== 'all' ? [fRapportCy] : Object.keys(PAYS_INFO).filter(cy => !fRapportZone || fRapportZone==='all' || CY_TO_ZONE[cy]===fRapportZone);
-      const scoresA = cysA.map(cy => { const sc = calcAlertScore(cy); return {cy, pays:PAYS_INFO[cy], niv:sc.niv, total100:sc.total100, baseScore:sc.baseScore, specialScore:sc.specialScore}; }).sort((a,b)=>b.total100-a.total100);
+      const scoresA = cysA.map(cy => { const sc = calcAlertScore(cy); return {cy, pays:PAYS_INFO[cy], niv:sc.niv, total100:sc.total100, baseScore:sc.baseScore, specialScore:sc.specialScore, confiance:sc.confiance}; }).sort((a,b)=>b.total100-a.total100);
       html = await _buildRapportAlertesHTML(scoresA);
     }
     else if (type === 'rapport_complet') html = await _buildRapportCompletHTML(arts, getExportAgenda());
@@ -22910,6 +22959,7 @@ async function exportWord(type){
           const nivLabel = rl('niv')[s.sc.key] || '—';
           children.push(heading((s.pays.flag||'')+' '+L(s.pays.name)+'  —  '+nivLabel+'  ('+rl('score')+' '+s.sc.total100+'/100)', 2, '1B5FA8'));
           children.push(para(rl('incidents')+' : '+s.sc.baseScore+' '+rl('verifies')+' · '+rl('facteurs')+' : '+s.sc.specialScore, {color:'6B7280'}));
+          if (s.sc.confiance) children.push(para(texteConfianceRapport(s.sc.confiance), {bold:s.sc.confiance.cle==='faible', color:'374151'}));
           const mesW = MESURES[s.sc.key];
           if (mesW && mesW.expatries && mesW.expatries[0]) children.push(para('▶ '+rl('expatries')+' : '+L(mesW.expatries[0])));
           if (mesW && mesW.installations && mesW.installations[0]) children.push(para('▶ '+rl('installations')+' : '+L(mesW.installations[0])));
