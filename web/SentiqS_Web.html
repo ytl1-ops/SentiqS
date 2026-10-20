@@ -2571,6 +2571,12 @@ html[data-theme="dark"] .auth-overlay,html[data-theme="dark"] .skyline-scene{bac
 html[data-theme="dark"] .ops-vignette{background:radial-gradient(ellipse 75% 65% at 50% 42%,rgba(7,20,49,0) 0%,rgba(7,20,49,.55) 68%,rgba(5,13,36,.92) 100%)}
 html[data-theme="dark"] ::-webkit-scrollbar-thumb{background:#24447D}
 html[data-theme="dark"] .feed-pays-hd{background:rgba(7,20,49,.92);backdrop-filter:blur(6px)}
+/* Boutons d'export : pastels clairs en dur, eblouissants sur le bleu nuit.
+   En sombre, fond de carte et filet de la couleur du format. */
+html[data-theme="dark"] .btn-dl{background:var(--w);border-color:var(--bd);color:var(--t2)}
+html[data-theme="dark"] .btn-dl:hover{background:#132B5C;border-color:var(--b);color:var(--t)}
+html[data-theme="dark"] .btn-dl-word i{color:#93B4F5}html[data-theme="dark"] .btn-dl-excel i{color:var(--g)}
+html[data-theme="dark"] .btn-dl-pdf i{color:var(--r)}html[data-theme="dark"] .btn-dl-csv i{color:var(--a)}
 
 /* Visuel d'une actu (visuelActu) : l'image de la source par-dessus un repli
    qui dit pays, theme et gravite. Le repli est toujours la : une image qui
@@ -2603,6 +2609,7 @@ html[data-theme="dark"] .vact-repli{background-image:linear-gradient(150deg,rgba
 .une-titre{font-family:var(--font-serif);font-size:22px;font-weight:700;color:var(--t);margin:0 0 var(--sp-3);letter-spacing:-.01em}
 .une-grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--sp-3)}
 .une-bande-panneau{padding:0 0 var(--sp-3)}
+.det-visuel{margin:0 0 var(--sp-3)}.det-visuel .vact-une{border-radius:12px;max-height:380px}
 .une-carte{background:var(--w);border:1px solid var(--bd);border-radius:12px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;
   box-shadow:var(--card-shadow);transition:box-shadow .15s,transform .15s}
 .une-carte:hover{box-shadow:var(--card-shadow-hover);transform:translateY(-2px)}
@@ -12705,6 +12712,9 @@ async function showDet(id) {
     '<div class="dh"><div class="dt" id="dettt-'+a.id+'">'+escHtml(L(a.title))+'</div>'+
     (detTraduireDispo ? '<button class="tr-btn" id="dettrbtn-'+a.id+'" style="flex-shrink:0;margin-right:6px" onclick="event.stopPropagation();retraduireActu(\''+a.id+'\')" title="'+(LANG==='en'?'Translate now':'Traduire maintenant')+'"><i class="ti ti-language"></i>'+(LANG==='en'?'Translate':'Traduire')+'</button>' : '')+
     '<div class="dc" onclick="document.getElementById(\'detOverlay\').remove()"><i class="ti ti-x"></i></div></div>'+
+    // Visuel de l'actu en tete du detail, comme une page d'article
+    // (meme composant que le Flux, voir visuelActu).
+    '<div class="det-visuel">'+visuelActu(a, 'une')+'</div>'+
     confHtml+
     '<div class="dlvl" style="background:'+bgC+';border-left:4px solid '+bc+';color:'+bc+'">'+
       '<i class="ti '+lic(a.level)+'"></i><strong>'+pl[1]+'</strong>'+
