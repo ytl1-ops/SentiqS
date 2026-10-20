@@ -2,7 +2,7 @@ name: Page de garde — candidats capitales de nuit
 
 # Cherche sur Wikimedia Commons des photos de nuit de capitales africaines
 # sous licence libre (scripts/capitales-nuit.py) et pousse les candidats, avec
-# auteur et licence, sur la branche apercus/capitales-nuit. Rien n'est publie :
+# auteur et licence, sur la branche apercus/capitales-pont. Rien n'est publie :
 # le choix se fait a l'oeil, puis les images retenues sont copiees dans web/.
 
 on:
@@ -22,7 +22,7 @@ jobs:
       - name: Cherche et telecharge
         run: |
           sudo apt-get install -y -qq imagemagick >/dev/null
-          python3 scripts/capitales-nuit.py capitales-nuit
+          PASSE=pont python3 scripts/capitales-nuit.py capitales-nuit
       - name: Pousse sur une branche d'apercu
         run: |
           set -e
@@ -33,4 +33,4 @@ jobs:
           git checkout -q -b c
           git add -A
           git commit -qm "Candidats capitales de nuit (${{ github.sha }})"
-          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" c:refs/heads/apercus/capitales-nuit
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" c:refs/heads/apercus/capitales-pont

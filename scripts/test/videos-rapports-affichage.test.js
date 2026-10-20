@@ -163,3 +163,31 @@ test('les regles tablette existent en automatique ET en force, a l identique', (
   assert.deepStrictEqual(force, auto);
   assert.match(bloc, /@media \(min-width:761px\) and \(max-width:1180px\)\{/);
 });
+
+// Images des sources dans les rapports bureautiques — 20/10/2026.
+test('les images d un rapport : les plus graves d abord, sans doublon, bornees', () => {
+  const ctx = bacVisuel();
+  const img = { img: 'https://cdn.fratmat.info/p.jpg' };
+  const arts = [
+    art({ id: 'a', level: 'mod', pubDate: 9, _media: img }),
+    art({ id: 'b', level: 'crit', pubDate: 1, _media: img }),
+    art({ id: 'b', level: 'crit', pubDate: 1, _media: img }),
+    art({ id: 'c', level: 'crit', pubDate: 5, _media: img }),
+    art({ id: 'd', level: 'high', pubDate: 7 }), // aucune image : jamais retenue
+  ];
+  assert.deepStrictEqual(Array.from(ctx.articlesPourImagesRapport(arts), (a) => a.id), ['c', 'b', 'a']);
+  assert.strictEqual(ctx.articlesPourImagesRapport(arts, 2).length, 2);
+});
+
+test('« economiser les donnees » : aucune image demandee pour un rapport', async () => {
+  const ctx = bacVisuel({ sansImages: true });
+  const r = await ctx.chargerImagesRapport([art({ id: 'a', _media: { img: 'https://cdn.fratmat.info/p.jpg' } })]);
+  assert.strictEqual(r.size, 0);
+});
+
+test('PDF, Word et PowerPoint embarquent l image de la source', () => {
+  assert.match(tranche('    articleItem(a, lieuTxt) {', '    // Grille 2 colonnes'), /b\.imagesActus\.get\(a\.id\)[\s\S]*drawImage\(im\.pdf/);
+  assert.match(tranche('async function exportWord(', 'function initMobileCollapsibles()'), /new ImageRun\(\{data:im\.octets\(\)[\s\S]*imagesActus=await chargerImagesRapport\(arts\)/);
+  assert.match(tranche('async function exportPPTX(type) {', 'function _pdfSafe(text) {'), /imagesPptx = await chargerImagesRapport\(arts, 16\)[\s\S]*slide\.addImage\(\{data: im\.dataUrl/);
+  assert.match(tranche('async function exportPDF(type) {', "if (type === 'synthese') {"), /chargerImagesRapport\(getExportData\(\)\)[\s\S]*embedJpg/);
+});
