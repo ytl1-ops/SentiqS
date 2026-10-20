@@ -2763,3 +2763,46 @@ si « économiser les données » est actif. **Non vérifié ici** : le résulta
 avec de vraies images de source, ce bac à sable n'ayant pas de réseau — seuls
 le câblage et le tri sont testés. Mesurer sur un export réel avant de parler
 d'un taux d'images.
+
+---
+
+## Le rendu des exports, relu sur de vrais documents — 20/10/2026
+
+L'éditeur a jugé le rendu des exports « pas satisfaisant ». Plutôt que de
+deviner, de vrais documents ont été générés (PDF, Word, PowerPoint, aperçu
+HTML) avec des actus à image, puis lus en images. Ce qui ne se voyait que là :
+
+- **PDF** : un bandeau gris plat en tête ; l'image posée *sous* le texte de
+  l'actu, donc lue comme l'illustration du titre de pays suivant ; une carte
+  coupée entre deux pages (la ligne « Cotation » seule en haut de page) ; un
+  titre de pays seul en bas de page.
+- **Word** : titres de section dans le bleu par défaut du style Titre (la clé
+  `run` d'un `Paragraph` docx ne colore que la marque de paragraphe) ; image
+  avant le texte.
+- **PowerPoint** : couverture claire dont le nom de 19 caractères, à 52 pt,
+  passait sur deux lignes et chevauchait le sous-titre ; nom de marque écrit
+  deux fois ; diapositives du Flux où la ligne « Cotation » de chaque actu
+  recouvrait l'en-tête de la suivante ; « Page » recouvrant le numéro.
+
+Corrigé : couverture **bleu nuit avec filet or** dans les quatre formats (le
+logo de l'organisation sur une pastille blanche : un logo foncé reste lisible),
+carte d'actu avec **barre de gravité et image à droite du texte**, mesurée avant
+d'être dessinée pour qu'elle ne se coupe pas. `detailRapportActu` ne redit plus
+la survenance quand elle tombe à la minute de la publication.
+
+**Piège Word / LibreOffice :** les largeurs de tableau en pourcentage ne sont
+pas respectées (cellules écrasées) ; les tableaux de ce fichier utilisent des
+largeurs fixes en DXA avec `columnWidths`.
+
+**Comment refaire cette mesure :** `docx`, `pdf-lib` et `pptxgenjs` se
+récupèrent par `npm` (le proxy l'autorise) ; la page les demande à
+`cdn.jsdelivr.net`, on intercepte avec `page.route()` et on les sert depuis
+disque. `dlFile` est remplacé par une capture du blob. LibreOffice convertit
+Word et PowerPoint en PDF, `pdftoppm` en images. Ne jamais juger un export à
+son code : le lire.
+
+**Non vérifié :** des images de source *réelles* dans ces documents (le bac à
+sable n'a pas de réseau : un jeu d'images de test servi avec l'en-tête CORS a
+validé la mise en page seulement), et le rendu dans Word lui-même
+(LibreOffice a servi de lecteur). `exports-habillage.test.js` garde ces
+choix, tous vus échouer sur l'ancien code.
