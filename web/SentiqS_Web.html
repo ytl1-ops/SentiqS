@@ -90,23 +90,29 @@ try {
      Rouge/ambre/marron/jaune de severite inchanges (#8B1A1A/#7C4A00/
      #78350F/#CA8A04), typographie IBM Plex Sans/Mono + Source Serif 4
      pour la marque, elle aussi inchangee. */
-  --n:#16233A;--b:#8A5D1A;--bl:#FBF3E7;--bb:#E9CDA0;
+  /* Direction « Salle de veille » du 20/10/2026 (voir le bloc du meme nom en
+     fin de feuille) : l'action passe du bronze a l'ENCRE (boutons noirs,
+     comme les references Palantir/Lacoste) ; le bronze --sig devient la
+     signature rare (onglet actif, filet de la barre du haut, focus). */
+  --n:#0E1116;--b:#14171C;--bl:#EEEEEA;--bb:#CFCFC8;
   --r:#8B1A1A;--rl:#FEF2F2;--rb:#FECACA;
   --a:#7C4A00;--al:#FFFBEB;--ab:#FDE68A;
   --g:#0F4F2A;--gl:#F0FDF4;--gb:#BBF7D0;--m:#78350F;--j:#CA8A04;--j-txt:#854D0E;
-  --gr:#574C3D;--lg:#6B5F52;--bd:#E6E0D3;
-  --sf:#FBF9F5;--w:#FFFFFF;--t:#1A1613;--t2:#3D362C;
+  --gr:#4A4F57;--lg:#5B616A;--bd:#E1E1DC;
+  --sf:#F7F7F5;--w:#FFFFFF;--t:#0E1116;--t2:#3A3F47;
   --sig:#A97425;--sigl:#FBF3E7;--sigb:#E9CDA0;
   /* Nouvelles variables de design */
-  --nav-bg:#16233A;--nav-border:#223350;--nav-active:#8A5D1A;
+  --nav-bg:#0B0E12;--nav-border:#232932;--nav-active:#A97425;
+  /* Chrome « salle de veille » : barre du haut et rail de modules en encre. */
+  --ink:#0B0E12;--ink-2:#151A21;--ink-line:#2A313B;--ink-txt:#ECEEF1;--ink-mute:#A3ABB6;
   --topbar-bg:linear-gradient(135deg,#16233A 0%,#1C2E48 100%);
-  --card-radius:9px;--card-shadow:0 1px 4px rgba(22,35,58,.08);
-  --card-shadow-hover:0 4px 14px rgba(22,35,58,.14);
+  --card-radius:4px;--card-shadow:none;
+  --card-shadow-hover:0 0 0 1px rgba(14,17,22,.22);
   --font-body:'IBM Plex Sans',system-ui,sans-serif;
   --font-mono:'IBM Plex Mono',monospace;
   --font-serif:'Source Serif 4',serif;
-  --accent-glow:rgba(138,93,26,.18);
-  --page-bg:#EFEAE0;
+  --accent-glow:rgba(14,17,22,.12);
+  --page-bg:#F2F2EF;
 
   /* ── Echelle typographique ────────────────────────────────────────────
      Audit du 23/09/2026, mesure sur le DOM rendu des 8 modules : 22 tailles
@@ -138,7 +144,7 @@ try {
 
   /* ── Rayons ───────────────────────────────────────────────────────────
      11 rayons distincts mesures. Trois suffisent, plus la pilule. */
-  --r-sm:4px; --r-md:8px; --r-lg:12px; --r-pill:999px;
+  --r-sm:3px; --r-md:4px; --r-lg:6px; --r-pill:999px;
 }
 /* ═══════════════════════════════════════════════════════════════════════════
    THEME SOMBRE — bascule explicite par l'utilisateur (bouton a cote
@@ -153,8 +159,8 @@ try {
    assombris en versions translucides pour rester lisibles sur fond sombre
    sans redevenir des rectangles clairs eblouissants. */
 html[data-theme="dark"]{
-  --on-b:#1B1408;--bleu-txt:#93B4F5;--violet-txt:#C4B5FD;
-  --n:#EAF0F7;
+  --on-b:#0B0E12;--bleu-txt:#93B4F5;--violet-txt:#C4B5FD;
+  --n:#ECEEF1;
   /* --b/--bl/--bb alignes sur le bronze de --sig du 23/09/2026 (direction B,
      voir :root plus haut) : avant ce correctif ils restaient teintes cobalt
      ici alors que le clair etait deja passe au bronze — un bouton bronze a
@@ -163,16 +169,20 @@ html[data-theme="dark"]{
      n'a pas ete reteinte : hors du perimetre valide (la maquette comparee
      n'a montre que le theme clair), et le theme clair reste celui par
      defaut. */
-  --b:#D9A85C;--bl:rgba(169,116,37,.2);--bb:rgba(217,168,92,.4);
+  /* 20/10/2026, direction « Salle de veille » : l'action devient le blanc
+     casse (pendant de l'encre du clair), les surfaces passent du bleu nuit
+     au graphite neutre. Gravite inchangee. */
+  --b:#ECEEF1;--bl:rgba(236,238,241,.09);--bb:rgba(236,238,241,.3);
   --rl:rgba(139,26,26,.22);--rb:rgba(248,113,113,.4);--r:#F87171;
   --al:rgba(124,74,0,.22);--ab:rgba(243,171,61,.4);--a:#F3AB3D;
   --gl:rgba(15,79,42,.24);--gb:rgba(74,222,128,.4);--g:#4ADE80;--m:#D9A85C;--j:#FDE047;--j-txt:#FDE047;
-  --gr:#B7C3D1;--lg:#9AAEC2;--bd:#28394E;
-  --sf:#141E2C;--w:#1B2839;--t:#EAF0F7;--t2:#B6C3D2;
+  --gr:#B4BBC4;--lg:#9EA6B1;--bd:#2A3039;
+  --sf:#111419;--w:#171B21;--t:#ECEEF1;--t2:#BCC3CC;
+  --ink:#06080A;--ink-2:#0F1216;--ink-line:#262C34;
   --sigl:rgba(169,116,37,.2);--sigb:rgba(217,168,92,.4);--sig:#D9A85C;
-  --card-shadow:0 1px 4px rgba(0,0,0,.35);
-  --card-shadow-hover:0 4px 14px rgba(0,0,0,.5);
-  --page-bg:#0E1520;
+  --card-shadow:none;
+  --card-shadow-hover:0 0 0 1px rgba(236,238,241,.25);
+  --page-bg:#0B0D11;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 /* width:100% + overflow-x:hidden explicites (pas seulement le comportement
@@ -2393,6 +2403,110 @@ html.force-mobile .art{display:block}
 html.force-mobile .art > .al{float:left;flex-direction:row;margin:0 var(--sp-2) 0 0;padding:0}
 html.force-mobile .art .sico{display:none}
 html.force-mobile .feed-pays-hd{padding:var(--sp-2) var(--sp-3)}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DIRECTION « SALLE DE VEILLE » — 20/10/2026
+   Demande : une presentation « robuste et securitaire », sur le modele de
+   palantir.com et lacoste.com. Ce qu'on en reprend — des principes, jamais
+   un logo, une image ou un texte :
+   - une seule couleur d'action, l'ENCRE (boutons noirs, liens noirs), au
+     lieu d'une teinte de marque partout : la couleur est reservee a ce qui
+     SIGNIFIE (les cinq niveaux de gravite, inchanges) ;
+   - un chrome sombre (barre du haut, rail des modules) qui encadre un
+     contenu clair : l'outil se lit comme un poste de commandement, le
+     contenu reste lisible en plein jour (le fond clair reste le defaut,
+     consigne « pas de fond tres sombre » respectee pour la zone de lecture) ;
+   - des filets d'un pixel au lieu des ombres, des angles a 4px au lieu de
+     9-12px, des petites capitales espacees pour les reperes ;
+   - le bronze de marque (--sig) devient une SIGNATURE rare : filet sous la
+     barre du haut, onglet actif, anneau de focus.
+   Mecanisme : les jetons sont REDEFINIS localement sur .tb et .nav-wrap.
+   Tout ce qui, dans ces deux zones, lit --w/--t/--b... suit sans qu'on
+   touche aux dizaines de regles et de styles en ligne qui les composent.
+   ═══════════════════════════════════════════════════════════════════════ */
+.tb,.nav-wrap{
+  --w:var(--ink);--sf:var(--ink-2);--bd:var(--ink-line);
+  --t:var(--ink-txt);--t2:#C9CED6;--lg:var(--ink-mute);--gr:var(--ink-mute);--n:#FFFFFF;
+  --b:#FFFFFF;--bl:rgba(255,255,255,.08);--bb:rgba(255,255,255,.28);--on-b:var(--ink);
+  color:var(--t);
+}
+.tb{background:var(--ink) !important;border-bottom:1px solid var(--sig) !important;height:52px}
+.tb .logo-ico{background:transparent !important;border:1px solid var(--sig) !important;box-shadow:none !important;border-radius:var(--r-sm)}
+.tb .logo-n{font-family:var(--font-body) !important;font-weight:700 !important;letter-spacing:.24em !important;text-transform:uppercase;font-size:14px !important;color:#fff !important}
+.tb .logo-s{color:var(--ink-mute);letter-spacing:.14em}
+.tb .actu-btn,.tb .disp-switch{background:transparent !important;border-color:var(--ink-line) !important;color:var(--t2);border-radius:var(--r-sm)}
+.tb .actu-btn:hover:not(:disabled){background:rgba(255,255,255,.08) !important;box-shadow:none;color:#fff}
+.actu-btn:hover:not(:disabled){background:var(--bl) !important;box-shadow:0 0 0 1px var(--bb)}
+/* Survol des boutons pleins : l'ancien brun (#6E4A15) suivait le bronze. */
+.auth-btn,.dbt.p,.dlp,.user-form button{box-shadow:none}
+.auth-btn:hover,.dbt.p:hover,.dlp:hover,.user-form button:hover{background:#2E333B;box-shadow:none;transform:none}
+html[data-theme="dark"] .auth-btn:hover,html[data-theme="dark"] .dbt.p:hover,
+html[data-theme="dark"] .dlp:hover,html[data-theme="dark"] .user-form button:hover{background:#FFFFFF}
+.art:hover{box-shadow:inset 3px 0 0 var(--t)}
+/* Les boutons « Actualiser » de chaque module etaient teintes bronze en
+   ligne : ils deviennent des boutons secondaires a filet, comme les autres. */
+body button[style*="background:rgba(138,93,26,.12)"]{background:var(--w) !important;border-color:var(--t) !important;color:var(--t) !important;border-radius:var(--r-sm) !important}
+body button[style*="background:rgba(138,93,26,.12)"]:hover{background:var(--t) !important;color:var(--w) !important}
+.cbar-fill{background:var(--t) !important}
+/* Theme sombre : deux defauts anterieurs trouves par la mesure de cette passe
+   (blanc sur le rouge clair du sombre, 2,8:1 ; vert fonce sur fond sombre, 3:1). */
+html[data-theme="dark"] .flashinfo-label{color:var(--on-b)}
+html[data-theme="dark"] .flashinfo-label .fi-dot{background:var(--on-b)}
+html[data-theme="dark"] .ltxt{color:var(--g)}
+
+/* Ecran de connexion : la scene d'operations passe a l'encre, la carte de
+   connexion reste claire. C'est la premiere image de l'outil : un poste de
+   veille, pas un formulaire pose sur du gris. Le globe et les noeuds en
+   bronze (signature) ; libelles d'angle a 8:1 sur l'encre. */
+.auth-overlay,.skyline-scene{background:var(--ink) !important}
+.skyline-scene{--lg:var(--ink-mute)}
+.ops-grid{background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px)}
+.ops-vignette,html[data-theme="dark"] .ops-vignette{background:radial-gradient(ellipse 75% 65% at 50% 42%,rgba(11,14,18,0) 0%,rgba(11,14,18,.55) 68%,rgba(6,8,10,.92) 100%)}
+.ops-globe-line{stroke:rgba(255,255,255,.13)}
+.ops-node{fill:var(--sig)}
+.ops-arc{stroke:var(--sig)}
+.ops-scan{background:linear-gradient(180deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.035) 50%,rgba(255,255,255,0) 100%)}
+.auth-box{border-radius:var(--r-lg) !important;border-color:transparent !important;box-shadow:0 24px 64px rgba(0,0,0,.45) !important}
+.auth-logo-ico{background:transparent !important;border:1px solid var(--sig) !important;border-radius:var(--r-sm) !important}
+.auth-logo-n{font-family:var(--font-body) !important;letter-spacing:.24em !important;text-transform:uppercase;font-size:17px !important}
+.tb .disp-btn{color:var(--t2)}
+
+/* Rail des modules : encre, petites capitales tres espacees, onglet actif
+   signe d'un filet bronze (le blanc seul suffirait, le bronze dit SentiqS). */
+.nav-wrap{background:var(--ink) !important;border-right:1px solid var(--ink-line) !important}
+.nav-wrap .nav{background:var(--ink) !important}
+.nav-wrap .ntab{letter-spacing:.14em !important;border-radius:0 !important;color:var(--ink-mute) !important}
+.nav-wrap .ntab:hover:not(.on){color:#fff !important;background:rgba(255,255,255,.05)}
+.nav-wrap .ntab.on{color:#fff !important;border-left-color:var(--sig) !important;background:rgba(255,255,255,.07)}
+
+/* Contenu : a plat, filets d'un pixel, angles courts. Les styles en ligne
+   des rendus (9-12px) sont ramenes au rayon du systeme, meme technique de
+   filet que la revision du 15/10/2026 : un seul endroit a relire. */
+body [style*="border-radius:9px" i],body [style*="border-radius:10px" i],
+body [style*="border-radius:12px" i],body [style*="border-radius:8px" i]{border-radius:var(--r-md) !important}
+.acard,.si-card,.rp-card,.astat,.pricing-card,.rp-ent-card,.traffic-kpi{border-radius:var(--r-md) !important}
+.si-card:hover,.eq-device-card:hover,.paymethod-card:hover,.traffic-kpi:hover,.rp-ent-card:hover,.pricing-card:hover{transform:none}
+.chip{border-radius:var(--r-sm)}
+.chip.on{background:var(--b);border-color:var(--b);color:var(--on-b)}
+html[data-theme="dark"] .chip.on{color:var(--on-b)}
+.chip.rc.on{background:var(--r);border-color:var(--r);color:#fff}
+
+/* Tuiles d'indicateurs (tableau de bord) : le chiffre domine, aligne a
+   gauche, chiffres tabulaires ; l'etiquette en petites capitales espacees. */
+.kpi-tile{text-align:left !important;padding:12px 14px 10px !important}
+.kpi-tile .kpi-v{font-size:28px !important;font-weight:600 !important;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.kpi-tile .kpi-l{font-size:var(--fs-micro) !important;letter-spacing:.12em !important;font-weight:600;color:var(--t2) !important;margin-top:6px !important}
+.kpi-tile .kpi-s{font-size:var(--fs-micro) !important;color:var(--lg) !important;opacity:1 !important}
+.kpi-tile:hover{box-shadow:0 0 0 1px var(--t)}
+
+/* Mobile : la barre de modules reste en haut (horizontale), en encre aussi ;
+   l'onglet actif garde le meme filet bronze, sous le libelle. */
+@media (max-width:760px){
+  html:not(.force-web) .nav-wrap .ntab.on{border-bottom-color:var(--sig) !important}
+  html:not(.force-web) .tb .logo-n{letter-spacing:.16em}
+}
+html.force-mobile .nav-wrap .ntab.on{border-bottom-color:var(--sig) !important}
+html.force-mobile .tb .logo-n{letter-spacing:.16em}
 
 </style>
 
@@ -12844,10 +12958,10 @@ function setDashCartoMode(m) { window.dashCartoMode = m; if (typeof renderDashbo
   // demande) : le bandeau du haut du Tableau de bord occupait trop de place
   // avant le contenu utile (heatmap/zones/flux prioritaire).
   const kpiCard = (v,l,c,icon,kind,sub) =>
-    `<div class="acard" style="background:var(--w);border:1px solid var(--bd);border-top:3px solid ${c};border-radius:9px;padding:8px;text-align:center;position:relative;cursor:pointer;" onclick="showKpiDrill('${kind}')" title="${sub?sub+' — ':''}Voir le détail">
-       <i class="ti ${icon||'ti-chart-bar'}" style="position:absolute;top:6px;right:8px;font-size:12px;color:${c};opacity:.45;"></i>
-       <div style="font-family:var(--font-mono,'Roboto Mono',monospace);font-size:17px;font-weight:700;color:${c};line-height:1.1;">${v}</div>
-       <div style="font-size:9px;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;">${l}</div>${sub?`<div style="font-size:7.5px;color:var(--lg);opacity:.7;margin-top:1px;">${sub}</div>`:''}
+    `<div class="acard kpi-tile" style="background:var(--w);border:1px solid var(--bd);border-top:2px solid ${c};border-radius:9px;padding:8px;text-align:center;position:relative;cursor:pointer;" onclick="showKpiDrill('${kind}')" title="${sub?sub+' — ':''}Voir le détail">
+       <i class="ti ${icon||'ti-chart-bar'}" style="position:absolute;top:10px;right:12px;font-size:13px;color:var(--lg);"></i>
+       <div class="kpi-v" style="font-family:var(--font-mono,'Roboto Mono',monospace);font-size:17px;font-weight:700;color:${c};line-height:1.1;">${v}</div>
+       <div class="kpi-l" style="font-size:9px;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;">${l}</div>${sub?`<div class="kpi-s" style="font-size:7.5px;color:var(--lg);opacity:.7;margin-top:1px;">${sub}</div>`:''}
      </div>`;
 
   // Cartogramme régional : les 54 pays regroupés par zone geographique
