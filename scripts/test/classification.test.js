@@ -177,3 +177,18 @@ test('une competition continentale de clubs ou une categorie d\'age reste du spo
   assert.strictEqual(b.lvl, 'ok', 'un match de handball n\'est pas un incident');
   assert.strictEqual(b.cat, 'sport');
 });
+
+test("une crise médicale n'est pas une crise de sûreté", () => {
+  // Cas réel du bulletin du 20/10/2026 : « Crise d'épilepsie : voici cinq bons
+  // réflexes » sortait ÉLEVÉ à cause de « crise » (CK_HIGH). Les expressions
+  // médicales sont neutralisées ; une vraie crise politique garde son niveau.
+  for (const t of [
+    "Crise d'épilepsie : voici cinq bons réflexes à adopter et les erreurs à ne pas commettre",
+    "Crise d'asthme : comment réagir",
+    'Une crise de paludisme chez l\'enfant : les gestes qui sauvent',
+  ]) {
+    const r = classify(t, src('CI'));
+    assert.strictEqual(r.lvl, 'ok', `« ${t} » ne doit pas alerter (obtenu ${r.lvl})`);
+  }
+  assert.notStrictEqual(classify('Crise politique : violents affrontements à Abidjan', src('CI')).lvl, 'ok');
+});
