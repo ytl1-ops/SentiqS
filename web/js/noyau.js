@@ -569,6 +569,28 @@ function peutAlerter(source, seuil) {
   return !estRequeteGoogleNews(source);
 }
 
+// ── Cotation d'un fait pour le client ───────────────────────────────────────
+//
+// Décision du 20/10/2026 (profil pilote : responsable sûreté d'entreprise) :
+// le client lit trois mots, pas la grille A-F/1-6 de l'analyste. Ils disent
+// ce que l'outil sait réellement, rien de plus :
+//   - confirmé     : recoupé par une seconde source distincte (fusion au
+//                    dédoublonnage) — c'est la seule chose que `verified` veut
+//                    dire dans ce produit ;
+//   - probable     : une seule source, mais capable d'alerter (même règle que
+//                    peutAlerter : note >= seuil, pas une recherche Google News) ;
+//   - non confirmé : une seule source, sous le seuil.
+// « Confirmé » ne veut PAS dire confirmé par une autorité : le bulletin
+// l'écrit en toutes lettres sous la légende.
+const COTATION_LIBELLES = { confirme: 'Confirmé', probable: 'Probable', non_confirme: 'Non confirmé' };
+
+function cotationArticle(article, source, seuil) {
+  const a = article || {};
+  const recoupe = a.verified === true || (Array.isArray(a._fusionnes) && a._fusionnes.length > 0);
+  const cle = recoupe ? 'confirme' : (peutAlerter(source, seuil) ? 'probable' : 'non_confirme');
+  return { cle, libelle: COTATION_LIBELLES[cle] };
+}
+
 // ── Exposition ─────────────────────────────────────────────────────────────
 // Navigateur : les noms deviennent globaux, exactement comme lorsqu'ils
 // etaient declares dans le script inline. Node : export CommonJS pour les
@@ -587,6 +609,7 @@ const API = {
   tendanceNiveaux,
   CONFIANCE_SOCLE_RECENT_J, CONFIANCE_SOCLE_ANCIEN_J, CONFIANCE_LIBELLES, indiceConfiance,
   angleMort, estRequeteGoogleNews, peutAlerter,
+  COTATION_LIBELLES, cotationArticle,
   MAX_LIVE_EVENTS_PAR_PAYS,
 };
 
