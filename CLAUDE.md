@@ -2499,3 +2499,21 @@ désormais `revu:'2026-10'` — premier facteur daté du socle.
 `PLAFOND_FACTEURS_NON_DATES` : 38 → 36. Rejeu de la vraie page avant/après :
 **seule la Côte d'Ivoire bouge, orange → jaune** ; ALERTE_EVENTS passe de 172
 à 169 incidents. La revue du pays pilote est hebdomadaire pendant le pilote.
+
+---
+
+## « Ce que nous ne savons pas » — 20/10/2026
+
+Étape 3 du plan d'audit. `angleMort` (noyau) range un périmètre en quatre
+familles : pays muets, pays « hors alerte » (du flux mais aucune source
+fiable), pays à une seule source capable d'alerter (ou aucune), pays dont le
+socle a plus de 90 jours (`CONFIANCE_SOCLE_ANCIEN_J`). Il ne note aucun pays.
+Affiché en tête de la Synthèse (même périmètre que ses filtres) et avant les
+fiches dans les rapports d'alertes (PDF, Word, aperçu imprimable), FR/EN, avec
+la phrase : un pays listé n'est pas plus dangereux, c'est un pays que l'outil
+voit mal.
+
+La règle « capable d'alerter » (`peutAlerter`, `estRequeteGoogleNews`) a
+quitté `scripts/lib/capacite-alerte.js` pour le noyau, qui la partage avec la
+page ; la bibliothèque la réexporte. Mesuré sur la vraie page : 21 pays à
+source unique, exactement le cliquet `PLAFOND_PAYS_SOURCE_UNIQUE`.

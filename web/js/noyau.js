@@ -528,6 +528,47 @@ function indiceConfiance(o) {
   return { cle, libelle: CONFIANCE_LIBELLES[cle], ageSocleJ, signauxDuJour: signaux, muet, motif: socle + ' ; ' + jour };
 }
 
+// ── Où l'outil est aveugle : « Ce que nous ne savons pas » ──────────────────
+//
+// Audit du 20/10/2026 : 26 pays n'avaient qu'une source capable d'alerter,
+// deux aucune actualité de moins de 12 h, et la plupart un socle de plus de
+// 90 jours. Tout était mesuré, rien n'était dit dans la Synthèse ni dans les
+// rapports clients : un pays sur lequel on ne sait rien s'y lisait comme un
+// pays calme. angleMort range un périmètre en quatre familles. Il ne note
+// aucun pays : il dit seulement où l'outil ne voit pas.
+//
+// Chaque entrée : {cy, nom, muet, aveugle, sourcesAlerte, ageSocleJ}.
+function angleMort(pays) {
+  const liste = Array.isArray(pays) ? pays.filter(Boolean) : [];
+  const muets = liste.filter(p => p.muet);
+  const horsAlerte = liste.filter(p => !p.muet && p.aveugle);
+  const sourceUnique = liste.filter(p => (Number(p.sourcesAlerte) || 0) <= 1);
+  const socleAncien = liste.filter(p => p.ageSocleJ === null || p.ageSocleJ === undefined || p.ageSocleJ > CONFIANCE_SOCLE_ANCIEN_J);
+  const cles = new Set([...muets, ...horsAlerte, ...sourceUnique, ...socleAncien].map(p => p.cy));
+  return { muets, horsAlerte, sourceUnique, socleAncien, total: cles.size, vide: cles.size === 0, perimetre: liste.length };
+}
+
+// ── Une source « capable d'alerter » ───────────────────────────────────────
+//
+// Déplacée ici depuis scripts/lib/capacite-alerte.js (qui la réexporte) pour
+// que la page compte les sources avec la même règle que les contrôles de
+// registre. Deux conditions : la note (seuil 70, celui de getLiveAlertEvents)
+// et la route — une requête Google News de RECHERCHE est écartée par
+// sourceDateNonFiable avant d'entrer dans ALL : elle ne peut rien signaler,
+// quelle que soit sa note (mesure du 07/09/2026, collecte n° 850).
+function estRequeteGoogleNews(source) {
+  let hote = '', chemin = '';
+  try { const u = new URL(String((source && source.rss) || '')); hote = u.hostname; chemin = u.pathname; }
+  catch (_) { return false; }
+  return hote === 'news.google.com' && /^\/rss\/search/.test(chemin);
+}
+
+function peutAlerter(source, seuil) {
+  if (!source) return false;
+  if ((Number(source.score) || 0) < seuil) return false;
+  return !estRequeteGoogleNews(source);
+}
+
 // ── Exposition ─────────────────────────────────────────────────────────────
 // Navigateur : les noms deviennent globaux, exactement comme lorsqu'ils
 // etaient declares dans le script inline. Node : export CommonJS pour les
@@ -545,6 +586,7 @@ const API = {
   DISJONCTEUR_SEUIL, creerDisjoncteur, avecDisjoncteur,
   tendanceNiveaux,
   CONFIANCE_SOCLE_RECENT_J, CONFIANCE_SOCLE_ANCIEN_J, CONFIANCE_LIBELLES, indiceConfiance,
+  angleMort, estRequeteGoogleNews, peutAlerter,
   MAX_LIVE_EVENTS_PAR_PAYS,
 };
 

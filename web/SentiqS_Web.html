@@ -5885,6 +5885,10 @@ const RAPPORT_LBL = {
     confiance:'Confiance', conf_niv:{elevee:'élevée',moyenne:'moyenne',faible:'faible'},
     conf_socle:j=>'incident vérifié le plus récent : '+j+(j===1?' jour':' jours'), conf_sans_socle:'aucun incident vérifié daté',
     conf_signaux:n=>n+(n===1?' signal du jour':' signaux du jour'), conf_sans_signal:'aucun signal du jour', conf_muet:'aucune publication sur ce pays',
+    am_titre:'Ce que nous ne savons pas', am_vide:'Aucun angle mort mesuré sur ce périmètre.',
+    am_muets:'Aucune actualité récente', am_hors:'Du flux, mais aucune source fiable', am_unique:'Une seule source capable d\'alerter (ou aucune)', am_socle:'Socle vérifié de plus de 90 jours',
+    am_autres:n=>' et '+n+' autre'+(n>1?'s':''),
+    am_note:'Un pays listé ici n\'est pas plus dangereux : c\'est un pays sur lequel l\'outil voit mal. Son niveau peut sous-estimer la situation.',
     niv:{rouge:'ROUGE',marron:'MARRON',orange:'ORANGE',jaune:'JAUNE',vert:'VERT'},
     titres_rapport:{synthese:'Synthèse analytique', flux:'Flux opérationnel', agenda:'Agenda sûreté', alertes:'Alertes pays', rapport_complet:'Rapport complet', sources:'Matrice des sources'},
   },
@@ -5896,6 +5900,10 @@ const RAPPORT_LBL = {
     confiance:'Confidence', conf_niv:{elevee:'high',moyenne:'medium',faible:'low'},
     conf_socle:j=>'latest verified incident: '+j+(j===1?' day':' days')+' old', conf_sans_socle:'no dated verified incident',
     conf_signaux:n=>n+(n===1?' signal today':' signals today'), conf_sans_signal:'no signal today', conf_muet:'nothing published on this country',
+    am_titre:'What we do not know', am_vide:'No blind spot measured in this scope.',
+    am_muets:'No recent news', am_hors:'Some news, but no reliable source', am_unique:'Only one alert-capable source (or none)', am_socle:'Verified baseline older than 90 days',
+    am_autres:n=>' and '+n+' more',
+    am_note:'A country listed here is not more dangerous: it is a country the tool sees poorly. Its level may understate the situation.',
     niv:{rouge:'RED',marron:'MAROON',orange:'ORANGE',jaune:'YELLOW',vert:'GREEN'},
     titres_rapport:{synthese:'Analytical summary', flux:'Operational feed', agenda:'Security agenda', alertes:'Country alerts', rapport_complet:'Full report', sources:'Sources matrix'},
   },
@@ -5913,6 +5921,43 @@ function texteConfianceRapport(c) {
   const socle = c.ageSocleJ === null || c.ageSocleJ === undefined ? rl('conf_sans_socle') : rl('conf_socle')(c.ageSocleJ);
   const jour = c.muet ? rl('conf_muet') : (c.signauxDuJour ? rl('conf_signaux')(c.signauxDuJour) : rl('conf_sans_signal'));
   return rl('confiance') + ' ' + (rl('conf_niv')[c.cle] || c.cle) + ' — ' + socle + ' ; ' + jour;
+}
+
+// « Ce que nous ne savons pas » (audit du 20/10/2026, voir angleMort dans le
+// noyau) : les pays du perimetre ou l'outil voit mal, dits en clair dans la
+// Synthese et les rapports au lieu d'y passer pour des pays calmes.
+function angleMortPerimetre(cys) {
+  const liste = (cys || Object.keys(PAYS_INFO)).filter(cy => cy && cy !== 'INT' && PAYS_INFO[cy])
+    .sort((x, y) => String(PAYS_INFO[x].name).localeCompare(String(PAYS_INFO[y].name), 'fr'));
+  return angleMort(liste.map(cy => {
+    const sc = calcAlertScore(cy);
+    return {
+      cy, nom: (PAYS_INFO[cy] || {}).name || cy,
+      muet: paysMuet(cy), aveugle: paysAveugleAlerte(cy),
+      sourcesAlerte: SRCS.filter(src => src.cy === cy && peutAlerter(src, SEUIL_SOURCE_ALERTE)).length,
+      ageSocleJ: sc.confiance ? sc.confiance.ageSocleJ : null,
+    };
+  }));
+}
+// Lignes de texte, une par famille non vide ; 12 noms au plus par ligne.
+function texteAngleMort(am) {
+  if (!am || am.vide) return [rl('am_vide')];
+  const noms = l => { const n = l.map(p => L(p.nom)); return n.slice(0, 12).join(', ') + (n.length > 12 ? rl('am_autres')(n.length - 12) : ''); };
+  const lignes = [];
+  if (am.muets.length) lignes.push(rl('am_muets') + ' (' + am.muets.length + ') : ' + noms(am.muets));
+  if (am.horsAlerte.length) lignes.push(rl('am_hors') + ' (' + am.horsAlerte.length + ') : ' + noms(am.horsAlerte));
+  if (am.sourceUnique.length) lignes.push(rl('am_unique') + ' (' + am.sourceUnique.length + ') : ' + noms(am.sourceUnique));
+  if (am.socleAncien.length) lignes.push(rl('am_socle') + ' (' + am.socleAncien.length + ') : ' + noms(am.socleAncien));
+  return lignes;
+}
+function blocAngleMortHTML(am) {
+  const lignes = texteAngleMort(am);
+  return '<div class="sy-sec" id="syAngleMort"><div class="sy-shd" style="background:var(--sf);color:var(--t);border-left:3px solid var(--t2);">'
+    + '<i class="ti ti-eye-off"></i>' + escHtml(rl('am_titre')) + '</div>'
+    + '<div style="padding:10px 12px;font-size:12px;color:var(--t2);line-height:1.6;">'
+    + lignes.map(l => '<div>' + escHtml(l) + '</div>').join('')
+    + (am && !am.vide ? '<div style="margin-top:6px;font-size:var(--fs-micro,10px);color:var(--lg);">' + escHtml(rl('am_note')) + '</div>' : '')
+    + '</div></div>';
 }
 // TR_CONCURRENCE_MAX : plafond de requetes de traduction simultanees. Un
 // rapport complet peut contenir plusieurs centaines de textes distincts a
@@ -13007,6 +13052,12 @@ async function updSynthese() {
   ];
 
   let html='';
+
+  // Ce que nous ne savons pas, sur le meme perimetre : avant les actualites,
+  // pour que l'absence de signal ne se lise pas comme un calme.
+  const cysSy = fSyCy !== 'all' ? [fSyCy]
+    : Object.keys(PAYS_INFO).filter(cy => fSyZone === 'all' || CY_TO_ZONE[cy] === fSyZone);
+  html += blocAngleMortHTML(angleMortPerimetre(cysSy));
 
   // Actualites a traiter (< 12h), respecte le meme perimetre pays/zone que la synthese
   html += await renderPanelATraiter(fSyCy !== 'all' ? fSyCy : 'all', fSyZone !== 'all' ? fSyZone : 'all');
@@ -21818,6 +21869,11 @@ async function exportPDF(type) {
     else if (type === 'alertes') {
       const cys = fRapportCy!=='all' ? [fRapportCy] : Object.keys(PAYS_INFO).filter(cy => !fRapportZone || fRapportZone==='all' || CY_TO_ZONE[cy]===fRapportZone);
       const scores = cys.map(cy=>({cy, pays:PAYS_INFO[cy], sc:calcAlertScore(cy)})).sort((a,b2)=>b2.sc.total-a.sc.total);
+      // Ce que nous ne savons pas (20/10/2026) : avant les fiches pays.
+      const amPdf = angleMortPerimetre(cys);
+      b.sub(rl('am_titre'), rgb(0.29,0.33,0.39));
+      texteAngleMort(amPdf).forEach(l => b.para(l, {size:9}));
+      if (!amPdf.vide) b.para(rl('am_note'), {size:8.5, color:rgb(0.42,0.46,0.5)});
 
       // Enrichissement par pays — actualité nationale + actualité régionale
       // (pays limitrophes, chacune étiquetée avec son pays d'origine), sans
@@ -22277,7 +22333,15 @@ async function _buildRapportAlertesHTML(scores) {
   await preTraduireRapport([
     ...scores.filter(s=>s&&s.pays&&s.pays.name).map(s=>s.pays.name),
   ]);
-  const body = _apSectionBand('ALERTES PAYS — NIVEAU COMPOSITE') + (scores.length ? scores.map(_apAlerteItem).join('') : '<div style="font-size:12.5px;color:#6B7280;font-style:italic;">Aucun pays dans ce périmètre.</div>');
+  // Ce que nous ne savons pas (20/10/2026) : avant les fiches, pour que le
+  // lecteur sache ou le niveau peut sous-estimer la situation.
+  const am = angleMortPerimetre(scores.map(s => s && s.cy).filter(Boolean));
+  const blocAm = '<div style="margin-bottom:14px;break-inside:avoid;border:1px solid #D1D9E0;border-left:3px solid #4B5563;border-radius:4px;padding:12px 14px;">'
+    + '<div style="font-weight:700;font-size:13px;color:#0B1A27;margin-bottom:4px;">'+_apEsc(rl('am_titre'))+'</div>'
+    + texteAngleMort(am).map(l => '<div style="font-size:12px;color:#374151;">'+_apEsc(l)+'</div>').join('')
+    + (am.vide ? '' : '<div style="font-size:11px;color:#6B7280;margin-top:4px;">'+_apEsc(rl('am_note'))+'</div>')
+    + '</div>';
+  const body = _apSectionBand('ALERTES PAYS — NIVEAU COMPOSITE') + blocAm + (scores.length ? scores.map(_apAlerteItem).join('') : '<div style="font-size:12.5px;color:#6B7280;font-style:italic;">Aucun pays dans ce périmètre.</div>');
   const stats = _apStatsGrid([{value:scores.length, label:'PAYS', color:'#16233A'}]);
   return _apPageWrap('Alertes pays', 'Niveau composite par pays', stats, body, 'alertes');
 }
@@ -22934,6 +22998,8 @@ async function exportWord(type){
       children.push(topBar('IV. ALERTES PAYS — Niveau composite & dossier régional', '8B1A1A'));
       const cysW = fRapportCy!=='all' ? [fRapportCy] : Object.keys(PAYS_INFO).filter(cy => !fRapportZone || fRapportZone==='all' || CY_TO_ZONE[cy]===fRapportZone);
       const scoresW = cysW.map(cy=>({cy, pays:PAYS_INFO[cy], sc:calcAlertScore(cy)})).sort((a,b2)=>b2.sc.total-a.sc.total);
+      // Ce que nous ne savons pas (20/10/2026) : apres le guide de lecture.
+      const amW = angleMortPerimetre(cysW);
       // Noms de pays et mesures de protection non couverts par la
       // pre-traduction generale du haut de fonction (qui ne porte que sur
       // les actus/agenda) — sans ce complement, ils restent en francais
@@ -22948,6 +23014,9 @@ async function exportWord(type){
           ? 'Composite score = verified incidents + aggravating factors, out of 100. Levels: RED (severe), BROWN (critical), ORANGE (high), YELLOW (moderate), GREEN (stable).'
           : 'Score composite = incidents vérifiés + facteurs aggravants, sur 100. Niveaux : ROUGE (grave), MARRON (critique), ORANGE (élevé), JAUNE (modéré), VERT (stable).',
         '4B5563'));
+      children.push(new Paragraph({spacing:{after:120}}));
+      children.push(calloutBox(rl('am_titre').toUpperCase(),
+        texteAngleMort(amW).join(' — ') + (amW.vide ? '' : ' ' + rl('am_note')), '4B5563'));
       children.push(new Paragraph({spacing:{after:120}}));
 
       const rangOrdreW = {crit:0, high:1, mod:2, ok:3};
