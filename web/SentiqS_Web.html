@@ -40,9 +40,13 @@ try {
      un utilisateur ayant deja choisi le sombre. Voir appliquerTheme()/
      toggleTheme() plus bas pour la logique complete (bouton, libelle). -->
 <script>
+// 20/10/2026 : le bleu nuit devient le theme par defaut (decision de
+// l'editeur). Seul un choix EXPLICITE du clair (bouton, cle
+// sentinel_theme_choix) le garde : l'ancienne cle sentinel_theme etait
+// reecrite a chaque chargement, elle ne dit pas ce que l'utilisateur a choisi.
+document.documentElement.setAttribute('data-theme', 'dark');
 try {
-  var _thPref = localStorage.getItem('sentinel_theme');
-  if (_thPref === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  if (localStorage.getItem('sentinel_theme_choix') === 'light') document.documentElement.setAttribute('data-theme', 'light');
 } catch (e) {}
 </script>
 <title>SentiqS — Veille sûreté et sécurité en Afrique (54 pays) en temps réel</title>
@@ -70,6 +74,7 @@ try {
 :root{
   /* Jetons de la revision du 15/10/2026 (texte sur accent, bleu et violet de texte). */
   --on-b:#FFFFFF;--bleu-txt:#2C5AAE;--violet-txt:#6D28D9;
+  --p:0; /* progression de l'animation d'ouverture, ecrite par js/intro.js */
   /* Palette "Horizon Cobalt & Bronze", direction B du 23/09/2026 : deux
      roles distincts au lieu d'un bleu unique partout (audit du meme jour —
      "cobalt utilise a la fois pour la structure, l'action et les liens,
@@ -90,23 +95,29 @@ try {
      Rouge/ambre/marron/jaune de severite inchanges (#8B1A1A/#7C4A00/
      #78350F/#CA8A04), typographie IBM Plex Sans/Mono + Source Serif 4
      pour la marque, elle aussi inchangee. */
-  --n:#16233A;--b:#8A5D1A;--bl:#FBF3E7;--bb:#E9CDA0;
+  /* Direction « Salle de veille » du 20/10/2026 (voir le bloc du meme nom en
+     fin de feuille) : l'action passe du bronze a l'ENCRE (boutons noirs,
+     comme les references Palantir/Lacoste) ; le bronze --sig devient la
+     signature rare (onglet actif, filet de la barre du haut, focus). */
+  --n:#0E1116;--b:#14171C;--bl:#EEEEEA;--bb:#CFCFC8;
   --r:#8B1A1A;--rl:#FEF2F2;--rb:#FECACA;
   --a:#7C4A00;--al:#FFFBEB;--ab:#FDE68A;
   --g:#0F4F2A;--gl:#F0FDF4;--gb:#BBF7D0;--m:#78350F;--j:#CA8A04;--j-txt:#854D0E;
-  --gr:#574C3D;--lg:#6B5F52;--bd:#E6E0D3;
-  --sf:#FBF9F5;--w:#FFFFFF;--t:#1A1613;--t2:#3D362C;
+  --gr:#4A4F57;--lg:#5B616A;--bd:#E1E1DC;
+  --sf:#F7F7F5;--w:#FFFFFF;--t:#0E1116;--t2:#3A3F47;
   --sig:#A97425;--sigl:#FBF3E7;--sigb:#E9CDA0;
   /* Nouvelles variables de design */
-  --nav-bg:#16233A;--nav-border:#223350;--nav-active:#8A5D1A;
+  --nav-bg:#0B0E12;--nav-border:#232932;--nav-active:#A97425;
+  /* Chrome « salle de veille » : barre du haut et rail de modules en encre. */
+  --ink:#0B0E12;--ink-2:#151A21;--ink-line:#2A313B;--ink-txt:#ECEEF1;--ink-mute:#A3ABB6;
   --topbar-bg:linear-gradient(135deg,#16233A 0%,#1C2E48 100%);
-  --card-radius:9px;--card-shadow:0 1px 4px rgba(22,35,58,.08);
-  --card-shadow-hover:0 4px 14px rgba(22,35,58,.14);
+  --card-radius:4px;--card-shadow:none;
+  --card-shadow-hover:0 0 0 1px rgba(14,17,22,.22);
   --font-body:'IBM Plex Sans',system-ui,sans-serif;
   --font-mono:'IBM Plex Mono',monospace;
   --font-serif:'Source Serif 4',serif;
-  --accent-glow:rgba(138,93,26,.18);
-  --page-bg:#EFEAE0;
+  --accent-glow:rgba(14,17,22,.12);
+  --page-bg:#F2F2EF;--vact-niv:var(--lg);
 
   /* ── Echelle typographique ────────────────────────────────────────────
      Audit du 23/09/2026, mesure sur le DOM rendu des 8 modules : 22 tailles
@@ -138,7 +149,7 @@ try {
 
   /* ── Rayons ───────────────────────────────────────────────────────────
      11 rayons distincts mesures. Trois suffisent, plus la pilule. */
-  --r-sm:4px; --r-md:8px; --r-lg:12px; --r-pill:999px;
+  --r-sm:3px; --r-md:4px; --r-lg:6px; --r-pill:999px;
 }
 /* ═══════════════════════════════════════════════════════════════════════════
    THEME SOMBRE — bascule explicite par l'utilisateur (bouton a cote
@@ -153,8 +164,7 @@ try {
    assombris en versions translucides pour rester lisibles sur fond sombre
    sans redevenir des rectangles clairs eblouissants. */
 html[data-theme="dark"]{
-  --on-b:#1B1408;--bleu-txt:#93B4F5;--violet-txt:#C4B5FD;
-  --n:#EAF0F7;
+  --bleu-txt:#93B4F5;--violet-txt:#C4B5FD;
   /* --b/--bl/--bb alignes sur le bronze de --sig du 23/09/2026 (direction B,
      voir :root plus haut) : avant ce correctif ils restaient teintes cobalt
      ici alors que le clair etait deja passe au bronze — un bouton bronze a
@@ -163,16 +173,26 @@ html[data-theme="dark"]{
      n'a pas ete reteinte : hors du perimetre valide (la maquette comparee
      n'a montre que le theme clair), et le theme clair reste celui par
      defaut. */
-  --b:#D9A85C;--bl:rgba(169,116,37,.2);--bb:rgba(217,168,92,.4);
+  /* 20/10/2026 (soir), direction « Bleu nuit » : le sombre devient le
+     theme par defaut. Surfaces en bleu nuit etagees (page < sous-surface <
+     carte), action et signature en or (le bronze de la marque eclairci pour
+     le fond sombre), texte blanc bleute. Gravite inchangee. Couples mesures
+     AA : texte le plus pale (--lg) a 6,9:1 sur la carte, 5,7:1 sur le halo
+     le plus clair du degrade de page. */
+  --on-b:#0A1733;
+  --n:#EEF3FB;
+  --b:#E6BA6E;--bl:rgba(230,186,110,.14);--bb:rgba(230,186,110,.42);
   --rl:rgba(139,26,26,.22);--rb:rgba(248,113,113,.4);--r:#F87171;
   --al:rgba(124,74,0,.22);--ab:rgba(243,171,61,.4);--a:#F3AB3D;
   --gl:rgba(15,79,42,.24);--gb:rgba(74,222,128,.4);--g:#4ADE80;--m:#D9A85C;--j:#FDE047;--j-txt:#FDE047;
-  --gr:#B7C3D1;--lg:#9AAEC2;--bd:#28394E;
-  --sf:#141E2C;--w:#1B2839;--t:#EAF0F7;--t2:#B6C3D2;
-  --sigl:rgba(169,116,37,.2);--sigb:rgba(217,168,92,.4);--sig:#D9A85C;
-  --card-shadow:0 1px 4px rgba(0,0,0,.35);
-  --card-shadow-hover:0 4px 14px rgba(0,0,0,.5);
-  --page-bg:#0E1520;
+  --gr:#AFBDD6;--lg:#9FB0CC;--bd:#1E3A6E;
+  --sf:#0B1C3F;--w:#0F2450;--t:#EEF3FB;--t2:#C5D1E6;
+  --ink:#050E24;--ink-2:#0A1838;--ink-line:#1C3466;--ink-txt:#EEF3FB;--ink-mute:#A9B8D2;
+  --nav-bg:#050E24;--nav-border:#1C3466;--nav-active:#E6BA6E;
+  --sigl:rgba(230,186,110,.16);--sigb:rgba(230,186,110,.42);--sig:#E6BA6E;
+  --card-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 10px 30px -18px rgba(0,0,0,.7);
+  --card-shadow-hover:0 0 0 1px rgba(230,186,110,.45),0 14px 34px -16px rgba(0,0,0,.75);
+  --page-bg:#071431;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 /* width:100% + overflow-x:hidden explicites (pas seulement le comportement
@@ -944,8 +964,11 @@ body.plein-ecran-module > .stbar { display:none !important; }
    même raison : aucune des deux ne passe par cette fonction). */
 .intro-video-overlay{position:absolute;inset:0;z-index:10;background:#000;
   display:flex;align-items:center;justify-content:center;overflow:hidden}
+.intro-video-overlay{transition:opacity .5s ease}
+.intro-video-overlay.intro-sortie{opacity:0;pointer-events:none}
 .intro-video-overlay.hidden{display:none}
 .intro-video-el{width:100%;height:100%;object-fit:cover}
+.intro-progress{position:absolute;left:0;bottom:0;height:3px;width:calc(var(--p,0) * 100%);background:linear-gradient(90deg,#7FB3D3,#E6BA6E);transition:width .3s linear;z-index:11}
 .intro-video-skip{position:absolute;bottom:20px;right:20px;z-index:11;
   padding:8px 16px;border-radius:8px;background:rgba(0,0,0,.45);
   border:1px solid rgba(255,255,255,.25);color:#fff;font-size:11px;font-weight:700;
@@ -1039,6 +1062,16 @@ html.force-mobile .ops-label{display:none}
 .auth-btn:hover{background:#6E4A15;box-shadow:0 4px 12px rgba(138,93,26,.4);transform:translateY(-1px)}
 .auth-btn:active{transform:translateY(0)}
 .auth-btn:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;transform:none}
+.auth-options{margin:2px 0 8px}
+.auth-options>summary{cursor:pointer;font-size:11px;color:var(--lg);padding:6px 0;list-style:none;letter-spacing:.04em}
+.auth-options>summary::-webkit-details-marker{display:none}
+.auth-options>summary::before{content:'+ ';color:var(--sig)}
+.auth-options[open]>summary::before{content:'\2212 '}
+.auth-options select{width:100%;padding:10px 13px;background:var(--w);color:var(--t);border:1px solid var(--bd);border-radius:7px;font-size:13px;font-family:inherit}
+.auth-alt{text-align:center;margin-top:12px;font-size:12px;color:var(--lg)}
+.auth-alt [role=button]{color:var(--b);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.auth-alt [aria-disabled=true]{color:var(--lg);cursor:default;text-decoration:none}
+.auth-code{font-size:26px !important;letter-spacing:.5em;text-align:center;font-family:var(--font-mono,monospace);padding:12px 8px !important}
 .auth-err{font-size:11px;color:var(--r);background:var(--rl);
   border:1px solid var(--rb);border-radius:5px;padding:8px 12px;
   margin-top:10px;display:none}
@@ -2334,6 +2367,12 @@ tr[onclick][tabindex="0"]:focus-visible{outline:2px solid var(--b);outline-offse
    en tete le nombre d'actus critiques/elevees du pays. Rien n'est retire :
    le nom, le nombre d'articles et le lien vers la fiche pays y sont toujours. */
 .feed-pays-bloc{display:flex;flex-direction:column;flex-shrink:0}
+#bandeauErreur{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:99999;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 24px);padding:10px 14px;border-radius:var(--r-md,4px);background:var(--w);color:var(--t);border:1px solid var(--r);box-shadow:0 6px 24px rgba(0,0,0,.35);font-size:13px}
+#bandeauErreur button{min-height:36px;padding:0 14px;border-radius:var(--r-md,4px);border:1px solid var(--b);background:var(--b);color:var(--on-b,#fff);font-weight:700;cursor:pointer}
+#bandeauErreur .be-fermer{background:transparent;color:var(--t);border-color:var(--bd);min-width:36px;padding:0}
+.feed-plus{display:flex;align-items:center;justify-content:center;gap:12px;padding:18px 12px 28px;flex-wrap:wrap}
+.feed-plus-btn{min-height:44px;padding:0 22px;border-radius:var(--r-md,4px);border:1px solid var(--b);background:var(--b);color:var(--on-b,#fff);font-family:inherit;font-size:13px;font-weight:700;line-height:1;cursor:pointer}
+.feed-plus-n{font-size:var(--fs-micro,10px);color:var(--lg);letter-spacing:.06em}
 .feed-pays-hd{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:var(--sp-2);
   padding:var(--sp-2) var(--sp-4);background:var(--sf);color:var(--t);cursor:pointer;
   border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);border-left:3px solid var(--b)}
@@ -2393,6 +2432,329 @@ html.force-mobile .art{display:block}
 html.force-mobile .art > .al{float:left;flex-direction:row;margin:0 var(--sp-2) 0 0;padding:0}
 html.force-mobile .art .sico{display:none}
 html.force-mobile .feed-pays-hd{padding:var(--sp-2) var(--sp-3)}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DIRECTION « SALLE DE VEILLE » — 20/10/2026
+   Demande : une presentation « robuste et securitaire », sur le modele de
+   palantir.com et lacoste.com. Ce qu'on en reprend — des principes, jamais
+   un logo, une image ou un texte :
+   - une seule couleur d'action, l'ENCRE (boutons noirs, liens noirs), au
+     lieu d'une teinte de marque partout : la couleur est reservee a ce qui
+     SIGNIFIE (les cinq niveaux de gravite, inchanges) ;
+   - un chrome sombre (barre du haut, rail des modules) qui encadre un
+     contenu clair : l'outil se lit comme un poste de commandement, le
+     contenu reste lisible en plein jour (le fond clair reste le defaut,
+     consigne « pas de fond tres sombre » respectee pour la zone de lecture) ;
+   - des filets d'un pixel au lieu des ombres, des angles a 4px au lieu de
+     9-12px, des petites capitales espacees pour les reperes ;
+   - le bronze de marque (--sig) devient une SIGNATURE rare : filet sous la
+     barre du haut, onglet actif, anneau de focus.
+   Mecanisme : les jetons sont REDEFINIS localement sur .tb et .nav-wrap.
+   Tout ce qui, dans ces deux zones, lit --w/--t/--b... suit sans qu'on
+   touche aux dizaines de regles et de styles en ligne qui les composent.
+   ═══════════════════════════════════════════════════════════════════════ */
+.tb,.nav-wrap{
+  --w:var(--ink);--sf:var(--ink-2);--bd:var(--ink-line);
+  --t:var(--ink-txt);--t2:#C9CED6;--lg:var(--ink-mute);--gr:var(--ink-mute);--n:#FFFFFF;
+  --b:#FFFFFF;--bl:rgba(255,255,255,.08);--bb:rgba(255,255,255,.28);--on-b:var(--ink);
+  color:var(--t);
+}
+.tb{background:var(--ink) !important;border-bottom:1px solid var(--sig) !important;height:52px}
+.tb .logo-ico{background:transparent !important;border:1px solid var(--sig) !important;box-shadow:none !important;border-radius:var(--r-sm)}
+.tb .logo-n{font-family:var(--font-body) !important;font-weight:700 !important;letter-spacing:.24em !important;text-transform:uppercase;font-size:14px !important;color:#fff !important}
+.tb .logo-s{color:var(--ink-mute);letter-spacing:.14em}
+.tb .actu-btn,.tb .disp-switch{background:transparent !important;border-color:var(--ink-line) !important;color:var(--t2);border-radius:var(--r-sm)}
+.tb .actu-btn:hover:not(:disabled){background:rgba(255,255,255,.08) !important;box-shadow:none;color:#fff}
+.actu-btn:hover:not(:disabled){background:var(--bl) !important;box-shadow:0 0 0 1px var(--bb)}
+/* Survol des boutons pleins : l'ancien brun (#6E4A15) suivait le bronze. */
+.auth-btn,.dbt.p,.dlp,.user-form button{box-shadow:none}
+.auth-btn:hover,.dbt.p:hover,.dlp:hover,.user-form button:hover{background:#2E333B;box-shadow:none;transform:none}
+html[data-theme="dark"] .auth-btn:hover,html[data-theme="dark"] .dbt.p:hover,
+html[data-theme="dark"] .dlp:hover,html[data-theme="dark"] .user-form button:hover{background:#FFFFFF}
+.art:hover{box-shadow:inset 3px 0 0 var(--t)}
+/* Les boutons « Actualiser » de chaque module etaient teintes bronze en
+   ligne : ils deviennent des boutons secondaires a filet, comme les autres. */
+body button[style*="background:rgba(138,93,26,.12)"]{background:var(--w) !important;border-color:var(--t) !important;color:var(--t) !important;border-radius:var(--r-sm) !important}
+body button[style*="background:rgba(138,93,26,.12)"]:hover{background:var(--t) !important;color:var(--w) !important}
+.cbar-fill{background:var(--t) !important}
+/* Theme sombre : deux defauts anterieurs trouves par la mesure de cette passe
+   (blanc sur le rouge clair du sombre, 2,8:1 ; vert fonce sur fond sombre, 3:1). */
+html[data-theme="dark"] .flashinfo-label{color:var(--on-b)}
+html[data-theme="dark"] .flashinfo-label .fi-dot{background:var(--on-b)}
+html[data-theme="dark"] .ltxt{color:var(--g)}
+
+/* Ecran de connexion : la scene d'operations passe a l'encre, la carte de
+   connexion reste claire. C'est la premiere image de l'outil : un poste de
+   veille, pas un formulaire pose sur du gris. Le globe et les noeuds en
+   bronze (signature) ; libelles d'angle a 8:1 sur l'encre. */
+.auth-overlay,.skyline-scene{background:var(--ink) !important}
+.skyline-scene{--lg:var(--ink-mute)}
+.ops-grid{background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px)}
+.ops-vignette,html[data-theme="dark"] .ops-vignette{background:radial-gradient(ellipse 75% 65% at 50% 42%,rgba(11,14,18,0) 0%,rgba(11,14,18,.55) 68%,rgba(6,8,10,.92) 100%)}
+.ops-globe-line{stroke:rgba(255,255,255,.13)}
+.ops-node{fill:var(--sig)}
+.ops-arc{stroke:var(--sig)}
+.ops-scan{background:linear-gradient(180deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.035) 50%,rgba(255,255,255,0) 100%)}
+.auth-box{border-radius:var(--r-lg) !important;border-color:transparent !important;box-shadow:0 24px 64px rgba(0,0,0,.45) !important}
+.auth-logo-ico{background:transparent !important;border:1px solid var(--sig) !important;border-radius:var(--r-sm) !important}
+.auth-logo-n{font-family:var(--font-body) !important;letter-spacing:.24em !important;text-transform:uppercase;font-size:17px !important}
+.tb .disp-btn{color:var(--t2)}
+
+/* Rail des modules : encre, petites capitales tres espacees, onglet actif
+   signe d'un filet bronze (le blanc seul suffirait, le bronze dit SentiqS). */
+.nav-wrap{background:var(--ink) !important;border-right:1px solid var(--ink-line) !important}
+.nav-wrap .nav{background:var(--ink) !important}
+.nav-wrap .ntab{letter-spacing:.14em !important;border-radius:0 !important;color:var(--ink-mute) !important}
+.nav-wrap .ntab:hover:not(.on){color:#fff !important;background:rgba(255,255,255,.05)}
+.nav-wrap .ntab.on{color:#fff !important;border-left-color:var(--sig) !important;background:rgba(255,255,255,.07)}
+
+/* Contenu : a plat, filets d'un pixel, angles courts. Les styles en ligne
+   des rendus (9-12px) sont ramenes au rayon du systeme, meme technique de
+   filet que la revision du 15/10/2026 : un seul endroit a relire. */
+body [style*="border-radius:9px" i],body [style*="border-radius:10px" i],
+body [style*="border-radius:12px" i],body [style*="border-radius:8px" i]{border-radius:var(--r-md) !important}
+.acard,.si-card,.rp-card,.astat,.pricing-card,.rp-ent-card,.traffic-kpi{border-radius:var(--r-md) !important}
+.si-card:hover,.eq-device-card:hover,.paymethod-card:hover,.traffic-kpi:hover,.rp-ent-card:hover,.pricing-card:hover{transform:none}
+.chip{border-radius:var(--r-sm)}
+.chip.on{background:var(--b);border-color:var(--b);color:var(--on-b)}
+html[data-theme="dark"] .chip.on{color:var(--on-b)}
+.chip.rc.on{background:var(--r);border-color:var(--r);color:#fff}
+
+/* Tuiles d'indicateurs (tableau de bord) : le chiffre domine, aligne a
+   gauche, chiffres tabulaires ; l'etiquette en petites capitales espacees. */
+.kpi-tile{text-align:left !important;padding:12px 14px 10px !important}
+.kpi-tile .kpi-v{font-size:28px !important;font-weight:600 !important;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.kpi-tile .kpi-l{font-size:var(--fs-micro) !important;letter-spacing:.12em !important;font-weight:600;color:var(--t2) !important;margin-top:6px !important}
+.kpi-tile .kpi-s{font-size:var(--fs-micro) !important;color:var(--lg) !important;opacity:1 !important}
+.kpi-tile:hover{box-shadow:0 0 0 1px var(--t)}
+
+/* Mobile : la barre de modules reste en haut (horizontale), en encre aussi ;
+   l'onglet actif garde le meme filet bronze, sous le libelle. */
+@media (max-width:760px){
+  html:not(.force-web) .nav-wrap .ntab.on{border-bottom-color:var(--sig) !important}
+  html:not(.force-web) .tb .logo-n{letter-spacing:.16em}
+}
+html.force-mobile .nav-wrap .ntab.on{border-bottom-color:var(--sig) !important}
+html.force-mobile .tb .logo-n{letter-spacing:.16em}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DIRECTION « BLEU NUIT » — 20/10/2026 (soir)
+   L'editeur a juge la direction « Salle de veille » sans elegance, trop
+   noire et sans impact : il veut des fondus de bleu nuit, une appli
+   agreable a consulter, et des images liees a chaque actu (modele : Opera
+   News). Le sombre devient le DEFAUT (script du <head>) ; le clair reste
+   accessible au bouton. Ce bloc ne touche que le theme sombre, sauf les
+   visuels d'actu (.vact, .une-*), communs aux deux.
+   - fond de page : degrade bleu nuit a deux halos (bleu froid en haut a
+     gauche, violet discret a droite), fixe au defilement ;
+   - surfaces etagees (--page-bg < --sf < --w), angles adoucis (10 px) ;
+   - action et signature en or (--b = --sig) : boutons, onglet actif,
+     filtres, focus ;
+   - barre du haut et rail en verre bleu nuit, filet or sous la barre.
+   Gravite inchangee. Contrastes : voir le commentaire du bloc
+   html[data-theme="dark"] plus haut.
+   ═══════════════════════════════════════════════════════════════════════ */
+html[data-theme="dark"]{--r-sm:6px;--r-md:10px;--r-lg:14px;--card-radius:10px}
+html[data-theme="dark"] body{
+  background-color:var(--page-bg);
+  background-image:
+    radial-gradient(1100px 620px at -5% -10%,rgba(46,92,190,.38),transparent 62%),
+    radial-gradient(900px 560px at 105% 0%,rgba(112,72,180,.20),transparent 60%),
+    linear-gradient(180deg,#0A1A3D 0%,#071431 55%,#050D24 100%);
+  background-attachment:fixed;
+}
+html[data-theme="dark"] .tb{background:linear-gradient(90deg,#061127 0%,#0B1F4A 55%,#0A1A3D 100%) !important;
+  border-bottom:1px solid rgba(230,186,110,.55) !important;box-shadow:0 8px 24px -16px rgba(0,0,0,.8)}
+html[data-theme="dark"] .tb,html[data-theme="dark"] .nav-wrap{--t2:#C5D1E6;--b:var(--sig);--bl:rgba(230,186,110,.14);--bb:rgba(230,186,110,.42);--on-b:#0A1733}
+html[data-theme="dark"] .tb .logo-ico{border-color:var(--sig) !important;background:rgba(230,186,110,.10) !important;border-radius:8px}
+html[data-theme="dark"] .tb .logo-n{font-family:var(--font-serif) !important;text-transform:none;letter-spacing:.01em !important;font-size:19px !important}
+html[data-theme="dark"] .tb .actu-btn,html[data-theme="dark"] .tb .disp-switch{border-color:rgba(230,186,110,.35) !important;border-radius:999px}
+html[data-theme="dark"] .tb .actu-btn:hover:not(:disabled){background:rgba(230,186,110,.14) !important;color:#fff}
+html[data-theme="dark"] .nav-wrap,html[data-theme="dark"] .nav-wrap .nav{background:linear-gradient(180deg,#081633 0%,#06112A 100%) !important}
+html[data-theme="dark"] .nav-wrap{border-right-color:#16305E !important}
+html[data-theme="dark"] .nav-wrap .ntab{letter-spacing:.06em !important;border-radius:0 10px 10px 0 !important}
+html[data-theme="dark"] .nav-wrap .ntab.on{background:linear-gradient(90deg,rgba(230,186,110,.18),rgba(230,186,110,.04)) !important;color:#fff !important}
+html[data-theme="dark"] .main,html[data-theme="dark"] .layout{background:transparent}
+html[data-theme="dark"] .art{background:var(--w);border:1px solid var(--bd);border-left-width:3px;border-radius:12px;margin:0 var(--sp-3) var(--sp-2);box-shadow:var(--card-shadow)}
+html[data-theme="dark"] .art:hover{background:#132B5C;box-shadow:var(--card-shadow-hover)}
+html[data-theme="dark"] .art.lc2{border-left-color:var(--r)}html[data-theme="dark"] .art.lh2{border-left-color:var(--a)}
+html[data-theme="dark"] .art.lm2{border-left-color:var(--j)}html[data-theme="dark"] .art.lo2{border-left-color:var(--g)}
+html[data-theme="dark"] .art.new-art{background:#14306A}
+html[data-theme="dark"] .auth-btn:hover,html[data-theme="dark"] .dbt.p:hover,
+html[data-theme="dark"] .dlp:hover,html[data-theme="dark"] .user-form button:hover{background:#F0CB8A}
+html[data-theme="dark"] .cbar-fill{background:linear-gradient(90deg,#B98A3E,#E6BA6E) !important}
+html[data-theme="dark"] .acard,html[data-theme="dark"] .si-card,html[data-theme="dark"] .rp-card{box-shadow:var(--card-shadow)}
+html[data-theme="dark"] .kpi-tile{background:linear-gradient(160deg,#14306A 0%,#0F2450 70%) !important;border-color:#24447D !important}
+html[data-theme="dark"] .kpi-tile:hover{box-shadow:var(--card-shadow-hover)}
+html[data-theme="dark"] .kpi-tile .kpi-v{font-family:var(--font-serif);font-weight:700 !important}
+html[data-theme="dark"] .auth-overlay,html[data-theme="dark"] .skyline-scene{background:radial-gradient(1000px 600px at 20% 10%,#17336F 0%,transparent 60%),linear-gradient(180deg,#0A1A3D,#050D24) !important}
+html[data-theme="dark"] .ops-vignette{background:radial-gradient(ellipse 75% 65% at 50% 42%,rgba(7,20,49,0) 0%,rgba(7,20,49,.55) 68%,rgba(5,13,36,.92) 100%)}
+html[data-theme="dark"] ::-webkit-scrollbar-thumb{background:#24447D}
+html[data-theme="dark"] .feed-pays-hd{background:rgba(7,20,49,.92);backdrop-filter:blur(6px)}
+/* Boutons d'export : pastels clairs en dur, eblouissants sur le bleu nuit.
+   En sombre, fond de carte et filet de la couleur du format. */
+html[data-theme="dark"] .btn-dl{background:var(--w);border-color:var(--bd);color:var(--t2)}
+html[data-theme="dark"] .btn-dl:hover{background:#132B5C;border-color:var(--b);color:var(--t)}
+html[data-theme="dark"] .btn-dl-word i{color:#93B4F5}html[data-theme="dark"] .btn-dl-excel i{color:var(--g)}
+html[data-theme="dark"] .btn-dl-pdf i{color:var(--r)}html[data-theme="dark"] .btn-dl-csv i{color:var(--a)}
+
+/* Visuel d'une actu (visuelActu) : l'image de la source par-dessus un repli
+   qui dit pays, theme et gravite. Le repli est toujours la : une image qui
+   ne charge pas le laisse simplement apparaitre. */
+.vact{position:relative;overflow:hidden;border-radius:10px;flex-shrink:0;isolation:isolate;background:#F3ECE1}
+.vact-repli{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;
+  padding:6px 8px;border-top:3px solid var(--vact-niv);color:#6E4A12;
+  background-color:#F3ECE1;background-image:repeating-linear-gradient(135deg,rgba(138,93,26,.08) 0 1px,transparent 1px 10px)}
+html[data-theme="dark"] .vact,html[data-theme="dark"] .vact-repli{background-color:#13306A;color:#F1D9AC}
+html[data-theme="dark"] .vact-repli{background-image:linear-gradient(150deg,rgba(255,255,255,.06) 0%,rgba(255,255,255,0) 60%),repeating-linear-gradient(135deg,rgba(230,186,110,.07) 0 1px,transparent 1px 10px)}
+.vact-cat{font-size:var(--fs-micro);font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.vact-code{font-family:var(--font-serif);font-size:26px;font-weight:700;line-height:1}
+.vact-repli .ti{position:absolute;right:8px;bottom:6px;font-size:20px}
+.vact img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.vact-credit{position:absolute;right:5px;bottom:5px;z-index:2;font-size:var(--fs-micro);line-height:1.3;color:#fff;
+  background:rgba(5,10,25,.78);padding:1px 6px;border-radius:4px;max-width:92%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vact.sans-img .vact-credit{display:none}
+/* Toute la surface d'un visuel video ouvre la video (lienVideoActu), comme
+   le lien d'une source ouvre l'article ; le credit reste lisible au-dessus. */
+.vact-play{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  text-decoration:none;color:#0A1733;background:linear-gradient(180deg,rgba(5,10,25,0) 40%,rgba(5,10,25,.35) 100%)}
+.vact-play-btn{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.95);display:grid;place-items:center;font-size:20px;
+  box-shadow:0 4px 16px rgba(0,0,0,.45);transition:transform .15s}
+.vact-play:hover .vact-play-btn{background:#fff;transform:scale(1.08)}
+.vact-play:focus-visible{outline:3px solid var(--sig);outline-offset:-3px}
+.vact-play-txt{font-size:var(--fs-micro);font-weight:700;color:#fff;background:rgba(5,10,25,.78);padding:2px 8px;border-radius:999px}
+.vact-vignette .vact-play-txt{display:none}
+.vact-credit{z-index:3;pointer-events:none}
+.vact-vignette{width:132px;height:92px;order:3;align-self:flex-start}
+.vact-une{width:100%;aspect-ratio:16/9;border-radius:12px 12px 0 0}
+.vact-une .vact-code{font-size:40px}
+.vact-une .vact-repli{padding:10px 12px}
+.vact-une .vact-repli .ti{font-size:28px;right:12px;bottom:10px}
+
+/* « A la une » (Flux) et « Les faits du jour » (tableau de bord) : cartes
+   image d'abord, meme composant (carteUneHtml). */
+.une-bande{padding:var(--sp-4) var(--sp-3) var(--sp-2)}
+.une-titre{font-family:var(--font-serif);font-size:22px;font-weight:700;color:var(--t);margin:0 0 var(--sp-3);letter-spacing:-.01em}
+.une-grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--sp-3)}
+.une-bande-panneau{padding:0 0 var(--sp-3)}
+.det-visuel{margin:0 0 var(--sp-3)}
+.det-video{display:inline-flex;align-items:center;gap:6px;min-height:32px;margin:0 0 var(--sp-3);padding:4px 14px;border-radius:999px;
+  background:var(--b);color:var(--on-b);font-weight:700;font-size:var(--fs-sm);text-decoration:none}
+.det-video:hover{filter:brightness(1.08)}.det-visuel .vact-une{border-radius:12px;max-height:380px}
+.une-carte{background:var(--w);border:1px solid var(--bd);border-radius:12px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;
+  box-shadow:var(--card-shadow);transition:box-shadow .15s,transform .15s}
+.une-carte:hover{box-shadow:var(--card-shadow-hover);transform:translateY(-2px)}
+.une-corps{padding:var(--sp-3);display:flex;flex-direction:column;gap:var(--sp-2);flex:1}
+.une-kick{display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;font-size:var(--fs-micro);font-weight:600;color:var(--lg);text-transform:uppercase;letter-spacing:.06em}
+.une-tit{font-family:var(--font-serif);font-size:17px;line-height:1.28;font-weight:700;color:var(--t)}
+.une-meta{margin-top:auto;display:flex;align-items:center;gap:var(--sp-2);font-size:var(--fs-micro);color:var(--lg)}
+.une-cot{font-weight:600;padding:1px 6px;border-radius:4px;border:1px solid var(--bd);color:var(--t2)}
+.une-cot-confirme{border-color:var(--g);color:var(--g)}
+
+@media (max-width:760px){
+  html:not(.force-web) .vact-vignette{float:right;width:96px;height:72px;margin:0 0 var(--sp-2) var(--sp-2)}
+  html:not(.force-web) .une-grille{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:78%;overflow-x:auto;scroll-snap-type:x mandatory}
+  html:not(.force-web) .une-carte{scroll-snap-align:start}
+  html:not(.force-web)[data-theme="dark"] .art{margin:0 var(--sp-2) var(--sp-2)}
+}
+html.force-mobile .vact-vignette{float:right;width:96px;height:72px;margin:0 0 var(--sp-2) var(--sp-2)}
+html.force-mobile .une-grille{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:78%;overflow-x:auto;scroll-snap-type:x mandatory}
+html.force-mobile .une-carte{scroll-snap-align:start}
+html.force-mobile[data-theme="dark"] .art{margin:0 var(--sp-2) var(--sp-2)}
+
+/* ═══ REGLAGES D'AFFICHAGE — 20/10/2026 (Parametres > Affichage) ═══
+   Format tablette : rail compact (icones + libelle court) et deux colonnes
+   pour « A la une ». Ecrit deux fois, comme les regles mobiles : en mode
+   automatique entre 761 et 1180 px, et force par le reglage (a partir de
+   761 px seulement : en dessous, la mise en page tablette ne tient pas). */
+@media (min-width:761px) and (max-width:1180px){
+  html:not(.force-web):not(.force-mobile) .nav-wrap{width:96px}
+  html:not(.force-web):not(.force-mobile) .ntab{flex-direction:column;justify-content:center;gap:5px;padding:12px 6px !important;text-align:center;letter-spacing:.03em !important;white-space:normal}
+  html:not(.force-web):not(.force-mobile) .ntab span{white-space:normal;line-height:1.15;font-size:var(--fs-micro)}
+  html:not(.force-web):not(.force-mobile) .ntab i{font-size:19px}
+  html:not(.force-web):not(.force-mobile) .une-grille{grid-template-columns:repeat(2,minmax(0,1fr))}
+  html:not(.force-web):not(.force-mobile) .vact-vignette{width:112px;height:80px}
+}
+@media (min-width:761px){
+  html.force-tablette .nav-wrap{width:96px}
+  html.force-tablette .ntab{flex-direction:column;justify-content:center;gap:5px;padding:12px 6px !important;text-align:center;letter-spacing:.03em !important;white-space:normal}
+  html.force-tablette .ntab span{white-space:normal;line-height:1.15;font-size:var(--fs-micro)}
+  html.force-tablette .ntab i{font-size:19px}
+  html.force-tablette .une-grille{grid-template-columns:repeat(2,minmax(0,1fr))}
+  html.force-tablette .vact-vignette{width:112px;height:80px}
+}
+
+/* Taille du texte : agrandit la zone de lecture et le detail d'une actu,
+   y compris les tailles ecrites en dur dans les rendus (zoom), pas le chrome. */
+html.texte-grand .main,html.texte-grand #detOverlay .det{zoom:1.12}
+html.texte-tres-grand .main,html.texte-tres-grand #detOverlay .det{zoom:1.25}
+
+/* Presentation « magazine » : grande image au-dessus de chaque actu du Flux. */
+html.actus-magazine .art{flex-wrap:wrap}
+html.actus-magazine .art > .vact-vignette{order:-1;float:none;width:100%;height:auto;aspect-ratio:16/9;max-height:300px;margin:0 0 var(--sp-2);flex-basis:100%}
+html.actus-magazine .art > .vact-vignette .vact-play-txt{display:inline}
+html.actus-magazine .art > .vact-vignette .vact-code{font-size:40px}
+
+/* « Economiser les donnees » : la vignette du Flux disparait (le repli
+   n'apporterait rien a cote du titre) ; les cartes « a la une » gardent leur
+   repli de marque ; une video garde son bouton d'ouverture. */
+html.sans-images .art > .vact-vignette:not(.vact-video){display:none}
+
+/* Panneau Parametres > Affichage */
+.aff-corps{padding:14px 16px;display:flex;flex-direction:column;gap:var(--sp-4)}
+.aff-leg{font-size:var(--fs-xs);font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:var(--sp-2)}
+.aff-choix{display:flex;flex-wrap:wrap;gap:var(--sp-2)}
+.aff-opt{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:6px 14px;border-radius:999px;border:1px solid var(--bd);
+  background:var(--w);color:var(--t2);font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit}
+.aff-opt i{font-size:16px}
+.aff-opt:hover{border-color:var(--b);color:var(--t)}
+.aff-opt.on{background:var(--b);border-color:var(--b);color:var(--on-b)}
+.aff-opt:focus-visible{outline:2px solid var(--sig);outline-offset:2px}
+.aff-aide{font-size:var(--fs-xs);color:var(--lg);margin-top:var(--sp-2)}
+
+/* ═══ REVISION « LECTURE » DU 21/10/2026 : zone de lecture plus grande, moins de boutons ═══
+   Mesure : 343 px (bureau) et 403 px (mobile) de bandeaux avant le Flux. */
+.tb-more{position:relative}
+.tb-more>summary{list-style:none;cursor:pointer}
+.tb-more>summary::-webkit-details-marker{display:none}
+.tb-more-panel{position:absolute;right:0;top:calc(100% + 6px);z-index:60;display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:10px;min-width:200px;
+  background:var(--w);border:1px solid var(--bd);border-radius:var(--r-md,4px);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.tb-more-panel .disp-switch{display:flex !important}
+.tb-more-panel .actu-btn{justify-content:flex-start}
+.dl-toggle{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:0 12px;border-radius:var(--r-md,4px);border:1px solid var(--bd);background:var(--sf);color:var(--t);font-family:inherit;font-size:var(--fs-xs,11px);font-weight:700;line-height:1;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.dl-toggle:focus-visible{outline:2px solid var(--sig);outline-offset:2px}
+.dl-toolbar>.dl-toggle+.dl-toolbar-label{display:none}
+.dl-toolbar.dl-replie>*:not(.dl-toggle){display:none !important}
+.dl-toolbar.dl-replie{padding:2px 12px;border-bottom:0}
+.dl-toolbar.dl-replie .dl-toggle{min-height:24px}
+.proxy-bar{align-items:center;padding:6px 14px}
+.proxy-bar .pb-title{display:none}
+.proxy-bar .pb-body{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.proxy-bar .pb-pills{margin-top:0}
+@media (max-width:760px){
+  html:not(.force-web) .proxy-bar{flex-direction:row;align-items:center;gap:8px;padding:6px 10px}
+  html:not(.force-web) .pb-ico{display:none}
+  html:not(.force-web) .pb-body{gap:8px}
+  html:not(.force-web) .tlbr{gap:6px}
+  html:not(.force-web) .tlbr .srch{flex:1 1 100%}
+  html:not(.force-web) .tlbr .geo-w{flex:1 1 auto}
+  html:not(.force-web) .tlbr .ssel{flex:1 1 auto}
+  html:not(.force-web) .tlbr .tlbr-actu{flex:0 0 auto;min-width:44px;min-height:40px;padding:0 10px}
+  html:not(.force-web) .tlbr .tlbr-actu span{display:none}
+  html:not(.force-web) .tlbr .chips{flex:1 1 100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  html:not(.force-web) .tlbr .chips::-webkit-scrollbar{display:none}
+}
+html.force-mobile .proxy-bar{flex-direction:row;align-items:center;gap:8px;padding:6px 10px}
+html.force-mobile .pb-ico{display:none}
+html.force-mobile .pb-body{gap:8px}
+html.force-mobile .tlbr{gap:6px}
+html.force-mobile .tlbr .srch{flex:1 1 100%}
+html.force-mobile .tlbr .geo-w{flex:1 1 auto}
+html.force-mobile .tlbr .ssel{flex:1 1 auto}
+html.force-mobile .tlbr .tlbr-actu{flex:0 0 auto;min-width:44px;min-height:40px;padding:0 10px}
+html.force-mobile .tlbr .tlbr-actu span{display:none}
+html.force-mobile .tlbr .chips{flex:1 1 100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+html.force-mobile .tlbr .chips::-webkit-scrollbar{display:none}
 
 </style>
 
@@ -2460,6 +2822,7 @@ html.force-mobile .feed-pays-hd{padding:var(--sp-2) var(--sp-3)}
     <source src="assets/intro-sentiqs.mp4" type="video/mp4">
   </video>
   <button type="button" id="introVideoSkip" class="intro-video-skip" data-i18n="intro_video_skip">Passer</button>
+  <div class="intro-progress" aria-hidden="true"></div>
 </div>
 <div class="skyline-scene" aria-hidden="true">
   <div class="ops-grid"></div>
@@ -2510,30 +2873,55 @@ html.force-mobile .feed-pays-hd{padding:var(--sp-2) var(--sp-3)}
     </div>
     <div class="auth-stats-sync" id="authStatsSync"></div>
     <div id="loginForm">
-      <div class="auth-title" data-i18n="login_title">Connexion</div>
-      <div class="auth-sub" data-i18n="login_sub">Acces restreint aux responsables surete autorises</div>
+      <div class="auth-title" data-i18n="login_title">Connexion ou inscription</div>
+      <div class="auth-sub" data-i18n="login_sub">Votre adresse e-mail suffit : nous vous envoyons un code, sans mot de passe.</div>
       <div class="auth-field">
         <label data-i18n="login_email_label" for="loginEmail">Adresse e-mail</label>
-        <input type="email" id="loginEmail" data-i18n-ph="ph_votre_email_com" placeholder="votre@email.com" autocomplete="email">
+        <input type="email" id="loginEmail" data-i18n-ph="ph_votre_email_com" placeholder="votre@email.com" autocomplete="email" inputmode="email" onkeydown="if(event.key==='Enter')validerConnexion()">
       </div>
-      <div class="auth-field">
+      <div class="auth-field" id="loginPassBloc" style="display:none">
         <label data-i18n="login_code_label" for="loginPass">Mot de passe</label>
-        <input type="password" id="loginPass" data-i18n-ph="ph_votre_mot_de_passe" placeholder="Votre mot de passe" data-i18n-ph="ph_login_code" autocomplete="current-password" onkeydown="if(event.key===&#39;Enter&#39;)doLogin()">
+        <input type="password" id="loginPass" data-i18n-ph="ph_votre_mot_de_passe" placeholder="Votre mot de passe" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
       </div>
-      <div class="auth-field">
-        <label data-i18n="login_zone_prio_label" for="loginZonePrioritaire">Zone prioritaire (optionnel)</label>
-        <select id="loginZonePrioritaire"></select>
-        <div style="font-size:9px;color:var(--lg);margin-top:3px;line-height:1.4" data-i18n="login_zone_prio_help">
-          La collecte démarre par les pays de cette zone (ex. Golfe de Guinée) et les couvre plus en profondeur, pour renseigner en priorité tous leurs modules (Alertes, Tableau de bord, Agenda...).
+      <details class="auth-options">
+        <summary data-i18n="login_options">Options · zone prioritaire</summary>
+        <div class="auth-field">
+          <label data-i18n="login_zone_prio_label" for="loginZonePrioritaire">Zone prioritaire (optionnel)</label>
+          <select id="loginZonePrioritaire"></select>
+          <div style="font-size:9px;color:var(--lg);margin-top:3px;line-height:1.4" data-i18n="login_zone_prio_help">
+            La collecte démarre par les pays de cette zone (ex. Golfe de Guinée) et les couvre plus en profondeur, pour renseigner en priorité tous leurs modules (Alertes, Tableau de bord, Agenda...).
+          </div>
         </div>
-      </div>
-      <button class="auth-btn" onclick="doLogin()" id="loginBtn">
+      </details>
+      <button class="auth-btn" onclick="envoyerCodeEmail()" id="otpSendBtn">
+        <i class="ti ti-mail"></i> <span data-i18n="otp_send">Recevoir mon code par e-mail</span>
+      </button>
+      <button class="auth-btn" onclick="doLogin()" id="loginBtn" style="display:none">
         <i class="ti ti-login"></i> <span data-i18n="login_btn">Se connecter</span>
       </button>
       <div class="auth-err" id="loginErr"></div>
+      <div class="auth-alt"><span onclick="basculerModeConnexion()" id="modeConnexionLien" role="button" tabindex="0" data-i18n="otp_use_password">Utiliser un mot de passe</span></div>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-        <div class="auth-link" style="flex:1"><span data-i18n="login_first_time">Premiere connexion ?</span> <span onclick="showRegisterForm()" data-i18n="login_request_access" role="button" tabindex="0">Demander un acces</span></div>
+        <div class="auth-link" style="flex:1"><span data-i18n="login_first_time">Nouveau ? Votre e-mail suffit.</span> <span onclick="showRegisterForm()" data-i18n="login_request_access" role="button" tabindex="0">Créer un compte avec mot de passe</span></div>
         <div class="auth-link"><span onclick="showForgotPasswordForm()" data-i18n="login_reset" role="button" tabindex="0">Mot de passe oublié ?</span></div>
+      </div>
+    </div>
+    <div id="otpForm" style="display:none">
+      <div class="auth-title" data-i18n="otp_title">Entrez votre code</div>
+      <div class="auth-sub"><span data-i18n="otp_sent_to">Un code vient d'être envoyé à</span> <b id="otpEmailAff"></b></div>
+      <div class="auth-field">
+        <label data-i18n="otp_code_label" for="otpCode">Code reçu par e-mail</label>
+        <input type="text" id="otpCode" class="auth-code" inputmode="numeric" autocomplete="one-time-code" maxlength="12" onkeydown="if(event.key==='Enter')verifierCodeEmail()" oninput="verifierCodeSiComplet()">
+      </div>
+      <button class="auth-btn" onclick="verifierCodeEmail()" id="otpVerifyBtn">
+        <i class="ti ti-login"></i> <span data-i18n="otp_verify">Valider et entrer</span>
+      </button>
+      <div class="auth-err" id="otpErr"></div>
+      <div class="auth-sub" id="otpAide" style="margin-top:10px" data-i18n="otp_help">Le code est valable quelques minutes. Pensez à vérifier vos courriers indésirables.</div>
+      <div class="auth-alt">
+        <span onclick="renvoyerCodeEmail()" id="otpRenvoi" role="button" tabindex="0" data-i18n="otp_resend">Renvoyer le code</span>
+        <span aria-hidden="true"> · </span>
+        <span onclick="changerAdresseOtp()" role="button" tabindex="0" data-i18n="otp_change">Changer d'adresse</span>
       </div>
     </div>
     <div id="setPasswordForm" style="display:none">
@@ -2742,19 +3130,25 @@ html.force-mobile .feed-pays-hd{padding:var(--sp-2) var(--sp-3)}
       <span class="ltxt" id="liveTxt" data-i18n="live_pret">Collecte...</span>
     </div>
     <div id="globalCyBadge" onclick="clearGlobalCountryFilter()" title="Filtre pays actif sur toute la plateforme — cliquer pour reinitialiser" style="display:none;align-items:center;gap:5px;padding:5px 10px;background:rgba(138,93,26,.25);border:1px solid rgba(138,93,26,.5);border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;"></div>
-    <div class="disp-switch" id="dispSwitch" title="Forcer l&#39;affichage Web ou Mobile, quel que soit l&#39;écran utilisé">
-      <button class="disp-btn" data-disp="web" onclick="setDisplayMode(&#39;web&#39;)" title="Affichage Web (bureau)"><i class="ti ti-device-desktop"></i><span>WEB</span></button>
-      <button class="disp-btn" data-disp="mobile" onclick="setDisplayMode(&#39;mobile&#39;)" title="Affichage Mobile"><i class="ti ti-device-mobile"></i><span>MOBILE</span></button>
-    </div>
     <button class="actu-btn" onclick="doCollect()" id="actuBtn">
       <i class="ti ti-refresh spin" id="actuIco"></i> <span data-i18n="btn_actualiser">Actualiser</span>
     </button>
-    <button class="actu-btn" onclick="toggleTheme()" id="themeBtn" title="Choisir le thème clair ou sombre" style="background:var(--sf)">
-      <i class="ti ti-moon" id="themeIco"></i> <span id="themeLabel" data-i18n="btn_theme_sombre">Sombre</span>
-    </button>
-    <button class="actu-btn" onclick="runDiagnostic()" id="diagBtn" title="Tester les services de collecte" style="background:var(--sf)">
-      <i class="ti ti-stethoscope"></i> <span data-i18n="btn_diagnostic">Diagnostic</span>
-    </button>
+    <details class="tb-more" id="tbMore">
+      <summary class="actu-btn" aria-label="Affichage et outils" title="Affichage et outils"><i class="ti ti-dots" aria-hidden="true"></i><span>Plus</span></summary>
+      <div class="tb-more-panel">
+      <div class="disp-switch" id="dispSwitch" title="Forcer l&#39;affichage Web ou Mobile, quel que soit l&#39;écran utilisé">
+        <button class="disp-btn" data-disp="web" onclick="setDisplayMode(&#39;web&#39;)" title="Affichage Web (bureau)"><i class="ti ti-device-desktop"></i><span>WEB</span></button>
+        <button class="disp-btn" data-disp="tablette" onclick="setDisplayMode(&#39;tablette&#39;)" title="Affichage Tablette"><i class="ti ti-device-tablet"></i><span data-i18n="disp_tablette">TABLETTE</span></button>
+        <button class="disp-btn" data-disp="mobile" onclick="setDisplayMode(&#39;mobile&#39;)" title="Affichage Mobile"><i class="ti ti-device-mobile"></i><span>MOBILE</span></button>
+      </div>
+      <button class="actu-btn" onclick="toggleTheme()" id="themeBtn" title="Choisir le thème clair ou sombre" style="background:var(--sf)">
+        <i class="ti ti-moon" id="themeIco"></i> <span id="themeLabel" data-i18n="btn_theme_sombre">Sombre</span>
+      </button>
+      <button class="actu-btn" onclick="runDiagnostic()" id="diagBtn" title="Tester les services de collecte" style="background:var(--sf)">
+        <i class="ti ti-stethoscope"></i> <span data-i18n="btn_diagnostic">Diagnostic</span>
+      </button>
+      </div>
+    </details>
     <span style="font-size:10px;color:var(--lg);font-weight:500;white-space:nowrap" id="tbTime">—</span>
     <div class="user-wrap" id="userWrap" style="display:none">
       <div class="user-chip" onclick="toggleUserMenu(event)">
@@ -2899,7 +3293,7 @@ html.force-mobile .feed-pays-hd{padding:var(--sp-2) var(--sp-3)}
           <option value="level">Priorité</option>
           <option value="score">Fiabilité</option>
         </select>
-        <button onclick="renderFeed()" title="Rafraîchir l'affichage du Flux depuis les données déjà collectées" style="padding:3px 12px;background:rgba(138,93,26,.12);border:1px solid rgba(138,93,26,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
+        <button class="tlbr-actu" aria-label="Actualiser l'affichage" onclick="renderFeed()" title="Rafraîchir l'affichage du Flux depuis les données déjà collectées" style="padding:3px 12px;background:rgba(138,93,26,.12);border:1px solid rgba(138,93,26,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
           <i class="ti ti-refresh"></i> <span data-i18n="btn_actualiser">Actualiser</span>
         </button>
       </div>
@@ -3396,6 +3790,26 @@ html.force-mobile .feed-pays-hd{padding:var(--sp-2) var(--sp-3)}
             <div class="pm-group-hd-line"></div>
           </div>
 
+          <!-- Affichage : format d'ecran (ordinateur, tablette, mobile), taille du
+               texte, presentation des actus, images. Demande de l'editeur du
+               20/10/2026 : « prevoir les reglages, config affichage des versions
+               mobile et tablette ». Enregistre sur l'appareil (localStorage),
+               pour tous les roles : c'est un confort de lecture, pas un droit. -->
+          <div class="pm-section" id="pmAffichage">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-devices"></i>
+                <div><div class="pm-sec-title" data-i18n="aff_titre">Affichage</div>
+                <div class="pm-sec-sub" data-i18n="aff_sous">Format d'écran, taille du texte et présentation des actus, enregistrés sur cet appareil</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body aff-corps">
+            <div class="aff-groupe" role="group" aria-labelledby="aff_format-l"><div class="aff-leg" id="aff_format-l" data-i18n="aff_format">Format d'écran</div><div class="aff-choix"><button type="button" class="aff-opt" data-aff-format="auto" aria-pressed="false" onclick="changerAffichage(&#39;format&#39;,&#39;auto&#39;)"><i class="ti ti-wand" aria-hidden="true"></i><span data-i18n="aff_auto">Automatique</span></button><button type="button" class="aff-opt" data-aff-format="web" aria-pressed="false" onclick="changerAffichage(&#39;format&#39;,&#39;web&#39;)"><i class="ti ti-device-desktop" aria-hidden="true"></i><span data-i18n="aff_ordinateur">Ordinateur</span></button><button type="button" class="aff-opt" data-aff-format="tablette" aria-pressed="false" onclick="changerAffichage(&#39;format&#39;,&#39;tablette&#39;)"><i class="ti ti-device-tablet" aria-hidden="true"></i><span data-i18n="aff_tablette">Tablette</span></button><button type="button" class="aff-opt" data-aff-format="mobile" aria-pressed="false" onclick="changerAffichage(&#39;format&#39;,&#39;mobile&#39;)"><i class="ti ti-device-mobile" aria-hidden="true"></i><span data-i18n="aff_mobile">Mobile</span></button></div><div class="aff-aide" id="affFormatAide" aria-live="polite"></div></div>
+            <div class="aff-groupe" role="group" aria-labelledby="aff_texte-l"><div class="aff-leg" id="aff_texte-l" data-i18n="aff_texte">Taille du texte</div><div class="aff-choix"><button type="button" class="aff-opt" data-aff-texte="normal" aria-pressed="false" onclick="changerAffichage(&#39;texte&#39;,&#39;normal&#39;)"><i class="ti ti-letter-case" aria-hidden="true"></i><span data-i18n="aff_texte_normal">Normale</span></button><button type="button" class="aff-opt" data-aff-texte="grand" aria-pressed="false" onclick="changerAffichage(&#39;texte&#39;,&#39;grand&#39;)"><i class="ti ti-text-increase" aria-hidden="true"></i><span data-i18n="aff_texte_grand">Grande</span></button><button type="button" class="aff-opt" data-aff-texte="tres-grand" aria-pressed="false" onclick="changerAffichage(&#39;texte&#39;,&#39;tres-grand&#39;)"><i class="ti ti-zoom-in" aria-hidden="true"></i><span data-i18n="aff_texte_tres_grand">Très grande</span></button></div></div>
+            <div class="aff-groupe" role="group" aria-labelledby="aff_presentation-l"><div class="aff-leg" id="aff_presentation-l" data-i18n="aff_presentation">Présentation des actus</div><div class="aff-choix"><button type="button" class="aff-opt" data-aff-presentation="compacte" aria-pressed="false" onclick="changerAffichage(&#39;presentation&#39;,&#39;compacte&#39;)"><i class="ti ti-layout-list" aria-hidden="true"></i><span data-i18n="aff_compacte">Compacte (vignette à côté)</span></button><button type="button" class="aff-opt" data-aff-presentation="magazine" aria-pressed="false" onclick="changerAffichage(&#39;presentation&#39;,&#39;magazine&#39;)"><i class="ti ti-layout-cards" aria-hidden="true"></i><span data-i18n="aff_magazine">Magazine (grande image au-dessus)</span></button></div></div>
+            <div class="aff-groupe" role="group" aria-labelledby="aff_images-l"><div class="aff-leg" id="aff_images-l" data-i18n="aff_images">Images et vidéos des sources</div><div class="aff-choix"><button type="button" class="aff-opt" data-aff-images="oui" aria-pressed="false" onclick="changerAffichage(&#39;images&#39;,&#39;oui&#39;)"><i class="ti ti-photo" aria-hidden="true"></i><span data-i18n="aff_images_oui">Afficher</span></button><button type="button" class="aff-opt" data-aff-images="non" aria-pressed="false" onclick="changerAffichage(&#39;images&#39;,&#39;non&#39;)"><i class="ti ti-photo-off" aria-hidden="true"></i><span data-i18n="aff_images_non">Économiser les données</span></button></div></div>
+            </div>
+          </div>
+
           <!-- Personnalisation de marque (fonctionnalite payante) -->
           <div class="pm-section">
             <div class="pm-sec-hd">
@@ -3422,6 +3836,19 @@ html.force-mobile .feed-pays-hd{padding:var(--sp-2) var(--sp-3)}
               <div style="margin-bottom:12px">
                 <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="marqueNom">Nom de la marque / société</label>
                 <input type="text" id="marqueNom" data-i18n-ph="ph_ex_groupe_surete_sarl" placeholder="Ex. Groupe Sûreté SARL" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+              </div>
+              <!-- Logo de l'organisation : imprime en tete des rapports (PDF,
+                   Word, PowerPoint, apercus) a cote du nom. Voir
+                   logoMarqueActuelle / preparerLogoMarque. -->
+              <div style="margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <div id="marqueLogoApercu" style="width:72px;height:72px;border:1px dashed var(--bd);border-radius:10px;display:grid;place-items:center;overflow:hidden;background:var(--sf);color:var(--lg);font-size:10px;text-align:center"><span data-i18n="lbl_aucun_logo">Aucun logo</span></div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <label for="marqueLogoFichier" style="font-size:10px;color:var(--lg)"><span data-i18n="lbl_logo_organisation">Logo de l'organisation (PNG ou JPEG, imprimé en tête des rapports)</span></label>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <input type="file" id="marqueLogoFichier" accept="image/png,image/jpeg,image/webp,image/svg+xml" onchange="choisirLogoMarque(this)" style="font-size:11px;max-width:240px">
+                    <button type="button" id="marqueLogoRetirer" class="btn-action" onclick="retirerLogoMarque()"><span data-i18n="btn_retirer_le_logo">Retirer le logo</span></button>
+                  </div>
+                </div>
               </div>
               <!-- 3 identites d'envoi possibles (ex. plusieurs cellules/equipes qui
                    partagent sous des noms differents) : celle marquee "active"
@@ -4272,17 +4699,19 @@ html.force-mobile .feed-pays-hd{padding:var(--sp-2) var(--sp-3)}
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  THEME CLAIR/SOMBRE — bascule explicite (bouton "themeBtn", topbar, a cote
-//  d'Actualiser). Le theme clair reste le defaut de l'app (consigne : "pas
-//  de fond tres sombre") ; le sombre est une PREFERENCE utilisateur
-//  persistee (localStorage), jamais impose. L'attribut data-theme sur <html>
+//  d'Actualiser). Depuis le 20/10/2026 le sombre « bleu nuit » est le defaut
+//  (decision de l'editeur, qui ne veut plus de l'affichage clair) ; le clair
+//  reste une PREFERENCE utilisateur persistee (sentinel_theme_choix). L'attribut data-theme sur <html>
 //  est deja pose AVANT ce script (voir le petit script bloquant dans <head>)
 //  pour eviter un flash visuel au chargement — appliquerTheme() ici se
 //  charge seulement de synchroniser l'icone/le libelle du bouton, qui
 //  n'existe pas encore au moment du script du <head>.
 // ═══════════════════════════════════════════════════════════════════════════
-function appliquerTheme(theme) {
+function appliquerTheme(theme, choixExplicite) {
   document.documentElement.setAttribute('data-theme', theme);
-  try { localStorage.setItem('sentinel_theme', theme); } catch (e) {}
+  // N'enregistre que le choix fait au bouton : une simple synchronisation au
+  // chargement ne doit pas figer le theme d'un utilisateur qui n'a rien choisi.
+  if (choixExplicite) { try { localStorage.setItem('sentinel_theme_choix', theme); } catch (e) {} }
   const ico = document.getElementById('themeIco');
   const label = document.getElementById('themeLabel');
   if (ico) ico.className = 'ti ' + (theme === 'dark' ? 'ti-sun' : 'ti-moon');
@@ -4292,7 +4721,7 @@ function appliquerTheme(theme) {
 }
 function toggleTheme() {
   const actuel = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-  appliquerTheme(actuel === 'dark' ? 'light' : 'dark');
+  appliquerTheme(actuel === 'dark' ? 'light' : 'dark', true);
 }
 // Synchronise le bouton avec le theme deja pose par le script du <head>
 // (ou 'light' par defaut) des que le DOM du bouton existe.
@@ -5253,6 +5682,13 @@ const I18N = {
     ph_note_complementaire_optionnel:'Note complémentaire (optionnel)',
     ph_rechercher_un_pays_un_evenement_un_theme:'Rechercher un pays, un evenement, un theme, une source...',
     ph_ex_groupe_surete_sarl:'Ex. Groupe Sûreté SARL',
+    aff_titre:'Affichage', aff_sous:'Format d\'écran, taille du texte et présentation des actus, enregistrés sur cet appareil',
+    aff_format:'Format d\'écran', aff_auto:'Automatique', aff_ordinateur:'Ordinateur', aff_tablette:'Tablette', aff_mobile:'Mobile',
+    aff_texte:'Taille du texte', aff_texte_normal:'Normale', aff_texte_grand:'Grande', aff_texte_tres_grand:'Très grande',
+    aff_presentation:'Présentation des actus', aff_compacte:'Compacte (vignette à côté)', aff_magazine:'Magazine (grande image au-dessus)',
+    aff_images:'Images et vidéos des sources', aff_images_oui:'Afficher', aff_images_non:'Économiser les données',
+    disp_tablette:'TABLETTE',
+    lbl_aucun_logo:'Aucun logo', lbl_logo_organisation:'Logo de l\'organisation (PNG ou JPEG, imprimé en tête des rapports)', btn_retirer_le_logo:'Retirer le logo',
     ph_ex_cellule_surete_abc:'Ex. Cellule Sûreté ABC',
     ph_ex_cellule_surete_nord:'Ex. Cellule Sûreté Nord',
     ph_ex_cellule_surete_sud:'Ex. Cellule Sûreté Sud',
@@ -5302,9 +5738,13 @@ const I18N = {
     intro_video_skip:'Passer',
     auth_logo_sub:"Veille sûreté · 54 pays d'Afrique",
     auth_stat_pays:'Pays sous veille', auth_stat_actus:'Actus /{hc}', auth_stat_alertes:'Pays en alerte',
-    login_title:'Connexion', login_sub:'Accès restreint aux responsables sûreté autorisés',
+    login_title:'Connexion ou inscription', login_sub:"Votre adresse e-mail suffit : nous vous envoyons un code, sans mot de passe.",
+    login_options:'Options · zone prioritaire', otp_send:'Recevoir mon code par e-mail', otp_use_password:'Utiliser un mot de passe', otp_use_code:'Recevoir un code par e-mail à la place',
+    otp_title:'Entrez votre code', otp_sent_to:"Un code vient d'être envoyé à", otp_code_label:'Code reçu par e-mail', otp_verify:'Valider et entrer',
+    otp_help:'Le code est valable quelques minutes. Pensez à vérifier vos courriers indésirables.', otp_resend:'Renvoyer le code', otp_resend_in:'Renvoyer le code dans {s} s', otp_change:"Changer d'adresse",
+    otp_err_code:'Code incorrect ou expiré. Vérifiez-le ou demandez-en un nouveau.', otp_err_rate:'Trop de demandes pour cette adresse. Patientez une minute puis réessayez.', otp_err_send:"L'envoi du code a échoué. Réessayez dans un instant.", otp_err_signup:"Les inscriptions par e-mail ne sont pas ouvertes pour le moment.",
     login_email_label:'Adresse e-mail', login_code_label:"Mot de passe", login_btn:'Se connecter',
-    login_first_time:'Première connexion ?', login_request_access:'Demander un accès', login_reset:"Mot de passe oublié ?",
+    login_first_time:'Nouveau ? Votre e-mail suffit.', login_request_access:'Créer un compte avec mot de passe', login_reset:"Mot de passe oublié ?",
     ph_login_code:"Votre mot de passe",
     login_zone_prio_label:'Zone prioritaire (optionnel)',
     login_zone_prio_help:'La collecte démarre par les pays de cette zone (ex. Golfe de Guinée) et les couvre plus en profondeur, pour renseigner en priorité tous leurs modules (Alertes, Tableau de bord, Agenda...).',
@@ -5391,6 +5831,13 @@ const I18N = {
     ph_note_complementaire_optionnel:'Additional note (optional)',
     ph_rechercher_un_pays_un_evenement_un_theme:'Search a country, an event, a topic, a source...',
     ph_ex_groupe_surete_sarl:'e.g. Security Group Ltd',
+    aff_titre:'Display', aff_sous:'Screen format, text size and news layout, saved on this device',
+    aff_format:'Screen format', aff_auto:'Automatic', aff_ordinateur:'Computer', aff_tablette:'Tablet', aff_mobile:'Mobile',
+    aff_texte:'Text size', aff_texte_normal:'Normal', aff_texte_grand:'Large', aff_texte_tres_grand:'Extra large',
+    aff_presentation:'News layout', aff_compacte:'Compact (thumbnail beside)', aff_magazine:'Magazine (large image above)',
+    aff_images:'Source images and videos', aff_images_oui:'Show', aff_images_non:'Save data',
+    disp_tablette:'TABLET',
+    lbl_aucun_logo:'No logo', lbl_logo_organisation:'Organisation logo (PNG or JPEG, printed at the top of reports)', btn_retirer_le_logo:'Remove logo',
     ph_ex_cellule_surete_abc:'e.g. ABC Security Unit',
     ph_ex_cellule_surete_nord:'e.g. North Security Unit',
     ph_ex_cellule_surete_sud:'e.g. South Security Unit',
@@ -5440,9 +5887,13 @@ const I18N = {
     intro_video_skip:'Skip',
     auth_logo_sub:'Security monitoring · 54 African countries',
     auth_stat_pays:'Countries monitored', auth_stat_actus:'News /{hc}', auth_stat_alertes:'Countries on alert',
-    login_title:'Log in', login_sub:'Access restricted to authorized security officers',
+    login_title:'Log in or sign up', login_sub:'Your email address is enough: we send you a code, no password needed.',
+    login_options:'Options · priority zone', otp_send:'Email me a code', otp_use_password:'Use a password', otp_use_code:'Email me a code instead',
+    otp_title:'Enter your code', otp_sent_to:'A code was just sent to', otp_code_label:'Code received by email', otp_verify:'Confirm and enter',
+    otp_help:'The code is valid for a few minutes. Check your spam folder too.', otp_resend:'Resend the code', otp_resend_in:'Resend the code in {s} s', otp_change:'Use another address',
+    otp_err_code:'Wrong or expired code. Check it or request a new one.', otp_err_rate:'Too many requests for this address. Wait a minute and try again.', otp_err_send:'The code could not be sent. Please try again shortly.', otp_err_signup:'Email sign-ups are not open at the moment.',
     login_email_label:'Email address', login_code_label:'Password', login_btn:'Log in',
-    login_first_time:'First time here?', login_request_access:'Request access', login_reset:'Forgot password?',
+    login_first_time:'New here? Your email is enough.', login_request_access:'Create an account with a password', login_reset:'Forgot password?',
     ph_login_code:'Your password',
     login_zone_prio_label:'Priority zone (optional)',
     login_zone_prio_help:'Collection starts with the countries in this zone (e.g. Gulf of Guinea) and covers them more thoroughly, to populate all their modules first (Alerts, Dashboard, Agenda...).',
@@ -5570,16 +6021,84 @@ function setLang(lang) {
 // largeur reelle de l'ecran, via les classes .force-web/.force-mobile sur <html>
 // (regles CSS dediees, voir @media max-width:760px / min-width:761px). 'auto'
 // revient au comportement responsive standard (detection par largeur d'ecran).
+//
+// 'tablette' (20/10/2026) : rail de navigation compact (icones + libelle
+// court), deux colonnes pour « A la une », vignettes reduites. Applique
+// d'office entre 761 et 1180 px en mode 'auto' ; force, il ne vaut qu'a
+// partir de 761 px — sous cette largeur la mise en page tablette ne tient pas
+// et l'affichage reste mobile.
+const MODES_AFFICHAGE = ['auto', 'web', 'tablette', 'mobile'];
 function setDisplayMode(mode) {
+  if (!MODES_AFFICHAGE.includes(mode)) mode = 'auto';
   const html = document.documentElement;
-  html.classList.remove('force-web', 'force-mobile');
-  if (mode === 'web' || mode === 'mobile') html.classList.add('force-' + mode);
+  html.classList.remove('force-web', 'force-mobile', 'force-tablette');
+  if (mode !== 'auto') html.classList.add('force-' + mode);
   document.querySelectorAll('.disp-btn').forEach(b => b.classList.toggle('on', b.dataset.disp === mode));
   try { localStorage.setItem('sentinel_display_mode', mode); } catch(_) {}
+  if (typeof majReglagesAffichage === 'function') majReglagesAffichage();
+  if (typeof majDebordementOnglets === 'function') { try { majDebordementOnglets(); } catch(_) {} }
+}
+
+// Reglages d'affichage (Parametres > Affichage), propres a l'appareil.
+// Chaque reglage est une classe sur <html> : la feuille de style fait le
+// reste, sans re-rendu. Les images « economisees » ne sont ni chargees ni
+// demandees (visuelActu lit affichageImagesActif()).
+const REGLAGES_AFFICHAGE = {
+  texte:        { cle: 'sentinel_aff_texte',        valeurs: ['normal', 'grand', 'tres-grand'], defaut: 'normal',   classe: v => v === 'normal' ? '' : 'texte-' + v },
+  presentation: { cle: 'sentinel_aff_presentation', valeurs: ['compacte', 'magazine'],          defaut: 'compacte', classe: v => v === 'magazine' ? 'actus-magazine' : '' },
+  images:       { cle: 'sentinel_aff_images',       valeurs: ['oui', 'non'],                    defaut: 'oui',      classe: v => v === 'non' ? 'sans-images' : '' },
+};
+function lireReglageAffichage(nom) {
+  const r = REGLAGES_AFFICHAGE[nom];
+  let v = null;
+  try { v = localStorage.getItem(r.cle); } catch(_) {}
+  return r.valeurs.includes(v) ? v : r.defaut;
+}
+function appliquerReglageAffichage(nom, v) {
+  const r = REGLAGES_AFFICHAGE[nom], html = document.documentElement;
+  r.valeurs.forEach(x => { const c = r.classe(x); if (c) html.classList.remove(c); });
+  const c = r.classe(v);
+  if (c) html.classList.add(c);
+}
+function affichageImagesActif() {
+  return !document.documentElement.classList.contains('sans-images');
+}
+function changerAffichage(nom, v) {
+  if (nom === 'format') { setDisplayMode(v); return; }
+  const r = REGLAGES_AFFICHAGE[nom];
+  if (!r || !r.valeurs.includes(v)) return;
+  try { localStorage.setItem(r.cle, v); } catch(_) {}
+  appliquerReglageAffichage(nom, v);
+  majReglagesAffichage();
+  // Les visuels dependent du reglage images : re-rendre ce qui est affiche.
+  if (nom === 'images' && typeof renderFeed === 'function') { try { renderFeed(); } catch(_) {} }
+}
+function majReglagesAffichage() {
+  let mode = 'auto';
+  try { mode = localStorage.getItem('sentinel_display_mode') || 'auto'; } catch(_) {}
+  const etat = { format: MODES_AFFICHAGE.includes(mode) ? mode : 'auto' };
+  Object.keys(REGLAGES_AFFICHAGE).forEach(n => { etat[n] = lireReglageAffichage(n); });
+  document.querySelectorAll('#pmAffichage .aff-opt').forEach(b => {
+    const n = Object.keys(etat).find(k => b.hasAttribute('data-aff-' + k));
+    const on = n && b.getAttribute('data-aff-' + n) === etat[n];
+    b.classList.toggle('on', !!on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  const aide = document.getElementById('affFormatAide');
+  if (aide) {
+    const en = typeof LANG !== 'undefined' && LANG === 'en', l = window.innerWidth;
+    const detecte = l <= 760 ? (en ? 'mobile' : 'mobile') : l <= 1180 ? (en ? 'tablet' : 'tablette') : (en ? 'computer' : 'ordinateur');
+    aide.textContent = etat.format === 'auto'
+      ? (en ? 'This screen (' + l + ' px) is shown as: ' : 'Cet écran (' + l + ' px) est affiché en : ') + detecte + '.'
+      : (etat.format === 'tablette' && l <= 760
+          ? (en ? 'Tablet layout needs at least 761 px: this screen stays in mobile layout.' : 'La mise en page tablette demande au moins 761 px : cet écran reste en mobile.')
+          : (en ? 'Forced format, whatever the screen.' : 'Format imposé, quel que soit l\'écran.'));
+  }
 }
 (function initDisplayMode() {
   let saved = 'auto';
   try { saved = localStorage.getItem('sentinel_display_mode') || 'auto'; } catch(_) {}
+  Object.keys(REGLAGES_AFFICHAGE).forEach(n => appliquerReglageAffichage(n, lireReglageAffichage(n)));
   setDisplayMode(saved);
 })();
 
@@ -6549,13 +7068,48 @@ function _agentAuditeurDebloquerBoutons() {
     });
   } catch(_) { /* le filet de securite lui-meme ne doit jamais planter */ }
 }
+// Garde d'erreurs REPETEES. Une erreur isolee se journalise ; trois en dix
+// secondes, c'est un ecran qui ne repond plus : l'utilisateur ne voyait alors
+// rien et rechargeait a la main. On propose « Reessayer » (rend le Flux a
+// nouveau, repart de la premiere page) sans jamais bloquer ni masquer l'app.
+const GARDE_ERREURS_MAX = 3, GARDE_ERREURS_FENETRE_MS = 10000;
+let _erreursRecentes = [];
+function erreurRepetee(maintenant) {
+  _erreursRecentes = _erreursRecentes.filter(t => maintenant - t < GARDE_ERREURS_FENETRE_MS);
+  _erreursRecentes.push(maintenant);
+  return _erreursRecentes.length >= GARDE_ERREURS_MAX;
+}
+function reessayerAffichage() {
+  try {
+    _erreursRecentes = [];
+    const b = document.getElementById('bandeauErreur'); if (b) b.remove();
+    _fluxLimite = FLUX_PAGE;
+    renderFeed();
+  } catch (_) { /* le filet lui-meme ne doit jamais planter */ }
+}
+function afficherBandeauErreur() {
+  try {
+    if (document.getElementById('bandeauErreur')) return;
+    const en = typeof LANG !== 'undefined' && LANG === 'en';
+    const d = document.createElement('div');
+    d.id = 'bandeauErreur'; d.setAttribute('role', 'alert');
+    d.innerHTML = '<span>' + (en ? 'Something is not responding. Your data is safe.' : 'L\u2019affichage a rencontr\u00e9 un probl\u00e8me. Vos donn\u00e9es sont intactes.') + '</span>' +
+      '<button type="button" onclick="reessayerAffichage()">' + (en ? 'Retry' : 'R\u00e9essayer') + '</button>' +
+      '<button type="button" class="be-fermer" aria-label="' + (en ? 'Close' : 'Fermer') + '" onclick="this.parentNode.remove()">\u00d7</button>';
+    document.body.appendChild(d);
+  } catch (_) { /* idem */ }
+}
+function _gererErreurGlobale() {
+  _agentAuditeurDebloquerBoutons();
+  if (erreurRepetee(Date.now())) afficherBandeauErreur();
+}
 window.addEventListener('error', (e) => {
   console.error('SentiqS — Erreur non interceptée :', e.error || e.message);
-  _agentAuditeurDebloquerBoutons();
+  _gererErreurGlobale();
 });
 window.addEventListener('unhandledrejection', (e) => {
   console.error('SentiqS — Promesse rejetée non interceptée :', e.reason);
-  _agentAuditeurDebloquerBoutons();
+  _gererErreurGlobale();
 });
 
 function srcIsSkippable(src) {
@@ -6820,16 +7374,56 @@ function srcTypeBadge(src) {
 // Recalcule _isSocial et _srcBadge sur les articles du cache IndexedDB ou DEMO.
 // Ces champs sont calculés à la collecte dans parseRSS/parseJSON mais non
 // sérialisés : ils doivent être ré-injectés après chaque lecture depuis le cache.
-function rehydrateArticles(arts) {
+//
+// Signature du code de classement. Mesure du 21/10/2026 (2 600 articles) :
+// detectPaysFromText + classify coutent ~14 ms par article, soit 15,8 s de
+// gel a chaque ouverture, a chaque lecture du cache partage et a chaque cycle
+// de rafraichissement — l'essentiel de ce que l'utilisateur vivait comme un
+// « plantage ». Or un article deja classe par CE code n'a rien a recalculer.
+// Chaque article porte donc `_rv`, la signature du code qui l'a classe ; le
+// recalcul n'a lieu que si elle differe, c'est-a-dire apres un deploiement
+// (la raison d'etre du recalcul : un correctif de lexique doit prendre effet
+// sans attendre la collecte suivante). La signature est une empreinte de
+// TOUT le script inline (lexiques, registre, regles) : changer une seule
+// ligne la change, rien n'est a penser a incrementer.
+let _signatureCode = null;
+function signatureCode() {
+  if (_signatureCode !== null) return _signatureCode || null;
+  _signatureCode = '';
+  try {
+    let h = 2166136261;
+    for (const sc of document.scripts) {
+      if (sc.src) continue;
+      const t = sc.textContent;
+      for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); }
+    }
+    _signatureCode = (h >>> 0).toString(36);
+  } catch (_) { /* hors navigateur : pas de signature, on recalcule toujours */ }
+  return _signatureCode || null;
+}
+//
+// opts.budgetMs : cote navigateur, apres un deploiement, TOUS les articles du
+// cache sont a recalculer une fois. Plutot que de geler l'ecran dix secondes,
+// on recalcule dans la limite du budget et on laisse le reste (rehydraterParLots
+// reprend). Sans budget (job de collecte, publication) le calcul est complet :
+// publier un cache a moitie recalcule serait pire que ne rien changer.
+function rehydrateArticles(arts, opts) {
+  const _sig = signatureCode();
+  const _budget = opts && opts.budgetMs;
+  const _t0 = _budget ? performance.now() : 0;
+  let _reste = 0, _change = 0;
   arts.forEach(a => {
     const src = SRCS.find(s => s.id === a.primary);
+    let _aJour = !!(_sig && a._rv === _sig);
+    if (!_aJour && _budget && performance.now() - _t0 > _budget) { _reste++; _aJour = true; }
+    const _avant = a.level + '|' + a.cy;
 
     // Recalcul du PAYS avec la logique de detection courante. Sans cela, les
     // articles deja en cache (collectes lors d'une session precedente, avant
     // les corrections de detection) restent figes sur leur ancien pays —
     // typiquement le pays de la source, jamais reclasse. On recalcule donc a
     // chaque rehydratation a partir du titre + resume, comme a la collecte.
-    if (src && typeof detectPaysFromText === 'function' && !a._demo) {
+    if (!_aJour && src && typeof detectPaysFromText === 'function' && !a._demo) {
       const texteAnalyse = (a.analysis && !/^voir sur /i.test(a.analysis.trim())) ? a.analysis : '';
       const cyRecalc = detectPaysFromText(a.title || '', texteAnalyse, src.cy);
       if (cyRecalc && cyRecalc !== a.cy) {
@@ -6845,9 +7439,12 @@ function rehydrateArticles(arts) {
     // 12 h pendant lesquelles un litige entre deux personnes privees continue
     // d'ouvrir la liste des actualites a traiter, classe CRITIQUE.
     if (src && typeof classify === 'function' && !a._demo) {
-      const texteClass = (a.title || '') + ' ' + ((a.analysis && !/^voir sur /i.test(a.analysis.trim())) ? a.analysis : '');
-      const r = classify(texteClass, src, a.title || '');
-      if (r && r.lvl) { a.level = r.lvl; a.cat = r.cat; }
+      if (!_aJour) {
+        const texteClass = (a.title || '') + ' ' + ((a.analysis && !/^voir sur /i.test(a.analysis.trim())) ? a.analysis : '');
+        const r = classify(texteClass, src, a.title || '');
+        if (r && r.lvl) { a.level = r.lvl; a.cat = r.cat; }
+        if (_sig) a._rv = _sig;
+      }
       // « verifie » = recoupe par une seconde source, jamais un heritage :
       // la fusion du cache partage conserve les drapeaux poses par la
       // version precedente. Le 03/09/2026, 31 articles gardaient un
@@ -6857,6 +7454,7 @@ function rehydrateArticles(arts) {
       a.fiable = (Number(src.score) || 0) >= 80;
     }
 
+    if (a.level + '|' + a.cy !== _avant) _change++;
     if (a._srcRssMethod === undefined) {
       a._srcRssMethod = src ? (src.rss_method || null) : null;
       a._srcRssUrl = src ? (src.rss || '') : '';
@@ -6867,7 +7465,19 @@ function rehydrateArticles(arts) {
     a._isSocial = rm.includes('Twitter') || rm.includes('Telegram') || rm.includes('Facebook');
     if (!a._srcBadge) a._srcBadge = srcTypeBadge(src);
   });
+  rehydrateArticles.reste = _reste; rehydrateArticles.change = (rehydrateArticles.change || 0) + _change;
   return arts;
+}
+// Rehydratation du navigateur : par tranches de 40 ms, sans jamais geler
+// l'ecran ; quand tout est recalcule et que des niveaux ou des pays ont
+// bouge, les modules se redessinent une fois.
+function rehydraterParLots(arts) {
+  if (arts !== ALL) return; // un cache plus recent a remplace celui-ci
+  rehydrateArticles.change = rehydrateArticles.change || 0;
+  rehydrateArticles(arts, { budgetMs: 40 });
+  if (rehydrateArticles.reste > 0) { setTimeout(() => rehydraterParLots(arts), 20); return; }
+  const c = rehydrateArticles.change; rehydrateArticles.change = 0;
+  if (c > 0 && typeof synchroniserTousLesModules === 'function') synchroniserTousLesModules();
 }
 
 // _decodeEntitesHTML(str) : decode les entites HTML (nommees : &eacute; /
@@ -7011,6 +7621,7 @@ function parseJSON(d, src) {
       _media: _mediaJSON,
       _estAgenda: agendaType !== null, _agendaType: agendaType,
       _cyConfiance: cyConfiant ? 'detecte' : 'repli_source',
+      _rv: signatureCode(),
     };
   }).filter(Boolean);
 }
@@ -8941,10 +9552,17 @@ function fmtAge(ts) {
   const d   = new Date(ts);
   const now = new Date();
   const diffMin = Math.floor((now - d) / 60000);
-  // Heure locale formatée : HH:MM
-  const hhmm = d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+  // Heure locale formatée : HH:MM. Les formateurs Intl sont construits une
+  // seule fois : toLocaleTimeString() en recree un a chaque appel, soit 95 µs
+  // par article (248 ms pour 2 600 articles, mesure du 21/10/2026) a chaque
+  // lecture du cache.
+  if (!fmtAge._h) {
+    fmtAge._h = new Intl.DateTimeFormat('fr-FR', {hour:'2-digit', minute:'2-digit'});
+    fmtAge._d = new Intl.DateTimeFormat('fr-FR', {day:'2-digit', month:'2-digit'});
+  }
+  const hhmm = fmtAge._h.format(d);
   // Date courte : JJ/MM
-  const ddmm = d.toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit'});
+  const ddmm = fmtAge._d.format(d);
   // Aujourd'hui ?
   const isToday = d.toDateString() === now.toDateString();
   // Hier ?
@@ -9041,8 +9659,12 @@ async function resolveOGP(url, artId) {
     // og:image
     const mImg = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
                 || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+    // og:video (adresse https seulement) : la video de la page, ouverte d'un
+    // clic depuis le visuel, jamais lue dans un cadre (la CSP n'en autorise aucun).
+    const mVid = html.match(/<meta[^>]+property=["']og:video(?::secure_url|:url)?["'][^>]+content=["'](https:[^"']+)["']/i);
     if (mImg && mImg[1]) {
       const result = { img: mImg[1], type: 'og:image' };
+      if (mVid && mVid[1]) result.vid = mVid[1];
       MEDIA_CACHE[artId] = result;
       return result;
     }
@@ -9114,6 +9736,234 @@ function renderMediaBlock(a, heightPx) {
     resolveOGP(a.url, a.id).then(m => patchMediaDOM(a.id, m));
   }
   return `<div class="artmedia-wrap" id="artmedia-${a.id}" style="${fallbackStyle};display:${(MEDIA_CACHE[a.id] && MEDIA_CACHE[a.id].img)?'block':'none'}"></div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  VISUEL D'UNE ACTU — 20/10/2026 (direction « Bleu nuit »)
+//  Demande de l'editeur : des images et des videos en lien direct avec
+//  chaque actu, a la maniere d'Opera News, dans toute l'appli. Une seule
+//  fonction, partagee par le Flux, « A la une » et le tableau de bord.
+//  Regles, toutes liees au droit d'auteur et a la fiabilite :
+//  - l'image est celle que la SOURCE publie pour l'actu (champ media du flux,
+//    sinon aperçu Open Graph de la page) ; elle n'est jamais copiee ni
+//    hebergee, seulement affichee depuis son adresse, avec le domaine de la
+//    source en credit ;
+//  - une video ne se lit pas ici (la CSP n'autorise aucun cadre) : vignette
+//    officielle et bouton de lecture qui ouvre la source ;
+//  - sans image, un visuel de repli DIT ce qu'il est (pays, theme, gravite)
+//    au lieu d'une photo d'illustration qui laisserait croire a un document ;
+//  - https seulement (la CSP refuse le reste) ; aperçus Open Graph limites a
+//    VISUEL_OGP_MAX par rendu, pour ne pas lancer une requete par article.
+// ═══════════════════════════════════════════════════════════════════════
+const VISUEL_OGP_MAX = 24;
+let _visuelOgpDemandes = 0;
+const _VISUEL_CAT_ICONE = { securite:'ti-shield-half', politique:'ti-building-bank', humanitaire:'ti-heart-handshake', economie:'ti-chart-line', economique:'ti-chart-line', sport:'ti-ball-football' };
+const _VISUEL_NIV_VAR = { crit:'var(--r)', high:'var(--a)', mod:'var(--j)', ok:'var(--g)' };
+function urlImageSure(u) {
+  return (typeof u === 'string' && /^https:\/\/[^\s"'<>]+$/i.test(u)) ? u : null;
+}
+function idVideoYoutube(u) {
+  const m = String(u || '').match(/(?:youtube\.com\/(?:watch\?(?:[^#\s]*&)?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+function domaineActu(a) {
+  try { return new URL(articleLienDirect(a)).hostname.replace(/^www\./, ''); } catch (_) { return ''; }
+}
+// Ce que le visuel montrera : { img, video } — sans rien charger.
+function mediaActu(a) {
+  const media = (a && (a._media || MEDIA_CACHE[a.id])) || null;
+  const yt = idVideoYoutube(a && a.url) || idVideoYoutube(media && media.vid);
+  let img = urlImageSure(media && media.img);
+  if (!img && yt) img = 'https://i.ytimg.com/vi/' + yt + '/hqdefault.jpg';
+  return { img, video: !!(yt || (media && media.vid)) };
+}
+// Adresse qui ouvre LA video, comme le lien d'une source ouvre l'article
+// (demande de l'editeur du 20/10/2026) : la page YouTube si c'en est une
+// (une adresse « embed » devient « watch », lisible hors d'un cadre), sinon
+// le fichier video publie par la source, sinon la page de l'article.
+function lienVideoActu(a) {
+  const media = (a && (a._media || MEDIA_CACHE[a.id])) || null;
+  const yt = idVideoYoutube(a && a.url) || idVideoYoutube(media && media.vid);
+  if (yt) return 'https://www.youtube.com/watch?v=' + yt;
+  return urlImageSure(media && media.vid) || articleLienDirect(a);
+}
+function _boutonVideoHtml(a) {
+  return '<a class="vact-play" href="' + escHtml(safeUrl(lienVideoActu(a))) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" aria-label="' +
+    (LANG === 'en' ? 'Open the video' : 'Ouvrir la vidéo') + '"><span class="vact-play-btn"><i class="ti ti-player-play"></i></span>' +
+    '<span class="vact-play-txt">' + (LANG === 'en' ? 'Watch' : 'Voir la vidéo') + '</span></a>';
+}
+function visuelActu(a, taille) {
+  const m = mediaActu(a), video = m.video;
+  // « Economiser les donnees » (Parametres > Affichage) : ni image chargee ni
+  // apercu demande ; le repli reste, et une video s'ouvre toujours d'un clic.
+  const images = typeof affichageImagesActif !== 'function' || affichageImagesActif();
+  const img = images ? m.img : null;
+  if (images && !img && !video && (a.fiable || a.verified) && a.url && /^https:/.test(a.url)
+      && MEDIA_CACHE[a.id] === undefined && _visuelOgpDemandes < VISUEL_OGP_MAX) {
+    _visuelOgpDemandes++;
+    resolveOGP(a.url, a.id).then(m => patchVisuelActu(a.id, m));
+  }
+  const code = (a.cy && a.cy !== 'INT') ? a.cy : 'AF';
+  const dom = domaineActu(a);
+  return '<div class="vact vact-' + (taille || 'vignette') + (video ? ' vact-video' : '') + (img ? '' : ' sans-img') + '" id="vact-' + a.id + '" style="--vact-niv:' + (_VISUEL_NIV_VAR[a.level] || 'var(--lg)') + '">' +
+    '<div class="vact-repli" aria-hidden="true"><span class="vact-cat">' + escHtml(catFr(a.cat)) + '</span>' +
+      '<span class="vact-code">' + escHtml(code) + '</span><i class="ti ' + (_VISUEL_CAT_ICONE[a.cat] || 'ti-news') + '"></i></div>' +
+    (img ? '<img src="' + escHtml(img) + '" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.classList.add(\'sans-img\');this.remove()">' : '') +
+    (dom ? '<span class="vact-credit">© ' + escHtml(dom) + '</span>' : '') +
+    (video ? _boutonVideoHtml(a) : '') +
+  '</div>';
+}
+function patchVisuelActu(id, m) {
+  const src = urlImageSure(m && m.img);
+  if (m && m.vid) {
+    const a = (typeof ALL !== 'undefined' && ALL.find(x => x.id === id)) || { id, url: m.vid };
+    document.querySelectorAll('#vact-' + CSS.escape(id)).forEach(el => {
+      if (el.querySelector('.vact-play')) return;
+      el.classList.add('vact-video');
+      el.insertAdjacentHTML('beforeend', _boutonVideoHtml(a));
+    });
+  }
+  if (!src) return;
+  document.querySelectorAll('#vact-' + CSS.escape(id)).forEach(el => {
+    if (el.querySelector('img')) return;
+    const i = document.createElement('img');
+    i.src = src; i.alt = ''; i.loading = 'lazy'; i.decoding = 'async'; i.referrerPolicy = 'no-referrer';
+    i.onerror = () => { el.classList.add('sans-img'); i.remove(); };
+    el.insertBefore(i, el.querySelector('.vact-credit'));
+    el.classList.remove('sans-img');
+  });
+}
+// Carte « image d'abord » (A la une, tableau de bord) : meme visuel, titre en
+// serif, gravite et cotation. Le clic ouvre le detail, comme une carte du Flux.
+function carteUneHtml(a) {
+  const pl = a.flagged ? lp('u') : lp(a.level);
+  const cc = (typeof CYS !== 'undefined' && CYS.find(x => x.code === a.cy)) || { flag: '🌍', name: a.cy || '' };
+  const src = gs(a.primary);
+  const cot = (typeof cotationArticle === 'function') ? cotationArticle(a, src, SEUIL_SOURCE_ALERTE) : null;
+  return '<article class="une-carte" onclick="showDet(\'' + a.id + '\')">' +
+    visuelActu(a, 'une') +
+    '<div class="une-corps">' +
+      '<div class="une-kick"><span class="rpill ' + pl[0] + '">' + pl[1] + '</span><span>' + cc.flag + ' ' + escHtml(cc.name) + '</span></div>' +
+      '<div class="une-tit" role="button" tabindex="0">' + escHtml(L(a.title)) + '</div>' +
+      '<div class="une-meta"><span>' + fmtAge(a.pubDate) + '</span>' + (cot ? '<span class="une-cot une-cot-' + cot.cle + '">' + cot.libelle + '</span>' : '') + '</div>' +
+    '</div>' +
+  '</article>';
+}
+// Choix des actus « a la une » : gravite d'abord, puis celles qui ont un
+// visuel de la source, puis la plus recente. Jamais plus d'une par pays,
+// pour que la bande ne raconte pas quatre fois le meme fait, et jamais un
+// fait hors d'Afrique (cy 'INT') : premiere capture sur le cache reel du
+// 20/10/2026, un accident de la route en Australie tenait la une d'un outil
+// de veille sur 54 pays africains. Meme regle que la file « a traiter ».
+function choisirALaUne(arts, n) {
+  const rang = { crit: 0, high: 1, mod: 2, ok: 3 };
+  const tries = arts.filter(a => a && !a.flagged && a.level in rang && a.cy && a.cy !== 'INT').slice().sort((x, y) =>
+    (rang[x.level] - rang[y.level]) || ((mediaActu(y).img ? 1 : 0) - (mediaActu(x).img ? 1 : 0)) || ((y.pubDate || 0) - (x.pubDate || 0)));
+  const vus = new Set(), pris = [];
+  for (const a of tries) { if (vus.has(a.cy)) continue; vus.add(a.cy); pris.push(a); if (pris.length >= n) break; }
+  return pris;
+}
+
+// Ce qu'un rapport dit d'une actu, au-dela du titre. Demande de l'editeur du
+// 20/10/2026 : « les rapports doivent etre les plus detailles possible (ne
+// pas se limiter aux titres) ». Un seul calcul pour l'apercu HTML, le PDF, le
+// Word et le PowerPoint, pour qu'ils disent la meme chose :
+//   resume  : l'analyse de l'article (coupee a RESUME_RAPPORT_MAX, jamais un
+//             simple rappel du titre) ;
+//   infos   : cotation client, publication, survenance estimee, source(s) ;
+//   liens   : l'article (si les sources sont visibles pour ce compte, meme
+//             regle que partout) et la video, ouverte comme dans l'appli.
+const RESUME_RAPPORT_MAX = 900;
+function resumeCourt(texte, max) {
+  const t = String(texte || '');
+  return t.length > max ? t.slice(0, max).replace(/\s+\S*$/, '') + ' …' : t;
+}
+function detailRapportActu(a) {
+  const en = LANG === 'en';
+  const titre = String(L(a.title) || '').replace(/\s+/g, ' ').trim();
+  let resume = String(L(a.analysis) || '').replace(/\s+/g, ' ').trim();
+  if (resume.toLowerCase() === titre.toLowerCase()) resume = '';
+  resume = resumeCourt(resume, RESUME_RAPPORT_MAX);
+  const voir = typeof sourcesVisibles === 'function' && sourcesVisibles();
+  const cot = typeof cotationArticle === 'function' ? cotationArticle(a, gs(a.primary), SEUIL_SOURCE_ALERTE) : null;
+  const surv = typeof fmtSurvenance === 'function' ? fmtSurvenance(a) : null;
+  const infos = [];
+  if (cot) infos.push((en ? 'Rating: ' : 'Cotation : ') + cot.libelle);
+  if (a.pubDate) infos.push((en ? 'Published ' : 'Publié le ') + fmtFull(a.pubDate));
+  // Meme instant que la publication : le redire ne dit rien de plus.
+  if (surv && !surv.inconnue && !(a.pubDate && surv.texte === fmtFull(a.pubDate))) infos.push((en ? 'Event: ' : 'Survenance : ') + surv.texte);
+  const nSrc = (a.srcs || []).length;
+  if (voir) infos.push((en ? 'Source: ' : 'Source : ') + srcName(a.primary) + (nSrc > 1 ? ' (+' + (nSrc - 1) + ')' : ''));
+  else if (nSrc > 1) infos.push(en ? nSrc + ' sources' : nSrc + ' sources');
+  const media = mediaActu(a);
+  return {
+    resume, infos,
+    lienArticle: voir ? safeUrl(articleLienDirect(a), srcName(a.primary)) : null,
+    lienVideo: media.video ? safeUrl(lienVideoActu(a)) : null,
+    libelleArticle: en ? 'Read the article' : 'Lire l\'article',
+    libelleVideo: en ? 'Watch the video' : 'Voir la vidéo',
+  };
+}
+
+// Images des sources dans les rapports Word, PDF et PowerPoint (20/10/2026).
+// Un document bureautique ne peut pas pointer vers l'adresse d'une image : il
+// faut ses octets. La page n'a pas le droit de les demander par fetch (la CSP
+// limite connect-src), et passer par un relais public pour contourner ce que
+// le site source ne partage pas n'est pas un choix du code. On charge donc
+// l'image comme l'ecran le fait (<img>, autorise par img-src), en mode CORS :
+// si la source l'autorise (YouTube, beaucoup de CDN), on la redessine reduite
+// et on l'embarque ; sinon le document garde le texte seul, sans repli
+// d'illustration. Jamais plus de IMAGES_RAPPORT_MAX par document, chacune
+// abandonnee apres IMAGES_RAPPORT_DELAI_MS : un export ne doit pas attendre
+// un serveur lent.
+const IMAGES_RAPPORT_MAX = 24;
+const IMAGES_RAPPORT_DELAI_MS = 4000;
+const IMAGES_RAPPORT_LARGEUR = 480;
+function articlesPourImagesRapport(arts, max) {
+  const rang = { crit:0, high:1, mod:2, ok:3 };
+  const vus = new Set();
+  return (arts || []).filter(a => a && a.id && !vus.has(a.id) && vus.add(a.id) && mediaActu(a).img)
+    .sort((x, y) => ((rang[x.level] ?? 4) - (rang[y.level] ?? 4)) || ((y.pubDate || 0) - (x.pubDate || 0)))
+    .slice(0, max == null ? IMAGES_RAPPORT_MAX : max);
+}
+function _imageRapport(url) {
+  return new Promise(resolve => {
+    const img = new Image();
+    let fini = false;
+    const fin = (v) => { if (!fini) { fini = true; clearTimeout(t); resolve(v); } };
+    const t = setTimeout(() => fin(null), IMAGES_RAPPORT_DELAI_MS);
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const w0 = img.naturalWidth || 1, h0 = img.naturalHeight || 1;
+        // Une vignette trop petite (pixel de suivi, icone) n'illustre rien.
+        if (w0 < 120 || h0 < 60) return fin(null);
+        const k = Math.min(1, IMAGES_RAPPORT_LARGEUR / w0);
+        const c = document.createElement('canvas');
+        c.width = Math.round(w0 * k); c.height = Math.round(h0 * k);
+        const g = c.getContext('2d');
+        g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, c.width, c.height);
+        g.drawImage(img, 0, 0, c.width, c.height);
+        // Leve si la source n'autorise pas le partage (canevas « teinte »).
+        const dataUrl = c.toDataURL('image/jpeg', 0.8);
+        fin({ dataUrl, ratio: c.width / c.height });
+      } catch (_) { fin(null); }
+    };
+    img.onerror = () => fin(null);
+    img.src = url;
+  });
+}
+// chargerImagesRapport(arts) -> Map id -> { dataUrl, ratio, octets() }.
+// Respecte « economiser les donnees » (Parametres > Affichage).
+async function chargerImagesRapport(arts, max) {
+  const res = new Map();
+  if (typeof affichageImagesActif === 'function' && !affichageImagesActif()) return res;
+  const choix = articlesPourImagesRapport(arts, max);
+  const lots = await Promise.all(choix.map(a => _imageRapport(mediaActu(a).img).then(v => [a.id, v])));
+  lots.forEach(([id, v]) => {
+    if (v) res.set(id, Object.assign(v, { octets: () => logoMarqueOctets(v) }));
+  });
+  return res;
 }
 
 function parseRSS(xml, src) {
@@ -9197,6 +10047,7 @@ function parseRSS(xml, src) {
       _media,
       _estAgenda: agendaType !== null, _agendaType: agendaType,
       _cyConfiance: cyConfiant ? 'detecte' : 'repli_source',
+      _rv: signatureCode(),
     });
   }
   return res;
@@ -10110,6 +10961,61 @@ function nomMarqueActuelle() {
   if (!fonctionnalitePayante()) return 'SentiqS';
   const m = getMarquePerso();
   return (m.nomMarque || '').trim() || 'SentiqS';
+}
+// ── Logo de l'organisation (20/10/2026) ─────────────────────────────────
+// L'identite d'envoi d'un rapport, c'est le NOM et le LOGO de l'organisation
+// qui l'envoie (precision de l'editeur). Le logo est choisi dans Parametres >
+// Personnalisation de marque, reduit a LOGO_MARQUE_MAX_PX de cote et garde
+// en data URL dans la personnalisation (aucun envoi a un serveur). Meme
+// regle que le nom : plan payant seulement, sinon aucun logo n'est imprime.
+const LOGO_MARQUE_MAX_PX = 360;
+function logoMarqueValide(l) {
+  return typeof l === 'string' && /^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(l);
+}
+function logoMarqueActuelle() {
+  if (!fonctionnalitePayante()) return null;
+  const m = getMarquePerso();
+  if (!logoMarqueValide(m.logoMarque)) return null;
+  const ratio = Number(m.logoMarqueRatio);
+  return { dataUrl: m.logoMarque, ratio: (ratio > 0.1 && ratio < 10) ? ratio : 1, png: m.logoMarque.startsWith('data:image/png') };
+}
+function logoMarqueOctets(logo) {
+  const b = atob(logo.dataUrl.split(',')[1]);
+  const u = new Uint8Array(b.length);
+  for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i);
+  return u;
+}
+// preparerLogoMarque(fichier) : { dataUrl, ratio } d'une image reduite a
+// LOGO_MARQUE_MAX_PX, en PNG (transparence gardee) sauf si trop lourd.
+function preparerLogoMarque(fichier) {
+  return new Promise((resolve, reject) => {
+    if (!fichier || !/^image\/(png|jpeg|webp|gif|svg\+xml)$/.test(fichier.type)) return reject(new Error('format'));
+    if (fichier.size > 5 * 1024 * 1024) return reject(new Error('taille'));
+    const url = URL.createObjectURL(fichier);
+    const img = new Image();
+    img.onload = () => {
+      const w0 = img.naturalWidth || img.width || 1, h0 = img.naturalHeight || img.height || 1;
+      const k = Math.min(1, LOGO_MARQUE_MAX_PX / Math.max(w0, h0));
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(w0 * k)); c.height = Math.max(1, Math.round(h0 * k));
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      let dataUrl = c.toDataURL('image/png');
+      if (dataUrl.length > 250000) {
+        const c2 = document.createElement('canvas'); c2.width = c.width; c2.height = c.height;
+        const g = c2.getContext('2d'); g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, c2.width, c2.height); g.drawImage(c, 0, 0);
+        dataUrl = c2.toDataURL('image/jpeg', 0.85);
+      }
+      resolve({ dataUrl, ratio: c.width / c.height });
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('lecture')); };
+    img.src = url;
+  });
+}
+// Bloc HTML du logo pour les documents (apercus imprimables), vide sans logo.
+function logoMarqueHtml(hauteurPx) {
+  const l = logoMarqueActuelle();
+  return l ? '<img src="' + l.dataUrl + '" alt="' + _apEsc(nomMarqueActuelle()) + '" style="height:' + hauteurPx + 'px;width:auto;max-width:' + Math.round(hauteurPx * 4) + 'px;object-fit:contain;display:block;margin:0 auto 10px">' : '';
 }
 // identitesMarquePerso(m) : normalise les 3 identites d'envoi possibles +
 // laquelle est active. Migre en douceur l'ancien champ unique
@@ -11934,9 +12840,55 @@ function _debounce(fn, ms) {
   return function(...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), ms); };
 }
 let _renderFeedGen = 0;
+// Pagination du Flux. Mesure du 21/10/2026 avec 2 600 articles dans la
+// fenetre : le Flux ecrivait TOUTES les cartes d'un coup, soit 112 742
+// noeuds DOM, 7 Mo de HTML, 871 images et 3,2 s de gel du thread (1,9 s sur
+// mobile) avant le premier pixel. On n'ecrit plus que FLUX_PAGE cartes, les
+// plus pertinentes selon le tri courant, et « Afficher plus » en ajoute.
+const FLUX_PAGE = 40;
+let _fluxLimite = FLUX_PAGE, _fluxSignature = '';
+function fluxPlus() { _fluxLimite += FLUX_PAGE; renderFeed(); }
+
+// Menu « Plus » de l'en-tete et barres d'export repliees (21/10/2026).
+// Le menu ferme au clic ailleurs et a Echap ; les barres d'export (Flux,
+// Synthese, Agenda) montrent un seul bouton « Exporter » tant qu'on ne
+// l'ouvre pas : quatre boutons de format + identite + compteur occupaient
+// une rangee entiere devant la lecture.
+function initBarresExport() {
+  try {
+    document.querySelectorAll('.dl-toolbar').forEach(bar => {
+      if (bar.querySelector(':scope > .dl-toggle')) return;
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'dl-toggle';
+      b.setAttribute('aria-expanded', 'false');
+      b.innerHTML = '<i class="ti ti-download" aria-hidden="true"></i><span>' + (typeof LANG !== 'undefined' && LANG === 'en' ? 'Export' : 'Exporter') + '</span><i class="ti ti-chevron-down" aria-hidden="true"></i>';
+      b.onclick = () => { const ferme = bar.classList.toggle('dl-replie'); b.setAttribute('aria-expanded', ferme ? 'false' : 'true'); };
+      bar.insertBefore(b, bar.firstChild);
+      bar.classList.add('dl-replie');
+    });
+  } catch (_) {}
+}
+document.addEventListener('click', e => {
+  const m = document.getElementById('tbMore');
+  if (m && m.open && !m.contains(e.target)) m.open = false;
+});
+document.addEventListener('keydown', e => {
+  const m = document.getElementById('tbMore');
+  if (e.key === 'Escape' && m && m.open) { m.open = false; const s = m.querySelector('summary'); if (s) s.focus(); }
+});
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initBarresExport); else initBarresExport();
+function fluxSignatureFiltres() {
+  const g = id => { const e = document.getElementById(id); return e ? e.value : ''; };
+  return [fCat, fCy, fGeo, fSc, g('artQ'), g('sortSel')].join('|');
+}
 async function renderFeed() {
   const _monGen = ++_renderFeedGen;
-  const arts=getFiltered();
+  _visuelOgpDemandes = 0;
+  const artsTous = getFiltered();
+  // Un filtre, un tri ou une recherche qui change repart de la premiere page.
+  const _sig = fluxSignatureFiltres();
+  if (_sig !== _fluxSignature) { _fluxSignature = _sig; _fluxLimite = FLUX_PAGE; }
+  const arts = artsTous.slice(0, _fluxLimite);
   const c=document.getElementById('feed');
   // Bandeau tableau de bord pays : construit tot pour s'afficher meme si
   // le pays selectionne n'a aucun article actif dans le Flux (le score
@@ -11952,7 +12904,7 @@ async function renderFeed() {
         '<span style="font-size:22px;">'+pysB0.flag+'</span>'+
         '<div style="flex:1;min-width:0;">'+
           '<div style="font-size:12px;font-weight:800;">'+pysB0.name+'</div>'+
-          '<div style="font-size:9px;color:var(--lg);">Capitale '+pysB0.capital+' · '+arts.length+' article'+(arts.length>1?'s':'')+' actif'+(arts.length>1?'s':'')+'</div>'+
+          '<div style="font-size:9px;color:var(--lg);">Capitale '+pysB0.capital+' · '+artsTous.length+' article'+(artsTous.length>1?'s':'')+' actif'+(artsTous.length>1?'s':'')+'</div>'+
         '</div>'+
         '<div style="text-align:right;">'+
           '<div style="padding:3px 10px;border-radius:5px;font-size:9px;font-weight:700;color:#fff;background:'+scB0.niv.col+';">'+scB0.niv.label+' · '+scB0.total100+'/100</div>'+
@@ -11961,7 +12913,7 @@ async function renderFeed() {
       '</div>';
     }
   }
-  if(!arts.length){
+  if(!artsTous.length){
     c.innerHTML=dashBanner0+'<div class="empty"><i class="ti ti-inbox"></i><p>'+t('empty_aucun')+'</p>'+
       '<span style="font-size:11px;color:var(--lg);margin-top:4px">'+
       (ALL.length?t('empty_filtres'):t('empty_actualiser'))+
@@ -12020,6 +12972,8 @@ async function renderFeed() {
     // puce de categorie de la ligne secondaire ferait doublon.
     const catDoublon = balArt.some(b => normaliserAccents(b.label).toLowerCase() === String(a.cat || '').toLowerCase());
     return '<div class="art l'+a.level.charAt(0)+'2'+isnew+'" data-level="'+a.level+'" onclick="showDet(\''+a.id+'\')">'+
+      // Visuel de l'actu (image de la source, video, ou repli) — voir visuelActu().
+      visuelActu(a, 'vignette')+
       '<div class="al"><span class="rpill '+pl[0]+'">'+pl[1]+'</span>'+
       sico+'</div>'+
       '<div class="ab">'+
@@ -12181,7 +13135,8 @@ async function renderFeed() {
     // En-tete pays uniquement si on est en mode "Tous les pays"
     if (fGeo === 'all') {
       const cc = CYS.find(x=>x.code===cyCode) || {flag:'🌍', name:cyCode};
-      const totalPays = artsCe.length;
+      const artsCeTous = artsTous.filter(a => a.cy === cyCode);
+      const totalPays = artsCeTous.length;
       // Refonte du 21/09/2026 : nom de pays en serif, meme traitement que
       // l'en-tete de section du tableau de bord — c'est la seule autre
       // rupture de ce niveau dans le Flux (le reste reste dense/sans-serif
@@ -12191,8 +13146,8 @@ async function renderFeed() {
       // toujours dans quel pays on lit) ; il annonce d'emblee combien d'actus
       // critiques / elevees le pays contient. Nom, total et lien vers la
       // fiche pays sont conserves.
-      const nCrit = artsCe.filter(a => a.level === 'crit').length;
-      const nHigh = artsCe.filter(a => a.level === 'high').length;
+      const nCrit = artsCeTous.filter(a => a.level === 'crit').length;
+      const nHigh = artsCeTous.filter(a => a.level === 'high').length;
       const en = LANG === 'en';
       const niv = (nCrit ? '<span class="rpill rc2">'+nCrit+' '+(en?'critical':'critique'+(nCrit>1?'s':''))+'</span>' : '')+
                   (nHigh ? '<span class="rpill rh2">'+nHigh+' '+(en?'high':'élevée'+(nHigh>1?'s':''))+'</span>' : '');
@@ -12223,6 +13178,14 @@ async function renderFeed() {
   // ── Bandeau tableau de bord pays : deja construit en tete de fonction
   // (dashBanner0), reutilise ici pour le cas "articles trouves". ──
 
+  // ── « A la une » : les faits les plus graves, image d'abord (une par pays).
+  // Pas en dessous de quatre articles : une bande qui repete la liste juste
+  // en dessous n'apporte rien.
+  const une = artsTous.length >= 4 ? choisirALaUne(artsTous, 4) : [];
+  const uneHtml = une.length >= 3
+    ? '<section class="une-bande" aria-label="'+(LANG==='en'?'Top stories':'À la une')+'"><h2 class="une-titre">'+(LANG==='en'?'Top stories':'À la une')+'</h2><div class="une-grille">'+une.map(carteUneHtml).join('')+'</div></section>'
+    : '';
+
   if (_monGen !== _renderFeedGen) return; // un rendu plus recent a deja demarre — abandon
   // Rendu différé : on vide d'abord le conteneur pour libérer le thread,
   // puis on injecte le HTML au prochain frame disponible du navigateur.
@@ -12230,7 +13193,13 @@ async function renderFeed() {
   c.innerHTML = '';
   requestAnimationFrame(() => {
     if (_monGen !== _renderFeedGen) return; // idem, verifie a nouveau juste avant l'ecriture DOM
-    c.innerHTML = dashBanner0 + (html || '<div class="empty"><i class="ti ti-inbox"></i><p>Aucun article</p></div>');
+    const reste = artsTous.length - arts.length;
+    const plusHtml = reste > 0
+      ? '<div class="feed-plus"><button type="button" class="feed-plus-btn" onclick="fluxPlus()">'+
+          (LANG==='en' ? 'Show '+Math.min(FLUX_PAGE,reste)+' more' : 'Afficher '+Math.min(FLUX_PAGE,reste)+' actus de plus')+
+          '</button><span class="feed-plus-n">'+arts.length+' / '+artsTous.length+'</span></div>'
+      : '';
+    c.innerHTML = dashBanner0 + uneHtml + (html || '<div class="empty"><i class="ti ti-inbox"></i><p>Aucun article</p></div>') + plusHtml;
   });
 }
 // Version temporisee pour le champ de recherche (#artQ) uniquement — les
@@ -12296,6 +13265,10 @@ async function showDet(id) {
     '<div class="dh"><div class="dt" id="dettt-'+a.id+'">'+escHtml(L(a.title))+'</div>'+
     (detTraduireDispo ? '<button class="tr-btn" id="dettrbtn-'+a.id+'" style="flex-shrink:0;margin-right:6px" onclick="event.stopPropagation();retraduireActu(\''+a.id+'\')" title="'+(LANG==='en'?'Translate now':'Traduire maintenant')+'"><i class="ti ti-language"></i>'+(LANG==='en'?'Translate':'Traduire')+'</button>' : '')+
     '<div class="dc" onclick="document.getElementById(\'detOverlay\').remove()"><i class="ti ti-x"></i></div></div>'+
+    // Visuel de l'actu en tete du detail, comme une page d'article
+    // (meme composant que le Flux, voir visuelActu).
+    '<div class="det-visuel">'+visuelActu(a, 'une')+'</div>'+
+    (mediaActu(a).video ? '<a class="det-video" href="'+escHtml(safeUrl(lienVideoActu(a)))+'" target="_blank" rel="noopener"><i class="ti ti-player-play"></i>'+(LANG==='en'?'Open the video':'Ouvrir la vidéo')+'<i class="ti ti-external-link"></i></a>' : '')+
     confHtml+
     '<div class="dlvl" style="background:'+bgC+';border-left:4px solid '+bc+';color:'+bc+'">'+
       '<i class="ti '+lic(a.level)+'"></i><strong>'+pl[1]+'</strong>'+
@@ -12602,7 +13575,14 @@ async function renderPanelATraiter(cyFiltre, zoneFiltre) {
       Aucune actualité de moins de ${libelleFenetre()} en attente de traitement.
     </div>`;
   }
-  return `<div style="background:var(--w);border:1px solid var(--bd);border-left:3px solid var(--b);border-radius:9px;padding:12px;margin-bottom:12px;">
+  // Les faits les plus graves de la file, image d'abord (meme carte que
+  // « A la une » du Flux, voir carteUneHtml) : le tableau de bord et la
+  // Synthese montrent les memes faits que le Flux, sous la meme forme.
+  const une = choisirALaUne(arts, 4);
+  const uneHtml = une.length >= 3
+    ? '<section class="une-bande une-bande-panneau" aria-label="'+(LANG==='en'?'Today\'s key facts':'Les faits du jour')+'"><h2 class="une-titre">'+(LANG==='en'?'Today\'s key facts':'Les faits du jour')+'</h2><div class="une-grille">'+une.map(carteUneHtml).join('')+'</div></section>'
+    : '';
+  return uneHtml + `<div style="background:var(--w);border:1px solid var(--bd);border-left:3px solid var(--b);border-radius:9px;padding:12px;margin-bottom:12px;">
     <div style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
       <i class="ti ti-clock-exclamation" style="color:var(--b)"></i>
       Actualités à traiter (moins de ${libelleFenetre()})
@@ -12845,10 +13825,10 @@ function setDashCartoMode(m) { window.dashCartoMode = m; if (typeof renderDashbo
   // demande) : le bandeau du haut du Tableau de bord occupait trop de place
   // avant le contenu utile (heatmap/zones/flux prioritaire).
   const kpiCard = (v,l,c,icon,kind,sub) =>
-    `<div class="acard" style="background:var(--w);border:1px solid var(--bd);border-top:3px solid ${c};border-radius:9px;padding:8px;text-align:center;position:relative;cursor:pointer;" onclick="showKpiDrill('${kind}')" title="${sub?sub+' — ':''}Voir le détail">
-       <i class="ti ${icon||'ti-chart-bar'}" style="position:absolute;top:6px;right:8px;font-size:12px;color:${c};opacity:.45;"></i>
-       <div style="font-family:var(--font-mono,'Roboto Mono',monospace);font-size:17px;font-weight:700;color:${c};line-height:1.1;">${v}</div>
-       <div style="font-size:9px;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;">${l}</div>${sub?`<div style="font-size:7.5px;color:var(--lg);opacity:.7;margin-top:1px;">${sub}</div>`:''}
+    `<div class="acard kpi-tile" style="background:var(--w);border:1px solid var(--bd);border-top:2px solid ${c};border-radius:9px;padding:8px;text-align:center;position:relative;cursor:pointer;" onclick="showKpiDrill('${kind}')" title="${sub?sub+' — ':''}Voir le détail">
+       <i class="ti ${icon||'ti-chart-bar'}" style="position:absolute;top:10px;right:12px;font-size:13px;color:var(--lg);"></i>
+       <div class="kpi-v" style="font-family:var(--font-mono,'Roboto Mono',monospace);font-size:17px;font-weight:700;color:${c};line-height:1.1;">${v}</div>
+       <div class="kpi-l" style="font-size:9px;color:var(--lg);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;">${l}</div>${sub?`<div class="kpi-s" style="font-size:7.5px;color:var(--lg);opacity:.7;margin-top:1px;">${sub}</div>`:''}
      </div>`;
 
   // Cartogramme régional : les 54 pays regroupés par zone geographique
@@ -14759,7 +15739,7 @@ async function init() {
         const fresh=saved.filter(a=>estRecentReel(a));
         if(fresh.length){
           ALL=fresh; ALL.forEach(a=>{a.time=fmtAge(a.pubDate||0);});
-          if (typeof rehydrateArticles === 'function') rehydrateArticles(ALL);
+          if (typeof rehydraterParLots === 'function') rehydraterParLots(ALL);
           // Repare les articles caches depuis une session precedente, avant meme
           // le premier rendu (evite d'afficher brievement des entites HTML non
           // decodees restees dans IndexedDB) — voir agentCorrigerTextesArticles.
@@ -15476,7 +16456,7 @@ function synchroniserTousLesModules() {
 function _appliquerArticlesPartages(articles) {
   ALL = articles.filter(a => estRecentReel(a));
   ALL.forEach(a => { a.time = fmtAge(a.pubDate || 0); });
-  if (typeof rehydrateArticles === 'function') rehydrateArticles(ALL);
+  if (typeof rehydraterParLots === 'function') rehydraterParLots(ALL);
   if (typeof agentCorrigerTextesArticles === 'function') agentCorrigerTextesArticles();
   dbPut(ALL);
   dbMeta('lastCollect', Date.now());
@@ -15832,7 +16812,7 @@ async function _ouvrirSessionDepuisSupabase(authUser) {
     // status sont de toute facon toujours redetermines cote serveur
     // (trigger before insert, voir migration profiles_auth).
     const { data: cree, error: errCreation } = await client.from('profiles')
-      .insert({ id: authUser.id, email: authUser.email, data: {} })
+      .insert({ id: authUser.id, email: authUser.email, data: { plan: 'gratuit', createdAt: new Date().toISOString() } })
       .select('*').maybeSingle();
     if (errCreation) {
       if (errEl) { errEl.textContent = 'Erreur de creation du profil : ' + errCreation.message; errEl.classList.add('show'); }
@@ -15857,7 +16837,7 @@ async function _ouvrirSessionDepuisSupabase(authUser) {
     _modeDefinitionMdp = 'admin';
     document.getElementById('loginForm').style.display='none';
     document.getElementById('registerForm').style.display='none';
-    document.getElementById('forgotPasswordForm').style.display='none';
+    document.getElementById('forgotPasswordForm').style.display='none';document.getElementById('otpForm').style.display='none';
     document.getElementById('setPasswordForm').style.display='block';
     document.getElementById('spNewPass').value=''; document.getElementById('spConfirmPass').value='';
     document.getElementById('setPasswordErr').classList.remove('show');
@@ -15910,6 +16890,7 @@ function showForgotPasswordForm() {
   document.getElementById('loginForm').style.display='none';
   document.getElementById('registerForm').style.display='none';
   document.getElementById('setPasswordForm').style.display='none';
+  document.getElementById('otpForm').style.display='none';
   document.getElementById('forgotPasswordForm').style.display='block';
   document.getElementById('fpEmail').value='';
   document.getElementById('forgotPasswordErr').classList.remove('show');
@@ -16001,8 +16982,100 @@ function showUserChip(user) {
 function toggleUserMenu(e){if(e)e.stopPropagation();document.getElementById('userMenu').classList.toggle('open');}
 document.addEventListener('click',()=>{const m=document.getElementById('userMenu');if(m)m.classList.remove('open');});
 
-function showRegisterForm(){document.getElementById('loginForm').style.display='none';document.getElementById('registerForm').style.display='block';document.getElementById('setPasswordForm').style.display='none';document.getElementById('forgotPasswordForm').style.display='none';}
-function showLoginForm(){document.getElementById('loginForm').style.display='block';document.getElementById('registerForm').style.display='none';document.getElementById('setPasswordForm').style.display='none';document.getElementById('forgotPasswordForm').style.display='none';if(typeof remplirSelectZonePrioritaireLogin==='function')remplirSelectZonePrioritaireLogin();}
+function showRegisterForm(){document.getElementById('loginForm').style.display='none';document.getElementById('registerForm').style.display='block';document.getElementById('setPasswordForm').style.display='none';document.getElementById('forgotPasswordForm').style.display='none';document.getElementById('otpForm').style.display='none';}
+function showLoginForm(){document.getElementById('loginForm').style.display='block';document.getElementById('registerForm').style.display='none';document.getElementById('setPasswordForm').style.display='none';document.getElementById('forgotPasswordForm').style.display='none';document.getElementById('otpForm').style.display='none';if(typeof remplirSelectZonePrioritaireLogin==='function')remplirSelectZonePrioritaireLogin();}
+
+
+// ═══ CONNEXION PAR CODE E-MAIL (sans mot de passe) — 21/10/2026 ═══
+// Une seule porte pour s'inscrire ET se connecter : signInWithOtp cree le
+// compte s'il n'existe pas (shouldCreateUser), verifyOtp ouvre la session.
+// Le profil applicatif est cree par _ouvrirSessionDepuisSupabase au premier
+// passage, avec le plan gratuit de 72 h (role et statut restent decides par
+// le serveur). La connexion par mot de passe reste disponible.
+// Cote Supabase (reglages que seul le proprietaire peut faire) : le modele
+// d'e-mail « Magic Link » ET « Confirm signup » doivent contenir {{ .Token }}
+// pour que l'utilisateur recoive un code et pas seulement un lien.
+const OTP_RENVOI_MS = 60000;
+let _otpEmail = '', _otpProchainEnvoi = 0, _otpMinuteur = null, _modeConnexion = 'code';
+function normaliserCodeOtp(v) {
+  const c = String(v || '').replace(/[\s-]/g, '');
+  return /^\d{6,10}$/.test(c) ? c : null;
+}
+function messageErreurOtp(err, envoi) {
+  const m = String((err && (err.message || err.code)) || '');
+  if (/rate|too many|after \d+ seconds|429|over_email_send_rate_limit/i.test(m)) return t('otp_err_rate');
+  if (/signups? not allowed|signup_disabled/i.test(m)) return t('otp_err_signup');
+  return envoi ? t('otp_err_send') : t('otp_err_code');
+}
+function _otpErreur(id, msg) { const e = document.getElementById(id); if (!e) return; e.textContent = msg || ''; e.classList.toggle('show', !!msg); }
+function _otpAfficher(etape) {
+  ['loginForm', 'otpForm'].forEach(id => { const e = document.getElementById(id); if (e) e.style.display = (id === etape ? 'block' : 'none'); });
+}
+function basculerModeConnexion() {
+  _modeConnexion = _modeConnexion === 'code' ? 'mdp' : 'code';
+  const mdp = _modeConnexion === 'mdp';
+  document.getElementById('loginPassBloc').style.display = mdp ? 'block' : 'none';
+  document.getElementById('loginBtn').style.display = mdp ? 'block' : 'none';
+  document.getElementById('otpSendBtn').style.display = mdp ? 'none' : 'block';
+  document.getElementById('modeConnexionLien').textContent = t(mdp ? 'otp_use_code' : 'otp_use_password');
+  _otpErreur('loginErr', '');
+  const champ = document.getElementById(mdp ? 'loginPass' : 'loginEmail'); if (champ) champ.focus();
+}
+function validerConnexion() { if (_modeConnexion === 'mdp') doLogin(); else envoyerCodeEmail(); }
+async function envoyerCodeEmail(renvoi) {
+  const email = (renvoi && _otpEmail) ? _otpEmail : document.getElementById('loginEmail').value.trim().toLowerCase();
+  const erreurId = renvoi ? 'otpErr' : 'loginErr';
+  _otpErreur(erreurId, '');
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { _otpErreur(erreurId, t('err_invalid_email')); return; }
+  const client = getSentinelSupabase();
+  if (!client) { _otpErreur(erreurId, t('otp_err_send')); return; }
+  if (renvoi && Date.now() < _otpProchainEnvoi) return;
+  const btn = document.getElementById('otpSendBtn'); if (btn) btn.disabled = true;
+  try {
+    const { error } = await client.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: location.origin + location.pathname } });
+    if (error) { _otpErreur(erreurId, messageErreurOtp(error, true)); return; }
+    _otpEmail = email; _otpProchainEnvoi = Date.now() + OTP_RENVOI_MS;
+    document.getElementById('otpEmailAff').textContent = email;
+    document.getElementById('otpCode').value = '';
+    _otpAfficher('otpForm');
+    _otpDecompte();
+    const c = document.getElementById('otpCode'); if (c) c.focus();
+  } catch (e) { _otpErreur(erreurId, t('otp_err_send')); }
+  finally { if (btn) btn.disabled = false; }
+}
+function renvoyerCodeEmail() { if (Date.now() >= _otpProchainEnvoi) envoyerCodeEmail(true); }
+function _otpDecompte() {
+  clearInterval(_otpMinuteur);
+  const lien = document.getElementById('otpRenvoi');
+  const maj = () => {
+    const reste = Math.ceil((_otpProchainEnvoi - Date.now()) / 1000);
+    if (!lien) return;
+    if (reste > 0) { lien.textContent = t('otp_resend_in').replace('{s}', reste); lien.setAttribute('aria-disabled', 'true'); }
+    else { lien.textContent = t('otp_resend'); lien.removeAttribute('aria-disabled'); clearInterval(_otpMinuteur); }
+  };
+  maj(); _otpMinuteur = setInterval(maj, 1000);
+}
+function changerAdresseOtp() { clearInterval(_otpMinuteur); _otpErreur('otpErr', ''); _otpAfficher('loginForm'); const e = document.getElementById('loginEmail'); if (e) e.focus(); }
+function verifierCodeSiComplet() { const c = document.getElementById('otpCode'); if (c && /^\d{6}$/.test(c.value.trim())) verifierCodeEmail(); }
+let _otpEnCours = false;
+async function verifierCodeEmail() {
+  if (_otpEnCours) return;
+  _otpErreur('otpErr', '');
+  const code = normaliserCodeOtp(document.getElementById('otpCode').value);
+  if (!code) { _otpErreur('otpErr', t('otp_err_code')); return; }
+  const client = getSentinelSupabase();
+  if (!client) { _otpErreur('otpErr', t('otp_err_send')); return; }
+  _otpEnCours = true;
+  const btn = document.getElementById('otpVerifyBtn'); if (btn) btn.disabled = true;
+  try {
+    const { data, error } = await client.auth.verifyOtp({ email: _otpEmail, token: code, type: 'email' });
+    if (error || !data || !data.user) { _otpErreur('otpErr', messageErreurOtp(error, false)); return; }
+    clearInterval(_otpMinuteur);
+    const ok = await _ouvrirSessionDepuisSupabase(data.user);
+    if (!ok) { _otpAfficher('loginForm'); const l = document.getElementById('loginErr'); if (l && !l.textContent) _otpErreur('loginErr', t('otp_err_code')); }
+  } catch (e) { _otpErreur('otpErr', t('otp_err_send')); }
+  finally { _otpEnCours = false; if (btn) btn.disabled = false; }
+}
 
 // doRegister() : essai gratuit en libre-service, active immediatement (sauf
 // si le projet Supabase impose la confirmation par e-mail — voir plus bas),
@@ -16195,7 +17268,7 @@ function afficherIntroVideo() {
       overlay: document.getElementById('introVideoOverlay'),
       video: document.getElementById('introVideoEl'),
       skip: document.getElementById('introVideoSkip')
-    });
+    }, { fondu: 500 });
   } catch (_) { /* jamais bloquer l'acces a la connexion */ }
 }
 
@@ -16231,6 +17304,7 @@ async function checkAuth() {
   if (location.hash === '#bulletin' && typeof ouvrirBulletinPublic === 'function') ouvrirBulletinPublic();
   else if (location.hash === '#methodologie' && typeof ouvrirMethodologiePublique === 'function') ouvrirMethodologiePublique();
 
+  const _hashAvantSdk = (location.hash || '') + (location.search || '');
   const client = getSentinelSupabase();
   if (!client) {
     // Supabase indisponible (SDK non charge, hors ligne au tout premier
@@ -16253,7 +17327,7 @@ async function checkAuth() {
       _modeDefinitionMdp = 'recuperation';
       document.getElementById('loginForm').style.display='none';
       document.getElementById('registerForm').style.display='none';
-      document.getElementById('forgotPasswordForm').style.display='none';
+      document.getElementById('forgotPasswordForm').style.display='none';document.getElementById('otpForm').style.display='none';
       document.getElementById('setPasswordForm').style.display='block';
       document.getElementById('spNewPass').value=''; document.getElementById('spConfirmPass').value='';
     }
@@ -16265,7 +17339,14 @@ async function checkAuth() {
   // automatique du jeton) est neanmoins ignoree si la trace locale de
   // connexion ne date pas d'aujourd'hui — force une nouvelle saisie du mot
   // de passe a la premiere ouverture de chaque jour, sur cet appareil.
-  if (session && session.user && _sessionLocaleDuJour()) {
+  // Retour du lien e-mail (si le modele envoie un lien plutot qu'un code) :
+  // une connexion TOUTE FRAICHE, confirmee par le serveur (last_sign_in_at),
+  // compte comme la saisie du jour. Un simple « #access_token= » ajoute a la
+  // main ne suffit pas a contourner la reconnexion quotidienne.
+  const _retourLien = !!(session && session.user && /[#&?](access_token|code)=|#connexion-fraiche/.test(_hashAvantSdk) &&
+    (Date.now() - new Date(session.user.last_sign_in_at || 0).getTime()) < 120000);
+  if (_retourLien) { try { history.replaceState(null, '', location.pathname); } catch (_) {} }
+  if (session && session.user && (_retourLien || _sessionLocaleDuJour())) {
     const ok = await _ouvrirSessionDepuisSupabase(session.user);
     if (ok) return;
   } else if (session && session.user) {
@@ -17386,6 +18467,8 @@ function renderMarquePerso() {
   const m = getMarquePerso();
   const { identite1, identite2, identite3, active } = identitesMarquePerso(m);
   nomEl.value = m.nomMarque || '';
+  _marqueLogoBrouillon = undefined;
+  afficherApercuLogoMarque(logoMarqueValide(m.logoMarque) ? m.logoMarque : '');
   id1El.value = identite1;
   id2El.value = identite2;
   id3El.value = identite3;
@@ -17400,7 +18483,7 @@ function renderMarquePerso() {
     badgeEl.style.color = payant ? '#0F4F2A' : '#7C4A00';
   }
   if (upsellEl) upsellEl.style.display = payant ? 'none' : 'flex';
-  [nomEl, id1El, id2El, id3El, document.getElementById('marqueIdentiteActive')].forEach(el => { if (el) { el.disabled = !payant; el.style.opacity = payant ? '1' : '.55'; } });
+  [nomEl, id1El, id2El, id3El, document.getElementById('marqueIdentiteActive'), document.getElementById('marqueLogoFichier'), document.getElementById('marqueLogoRetirer')].forEach(el => { if (el) { el.disabled = !payant; el.style.opacity = payant ? '1' : '.55'; } });
   document.querySelectorAll('#marqueModulesGrid select').forEach(el => { el.disabled = !payant; el.style.opacity = payant ? '1' : '.55'; });
   if (saveBtn) saveBtn.disabled = !payant;
 }
@@ -17426,6 +18509,32 @@ function renderMarqueIdentiteChoix(preferActive) {
   // l'identite visee existe encore).
   renderIdentitesModulesParams(false);
 }
+// Logo choisi mais pas encore enregistre : undefined = inchange, null = retire.
+let _marqueLogoBrouillon;
+function afficherApercuLogoMarque(dataUrl) {
+  const el = document.getElementById('marqueLogoApercu');
+  if (!el) return;
+  el.innerHTML = dataUrl
+    ? '<img src="' + dataUrl + '" alt="" style="max-width:100%;max-height:100%;object-fit:contain">'
+    : '<span>' + (LANG === 'en' ? 'No logo' : 'Aucun logo') + '</span>';
+}
+async function choisirLogoMarque(input) {
+  const f = input && input.files && input.files[0];
+  if (!f) return;
+  try {
+    _marqueLogoBrouillon = await preparerLogoMarque(f);
+    afficherApercuLogoMarque(_marqueLogoBrouillon.dataUrl);
+    pmMsg(LANG === 'en' ? 'Logo ready — click Save to keep it.' : 'Logo prêt — cliquez sur Enregistrer pour le garder.', 'ok', 'marqueMsg');
+  } catch (e) {
+    pmMsg(e.message === 'taille' ? (LANG === 'en' ? 'Image too large (5 MB max).' : 'Image trop lourde (5 Mo maximum).')
+      : (LANG === 'en' ? 'Unreadable image — use PNG or JPEG.' : 'Image illisible — utilisez un PNG ou un JPEG.'), 'err', 'marqueMsg');
+  }
+  input.value = '';
+}
+function retirerLogoMarque() {
+  _marqueLogoBrouillon = null;
+  afficherApercuLogoMarque('');
+}
 function pmSaveMarquePerso() {
   // Double verification cote enregistrement (pas seulement l'UI grisee) :
   // un plan gratuit ne doit jamais pouvoir persister de personnalisation,
@@ -17442,6 +18551,14 @@ function pmSaveMarquePerso() {
     identite3: (document.getElementById('marqueIdentite3').value || '').trim(),
     identiteActive: activeVal === '3' ? 3 : activeVal === '2' ? 2 : 1,
   };
+  // Logo : celui choisi depuis l'ouverture du panneau, sinon celui deja
+  // enregistre (cette fonction reconstruit tout l'objet : l'oublier ici
+  // effacerait le logo a chaque enregistrement).
+  const avant = getMarquePerso();
+  const logo = (_marqueLogoBrouillon !== undefined) ? _marqueLogoBrouillon
+    : (logoMarqueValide(avant.logoMarque) ? { dataUrl: avant.logoMarque, ratio: avant.logoMarqueRatio } : null);
+  if (logo) { nouvelle.logoMarque = logo.dataUrl; nouvelle.logoMarqueRatio = logo.ratio; }
+  _marqueLogoBrouillon = undefined;
   // Designations par module : celles du tableau de Parametres, par-dessus ce
   // qui est deja enregistre (un module absent du tableau garde sa valeur),
   // puis normalisees contre les identites QUI VIENNENT D'ETRE saisies — une
@@ -20514,6 +21631,8 @@ async function exportPPTX(type) {
     const periode = PERIODES[periodeSel] || PERIODES.mensuel;
 
     const arts = getExportDataPeriode(periode.jours);
+    // Images des sources (chargerImagesRapport), posees a droite du detail.
+    const imagesPptx = await chargerImagesRapport(arts, 16);
     const perimetre = libellePerimetreRapport();
     const scopeCy = fRapportCy !== 'all' ? fRapportCy : null;
     const scopeZone = fRapportZone !== 'all' ? fRapportZone : null;
@@ -20543,6 +21662,31 @@ async function exportPPTX(type) {
 
     const circle = (slide, x, y, d, color, opts={}) =>
       slide.addShape(pres.shapes.OVAL, {x, y, w:d, h:d, fill:{color}, line:{type:'none'}, ...opts});
+    // Detail d'une actu sous son titre (voir detailRapportActu) : resume
+    // coupe a la place disponible sur la diapositive, cotation et dates, lien
+    // video cliquable. Renvoie la hauteur occupee, en pouces.
+    const detailPptx = (slide, a, x, y, w, maxResume, sansImage) => {
+      const d = detailRapportActu(a);
+      let h = 0;
+      // Image a droite : le texte se retrecit d'autant, jamais l'inverse.
+      const im = sansImage ? null : imagesPptx.get(a.id);
+      const ih = 0.62, iw = Math.min(1.5, ih * (im ? im.ratio : 1));
+      if (im) {
+        try { slide.addImage({data: im.dataUrl.replace(/^data:/, ''), x: x + w - iw, y, w: iw, h: ih}); w -= iw + 0.1; }
+        catch (_) {}
+      }
+      if (d.resume) {
+        const hRes = sansImage ? 0.46 : 0.62;
+        slide.addText(resumeCourt(d.resume, maxResume), {x, y, w, h:hRes, fontSize:10, color:'1F2937', fontFace:'IBM Plex Sans', valign:'top', fit:'shrink'});
+        h += hRes + 0.02;
+      }
+      const infos = d.infos.filter(t => !/^Source/.test(t)).join('  ·  ');
+      const runs = [];
+      if (infos) runs.push({text:infos, options:{fontSize:8.5, color:MUTED, fontFace:'IBM Plex Sans'}});
+      if (d.lienVideo) runs.push({text:(infos?'  ·  ':'')+'▶ '+d.libelleVideo, options:{fontSize:8.5, bold:true, color:'1B5FA8', underline:{style:'sng'}, fontFace:'IBM Plex Sans', hyperlink:{url:d.lienVideo}}});
+      if (runs.length) { slide.addText(runs, {x, y:y+h, w, h:0.26}); h += 0.28; }
+      return h;
+    };
 
     // Diapositive avec fond + ruban de pied de page systématique (bandeau
     // plein bord-a-bord bleu nuit : logo radar + marque + pagination, sur
@@ -20554,7 +21698,7 @@ async function exportPPTX(type) {
       sl.addShape(pres.shapes.RECTANGLE, {x:0, y:ribbonY, w:13.33, h:ribbonH, fill:{color:NAVY}, line:{type:'none'}});
       circle(sl, 0.35, ribbonY + ribbonH/2 - 0.07, 0.14, 'FFFFFF');
       sl.addText(nomMarqueActuelle(), {x:0.62, y:ribbonY, w:5, h:ribbonH, fontSize:9, bold:true, color:'FFFFFF', fontFace:'IBM Plex Mono', valign:'middle'});
-      sl.addText('Page ', {x:12.2, y:ribbonY, w:1.1, h:ribbonH, fontSize:8.5, color:'FFFFFF', fontFace:'IBM Plex Mono', valign:'middle', align:'right'});
+      sl.addText('Page ', {x:12.1, y:ribbonY, w:0.78, h:ribbonH, fontSize:8.5, color:'FFFFFF', fontFace:'IBM Plex Mono', valign:'middle', align:'right'});
       sl.slideNumber = {x:12.9, y:ribbonY, w:0.35, h:ribbonH, fontSize:8.5, color:'FFFFFF', fontFace:'IBM Plex Mono', valign:'middle'};
       return sl;
     };
@@ -20585,38 +21729,45 @@ async function exportPPTX(type) {
     // photo disponible dans cet export automatise, remplacee par le motif
     // radar de la marque plutot qu'un emplacement image vide).
     const EEF = 'EEF1F5', SLATE = '5B7290', DARK2 = '3D4C5E';
-    let s = newSlide(EEF);
-    s.addText((LANG==='en'?'Operational report — All zones · Africa':'Rapport opérationnel — Toutes zones · Afrique'),
-      {x:0.6,y:2.15,w:7.2,h:0.4,fontSize:13,color:SLATE,fontFace:'IBM Plex Sans',charSpacing:2});
+    // Couverture « bleu nuit » : fond plein, filet or, logo de l'organisation
+    // sur une pastille blanche. Les couleurs de texte sont inversees.
+    const NUIT_P = '071431', NUIT2_P = '0F2450', OR_P = 'E6BA6E', CLAIR_P = 'CBD9EE';
+    let s = newSlide(NUIT_P);
+    s.addText((LANG==='en'?'OPERATIONAL REPORT — ALL ZONES · AFRICA':'RAPPORT OPÉRATIONNEL — TOUTES ZONES · AFRIQUE'),
+      {x:0.6,y:2.0,w:7.2,h:0.4,fontSize:12,bold:true,color:OR_P,fontFace:'IBM Plex Sans',charSpacing:2});
     // nomMarqueActuelle() plutot que 'SentiqS' en dur : seul endroit du
     // fichier ou la couverture PPTX ignorait une marque personnalisee alors
     // que Word/PDF/l'apercu HTML l'affichent tous correctement — un compte
     // avec une marque configuree voyait "SentiqS" s'afficher quand meme ici.
-    s.addText(nomMarqueActuelle(), {x:0.6,y:2.6,w:7.2,h:1.1,fontSize:52,bold:true,color:NAVY,fontFace:'Source Serif 4'});
+    // Logo de l'organisation (identite d'envoi), au-dessus du bloc de titre.
+    const logoP = (typeof logoMarqueActuelle === 'function') ? logoMarqueActuelle() : null;
+    if (logoP) {
+      const lh = 0.9, lw = Math.min(lh * logoP.ratio, 3);
+      s.addShape(pres.shapes.RECTANGLE, {x:0.6, y:0.55, w:lw + 0.3, h:lh + 0.3, fill:{color:'FFFFFF'}, line:{type:'none'}});
+      s.addImage({data: logoP.dataUrl.replace(/^data:/, ''), x:0.75, y:0.7, w:lw, h:lw / logoP.ratio});
+    }
+    // Taille du nom ajustee a sa longueur : a 52 pt un nom de 19 caracteres
+    // passait sur deux lignes et chevauchait le sous-titre.
+    const nomCouv = nomMarqueActuelle();
+    const taillNom = Math.max(26, Math.min(52, Math.floor(7.2 * 72 / (Math.max(nomCouv.length, 1) * 0.56))));
+    s.addText(nomCouv, {x:0.6,y:2.45,w:7.2,h:1.1,fontSize:taillNom,bold:true,color:'FFFFFF',fontFace:'Source Serif 4',valign:'middle'});
+    s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:3.62,w:0.9,h:0.04,fill:{color:OR_P},line:{type:'none'}});
     s.addText(titrePPTX.charAt(0)+titrePPTX.slice(1).toLowerCase()+' '+periode.label.toLowerCase()+' — '+perimetre,
-      {x:0.6,y:3.7,w:7.2,h:0.55,fontSize:19,bold:true,color:DARK2,fontFace:'IBM Plex Sans'});
+      {x:0.6,y:3.78,w:7.2,h:0.55,fontSize:19,bold:true,color:CLAIR_P,fontFace:'IBM Plex Sans'});
     const nowPPTX = new Date();
     s.addText((LANG==='en'?'Generated on ':'Généré le ')+nowPPTX.toLocaleDateString('fr-FR')+' '+(LANG==='en'?'at ':'à ')+nowPPTX.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'   ·   '+(LANG==='en'?'Slot ':'Créneau ')+nowPPTX.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+(identitePptx?'   ·   '+(LANG==='en'?'Shared by ':'Partagé par ')+identitePptx:''),
-      {x:0.6,y:4.35,w:7.2,h:0.4,fontSize:13,color:SLATE,fontFace:'IBM Plex Sans'});
-    s.addText(fmtD(dateDebut)+'  →  '+fmtD(dateFin), {x:0.6,y:4.72,w:7.2,h:0.35,fontSize:11.5,italic:true,color:SLATE,fontFace:'IBM Plex Sans'});
-    s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:5.35,w:4.4,h:0.42,fill:{type:'none'},line:{color:RED,width:1}});
+      {x:0.6,y:4.35,w:7.2,h:0.4,fontSize:13,color:CLAIR_P,fontFace:'IBM Plex Sans'});
+    s.addText(fmtD(dateDebut)+'  →  '+fmtD(dateFin), {x:0.6,y:4.72,w:7.2,h:0.35,fontSize:11.5,italic:true,color:CLAIR_P,fontFace:'IBM Plex Sans'});
+    s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:5.35,w:4.4,h:0.42,fill:{type:'none'},line:{color:OR_P,width:1}});
     s.addText((LANG==='en'?'Restricted use — security officers':'Usage restreint — responsables sûreté'),
-      {x:0.6,y:5.35,w:4.4,h:0.42,fontSize:11,bold:true,color:RED,fontFace:'IBM Plex Sans',charSpacing:1,align:'center',valign:'middle'});
+      {x:0.6,y:5.35,w:4.4,h:0.42,fontSize:11,bold:true,color:OR_P,fontFace:'IBM Plex Sans',charSpacing:1,align:'center',valign:'middle'});
 
     // Panneau droit (motif radar decoratif)
-    s.addShape(pres.shapes.RECTANGLE, {x:8.03,y:0,w:5.3,h:7.5,fill:{color:NAVY},line:{type:'none'}});
-    circle(s, 12.7,-0.5,2.3, NAVY2);
-    circle(s, 8.4,6.9,1.8, NAVY2);
+    s.addShape(pres.shapes.RECTANGLE, {x:8.03,y:0,w:5.3,h:7.15,fill:{color:NUIT2_P},line:{type:'none'}});
+    circle(s, 12.7,-0.5,2.3, '162E5E');
+    circle(s, 8.4,6.2,1.8, '162E5E');
     drawRadarPPTX(s, 10.68, 3.75, 1.55);
-    // Marque sur 2 lignes (motif conçu pour "SentiqS"/"SÛRETÉ") : coupee au
-    // premier espace pour une marque personnalisee, ou affichee sur une
-    // seule ligne si le nom n'en comporte pas.
-    (() => {
-      const mots = nomMarqueActuelle().split(' ');
-      const l1 = mots[0], l2 = mots.slice(1).join(' ');
-      s.addText(l1, {x:8.4,y:l2?5.75:5.95,w:4.5,h:0.5,fontSize:22,bold:true,color:'FFFFFF',fontFace:'Source Serif 4',charSpacing:2,align:'center'});
-      if (l2) s.addText(l2, {x:8.4,y:6.15,w:4.5,h:0.5,fontSize:22,bold:true,color:SKY,fontFace:'Source Serif 4',charSpacing:2,align:'center'});
-    })();
+    s.addShape(pres.shapes.RECTANGLE, {x:8.03,y:0,w:0.04,h:7.15,fill:{color:OR_P},line:{type:'none'}});
 
     // ── Calculs préalables — déterminent quelles sections seront réellement
     // incluses, pour que le Sommaire (slide 2) liste exactement ce qui suit.
@@ -20790,28 +21941,23 @@ async function exportPPTX(type) {
         // par la pre-traduction generale du haut de fonction (qui s'execute
         // avant que ces pays specifiques soient determines).
         await preTraduireRapport(dossierP.regional.map(a => infoPays(a.cy).name));
-        if (dossierP.national.length || dossierP.regional.length) {
+        // Une diapositive par rubrique (nationale, regionale) : chaque actu
+        // porte son resume et ses liens, ce qui ne tient plus a huit par page.
+        const rubriquesP = [
+          {items: dossierP.national, titre:'ACTUALITÉ NATIONALE', prefixe: () => ''},
+          {items: dossierP.regional, titre:'ACTUALITÉ RÉGIONALE — PAYS LIMITROPHES', prefixe: a => '['+L(infoPays(a.cy).name)+']  '},
+        ];
+        rubriquesP.forEach(r => {
+          if (!r.items.length) return;
           s = newSlide('FFFFFF');
           sectionHead(s, 'Dossier pays — Actualité', scoresSlide[0].pays.name);
-          let yP = 1.7;
-          if (dossierP.national.length) {
-            s.addText('ACTUALITÉ NATIONALE', {x:0.6,y:yP,w:11.6,h:0.3,fontSize:11,bold:true,color:BLUE,fontFace:'IBM Plex Mono'});
-            yP += 0.42;
-            dossierP.national.forEach(a => {
-              s.addText('•  '+L(a.title)+'  ('+(a.time||'')+')', {x:0.6,y:yP,w:11.6,h:0.36,fontSize:11.5,color:INK,fontFace:'IBM Plex Sans'});
-              yP += 0.4;
-            });
-            yP += 0.2;
-          }
-          if (dossierP.regional.length) {
-            s.addText('ACTUALITÉ RÉGIONALE — PAYS LIMITROPHES', {x:0.6,y:yP,w:11.6,h:0.3,fontSize:11,bold:true,color:BLUE,fontFace:'IBM Plex Mono'});
-            yP += 0.42;
-            dossierP.regional.forEach(a => {
-              s.addText('•  ['+L(infoPays(a.cy).name)+']  '+L(a.title)+'  ('+(a.time||'')+')', {x:0.6,y:yP,w:11.6,h:0.36,fontSize:11.5,color:INK,fontFace:'IBM Plex Sans'});
-              yP += 0.4;
-            });
-          }
-        }
+          s.addText(r.titre, {x:0.6,y:1.6,w:11.6,h:0.3,fontSize:11,bold:true,color:BLUE,fontFace:'IBM Plex Mono'});
+          r.items.forEach((a, i) => {
+            const yP = 1.95 + i*1.25;
+            s.addText(r.prefixe(a)+L(a.title)+'  ('+(a.time||'')+')', {x:0.6,y:yP,w:11.6,h:0.36,fontSize:11.5,bold:true,color:INK,fontFace:'IBM Plex Sans'});
+            detailPptx(s, a, 0.6, yP+0.38, 11.6, 280);
+          });
+        });
       } else {
         // Plusieurs pays : graphique en barres, score composite /100
         const top = scoresSlide.slice(0,10);
@@ -20830,10 +21976,12 @@ async function exportPPTX(type) {
 
     // ── Slide — Incidents marquants de la periode ───────────────────────
     if (incMarq) {
-      s = newSlide('FFFFFF');
-      sectionHead(s, 'Incidents marquants', periode.label+' — '+perimetre);
-      marquants.forEach((a,i)=>{
-        const y = 1.55 + i*0.92;
+      // Trois incidents par diapositive : chacun avec son resume et ses
+      // liens (demande de l'editeur du 20/10/2026, plus seulement le titre).
+      marquants.forEach((a,iTot)=>{
+        const i = iTot % 3;
+        if (i === 0) { s = newSlide('FFFFFF'); sectionHead(s, 'Incidents marquants', iTot===0 ? (periode.label+' — '+perimetre) : (perimetre+' (suite)')); }
+        const y = 1.55 + i*1.85;
         const pays = infoPays(a.cy);
         const col = LVL_COL[a.level] || '9CA3AF';
         const cyNivP1 = _cyNivTexteEtCouleur(a.cy);
@@ -20843,6 +21991,7 @@ async function exportPPTX(type) {
         ].concat(sourcesVisibles() ? [{text:'  ·  '+srcName(a.primary), options:{fontSize:10,color:'1B5FA8',underline:{style:'sng'},fontFace:'IBM Plex Sans',hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}}] : []),
         {x:0.95,y:y-0.08,w:11.6,h:0.3});
         s.addText(L(a.title)||'', {x:0.95,y:y+0.18,w:11.6,h:0.55,fontSize:13,bold:true,color:INK,fontFace:'IBM Plex Sans'});
+        detailPptx(s, a, 0.95, y+0.74, 11.6, 420);
       });
     }
 
@@ -20854,13 +22003,13 @@ async function exportPPTX(type) {
     // marquants" ci-dessus.
     if (incCatDetail) {
       CAT_DEFS_PPTX.forEach(cd => {
-        const chunkSizeCat = 5;
+        const chunkSizeCat = 3;
         for (let ci = 0; ci < cd.items.length; ci += chunkSizeCat) {
           const chunk = cd.items.slice(ci, ci+chunkSizeCat);
           s = newSlide('FFFFFF');
           sectionHead(s, cd.lettre+'. '+cd.lb, ci===0 ? (periode.label+' — '+perimetre) : (perimetre+' (suite)'));
           chunk.forEach((a,i)=>{
-            const y = 1.55 + i*1.05;
+            const y = 1.55 + i*1.85;
             const pays = infoPays(a.cy);
             const col = LVL_COL[a.level] || '9CA3AF';
             s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:y,w:0.95,h:0.28,fill:{color:col},line:{type:'none'}});
@@ -20871,6 +22020,7 @@ async function exportPPTX(type) {
               {text:pays.name+(a._ville?' — '+a._ville:'')+'  ·  '+(a.time||'')+(cyNivP2?'  ·  '+cyNivP2.texte:''), options:{fontSize:9,color:MUTED,fontFace:'IBM Plex Sans'}},
             ].concat(sourcesVisibles() ? [{text:'  ·  '+srcName(a.primary), options:{fontSize:9,color:'1B5FA8',underline:{style:'sng'},fontFace:'IBM Plex Sans',hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}}] : []),
             {x:1.7,y:y+0.44,w:10.9,h:0.3});
+            detailPptx(s, a, 1.7, y+0.78, 10.9, 420);
           });
         }
       });
@@ -20880,23 +22030,31 @@ async function exportPPTX(type) {
     // paginée — ce type ne rentre pas dans les autres sections du rapport
     // consolidé, qui se contente d'un résumé via "Incidents marquants") ──
     if (incFlux) {
-      const chunkSizeF = 12;
+      const chunkSizeF = 4;
       for (let ci = 0; ci < evenementsFlux.length; ci += chunkSizeF) {
         const chunk = evenementsFlux.slice(ci, ci+chunkSizeF);
         s = newSlide('FFFFFF');
         sectionHead(s, 'Flux opérationnel', ci===0 ? (evenementsFlux.length+' événements des dernières '+libelleFenetre()+' — '+perimetre) : (perimetre+' (suite)'));
         chunk.forEach((a,i)=>{
-          const y = 1.55 + i*0.46;
+          const y = 1.5 + i*1.36;
+          // Carte : fond clair, barre de gravite a gauche, image de la source
+          // a droite (le texte se retrecit d'autant).
+          const imF = imagesPptx.get(a.id);
+          const ihF = 1.05, iwF = imF ? Math.min(1.9, ihF * imF.ratio) : 0;
+          const twF = 11.7 - (imF ? iwF + 0.2 : 0);
+          s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:y-0.1,w:12.13,h:1.3,fill:{color:PAPER},line:{color:LINE,width:0.5}});
+          s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:y-0.1,w:0.07,h:1.3,fill:{color:LVL_COL[a.level]||'9CA3AF'},line:{type:'none'}});
+          if (imF) { try { s.addImage({data: imF.dataUrl.replace(/^data:/, ''), x:12.73-0.1-iwF, y:y-0.03, w:iwF, h:ihF}); } catch (_) {} }
           const pays = infoPays(a.cy);
           const col = LVL_COL[a.level] || '9CA3AF';
-          circle(s, 0.6, y+0.09, 0.09, col);
           const dateTxt = a.pubDate ? new Date(a.pubDate).toLocaleDateString('fr-FR')+' '+new Date(a.pubDate).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '';
           const cyNivP3 = _cyNivTexteEtCouleur(a.cy);
           s.addText([
             {text:'['+dateTxt+']  '+(pays.flag||'')+' '+pays.name+'  ·  '+lvlFr(a.level).toUpperCase()+(cyNivP3?'  ·  '+cyNivP3.texte:''), options:{fontSize:8.5,bold:true,color:MUTED,fontFace:'IBM Plex Mono'}},
           ].concat(sourcesVisibles() ? [{text:'  ·  '+srcName(a.primary), options:{fontSize:8.5,bold:true,color:'1B5FA8',underline:{style:'sng'},fontFace:'IBM Plex Mono',hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}}] : []),
-          {x:0.85,y:y-0.06,w:11.7,h:0.22});
-          s.addText(L(a.title)||'', {x:0.85,y:y+0.13,w:11.7,h:0.3,fontSize:11,color:INK,fontFace:'IBM Plex Sans'});
+          {x:0.85,y:y-0.04,w:twF,h:0.22});
+          s.addText(L(a.title)||'', {x:0.85,y:y+0.17,w:twF,h:0.3,fontSize:11.5,bold:true,color:INK,fontFace:'IBM Plex Sans'});
+          detailPptx(s, a, 0.85, y+0.47, twF, 300, true);
         });
       }
     }
@@ -21055,7 +22213,9 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
   const NAVY = rgb(0.051,0.106,0.161), BLUE = rgb(0.114,0.373,0.659),
         INK = rgb(0.043,0.086,0.129), MUTED = rgb(0.42,0.46,0.5),
         LINE = rgb(0.82,0.85,0.88), BOXBG = rgb(0.97,0.98,0.99),
-        RED = rgb(0.545,0.102,0.102), PAPER = rgb(0.906,0.922,0.937);
+        RED = rgb(0.545,0.102,0.102), PAPER = rgb(0.906,0.922,0.937),
+        // Couverture « bleu nuit » : meme famille que le theme de l'ecran.
+        NUIT = rgb(0.027,0.078,0.192), OR = rgb(0.902,0.729,0.431), CLAIR = rgb(0.80,0.85,0.93);
   // Convertit un hex '#RRGGBB' (palette du gabarit imprimable — cf.
   // levelMeta()) en rgb() pdf-lib (0-1) : mêmes couleurs de niveau que
   // Word et l'aperçu HTML, pour une identité visuelle cohérente entre
@@ -21092,6 +22252,7 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
     // qu'aucun appelant ne l'a posee (guide d'utilisation), auquel cas le
     // bandeau retombe sur la resolution globale historique.
     identiteEnvoi: null,
+    logo: null,
     // Ruban de bas de page — bandeau plein bord-a-bord (pas d'encadre), logo
     // radar + nom de marque, sur le modele du ruban utilise en pied de page
     // du site. Pas d'adresse e-mail (usage interne uniquement).
@@ -21165,11 +22326,14 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
     bulletinHeader(titre, dateGenStr, creneauStr, syntheseTxt) {
       b.newPage();
       const cx = W/2;
-      const headH = 168;
-      b.page.drawRectangle({x:0, y:H-headH, width:W, height:headH, color:PAPER});
+      const headH = 190;
+      // Couverture bleu nuit pleine largeur, filet or en pied : le document
+      // s'ouvre sur la meme identite que l'ecran, pas sur un bandeau gris.
+      b.page.drawRectangle({x:0, y:H-headH, width:W, height:headH, color:NUIT});
+      b.page.drawRectangle({x:0, y:H-headH-2.5, width:W, height:2.5, color:OR});
 
       // Bandeau meta superieur
-      b.page.drawLine({start:{x:M,y:H-30},end:{x:W-M,y:H-30},thickness:1,color:NAVY});
+      b.page.drawLine({start:{x:M,y:H-34},end:{x:W-M,y:H-34},thickness:0.6,color:rgb(0.27,0.35,0.52)});
       // Identite d'envoi ("Signer en tant que") — meme correctif que Word/
       // PowerPoint/l'apercu HTML : voir identiteRapportW dans exportWord.
       // Tronquee (contrairement a Word) car dessinee a position fixe sans
@@ -21179,30 +22343,32 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
         : ((typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle() : '');
       const identitePdfTxt = identitePdf.length>28 ? identitePdf.slice(0,27)+'…' : identitePdf;
       const metaL = (LANG==='en'?'Generated on: ':'Généré le : ')+dateGenStr+'   |   '+(LANG==='en'?'Slot: ':'Créneau : ')+creneauStr+(identitePdfTxt?'   |   '+(LANG==='en'?'Shared by: ':'Partagé par : ')+identitePdfTxt:'');
-      b.page.drawText(_pdfSafe(metaL), {x:M, y:H-26, size:7.5, font:fontReg, color:MUTED});
+      b.page.drawText(_pdfSafe(metaL), {x:M, y:H-26, size:7.5, font:fontReg, color:CLAIR});
       const metaR = _pdfSafe(LANG==='en'?'RESTRICTED USE — SECURITY OFFICERS':'USAGE RESTREINT — RESPONSABLES SÛRETÉ');
       const metaRw = fontBold.widthOfTextAtSize(metaR, 7.5);
-      b.page.drawText(metaR, {x:W-M-metaRw, y:H-26, size:7.5, font:fontBold, color:RED});
+      b.page.drawText(metaR, {x:W-M-metaRw, y:H-26, size:7.5, font:fontBold, color:OR});
 
-      // Eyebrow centre (perimetre du rapport)
-      const eyebrow = _pdfSafe(((LANG==='en'?'OPERATIONAL REPORT':'RAPPORT OPÉRATIONNEL')+(b.footerPerimetre?' — '+b.footerPerimetre.toUpperCase():'')));
-      const ew = fontReg.widthOfTextAtSize(eyebrow, 8.5);
-      b.page.drawText(eyebrow, {x:cx-ew/2, y:H-50, size:8.5, font:fontReg, color:MUTED});
+      // Bloc titre aligne a gauche : logo de l'organisation sur une pastille
+      // blanche (un logo fonce reste lisible sur le bleu nuit), puis
+      // surtitre or, nom de marque en serif blanc, libelle du rapport.
+      let tx = M;
+      if (b.logo) {
+        const lh = 44, lw = Math.min(lh * b.logo.width / b.logo.height, 140), pad = 6;
+        const ly = H-headH+(headH-34-(lh+pad*2))/2+0;
+        b.page.drawRectangle({x:M, y:ly, width:lw+pad*2, height:lh+pad*2, color:rgb(1,1,1)});
+        b.page.drawImage(b.logo, {x:M+pad, y:ly+pad, width:lw, height:lw * b.logo.height / b.logo.width});
+        tx = M + lw + pad*2 + 18;
+      }
+      const eyebrow = _pdfSafe(((LANG==='en'?'OPERATIONAL REPORT':'RAPPORT OPÉRATIONNEL')+(b.footerPerimetre?'  ·  '+b.footerPerimetre.toUpperCase():'')));
+      b.page.drawText(eyebrow, {x:tx, y:H-82, size:8, font:fontBold, color:OR});
+      let brandTxt = _pdfSafe(nomMarqueActuelle());
+      let bsize = 30;
+      while (bsize > 18 && fontSerif.widthOfTextAtSize(brandTxt, bsize) > W-M-tx) bsize -= 1;
+      b.page.drawText(brandTxt, {x:tx, y:H-116, size:bsize, font:fontSerif, color:rgb(1,1,1)});
+      b.page.drawRectangle({x:tx, y:H-130, width:34, height:1.6, color:OR});
+      b.page.drawText(_pdfSafe(titre), {x:tx, y:H-152, size:14, font:fontBold, color:CLAIR});
 
-      // Titre de marque (serif, identique a Word/PPTX/apercu HTML)
-      const brandTxt = _pdfSafe(nomMarqueActuelle());
-      const bsize = 27;
-      const bw = fontSerif.widthOfTextAtSize(brandTxt, bsize);
-      b.page.drawText(brandTxt, {x:cx-bw/2, y:H-80, size:bsize, font:fontSerif, color:NAVY});
-
-      // Sous-titre : libelle du rapport (ex. "Synthèse analytique")
-      const ttxt = _pdfSafe(titre);
-      const tsize = 12.5;
-      const tw = fontBold.widthOfTextAtSize(ttxt, tsize);
-      b.page.drawText(ttxt, {x:cx-tw/2, y:H-98, size:tsize, font:fontBold, color:INK});
-
-      b.page.drawLine({start:{x:M,y:H-headH+16},end:{x:W-M,y:H-headH+16},thickness:0.6,color:LINE});
-      b.y = H-headH-4;
+      b.y = H-headH-22;
       if (syntheseTxt) {
         b.wrap(syntheseTxt, 10, fontReg, W-M*2).forEach(line => {
           b.page.drawText(line, {x:M, y:b.y, size:10, font:fontReg, color:MUTED});
@@ -21311,7 +22477,10 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
       b.y -= 46;
     },
     sub(text, color) {
-      b.ensure(22);
+      // Place pour le titre ET le debut de la carte qui le suit : un titre de pays
+      // seul en bas de page, avec sa premiere actu sur la page d'apres, se lit
+      // comme un titre sans contenu.
+      b.ensure(100);
       const stxt = _pdfSafe(text);
       b.page.drawText(stxt, {x:M,y:b.y,size:11,font:fontBold,color:color||BLUE});
       const sw = fontBold.widthOfTextAtSize(stxt, 11);
@@ -21371,34 +22540,52 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
     // Item d'article façon gabarit de référence : pastille de niveau colorée
     // + titre en gras, puis ligne meta (pays — ville · délai relatif).
     articleItem(a, lieuTxt) {
+      // Carte d'actu : barre de gravite a gauche, image de la source a DROITE
+      // du texte (jamais sous lui : sous le texte elle se lisait comme
+      // l'illustration du pays suivant), carte tenue d'un bloc sur une page.
       const lm = (typeof levelMeta === 'function') ? levelMeta(a.level) : {col:'#4B5563', label:'INFO'};
+      const det = (typeof detailRapportActu === 'function') ? detailRapportActu(a) : null;
+      const im = b.imagesActus && b.imagesActus.get(a.id);
+      const barW = 3, padX = 11;
+      let imgW = 0, imgH = 0;
+      if (im) { imgH = Math.min(84, 112 / im.ratio); imgW = imgH * im.ratio; }
+      const textX = M + barW + padX;
+      const textW = W - M - textX - (im ? imgW + 14 : 0);
       const size = 10.5;
       const label = _pdfSafe(lm.label);
       const pillW = fontBold.widthOfTextAtSize(label, 7.5) + 12;
-      const firstMax = W-M*2-pillW-8, restMax = W-M*2;
       const words = _pdfSafe(a.title).replace(/\s+/g,' ').trim().split(' ');
-      const lines = []; let cur = '', max = firstMax;
+      const lines = []; let cur = '', max = textW - pillW - 8;
       for (const w of words) {
         const test = cur ? cur+' '+w : w;
-        if (fontBold.widthOfTextAtSize(test, size) > max && cur) { lines.push(cur); cur = w; max = restMax; }
+        if (fontBold.widthOfTextAtSize(test, size) > max && cur) { lines.push(cur); cur = w; max = textW; }
         else cur = test;
       }
       if (cur) lines.push(cur);
-      b.ensure(lines.length*(size+4) + 24);
+      const resume = det && det.resume ? b.wrap(_pdfSafe(det.resume), 9, fontReg, textW) : [];
+      const infosTxt = det ? det.infos.filter(t => !/^(Source|Source :)/.test(t)).join('   ·   ') : '';
+      const infos = infosTxt ? b.wrap(_pdfSafe(infosTxt), 8, fontReg, textW) : [];
+      // Hauteur de la carte, calculee AVANT de dessiner : elle ne se coupe pas.
+      const hTexte = 4 + lines.length*(size+4) + 14 + resume.length*12.5 + (infos.length ? 3 + infos.length*11 : 0)
+                   + (det && det.lienVideo ? 12 : 0);
+      const h = Math.max(hTexte, imgH + 6) + 6;
+      b.ensure(h + 12);
       const topY = b.y;
-      b.page.drawRectangle({x:M, y:topY-11, width:pillW, height:13, color:hexRgb(lm.bg)});
-      b.page.drawText(label, {x:M+6, y:topY-8, size:7.5, font:fontBold, color:hexRgb(lm.col)});
+      b.page.drawRectangle({x:M, y:topY-h, width:barW, height:h, color:hexRgb(lm.col)});
+      let y = topY - 4;
+      b.page.drawRectangle({x:textX, y:y-11, width:pillW, height:13, color:hexRgb(lm.bg)});
+      b.page.drawText(label, {x:textX+6, y:y-8, size:7.5, font:fontBold, color:hexRgb(lm.col)});
       lines.forEach((line,i) => {
-        b.page.drawText(line, {x: i===0 ? M+pillW+8 : M, y: topY-9-i*(size+4), size, font:fontBold, color:INK});
+        b.page.drawText(line, {x: i===0 ? textX+pillW+8 : textX, y: y-9-i*(size+4), size, font:fontBold, color:INK});
       });
-      b.y = topY - 9 - lines.length*(size+4) - 3;
+      y -= lines.length*(size+4) + 4;
       const cyNiv = _cyNivTexteEtCouleur(a.cy);
       const lieuTexte = _pdfSafe(lieuTxt+'   ·   '+(a.time||''));
-      b.page.drawText(lieuTexte, {x:M, y:b.y, size:8.5, font:fontReg, color:MUTED});
-      let xCursor = M + fontReg.widthOfTextAtSize(lieuTexte, 8.5);
+      b.page.drawText(lieuTexte, {x:textX, y:y-6, size:8.5, font:fontReg, color:MUTED});
+      let xCursor = textX + fontReg.widthOfTextAtSize(lieuTexte, 8.5);
       if (cyNiv) {
         const cyNivTxt = _pdfSafe('   ·   '+cyNiv.texte);
-        b.page.drawText(cyNivTxt, {x:xCursor, y:b.y, size:8, font:fontBold, color:hexRgb('#'+cyNiv.couleur)});
+        b.page.drawText(cyNivTxt, {x:xCursor, y:y-6, size:8, font:fontBold, color:hexRgb('#'+cyNiv.couleur)});
         xCursor += fontBold.widthOfTextAtSize(cyNivTxt, 8);
       }
       // Lien source cliquable (annotation Link, voir b.addLink) — reutilise
@@ -21408,11 +22595,28 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
       if (sourcesVisibles() && typeof articleLienDirect==='function' && typeof safeUrl==='function' && typeof srcName==='function') {
         const lienUrl = safeUrl(articleLienDirect(a), srcName(a.primary));
         const srcTxt = _pdfSafe('   ·   '+(LANG==='en'?'Source: ':'Source : ')+srcName(a.primary));
-        b.page.drawText(srcTxt, {x:xCursor, y:b.y, size:8, font:fontReg, color:BLUE});
+        b.page.drawText(srcTxt, {x:xCursor, y:y-6, size:8, font:fontReg, color:BLUE});
         const srcW = fontReg.widthOfTextAtSize(srcTxt, 8);
-        b.addLink(xCursor, b.y-2, srcW, 10, lienUrl);
+        b.addLink(xCursor, y-8, srcW, 10, lienUrl);
       }
-      b.y -= 18;
+      y -= 14;
+      resume.forEach(line => { b.page.drawText(line, {x:textX, y:y-6, size:9, font:fontReg, color:INK}); y -= 12.5; });
+      if (infos.length) {
+        y -= 3;
+        infos.forEach(line => { b.page.drawText(line, {x:textX, y:y-5, size:8, font:fontReg, color:MUTED}); y -= 11; });
+      }
+      if (det && det.lienVideo) {
+        const vTxt = _pdfSafe('> '+det.libelleVideo);
+        b.page.drawText(vTxt, {x:textX, y:y-6, size:8.5, font:fontBold, color:BLUE});
+        b.addLink(textX, y-8, fontBold.widthOfTextAtSize(vTxt, 8.5), 11, det.lienVideo);
+      }
+      if (im) {
+        const ix = W - M - imgW, iy = topY - 4 - imgH;
+        b.page.drawImage(im.pdf, {x:ix, y:iy, width:imgW, height:imgH});
+        b.page.drawRectangle({x:ix, y:iy, width:imgW, height:imgH, borderColor:LINE, borderWidth:0.5});
+      }
+      b.page.drawLine({start:{x:textX,y:topY-h-5},end:{x:W-M,y:topY-h-5},thickness:0.4,color:LINE});
+      b.y = topY - h - 14;
     },
     // Grille 2 colonnes de cartes de corrélation (thème / pays / articles
     // concordants), sur le modele de la section F. du gabarit de reference —
@@ -21745,6 +22949,24 @@ async function exportPDF(type) {
     // Identite d'envoi propre au MODULE exporte (synthese/flux/agenda/...) :
     // voir identiteEnvoiActuelle(module). Lue par bulletinHeader.
     b.identiteEnvoi = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle(type) : '';
+    // Logo de l'organisation (identite d'envoi) : embarque une fois, dessine
+    // par bulletinHeader. Un logo illisible n'empeche jamais l'export.
+    const logoPdf = (typeof logoMarqueActuelle === 'function') ? logoMarqueActuelle() : null;
+    if (logoPdf) {
+      try { b.logo = logoPdf.png ? await doc.embedPng(logoMarqueOctets(logoPdf)) : await doc.embedJpg(logoMarqueOctets(logoPdf)); }
+      catch (e) { console.warn('SentiqS — logo illisible pour le PDF'); }
+    }
+
+    // Images des sources (chargerImagesRapport) : embarquees une fois, dessinees
+    // sous le detail de chaque actu par articleItem. Une image refusee par le
+    // PDF n'empeche jamais l'export.
+    b.imagesActus = new Map();
+    try {
+      const imgs = await chargerImagesRapport(getExportData());
+      for (const [id, im] of imgs) {
+        try { b.imagesActus.set(id, { pdf: await doc.embedJpg(im.octets()), ratio: im.ratio }); } catch (_) {}
+      }
+    } catch (e) { console.warn('SentiqS — images des actus indisponibles pour le PDF'); }
 
     // En-tête façon "Bulletin de veille" — logo radar, date/heure de
     // génération, créneau — utilisée pour tous les types de rapport PDF.
@@ -21858,7 +23080,7 @@ async function exportPDF(type) {
       // Inclut les noms des pays de regroupement (groupeArticlesParPays) —
       // sinon les en-tetes de section pays restent en francais dans un
       // rapport genere en anglais.
-      await preTraduireRapport([...arts.map(a => a.title), ...[...new Set(arts.map(a=>a.cy))].map(cy=>infoPays(cy).name)]);
+      await preTraduireRapport([...arts.flatMap(a => [a.title, a.analysis]), ...[...new Set(arts.map(a=>a.cy))].map(cy=>infoPays(cy).name)]);
       const nbSrcActifsF = new Set(arts.map(a=>a.primary)).size;
       b.bulletinHeader(titre, dateGenStr, creneauStr,
         (LANG==='en'
@@ -22190,14 +23412,35 @@ function _apArticleItem(a) {
   const villeTxt = geo.ville ? (geo.ville+(geo.estime?' (estimé)':'')) : '';
   const pays = infoPays(a.cy);
   const lieu = pays.name + (villeTxt ? ' — '+villeTxt : '');
-  return '<div style="margin-bottom:18px;break-inside:avoid;">'
+  // Image de la source (meme regle que visuelActu dans l'appli : https,
+  // creditee, jamais copiee) ; sans image, l'article reste en texte seul
+  // plutot qu'avec un repli qui couterait de l'encre a l'impression.
+  const media = (typeof mediaActu === 'function') ? mediaActu(a) : { img: null };
+  const dom = media.img && typeof domaineActu === 'function' ? domaineActu(a) : '';
+  const vignette = media.img
+    ? '<div style="flex:0 0 120px;"><img src="'+_apEsc(media.img)+'" alt="" referrerpolicy="no-referrer" onerror="this.parentElement.remove()" style="width:120px;height:80px;object-fit:cover;border-radius:4px;display:block;">'
+      + (dom ? '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:9.5px;color:#6B7280;margin-top:2px;">© '+_apEsc(dom)+'</div>' : '') + '</div>'
+    : '';
+  return '<div style="margin-bottom:18px;break-inside:avoid;display:flex;gap:14px;align-items:flex-start;">' + vignette + '<div style="flex:1;min-width:0;">'
     + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;flex-wrap:wrap;">'
     + _apLevelPill(a)
     + _apCyNivPill(a)
     + '<span style="font-weight:600;font-size:15px;color:#111827;">'+_apEsc(L(a.title))+'</span>'
     + '</div>'
-    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#9CA3AF;">'+_apEsc(lieu)+' &nbsp;·&nbsp; '+_apEsc(a.time||'')+'</div>'
-    + '</div>';
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#6B7280;">'+_apEsc(lieu)+' &nbsp;·&nbsp; '+_apEsc(a.time||'')+'</div>'
+    + _apDetailActu(a)
+    + '</div></div>';
+}
+// Resume, cotation, dates et liens (article, video) sous le titre : voir
+// detailRapportActu. Les liens restent cliquables dans le PDF imprime par le
+// navigateur.
+function _apDetailActu(a) {
+  const d = detailRapportActu(a);
+  const lien = (href, txt) => '<a href="'+_apEsc(href)+'" target="_blank" rel="noopener" style="color:#1B5FA8;font-weight:600;text-decoration:underline;">'+_apEsc(txt)+'</a>';
+  const liens = [d.lienVideo ? '▶ '+lien(d.lienVideo, d.libelleVideo) : '', d.lienArticle ? lien(d.lienArticle, d.libelleArticle) : ''].filter(Boolean);
+  return (d.resume ? '<div style="font-size:13.5px;color:#1F2937;line-height:1.55;margin-top:6px;">'+_apEsc(d.resume)+'</div>' : '')
+    + (d.infos.length ? '<div style="font-size:11.5px;color:#4B5563;margin-top:5px;">'+d.infos.map(_apEsc).join(' &nbsp;·&nbsp; ')+'</div>' : '')
+    + (liens.length ? '<div style="font-size:12px;margin-top:4px;">'+liens.join(' &nbsp;·&nbsp; ')+'</div>' : '');
 }
 
 function _apCorrelationCard(s) {
@@ -22301,15 +23544,21 @@ function _apPageWrap(titreSection, sousTitre, statsHTML, bodyHTML, type) {
     + '</style></head><body>'
     + _apToolbar(type)
     + '<div class="sheet">'
-    + '<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #16233A;padding-bottom:10px;margin-bottom:18px;">'
-    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#6B7280;text-transform:uppercase;">Généré le '+_apEsc(dateGenLong)+(_apIdentiteEnvoi?' &nbsp;·&nbsp; Partagé par '+_apEsc(_apIdentiteEnvoi):'')+'</div>'
-    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#8B1A1A;font-weight:600;text-transform:uppercase;">Usage restreint — responsables sûreté</div>'
+    // Couverture « bleu nuit » pleine largeur de feuille, filet or en pied :
+    // meme identite que l'ecran, le PDF, le Word et le PowerPoint.
+    + '<div style="margin:-0.55in -0.55in 26px;padding:22px 0.55in 28px;background:linear-gradient(135deg,#071431,#0F2450);border-bottom:3px solid #E6BA6E;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;">'
+    + '<div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:1px solid rgba(203,217,238,.28);padding-bottom:10px;margin-bottom:22px;">'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#CBD9EE;text-transform:uppercase;">Généré le '+_apEsc(dateGenLong)+(_apIdentiteEnvoi?' &nbsp;·&nbsp; Partagé par '+_apEsc(_apIdentiteEnvoi):'')+'</div>'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#E6BA6E;font-weight:600;text-transform:uppercase;">Usage restreint — responsables sûreté</div>'
     + '</div>'
-    + '<div style="text-align:center;margin-bottom:6px;">'
-    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.16em;color:#9CA3AF;text-transform:uppercase;margin-bottom:10px;">'+_apEsc(titreSection)+' — '+_apEsc(perimetre)+'</div>'
-    + '<h1 style="font-family:\'Source Serif 4\',serif;font-weight:800;font-size:40px;letter-spacing:0.01em;color:#16233A;margin:0 0 8px;">'+_apEsc(nomMarqueActuelle())+'</h1>'
-    + '<div style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:600;font-size:16px;color:#0B1A27;margin-bottom:14px;">'+_apEsc(sousTitre)+'</div>'
-    + '</div>'
+    + '<div style="display:flex;align-items:center;gap:22px;">'
+    + (logoMarqueHtml(64) ? '<div style="background:#fff;padding:8px 12px;display:flex;align-items:center;flex:none;">'+logoMarqueHtml(64)+'</div>' : '')
+    + '<div style="min-width:0;">'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.16em;color:#E6BA6E;font-weight:600;text-transform:uppercase;margin-bottom:8px;">'+_apEsc(titreSection)+' — '+_apEsc(perimetre)+'</div>'
+    + '<h1 style="font-family:\'Source Serif 4\',serif;font-weight:800;font-size:40px;letter-spacing:0.01em;color:#fff;margin:0 0 6px;line-height:1.1;">'+_apEsc(nomMarqueActuelle())+'</h1>'
+    + '<div style="width:34px;height:2px;background:#E6BA6E;margin:0 0 10px;"></div>'
+    + '<div style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:600;font-size:16px;color:#CBD9EE;">'+_apEsc(sousTitre)+'</div>'
+    + '</div></div></div>'
     + statsHTML
     + bodyHTML
     + '<div style="margin-top:30px;background:#16233A;color:#FFFFFF;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;font-family:\'IBM Plex Mono\',monospace;font-size:10.5px;">'
@@ -22529,6 +23778,7 @@ function _buildRapportSyntheseHTML(arts) {
 
     + '<div style="text-align:center;margin-bottom:6px;">'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.16em;color:#9CA3AF;text-transform:uppercase;margin-bottom:10px;">Rapport opérationnel — '+_apEsc(perimetre)+'</div>'
+    + logoMarqueHtml(64)
     + '<h1 style="font-family:\'Source Serif 4\',serif;font-weight:800;font-size:40px;letter-spacing:0.01em;color:#16233A;margin:0 0 8px;">'+_apEsc(nomMarqueActuelle())+'</h1>'
     + '<div style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:600;font-size:16px;color:#0B1A27;margin-bottom:14px;">Analyse sécuritaire opérationnelle</div>'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#6B7280;">'+SRCS.length+' sources ('+nbSrcsMedia+' médias + '+nbSrcsSociales+' réseaux sociaux) &nbsp;·&nbsp; filtre anti-hallucination &lt;'+libelleFenetreCourt()+' &nbsp;·&nbsp; '+arts.length+' articles analysés</div>'
@@ -22593,7 +23843,7 @@ async function exportWord(type){
     if(typeof docx==='undefined') throw new Error('docx.js non chargé');
     const {Document,Paragraph,TextRun,HeadingLevel,Table,TableRow,TableCell,
            WidthType,AlignmentType,BorderStyle,ShadingType,Packer,
-           Header,Footer,PageNumber,ExternalHyperlink}=docx;
+           Header,Footer,PageNumber,ExternalHyperlink,ImageRun,VerticalAlign}=docx;
     // Lien source cliquable (docx.js ExternalHyperlink) — reutilise
     // articleLienDirect(a)/safeUrl deja utilises dans le Flux/Excel/CSV,
     // pour ne jamais dupliquer/diverger la logique primaire vs corroborante.
@@ -22603,10 +23853,42 @@ async function exportWord(type){
       link: safeUrl(articleLienDirect(a), srcName(a.primary)),
       children:[new TextRun({text:(LANG==='en'?'Source: ':'Source : ')+srcName(a.primary),size:16,italic:true,color:'1B5FA8',underline:{},font:'IBM Plex Mono'})],
     }) : new TextRun({text:''});
+    // Detail d'une actu sous son titre (voir detailRapportActu) : resume,
+    // cotation et dates, lien video cliquable. avecResume:false quand la
+    // section imprime deja l'analyse elle-meme.
+    // Image de la source, embarquee si elle l'autorise (chargerImagesRapport).
+    let imagesActus=new Map();
+    const detailWord=(a, avecResume=true)=>{
+      const d=detailRapportActu(a), txt=[];
+      const im=imagesActus.get(a.id);
+      if(avecResume && d.resume) txt.push(new Paragraph({children:[new TextRun({text:d.resume,size:19,color:'1F2937',font:'IBM Plex Sans'})],spacing:{after:40}}));
+      const infos=d.infos.filter(t=>!/^Source/.test(t));
+      if(infos.length) txt.push(new Paragraph({children:[new TextRun({text:infos.join('   ·   '),size:16,color:'4B5563',font:'IBM Plex Mono'})],spacing:{after:d.lienVideo?20:80}}));
+      if(d.lienVideo) txt.push(new Paragraph({children:[new ExternalHyperlink({link:d.lienVideo,children:[new TextRun({text:'▶ '+d.libelleVideo,size:17,bold:true,color:'1B5FA8',underline:{},font:'IBM Plex Sans'})]})],spacing:{after:80}}));
+      // Avec image : le texte a gauche, l'image de la source a droite (sous le
+      // texte elle se lisait comme l'illustration de l'actu suivante).
+      if(im && ImageRun && txt.length){
+        try{
+          const w=Math.round(Math.min(150, 100*im.ratio)), h=Math.round(w/im.ratio);
+          const nb={style:BorderStyle.NONE,size:0,color:'FFFFFF'};
+          const sans={top:nb,bottom:nb,left:nb,right:nb};
+          return [new Table({
+            width:{size:9000,type:WidthType.DXA}, columnWidths:[6700,2300],
+            borders:{...sans,insideHorizontal:nb,insideVertical:nb},
+            rows:[new TableRow({cantSplit:true,children:[
+              new TableCell({width:{size:6700,type:WidthType.DXA},borders:sans,margins:{top:20,bottom:20,left:0,right:120},children:txt}),
+              new TableCell({width:{size:2300,type:WidthType.DXA},borders:sans,margins:{top:40,bottom:20,left:60,right:0},children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[new ImageRun({data:im.octets(),transformation:{width:w,height:h}})]})]}),
+            ]})],
+          }), new Paragraph({spacing:{after:60}})];
+        }catch(e){ console.warn('SentiqS — image illisible pour Word'); }
+      }
+      return txt;
+    };
 
     const arts=getExportData();
     const now=new Date();
     const dateStr=now.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' à '+now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    imagesActus=await chargerImagesRapport(arts);
 
     // Traduction des titres/analyses/evenements vers la langue active avant
     // construction du document — aucune actu dans une autre langue que FR
@@ -22625,7 +23907,8 @@ async function exportWord(type){
     const FONT_SERIF='Source Serif 4', FONT_SANS='IBM Plex Sans', FONT_MONO='IBM Plex Mono';
     const lvlColor={crit:'8B1A1A',high:'7C4A00',mod:'1B5FA8',ok:'0F4F2A'};
     const heading=(text,lvl=1,color='0B1A27')=>new Paragraph({
-      text,heading:lvl===1?HeadingLevel.HEADING_1:lvl===2?HeadingLevel.HEADING_2:HeadingLevel.HEADING_3,
+      children:[new TextRun({text,bold:true,color,font:FONT_SANS,size:lvl===1?28:lvl===2?24:22})],
+      heading:lvl===1?HeadingLevel.HEADING_1:lvl===2?HeadingLevel.HEADING_2:HeadingLevel.HEADING_3,
       spacing:{before:240,after:120},
       border: lvl===2 ? {bottom:{style:BorderStyle.SINGLE,size:8,color,space:4}} : undefined,
       run:{color,bold:true,font:FONT_SANS}
@@ -22642,7 +23925,8 @@ async function exportWord(type){
     // blanc (ancien style, abandonné). Conserve le style Titre 1 pour rester
     // repérable au Sommaire.
     const topBar=(text,color)=>new Paragraph({
-      text, heading:HeadingLevel.HEADING_1,
+      children:[new TextRun({text,bold:true,size:26,color:color||'0D1B2A',font:FONT_SANS})],
+      heading:HeadingLevel.HEADING_1,
       spacing:{before:200,after:160},
       border:{bottom:{style:BorderStyle.SINGLE,size:10,color:color||'0D1B2A'}},
       run:{color:color||'0D1B2A',bold:true,size:24,font:FONT_SANS},
@@ -22809,22 +24093,45 @@ async function exportWord(type){
     children.push(new Paragraph({spacing:{before:120},border:{top:{style:BorderStyle.SINGLE,size:8,color:'0D1B2A'}}}));
     children.push(mastheadMetaRow);
     children.push(new Paragraph({spacing:{after:160}}));
-    children.push(new Paragraph({
-      alignment:AlignmentType.CENTER,
-      children:[new TextRun({text:((LANG==='en'?'OPERATIONAL REPORT':'RAPPORT OPÉRATIONNEL')+' — '+perimetreW.toUpperCase()),size:17,color:'9CA3AF',font:FONT_SANS})],
-      spacing:{after:100}
+    // Couverture « bleu nuit » : un bloc plein, filet or en pied. Le logo de
+    // l'organisation est dans une cellule blanche a gauche (un logo fonce
+    // reste lisible), le surtitre, le nom et le libelle du rapport a droite.
+    const logoW = (typeof logoMarqueActuelle === 'function') ? logoMarqueActuelle() : null;
+    const NUIT_W='071431', OR_W='E6BA6E', CLAIR_W='CBD9EE';
+    const nbW={style:BorderStyle.NONE,size:0,color:NUIT_W};
+    let logoRun=null;
+    if (logoW && ImageRun) {
+      try { logoRun=new ImageRun({data:logoMarqueOctets(logoW), transformation:{width:Math.round(Math.min(56*logoW.ratio, 150)), height:Math.round(Math.min(56*logoW.ratio, 150)/logoW.ratio)}}); }
+      catch (e) { console.warn('SentiqS — logo illisible pour Word'); }
+    }
+    const celluleTitre=new TableCell({
+      width:{size:logoRun?7200:9000,type:WidthType.DXA},
+      shading:{type:ShadingType.CLEAR,fill:NUIT_W},
+      borders:{top:nbW,left:nbW,right:nbW,bottom:{style:BorderStyle.SINGLE,size:18,color:OR_W}},
+      margins:{top:260,bottom:260,left:300,right:200},
+      children:[
+        new Paragraph({spacing:{after:80},children:[new TextRun({text:((LANG==='en'?'OPERATIONAL REPORT':'RAPPORT OPÉRATIONNEL')+'  ·  '+perimetreW.toUpperCase()),bold:true,size:16,color:OR_W,font:FONT_SANS})]}),
+        new Paragraph({spacing:{after:60},children:[new TextRun({text:nomMarqueActuelle(),bold:true,size:56,color:'FFFFFF',font:FONT_SERIF})]}),
+        new Paragraph({children:[new TextRun({text:titreRapportW,bold:true,size:26,color:CLAIR_W,font:FONT_SANS})]}),
+      ],
+    });
+    const cellules=[];
+    if (logoRun) cellules.push(new TableCell({
+      width:{size:1800,type:WidthType.DXA},
+      shading:{type:ShadingType.CLEAR,fill:'FFFFFF'},
+      verticalAlign:VerticalAlign.CENTER,
+      borders:{top:nbW,left:nbW,right:nbW,bottom:{style:BorderStyle.SINGLE,size:18,color:OR_W}},
+      margins:{top:120,bottom:120,left:160,right:160},
+      children:[new Paragraph({alignment:AlignmentType.CENTER,children:[logoRun]})],
     }));
-    children.push(new Paragraph({
-      alignment:AlignmentType.CENTER,
-      children:[new TextRun({text:nomMarqueActuelle(),bold:true,size:54,color:'0D1B2A',font:FONT_SERIF})],
-      spacing:{after:60}
+    cellules.push(celluleTitre);
+    children.push(new Paragraph({spacing:{after:80}}));
+    children.push(new Table({
+      width:{size:9000,type:WidthType.DXA}, columnWidths:logoRun?[1800,7200]:[9000],
+      borders:{top:nbW,bottom:nbW,left:nbW,right:nbW,insideHorizontal:nbW,insideVertical:nbW},
+      rows:[new TableRow({cantSplit:true,children:cellules})],
     }));
-    children.push(new Paragraph({
-      alignment:AlignmentType.CENTER,
-      children:[new TextRun({text:titreRapportW,bold:true,size:25,color:'0B1A27',font:FONT_SANS})],
-      spacing:{after:200},
-      border:{bottom:{style:BorderStyle.SINGLE,size:4,color:'D1D9E0'}},
-    }));
+    children.push(new Paragraph({spacing:{after:140}}));
     if (syntheseTxtW) {
       children.push(new Paragraph({
         children:[new TextRun({text:syntheseTxtW,size:20,color:'6B7280',font:FONT_SANS})],
@@ -22883,8 +24190,9 @@ async function exportWord(type){
               ...(cyNivW1?[new TextRun({text:cyNivW1.texte+'   ·   ',size:17,bold:true,color:cyNivW1.couleur,font:FONT_MONO})]:[]),
               lienSourceRun(a),
             ],
-            spacing:{after:120}
+            spacing:{after:40}
           }));
+          children.push(...detailWord(a, false));
         }
       }
 
@@ -22990,8 +24298,9 @@ async function exportWord(type){
             }));
             children.push(new Paragraph({
               children:[new TextRun({text:dateTxtW+'   ·   ',size:17,italic:true,color:'9CA3AF',font:FONT_MONO}), lienSourceRun(a)],
-              spacing:{after:80}
+              spacing:{after:40}
             }));
+            children.push(...detailWord(a));
           });
         });
       } else {
@@ -23098,8 +24407,9 @@ async function exportWord(type){
             }));
             children.push(new Paragraph({
               children:[new TextRun({text:lieuTxt+'   ·   '+(a.time||'')+'   ·   ', size:16, italic:true, color:'9CA3AF', font:FONT_MONO}), lienSourceRun(a)],
-              spacing:{after:80}
+              spacing:{after:40}
             }));
+            children.push(...detailWord(a));
           };
           const dossierW = s.dossier || {national:[],regional:[]};
           if (dossierW.national.length) {

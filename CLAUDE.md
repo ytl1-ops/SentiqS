@@ -2591,3 +2591,287 @@ La règle « capable d'alerter » (`peutAlerter`, `estRequeteGoogleNews`) a
 quitté `scripts/lib/capacite-alerte.js` pour le noyau, qui la partage avec la
 page ; la bibliothèque la réexporte. Mesuré sur la vraie page : 21 pays à
 source unique, exactement le cliquet `PLAFOND_PAYS_SOURCE_UNIQUE`.
+
+---
+
+## La direction « Salle de veille » — 20/10/2026
+
+Demande : une présentation « robuste et sécuritaire », sur le modèle de
+palantir.com et lacoste.com. On en reprend des **principes**, jamais un logo,
+une image ou un texte : une seule couleur d'action (l'encre), la couleur
+réservée à ce qui signifie (les cinq niveaux de gravité), des filets d'un
+pixel au lieu des ombres, des angles courts (4 px), des petites capitales
+très espacées pour les repères, et un chrome sombre qui encadre un contenu
+clair.
+
+Ce qui a changé : `--b` passe du bronze à l'encre (`#14171C`, blanc cassé en
+sombre) ; neutres froids au lieu de chauds ; rayons `--r-md` 8 → 4 px ; plus
+d'ombres de carte. Barre du haut, rail des modules et scène de connexion
+passent à l'encre (`--ink`). Le bronze `--sig` devient la signature : filet
+sous la barre du haut, onglet actif, cadre du logo, nœuds du globe. Le thème
+sombre passe du bleu nuit au graphite. Les tuiles d'indicateurs du tableau
+de bord (`kpiCard`, classe `kpi-tile`) mettent le chiffre en avant (28 px,
+chiffres tabulaires). **La zone de lecture reste claire par défaut** : la
+consigne « pas de fond très sombre » vaut toujours pour le contenu.
+
+**Le mécanisme à connaître** : `.tb,.nav-wrap{--w:…;--t:…;--b:…}` redéfinit
+les jetons **localement**. Tout ce qui, dans ces deux zones, lit un jeton
+suit sans qu'on touche aux styles en ligne. Un élément ajouté dans la barre
+du haut avec une couleur **en dur** ne suivra pas : utiliser les jetons.
+
+Pas touché : les couleurs de gravité (un test l'exige), les documents
+exportés (Word/PDF/PowerPoint/bulletin gardent leur bronze, codé en dur),
+`NIV`, les couleurs de source du registre.
+
+Mesuré (7 modules × bureau/mobile × clair/sombre, DOM rendu) : 0 texte sous
+AA en clair hors « Recalculer » désactivé (exempté), comme avant. En sombre,
+deux défauts antérieurs corrigés au passage : « FLASH INFO » blanc sur le
+rouge clair (2,8:1) et la pastille « Collecte » verte foncée (3:1).
+`scripts/test/salle-de-veille.test.js` garde la redéfinition locale des
+jetons et le seuil AA des couples de jetons.
+
+---
+
+## La direction « Bleu nuit » et les visuels d'actu — 20/10/2026 (soir)
+
+L'éditeur a jugé « Salle de veille » sans élégance, trop noire et sans
+impact, et écarté aussi une maquette claire : il veut des **fondus de bleu
+nuit** et une image liée à chaque actu, à la manière d'Opera News, partout,
+rapports compris.
+
+**Le sombre devient le défaut.** Le script du `<head>` pose `data-theme="dark"`
+et ne revient au clair que sur `sentinel_theme_choix === 'light'`, écrit
+**seulement** par le bouton (`toggleTheme`). L'ancienne clé `sentinel_theme`
+était réécrite à chaque chargement par `appliquerTheme` : la relire aurait
+figé en clair tous les utilisateurs existants sans qu'aucun l'ait choisi. Un
+test l'exige. La consigne « pas de fond très sombre par défaut » écrite plus
+haut dans ce fichier est **levée par l'éditeur**.
+
+Jetons sombres : surfaces bleu nuit étagées (`--page-bg` #071431 < `--sf` <
+`--w` #0F2450), action et signature en or `#E6BA6E` (texte bleu nuit dessus,
+9,8:1), texte le plus pâle `--lg` à 6,9:1 sur une carte et 5,7:1 sur le halo
+le plus clair du dégradé de page. Le bloc CSS « DIRECTION « BLEU NUIT » » ne
+touche que le sombre, sauf les visuels d'actu. Gravité inchangée.
+
+**Le visuel d'une actu : `visuelActu(a, taille)`**, une seule fonction pour la
+vignette du Flux, « À la une » (Flux) et « Les faits du jour »
+(`renderPanelATraiter`, donc tableau de bord et Synthèse) via `carteUneHtml`.
+
+- L'image est celle de la **source** (`_media` du flux, sinon aperçu Open
+  Graph pour une source fiable, au plus `VISUEL_OGP_MAX` = 24 par rendu),
+  affichée depuis son adresse, **jamais copiée**, avec le domaine en crédit.
+  Le crédit apparaît même quand `sourcesVisibles()` masque les noms de
+  source : afficher l'image d'un tiers sans dire d'où elle vient n'est pas
+  défendable. À trancher par l'éditeur s'il veut l'inverse.
+- `https` seulement (la CSP refuse le reste) et motif strict : une adresse
+  avec un guillemet ne devient jamais un `<img>`.
+- Une vidéo ne se lit pas sur place (la CSP n'autorise aucun cadre) :
+  vignette officielle YouTube (`i.ytimg.com`) ou repli, et un bouton qui
+  ouvre la source.
+- Sans image, un **repli de marque** dit pays, thème et gravité, au lieu
+  d'une photo d'illustration qui laisserait croire à un document. Il est
+  toujours sous l'image : une image qui ne charge pas le laisse apparaître.
+
+**Mesurer sur les données réelles.** Ce bac à sable n'a pas de réseau : il ne
+voit que des replis. `scripts/apercu-visuels.js` lit le cache publié, compte
+dans la page (`mediaActu`) la part d'actus avec image, et photographie le Flux
+et le tableau de bord ; le workflow `apercu-visuels.yml` le lance sur chaque
+PR qui touche la page et dépose les captures en artefact. Informatif, il
+n'échoue jamais une PR.
+
+**Le logo de l'organisation (identité d'envoi).** L'éditeur a précisé que
+l'identité d'envoi d'un rapport, c'est le nom **et le logo** de
+l'organisation. Paramètres > Personnalisation de marque reçoit un champ logo :
+l'image est réduite à `LOGO_MARQUE_MAX_PX` (360 px), gardée en data URL PNG
+(JPEG si trop lourde) dans `sentinel_marque_perso` (`logoMarque`,
+`logoMarqueRatio`), jamais envoyée à un serveur. `logoMarqueActuelle()` suit
+la règle du nom : plan payant seulement. Imprimé en tête de l'aperçu HTML
+(Flux, Agenda, Alertes, rapport complet, Synthèse), du Word, du PDF (à gauche
+du titre) et de la couverture PowerPoint. `pmSaveMarquePerso` reconstruit tout
+l'objet : un test exige qu'il garde le logo déjà enregistré.
+
+Les rapports HTML montrent aussi l'image de la source à côté de chaque
+article (même règle que `visuelActu`), sans repli quand il n'y en a pas, pour
+ne pas coûter d'encre. **Pas encore fait** : le logo et les images dans le
+bulletin quotidien (page publique produite par le job, sans personnalisation
+d'utilisateur) et dans les cartes d'actu des Word/PDF/PowerPoint.
+
+### Vidéos ouvrables, rapports détaillés, réglages d'affichage — 20/10/2026 (soir)
+
+Trois demandes de l'éditeur, une passe.
+
+- **Une vidéo s'ouvre comme un lien de source.** `lienVideoActu(a)` donne la
+  page YouTube (`embed` devient `watch`), sinon le fichier vidéo `https` publié
+  par la source, sinon l'article. Toute la surface du visuel est le lien
+  (`.vact-play`, `inset:0`), le détail d'une actu porte « Ouvrir la vidéo »,
+  et `resolveOGP` retient aussi `og:video`.
+- **Les rapports ne s'arrêtent plus au titre.** `detailRapportActu(a)` :
+  résumé (l'analyse, coupée à `RESUME_RAPPORT_MAX`, jamais un rappel du titre),
+  cotation, publication, survenance, source si `sourcesVisibles()`, lien
+  article et lien vidéo. Lu par l'aperçu HTML (`_apDetailActu`), le PDF
+  (`articleItem`), le Word (`detailWord`) et le PowerPoint (`detailPptx` ;
+  trois ou quatre actus par diapositive au lieu de cinq à douze titres).
+- **Paramètres > Affichage**, pour tous les rôles, enregistré sur l'appareil :
+  format (automatique / ordinateur / tablette / mobile), taille du texte
+  (`zoom` de la zone de lecture), présentation compacte ou « magazine »,
+  « économiser les données » (aucune image chargée ni aperçu demandé ; une
+  vidéo reste ouvrable). Le format tablette (rail compact de 96 px, « À la
+  une » sur deux colonnes) s'applique d'office entre 761 et 1180 px ; forcé,
+  il ne vaut qu'à partir de 761 px. Ses règles sont écrites deux fois et un
+  test exige qu'elles restent identiques.
+
+`scripts/test/videos-rapports-affichage.test.js` (11 tests, tous vus échouer
+sur la version précédente).
+
+---
+
+## La page de garde « capitales de nuit » — 20/10/2026 (soir)
+
+Demande de l'éditeur, sur le modèle de mise en page de scutum-sf.com (on en
+reprend la **composition** : grand titre en capitales calé à gauche, bouton
+contour « En savoir plus », photo plein cadre — jamais un texte, un logo ni une
+image) : « votre partenaire sûreté sur l'Afrique », avec des vues de nuit de
+grandes capitales africaines qui se fondent les unes dans les autres derrière
+le texte.
+
+- La vidéo `hero.mp4` (1,9 Mo) et son affiche sont **retirées** ; six photos de
+  Wikimedia Commons sous licence libre (CC0, domaine public, CC BY, CC BY-SA)
+  les remplacent dans `web/assets/capitales/` : Abidjan, Lagos, Nairobi,
+  Le Caire, Johannesburg, Addis-Abeba. `credits.json` porte auteur, licence et
+  lien de chaque fichier.
+- Elles ont été choisies et redimensionnées (1600 px) par
+  `scripts/capitales-nuit.py`, lancé en CI (`capitales-nuit.yml`) : le bac à
+  sable n'a pas de réseau. La CSP de l'accueil (`img-src 'self' data:`) impose
+  de les héberger.
+- **Crédit obligatoire** (CC BY / BY-SA) : légende sur l'image en cours, et
+  liste complète en pied de page (`#credits-photos`) avec lien vers le fichier
+  source, la licence et la mention « image redimensionnée ».
+- Une seule image se charge d'abord (`src` + `fetchpriority`), les cinq autres
+  portent `data-src` et ne sont demandées qu'à la fin de l'animation
+  d'ouverture (`demarrerDecor`). Mouvement lent (fondu + zoom, cycle 42 s),
+  coupé sous `prefers-reduced-motion`.
+- Lisibilité tenue par un voile radial local et une teinte bleu nuit
+  (`.scene::after`, multiply) ; vérifiée à l'œil sur les six photos.
+  **Le contraste sur pixels n'a pas été remesuré** comme le 15/10 pour la
+  vidéo : à refaire si une photo plus claire entre dans la rotation.
+
+### Le pont à haubans d'Abidjan, et le contraste mesuré au pixel — 20/10/2026 (soir)
+
+L'éditeur a demandé d'alterner aussi des vues du pont à haubans d'Abidjan
+avec les capitales. `scripts/capitales-nuit.py` (`PASSE=pont`, workflow
+`capitales-nuit.yml`) a cherché sur Wikimedia Commons : les deux premières
+passes ont ramené des **péages et des skylines grises**, pas le pont —
+la requête « Pont HKB » désigne un autre ouvrage que le pont à haubans, dont
+les photos sont classées sous « Pont Hauban Abidjan ». Trois vues de Jean
+Yves ESSIGAN (CC BY 4.0) retenues, intercalées dans l'ordre :
+Abidjan, Lagos, **pont**, Nairobi, Le Caire, **pont**, Johannesburg,
+Addis-Abeba, **pont** (cycle de 63 s, 9 photos). Elles sont **de jour** :
+`data-diurne` les assombrit (`brightness(.6)`) pour tenir le niveau des vues
+de nuit. Un test refuse deux vues du pont de suite et exige un crédit par photo.
+
+**Contraste mesuré sur les pixels** (`scratchpad` : les 9 photos, au début et
+à la fin du zoom, texte rendu transparent, 10ᵉ centile du contraste sous
+chaque élément). Résultat : tout passe — pire cas du titre 11,4:1, du mot
+clé en bleu clair 5,1:1 (seuil 3), des boutons 14:1. Le mot clé tombait à
+**2,9:1 sur la vue du pont avant l'assombrissement** : c'est ce qui a imposé
+`data-diurne`. Piège de mesure : sans couper les transitions CSS, les
+boutons se mesuraient à 1,1:1 (mi-fondu) ; ce n'est pas un défaut de la page.
+Ce banc n'est pas en CI (il demande Pillow) : le refaire si une photo entre
+dans la rotation.
+
+### Images des sources dans les rapports bureautiques
+
+`chargerImagesRapport(arts, max)` embarque l'image de la source dans le PDF,
+le Word et le PowerPoint. Un document ne peut pas pointer vers une adresse :
+il faut les octets, que la page n'a pas le droit de demander par `fetch` (CSP
+`connect-src`) et qu'on ne cherche pas par un relais public. L'image est donc
+chargée comme l'écran le fait (`<img crossOrigin>`), redessinée à 480 px, et
+n'est embarquée que **si la source autorise le partage** (canevas non teinté) ;
+sinon le document garde le texte seul, sans repli. 24 images au plus par
+document (16 en PowerPoint), 4 s par image, les plus graves d'abord, rien
+si « économiser les données » est actif. **Non vérifié ici** : le résultat
+avec de vraies images de source, ce bac à sable n'ayant pas de réseau — seuls
+le câblage et le tri sont testés. Mesurer sur un export réel avant de parler
+d'un taux d'images.
+
+---
+
+## Le rendu des exports, relu sur de vrais documents — 20/10/2026
+
+L'éditeur a jugé le rendu des exports « pas satisfaisant ». Plutôt que de
+deviner, de vrais documents ont été générés (PDF, Word, PowerPoint, aperçu
+HTML) avec des actus à image, puis lus en images. Ce qui ne se voyait que là :
+
+- **PDF** : un bandeau gris plat en tête ; l'image posée *sous* le texte de
+  l'actu, donc lue comme l'illustration du titre de pays suivant ; une carte
+  coupée entre deux pages (la ligne « Cotation » seule en haut de page) ; un
+  titre de pays seul en bas de page.
+- **Word** : titres de section dans le bleu par défaut du style Titre (la clé
+  `run` d'un `Paragraph` docx ne colore que la marque de paragraphe) ; image
+  avant le texte.
+- **PowerPoint** : couverture claire dont le nom de 19 caractères, à 52 pt,
+  passait sur deux lignes et chevauchait le sous-titre ; nom de marque écrit
+  deux fois ; diapositives du Flux où la ligne « Cotation » de chaque actu
+  recouvrait l'en-tête de la suivante ; « Page » recouvrant le numéro.
+
+Corrigé : couverture **bleu nuit avec filet or** dans les quatre formats (le
+logo de l'organisation sur une pastille blanche : un logo foncé reste lisible),
+carte d'actu avec **barre de gravité et image à droite du texte**, mesurée avant
+d'être dessinée pour qu'elle ne se coupe pas. `detailRapportActu` ne redit plus
+la survenance quand elle tombe à la minute de la publication.
+
+**Piège Word / LibreOffice :** les largeurs de tableau en pourcentage ne sont
+pas respectées (cellules écrasées) ; les tableaux de ce fichier utilisent des
+largeurs fixes en DXA avec `columnWidths`.
+
+**Comment refaire cette mesure :** `docx`, `pdf-lib` et `pptxgenjs` se
+récupèrent par `npm` (le proxy l'autorise) ; la page les demande à
+`cdn.jsdelivr.net`, on intercepte avec `page.route()` et on les sert depuis
+disque. `dlFile` est remplacé par une capture du blob. LibreOffice convertit
+Word et PowerPoint en PDF, `pdftoppm` en images. Ne jamais juger un export à
+son code : le lire.
+
+**Non vérifié :** des images de source *réelles* dans ces documents (le bac à
+sable n'a pas de réseau : un jeu d'images de test servi avec l'en-tête CORS a
+validé la mise en page seulement), et le rendu dans Word lui-même
+(LibreOffice a servi de lecteur). `exports-habillage.test.js` garde ces
+choix, tous vus échouer sur l'ancien code.
+
+---
+
+## Le chargement des actus, mesuré — 21/10/2026
+
+Signalement : « il plante sur PC et sur mobile », puis « actualisation 50 fois plus rapide ». Le banc (Chromium, 2 600 articles dans la fenêtre, page servie localement, script jetable) a trouvé trois causes, toutes de calcul et non de réseau — le bac à sable n'a pas Internet, la latence Supabase n'est donc **pas** mesurée ici.
+
+**1. Le Flux écrivait toutes les cartes d'un coup.** 112 742 nœuds DOM, 7 Mo de HTML, 871 images, 3,8 s de gel (1,9 s mobile) avant le premier pixel. `renderFeed()` n'en écrit plus que `FLUX_PAGE` (40) selon le tri courant, « Afficher plus » ajoute la page suivante, et un filtre, un tri ou une recherche qui change repart de la première. **Les totaux restent vrais** : bandeau pays, « N critiques », « À la une » se calculent sur la liste complète (`artsTous`), seuls les cartes et la traduction préalable portent sur la page. Après : 135 ms, 1 944 nœuds, 18 images.
+
+**2. Chaque lecture du cache reclassait tous les articles.** `rehydrateArticles` rappelait `detectPaysFromText` et `classify` (~14 ms par article) à l'ouverture, à chaque lecture du cache partagé et à chaque cycle : **15,8 s pour 2 600 articles**. Chaque article porte maintenant `_rv`, l'empreinte (`signatureCode()`, FNV-1a de **tout** le script inline, 13 ms) du code qui l'a classé ; le recalcul n'a lieu que si elle diffère, donc après un déploiement — ce qui garde le but du recalcul (un correctif de lexique prend effet sans attendre la collecte). Rien à incrémenter : changer une ligne change l'empreinte. Second passage : **5 ms**. Les deux analyseurs de flux estampillent à la création ; la publication du cache partagé rehydrate en entier avant d'écrire (les estampilles survivent : la fonction Edge ne filtre aucun champ).
+Après un déploiement, les navigateurs recalculent **par tranches de 40 ms** (`rehydraterParLots`, budget `budgetMs`) au lieu de geler l'écran, et redessinent les modules une fois à la fin. Le job et la publication recalculent **en entier** (pas de budget) : publier un cache à moitié recalculé serait pire que ne rien changer.
+**Limite connue** : l'empreinte ne couvre pas `web/js/noyau.js` (script externe). Aucune règle de classement n'en dépend aujourd'hui ; si `classify` en vient à en dépendre, il faudra l'y inclure.
+
+**3. `fmtAge` recréait un formateur `Intl` par appel** (248 ms pour 2 600 articles). Formateurs construits une fois : 9 ms.
+
+**Plantages répétés.** Les gestionnaires `error`/`unhandledrejection` ne faisaient que journaliser. Trois erreurs en dix secondes (`erreurRepetee`) affichent un bandeau « Réessayer » qui remet le Flux à zéro ; il ne bloque rien et se ferme.
+
+**Zone de lecture et boutons.** Hauteur de bandeaux avant le Flux : **343 → 299 px** (bureau), **403 → 366 px** (mobile). Thème, diagnostic et format d'affichage passent dans un menu « Plus » (Actualiser reste seul, visible) ; les barres d'export (Flux, Synthèse, Agenda) se replient derrière un bouton « Exporter » ; la bannière de collecte tient sur une ligne ; sur mobile, recherche pleine largeur, pays + tri + ⟳ sur une ligne, filtres en défilement horizontal. **Les boutons visibles n'ont baissé que sur bureau (34 → 31)** ; sur mobile ils restent à 26–31. Règles mobiles écrites deux fois (écran étroit et `html.force-mobile`), comme partout.
+
+**Ce que la mesure ne permet pas de promettre.** Lecture d'un cache partagé de 2 600 articles jusqu'à l'affichage : **20,2 s → ~1,5 s** (≈ 14×), le reste étant `updStats` (265 ms, `estRecentReel` rappelée sur toute la liste), `recalcAlertes` (~100 ms) et le rendu des fiches. Le passage répété (réouverture, cycle de 15 min) tombe de ~16 s à quelques millisecondes. **50× sur le chemin complet n'est pas atteint** ; la suite logique est de mémoïser `estRecentReel` et de ne recalculer les alertes que pour les pays dont les articles ont changé.
+
+`scripts/test/chargement-lecture.test.js` : 16 tests, tous vus échouer sur l'ancienne version. Piège rencontré : une règle CSS `html.force-mobile .a,.b{…}` — la virgule laisse `.b` sans préfixe et la règle fuit sur le bureau (le tri s'étirait sur 1 360 px) ; un test le refuse.
+
+---
+
+## Connexion et inscription par code e-mail, sans mot de passe — 21/10/2026
+
+Demande de l'éditeur : s'enregistrer et se connecter avec le seul e-mail, « comme avec Claude ». Deux portes, une seule mécanique : `signInWithOtp({shouldCreateUser:true})` crée le compte s'il n'existe pas et envoie le code, `verifyOtp({type:'email'})` ouvre la session.
+
+- **Écran de connexion de l'appli** : l'e-mail et « Recevoir mon code par e-mail » sont l'action principale ; « Utiliser un mot de passe » (lien) révèle l'ancien champ, `doLogin` et « Mot de passe oublié » sont inchangés, « Créer un compte avec mot de passe » aussi. L'écran du code (`#otpForm`) accepte un code collé (espaces et tirets ignorés, 6 à 10 chiffres), valide tout seul à six chiffres, limite le renvoi à une fois par minute (compte à rebours) et dit en clair la limite de débit du serveur. La zone prioritaire est repliée sous « Options » (la carte tenait sur deux écrans).
+- **Fenêtre « Essai gratuit » de l'accueil** : plus de mot de passe ni de confirmation ; l'e-mail et la case d'usage professionnel suffisent, nom/organisation/zone sont facultatifs (repliés). Après le code, le profil (plan gratuit, forfait souhaité) n'est écrit **que s'il n'existe pas** — un compte existant qui revient par là ne voit jamais son plan ou sa date d'essai réécrits — puis redirection vers l'appli (`#connexion-fraiche`).
+- **Premier passage** : `_ouvrirSessionDepuisSupabase` crée désormais le profil avec `plan:'gratuit'` et `createdAt`. Sans date, l'essai de 72 h ne s'éteignait jamais (`compteGratuitExpire` retourne faux sans `createdAt`). Rôle et statut restent décidés par le trigger serveur.
+- **Reconnexion quotidienne préservée** : `checkAuth` déconnecte toute session Supabase sans trace locale du jour. Un retour de lien e-mail ou l'arrivée depuis l'accueil n'en ont pas ; ils comptent comme une connexion du jour **seulement si** une session réelle existe ET que `last_sign_in_at`, lu sur la réponse du serveur, date de moins de deux minutes. Ajouter `#access_token=` ou `#connexion-fraiche` à la main ne contourne donc rien.
+
+**Réglages que seul le propriétaire peut faire dans Supabase** (non vérifiables depuis ce bac à sable, sans réseau) : Authentication → Email Templates → **Magic Link** ET **Confirm signup** doivent contenir `{{ .Token }}` (sinon l'utilisateur reçoit un lien et pas de code ; le lien marche aussi, mais la page de saisie du code ne sert à rien) ; Authentication → URL Configuration → la page de l'appli (`https://ytl1-ops.github.io/SentiqS/SentiqS_Web.html`) dans les URL de redirection autorisées ; le fournisseur Email actif avec « Allow new users to sign up ». L'envoi par défaut de Supabase est plafonné (quelques e-mails par heure pour tout le projet) : pour du trafic réel, brancher un SMTP (Authentication → SMTP Settings). Longueur du code : 6 par défaut, le client en accepte jusqu'à 10.
+
+**Page de garde.** L'animation d'ouverture (vidéo de marque, inchangée) sort désormais en fondu de 500 ms au lieu de disparaître d'un coup — seulement quand elle a joué : un saut (erreur, autoplay refusé) reste immédiat, jamais d'écran noir pendant un fondu — avec une barre de progression (`--p`, déclarée dans `:root` : le test des jetons l'exige) et, sur l'accueil, une entrée échelonnée du titre, de la promesse, des boutons et des chiffres, coupée sous `prefers-reduced-motion`. L'accueil dit sous les boutons : « Essai gratuit 72 h · votre e-mail suffit, sans mot de passe ».
+
+**Vérifié** avec un faux client Supabase dans Chromium (bureau et mobile) : code faux → erreur, bon code → session ouverte, profil gratuit créé une fois, accueil → code → appli ouverte sans second écran de connexion. **Non vérifié** : l'envoi réel de l'e-mail et la lecture H.264 de la vidéo (ce build de Chromium n'a pas ce codec). `scripts/test/connexion-code.test.js` (12) et 4 tests dans `intro.test.js`, vus échouer sur l'ancien code (un seul, « un saut reste immédiat », passe aussi sur l'ancien : c'est une garde).

@@ -220,17 +220,26 @@ test('câblage des deux pages : même module, mêmes identifiants, aucune dépen
     assert.match(html, /<video id="introVideoEl"[^>]*preload="none"[^>]*aria-hidden="true"/, nom + ' : la vidéo ne se télécharge qu\'à la lecture');
     assert.match(html, /id="introVideoSkip"/, nom + ' : bouton Passer');
   }
-  // L'accueil : le décor animé ne démarre qu'après l'intro (pas de double téléchargement).
-  assert.match(accueil, /id="heroVideo"[^>]*preload="none"/);
-  assert.doesNotMatch(accueil, /<video[^>]*class="scene-video"[^>]*autoplay/);
+  // L'accueil : le diaporama des capitales ne télécharge que sa première
+  // image avec la page ; les autres attendent la fin de l'intro (data-src).
+  const diapos = [...accueil.matchAll(/<img class="diapo"([^>]*)>/g)].map((m) => m[1]);
+  assert.ok(diapos.length >= 4, 'au moins quatre capitales');
+  assert.match(diapos[0], /(^|\s)src="assets\/capitales\//);
+  diapos.slice(1).forEach((d) => { assert.match(d, /data-src="assets\/capitales\//); assert.doesNotMatch(d, /(^|\s)src=/); });
+  assert.doesNotMatch(accueil, /<video[^>]*class="scene-video"/, 'plus de vidéo de décor');
   // L'appli : plus de logique dupliquée, uniquement l'appel au module.
   assert.match(appli, /SentiqIntro\.lancer\(/);
   assert.doesNotMatch(appli, /sessionStorage\.getItem\('sentinel_intro_vue'\)/, 'plus de seconde copie de la logique');
 });
 
-test('les deux vidéos restent légères et sans piste audio inutile', () => {
+test('l\'animation et le décor de l\'accueil restent légers, sans piste audio inutile', () => {
   const dossier = path.join(__dirname, '..', '..', 'web', 'assets');
-  const plafonds = { 'hero.mp4': 2.5e6, 'intro-sentiqs.mp4': 1.0e6 };
+  // Le décor vidéo de l'accueil (1,96 Mo) a cédé la place, le 20/10/2026,
+  // aux photos de capitales de nuit : plafond sur leur poids total.
+  const capitales = fs.readdirSync(path.join(dossier, 'capitales')).filter((f) => f.endsWith('.jpg'))
+    .reduce((t, f) => t + fs.statSync(path.join(dossier, 'capitales', f)).size, 0);
+  assert.ok(capitales <= 1.6e6, `capitales : ${(capitales / 1e6).toFixed(2)} Mo > plafond 1,6 Mo`);
+  const plafonds = { 'intro-sentiqs.mp4': 1.0e6 };
   for (const [f, max] of Object.entries(plafonds)) {
     const taille = fs.statSync(path.join(dossier, f)).size;
     assert.ok(taille <= max, `${f} : ${(taille / 1e6).toFixed(2)} Mo > plafond ${(max / 1e6).toFixed(1)} Mo`);
@@ -238,4 +247,69 @@ test('les deux vidéos restent légères et sans piste audio inutile', () => {
   // Pas de piste audio : l'élément est « muted », l'AAC ne servait à rien (~0,3 Mo).
   const intro = fs.readFileSync(path.join(dossier, 'intro-sentiqs.mp4'));
   assert.equal(intro.includes(Buffer.from('soun')), false, 'intro-sentiqs.mp4 ne doit plus contenir de piste audio');
+});
+
+test('page d accueil : chaque photo du diaporama est creditee, et le pont d Abidjan alterne avec les capitales', () => {
+  const accueil = fs.readFileSync(path.join(__dirname, '..', '..', 'web', 'index.html'), 'utf8');
+  const fichiers = [...accueil.matchAll(/<img class="diapo"[^>]*?(?:data-)?src="assets\/capitales\/([^"]+)\.jpg"/g)].map((m) => m[1]);
+  const legendes = [...accueil.matchAll(/<span class="diapo-legende"/g)].length;
+  assert.strictEqual(legendes, fichiers.length, 'une legende par photo');
+  const credits = accueil.slice(accueil.indexOf('id="credits-photos"'));
+  const json = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'web', 'assets', 'capitales', 'credits.json'), 'utf8')).map((c) => c.fichier);
+  fichiers.forEach((f) => assert.ok(json.includes('assets/capitales/' + f + '.jpg'), f + ' absent de credits.json'));
+  assert.strictEqual((credits.match(/image redimensionnée/g) || []).length >= fichiers.length, true, 'un credit en pied de page par photo');
+  const pont = fichiers.map((f) => /^pont-haubans/.test(f));
+  assert.ok(pont.filter(Boolean).length >= 3, 'le pont a haubans est dans la rotation');
+  for (let i = 1; i < pont.length; i++) assert.ok(!(pont[i] && pont[i - 1]), 'deux vues du pont de suite : ' + fichiers[i]);
+  // Les vues de jour sont assombries : le titre est mesure sur les pixels.
+  fichiers.forEach((f, i) => { if (pont[i]) assert.match(accueil, new RegExp('data-diurne data-src="assets/capitales/' + f + '\\.jpg"')); });
+});
+
+// ── 21/10/2026 : sortie en fondu et barre de progression ─────────────────────
+test('lancer : avec « fondu », l\'overlay s\'efface en douceur puis se masque, et le reste de la page est libéré tout de suite', () => {
+  const d = decor(), fins = [];
+  const reels = global.setTimeout; const attentes = [];
+  global.setTimeout = (f, ms) => { attentes.push([f, ms]); return attentes.length; };
+  try {
+    Intro.lancer(d.els, { env: env(), fondu: 500, onFin: (m) => fins.push(m) });
+    attentes.length = 0; // on ignore le minuteur de démarrage
+    d.video.emettre('ended');
+  } finally { global.setTimeout = reels; }
+  assert.deepEqual(fins, ['terminee']);
+  assert.equal(d.overlay.classes.has('intro-sortie'), true, 'fondu enclenché');
+  assert.equal(d.overlay.classes.has('hidden'), false, 'pas encore masqué : il s\'efface');
+  assert.equal(d.principal.inert, false, 'la page est utilisable pendant le fondu');
+  const fond = attentes.find(([, ms]) => ms === 500);
+  assert.ok(fond, 'masquage différé de la durée du fondu');
+  fond[0]();
+  assert.equal(d.overlay.classes.has('hidden'), true);
+  assert.equal(d.overlay.classes.has('intro-sortie'), false);
+});
+
+test('lancer : un saut (erreur, autoplay refusé) reste immédiat, même avec « fondu »', () => {
+  const d = decor();
+  Intro.lancer(d.els, { env: env(), fondu: 500 });
+  d.video.emettre('error');
+  assert.equal(d.overlay.classes.has('hidden'), true, 'une erreur ne doit jamais laisser un écran noir pendant un fondu');
+  assert.equal(d.overlay.classes.has('intro-sortie'), false);
+});
+
+test('lancer : la barre de progression suit la lecture et ses écouteurs sont retirés', () => {
+  const d = decor(); const vus = [];
+  d.overlay.style = { setProperty: (k, v) => vus.push([k, v]) };
+  d.video.duration = 10; d.video.currentTime = 2.5;
+  Intro.lancer(d.els, { env: env() });
+  d.video.emettre('timeupdate');
+  assert.deepEqual(vus.pop(), ['--p', '0.25']);
+  d.video.emettre('ended');
+  assert.equal(d.video.nbEcouteurs('timeupdate'), 0);
+});
+
+test('les deux pages passent « fondu » et portent la barre de progression', () => {
+  for (const f of ['index.html', 'SentiqS_Web.html']) {
+    const html = fs.readFileSync(path.join(__dirname, '../../web', f), 'utf8');
+    assert.match(html, /fondu: 500/, f);
+    assert.match(html, /class="intro-progress"/, f);
+    assert.match(html, /\.intro-video-overlay\.intro-sortie\{opacity:0/, f);
+  }
 });
