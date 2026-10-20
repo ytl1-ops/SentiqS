@@ -15,7 +15,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  # Ecriture : les captures sont aussi poussees sur une branche dediee
+  # (apercus/pr-<n>), lisible la ou un artefact ne l'est pas.
+  contents: write
 
 jobs:
   apercu:
@@ -39,3 +41,15 @@ jobs:
           name: apercu-visuels
           path: apercu-visuels/
           retention-days: 14
+      - name: Pousse les captures sur une branche d'aperçu
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          set -e
+          cd apercu-visuels
+          git init -q
+          git config user.name "apercu-visuels"
+          git config user.email "actions@github.com"
+          git checkout -q -b apercus
+          git add -A
+          git commit -qm "Aperçu des visuels — PR #${{ github.event.pull_request.number }} (${{ github.event.pull_request.head.sha }})"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" apercus:refs/heads/apercus/pr-${{ github.event.pull_request.number }}

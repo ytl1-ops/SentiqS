@@ -94,7 +94,7 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; ch
     for (const [nom, vue] of [['flux', 'flux'], ['tableau', 'dashboard']]) {
       await page.evaluate((v) => { switchView(v, document.querySelector('.ntab[data-view="' + v + '"]')); }, vue);
       await page.waitForTimeout(6000); // laisse arriver les images des sources
-      await page.screenshot({ path: path.join(OUT, vp.n + '-' + nom + '.png') });
+      await page.screenshot({ path: path.join(OUT, vp.n + '-' + nom + '.jpg'), type: 'jpeg', quality: 80 });
     }
     console.log(vp.n + ' : erreurs JS ' + erreurs.length + (erreurs.length ? ' — ' + erreurs.slice(0, 3).join(' | ') : ''));
     await ctx.close();
