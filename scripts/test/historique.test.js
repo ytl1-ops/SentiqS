@@ -228,3 +228,16 @@ test('la page ne lit la serie qu a une adresse relative a web/', () => {
   assert.match(HTML, /fetch\('historique\/serie\.json'/,
     "l'archive doit rester servie a cote de la page");
 });
+
+test("l'instantané archive la confiance de chaque pays, jamais une valeur inventée", () => {
+  const h = require('../lib/historique.js');
+  const inst = h.construireInstantane({ jour: '2026-10-21', pays: [
+    { code: 'CI', niveau: 'jaune', total: 3, confiance: 'faible' },
+    { code: 'ML', niveau: 'rouge', total: 20, confiance: 'bizarre' },
+    { code: 'SN', niveau: 'vert', total: 0 },
+  ] });
+  const par = Object.fromEntries(inst.pays.map((p) => [p.code, p.confiance]));
+  assert.strictEqual(par.CI, 'faible');
+  assert.strictEqual(par.ML, null);
+  assert.strictEqual(par.SN, null);
+});

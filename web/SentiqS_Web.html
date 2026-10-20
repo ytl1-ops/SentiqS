@@ -12552,19 +12552,20 @@ async function showKpiDrill(kind) {
     list = list.slice().sort((a,b)=>(b.pubDate||0)-(a.pubDate||0));
     await preTraduireRapport(list.map(a => a.title));
     rows = list.length ? list.map(rowArticle).join('') : '<div style="padding:16px;text-align:center;color:var(--lg);font-size:11px;">Aucun article.</div>';
-  } else if (kind==='pays' || kind==='tension') {
+  } else if (kind==='pays' || kind==='tension' || kind==='confiance') {
     const scores = Object.keys(PAYS_INFO).map(cy=>{
       const sc = (typeof calcAlertScore === 'function') ? calcAlertScore(cy) : {total100:0, key:'vert'};
-      return {cy, pays:PAYS_INFO[cy], score:sc.total100, key:sc.key, n:artsActifs.filter(a=>a.cy===cy).length};
+      return {cy, pays:PAYS_INFO[cy], score:sc.total100, key:sc.key, confiance:sc.confiance, n:artsActifs.filter(a=>a.cy===cy).length};
     });
     let list;
-    if (kind==='tension') { list = scores.filter(s=>s.key==='orange'||s.key==='marron'||s.key==='rouge').sort((a,b)=>b.score-a.score); title='Pays en tension (Orange, Marron ou Rouge)'; icon='ti-trending-up'; }
+    if (kind==='confiance') { list = scores.filter(s=>s.confiance&&s.confiance.cle==='faible').sort((a,b)=>b.score-a.score); title='Pays à confiance faible — un pays listé n\'est pas plus dangereux, c\'est un pays que l\'outil voit mal'; icon='ti-eye-off'; }
+    else if (kind==='tension') { list = scores.filter(s=>s.key==='orange'||s.key==='marron'||s.key==='rouge').sort((a,b)=>b.score-a.score); title='Pays en tension (Orange, Marron ou Rouge)'; icon='ti-trending-up'; }
     else { list = scores.filter(s=>s.n>0).sort((a,b)=>b.n-a.n); title='Pays couverts (articles actifs < '+libelleFenetre()+')'; icon='ti-world'; }
     rows = list.length ? list.map(s=>`
       <div onclick="closeKpiDrill();ouvrirVuePays('${s.cy}')" style="padding:9px 0;border-bottom:.5px solid var(--bd);cursor:pointer;display:flex;align-items:center;gap:8px;">
         <span style="font-size:18px;">${s.pays.flag}</span>
         <div style="flex:1;"><div style="font-size:12px;font-weight:600;color:var(--t);">${s.pays.name}</div></div>
-        ${kind==='tension'
+        ${kind==='tension' || kind==='confiance'
           ? `<span style="font-size:11px;font-weight:700;color:${scoreCol(s.key)};">${s.score}</span>`
           : `<span style="font-size:10px;color:var(--lg);">${s.n} article${s.n>1?'s':''}</span>`}
       </div>`).join('') : '<div style="padding:16px;text-align:center;color:var(--lg);font-size:11px;">Aucun pays.</div>';
@@ -13140,6 +13141,7 @@ const cartogramme = () => {
         ${kpiCard(nbHigh,'Élevés','#7C4A00','ti-alert-circle','high')}
         ${kpiCard(nbSrcs,_tentees?'Sources joignables':'Sources ayant publié','#0F4F2A','ti-antenna','sources',_tentees?('sur '+_tentees+' interrogées · '+nbSrcsFraiches+' ont publié'):'Aucune mesure sur cet appareil')}
         ${kpiCard(enTension.length,'Pays en tension',cv('--j-txt','#854D0E'),'ti-trending-up','tension','Niveau orange, marron ou rouge')}
+        ${kpiCard(scores.filter(s=>s.confiance&&s.confiance.cle==='faible').length,'Confiance faible','var(--t)','ti-eye-off','confiance','Niveau peu étayé par du récent')}
       </div>
 
       <!-- Actualites a traiter (dans la fenetre) -->

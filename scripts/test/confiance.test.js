@@ -172,3 +172,9 @@ test('motsSignificatifs ecarte les mots vides et les mots courts', () => {
   }
   assert.ok(mots.includes('penurie'), 'un mot porteur de sens doit etre conserve');
 });
+
+test('le tableau de bord compte les pays à confiance faible et en détaille la liste', () => {
+  const { HTML } = require('./_bac.js');
+  assert.ok(/kpiCard\([^\n]*'Confiance faible'[^\n]*'confiance'/.test(HTML), 'carte KPI absente');
+  assert.ok(HTML.includes("kind==='confiance'"), 'détail de la carte absent');
+});

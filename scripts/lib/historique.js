@@ -60,6 +60,7 @@ function construireInstantane({ jour, commit, pays }) {
       facteurs: arrondi(p.facteurs),
       live: arrondi(p.live),
       historique: arrondi(p.historique),
+      confiance: ['elevee', 'moyenne', 'faible'].includes(p.confiance) ? p.confiance : null,
     }))
     .sort((a, b) => a.code.localeCompare(b.code));
   return { jour, commit: commit || null, pays: lignes };
