@@ -39,7 +39,10 @@ const { dateEvenementMs, ageRevueMois, REVUE_RECOMMANDEE_MOIS } = require('../we
 // grossir : une PR qui ajoute un facteur non date echoue. Il est fait pour
 // DESCENDRE au fur et a mesure des revues, jamais pour monter. Le relever
 // serait annuler le seul mecanisme qui protege ce socle.
-const PLAFOND_FACTEURS_NON_DATES = 38;
+// 20/10/2026 : 38 -> 36. Revue du socle ivoirien (pays pilote) : le facteur
+// « inondations Abidjan » retire, la pression transfrontaliere nord revue
+// contre les conseils aux voyageurs du FCDO.
+const PLAFOND_FACTEURS_NON_DATES = 36;
 
 const bac = {};
 vm.createContext(bac);

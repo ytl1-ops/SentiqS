@@ -17892,9 +17892,12 @@ const ALERTE_EVENTS = [
  {cy:'GN',date:'28/06/2026',title:'Tensions sociales persistantes Conakry — cout de la vie',level:'orange',weight:1,src:'Guineenews · Conakrylive'},
  {cy:'GN',date:'28/06/2026',title:'Mouvements Conakry — source unique non confirme',level:'jaune',weight:1,src:'Guineenews'},
  {cy:'GN',date:'Juin 2026',title:'Calendrier electoral CNRD annonce 2026-2027',level:'jaune',weight:1,src:'AGP · Jeune Afrique'},
- {cy:'CI',date:'29/06/2026 07h00',title:'INONDATIONS ABIDJAN — Vigilance ORANGE SODEXAM',level:'orange',weight:2,src:'AIP · SODEXAM · Abidjan.net'},
- {cy:'CI',date:'29/06/2026 07h10',title:'Riviera 9 Kilos impraticable — route Abidjan-Dabou coupee',level:'orange',weight:1,src:'Police Secours'},
- {cy:'CI',date:'29/06/2026 06h00',title:'ONPC confirme impacts humains et materiels intemperies',level:'orange',weight:1,src:'AIP · ONPC'},
+ // Revue du socle ivoirien du 20/10/2026 (pays pilote, arbitrage de l'editeur :
+ // « cadrer avec la realite sans etre alarmiste »). Trois incidents retires :
+ // les inondations d'Abidjan du 29/06 (vigilance SODEXAM, route Abidjan-Dabou,
+ // bilan ONPC). Episode de saison des pluies, clos, vieux de 113 jours : il
+ // portait a lui seul 4 des 5 points du socle et maintenait le pays a l'orange.
+ // Reste ce qui fait le risque de surete reel : la pression sur le nord.
  {cy:'CI',date:'29/06/2026 06h00',title:'Renforcement securitaire preventif regions nord Hambol/Poro',level:'jaune',weight:1,src:'KOACI · Linfodrome'},
  {cy:'SN',date:'29/06/2026 10h00',title:'Assemblee nationale : revision Constitution soumise au vote',level:'jaune',weight:1,src:'APS · Apanews'},
  {cy:'SN',date:'28/06/2026',title:'Tension sociale hausse tarifs electricite SENELEC',level:'jaune',weight:1,src:'Seneweb · Pressafrik'},
@@ -18125,8 +18128,13 @@ const FACTEURS_SPECIAUX = {
     {label:'Fermeture bureau OCHA Diffa',bonus:1},
   ],
   CI:[
-    {label:'Inondations majeures Abidjan 29/06 — ORANGE SODEXAM actif',bonus:1},
-    {label:'Pression transfrontaliere nord Hambol/Poro',bonus:1},
+    // Revu le 20/10/2026 contre les conseils aux voyageurs du FCDO (mis a jour
+    // le 29/05/2026, toujours en vigueur le 11/10/2026) : deconseille a moins
+    // de 40 km des frontieres du Burkina Faso et du Mali, dans le nord du Zanzan
+    // et les Savanes, et le parc de la Comoe — risque d'attaques et
+    // d'enlevements par des groupes bases au Sahel. Le facteur « inondations
+    // Abidjan 29/06 » est retire avec les incidents du meme episode.
+    {label:'Pression transfrontaliere nord (frontieres Burkina Faso et Mali, Savanes, Zanzan) — FCDO',bonus:1,revu:'2026-10'},
   ],
   NG:[
     {label:'Enlevements Kaduna potentiel ressortissants etrangers',bonus:1},

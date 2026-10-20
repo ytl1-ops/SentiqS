@@ -96,7 +96,7 @@ test('le poids des facteurs n est PAS touche par la date de revue', () => {
     'le calcul du score ne doit dependre d\'aucune date de revue tant qu\'aucune mesure ne l\'a valide');
 });
 
-test('les 38 facteurs actuels restent sous le cliquet de la CI', () => {
+test('les facteurs actuels restent sous le cliquet de la CI', () => {
   // Miroir du controle de scripts/verifier-datation-incidents.js, pour que la
   // suite de tests le dise aussi, et pas seulement la CI.
   const ctx = {};
@@ -106,7 +106,7 @@ test('les 38 facteurs actuels restent sous le cliquet de la CI', () => {
   vm.runInContext(HTML.slice(i, j) + '\n};\nthis.F = FACTEURS_SPECIAUX;', ctx);
   const tous = Object.values(ctx.F).reduce((n, l) => n.concat(l), []);
   const nonDates = tous.filter((f) => noyau.ageRevueMois(f.revu) === null).length;
-  assert.ok(nonDates <= 38, nonDates + ' facteurs non dates, plafond 38 — voir le cliquet dans la CI');
+  assert.ok(nonDates <= 36, nonDates + ' facteurs non dates, plafond 36 — voir le cliquet dans la CI');
   assert.ok(tous.every((f) => noyau.ageRevueMois(f.revu) === null || noyau.ageRevueMois(f.revu) >= 0),
     'aucune date de revue ne doit etre dans le futur');
 });

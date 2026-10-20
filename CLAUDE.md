@@ -2486,3 +2486,16 @@ faux depuis que la décroissance a été retirée. Remplacé.
 **À savoir avant de lire l'écran hors ligne** : sans collecte, tous les pays
 sont muets, donc tous à confiance faible. C'est juste, pas un défaut.
 Mesuré dans Chromium : 54 marques sur les tuiles, 54 sur les fiches, 0 erreur.
+
+### Première revue du socle : la Côte d'Ivoire, pays pilote (20/10/2026)
+
+Arbitrage de l'éditeur : « cadrer avec la réalité sans être alarmiste ». La
+Côte d'Ivoire était à l'orange sur des faits du 29/06 dont trois incidents et
+un facteur décrivaient les inondations d'Abidjan, un épisode de saison des
+pluies clos. Retirés. Reste la pression sur le nord, revue contre les conseils
+aux voyageurs du FCDO (déconseillé à moins de 40 km des frontières du Burkina
+Faso et du Mali, Savanes, nord du Zanzan, parc de la Comoé), qui porte
+désormais `revu:'2026-10'` — premier facteur daté du socle.
+`PLAFOND_FACTEURS_NON_DATES` : 38 → 36. Rejeu de la vraie page avant/après :
+**seule la Côte d'Ivoire bouge, orange → jaune** ; ALERTE_EVENTS passe de 172
+à 169 incidents. La revue du pays pilote est hebdomadaire pendant le pilote.
