@@ -2594,9 +2594,17 @@ html[data-theme="dark"] .vact-repli{background-image:linear-gradient(150deg,rgba
 .vact-credit{position:absolute;right:5px;bottom:5px;z-index:2;font-size:var(--fs-micro);line-height:1.3;color:#fff;
   background:rgba(5,10,25,.78);padding:1px 6px;border-radius:4px;max-width:92%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .vact.sans-img .vact-credit{display:none}
-.vact-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;width:44px;height:44px;border-radius:50%;
-  background:rgba(255,255,255,.95);color:#0A1733;display:grid;place-items:center;font-size:20px;box-shadow:0 4px 16px rgba(0,0,0,.45)}
-.vact-play:hover{background:#fff;transform:translate(-50%,-50%) scale(1.06)}
+/* Toute la surface d'un visuel video ouvre la video (lienVideoActu), comme
+   le lien d'une source ouvre l'article ; le credit reste lisible au-dessus. */
+.vact-play{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  text-decoration:none;color:#0A1733;background:linear-gradient(180deg,rgba(5,10,25,0) 40%,rgba(5,10,25,.35) 100%)}
+.vact-play-btn{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.95);display:grid;place-items:center;font-size:20px;
+  box-shadow:0 4px 16px rgba(0,0,0,.45);transition:transform .15s}
+.vact-play:hover .vact-play-btn{background:#fff;transform:scale(1.08)}
+.vact-play:focus-visible{outline:3px solid var(--sig);outline-offset:-3px}
+.vact-play-txt{font-size:var(--fs-micro);font-weight:700;color:#fff;background:rgba(5,10,25,.78);padding:2px 8px;border-radius:999px}
+.vact-vignette .vact-play-txt{display:none}
+.vact-credit{z-index:3;pointer-events:none}
 .vact-vignette{width:132px;height:92px;order:3;align-self:flex-start}
 .vact-une{width:100%;aspect-ratio:16/9;border-radius:12px 12px 0 0}
 .vact-une .vact-code{font-size:40px}
@@ -2609,7 +2617,10 @@ html[data-theme="dark"] .vact-repli{background-image:linear-gradient(150deg,rgba
 .une-titre{font-family:var(--font-serif);font-size:22px;font-weight:700;color:var(--t);margin:0 0 var(--sp-3);letter-spacing:-.01em}
 .une-grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--sp-3)}
 .une-bande-panneau{padding:0 0 var(--sp-3)}
-.det-visuel{margin:0 0 var(--sp-3)}.det-visuel .vact-une{border-radius:12px;max-height:380px}
+.det-visuel{margin:0 0 var(--sp-3)}
+.det-video{display:inline-flex;align-items:center;gap:6px;min-height:32px;margin:0 0 var(--sp-3);padding:4px 14px;border-radius:999px;
+  background:var(--b);color:var(--on-b);font-weight:700;font-size:var(--fs-sm);text-decoration:none}
+.det-video:hover{filter:brightness(1.08)}.det-visuel .vact-une{border-radius:12px;max-height:380px}
 .une-carte{background:var(--w);border:1px solid var(--bd);border-radius:12px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;
   box-shadow:var(--card-shadow);transition:box-shadow .15s,transform .15s}
 .une-carte:hover{box-shadow:var(--card-shadow-hover);transform:translateY(-2px)}
@@ -2630,6 +2641,56 @@ html.force-mobile .vact-vignette{float:right;width:96px;height:72px;margin:0 0 v
 html.force-mobile .une-grille{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:78%;overflow-x:auto;scroll-snap-type:x mandatory}
 html.force-mobile .une-carte{scroll-snap-align:start}
 html.force-mobile[data-theme="dark"] .art{margin:0 var(--sp-2) var(--sp-2)}
+
+/* ═══ REGLAGES D'AFFICHAGE — 20/10/2026 (Parametres > Affichage) ═══
+   Format tablette : rail compact (icones + libelle court) et deux colonnes
+   pour « A la une ». Ecrit deux fois, comme les regles mobiles : en mode
+   automatique entre 761 et 1180 px, et force par le reglage (a partir de
+   761 px seulement : en dessous, la mise en page tablette ne tient pas). */
+@media (min-width:761px) and (max-width:1180px){
+  html:not(.force-web):not(.force-mobile) .nav-wrap{width:96px}
+  html:not(.force-web):not(.force-mobile) .ntab{flex-direction:column;justify-content:center;gap:5px;padding:12px 6px !important;text-align:center;letter-spacing:.03em !important;white-space:normal}
+  html:not(.force-web):not(.force-mobile) .ntab span{white-space:normal;line-height:1.15;font-size:var(--fs-micro)}
+  html:not(.force-web):not(.force-mobile) .ntab i{font-size:19px}
+  html:not(.force-web):not(.force-mobile) .une-grille{grid-template-columns:repeat(2,minmax(0,1fr))}
+  html:not(.force-web):not(.force-mobile) .vact-vignette{width:112px;height:80px}
+}
+@media (min-width:761px){
+  html.force-tablette .nav-wrap{width:96px}
+  html.force-tablette .ntab{flex-direction:column;justify-content:center;gap:5px;padding:12px 6px !important;text-align:center;letter-spacing:.03em !important;white-space:normal}
+  html.force-tablette .ntab span{white-space:normal;line-height:1.15;font-size:var(--fs-micro)}
+  html.force-tablette .ntab i{font-size:19px}
+  html.force-tablette .une-grille{grid-template-columns:repeat(2,minmax(0,1fr))}
+  html.force-tablette .vact-vignette{width:112px;height:80px}
+}
+
+/* Taille du texte : agrandit la zone de lecture et le detail d'une actu,
+   y compris les tailles ecrites en dur dans les rendus (zoom), pas le chrome. */
+html.texte-grand .main,html.texte-grand #detOverlay .det{zoom:1.12}
+html.texte-tres-grand .main,html.texte-tres-grand #detOverlay .det{zoom:1.25}
+
+/* Presentation « magazine » : grande image au-dessus de chaque actu du Flux. */
+html.actus-magazine .art{flex-wrap:wrap}
+html.actus-magazine .art > .vact-vignette{order:-1;float:none;width:100%;height:auto;aspect-ratio:16/9;max-height:300px;margin:0 0 var(--sp-2);flex-basis:100%}
+html.actus-magazine .art > .vact-vignette .vact-play-txt{display:inline}
+html.actus-magazine .art > .vact-vignette .vact-code{font-size:40px}
+
+/* « Economiser les donnees » : la vignette du Flux disparait (le repli
+   n'apporterait rien a cote du titre) ; les cartes « a la une » gardent leur
+   repli de marque ; une video garde son bouton d'ouverture. */
+html.sans-images .art > .vact-vignette:not(.vact-video){display:none}
+
+/* Panneau Parametres > Affichage */
+.aff-corps{padding:14px 16px;display:flex;flex-direction:column;gap:var(--sp-4)}
+.aff-leg{font-size:var(--fs-xs);font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:var(--sp-2)}
+.aff-choix{display:flex;flex-wrap:wrap;gap:var(--sp-2)}
+.aff-opt{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:6px 14px;border-radius:999px;border:1px solid var(--bd);
+  background:var(--w);color:var(--t2);font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit}
+.aff-opt i{font-size:16px}
+.aff-opt:hover{border-color:var(--b);color:var(--t)}
+.aff-opt.on{background:var(--b);border-color:var(--b);color:var(--on-b)}
+.aff-opt:focus-visible{outline:2px solid var(--sig);outline-offset:2px}
+.aff-aide{font-size:var(--fs-xs);color:var(--lg);margin-top:var(--sp-2)}
 
 </style>
 
@@ -2981,6 +3042,7 @@ html.force-mobile[data-theme="dark"] .art{margin:0 var(--sp-2) var(--sp-2)}
     <div id="globalCyBadge" onclick="clearGlobalCountryFilter()" title="Filtre pays actif sur toute la plateforme — cliquer pour reinitialiser" style="display:none;align-items:center;gap:5px;padding:5px 10px;background:rgba(138,93,26,.25);border:1px solid rgba(138,93,26,.5);border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;"></div>
     <div class="disp-switch" id="dispSwitch" title="Forcer l&#39;affichage Web ou Mobile, quel que soit l&#39;écran utilisé">
       <button class="disp-btn" data-disp="web" onclick="setDisplayMode(&#39;web&#39;)" title="Affichage Web (bureau)"><i class="ti ti-device-desktop"></i><span>WEB</span></button>
+      <button class="disp-btn" data-disp="tablette" onclick="setDisplayMode(&#39;tablette&#39;)" title="Affichage Tablette"><i class="ti ti-device-tablet"></i><span data-i18n="disp_tablette">TABLETTE</span></button>
       <button class="disp-btn" data-disp="mobile" onclick="setDisplayMode(&#39;mobile&#39;)" title="Affichage Mobile"><i class="ti ti-device-mobile"></i><span>MOBILE</span></button>
     </div>
     <button class="actu-btn" onclick="doCollect()" id="actuBtn">
@@ -3631,6 +3693,26 @@ html.force-mobile[data-theme="dark"] .art{margin:0 var(--sp-2) var(--sp-2)}
               <div class="pm-group-hd-sub">Marque, canaux d’envoi, abonnement et statistiques personnelles</div>
             </div>
             <div class="pm-group-hd-line"></div>
+          </div>
+
+          <!-- Affichage : format d'ecran (ordinateur, tablette, mobile), taille du
+               texte, presentation des actus, images. Demande de l'editeur du
+               20/10/2026 : « prevoir les reglages, config affichage des versions
+               mobile et tablette ». Enregistre sur l'appareil (localStorage),
+               pour tous les roles : c'est un confort de lecture, pas un droit. -->
+          <div class="pm-section" id="pmAffichage">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-devices"></i>
+                <div><div class="pm-sec-title" data-i18n="aff_titre">Affichage</div>
+                <div class="pm-sec-sub" data-i18n="aff_sous">Format d'écran, taille du texte et présentation des actus, enregistrés sur cet appareil</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body aff-corps">
+            <div class="aff-groupe" role="group" aria-labelledby="aff_format-l"><div class="aff-leg" id="aff_format-l" data-i18n="aff_format">Format d'écran</div><div class="aff-choix"><button type="button" class="aff-opt" data-aff-format="auto" aria-pressed="false" onclick="changerAffichage(&#39;format&#39;,&#39;auto&#39;)"><i class="ti ti-wand" aria-hidden="true"></i><span data-i18n="aff_auto">Automatique</span></button><button type="button" class="aff-opt" data-aff-format="web" aria-pressed="false" onclick="changerAffichage(&#39;format&#39;,&#39;web&#39;)"><i class="ti ti-device-desktop" aria-hidden="true"></i><span data-i18n="aff_ordinateur">Ordinateur</span></button><button type="button" class="aff-opt" data-aff-format="tablette" aria-pressed="false" onclick="changerAffichage(&#39;format&#39;,&#39;tablette&#39;)"><i class="ti ti-device-tablet" aria-hidden="true"></i><span data-i18n="aff_tablette">Tablette</span></button><button type="button" class="aff-opt" data-aff-format="mobile" aria-pressed="false" onclick="changerAffichage(&#39;format&#39;,&#39;mobile&#39;)"><i class="ti ti-device-mobile" aria-hidden="true"></i><span data-i18n="aff_mobile">Mobile</span></button></div><div class="aff-aide" id="affFormatAide" aria-live="polite"></div></div>
+            <div class="aff-groupe" role="group" aria-labelledby="aff_texte-l"><div class="aff-leg" id="aff_texte-l" data-i18n="aff_texte">Taille du texte</div><div class="aff-choix"><button type="button" class="aff-opt" data-aff-texte="normal" aria-pressed="false" onclick="changerAffichage(&#39;texte&#39;,&#39;normal&#39;)"><i class="ti ti-letter-case" aria-hidden="true"></i><span data-i18n="aff_texte_normal">Normale</span></button><button type="button" class="aff-opt" data-aff-texte="grand" aria-pressed="false" onclick="changerAffichage(&#39;texte&#39;,&#39;grand&#39;)"><i class="ti ti-text-increase" aria-hidden="true"></i><span data-i18n="aff_texte_grand">Grande</span></button><button type="button" class="aff-opt" data-aff-texte="tres-grand" aria-pressed="false" onclick="changerAffichage(&#39;texte&#39;,&#39;tres-grand&#39;)"><i class="ti ti-zoom-in" aria-hidden="true"></i><span data-i18n="aff_texte_tres_grand">Très grande</span></button></div></div>
+            <div class="aff-groupe" role="group" aria-labelledby="aff_presentation-l"><div class="aff-leg" id="aff_presentation-l" data-i18n="aff_presentation">Présentation des actus</div><div class="aff-choix"><button type="button" class="aff-opt" data-aff-presentation="compacte" aria-pressed="false" onclick="changerAffichage(&#39;presentation&#39;,&#39;compacte&#39;)"><i class="ti ti-layout-list" aria-hidden="true"></i><span data-i18n="aff_compacte">Compacte (vignette à côté)</span></button><button type="button" class="aff-opt" data-aff-presentation="magazine" aria-pressed="false" onclick="changerAffichage(&#39;presentation&#39;,&#39;magazine&#39;)"><i class="ti ti-layout-cards" aria-hidden="true"></i><span data-i18n="aff_magazine">Magazine (grande image au-dessus)</span></button></div></div>
+            <div class="aff-groupe" role="group" aria-labelledby="aff_images-l"><div class="aff-leg" id="aff_images-l" data-i18n="aff_images">Images et vidéos des sources</div><div class="aff-choix"><button type="button" class="aff-opt" data-aff-images="oui" aria-pressed="false" onclick="changerAffichage(&#39;images&#39;,&#39;oui&#39;)"><i class="ti ti-photo" aria-hidden="true"></i><span data-i18n="aff_images_oui">Afficher</span></button><button type="button" class="aff-opt" data-aff-images="non" aria-pressed="false" onclick="changerAffichage(&#39;images&#39;,&#39;non&#39;)"><i class="ti ti-photo-off" aria-hidden="true"></i><span data-i18n="aff_images_non">Économiser les données</span></button></div></div>
+            </div>
           </div>
 
           <!-- Personnalisation de marque (fonctionnalite payante) -->
@@ -5505,6 +5587,12 @@ const I18N = {
     ph_note_complementaire_optionnel:'Note complémentaire (optionnel)',
     ph_rechercher_un_pays_un_evenement_un_theme:'Rechercher un pays, un evenement, un theme, une source...',
     ph_ex_groupe_surete_sarl:'Ex. Groupe Sûreté SARL',
+    aff_titre:'Affichage', aff_sous:'Format d\'écran, taille du texte et présentation des actus, enregistrés sur cet appareil',
+    aff_format:'Format d\'écran', aff_auto:'Automatique', aff_ordinateur:'Ordinateur', aff_tablette:'Tablette', aff_mobile:'Mobile',
+    aff_texte:'Taille du texte', aff_texte_normal:'Normale', aff_texte_grand:'Grande', aff_texte_tres_grand:'Très grande',
+    aff_presentation:'Présentation des actus', aff_compacte:'Compacte (vignette à côté)', aff_magazine:'Magazine (grande image au-dessus)',
+    aff_images:'Images et vidéos des sources', aff_images_oui:'Afficher', aff_images_non:'Économiser les données',
+    disp_tablette:'TABLETTE',
     lbl_aucun_logo:'Aucun logo', lbl_logo_organisation:'Logo de l\'organisation (PNG ou JPEG, imprimé en tête des rapports)', btn_retirer_le_logo:'Retirer le logo',
     ph_ex_cellule_surete_abc:'Ex. Cellule Sûreté ABC',
     ph_ex_cellule_surete_nord:'Ex. Cellule Sûreté Nord',
@@ -5644,6 +5732,12 @@ const I18N = {
     ph_note_complementaire_optionnel:'Additional note (optional)',
     ph_rechercher_un_pays_un_evenement_un_theme:'Search a country, an event, a topic, a source...',
     ph_ex_groupe_surete_sarl:'e.g. Security Group Ltd',
+    aff_titre:'Display', aff_sous:'Screen format, text size and news layout, saved on this device',
+    aff_format:'Screen format', aff_auto:'Automatic', aff_ordinateur:'Computer', aff_tablette:'Tablet', aff_mobile:'Mobile',
+    aff_texte:'Text size', aff_texte_normal:'Normal', aff_texte_grand:'Large', aff_texte_tres_grand:'Extra large',
+    aff_presentation:'News layout', aff_compacte:'Compact (thumbnail beside)', aff_magazine:'Magazine (large image above)',
+    aff_images:'Source images and videos', aff_images_oui:'Show', aff_images_non:'Save data',
+    disp_tablette:'TABLET',
     lbl_aucun_logo:'No logo', lbl_logo_organisation:'Organisation logo (PNG or JPEG, printed at the top of reports)', btn_retirer_le_logo:'Remove logo',
     ph_ex_cellule_surete_abc:'e.g. ABC Security Unit',
     ph_ex_cellule_surete_nord:'e.g. North Security Unit',
@@ -5824,16 +5918,84 @@ function setLang(lang) {
 // largeur reelle de l'ecran, via les classes .force-web/.force-mobile sur <html>
 // (regles CSS dediees, voir @media max-width:760px / min-width:761px). 'auto'
 // revient au comportement responsive standard (detection par largeur d'ecran).
+//
+// 'tablette' (20/10/2026) : rail de navigation compact (icones + libelle
+// court), deux colonnes pour « A la une », vignettes reduites. Applique
+// d'office entre 761 et 1180 px en mode 'auto' ; force, il ne vaut qu'a
+// partir de 761 px — sous cette largeur la mise en page tablette ne tient pas
+// et l'affichage reste mobile.
+const MODES_AFFICHAGE = ['auto', 'web', 'tablette', 'mobile'];
 function setDisplayMode(mode) {
+  if (!MODES_AFFICHAGE.includes(mode)) mode = 'auto';
   const html = document.documentElement;
-  html.classList.remove('force-web', 'force-mobile');
-  if (mode === 'web' || mode === 'mobile') html.classList.add('force-' + mode);
+  html.classList.remove('force-web', 'force-mobile', 'force-tablette');
+  if (mode !== 'auto') html.classList.add('force-' + mode);
   document.querySelectorAll('.disp-btn').forEach(b => b.classList.toggle('on', b.dataset.disp === mode));
   try { localStorage.setItem('sentinel_display_mode', mode); } catch(_) {}
+  if (typeof majReglagesAffichage === 'function') majReglagesAffichage();
+  if (typeof majDebordementOnglets === 'function') { try { majDebordementOnglets(); } catch(_) {} }
+}
+
+// Reglages d'affichage (Parametres > Affichage), propres a l'appareil.
+// Chaque reglage est une classe sur <html> : la feuille de style fait le
+// reste, sans re-rendu. Les images « economisees » ne sont ni chargees ni
+// demandees (visuelActu lit affichageImagesActif()).
+const REGLAGES_AFFICHAGE = {
+  texte:        { cle: 'sentinel_aff_texte',        valeurs: ['normal', 'grand', 'tres-grand'], defaut: 'normal',   classe: v => v === 'normal' ? '' : 'texte-' + v },
+  presentation: { cle: 'sentinel_aff_presentation', valeurs: ['compacte', 'magazine'],          defaut: 'compacte', classe: v => v === 'magazine' ? 'actus-magazine' : '' },
+  images:       { cle: 'sentinel_aff_images',       valeurs: ['oui', 'non'],                    defaut: 'oui',      classe: v => v === 'non' ? 'sans-images' : '' },
+};
+function lireReglageAffichage(nom) {
+  const r = REGLAGES_AFFICHAGE[nom];
+  let v = null;
+  try { v = localStorage.getItem(r.cle); } catch(_) {}
+  return r.valeurs.includes(v) ? v : r.defaut;
+}
+function appliquerReglageAffichage(nom, v) {
+  const r = REGLAGES_AFFICHAGE[nom], html = document.documentElement;
+  r.valeurs.forEach(x => { const c = r.classe(x); if (c) html.classList.remove(c); });
+  const c = r.classe(v);
+  if (c) html.classList.add(c);
+}
+function affichageImagesActif() {
+  return !document.documentElement.classList.contains('sans-images');
+}
+function changerAffichage(nom, v) {
+  if (nom === 'format') { setDisplayMode(v); return; }
+  const r = REGLAGES_AFFICHAGE[nom];
+  if (!r || !r.valeurs.includes(v)) return;
+  try { localStorage.setItem(r.cle, v); } catch(_) {}
+  appliquerReglageAffichage(nom, v);
+  majReglagesAffichage();
+  // Les visuels dependent du reglage images : re-rendre ce qui est affiche.
+  if (nom === 'images' && typeof renderFeed === 'function') { try { renderFeed(); } catch(_) {} }
+}
+function majReglagesAffichage() {
+  let mode = 'auto';
+  try { mode = localStorage.getItem('sentinel_display_mode') || 'auto'; } catch(_) {}
+  const etat = { format: MODES_AFFICHAGE.includes(mode) ? mode : 'auto' };
+  Object.keys(REGLAGES_AFFICHAGE).forEach(n => { etat[n] = lireReglageAffichage(n); });
+  document.querySelectorAll('#pmAffichage .aff-opt').forEach(b => {
+    const n = Object.keys(etat).find(k => b.hasAttribute('data-aff-' + k));
+    const on = n && b.getAttribute('data-aff-' + n) === etat[n];
+    b.classList.toggle('on', !!on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  const aide = document.getElementById('affFormatAide');
+  if (aide) {
+    const en = typeof LANG !== 'undefined' && LANG === 'en', l = window.innerWidth;
+    const detecte = l <= 760 ? (en ? 'mobile' : 'mobile') : l <= 1180 ? (en ? 'tablet' : 'tablette') : (en ? 'computer' : 'ordinateur');
+    aide.textContent = etat.format === 'auto'
+      ? (en ? 'This screen (' + l + ' px) is shown as: ' : 'Cet écran (' + l + ' px) est affiché en : ') + detecte + '.'
+      : (etat.format === 'tablette' && l <= 760
+          ? (en ? 'Tablet layout needs at least 761 px: this screen stays in mobile layout.' : 'La mise en page tablette demande au moins 761 px : cet écran reste en mobile.')
+          : (en ? 'Forced format, whatever the screen.' : 'Format imposé, quel que soit l\'écran.'));
+  }
 }
 (function initDisplayMode() {
   let saved = 'auto';
   try { saved = localStorage.getItem('sentinel_display_mode') || 'auto'; } catch(_) {}
+  Object.keys(REGLAGES_AFFICHAGE).forEach(n => appliquerReglageAffichage(n, lireReglageAffichage(n)));
   setDisplayMode(saved);
 })();
 
@@ -9295,8 +9457,12 @@ async function resolveOGP(url, artId) {
     // og:image
     const mImg = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
                 || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+    // og:video (adresse https seulement) : la video de la page, ouverte d'un
+    // clic depuis le visuel, jamais lue dans un cadre (la CSP n'en autorise aucun).
+    const mVid = html.match(/<meta[^>]+property=["']og:video(?::secure_url|:url)?["'][^>]+content=["'](https:[^"']+)["']/i);
     if (mImg && mImg[1]) {
       const result = { img: mImg[1], type: 'og:image' };
+      if (mVid && mVid[1]) result.vid = mVid[1];
       MEDIA_CACHE[artId] = result;
       return result;
     }
@@ -9409,9 +9575,28 @@ function mediaActu(a) {
   if (!img && yt) img = 'https://i.ytimg.com/vi/' + yt + '/hqdefault.jpg';
   return { img, video: !!(yt || (media && media.vid)) };
 }
+// Adresse qui ouvre LA video, comme le lien d'une source ouvre l'article
+// (demande de l'editeur du 20/10/2026) : la page YouTube si c'en est une
+// (une adresse « embed » devient « watch », lisible hors d'un cadre), sinon
+// le fichier video publie par la source, sinon la page de l'article.
+function lienVideoActu(a) {
+  const media = (a && (a._media || MEDIA_CACHE[a.id])) || null;
+  const yt = idVideoYoutube(a && a.url) || idVideoYoutube(media && media.vid);
+  if (yt) return 'https://www.youtube.com/watch?v=' + yt;
+  return urlImageSure(media && media.vid) || articleLienDirect(a);
+}
+function _boutonVideoHtml(a) {
+  return '<a class="vact-play" href="' + escHtml(safeUrl(lienVideoActu(a))) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" aria-label="' +
+    (LANG === 'en' ? 'Open the video' : 'Ouvrir la vidéo') + '"><span class="vact-play-btn"><i class="ti ti-player-play"></i></span>' +
+    '<span class="vact-play-txt">' + (LANG === 'en' ? 'Watch' : 'Voir la vidéo') + '</span></a>';
+}
 function visuelActu(a, taille) {
-  const { img, video } = mediaActu(a);
-  if (!img && !video && (a.fiable || a.verified) && a.url && /^https:/.test(a.url)
+  const m = mediaActu(a), video = m.video;
+  // « Economiser les donnees » (Parametres > Affichage) : ni image chargee ni
+  // apercu demande ; le repli reste, et une video s'ouvre toujours d'un clic.
+  const images = typeof affichageImagesActif !== 'function' || affichageImagesActif();
+  const img = images ? m.img : null;
+  if (images && !img && !video && (a.fiable || a.verified) && a.url && /^https:/.test(a.url)
       && MEDIA_CACHE[a.id] === undefined && _visuelOgpDemandes < VISUEL_OGP_MAX) {
     _visuelOgpDemandes++;
     resolveOGP(a.url, a.id).then(m => patchVisuelActu(a.id, m));
@@ -9423,11 +9608,19 @@ function visuelActu(a, taille) {
       '<span class="vact-code">' + escHtml(code) + '</span><i class="ti ' + (_VISUEL_CAT_ICONE[a.cat] || 'ti-news') + '"></i></div>' +
     (img ? '<img src="' + escHtml(img) + '" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.classList.add(\'sans-img\');this.remove()">' : '') +
     (dom ? '<span class="vact-credit">© ' + escHtml(dom) + '</span>' : '') +
-    (video ? '<a class="vact-play" href="' + escHtml(safeUrl(articleLienDirect(a))) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" aria-label="' + (LANG === 'en' ? 'Play the video on the source website' : 'Lire la vidéo sur le site de la source') + '"><i class="ti ti-player-play"></i></a>' : '') +
+    (video ? _boutonVideoHtml(a) : '') +
   '</div>';
 }
 function patchVisuelActu(id, m) {
   const src = urlImageSure(m && m.img);
+  if (m && m.vid) {
+    const a = (typeof ALL !== 'undefined' && ALL.find(x => x.id === id)) || { id, url: m.vid };
+    document.querySelectorAll('#vact-' + CSS.escape(id)).forEach(el => {
+      if (el.querySelector('.vact-play')) return;
+      el.classList.add('vact-video');
+      el.insertAdjacentHTML('beforeend', _boutonVideoHtml(a));
+    });
+  }
   if (!src) return;
   document.querySelectorAll('#vact-' + CSS.escape(id)).forEach(el => {
     if (el.querySelector('img')) return;
@@ -9467,6 +9660,46 @@ function choisirALaUne(arts, n) {
   const vus = new Set(), pris = [];
   for (const a of tries) { if (vus.has(a.cy)) continue; vus.add(a.cy); pris.push(a); if (pris.length >= n) break; }
   return pris;
+}
+
+// Ce qu'un rapport dit d'une actu, au-dela du titre. Demande de l'editeur du
+// 20/10/2026 : « les rapports doivent etre les plus detailles possible (ne
+// pas se limiter aux titres) ». Un seul calcul pour l'apercu HTML, le PDF, le
+// Word et le PowerPoint, pour qu'ils disent la meme chose :
+//   resume  : l'analyse de l'article (coupee a RESUME_RAPPORT_MAX, jamais un
+//             simple rappel du titre) ;
+//   infos   : cotation client, publication, survenance estimee, source(s) ;
+//   liens   : l'article (si les sources sont visibles pour ce compte, meme
+//             regle que partout) et la video, ouverte comme dans l'appli.
+const RESUME_RAPPORT_MAX = 900;
+function resumeCourt(texte, max) {
+  const t = String(texte || '');
+  return t.length > max ? t.slice(0, max).replace(/\s+\S*$/, '') + ' …' : t;
+}
+function detailRapportActu(a) {
+  const en = LANG === 'en';
+  const titre = String(L(a.title) || '').replace(/\s+/g, ' ').trim();
+  let resume = String(L(a.analysis) || '').replace(/\s+/g, ' ').trim();
+  if (resume.toLowerCase() === titre.toLowerCase()) resume = '';
+  resume = resumeCourt(resume, RESUME_RAPPORT_MAX);
+  const voir = typeof sourcesVisibles === 'function' && sourcesVisibles();
+  const cot = typeof cotationArticle === 'function' ? cotationArticle(a, gs(a.primary), SEUIL_SOURCE_ALERTE) : null;
+  const surv = typeof fmtSurvenance === 'function' ? fmtSurvenance(a) : null;
+  const infos = [];
+  if (cot) infos.push((en ? 'Rating: ' : 'Cotation : ') + cot.libelle);
+  if (a.pubDate) infos.push((en ? 'Published ' : 'Publié le ') + fmtFull(a.pubDate));
+  if (surv && !surv.inconnue) infos.push((en ? 'Event: ' : 'Survenance : ') + surv.texte);
+  const nSrc = (a.srcs || []).length;
+  if (voir) infos.push((en ? 'Source: ' : 'Source : ') + srcName(a.primary) + (nSrc > 1 ? ' (+' + (nSrc - 1) + ')' : ''));
+  else if (nSrc > 1) infos.push(en ? nSrc + ' sources' : nSrc + ' sources');
+  const media = mediaActu(a);
+  return {
+    resume, infos,
+    lienArticle: voir ? safeUrl(articleLienDirect(a), srcName(a.primary)) : null,
+    lienVideo: media.video ? safeUrl(lienVideoActu(a)) : null,
+    libelleArticle: en ? 'Read the article' : 'Lire l\'article',
+    libelleVideo: en ? 'Watch the video' : 'Voir la vidéo',
+  };
 }
 
 function parseRSS(xml, src) {
@@ -12718,6 +12951,7 @@ async function showDet(id) {
     // Visuel de l'actu en tete du detail, comme une page d'article
     // (meme composant que le Flux, voir visuelActu).
     '<div class="det-visuel">'+visuelActu(a, 'une')+'</div>'+
+    (mediaActu(a).video ? '<a class="det-video" href="'+escHtml(safeUrl(lienVideoActu(a)))+'" target="_blank" rel="noopener"><i class="ti ti-player-play"></i>'+(LANG==='en'?'Open the video':'Ouvrir la vidéo')+'<i class="ti ti-external-link"></i></a>' : '')+
     confHtml+
     '<div class="dlvl" style="background:'+bgC+';border-left:4px solid '+bc+';color:'+bc+'">'+
       '<i class="ti '+lic(a.level)+'"></i><strong>'+pl[1]+'</strong>'+
@@ -21008,6 +21242,23 @@ async function exportPPTX(type) {
 
     const circle = (slide, x, y, d, color, opts={}) =>
       slide.addShape(pres.shapes.OVAL, {x, y, w:d, h:d, fill:{color}, line:{type:'none'}, ...opts});
+    // Detail d'une actu sous son titre (voir detailRapportActu) : resume
+    // coupe a la place disponible sur la diapositive, cotation et dates, lien
+    // video cliquable. Renvoie la hauteur occupee, en pouces.
+    const detailPptx = (slide, a, x, y, w, maxResume) => {
+      const d = detailRapportActu(a);
+      let h = 0;
+      if (d.resume) {
+        slide.addText(resumeCourt(d.resume, maxResume), {x, y, w, h:0.62, fontSize:10, color:'1F2937', fontFace:'IBM Plex Sans', valign:'top', fit:'shrink'});
+        h += 0.64;
+      }
+      const infos = d.infos.filter(t => !/^Source/.test(t)).join('  ·  ');
+      const runs = [];
+      if (infos) runs.push({text:infos, options:{fontSize:8.5, color:MUTED, fontFace:'IBM Plex Sans'}});
+      if (d.lienVideo) runs.push({text:(infos?'  ·  ':'')+'▶ '+d.libelleVideo, options:{fontSize:8.5, bold:true, color:'1B5FA8', underline:{style:'sng'}, fontFace:'IBM Plex Sans', hyperlink:{url:d.lienVideo}}});
+      if (runs.length) { slide.addText(runs, {x, y:y+h, w, h:0.26}); h += 0.28; }
+      return h;
+    };
 
     // Diapositive avec fond + ruban de pied de page systématique (bandeau
     // plein bord-a-bord bleu nuit : logo radar + marque + pagination, sur
@@ -21261,28 +21512,23 @@ async function exportPPTX(type) {
         // par la pre-traduction generale du haut de fonction (qui s'execute
         // avant que ces pays specifiques soient determines).
         await preTraduireRapport(dossierP.regional.map(a => infoPays(a.cy).name));
-        if (dossierP.national.length || dossierP.regional.length) {
+        // Une diapositive par rubrique (nationale, regionale) : chaque actu
+        // porte son resume et ses liens, ce qui ne tient plus a huit par page.
+        const rubriquesP = [
+          {items: dossierP.national, titre:'ACTUALITÉ NATIONALE', prefixe: () => ''},
+          {items: dossierP.regional, titre:'ACTUALITÉ RÉGIONALE — PAYS LIMITROPHES', prefixe: a => '['+L(infoPays(a.cy).name)+']  '},
+        ];
+        rubriquesP.forEach(r => {
+          if (!r.items.length) return;
           s = newSlide('FFFFFF');
           sectionHead(s, 'Dossier pays — Actualité', scoresSlide[0].pays.name);
-          let yP = 1.7;
-          if (dossierP.national.length) {
-            s.addText('ACTUALITÉ NATIONALE', {x:0.6,y:yP,w:11.6,h:0.3,fontSize:11,bold:true,color:BLUE,fontFace:'IBM Plex Mono'});
-            yP += 0.42;
-            dossierP.national.forEach(a => {
-              s.addText('•  '+L(a.title)+'  ('+(a.time||'')+')', {x:0.6,y:yP,w:11.6,h:0.36,fontSize:11.5,color:INK,fontFace:'IBM Plex Sans'});
-              yP += 0.4;
-            });
-            yP += 0.2;
-          }
-          if (dossierP.regional.length) {
-            s.addText('ACTUALITÉ RÉGIONALE — PAYS LIMITROPHES', {x:0.6,y:yP,w:11.6,h:0.3,fontSize:11,bold:true,color:BLUE,fontFace:'IBM Plex Mono'});
-            yP += 0.42;
-            dossierP.regional.forEach(a => {
-              s.addText('•  ['+L(infoPays(a.cy).name)+']  '+L(a.title)+'  ('+(a.time||'')+')', {x:0.6,y:yP,w:11.6,h:0.36,fontSize:11.5,color:INK,fontFace:'IBM Plex Sans'});
-              yP += 0.4;
-            });
-          }
-        }
+          s.addText(r.titre, {x:0.6,y:1.6,w:11.6,h:0.3,fontSize:11,bold:true,color:BLUE,fontFace:'IBM Plex Mono'});
+          r.items.forEach((a, i) => {
+            const yP = 1.95 + i*1.25;
+            s.addText(r.prefixe(a)+L(a.title)+'  ('+(a.time||'')+')', {x:0.6,y:yP,w:11.6,h:0.36,fontSize:11.5,bold:true,color:INK,fontFace:'IBM Plex Sans'});
+            detailPptx(s, a, 0.6, yP+0.38, 11.6, 280);
+          });
+        });
       } else {
         // Plusieurs pays : graphique en barres, score composite /100
         const top = scoresSlide.slice(0,10);
@@ -21301,10 +21547,12 @@ async function exportPPTX(type) {
 
     // ── Slide — Incidents marquants de la periode ───────────────────────
     if (incMarq) {
-      s = newSlide('FFFFFF');
-      sectionHead(s, 'Incidents marquants', periode.label+' — '+perimetre);
-      marquants.forEach((a,i)=>{
-        const y = 1.55 + i*0.92;
+      // Trois incidents par diapositive : chacun avec son resume et ses
+      // liens (demande de l'editeur du 20/10/2026, plus seulement le titre).
+      marquants.forEach((a,iTot)=>{
+        const i = iTot % 3;
+        if (i === 0) { s = newSlide('FFFFFF'); sectionHead(s, 'Incidents marquants', iTot===0 ? (periode.label+' — '+perimetre) : (perimetre+' (suite)')); }
+        const y = 1.55 + i*1.85;
         const pays = infoPays(a.cy);
         const col = LVL_COL[a.level] || '9CA3AF';
         const cyNivP1 = _cyNivTexteEtCouleur(a.cy);
@@ -21314,6 +21562,7 @@ async function exportPPTX(type) {
         ].concat(sourcesVisibles() ? [{text:'  ·  '+srcName(a.primary), options:{fontSize:10,color:'1B5FA8',underline:{style:'sng'},fontFace:'IBM Plex Sans',hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}}] : []),
         {x:0.95,y:y-0.08,w:11.6,h:0.3});
         s.addText(L(a.title)||'', {x:0.95,y:y+0.18,w:11.6,h:0.55,fontSize:13,bold:true,color:INK,fontFace:'IBM Plex Sans'});
+        detailPptx(s, a, 0.95, y+0.74, 11.6, 420);
       });
     }
 
@@ -21325,13 +21574,13 @@ async function exportPPTX(type) {
     // marquants" ci-dessus.
     if (incCatDetail) {
       CAT_DEFS_PPTX.forEach(cd => {
-        const chunkSizeCat = 5;
+        const chunkSizeCat = 3;
         for (let ci = 0; ci < cd.items.length; ci += chunkSizeCat) {
           const chunk = cd.items.slice(ci, ci+chunkSizeCat);
           s = newSlide('FFFFFF');
           sectionHead(s, cd.lettre+'. '+cd.lb, ci===0 ? (periode.label+' — '+perimetre) : (perimetre+' (suite)'));
           chunk.forEach((a,i)=>{
-            const y = 1.55 + i*1.05;
+            const y = 1.55 + i*1.85;
             const pays = infoPays(a.cy);
             const col = LVL_COL[a.level] || '9CA3AF';
             s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:y,w:0.95,h:0.28,fill:{color:col},line:{type:'none'}});
@@ -21342,6 +21591,7 @@ async function exportPPTX(type) {
               {text:pays.name+(a._ville?' — '+a._ville:'')+'  ·  '+(a.time||'')+(cyNivP2?'  ·  '+cyNivP2.texte:''), options:{fontSize:9,color:MUTED,fontFace:'IBM Plex Sans'}},
             ].concat(sourcesVisibles() ? [{text:'  ·  '+srcName(a.primary), options:{fontSize:9,color:'1B5FA8',underline:{style:'sng'},fontFace:'IBM Plex Sans',hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}}] : []),
             {x:1.7,y:y+0.44,w:10.9,h:0.3});
+            detailPptx(s, a, 1.7, y+0.78, 10.9, 420);
           });
         }
       });
@@ -21351,13 +21601,13 @@ async function exportPPTX(type) {
     // paginée — ce type ne rentre pas dans les autres sections du rapport
     // consolidé, qui se contente d'un résumé via "Incidents marquants") ──
     if (incFlux) {
-      const chunkSizeF = 12;
+      const chunkSizeF = 4;
       for (let ci = 0; ci < evenementsFlux.length; ci += chunkSizeF) {
         const chunk = evenementsFlux.slice(ci, ci+chunkSizeF);
         s = newSlide('FFFFFF');
         sectionHead(s, 'Flux opérationnel', ci===0 ? (evenementsFlux.length+' événements des dernières '+libelleFenetre()+' — '+perimetre) : (perimetre+' (suite)'));
         chunk.forEach((a,i)=>{
-          const y = 1.55 + i*0.46;
+          const y = 1.5 + i*1.36;
           const pays = infoPays(a.cy);
           const col = LVL_COL[a.level] || '9CA3AF';
           circle(s, 0.6, y+0.09, 0.09, col);
@@ -21367,7 +21617,8 @@ async function exportPPTX(type) {
             {text:'['+dateTxt+']  '+(pays.flag||'')+' '+pays.name+'  ·  '+lvlFr(a.level).toUpperCase()+(cyNivP3?'  ·  '+cyNivP3.texte:''), options:{fontSize:8.5,bold:true,color:MUTED,fontFace:'IBM Plex Mono'}},
           ].concat(sourcesVisibles() ? [{text:'  ·  '+srcName(a.primary), options:{fontSize:8.5,bold:true,color:'1B5FA8',underline:{style:'sng'},fontFace:'IBM Plex Mono',hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}}] : []),
           {x:0.85,y:y-0.06,w:11.7,h:0.22});
-          s.addText(L(a.title)||'', {x:0.85,y:y+0.13,w:11.7,h:0.3,fontSize:11,color:INK,fontFace:'IBM Plex Sans'});
+          s.addText(L(a.title)||'', {x:0.85,y:y+0.13,w:11.7,h:0.34,fontSize:11.5,bold:true,color:INK,fontFace:'IBM Plex Sans'});
+          detailPptx(s, a, 0.85, y+0.5, 11.7, 300);
         });
       }
     }
@@ -21889,7 +22140,29 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
         const srcW = fontReg.widthOfTextAtSize(srcTxt, 8);
         b.addLink(xCursor, b.y-2, srcW, 10, lienUrl);
       }
-      b.y -= 18;
+      // Detail sous le titre (voir detailRapportActu) : resume, cotation et
+      // dates, puis le lien video, cliquable comme le lien source.
+      const det = (typeof detailRapportActu === 'function') ? detailRapportActu(a) : null;
+      if (det) {
+        b.y -= 13;
+        if (det.resume) b.wrap(_pdfSafe(det.resume), 9, fontReg, W-M*2).forEach(line => {
+          b.ensure(14); b.page.drawText(line, {x:M, y:b.y, size:9, font:fontReg, color:INK}); b.y -= 12.5;
+        });
+        const infosTxt = det.infos.filter(t => !/^(Source|Source :)/.test(t)).join('   ·   ');
+        if (infosTxt) b.wrap(_pdfSafe(infosTxt), 8, fontReg, W-M*2).forEach(line => {
+          b.ensure(12); b.page.drawText(line, {x:M, y:b.y, size:8, font:fontReg, color:MUTED}); b.y -= 11;
+        });
+        if (det.lienVideo) {
+          b.ensure(12);
+          const vTxt = _pdfSafe('> '+det.libelleVideo);
+          b.page.drawText(vTxt, {x:M, y:b.y, size:8.5, font:fontBold, color:BLUE});
+          b.addLink(M, b.y-2, fontBold.widthOfTextAtSize(vTxt, 8.5), 11, det.lienVideo);
+          b.y -= 11;
+        }
+        b.y -= 7;
+      } else {
+        b.y -= 18;
+      }
     },
     // Grille 2 colonnes de cartes de corrélation (thème / pays / articles
     // concordants), sur le modele de la section F. du gabarit de reference —
@@ -22342,7 +22615,7 @@ async function exportPDF(type) {
       // Inclut les noms des pays de regroupement (groupeArticlesParPays) —
       // sinon les en-tetes de section pays restent en francais dans un
       // rapport genere en anglais.
-      await preTraduireRapport([...arts.map(a => a.title), ...[...new Set(arts.map(a=>a.cy))].map(cy=>infoPays(cy).name)]);
+      await preTraduireRapport([...arts.flatMap(a => [a.title, a.analysis]), ...[...new Set(arts.map(a=>a.cy))].map(cy=>infoPays(cy).name)]);
       const nbSrcActifsF = new Set(arts.map(a=>a.primary)).size;
       b.bulletinHeader(titre, dateGenStr, creneauStr,
         (LANG==='en'
@@ -22689,8 +22962,20 @@ function _apArticleItem(a) {
     + _apCyNivPill(a)
     + '<span style="font-weight:600;font-size:15px;color:#111827;">'+_apEsc(L(a.title))+'</span>'
     + '</div>'
-    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#9CA3AF;">'+_apEsc(lieu)+' &nbsp;·&nbsp; '+_apEsc(a.time||'')+'</div>'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#6B7280;">'+_apEsc(lieu)+' &nbsp;·&nbsp; '+_apEsc(a.time||'')+'</div>'
+    + _apDetailActu(a)
     + '</div></div>';
+}
+// Resume, cotation, dates et liens (article, video) sous le titre : voir
+// detailRapportActu. Les liens restent cliquables dans le PDF imprime par le
+// navigateur.
+function _apDetailActu(a) {
+  const d = detailRapportActu(a);
+  const lien = (href, txt) => '<a href="'+_apEsc(href)+'" target="_blank" rel="noopener" style="color:#1B5FA8;font-weight:600;text-decoration:underline;">'+_apEsc(txt)+'</a>';
+  const liens = [d.lienVideo ? '▶ '+lien(d.lienVideo, d.libelleVideo) : '', d.lienArticle ? lien(d.lienArticle, d.libelleArticle) : ''].filter(Boolean);
+  return (d.resume ? '<div style="font-size:13.5px;color:#1F2937;line-height:1.55;margin-top:6px;">'+_apEsc(d.resume)+'</div>' : '')
+    + (d.infos.length ? '<div style="font-size:11.5px;color:#4B5563;margin-top:5px;">'+d.infos.map(_apEsc).join(' &nbsp;·&nbsp; ')+'</div>' : '')
+    + (liens.length ? '<div style="font-size:12px;margin-top:4px;">'+liens.join(' &nbsp;·&nbsp; ')+'</div>' : '');
 }
 
 function _apCorrelationCard(s) {
@@ -23098,6 +23383,17 @@ async function exportWord(type){
       link: safeUrl(articleLienDirect(a), srcName(a.primary)),
       children:[new TextRun({text:(LANG==='en'?'Source: ':'Source : ')+srcName(a.primary),size:16,italic:true,color:'1B5FA8',underline:{},font:'IBM Plex Mono'})],
     }) : new TextRun({text:''});
+    // Detail d'une actu sous son titre (voir detailRapportActu) : resume,
+    // cotation et dates, lien video cliquable. avecResume:false quand la
+    // section imprime deja l'analyse elle-meme.
+    const detailWord=(a, avecResume=true)=>{
+      const d=detailRapportActu(a), out=[];
+      if(avecResume && d.resume) out.push(new Paragraph({children:[new TextRun({text:d.resume,size:19,color:'1F2937',font:'IBM Plex Sans'})],spacing:{after:40}}));
+      const infos=d.infos.filter(t=>!/^Source/.test(t));
+      if(infos.length) out.push(new Paragraph({children:[new TextRun({text:infos.join('   ·   '),size:16,color:'4B5563',font:'IBM Plex Mono'})],spacing:{after:d.lienVideo?20:80}}));
+      if(d.lienVideo) out.push(new Paragraph({children:[new ExternalHyperlink({link:d.lienVideo,children:[new TextRun({text:'▶ '+d.libelleVideo,size:17,bold:true,color:'1B5FA8',underline:{},font:'IBM Plex Sans'})]})],spacing:{after:80}}));
+      return out;
+    };
 
     const arts=getExportData();
     const now=new Date();
@@ -23386,8 +23682,9 @@ async function exportWord(type){
               ...(cyNivW1?[new TextRun({text:cyNivW1.texte+'   ·   ',size:17,bold:true,color:cyNivW1.couleur,font:FONT_MONO})]:[]),
               lienSourceRun(a),
             ],
-            spacing:{after:120}
+            spacing:{after:40}
           }));
+          children.push(...detailWord(a, false));
         }
       }
 
@@ -23493,8 +23790,9 @@ async function exportWord(type){
             }));
             children.push(new Paragraph({
               children:[new TextRun({text:dateTxtW+'   ·   ',size:17,italic:true,color:'9CA3AF',font:FONT_MONO}), lienSourceRun(a)],
-              spacing:{after:80}
+              spacing:{after:40}
             }));
+            children.push(...detailWord(a));
           });
         });
       } else {
@@ -23601,8 +23899,9 @@ async function exportWord(type){
             }));
             children.push(new Paragraph({
               children:[new TextRun({text:lieuTxt+'   ·   '+(a.time||'')+'   ·   ', size:16, italic:true, color:'9CA3AF', font:FONT_MONO}), lienSourceRun(a)],
-              spacing:{after:80}
+              spacing:{after:40}
             }));
+            children.push(...detailWord(a));
           };
           const dossierW = s.dossier || {national:[],regional:[]};
           if (dossierW.national.length) {

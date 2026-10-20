@@ -2665,3 +2665,30 @@ article (même règle que `visuelActu`), sans repli quand il n'y en a pas, pour
 ne pas coûter d'encre. **Pas encore fait** : le logo et les images dans le
 bulletin quotidien (page publique produite par le job, sans personnalisation
 d'utilisateur) et dans les cartes d'actu des Word/PDF/PowerPoint.
+
+### Vidéos ouvrables, rapports détaillés, réglages d'affichage — 20/10/2026 (soir)
+
+Trois demandes de l'éditeur, une passe.
+
+- **Une vidéo s'ouvre comme un lien de source.** `lienVideoActu(a)` donne la
+  page YouTube (`embed` devient `watch`), sinon le fichier vidéo `https` publié
+  par la source, sinon l'article. Toute la surface du visuel est le lien
+  (`.vact-play`, `inset:0`), le détail d'une actu porte « Ouvrir la vidéo »,
+  et `resolveOGP` retient aussi `og:video`.
+- **Les rapports ne s'arrêtent plus au titre.** `detailRapportActu(a)` :
+  résumé (l'analyse, coupée à `RESUME_RAPPORT_MAX`, jamais un rappel du titre),
+  cotation, publication, survenance, source si `sourcesVisibles()`, lien
+  article et lien vidéo. Lu par l'aperçu HTML (`_apDetailActu`), le PDF
+  (`articleItem`), le Word (`detailWord`) et le PowerPoint (`detailPptx` ;
+  trois ou quatre actus par diapositive au lieu de cinq à douze titres).
+- **Paramètres > Affichage**, pour tous les rôles, enregistré sur l'appareil :
+  format (automatique / ordinateur / tablette / mobile), taille du texte
+  (`zoom` de la zone de lecture), présentation compacte ou « magazine »,
+  « économiser les données » (aucune image chargée ni aperçu demandé ; une
+  vidéo reste ouvrable). Le format tablette (rail compact de 96 px, « À la
+  une » sur deux colonnes) s'applique d'office entre 761 et 1180 px ; forcé,
+  il ne vaut qu'à partir de 761 px. Ses règles sont écrites deux fois et un
+  test exige qu'elles restent identiques.
+
+`scripts/test/videos-rapports-affichage.test.js` (11 tests, tous vus échouer
+sur la version précédente).
