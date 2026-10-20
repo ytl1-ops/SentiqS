@@ -1,0 +1,31 @@
+Articles du cache : 3131, dont 3056 dans la fenetre d'actualite
+Avec image de la source : 1240 (41 %)
+Avec video : 48
+Visuel de repli (aucune image fournie) : 1816 (59 %)
+
+Sources les plus representees (articles, dont avec image) :
+  JoyOnline : 103, 103 avec image
+  Hespress (Maroc) : 87, 87 avec image
+  Vanguard : 86, 0 avec image
+  Premium Times : 81, 81 avec image
+  Seneweb : 75, 75 avec image
+  The Sun Nigeria : 65, 0 avec image
+  SABC News (Afrique du Sud) : 59, 41 avec image
+  Pressafrik : 57, 53 avec image
+  عين ليبيا : 56, 56 avec image
+  The Namibian : 55, 0 avec image
+  Channels TV : 52, 13 avec image
+  Hespress Français - Actualités du Maroc : 51, 51 avec image
+  GBC Ghana Online : 51, 0 avec image
+  Daily Monitor — Ouganda : 51, 51 avec image
+  AllAfrica (TN) : 46, 0 avec image
+  Linfodrome : 45, 45 avec image
+  NAN — News Agency Nigeria : 44, 0 avec image
+  APS — Agence Sénégalaise Presse : 41, 0 avec image
+  Maliactu : 38, 0 avec image
+  Lebrief : 38, 1 avec image
+  AllAfrica (CD) : 37, 0 avec image
+  SeneNews : 37, 37 avec image
+  Lusaka Times — Zambie : 37, 0 avec image
+  Defi Media — Maurice : 36, 0 avec image
+  therespondents.co.tz : 35, 35 avec image
