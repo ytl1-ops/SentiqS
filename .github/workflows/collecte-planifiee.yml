@@ -25,6 +25,11 @@ on:
   schedule:
     - cron: '*/30 * * * *'
   workflow_dispatch:
+    inputs:
+      grsci:
+        description: "Produire tout de suite le rapport mensuel GRSCI (sinon : premier passage à partir du 24)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -73,7 +78,7 @@ jobs:
 
       - name: Installer Playwright + Chromium
         run: |
-          npm install playwright@1
+          npm install playwright@1 pptxgenjs@3.12.0
           npx playwright install --with-deps chromium
 
       # Echeance absolue du passage, lue par scripts/collecte-planifiee.js :
@@ -114,6 +119,7 @@ jobs:
 
       - name: Lancer la collecte planifiée
         env:
+          GRSCI_FORCER: ${{ inputs.grsci && '1' || '' }}
           # Firebase Hosting retire (voir suppression du workflow
           # firebase-hosting-deploy.yml) — GitHub Pages est desormais
           # l'unique hebergement reellement mis a jour a chaque push.
@@ -176,7 +182,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          if [ -z "$(git status --porcelain web/historique web/bulletins)" ]; then
+          if [ -z "$(git status --porcelain web/historique web/bulletins web/rapports)" ]; then
             echo "Rien de neuf dans l'archive — journée déjà couverte."
             exit 0
           fi
@@ -185,6 +191,8 @@ jobs:
           git add web/historique
           # Bulletin quotidien des pays pilotes (scripts/lib/bulletin.js).
           [ -d web/bulletins ] && git add web/bulletins
+          # Rapport mensuel GRSCI (scripts/lib/rapport-grsci.js).
+          [ -d web/rapports ] && git add web/rapports
           jour=$(date -u +%Y-%m-%d)
           git commit -m "Archive des niveaux d'alerte du $jour"
           for essai in 1 2 3; do
