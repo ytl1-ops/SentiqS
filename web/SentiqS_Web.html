@@ -40,9 +40,13 @@ try {
      un utilisateur ayant deja choisi le sombre. Voir appliquerTheme()/
      toggleTheme() plus bas pour la logique complete (bouton, libelle). -->
 <script>
+// 20/10/2026 : le bleu nuit devient le theme par defaut (decision de
+// l'editeur). Seul un choix EXPLICITE du clair (bouton, cle
+// sentinel_theme_choix) le garde : l'ancienne cle sentinel_theme etait
+// reecrite a chaque chargement, elle ne dit pas ce que l'utilisateur a choisi.
+document.documentElement.setAttribute('data-theme', 'dark');
 try {
-  var _thPref = localStorage.getItem('sentinel_theme');
-  if (_thPref === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  if (localStorage.getItem('sentinel_theme_choix') === 'light') document.documentElement.setAttribute('data-theme', 'light');
 } catch (e) {}
 </script>
 <title>SentiqS — Veille sûreté et sécurité en Afrique (54 pays) en temps réel</title>
@@ -112,7 +116,7 @@ try {
   --font-mono:'IBM Plex Mono',monospace;
   --font-serif:'Source Serif 4',serif;
   --accent-glow:rgba(14,17,22,.12);
-  --page-bg:#F2F2EF;
+  --page-bg:#F2F2EF;--vact-niv:var(--lg);
 
   /* ── Echelle typographique ────────────────────────────────────────────
      Audit du 23/09/2026, mesure sur le DOM rendu des 8 modules : 22 tailles
@@ -159,8 +163,7 @@ try {
    assombris en versions translucides pour rester lisibles sur fond sombre
    sans redevenir des rectangles clairs eblouissants. */
 html[data-theme="dark"]{
-  --on-b:#0B0E12;--bleu-txt:#93B4F5;--violet-txt:#C4B5FD;
-  --n:#ECEEF1;
+  --bleu-txt:#93B4F5;--violet-txt:#C4B5FD;
   /* --b/--bl/--bb alignes sur le bronze de --sig du 23/09/2026 (direction B,
      voir :root plus haut) : avant ce correctif ils restaient teintes cobalt
      ici alors que le clair etait deja passe au bronze — un bouton bronze a
@@ -169,20 +172,26 @@ html[data-theme="dark"]{
      n'a pas ete reteinte : hors du perimetre valide (la maquette comparee
      n'a montre que le theme clair), et le theme clair reste celui par
      defaut. */
-  /* 20/10/2026, direction « Salle de veille » : l'action devient le blanc
-     casse (pendant de l'encre du clair), les surfaces passent du bleu nuit
-     au graphite neutre. Gravite inchangee. */
-  --b:#ECEEF1;--bl:rgba(236,238,241,.09);--bb:rgba(236,238,241,.3);
+  /* 20/10/2026 (soir), direction « Bleu nuit » : le sombre devient le
+     theme par defaut. Surfaces en bleu nuit etagees (page < sous-surface <
+     carte), action et signature en or (le bronze de la marque eclairci pour
+     le fond sombre), texte blanc bleute. Gravite inchangee. Couples mesures
+     AA : texte le plus pale (--lg) a 6,9:1 sur la carte, 5,7:1 sur le halo
+     le plus clair du degrade de page. */
+  --on-b:#0A1733;
+  --n:#EEF3FB;
+  --b:#E6BA6E;--bl:rgba(230,186,110,.14);--bb:rgba(230,186,110,.42);
   --rl:rgba(139,26,26,.22);--rb:rgba(248,113,113,.4);--r:#F87171;
   --al:rgba(124,74,0,.22);--ab:rgba(243,171,61,.4);--a:#F3AB3D;
   --gl:rgba(15,79,42,.24);--gb:rgba(74,222,128,.4);--g:#4ADE80;--m:#D9A85C;--j:#FDE047;--j-txt:#FDE047;
-  --gr:#B4BBC4;--lg:#9EA6B1;--bd:#2A3039;
-  --sf:#111419;--w:#171B21;--t:#ECEEF1;--t2:#BCC3CC;
-  --ink:#06080A;--ink-2:#0F1216;--ink-line:#262C34;
-  --sigl:rgba(169,116,37,.2);--sigb:rgba(217,168,92,.4);--sig:#D9A85C;
-  --card-shadow:none;
-  --card-shadow-hover:0 0 0 1px rgba(236,238,241,.25);
-  --page-bg:#0B0D11;
+  --gr:#AFBDD6;--lg:#9FB0CC;--bd:#1E3A6E;
+  --sf:#0B1C3F;--w:#0F2450;--t:#EEF3FB;--t2:#C5D1E6;
+  --ink:#050E24;--ink-2:#0A1838;--ink-line:#1C3466;--ink-txt:#EEF3FB;--ink-mute:#A9B8D2;
+  --nav-bg:#050E24;--nav-border:#1C3466;--nav-active:#E6BA6E;
+  --sigl:rgba(230,186,110,.16);--sigb:rgba(230,186,110,.42);--sig:#E6BA6E;
+  --card-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 10px 30px -18px rgba(0,0,0,.7);
+  --card-shadow-hover:0 0 0 1px rgba(230,186,110,.45),0 14px 34px -16px rgba(0,0,0,.75);
+  --page-bg:#071431;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 /* width:100% + overflow-x:hidden explicites (pas seulement le comportement
@@ -2508,6 +2517,181 @@ html[data-theme="dark"] .chip.on{color:var(--on-b)}
 html.force-mobile .nav-wrap .ntab.on{border-bottom-color:var(--sig) !important}
 html.force-mobile .tb .logo-n{letter-spacing:.16em}
 
+/* ═══════════════════════════════════════════════════════════════════════
+   DIRECTION « BLEU NUIT » — 20/10/2026 (soir)
+   L'editeur a juge la direction « Salle de veille » sans elegance, trop
+   noire et sans impact : il veut des fondus de bleu nuit, une appli
+   agreable a consulter, et des images liees a chaque actu (modele : Opera
+   News). Le sombre devient le DEFAUT (script du <head>) ; le clair reste
+   accessible au bouton. Ce bloc ne touche que le theme sombre, sauf les
+   visuels d'actu (.vact, .une-*), communs aux deux.
+   - fond de page : degrade bleu nuit a deux halos (bleu froid en haut a
+     gauche, violet discret a droite), fixe au defilement ;
+   - surfaces etagees (--page-bg < --sf < --w), angles adoucis (10 px) ;
+   - action et signature en or (--b = --sig) : boutons, onglet actif,
+     filtres, focus ;
+   - barre du haut et rail en verre bleu nuit, filet or sous la barre.
+   Gravite inchangee. Contrastes : voir le commentaire du bloc
+   html[data-theme="dark"] plus haut.
+   ═══════════════════════════════════════════════════════════════════════ */
+html[data-theme="dark"]{--r-sm:6px;--r-md:10px;--r-lg:14px;--card-radius:10px}
+html[data-theme="dark"] body{
+  background-color:var(--page-bg);
+  background-image:
+    radial-gradient(1100px 620px at -5% -10%,rgba(46,92,190,.38),transparent 62%),
+    radial-gradient(900px 560px at 105% 0%,rgba(112,72,180,.20),transparent 60%),
+    linear-gradient(180deg,#0A1A3D 0%,#071431 55%,#050D24 100%);
+  background-attachment:fixed;
+}
+html[data-theme="dark"] .tb{background:linear-gradient(90deg,#061127 0%,#0B1F4A 55%,#0A1A3D 100%) !important;
+  border-bottom:1px solid rgba(230,186,110,.55) !important;box-shadow:0 8px 24px -16px rgba(0,0,0,.8)}
+html[data-theme="dark"] .tb,html[data-theme="dark"] .nav-wrap{--t2:#C5D1E6;--b:var(--sig);--bl:rgba(230,186,110,.14);--bb:rgba(230,186,110,.42);--on-b:#0A1733}
+html[data-theme="dark"] .tb .logo-ico{border-color:var(--sig) !important;background:rgba(230,186,110,.10) !important;border-radius:8px}
+html[data-theme="dark"] .tb .logo-n{font-family:var(--font-serif) !important;text-transform:none;letter-spacing:.01em !important;font-size:19px !important}
+html[data-theme="dark"] .tb .actu-btn,html[data-theme="dark"] .tb .disp-switch{border-color:rgba(230,186,110,.35) !important;border-radius:999px}
+html[data-theme="dark"] .tb .actu-btn:hover:not(:disabled){background:rgba(230,186,110,.14) !important;color:#fff}
+html[data-theme="dark"] .nav-wrap,html[data-theme="dark"] .nav-wrap .nav{background:linear-gradient(180deg,#081633 0%,#06112A 100%) !important}
+html[data-theme="dark"] .nav-wrap{border-right-color:#16305E !important}
+html[data-theme="dark"] .nav-wrap .ntab{letter-spacing:.06em !important;border-radius:0 10px 10px 0 !important}
+html[data-theme="dark"] .nav-wrap .ntab.on{background:linear-gradient(90deg,rgba(230,186,110,.18),rgba(230,186,110,.04)) !important;color:#fff !important}
+html[data-theme="dark"] .main,html[data-theme="dark"] .layout{background:transparent}
+html[data-theme="dark"] .art{background:var(--w);border:1px solid var(--bd);border-left-width:3px;border-radius:12px;margin:0 var(--sp-3) var(--sp-2);box-shadow:var(--card-shadow)}
+html[data-theme="dark"] .art:hover{background:#132B5C;box-shadow:var(--card-shadow-hover)}
+html[data-theme="dark"] .art.lc2{border-left-color:var(--r)}html[data-theme="dark"] .art.lh2{border-left-color:var(--a)}
+html[data-theme="dark"] .art.lm2{border-left-color:var(--j)}html[data-theme="dark"] .art.lo2{border-left-color:var(--g)}
+html[data-theme="dark"] .art.new-art{background:#14306A}
+html[data-theme="dark"] .auth-btn:hover,html[data-theme="dark"] .dbt.p:hover,
+html[data-theme="dark"] .dlp:hover,html[data-theme="dark"] .user-form button:hover{background:#F0CB8A}
+html[data-theme="dark"] .cbar-fill{background:linear-gradient(90deg,#B98A3E,#E6BA6E) !important}
+html[data-theme="dark"] .acard,html[data-theme="dark"] .si-card,html[data-theme="dark"] .rp-card{box-shadow:var(--card-shadow)}
+html[data-theme="dark"] .kpi-tile{background:linear-gradient(160deg,#14306A 0%,#0F2450 70%) !important;border-color:#24447D !important}
+html[data-theme="dark"] .kpi-tile:hover{box-shadow:var(--card-shadow-hover)}
+html[data-theme="dark"] .kpi-tile .kpi-v{font-family:var(--font-serif);font-weight:700 !important}
+html[data-theme="dark"] .auth-overlay,html[data-theme="dark"] .skyline-scene{background:radial-gradient(1000px 600px at 20% 10%,#17336F 0%,transparent 60%),linear-gradient(180deg,#0A1A3D,#050D24) !important}
+html[data-theme="dark"] .ops-vignette{background:radial-gradient(ellipse 75% 65% at 50% 42%,rgba(7,20,49,0) 0%,rgba(7,20,49,.55) 68%,rgba(5,13,36,.92) 100%)}
+html[data-theme="dark"] ::-webkit-scrollbar-thumb{background:#24447D}
+html[data-theme="dark"] .feed-pays-hd{background:rgba(7,20,49,.92);backdrop-filter:blur(6px)}
+/* Boutons d'export : pastels clairs en dur, eblouissants sur le bleu nuit.
+   En sombre, fond de carte et filet de la couleur du format. */
+html[data-theme="dark"] .btn-dl{background:var(--w);border-color:var(--bd);color:var(--t2)}
+html[data-theme="dark"] .btn-dl:hover{background:#132B5C;border-color:var(--b);color:var(--t)}
+html[data-theme="dark"] .btn-dl-word i{color:#93B4F5}html[data-theme="dark"] .btn-dl-excel i{color:var(--g)}
+html[data-theme="dark"] .btn-dl-pdf i{color:var(--r)}html[data-theme="dark"] .btn-dl-csv i{color:var(--a)}
+
+/* Visuel d'une actu (visuelActu) : l'image de la source par-dessus un repli
+   qui dit pays, theme et gravite. Le repli est toujours la : une image qui
+   ne charge pas le laisse simplement apparaitre. */
+.vact{position:relative;overflow:hidden;border-radius:10px;flex-shrink:0;isolation:isolate;background:#F3ECE1}
+.vact-repli{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;
+  padding:6px 8px;border-top:3px solid var(--vact-niv);color:#6E4A12;
+  background-color:#F3ECE1;background-image:repeating-linear-gradient(135deg,rgba(138,93,26,.08) 0 1px,transparent 1px 10px)}
+html[data-theme="dark"] .vact,html[data-theme="dark"] .vact-repli{background-color:#13306A;color:#F1D9AC}
+html[data-theme="dark"] .vact-repli{background-image:linear-gradient(150deg,rgba(255,255,255,.06) 0%,rgba(255,255,255,0) 60%),repeating-linear-gradient(135deg,rgba(230,186,110,.07) 0 1px,transparent 1px 10px)}
+.vact-cat{font-size:var(--fs-micro);font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.vact-code{font-family:var(--font-serif);font-size:26px;font-weight:700;line-height:1}
+.vact-repli .ti{position:absolute;right:8px;bottom:6px;font-size:20px}
+.vact img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.vact-credit{position:absolute;right:5px;bottom:5px;z-index:2;font-size:var(--fs-micro);line-height:1.3;color:#fff;
+  background:rgba(5,10,25,.78);padding:1px 6px;border-radius:4px;max-width:92%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vact.sans-img .vact-credit{display:none}
+/* Toute la surface d'un visuel video ouvre la video (lienVideoActu), comme
+   le lien d'une source ouvre l'article ; le credit reste lisible au-dessus. */
+.vact-play{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  text-decoration:none;color:#0A1733;background:linear-gradient(180deg,rgba(5,10,25,0) 40%,rgba(5,10,25,.35) 100%)}
+.vact-play-btn{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.95);display:grid;place-items:center;font-size:20px;
+  box-shadow:0 4px 16px rgba(0,0,0,.45);transition:transform .15s}
+.vact-play:hover .vact-play-btn{background:#fff;transform:scale(1.08)}
+.vact-play:focus-visible{outline:3px solid var(--sig);outline-offset:-3px}
+.vact-play-txt{font-size:var(--fs-micro);font-weight:700;color:#fff;background:rgba(5,10,25,.78);padding:2px 8px;border-radius:999px}
+.vact-vignette .vact-play-txt{display:none}
+.vact-credit{z-index:3;pointer-events:none}
+.vact-vignette{width:132px;height:92px;order:3;align-self:flex-start}
+.vact-une{width:100%;aspect-ratio:16/9;border-radius:12px 12px 0 0}
+.vact-une .vact-code{font-size:40px}
+.vact-une .vact-repli{padding:10px 12px}
+.vact-une .vact-repli .ti{font-size:28px;right:12px;bottom:10px}
+
+/* « A la une » (Flux) et « Les faits du jour » (tableau de bord) : cartes
+   image d'abord, meme composant (carteUneHtml). */
+.une-bande{padding:var(--sp-4) var(--sp-3) var(--sp-2)}
+.une-titre{font-family:var(--font-serif);font-size:22px;font-weight:700;color:var(--t);margin:0 0 var(--sp-3);letter-spacing:-.01em}
+.une-grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--sp-3)}
+.une-bande-panneau{padding:0 0 var(--sp-3)}
+.det-visuel{margin:0 0 var(--sp-3)}
+.det-video{display:inline-flex;align-items:center;gap:6px;min-height:32px;margin:0 0 var(--sp-3);padding:4px 14px;border-radius:999px;
+  background:var(--b);color:var(--on-b);font-weight:700;font-size:var(--fs-sm);text-decoration:none}
+.det-video:hover{filter:brightness(1.08)}.det-visuel .vact-une{border-radius:12px;max-height:380px}
+.une-carte{background:var(--w);border:1px solid var(--bd);border-radius:12px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;
+  box-shadow:var(--card-shadow);transition:box-shadow .15s,transform .15s}
+.une-carte:hover{box-shadow:var(--card-shadow-hover);transform:translateY(-2px)}
+.une-corps{padding:var(--sp-3);display:flex;flex-direction:column;gap:var(--sp-2);flex:1}
+.une-kick{display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;font-size:var(--fs-micro);font-weight:600;color:var(--lg);text-transform:uppercase;letter-spacing:.06em}
+.une-tit{font-family:var(--font-serif);font-size:17px;line-height:1.28;font-weight:700;color:var(--t)}
+.une-meta{margin-top:auto;display:flex;align-items:center;gap:var(--sp-2);font-size:var(--fs-micro);color:var(--lg)}
+.une-cot{font-weight:600;padding:1px 6px;border-radius:4px;border:1px solid var(--bd);color:var(--t2)}
+.une-cot-confirme{border-color:var(--g);color:var(--g)}
+
+@media (max-width:760px){
+  html:not(.force-web) .vact-vignette{float:right;width:96px;height:72px;margin:0 0 var(--sp-2) var(--sp-2)}
+  html:not(.force-web) .une-grille{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:78%;overflow-x:auto;scroll-snap-type:x mandatory}
+  html:not(.force-web) .une-carte{scroll-snap-align:start}
+  html:not(.force-web)[data-theme="dark"] .art{margin:0 var(--sp-2) var(--sp-2)}
+}
+html.force-mobile .vact-vignette{float:right;width:96px;height:72px;margin:0 0 var(--sp-2) var(--sp-2)}
+html.force-mobile .une-grille{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:78%;overflow-x:auto;scroll-snap-type:x mandatory}
+html.force-mobile .une-carte{scroll-snap-align:start}
+html.force-mobile[data-theme="dark"] .art{margin:0 var(--sp-2) var(--sp-2)}
+
+/* ═══ REGLAGES D'AFFICHAGE — 20/10/2026 (Parametres > Affichage) ═══
+   Format tablette : rail compact (icones + libelle court) et deux colonnes
+   pour « A la une ». Ecrit deux fois, comme les regles mobiles : en mode
+   automatique entre 761 et 1180 px, et force par le reglage (a partir de
+   761 px seulement : en dessous, la mise en page tablette ne tient pas). */
+@media (min-width:761px) and (max-width:1180px){
+  html:not(.force-web):not(.force-mobile) .nav-wrap{width:96px}
+  html:not(.force-web):not(.force-mobile) .ntab{flex-direction:column;justify-content:center;gap:5px;padding:12px 6px !important;text-align:center;letter-spacing:.03em !important;white-space:normal}
+  html:not(.force-web):not(.force-mobile) .ntab span{white-space:normal;line-height:1.15;font-size:var(--fs-micro)}
+  html:not(.force-web):not(.force-mobile) .ntab i{font-size:19px}
+  html:not(.force-web):not(.force-mobile) .une-grille{grid-template-columns:repeat(2,minmax(0,1fr))}
+  html:not(.force-web):not(.force-mobile) .vact-vignette{width:112px;height:80px}
+}
+@media (min-width:761px){
+  html.force-tablette .nav-wrap{width:96px}
+  html.force-tablette .ntab{flex-direction:column;justify-content:center;gap:5px;padding:12px 6px !important;text-align:center;letter-spacing:.03em !important;white-space:normal}
+  html.force-tablette .ntab span{white-space:normal;line-height:1.15;font-size:var(--fs-micro)}
+  html.force-tablette .ntab i{font-size:19px}
+  html.force-tablette .une-grille{grid-template-columns:repeat(2,minmax(0,1fr))}
+  html.force-tablette .vact-vignette{width:112px;height:80px}
+}
+
+/* Taille du texte : agrandit la zone de lecture et le detail d'une actu,
+   y compris les tailles ecrites en dur dans les rendus (zoom), pas le chrome. */
+html.texte-grand .main,html.texte-grand #detOverlay .det{zoom:1.12}
+html.texte-tres-grand .main,html.texte-tres-grand #detOverlay .det{zoom:1.25}
+
+/* Presentation « magazine » : grande image au-dessus de chaque actu du Flux. */
+html.actus-magazine .art{flex-wrap:wrap}
+html.actus-magazine .art > .vact-vignette{order:-1;float:none;width:100%;height:auto;aspect-ratio:16/9;max-height:300px;margin:0 0 var(--sp-2);flex-basis:100%}
+html.actus-magazine .art > .vact-vignette .vact-play-txt{display:inline}
+html.actus-magazine .art > .vact-vignette .vact-code{font-size:40px}
+
+/* « Economiser les donnees » : la vignette du Flux disparait (le repli
+   n'apporterait rien a cote du titre) ; les cartes « a la une » gardent leur
+   repli de marque ; une video garde son bouton d'ouverture. */
+html.sans-images .art > .vact-vignette:not(.vact-video){display:none}
+
+/* Panneau Parametres > Affichage */
+.aff-corps{padding:14px 16px;display:flex;flex-direction:column;gap:var(--sp-4)}
+.aff-leg{font-size:var(--fs-xs);font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:var(--sp-2)}
+.aff-choix{display:flex;flex-wrap:wrap;gap:var(--sp-2)}
+.aff-opt{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:6px 14px;border-radius:999px;border:1px solid var(--bd);
+  background:var(--w);color:var(--t2);font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit}
+.aff-opt i{font-size:16px}
+.aff-opt:hover{border-color:var(--b);color:var(--t)}
+.aff-opt.on{background:var(--b);border-color:var(--b);color:var(--on-b)}
+.aff-opt:focus-visible{outline:2px solid var(--sig);outline-offset:2px}
+.aff-aide{font-size:var(--fs-xs);color:var(--lg);margin-top:var(--sp-2)}
+
 </style>
 
   <!-- Bibliotheques d'export (Word, PowerPoint, PDF, Excel) : chargees A LA
@@ -2858,6 +3042,7 @@ html.force-mobile .tb .logo-n{letter-spacing:.16em}
     <div id="globalCyBadge" onclick="clearGlobalCountryFilter()" title="Filtre pays actif sur toute la plateforme — cliquer pour reinitialiser" style="display:none;align-items:center;gap:5px;padding:5px 10px;background:rgba(138,93,26,.25);border:1px solid rgba(138,93,26,.5);border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;"></div>
     <div class="disp-switch" id="dispSwitch" title="Forcer l&#39;affichage Web ou Mobile, quel que soit l&#39;écran utilisé">
       <button class="disp-btn" data-disp="web" onclick="setDisplayMode(&#39;web&#39;)" title="Affichage Web (bureau)"><i class="ti ti-device-desktop"></i><span>WEB</span></button>
+      <button class="disp-btn" data-disp="tablette" onclick="setDisplayMode(&#39;tablette&#39;)" title="Affichage Tablette"><i class="ti ti-device-tablet"></i><span data-i18n="disp_tablette">TABLETTE</span></button>
       <button class="disp-btn" data-disp="mobile" onclick="setDisplayMode(&#39;mobile&#39;)" title="Affichage Mobile"><i class="ti ti-device-mobile"></i><span>MOBILE</span></button>
     </div>
     <button class="actu-btn" onclick="doCollect()" id="actuBtn">
@@ -3510,6 +3695,26 @@ html.force-mobile .tb .logo-n{letter-spacing:.16em}
             <div class="pm-group-hd-line"></div>
           </div>
 
+          <!-- Affichage : format d'ecran (ordinateur, tablette, mobile), taille du
+               texte, presentation des actus, images. Demande de l'editeur du
+               20/10/2026 : « prevoir les reglages, config affichage des versions
+               mobile et tablette ». Enregistre sur l'appareil (localStorage),
+               pour tous les roles : c'est un confort de lecture, pas un droit. -->
+          <div class="pm-section" id="pmAffichage">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-devices"></i>
+                <div><div class="pm-sec-title" data-i18n="aff_titre">Affichage</div>
+                <div class="pm-sec-sub" data-i18n="aff_sous">Format d'écran, taille du texte et présentation des actus, enregistrés sur cet appareil</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body aff-corps">
+            <div class="aff-groupe" role="group" aria-labelledby="aff_format-l"><div class="aff-leg" id="aff_format-l" data-i18n="aff_format">Format d'écran</div><div class="aff-choix"><button type="button" class="aff-opt" data-aff-format="auto" aria-pressed="false" onclick="changerAffichage(&#39;format&#39;,&#39;auto&#39;)"><i class="ti ti-wand" aria-hidden="true"></i><span data-i18n="aff_auto">Automatique</span></button><button type="button" class="aff-opt" data-aff-format="web" aria-pressed="false" onclick="changerAffichage(&#39;format&#39;,&#39;web&#39;)"><i class="ti ti-device-desktop" aria-hidden="true"></i><span data-i18n="aff_ordinateur">Ordinateur</span></button><button type="button" class="aff-opt" data-aff-format="tablette" aria-pressed="false" onclick="changerAffichage(&#39;format&#39;,&#39;tablette&#39;)"><i class="ti ti-device-tablet" aria-hidden="true"></i><span data-i18n="aff_tablette">Tablette</span></button><button type="button" class="aff-opt" data-aff-format="mobile" aria-pressed="false" onclick="changerAffichage(&#39;format&#39;,&#39;mobile&#39;)"><i class="ti ti-device-mobile" aria-hidden="true"></i><span data-i18n="aff_mobile">Mobile</span></button></div><div class="aff-aide" id="affFormatAide" aria-live="polite"></div></div>
+            <div class="aff-groupe" role="group" aria-labelledby="aff_texte-l"><div class="aff-leg" id="aff_texte-l" data-i18n="aff_texte">Taille du texte</div><div class="aff-choix"><button type="button" class="aff-opt" data-aff-texte="normal" aria-pressed="false" onclick="changerAffichage(&#39;texte&#39;,&#39;normal&#39;)"><i class="ti ti-letter-case" aria-hidden="true"></i><span data-i18n="aff_texte_normal">Normale</span></button><button type="button" class="aff-opt" data-aff-texte="grand" aria-pressed="false" onclick="changerAffichage(&#39;texte&#39;,&#39;grand&#39;)"><i class="ti ti-text-increase" aria-hidden="true"></i><span data-i18n="aff_texte_grand">Grande</span></button><button type="button" class="aff-opt" data-aff-texte="tres-grand" aria-pressed="false" onclick="changerAffichage(&#39;texte&#39;,&#39;tres-grand&#39;)"><i class="ti ti-zoom-in" aria-hidden="true"></i><span data-i18n="aff_texte_tres_grand">Très grande</span></button></div></div>
+            <div class="aff-groupe" role="group" aria-labelledby="aff_presentation-l"><div class="aff-leg" id="aff_presentation-l" data-i18n="aff_presentation">Présentation des actus</div><div class="aff-choix"><button type="button" class="aff-opt" data-aff-presentation="compacte" aria-pressed="false" onclick="changerAffichage(&#39;presentation&#39;,&#39;compacte&#39;)"><i class="ti ti-layout-list" aria-hidden="true"></i><span data-i18n="aff_compacte">Compacte (vignette à côté)</span></button><button type="button" class="aff-opt" data-aff-presentation="magazine" aria-pressed="false" onclick="changerAffichage(&#39;presentation&#39;,&#39;magazine&#39;)"><i class="ti ti-layout-cards" aria-hidden="true"></i><span data-i18n="aff_magazine">Magazine (grande image au-dessus)</span></button></div></div>
+            <div class="aff-groupe" role="group" aria-labelledby="aff_images-l"><div class="aff-leg" id="aff_images-l" data-i18n="aff_images">Images et vidéos des sources</div><div class="aff-choix"><button type="button" class="aff-opt" data-aff-images="oui" aria-pressed="false" onclick="changerAffichage(&#39;images&#39;,&#39;oui&#39;)"><i class="ti ti-photo" aria-hidden="true"></i><span data-i18n="aff_images_oui">Afficher</span></button><button type="button" class="aff-opt" data-aff-images="non" aria-pressed="false" onclick="changerAffichage(&#39;images&#39;,&#39;non&#39;)"><i class="ti ti-photo-off" aria-hidden="true"></i><span data-i18n="aff_images_non">Économiser les données</span></button></div></div>
+            </div>
+          </div>
+
           <!-- Personnalisation de marque (fonctionnalite payante) -->
           <div class="pm-section">
             <div class="pm-sec-hd">
@@ -3536,6 +3741,19 @@ html.force-mobile .tb .logo-n{letter-spacing:.16em}
               <div style="margin-bottom:12px">
                 <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="marqueNom">Nom de la marque / société</label>
                 <input type="text" id="marqueNom" data-i18n-ph="ph_ex_groupe_surete_sarl" placeholder="Ex. Groupe Sûreté SARL" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
+              </div>
+              <!-- Logo de l'organisation : imprime en tete des rapports (PDF,
+                   Word, PowerPoint, apercus) a cote du nom. Voir
+                   logoMarqueActuelle / preparerLogoMarque. -->
+              <div style="margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <div id="marqueLogoApercu" style="width:72px;height:72px;border:1px dashed var(--bd);border-radius:10px;display:grid;place-items:center;overflow:hidden;background:var(--sf);color:var(--lg);font-size:10px;text-align:center"><span data-i18n="lbl_aucun_logo">Aucun logo</span></div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <label for="marqueLogoFichier" style="font-size:10px;color:var(--lg)"><span data-i18n="lbl_logo_organisation">Logo de l'organisation (PNG ou JPEG, imprimé en tête des rapports)</span></label>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <input type="file" id="marqueLogoFichier" accept="image/png,image/jpeg,image/webp,image/svg+xml" onchange="choisirLogoMarque(this)" style="font-size:11px;max-width:240px">
+                    <button type="button" id="marqueLogoRetirer" class="btn-action" onclick="retirerLogoMarque()"><span data-i18n="btn_retirer_le_logo">Retirer le logo</span></button>
+                  </div>
+                </div>
               </div>
               <!-- 3 identites d'envoi possibles (ex. plusieurs cellules/equipes qui
                    partagent sous des noms differents) : celle marquee "active"
@@ -4386,17 +4604,19 @@ html.force-mobile .tb .logo-n{letter-spacing:.16em}
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  THEME CLAIR/SOMBRE — bascule explicite (bouton "themeBtn", topbar, a cote
-//  d'Actualiser). Le theme clair reste le defaut de l'app (consigne : "pas
-//  de fond tres sombre") ; le sombre est une PREFERENCE utilisateur
-//  persistee (localStorage), jamais impose. L'attribut data-theme sur <html>
+//  d'Actualiser). Depuis le 20/10/2026 le sombre « bleu nuit » est le defaut
+//  (decision de l'editeur, qui ne veut plus de l'affichage clair) ; le clair
+//  reste une PREFERENCE utilisateur persistee (sentinel_theme_choix). L'attribut data-theme sur <html>
 //  est deja pose AVANT ce script (voir le petit script bloquant dans <head>)
 //  pour eviter un flash visuel au chargement — appliquerTheme() ici se
 //  charge seulement de synchroniser l'icone/le libelle du bouton, qui
 //  n'existe pas encore au moment du script du <head>.
 // ═══════════════════════════════════════════════════════════════════════════
-function appliquerTheme(theme) {
+function appliquerTheme(theme, choixExplicite) {
   document.documentElement.setAttribute('data-theme', theme);
-  try { localStorage.setItem('sentinel_theme', theme); } catch (e) {}
+  // N'enregistre que le choix fait au bouton : une simple synchronisation au
+  // chargement ne doit pas figer le theme d'un utilisateur qui n'a rien choisi.
+  if (choixExplicite) { try { localStorage.setItem('sentinel_theme_choix', theme); } catch (e) {} }
   const ico = document.getElementById('themeIco');
   const label = document.getElementById('themeLabel');
   if (ico) ico.className = 'ti ' + (theme === 'dark' ? 'ti-sun' : 'ti-moon');
@@ -4406,7 +4626,7 @@ function appliquerTheme(theme) {
 }
 function toggleTheme() {
   const actuel = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-  appliquerTheme(actuel === 'dark' ? 'light' : 'dark');
+  appliquerTheme(actuel === 'dark' ? 'light' : 'dark', true);
 }
 // Synchronise le bouton avec le theme deja pose par le script du <head>
 // (ou 'light' par defaut) des que le DOM du bouton existe.
@@ -5367,6 +5587,13 @@ const I18N = {
     ph_note_complementaire_optionnel:'Note complémentaire (optionnel)',
     ph_rechercher_un_pays_un_evenement_un_theme:'Rechercher un pays, un evenement, un theme, une source...',
     ph_ex_groupe_surete_sarl:'Ex. Groupe Sûreté SARL',
+    aff_titre:'Affichage', aff_sous:'Format d\'écran, taille du texte et présentation des actus, enregistrés sur cet appareil',
+    aff_format:'Format d\'écran', aff_auto:'Automatique', aff_ordinateur:'Ordinateur', aff_tablette:'Tablette', aff_mobile:'Mobile',
+    aff_texte:'Taille du texte', aff_texte_normal:'Normale', aff_texte_grand:'Grande', aff_texte_tres_grand:'Très grande',
+    aff_presentation:'Présentation des actus', aff_compacte:'Compacte (vignette à côté)', aff_magazine:'Magazine (grande image au-dessus)',
+    aff_images:'Images et vidéos des sources', aff_images_oui:'Afficher', aff_images_non:'Économiser les données',
+    disp_tablette:'TABLETTE',
+    lbl_aucun_logo:'Aucun logo', lbl_logo_organisation:'Logo de l\'organisation (PNG ou JPEG, imprimé en tête des rapports)', btn_retirer_le_logo:'Retirer le logo',
     ph_ex_cellule_surete_abc:'Ex. Cellule Sûreté ABC',
     ph_ex_cellule_surete_nord:'Ex. Cellule Sûreté Nord',
     ph_ex_cellule_surete_sud:'Ex. Cellule Sûreté Sud',
@@ -5505,6 +5732,13 @@ const I18N = {
     ph_note_complementaire_optionnel:'Additional note (optional)',
     ph_rechercher_un_pays_un_evenement_un_theme:'Search a country, an event, a topic, a source...',
     ph_ex_groupe_surete_sarl:'e.g. Security Group Ltd',
+    aff_titre:'Display', aff_sous:'Screen format, text size and news layout, saved on this device',
+    aff_format:'Screen format', aff_auto:'Automatic', aff_ordinateur:'Computer', aff_tablette:'Tablet', aff_mobile:'Mobile',
+    aff_texte:'Text size', aff_texte_normal:'Normal', aff_texte_grand:'Large', aff_texte_tres_grand:'Extra large',
+    aff_presentation:'News layout', aff_compacte:'Compact (thumbnail beside)', aff_magazine:'Magazine (large image above)',
+    aff_images:'Source images and videos', aff_images_oui:'Show', aff_images_non:'Save data',
+    disp_tablette:'TABLET',
+    lbl_aucun_logo:'No logo', lbl_logo_organisation:'Organisation logo (PNG or JPEG, printed at the top of reports)', btn_retirer_le_logo:'Remove logo',
     ph_ex_cellule_surete_abc:'e.g. ABC Security Unit',
     ph_ex_cellule_surete_nord:'e.g. North Security Unit',
     ph_ex_cellule_surete_sud:'e.g. South Security Unit',
@@ -5684,16 +5918,84 @@ function setLang(lang) {
 // largeur reelle de l'ecran, via les classes .force-web/.force-mobile sur <html>
 // (regles CSS dediees, voir @media max-width:760px / min-width:761px). 'auto'
 // revient au comportement responsive standard (detection par largeur d'ecran).
+//
+// 'tablette' (20/10/2026) : rail de navigation compact (icones + libelle
+// court), deux colonnes pour « A la une », vignettes reduites. Applique
+// d'office entre 761 et 1180 px en mode 'auto' ; force, il ne vaut qu'a
+// partir de 761 px — sous cette largeur la mise en page tablette ne tient pas
+// et l'affichage reste mobile.
+const MODES_AFFICHAGE = ['auto', 'web', 'tablette', 'mobile'];
 function setDisplayMode(mode) {
+  if (!MODES_AFFICHAGE.includes(mode)) mode = 'auto';
   const html = document.documentElement;
-  html.classList.remove('force-web', 'force-mobile');
-  if (mode === 'web' || mode === 'mobile') html.classList.add('force-' + mode);
+  html.classList.remove('force-web', 'force-mobile', 'force-tablette');
+  if (mode !== 'auto') html.classList.add('force-' + mode);
   document.querySelectorAll('.disp-btn').forEach(b => b.classList.toggle('on', b.dataset.disp === mode));
   try { localStorage.setItem('sentinel_display_mode', mode); } catch(_) {}
+  if (typeof majReglagesAffichage === 'function') majReglagesAffichage();
+  if (typeof majDebordementOnglets === 'function') { try { majDebordementOnglets(); } catch(_) {} }
+}
+
+// Reglages d'affichage (Parametres > Affichage), propres a l'appareil.
+// Chaque reglage est une classe sur <html> : la feuille de style fait le
+// reste, sans re-rendu. Les images « economisees » ne sont ni chargees ni
+// demandees (visuelActu lit affichageImagesActif()).
+const REGLAGES_AFFICHAGE = {
+  texte:        { cle: 'sentinel_aff_texte',        valeurs: ['normal', 'grand', 'tres-grand'], defaut: 'normal',   classe: v => v === 'normal' ? '' : 'texte-' + v },
+  presentation: { cle: 'sentinel_aff_presentation', valeurs: ['compacte', 'magazine'],          defaut: 'compacte', classe: v => v === 'magazine' ? 'actus-magazine' : '' },
+  images:       { cle: 'sentinel_aff_images',       valeurs: ['oui', 'non'],                    defaut: 'oui',      classe: v => v === 'non' ? 'sans-images' : '' },
+};
+function lireReglageAffichage(nom) {
+  const r = REGLAGES_AFFICHAGE[nom];
+  let v = null;
+  try { v = localStorage.getItem(r.cle); } catch(_) {}
+  return r.valeurs.includes(v) ? v : r.defaut;
+}
+function appliquerReglageAffichage(nom, v) {
+  const r = REGLAGES_AFFICHAGE[nom], html = document.documentElement;
+  r.valeurs.forEach(x => { const c = r.classe(x); if (c) html.classList.remove(c); });
+  const c = r.classe(v);
+  if (c) html.classList.add(c);
+}
+function affichageImagesActif() {
+  return !document.documentElement.classList.contains('sans-images');
+}
+function changerAffichage(nom, v) {
+  if (nom === 'format') { setDisplayMode(v); return; }
+  const r = REGLAGES_AFFICHAGE[nom];
+  if (!r || !r.valeurs.includes(v)) return;
+  try { localStorage.setItem(r.cle, v); } catch(_) {}
+  appliquerReglageAffichage(nom, v);
+  majReglagesAffichage();
+  // Les visuels dependent du reglage images : re-rendre ce qui est affiche.
+  if (nom === 'images' && typeof renderFeed === 'function') { try { renderFeed(); } catch(_) {} }
+}
+function majReglagesAffichage() {
+  let mode = 'auto';
+  try { mode = localStorage.getItem('sentinel_display_mode') || 'auto'; } catch(_) {}
+  const etat = { format: MODES_AFFICHAGE.includes(mode) ? mode : 'auto' };
+  Object.keys(REGLAGES_AFFICHAGE).forEach(n => { etat[n] = lireReglageAffichage(n); });
+  document.querySelectorAll('#pmAffichage .aff-opt').forEach(b => {
+    const n = Object.keys(etat).find(k => b.hasAttribute('data-aff-' + k));
+    const on = n && b.getAttribute('data-aff-' + n) === etat[n];
+    b.classList.toggle('on', !!on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  const aide = document.getElementById('affFormatAide');
+  if (aide) {
+    const en = typeof LANG !== 'undefined' && LANG === 'en', l = window.innerWidth;
+    const detecte = l <= 760 ? (en ? 'mobile' : 'mobile') : l <= 1180 ? (en ? 'tablet' : 'tablette') : (en ? 'computer' : 'ordinateur');
+    aide.textContent = etat.format === 'auto'
+      ? (en ? 'This screen (' + l + ' px) is shown as: ' : 'Cet écran (' + l + ' px) est affiché en : ') + detecte + '.'
+      : (etat.format === 'tablette' && l <= 760
+          ? (en ? 'Tablet layout needs at least 761 px: this screen stays in mobile layout.' : 'La mise en page tablette demande au moins 761 px : cet écran reste en mobile.')
+          : (en ? 'Forced format, whatever the screen.' : 'Format imposé, quel que soit l\'écran.'));
+  }
 }
 (function initDisplayMode() {
   let saved = 'auto';
   try { saved = localStorage.getItem('sentinel_display_mode') || 'auto'; } catch(_) {}
+  Object.keys(REGLAGES_AFFICHAGE).forEach(n => appliquerReglageAffichage(n, lireReglageAffichage(n)));
   setDisplayMode(saved);
 })();
 
@@ -9155,8 +9457,12 @@ async function resolveOGP(url, artId) {
     // og:image
     const mImg = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
                 || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+    // og:video (adresse https seulement) : la video de la page, ouverte d'un
+    // clic depuis le visuel, jamais lue dans un cadre (la CSP n'en autorise aucun).
+    const mVid = html.match(/<meta[^>]+property=["']og:video(?::secure_url|:url)?["'][^>]+content=["'](https:[^"']+)["']/i);
     if (mImg && mImg[1]) {
       const result = { img: mImg[1], type: 'og:image' };
+      if (mVid && mVid[1]) result.vid = mVid[1];
       MEDIA_CACHE[artId] = result;
       return result;
     }
@@ -9228,6 +9534,233 @@ function renderMediaBlock(a, heightPx) {
     resolveOGP(a.url, a.id).then(m => patchMediaDOM(a.id, m));
   }
   return `<div class="artmedia-wrap" id="artmedia-${a.id}" style="${fallbackStyle};display:${(MEDIA_CACHE[a.id] && MEDIA_CACHE[a.id].img)?'block':'none'}"></div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  VISUEL D'UNE ACTU — 20/10/2026 (direction « Bleu nuit »)
+//  Demande de l'editeur : des images et des videos en lien direct avec
+//  chaque actu, a la maniere d'Opera News, dans toute l'appli. Une seule
+//  fonction, partagee par le Flux, « A la une » et le tableau de bord.
+//  Regles, toutes liees au droit d'auteur et a la fiabilite :
+//  - l'image est celle que la SOURCE publie pour l'actu (champ media du flux,
+//    sinon aperçu Open Graph de la page) ; elle n'est jamais copiee ni
+//    hebergee, seulement affichee depuis son adresse, avec le domaine de la
+//    source en credit ;
+//  - une video ne se lit pas ici (la CSP n'autorise aucun cadre) : vignette
+//    officielle et bouton de lecture qui ouvre la source ;
+//  - sans image, un visuel de repli DIT ce qu'il est (pays, theme, gravite)
+//    au lieu d'une photo d'illustration qui laisserait croire a un document ;
+//  - https seulement (la CSP refuse le reste) ; aperçus Open Graph limites a
+//    VISUEL_OGP_MAX par rendu, pour ne pas lancer une requete par article.
+// ═══════════════════════════════════════════════════════════════════════
+const VISUEL_OGP_MAX = 24;
+let _visuelOgpDemandes = 0;
+const _VISUEL_CAT_ICONE = { securite:'ti-shield-half', politique:'ti-building-bank', humanitaire:'ti-heart-handshake', economie:'ti-chart-line', economique:'ti-chart-line', sport:'ti-ball-football' };
+const _VISUEL_NIV_VAR = { crit:'var(--r)', high:'var(--a)', mod:'var(--j)', ok:'var(--g)' };
+function urlImageSure(u) {
+  return (typeof u === 'string' && /^https:\/\/[^\s"'<>]+$/i.test(u)) ? u : null;
+}
+function idVideoYoutube(u) {
+  const m = String(u || '').match(/(?:youtube\.com\/(?:watch\?(?:[^#\s]*&)?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+function domaineActu(a) {
+  try { return new URL(articleLienDirect(a)).hostname.replace(/^www\./, ''); } catch (_) { return ''; }
+}
+// Ce que le visuel montrera : { img, video } — sans rien charger.
+function mediaActu(a) {
+  const media = (a && (a._media || MEDIA_CACHE[a.id])) || null;
+  const yt = idVideoYoutube(a && a.url) || idVideoYoutube(media && media.vid);
+  let img = urlImageSure(media && media.img);
+  if (!img && yt) img = 'https://i.ytimg.com/vi/' + yt + '/hqdefault.jpg';
+  return { img, video: !!(yt || (media && media.vid)) };
+}
+// Adresse qui ouvre LA video, comme le lien d'une source ouvre l'article
+// (demande de l'editeur du 20/10/2026) : la page YouTube si c'en est une
+// (une adresse « embed » devient « watch », lisible hors d'un cadre), sinon
+// le fichier video publie par la source, sinon la page de l'article.
+function lienVideoActu(a) {
+  const media = (a && (a._media || MEDIA_CACHE[a.id])) || null;
+  const yt = idVideoYoutube(a && a.url) || idVideoYoutube(media && media.vid);
+  if (yt) return 'https://www.youtube.com/watch?v=' + yt;
+  return urlImageSure(media && media.vid) || articleLienDirect(a);
+}
+function _boutonVideoHtml(a) {
+  return '<a class="vact-play" href="' + escHtml(safeUrl(lienVideoActu(a))) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" aria-label="' +
+    (LANG === 'en' ? 'Open the video' : 'Ouvrir la vidéo') + '"><span class="vact-play-btn"><i class="ti ti-player-play"></i></span>' +
+    '<span class="vact-play-txt">' + (LANG === 'en' ? 'Watch' : 'Voir la vidéo') + '</span></a>';
+}
+function visuelActu(a, taille) {
+  const m = mediaActu(a), video = m.video;
+  // « Economiser les donnees » (Parametres > Affichage) : ni image chargee ni
+  // apercu demande ; le repli reste, et une video s'ouvre toujours d'un clic.
+  const images = typeof affichageImagesActif !== 'function' || affichageImagesActif();
+  const img = images ? m.img : null;
+  if (images && !img && !video && (a.fiable || a.verified) && a.url && /^https:/.test(a.url)
+      && MEDIA_CACHE[a.id] === undefined && _visuelOgpDemandes < VISUEL_OGP_MAX) {
+    _visuelOgpDemandes++;
+    resolveOGP(a.url, a.id).then(m => patchVisuelActu(a.id, m));
+  }
+  const code = (a.cy && a.cy !== 'INT') ? a.cy : 'AF';
+  const dom = domaineActu(a);
+  return '<div class="vact vact-' + (taille || 'vignette') + (video ? ' vact-video' : '') + (img ? '' : ' sans-img') + '" id="vact-' + a.id + '" style="--vact-niv:' + (_VISUEL_NIV_VAR[a.level] || 'var(--lg)') + '">' +
+    '<div class="vact-repli" aria-hidden="true"><span class="vact-cat">' + escHtml(catFr(a.cat)) + '</span>' +
+      '<span class="vact-code">' + escHtml(code) + '</span><i class="ti ' + (_VISUEL_CAT_ICONE[a.cat] || 'ti-news') + '"></i></div>' +
+    (img ? '<img src="' + escHtml(img) + '" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.classList.add(\'sans-img\');this.remove()">' : '') +
+    (dom ? '<span class="vact-credit">© ' + escHtml(dom) + '</span>' : '') +
+    (video ? _boutonVideoHtml(a) : '') +
+  '</div>';
+}
+function patchVisuelActu(id, m) {
+  const src = urlImageSure(m && m.img);
+  if (m && m.vid) {
+    const a = (typeof ALL !== 'undefined' && ALL.find(x => x.id === id)) || { id, url: m.vid };
+    document.querySelectorAll('#vact-' + CSS.escape(id)).forEach(el => {
+      if (el.querySelector('.vact-play')) return;
+      el.classList.add('vact-video');
+      el.insertAdjacentHTML('beforeend', _boutonVideoHtml(a));
+    });
+  }
+  if (!src) return;
+  document.querySelectorAll('#vact-' + CSS.escape(id)).forEach(el => {
+    if (el.querySelector('img')) return;
+    const i = document.createElement('img');
+    i.src = src; i.alt = ''; i.loading = 'lazy'; i.decoding = 'async'; i.referrerPolicy = 'no-referrer';
+    i.onerror = () => { el.classList.add('sans-img'); i.remove(); };
+    el.insertBefore(i, el.querySelector('.vact-credit'));
+    el.classList.remove('sans-img');
+  });
+}
+// Carte « image d'abord » (A la une, tableau de bord) : meme visuel, titre en
+// serif, gravite et cotation. Le clic ouvre le detail, comme une carte du Flux.
+function carteUneHtml(a) {
+  const pl = a.flagged ? lp('u') : lp(a.level);
+  const cc = (typeof CYS !== 'undefined' && CYS.find(x => x.code === a.cy)) || { flag: '🌍', name: a.cy || '' };
+  const src = gs(a.primary);
+  const cot = (typeof cotationArticle === 'function') ? cotationArticle(a, src, SEUIL_SOURCE_ALERTE) : null;
+  return '<article class="une-carte" onclick="showDet(\'' + a.id + '\')">' +
+    visuelActu(a, 'une') +
+    '<div class="une-corps">' +
+      '<div class="une-kick"><span class="rpill ' + pl[0] + '">' + pl[1] + '</span><span>' + cc.flag + ' ' + escHtml(cc.name) + '</span></div>' +
+      '<div class="une-tit" role="button" tabindex="0">' + escHtml(L(a.title)) + '</div>' +
+      '<div class="une-meta"><span>' + fmtAge(a.pubDate) + '</span>' + (cot ? '<span class="une-cot une-cot-' + cot.cle + '">' + cot.libelle + '</span>' : '') + '</div>' +
+    '</div>' +
+  '</article>';
+}
+// Choix des actus « a la une » : gravite d'abord, puis celles qui ont un
+// visuel de la source, puis la plus recente. Jamais plus d'une par pays,
+// pour que la bande ne raconte pas quatre fois le meme fait, et jamais un
+// fait hors d'Afrique (cy 'INT') : premiere capture sur le cache reel du
+// 20/10/2026, un accident de la route en Australie tenait la une d'un outil
+// de veille sur 54 pays africains. Meme regle que la file « a traiter ».
+function choisirALaUne(arts, n) {
+  const rang = { crit: 0, high: 1, mod: 2, ok: 3 };
+  const tries = arts.filter(a => a && !a.flagged && a.level in rang && a.cy && a.cy !== 'INT').slice().sort((x, y) =>
+    (rang[x.level] - rang[y.level]) || ((mediaActu(y).img ? 1 : 0) - (mediaActu(x).img ? 1 : 0)) || ((y.pubDate || 0) - (x.pubDate || 0)));
+  const vus = new Set(), pris = [];
+  for (const a of tries) { if (vus.has(a.cy)) continue; vus.add(a.cy); pris.push(a); if (pris.length >= n) break; }
+  return pris;
+}
+
+// Ce qu'un rapport dit d'une actu, au-dela du titre. Demande de l'editeur du
+// 20/10/2026 : « les rapports doivent etre les plus detailles possible (ne
+// pas se limiter aux titres) ». Un seul calcul pour l'apercu HTML, le PDF, le
+// Word et le PowerPoint, pour qu'ils disent la meme chose :
+//   resume  : l'analyse de l'article (coupee a RESUME_RAPPORT_MAX, jamais un
+//             simple rappel du titre) ;
+//   infos   : cotation client, publication, survenance estimee, source(s) ;
+//   liens   : l'article (si les sources sont visibles pour ce compte, meme
+//             regle que partout) et la video, ouverte comme dans l'appli.
+const RESUME_RAPPORT_MAX = 900;
+function resumeCourt(texte, max) {
+  const t = String(texte || '');
+  return t.length > max ? t.slice(0, max).replace(/\s+\S*$/, '') + ' …' : t;
+}
+function detailRapportActu(a) {
+  const en = LANG === 'en';
+  const titre = String(L(a.title) || '').replace(/\s+/g, ' ').trim();
+  let resume = String(L(a.analysis) || '').replace(/\s+/g, ' ').trim();
+  if (resume.toLowerCase() === titre.toLowerCase()) resume = '';
+  resume = resumeCourt(resume, RESUME_RAPPORT_MAX);
+  const voir = typeof sourcesVisibles === 'function' && sourcesVisibles();
+  const cot = typeof cotationArticle === 'function' ? cotationArticle(a, gs(a.primary), SEUIL_SOURCE_ALERTE) : null;
+  const surv = typeof fmtSurvenance === 'function' ? fmtSurvenance(a) : null;
+  const infos = [];
+  if (cot) infos.push((en ? 'Rating: ' : 'Cotation : ') + cot.libelle);
+  if (a.pubDate) infos.push((en ? 'Published ' : 'Publié le ') + fmtFull(a.pubDate));
+  if (surv && !surv.inconnue) infos.push((en ? 'Event: ' : 'Survenance : ') + surv.texte);
+  const nSrc = (a.srcs || []).length;
+  if (voir) infos.push((en ? 'Source: ' : 'Source : ') + srcName(a.primary) + (nSrc > 1 ? ' (+' + (nSrc - 1) + ')' : ''));
+  else if (nSrc > 1) infos.push(en ? nSrc + ' sources' : nSrc + ' sources');
+  const media = mediaActu(a);
+  return {
+    resume, infos,
+    lienArticle: voir ? safeUrl(articleLienDirect(a), srcName(a.primary)) : null,
+    lienVideo: media.video ? safeUrl(lienVideoActu(a)) : null,
+    libelleArticle: en ? 'Read the article' : 'Lire l\'article',
+    libelleVideo: en ? 'Watch the video' : 'Voir la vidéo',
+  };
+}
+
+// Images des sources dans les rapports Word, PDF et PowerPoint (20/10/2026).
+// Un document bureautique ne peut pas pointer vers l'adresse d'une image : il
+// faut ses octets. La page n'a pas le droit de les demander par fetch (la CSP
+// limite connect-src), et passer par un relais public pour contourner ce que
+// le site source ne partage pas n'est pas un choix du code. On charge donc
+// l'image comme l'ecran le fait (<img>, autorise par img-src), en mode CORS :
+// si la source l'autorise (YouTube, beaucoup de CDN), on la redessine reduite
+// et on l'embarque ; sinon le document garde le texte seul, sans repli
+// d'illustration. Jamais plus de IMAGES_RAPPORT_MAX par document, chacune
+// abandonnee apres IMAGES_RAPPORT_DELAI_MS : un export ne doit pas attendre
+// un serveur lent.
+const IMAGES_RAPPORT_MAX = 24;
+const IMAGES_RAPPORT_DELAI_MS = 4000;
+const IMAGES_RAPPORT_LARGEUR = 480;
+function articlesPourImagesRapport(arts, max) {
+  const rang = { crit:0, high:1, mod:2, ok:3 };
+  const vus = new Set();
+  return (arts || []).filter(a => a && a.id && !vus.has(a.id) && vus.add(a.id) && mediaActu(a).img)
+    .sort((x, y) => ((rang[x.level] ?? 4) - (rang[y.level] ?? 4)) || ((y.pubDate || 0) - (x.pubDate || 0)))
+    .slice(0, max == null ? IMAGES_RAPPORT_MAX : max);
+}
+function _imageRapport(url) {
+  return new Promise(resolve => {
+    const img = new Image();
+    let fini = false;
+    const fin = (v) => { if (!fini) { fini = true; clearTimeout(t); resolve(v); } };
+    const t = setTimeout(() => fin(null), IMAGES_RAPPORT_DELAI_MS);
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const w0 = img.naturalWidth || 1, h0 = img.naturalHeight || 1;
+        // Une vignette trop petite (pixel de suivi, icone) n'illustre rien.
+        if (w0 < 120 || h0 < 60) return fin(null);
+        const k = Math.min(1, IMAGES_RAPPORT_LARGEUR / w0);
+        const c = document.createElement('canvas');
+        c.width = Math.round(w0 * k); c.height = Math.round(h0 * k);
+        const g = c.getContext('2d');
+        g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, c.width, c.height);
+        g.drawImage(img, 0, 0, c.width, c.height);
+        // Leve si la source n'autorise pas le partage (canevas « teinte »).
+        const dataUrl = c.toDataURL('image/jpeg', 0.8);
+        fin({ dataUrl, ratio: c.width / c.height });
+      } catch (_) { fin(null); }
+    };
+    img.onerror = () => fin(null);
+    img.src = url;
+  });
+}
+// chargerImagesRapport(arts) -> Map id -> { dataUrl, ratio, octets() }.
+// Respecte « economiser les donnees » (Parametres > Affichage).
+async function chargerImagesRapport(arts, max) {
+  const res = new Map();
+  if (typeof affichageImagesActif === 'function' && !affichageImagesActif()) return res;
+  const choix = articlesPourImagesRapport(arts, max);
+  const lots = await Promise.all(choix.map(a => _imageRapport(mediaActu(a).img).then(v => [a.id, v])));
+  lots.forEach(([id, v]) => {
+    if (v) res.set(id, Object.assign(v, { octets: () => logoMarqueOctets(v) }));
+  });
+  return res;
 }
 
 function parseRSS(xml, src) {
@@ -10224,6 +10757,61 @@ function nomMarqueActuelle() {
   if (!fonctionnalitePayante()) return 'SentiqS';
   const m = getMarquePerso();
   return (m.nomMarque || '').trim() || 'SentiqS';
+}
+// ── Logo de l'organisation (20/10/2026) ─────────────────────────────────
+// L'identite d'envoi d'un rapport, c'est le NOM et le LOGO de l'organisation
+// qui l'envoie (precision de l'editeur). Le logo est choisi dans Parametres >
+// Personnalisation de marque, reduit a LOGO_MARQUE_MAX_PX de cote et garde
+// en data URL dans la personnalisation (aucun envoi a un serveur). Meme
+// regle que le nom : plan payant seulement, sinon aucun logo n'est imprime.
+const LOGO_MARQUE_MAX_PX = 360;
+function logoMarqueValide(l) {
+  return typeof l === 'string' && /^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(l);
+}
+function logoMarqueActuelle() {
+  if (!fonctionnalitePayante()) return null;
+  const m = getMarquePerso();
+  if (!logoMarqueValide(m.logoMarque)) return null;
+  const ratio = Number(m.logoMarqueRatio);
+  return { dataUrl: m.logoMarque, ratio: (ratio > 0.1 && ratio < 10) ? ratio : 1, png: m.logoMarque.startsWith('data:image/png') };
+}
+function logoMarqueOctets(logo) {
+  const b = atob(logo.dataUrl.split(',')[1]);
+  const u = new Uint8Array(b.length);
+  for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i);
+  return u;
+}
+// preparerLogoMarque(fichier) : { dataUrl, ratio } d'une image reduite a
+// LOGO_MARQUE_MAX_PX, en PNG (transparence gardee) sauf si trop lourd.
+function preparerLogoMarque(fichier) {
+  return new Promise((resolve, reject) => {
+    if (!fichier || !/^image\/(png|jpeg|webp|gif|svg\+xml)$/.test(fichier.type)) return reject(new Error('format'));
+    if (fichier.size > 5 * 1024 * 1024) return reject(new Error('taille'));
+    const url = URL.createObjectURL(fichier);
+    const img = new Image();
+    img.onload = () => {
+      const w0 = img.naturalWidth || img.width || 1, h0 = img.naturalHeight || img.height || 1;
+      const k = Math.min(1, LOGO_MARQUE_MAX_PX / Math.max(w0, h0));
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(w0 * k)); c.height = Math.max(1, Math.round(h0 * k));
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      let dataUrl = c.toDataURL('image/png');
+      if (dataUrl.length > 250000) {
+        const c2 = document.createElement('canvas'); c2.width = c.width; c2.height = c.height;
+        const g = c2.getContext('2d'); g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, c2.width, c2.height); g.drawImage(c, 0, 0);
+        dataUrl = c2.toDataURL('image/jpeg', 0.85);
+      }
+      resolve({ dataUrl, ratio: c.width / c.height });
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('lecture')); };
+    img.src = url;
+  });
+}
+// Bloc HTML du logo pour les documents (apercus imprimables), vide sans logo.
+function logoMarqueHtml(hauteurPx) {
+  const l = logoMarqueActuelle();
+  return l ? '<img src="' + l.dataUrl + '" alt="' + _apEsc(nomMarqueActuelle()) + '" style="height:' + hauteurPx + 'px;width:auto;max-width:' + Math.round(hauteurPx * 4) + 'px;object-fit:contain;display:block;margin:0 auto 10px">' : '';
 }
 // identitesMarquePerso(m) : normalise les 3 identites d'envoi possibles +
 // laquelle est active. Migre en douceur l'ancien champ unique
@@ -12050,6 +12638,7 @@ function _debounce(fn, ms) {
 let _renderFeedGen = 0;
 async function renderFeed() {
   const _monGen = ++_renderFeedGen;
+  _visuelOgpDemandes = 0;
   const arts=getFiltered();
   const c=document.getElementById('feed');
   // Bandeau tableau de bord pays : construit tot pour s'afficher meme si
@@ -12134,6 +12723,8 @@ async function renderFeed() {
     // puce de categorie de la ligne secondaire ferait doublon.
     const catDoublon = balArt.some(b => normaliserAccents(b.label).toLowerCase() === String(a.cat || '').toLowerCase());
     return '<div class="art l'+a.level.charAt(0)+'2'+isnew+'" data-level="'+a.level+'" onclick="showDet(\''+a.id+'\')">'+
+      // Visuel de l'actu (image de la source, video, ou repli) — voir visuelActu().
+      visuelActu(a, 'vignette')+
       '<div class="al"><span class="rpill '+pl[0]+'">'+pl[1]+'</span>'+
       sico+'</div>'+
       '<div class="ab">'+
@@ -12337,6 +12928,14 @@ async function renderFeed() {
   // ── Bandeau tableau de bord pays : deja construit en tete de fonction
   // (dashBanner0), reutilise ici pour le cas "articles trouves". ──
 
+  // ── « A la une » : les faits les plus graves, image d'abord (une par pays).
+  // Pas en dessous de quatre articles : une bande qui repete la liste juste
+  // en dessous n'apporte rien.
+  const une = arts.length >= 4 ? choisirALaUne(arts, 4) : [];
+  const uneHtml = une.length >= 3
+    ? '<section class="une-bande" aria-label="'+(LANG==='en'?'Top stories':'À la une')+'"><h2 class="une-titre">'+(LANG==='en'?'Top stories':'À la une')+'</h2><div class="une-grille">'+une.map(carteUneHtml).join('')+'</div></section>'
+    : '';
+
   if (_monGen !== _renderFeedGen) return; // un rendu plus recent a deja demarre — abandon
   // Rendu différé : on vide d'abord le conteneur pour libérer le thread,
   // puis on injecte le HTML au prochain frame disponible du navigateur.
@@ -12344,7 +12943,7 @@ async function renderFeed() {
   c.innerHTML = '';
   requestAnimationFrame(() => {
     if (_monGen !== _renderFeedGen) return; // idem, verifie a nouveau juste avant l'ecriture DOM
-    c.innerHTML = dashBanner0 + (html || '<div class="empty"><i class="ti ti-inbox"></i><p>Aucun article</p></div>');
+    c.innerHTML = dashBanner0 + uneHtml + (html || '<div class="empty"><i class="ti ti-inbox"></i><p>Aucun article</p></div>');
   });
 }
 // Version temporisee pour le champ de recherche (#artQ) uniquement — les
@@ -12410,6 +13009,10 @@ async function showDet(id) {
     '<div class="dh"><div class="dt" id="dettt-'+a.id+'">'+escHtml(L(a.title))+'</div>'+
     (detTraduireDispo ? '<button class="tr-btn" id="dettrbtn-'+a.id+'" style="flex-shrink:0;margin-right:6px" onclick="event.stopPropagation();retraduireActu(\''+a.id+'\')" title="'+(LANG==='en'?'Translate now':'Traduire maintenant')+'"><i class="ti ti-language"></i>'+(LANG==='en'?'Translate':'Traduire')+'</button>' : '')+
     '<div class="dc" onclick="document.getElementById(\'detOverlay\').remove()"><i class="ti ti-x"></i></div></div>'+
+    // Visuel de l'actu en tete du detail, comme une page d'article
+    // (meme composant que le Flux, voir visuelActu).
+    '<div class="det-visuel">'+visuelActu(a, 'une')+'</div>'+
+    (mediaActu(a).video ? '<a class="det-video" href="'+escHtml(safeUrl(lienVideoActu(a)))+'" target="_blank" rel="noopener"><i class="ti ti-player-play"></i>'+(LANG==='en'?'Open the video':'Ouvrir la vidéo')+'<i class="ti ti-external-link"></i></a>' : '')+
     confHtml+
     '<div class="dlvl" style="background:'+bgC+';border-left:4px solid '+bc+';color:'+bc+'">'+
       '<i class="ti '+lic(a.level)+'"></i><strong>'+pl[1]+'</strong>'+
@@ -12716,7 +13319,14 @@ async function renderPanelATraiter(cyFiltre, zoneFiltre) {
       Aucune actualité de moins de ${libelleFenetre()} en attente de traitement.
     </div>`;
   }
-  return `<div style="background:var(--w);border:1px solid var(--bd);border-left:3px solid var(--b);border-radius:9px;padding:12px;margin-bottom:12px;">
+  // Les faits les plus graves de la file, image d'abord (meme carte que
+  // « A la une » du Flux, voir carteUneHtml) : le tableau de bord et la
+  // Synthese montrent les memes faits que le Flux, sous la meme forme.
+  const une = choisirALaUne(arts, 4);
+  const uneHtml = une.length >= 3
+    ? '<section class="une-bande une-bande-panneau" aria-label="'+(LANG==='en'?'Today\'s key facts':'Les faits du jour')+'"><h2 class="une-titre">'+(LANG==='en'?'Today\'s key facts':'Les faits du jour')+'</h2><div class="une-grille">'+une.map(carteUneHtml).join('')+'</div></section>'
+    : '';
+  return uneHtml + `<div style="background:var(--w);border:1px solid var(--bd);border-left:3px solid var(--b);border-radius:9px;padding:12px;margin-bottom:12px;">
     <div style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
       <i class="ti ti-clock-exclamation" style="color:var(--b)"></i>
       Actualités à traiter (moins de ${libelleFenetre()})
@@ -17500,6 +18110,8 @@ function renderMarquePerso() {
   const m = getMarquePerso();
   const { identite1, identite2, identite3, active } = identitesMarquePerso(m);
   nomEl.value = m.nomMarque || '';
+  _marqueLogoBrouillon = undefined;
+  afficherApercuLogoMarque(logoMarqueValide(m.logoMarque) ? m.logoMarque : '');
   id1El.value = identite1;
   id2El.value = identite2;
   id3El.value = identite3;
@@ -17514,7 +18126,7 @@ function renderMarquePerso() {
     badgeEl.style.color = payant ? '#0F4F2A' : '#7C4A00';
   }
   if (upsellEl) upsellEl.style.display = payant ? 'none' : 'flex';
-  [nomEl, id1El, id2El, id3El, document.getElementById('marqueIdentiteActive')].forEach(el => { if (el) { el.disabled = !payant; el.style.opacity = payant ? '1' : '.55'; } });
+  [nomEl, id1El, id2El, id3El, document.getElementById('marqueIdentiteActive'), document.getElementById('marqueLogoFichier'), document.getElementById('marqueLogoRetirer')].forEach(el => { if (el) { el.disabled = !payant; el.style.opacity = payant ? '1' : '.55'; } });
   document.querySelectorAll('#marqueModulesGrid select').forEach(el => { el.disabled = !payant; el.style.opacity = payant ? '1' : '.55'; });
   if (saveBtn) saveBtn.disabled = !payant;
 }
@@ -17540,6 +18152,32 @@ function renderMarqueIdentiteChoix(preferActive) {
   // l'identite visee existe encore).
   renderIdentitesModulesParams(false);
 }
+// Logo choisi mais pas encore enregistre : undefined = inchange, null = retire.
+let _marqueLogoBrouillon;
+function afficherApercuLogoMarque(dataUrl) {
+  const el = document.getElementById('marqueLogoApercu');
+  if (!el) return;
+  el.innerHTML = dataUrl
+    ? '<img src="' + dataUrl + '" alt="" style="max-width:100%;max-height:100%;object-fit:contain">'
+    : '<span>' + (LANG === 'en' ? 'No logo' : 'Aucun logo') + '</span>';
+}
+async function choisirLogoMarque(input) {
+  const f = input && input.files && input.files[0];
+  if (!f) return;
+  try {
+    _marqueLogoBrouillon = await preparerLogoMarque(f);
+    afficherApercuLogoMarque(_marqueLogoBrouillon.dataUrl);
+    pmMsg(LANG === 'en' ? 'Logo ready — click Save to keep it.' : 'Logo prêt — cliquez sur Enregistrer pour le garder.', 'ok', 'marqueMsg');
+  } catch (e) {
+    pmMsg(e.message === 'taille' ? (LANG === 'en' ? 'Image too large (5 MB max).' : 'Image trop lourde (5 Mo maximum).')
+      : (LANG === 'en' ? 'Unreadable image — use PNG or JPEG.' : 'Image illisible — utilisez un PNG ou un JPEG.'), 'err', 'marqueMsg');
+  }
+  input.value = '';
+}
+function retirerLogoMarque() {
+  _marqueLogoBrouillon = null;
+  afficherApercuLogoMarque('');
+}
 function pmSaveMarquePerso() {
   // Double verification cote enregistrement (pas seulement l'UI grisee) :
   // un plan gratuit ne doit jamais pouvoir persister de personnalisation,
@@ -17556,6 +18194,14 @@ function pmSaveMarquePerso() {
     identite3: (document.getElementById('marqueIdentite3').value || '').trim(),
     identiteActive: activeVal === '3' ? 3 : activeVal === '2' ? 2 : 1,
   };
+  // Logo : celui choisi depuis l'ouverture du panneau, sinon celui deja
+  // enregistre (cette fonction reconstruit tout l'objet : l'oublier ici
+  // effacerait le logo a chaque enregistrement).
+  const avant = getMarquePerso();
+  const logo = (_marqueLogoBrouillon !== undefined) ? _marqueLogoBrouillon
+    : (logoMarqueValide(avant.logoMarque) ? { dataUrl: avant.logoMarque, ratio: avant.logoMarqueRatio } : null);
+  if (logo) { nouvelle.logoMarque = logo.dataUrl; nouvelle.logoMarqueRatio = logo.ratio; }
+  _marqueLogoBrouillon = undefined;
   // Designations par module : celles du tableau de Parametres, par-dessus ce
   // qui est deja enregistre (un module absent du tableau garde sa valeur),
   // puis normalisees contre les identites QUI VIENNENT D'ETRE saisies — une
@@ -20628,6 +21274,8 @@ async function exportPPTX(type) {
     const periode = PERIODES[periodeSel] || PERIODES.mensuel;
 
     const arts = getExportDataPeriode(periode.jours);
+    // Images des sources (chargerImagesRapport), posees a droite du detail.
+    const imagesPptx = await chargerImagesRapport(arts, 16);
     const perimetre = libellePerimetreRapport();
     const scopeCy = fRapportCy !== 'all' ? fRapportCy : null;
     const scopeZone = fRapportZone !== 'all' ? fRapportZone : null;
@@ -20657,6 +21305,30 @@ async function exportPPTX(type) {
 
     const circle = (slide, x, y, d, color, opts={}) =>
       slide.addShape(pres.shapes.OVAL, {x, y, w:d, h:d, fill:{color}, line:{type:'none'}, ...opts});
+    // Detail d'une actu sous son titre (voir detailRapportActu) : resume
+    // coupe a la place disponible sur la diapositive, cotation et dates, lien
+    // video cliquable. Renvoie la hauteur occupee, en pouces.
+    const detailPptx = (slide, a, x, y, w, maxResume) => {
+      const d = detailRapportActu(a);
+      let h = 0;
+      // Image a droite : le texte se retrecit d'autant, jamais l'inverse.
+      const im = imagesPptx.get(a.id);
+      const ih = 0.62, iw = Math.min(1.5, ih * (im ? im.ratio : 1));
+      if (im) {
+        try { slide.addImage({data: im.dataUrl.replace(/^data:/, ''), x: x + w - iw, y, w: iw, h: ih}); w -= iw + 0.1; }
+        catch (_) {}
+      }
+      if (d.resume) {
+        slide.addText(resumeCourt(d.resume, maxResume), {x, y, w, h:0.62, fontSize:10, color:'1F2937', fontFace:'IBM Plex Sans', valign:'top', fit:'shrink'});
+        h += 0.64;
+      }
+      const infos = d.infos.filter(t => !/^Source/.test(t)).join('  ·  ');
+      const runs = [];
+      if (infos) runs.push({text:infos, options:{fontSize:8.5, color:MUTED, fontFace:'IBM Plex Sans'}});
+      if (d.lienVideo) runs.push({text:(infos?'  ·  ':'')+'▶ '+d.libelleVideo, options:{fontSize:8.5, bold:true, color:'1B5FA8', underline:{style:'sng'}, fontFace:'IBM Plex Sans', hyperlink:{url:d.lienVideo}}});
+      if (runs.length) { slide.addText(runs, {x, y:y+h, w, h:0.26}); h += 0.28; }
+      return h;
+    };
 
     // Diapositive avec fond + ruban de pied de page systématique (bandeau
     // plein bord-a-bord bleu nuit : logo radar + marque + pagination, sur
@@ -20706,6 +21378,12 @@ async function exportPPTX(type) {
     // fichier ou la couverture PPTX ignorait une marque personnalisee alors
     // que Word/PDF/l'apercu HTML l'affichent tous correctement — un compte
     // avec une marque configuree voyait "SentiqS" s'afficher quand meme ici.
+    // Logo de l'organisation (identite d'envoi), au-dessus du bloc de titre.
+    const logoP = (typeof logoMarqueActuelle === 'function') ? logoMarqueActuelle() : null;
+    if (logoP) {
+      const lh = 0.9, lw = Math.min(lh * logoP.ratio, 3);
+      s.addImage({data: logoP.dataUrl.replace(/^data:/, ''), x:0.6, y:1.1, w:lw, h:lw / logoP.ratio});
+    }
     s.addText(nomMarqueActuelle(), {x:0.6,y:2.6,w:7.2,h:1.1,fontSize:52,bold:true,color:NAVY,fontFace:'Source Serif 4'});
     s.addText(titrePPTX.charAt(0)+titrePPTX.slice(1).toLowerCase()+' '+periode.label.toLowerCase()+' — '+perimetre,
       {x:0.6,y:3.7,w:7.2,h:0.55,fontSize:19,bold:true,color:DARK2,fontFace:'IBM Plex Sans'});
@@ -20904,28 +21582,23 @@ async function exportPPTX(type) {
         // par la pre-traduction generale du haut de fonction (qui s'execute
         // avant que ces pays specifiques soient determines).
         await preTraduireRapport(dossierP.regional.map(a => infoPays(a.cy).name));
-        if (dossierP.national.length || dossierP.regional.length) {
+        // Une diapositive par rubrique (nationale, regionale) : chaque actu
+        // porte son resume et ses liens, ce qui ne tient plus a huit par page.
+        const rubriquesP = [
+          {items: dossierP.national, titre:'ACTUALITÉ NATIONALE', prefixe: () => ''},
+          {items: dossierP.regional, titre:'ACTUALITÉ RÉGIONALE — PAYS LIMITROPHES', prefixe: a => '['+L(infoPays(a.cy).name)+']  '},
+        ];
+        rubriquesP.forEach(r => {
+          if (!r.items.length) return;
           s = newSlide('FFFFFF');
           sectionHead(s, 'Dossier pays — Actualité', scoresSlide[0].pays.name);
-          let yP = 1.7;
-          if (dossierP.national.length) {
-            s.addText('ACTUALITÉ NATIONALE', {x:0.6,y:yP,w:11.6,h:0.3,fontSize:11,bold:true,color:BLUE,fontFace:'IBM Plex Mono'});
-            yP += 0.42;
-            dossierP.national.forEach(a => {
-              s.addText('•  '+L(a.title)+'  ('+(a.time||'')+')', {x:0.6,y:yP,w:11.6,h:0.36,fontSize:11.5,color:INK,fontFace:'IBM Plex Sans'});
-              yP += 0.4;
-            });
-            yP += 0.2;
-          }
-          if (dossierP.regional.length) {
-            s.addText('ACTUALITÉ RÉGIONALE — PAYS LIMITROPHES', {x:0.6,y:yP,w:11.6,h:0.3,fontSize:11,bold:true,color:BLUE,fontFace:'IBM Plex Mono'});
-            yP += 0.42;
-            dossierP.regional.forEach(a => {
-              s.addText('•  ['+L(infoPays(a.cy).name)+']  '+L(a.title)+'  ('+(a.time||'')+')', {x:0.6,y:yP,w:11.6,h:0.36,fontSize:11.5,color:INK,fontFace:'IBM Plex Sans'});
-              yP += 0.4;
-            });
-          }
-        }
+          s.addText(r.titre, {x:0.6,y:1.6,w:11.6,h:0.3,fontSize:11,bold:true,color:BLUE,fontFace:'IBM Plex Mono'});
+          r.items.forEach((a, i) => {
+            const yP = 1.95 + i*1.25;
+            s.addText(r.prefixe(a)+L(a.title)+'  ('+(a.time||'')+')', {x:0.6,y:yP,w:11.6,h:0.36,fontSize:11.5,bold:true,color:INK,fontFace:'IBM Plex Sans'});
+            detailPptx(s, a, 0.6, yP+0.38, 11.6, 280);
+          });
+        });
       } else {
         // Plusieurs pays : graphique en barres, score composite /100
         const top = scoresSlide.slice(0,10);
@@ -20944,10 +21617,12 @@ async function exportPPTX(type) {
 
     // ── Slide — Incidents marquants de la periode ───────────────────────
     if (incMarq) {
-      s = newSlide('FFFFFF');
-      sectionHead(s, 'Incidents marquants', periode.label+' — '+perimetre);
-      marquants.forEach((a,i)=>{
-        const y = 1.55 + i*0.92;
+      // Trois incidents par diapositive : chacun avec son resume et ses
+      // liens (demande de l'editeur du 20/10/2026, plus seulement le titre).
+      marquants.forEach((a,iTot)=>{
+        const i = iTot % 3;
+        if (i === 0) { s = newSlide('FFFFFF'); sectionHead(s, 'Incidents marquants', iTot===0 ? (periode.label+' — '+perimetre) : (perimetre+' (suite)')); }
+        const y = 1.55 + i*1.85;
         const pays = infoPays(a.cy);
         const col = LVL_COL[a.level] || '9CA3AF';
         const cyNivP1 = _cyNivTexteEtCouleur(a.cy);
@@ -20957,6 +21632,7 @@ async function exportPPTX(type) {
         ].concat(sourcesVisibles() ? [{text:'  ·  '+srcName(a.primary), options:{fontSize:10,color:'1B5FA8',underline:{style:'sng'},fontFace:'IBM Plex Sans',hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}}] : []),
         {x:0.95,y:y-0.08,w:11.6,h:0.3});
         s.addText(L(a.title)||'', {x:0.95,y:y+0.18,w:11.6,h:0.55,fontSize:13,bold:true,color:INK,fontFace:'IBM Plex Sans'});
+        detailPptx(s, a, 0.95, y+0.74, 11.6, 420);
       });
     }
 
@@ -20968,13 +21644,13 @@ async function exportPPTX(type) {
     // marquants" ci-dessus.
     if (incCatDetail) {
       CAT_DEFS_PPTX.forEach(cd => {
-        const chunkSizeCat = 5;
+        const chunkSizeCat = 3;
         for (let ci = 0; ci < cd.items.length; ci += chunkSizeCat) {
           const chunk = cd.items.slice(ci, ci+chunkSizeCat);
           s = newSlide('FFFFFF');
           sectionHead(s, cd.lettre+'. '+cd.lb, ci===0 ? (periode.label+' — '+perimetre) : (perimetre+' (suite)'));
           chunk.forEach((a,i)=>{
-            const y = 1.55 + i*1.05;
+            const y = 1.55 + i*1.85;
             const pays = infoPays(a.cy);
             const col = LVL_COL[a.level] || '9CA3AF';
             s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:y,w:0.95,h:0.28,fill:{color:col},line:{type:'none'}});
@@ -20985,6 +21661,7 @@ async function exportPPTX(type) {
               {text:pays.name+(a._ville?' — '+a._ville:'')+'  ·  '+(a.time||'')+(cyNivP2?'  ·  '+cyNivP2.texte:''), options:{fontSize:9,color:MUTED,fontFace:'IBM Plex Sans'}},
             ].concat(sourcesVisibles() ? [{text:'  ·  '+srcName(a.primary), options:{fontSize:9,color:'1B5FA8',underline:{style:'sng'},fontFace:'IBM Plex Sans',hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}}] : []),
             {x:1.7,y:y+0.44,w:10.9,h:0.3});
+            detailPptx(s, a, 1.7, y+0.78, 10.9, 420);
           });
         }
       });
@@ -20994,13 +21671,13 @@ async function exportPPTX(type) {
     // paginée — ce type ne rentre pas dans les autres sections du rapport
     // consolidé, qui se contente d'un résumé via "Incidents marquants") ──
     if (incFlux) {
-      const chunkSizeF = 12;
+      const chunkSizeF = 4;
       for (let ci = 0; ci < evenementsFlux.length; ci += chunkSizeF) {
         const chunk = evenementsFlux.slice(ci, ci+chunkSizeF);
         s = newSlide('FFFFFF');
         sectionHead(s, 'Flux opérationnel', ci===0 ? (evenementsFlux.length+' événements des dernières '+libelleFenetre()+' — '+perimetre) : (perimetre+' (suite)'));
         chunk.forEach((a,i)=>{
-          const y = 1.55 + i*0.46;
+          const y = 1.5 + i*1.36;
           const pays = infoPays(a.cy);
           const col = LVL_COL[a.level] || '9CA3AF';
           circle(s, 0.6, y+0.09, 0.09, col);
@@ -21010,7 +21687,8 @@ async function exportPPTX(type) {
             {text:'['+dateTxt+']  '+(pays.flag||'')+' '+pays.name+'  ·  '+lvlFr(a.level).toUpperCase()+(cyNivP3?'  ·  '+cyNivP3.texte:''), options:{fontSize:8.5,bold:true,color:MUTED,fontFace:'IBM Plex Mono'}},
           ].concat(sourcesVisibles() ? [{text:'  ·  '+srcName(a.primary), options:{fontSize:8.5,bold:true,color:'1B5FA8',underline:{style:'sng'},fontFace:'IBM Plex Mono',hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}}] : []),
           {x:0.85,y:y-0.06,w:11.7,h:0.22});
-          s.addText(L(a.title)||'', {x:0.85,y:y+0.13,w:11.7,h:0.3,fontSize:11,color:INK,fontFace:'IBM Plex Sans'});
+          s.addText(L(a.title)||'', {x:0.85,y:y+0.13,w:11.7,h:0.34,fontSize:11.5,bold:true,color:INK,fontFace:'IBM Plex Sans'});
+          detailPptx(s, a, 0.85, y+0.5, 11.7, 300);
         });
       }
     }
@@ -21206,6 +21884,7 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
     // qu'aucun appelant ne l'a posee (guide d'utilisation), auquel cas le
     // bandeau retombe sur la resolution globale historique.
     identiteEnvoi: null,
+    logo: null,
     // Ruban de bas de page — bandeau plein bord-a-bord (pas d'encadre), logo
     // radar + nom de marque, sur le modele du ruban utilise en pied de page
     // du site. Pas d'adresse e-mail (usage interne uniquement).
@@ -21303,6 +21982,11 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
       const ew = fontReg.widthOfTextAtSize(eyebrow, 8.5);
       b.page.drawText(eyebrow, {x:cx-ew/2, y:H-50, size:8.5, font:fontReg, color:MUTED});
 
+      // Logo de l'organisation, a gauche du titre de marque (voir exportPDF).
+      if (b.logo) {
+        const lh = 42, lw = Math.min(lh * b.logo.width / b.logo.height, 150);
+        b.page.drawImage(b.logo, {x:M, y:H-96, width:lw, height:lw * b.logo.height / b.logo.width});
+      }
       // Titre de marque (serif, identique a Word/PPTX/apercu HTML)
       const brandTxt = _pdfSafe(nomMarqueActuelle());
       const bsize = 27;
@@ -21526,7 +22210,36 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
         const srcW = fontReg.widthOfTextAtSize(srcTxt, 8);
         b.addLink(xCursor, b.y-2, srcW, 10, lienUrl);
       }
-      b.y -= 18;
+      // Detail sous le titre (voir detailRapportActu) : resume, cotation et
+      // dates, puis le lien video, cliquable comme le lien source.
+      const det = (typeof detailRapportActu === 'function') ? detailRapportActu(a) : null;
+      if (det) {
+        b.y -= 13;
+        if (det.resume) b.wrap(_pdfSafe(det.resume), 9, fontReg, W-M*2).forEach(line => {
+          b.ensure(14); b.page.drawText(line, {x:M, y:b.y, size:9, font:fontReg, color:INK}); b.y -= 12.5;
+        });
+        const infosTxt = det.infos.filter(t => !/^(Source|Source :)/.test(t)).join('   ·   ');
+        if (infosTxt) b.wrap(_pdfSafe(infosTxt), 8, fontReg, W-M*2).forEach(line => {
+          b.ensure(12); b.page.drawText(line, {x:M, y:b.y, size:8, font:fontReg, color:MUTED}); b.y -= 11;
+        });
+        if (det.lienVideo) {
+          b.ensure(12);
+          const vTxt = _pdfSafe('> '+det.libelleVideo);
+          b.page.drawText(vTxt, {x:M, y:b.y, size:8.5, font:fontBold, color:BLUE});
+          b.addLink(M, b.y-2, fontBold.widthOfTextAtSize(vTxt, 8.5), 11, det.lienVideo);
+          b.y -= 11;
+        }
+        const im = b.imagesActus && b.imagesActus.get(a.id);
+        if (im) {
+          const iw = Math.min(150, 90 * im.ratio), ih = iw / im.ratio;
+          b.ensure(ih + 6);
+          b.page.drawImage(im.pdf, {x:M, y:b.y - ih, width:iw, height:ih});
+          b.y -= ih + 4;
+        }
+        b.y -= 7;
+      } else {
+        b.y -= 18;
+      }
     },
     // Grille 2 colonnes de cartes de corrélation (thème / pays / articles
     // concordants), sur le modele de la section F. du gabarit de reference —
@@ -21859,6 +22572,24 @@ async function exportPDF(type) {
     // Identite d'envoi propre au MODULE exporte (synthese/flux/agenda/...) :
     // voir identiteEnvoiActuelle(module). Lue par bulletinHeader.
     b.identiteEnvoi = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle(type) : '';
+    // Logo de l'organisation (identite d'envoi) : embarque une fois, dessine
+    // par bulletinHeader. Un logo illisible n'empeche jamais l'export.
+    const logoPdf = (typeof logoMarqueActuelle === 'function') ? logoMarqueActuelle() : null;
+    if (logoPdf) {
+      try { b.logo = logoPdf.png ? await doc.embedPng(logoMarqueOctets(logoPdf)) : await doc.embedJpg(logoMarqueOctets(logoPdf)); }
+      catch (e) { console.warn('SentiqS — logo illisible pour le PDF'); }
+    }
+
+    // Images des sources (chargerImagesRapport) : embarquees une fois, dessinees
+    // sous le detail de chaque actu par articleItem. Une image refusee par le
+    // PDF n'empeche jamais l'export.
+    b.imagesActus = new Map();
+    try {
+      const imgs = await chargerImagesRapport(getExportData());
+      for (const [id, im] of imgs) {
+        try { b.imagesActus.set(id, { pdf: await doc.embedJpg(im.octets()), ratio: im.ratio }); } catch (_) {}
+      }
+    } catch (e) { console.warn('SentiqS — images des actus indisponibles pour le PDF'); }
 
     // En-tête façon "Bulletin de veille" — logo radar, date/heure de
     // génération, créneau — utilisée pour tous les types de rapport PDF.
@@ -21972,7 +22703,7 @@ async function exportPDF(type) {
       // Inclut les noms des pays de regroupement (groupeArticlesParPays) —
       // sinon les en-tetes de section pays restent en francais dans un
       // rapport genere en anglais.
-      await preTraduireRapport([...arts.map(a => a.title), ...[...new Set(arts.map(a=>a.cy))].map(cy=>infoPays(cy).name)]);
+      await preTraduireRapport([...arts.flatMap(a => [a.title, a.analysis]), ...[...new Set(arts.map(a=>a.cy))].map(cy=>infoPays(cy).name)]);
       const nbSrcActifsF = new Set(arts.map(a=>a.primary)).size;
       b.bulletinHeader(titre, dateGenStr, creneauStr,
         (LANG==='en'
@@ -22304,14 +23035,35 @@ function _apArticleItem(a) {
   const villeTxt = geo.ville ? (geo.ville+(geo.estime?' (estimé)':'')) : '';
   const pays = infoPays(a.cy);
   const lieu = pays.name + (villeTxt ? ' — '+villeTxt : '');
-  return '<div style="margin-bottom:18px;break-inside:avoid;">'
+  // Image de la source (meme regle que visuelActu dans l'appli : https,
+  // creditee, jamais copiee) ; sans image, l'article reste en texte seul
+  // plutot qu'avec un repli qui couterait de l'encre a l'impression.
+  const media = (typeof mediaActu === 'function') ? mediaActu(a) : { img: null };
+  const dom = media.img && typeof domaineActu === 'function' ? domaineActu(a) : '';
+  const vignette = media.img
+    ? '<div style="flex:0 0 120px;"><img src="'+_apEsc(media.img)+'" alt="" referrerpolicy="no-referrer" onerror="this.parentElement.remove()" style="width:120px;height:80px;object-fit:cover;border-radius:4px;display:block;">'
+      + (dom ? '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:9.5px;color:#6B7280;margin-top:2px;">© '+_apEsc(dom)+'</div>' : '') + '</div>'
+    : '';
+  return '<div style="margin-bottom:18px;break-inside:avoid;display:flex;gap:14px;align-items:flex-start;">' + vignette + '<div style="flex:1;min-width:0;">'
     + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;flex-wrap:wrap;">'
     + _apLevelPill(a)
     + _apCyNivPill(a)
     + '<span style="font-weight:600;font-size:15px;color:#111827;">'+_apEsc(L(a.title))+'</span>'
     + '</div>'
-    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#9CA3AF;">'+_apEsc(lieu)+' &nbsp;·&nbsp; '+_apEsc(a.time||'')+'</div>'
-    + '</div>';
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#6B7280;">'+_apEsc(lieu)+' &nbsp;·&nbsp; '+_apEsc(a.time||'')+'</div>'
+    + _apDetailActu(a)
+    + '</div></div>';
+}
+// Resume, cotation, dates et liens (article, video) sous le titre : voir
+// detailRapportActu. Les liens restent cliquables dans le PDF imprime par le
+// navigateur.
+function _apDetailActu(a) {
+  const d = detailRapportActu(a);
+  const lien = (href, txt) => '<a href="'+_apEsc(href)+'" target="_blank" rel="noopener" style="color:#1B5FA8;font-weight:600;text-decoration:underline;">'+_apEsc(txt)+'</a>';
+  const liens = [d.lienVideo ? '▶ '+lien(d.lienVideo, d.libelleVideo) : '', d.lienArticle ? lien(d.lienArticle, d.libelleArticle) : ''].filter(Boolean);
+  return (d.resume ? '<div style="font-size:13.5px;color:#1F2937;line-height:1.55;margin-top:6px;">'+_apEsc(d.resume)+'</div>' : '')
+    + (d.infos.length ? '<div style="font-size:11.5px;color:#4B5563;margin-top:5px;">'+d.infos.map(_apEsc).join(' &nbsp;·&nbsp; ')+'</div>' : '')
+    + (liens.length ? '<div style="font-size:12px;margin-top:4px;">'+liens.join(' &nbsp;·&nbsp; ')+'</div>' : '');
 }
 
 function _apCorrelationCard(s) {
@@ -22421,6 +23173,7 @@ function _apPageWrap(titreSection, sousTitre, statsHTML, bodyHTML, type) {
     + '</div>'
     + '<div style="text-align:center;margin-bottom:6px;">'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.16em;color:#9CA3AF;text-transform:uppercase;margin-bottom:10px;">'+_apEsc(titreSection)+' — '+_apEsc(perimetre)+'</div>'
+    + logoMarqueHtml(64)
     + '<h1 style="font-family:\'Source Serif 4\',serif;font-weight:800;font-size:40px;letter-spacing:0.01em;color:#16233A;margin:0 0 8px;">'+_apEsc(nomMarqueActuelle())+'</h1>'
     + '<div style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:600;font-size:16px;color:#0B1A27;margin-bottom:14px;">'+_apEsc(sousTitre)+'</div>'
     + '</div>'
@@ -22643,6 +23396,7 @@ function _buildRapportSyntheseHTML(arts) {
 
     + '<div style="text-align:center;margin-bottom:6px;">'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.16em;color:#9CA3AF;text-transform:uppercase;margin-bottom:10px;">Rapport opérationnel — '+_apEsc(perimetre)+'</div>'
+    + logoMarqueHtml(64)
     + '<h1 style="font-family:\'Source Serif 4\',serif;font-weight:800;font-size:40px;letter-spacing:0.01em;color:#16233A;margin:0 0 8px;">'+_apEsc(nomMarqueActuelle())+'</h1>'
     + '<div style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:600;font-size:16px;color:#0B1A27;margin-bottom:14px;">Analyse sécuritaire opérationnelle</div>'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#6B7280;">'+SRCS.length+' sources ('+nbSrcsMedia+' médias + '+nbSrcsSociales+' réseaux sociaux) &nbsp;·&nbsp; filtre anti-hallucination &lt;'+libelleFenetreCourt()+' &nbsp;·&nbsp; '+arts.length+' articles analysés</div>'
@@ -22707,7 +23461,7 @@ async function exportWord(type){
     if(typeof docx==='undefined') throw new Error('docx.js non chargé');
     const {Document,Paragraph,TextRun,HeadingLevel,Table,TableRow,TableCell,
            WidthType,AlignmentType,BorderStyle,ShadingType,Packer,
-           Header,Footer,PageNumber,ExternalHyperlink}=docx;
+           Header,Footer,PageNumber,ExternalHyperlink,ImageRun}=docx;
     // Lien source cliquable (docx.js ExternalHyperlink) — reutilise
     // articleLienDirect(a)/safeUrl deja utilises dans le Flux/Excel/CSV,
     // pour ne jamais dupliquer/diverger la logique primaire vs corroborante.
@@ -22717,10 +23471,31 @@ async function exportWord(type){
       link: safeUrl(articleLienDirect(a), srcName(a.primary)),
       children:[new TextRun({text:(LANG==='en'?'Source: ':'Source : ')+srcName(a.primary),size:16,italic:true,color:'1B5FA8',underline:{},font:'IBM Plex Mono'})],
     }) : new TextRun({text:''});
+    // Detail d'une actu sous son titre (voir detailRapportActu) : resume,
+    // cotation et dates, lien video cliquable. avecResume:false quand la
+    // section imprime deja l'analyse elle-meme.
+    // Image de la source, embarquee si elle l'autorise (chargerImagesRapport).
+    let imagesActus=new Map();
+    const detailWord=(a, avecResume=true)=>{
+      const d=detailRapportActu(a), out=[];
+      const im=imagesActus.get(a.id);
+      if(im && ImageRun){
+        try{
+          const w=Math.round(Math.min(260, 150*im.ratio)), h=Math.round(w/im.ratio);
+          out.push(new Paragraph({children:[new ImageRun({data:im.octets(),transformation:{width:w,height:h}})],spacing:{before:40,after:40}}));
+        }catch(e){ console.warn('SentiqS — image illisible pour Word'); }
+      }
+      if(avecResume && d.resume) out.push(new Paragraph({children:[new TextRun({text:d.resume,size:19,color:'1F2937',font:'IBM Plex Sans'})],spacing:{after:40}}));
+      const infos=d.infos.filter(t=>!/^Source/.test(t));
+      if(infos.length) out.push(new Paragraph({children:[new TextRun({text:infos.join('   ·   '),size:16,color:'4B5563',font:'IBM Plex Mono'})],spacing:{after:d.lienVideo?20:80}}));
+      if(d.lienVideo) out.push(new Paragraph({children:[new ExternalHyperlink({link:d.lienVideo,children:[new TextRun({text:'▶ '+d.libelleVideo,size:17,bold:true,color:'1B5FA8',underline:{},font:'IBM Plex Sans'})]})],spacing:{after:80}}));
+      return out;
+    };
 
     const arts=getExportData();
     const now=new Date();
     const dateStr=now.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' à '+now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    imagesActus=await chargerImagesRapport(arts);
 
     // Traduction des titres/analyses/evenements vers la langue active avant
     // construction du document — aucune actu dans une autre langue que FR
@@ -22928,6 +23703,14 @@ async function exportWord(type){
       children:[new TextRun({text:((LANG==='en'?'OPERATIONAL REPORT':'RAPPORT OPÉRATIONNEL')+' — '+perimetreW.toUpperCase()),size:17,color:'9CA3AF',font:FONT_SANS})],
       spacing:{after:100}
     }));
+    // Logo de l'organisation (identite d'envoi) au-dessus du nom, s'il existe.
+    const logoW = (typeof logoMarqueActuelle === 'function') ? logoMarqueActuelle() : null;
+    if (logoW && ImageRun) {
+      try {
+        children.push(new Paragraph({alignment:AlignmentType.CENTER, spacing:{after:80},
+          children:[new ImageRun({data:logoMarqueOctets(logoW), transformation:{width:Math.round(Math.min(64*logoW.ratio, 240)), height:Math.round(Math.min(64*logoW.ratio, 240)/logoW.ratio)}})]}));
+      } catch (e) { console.warn('SentiqS — logo illisible pour Word'); }
+    }
     children.push(new Paragraph({
       alignment:AlignmentType.CENTER,
       children:[new TextRun({text:nomMarqueActuelle(),bold:true,size:54,color:'0D1B2A',font:FONT_SERIF})],
@@ -22997,8 +23780,9 @@ async function exportWord(type){
               ...(cyNivW1?[new TextRun({text:cyNivW1.texte+'   ·   ',size:17,bold:true,color:cyNivW1.couleur,font:FONT_MONO})]:[]),
               lienSourceRun(a),
             ],
-            spacing:{after:120}
+            spacing:{after:40}
           }));
+          children.push(...detailWord(a, false));
         }
       }
 
@@ -23104,8 +23888,9 @@ async function exportWord(type){
             }));
             children.push(new Paragraph({
               children:[new TextRun({text:dateTxtW+'   ·   ',size:17,italic:true,color:'9CA3AF',font:FONT_MONO}), lienSourceRun(a)],
-              spacing:{after:80}
+              spacing:{after:40}
             }));
+            children.push(...detailWord(a));
           });
         });
       } else {
@@ -23212,8 +23997,9 @@ async function exportWord(type){
             }));
             children.push(new Paragraph({
               children:[new TextRun({text:lieuTxt+'   ·   '+(a.time||'')+'   ·   ', size:16, italic:true, color:'9CA3AF', font:FONT_MONO}), lienSourceRun(a)],
-              spacing:{after:80}
+              spacing:{after:40}
             }));
+            children.push(...detailWord(a));
           };
           const dossierW = s.dossier || {national:[],regional:[]};
           if (dossierW.national.length) {

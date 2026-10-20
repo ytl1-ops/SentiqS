@@ -2599,3 +2599,167 @@ deux défauts antérieurs corrigés au passage : « FLASH INFO » blanc sur le
 rouge clair (2,8:1) et la pastille « Collecte » verte foncée (3:1).
 `scripts/test/salle-de-veille.test.js` garde la redéfinition locale des
 jetons et le seuil AA des couples de jetons.
+
+---
+
+## La direction « Bleu nuit » et les visuels d'actu — 20/10/2026 (soir)
+
+L'éditeur a jugé « Salle de veille » sans élégance, trop noire et sans
+impact, et écarté aussi une maquette claire : il veut des **fondus de bleu
+nuit** et une image liée à chaque actu, à la manière d'Opera News, partout,
+rapports compris.
+
+**Le sombre devient le défaut.** Le script du `<head>` pose `data-theme="dark"`
+et ne revient au clair que sur `sentinel_theme_choix === 'light'`, écrit
+**seulement** par le bouton (`toggleTheme`). L'ancienne clé `sentinel_theme`
+était réécrite à chaque chargement par `appliquerTheme` : la relire aurait
+figé en clair tous les utilisateurs existants sans qu'aucun l'ait choisi. Un
+test l'exige. La consigne « pas de fond très sombre par défaut » écrite plus
+haut dans ce fichier est **levée par l'éditeur**.
+
+Jetons sombres : surfaces bleu nuit étagées (`--page-bg` #071431 < `--sf` <
+`--w` #0F2450), action et signature en or `#E6BA6E` (texte bleu nuit dessus,
+9,8:1), texte le plus pâle `--lg` à 6,9:1 sur une carte et 5,7:1 sur le halo
+le plus clair du dégradé de page. Le bloc CSS « DIRECTION « BLEU NUIT » » ne
+touche que le sombre, sauf les visuels d'actu. Gravité inchangée.
+
+**Le visuel d'une actu : `visuelActu(a, taille)`**, une seule fonction pour la
+vignette du Flux, « À la une » (Flux) et « Les faits du jour »
+(`renderPanelATraiter`, donc tableau de bord et Synthèse) via `carteUneHtml`.
+
+- L'image est celle de la **source** (`_media` du flux, sinon aperçu Open
+  Graph pour une source fiable, au plus `VISUEL_OGP_MAX` = 24 par rendu),
+  affichée depuis son adresse, **jamais copiée**, avec le domaine en crédit.
+  Le crédit apparaît même quand `sourcesVisibles()` masque les noms de
+  source : afficher l'image d'un tiers sans dire d'où elle vient n'est pas
+  défendable. À trancher par l'éditeur s'il veut l'inverse.
+- `https` seulement (la CSP refuse le reste) et motif strict : une adresse
+  avec un guillemet ne devient jamais un `<img>`.
+- Une vidéo ne se lit pas sur place (la CSP n'autorise aucun cadre) :
+  vignette officielle YouTube (`i.ytimg.com`) ou repli, et un bouton qui
+  ouvre la source.
+- Sans image, un **repli de marque** dit pays, thème et gravité, au lieu
+  d'une photo d'illustration qui laisserait croire à un document. Il est
+  toujours sous l'image : une image qui ne charge pas le laisse apparaître.
+
+**Mesurer sur les données réelles.** Ce bac à sable n'a pas de réseau : il ne
+voit que des replis. `scripts/apercu-visuels.js` lit le cache publié, compte
+dans la page (`mediaActu`) la part d'actus avec image, et photographie le Flux
+et le tableau de bord ; le workflow `apercu-visuels.yml` le lance sur chaque
+PR qui touche la page et dépose les captures en artefact. Informatif, il
+n'échoue jamais une PR.
+
+**Le logo de l'organisation (identité d'envoi).** L'éditeur a précisé que
+l'identité d'envoi d'un rapport, c'est le nom **et le logo** de
+l'organisation. Paramètres > Personnalisation de marque reçoit un champ logo :
+l'image est réduite à `LOGO_MARQUE_MAX_PX` (360 px), gardée en data URL PNG
+(JPEG si trop lourde) dans `sentinel_marque_perso` (`logoMarque`,
+`logoMarqueRatio`), jamais envoyée à un serveur. `logoMarqueActuelle()` suit
+la règle du nom : plan payant seulement. Imprimé en tête de l'aperçu HTML
+(Flux, Agenda, Alertes, rapport complet, Synthèse), du Word, du PDF (à gauche
+du titre) et de la couverture PowerPoint. `pmSaveMarquePerso` reconstruit tout
+l'objet : un test exige qu'il garde le logo déjà enregistré.
+
+Les rapports HTML montrent aussi l'image de la source à côté de chaque
+article (même règle que `visuelActu`), sans repli quand il n'y en a pas, pour
+ne pas coûter d'encre. **Pas encore fait** : le logo et les images dans le
+bulletin quotidien (page publique produite par le job, sans personnalisation
+d'utilisateur) et dans les cartes d'actu des Word/PDF/PowerPoint.
+
+### Vidéos ouvrables, rapports détaillés, réglages d'affichage — 20/10/2026 (soir)
+
+Trois demandes de l'éditeur, une passe.
+
+- **Une vidéo s'ouvre comme un lien de source.** `lienVideoActu(a)` donne la
+  page YouTube (`embed` devient `watch`), sinon le fichier vidéo `https` publié
+  par la source, sinon l'article. Toute la surface du visuel est le lien
+  (`.vact-play`, `inset:0`), le détail d'une actu porte « Ouvrir la vidéo »,
+  et `resolveOGP` retient aussi `og:video`.
+- **Les rapports ne s'arrêtent plus au titre.** `detailRapportActu(a)` :
+  résumé (l'analyse, coupée à `RESUME_RAPPORT_MAX`, jamais un rappel du titre),
+  cotation, publication, survenance, source si `sourcesVisibles()`, lien
+  article et lien vidéo. Lu par l'aperçu HTML (`_apDetailActu`), le PDF
+  (`articleItem`), le Word (`detailWord`) et le PowerPoint (`detailPptx` ;
+  trois ou quatre actus par diapositive au lieu de cinq à douze titres).
+- **Paramètres > Affichage**, pour tous les rôles, enregistré sur l'appareil :
+  format (automatique / ordinateur / tablette / mobile), taille du texte
+  (`zoom` de la zone de lecture), présentation compacte ou « magazine »,
+  « économiser les données » (aucune image chargée ni aperçu demandé ; une
+  vidéo reste ouvrable). Le format tablette (rail compact de 96 px, « À la
+  une » sur deux colonnes) s'applique d'office entre 761 et 1180 px ; forcé,
+  il ne vaut qu'à partir de 761 px. Ses règles sont écrites deux fois et un
+  test exige qu'elles restent identiques.
+
+`scripts/test/videos-rapports-affichage.test.js` (11 tests, tous vus échouer
+sur la version précédente).
+
+---
+
+## La page de garde « capitales de nuit » — 20/10/2026 (soir)
+
+Demande de l'éditeur, sur le modèle de mise en page de scutum-sf.com (on en
+reprend la **composition** : grand titre en capitales calé à gauche, bouton
+contour « En savoir plus », photo plein cadre — jamais un texte, un logo ni une
+image) : « votre partenaire sûreté sur l'Afrique », avec des vues de nuit de
+grandes capitales africaines qui se fondent les unes dans les autres derrière
+le texte.
+
+- La vidéo `hero.mp4` (1,9 Mo) et son affiche sont **retirées** ; six photos de
+  Wikimedia Commons sous licence libre (CC0, domaine public, CC BY, CC BY-SA)
+  les remplacent dans `web/assets/capitales/` : Abidjan, Lagos, Nairobi,
+  Le Caire, Johannesburg, Addis-Abeba. `credits.json` porte auteur, licence et
+  lien de chaque fichier.
+- Elles ont été choisies et redimensionnées (1600 px) par
+  `scripts/capitales-nuit.py`, lancé en CI (`capitales-nuit.yml`) : le bac à
+  sable n'a pas de réseau. La CSP de l'accueil (`img-src 'self' data:`) impose
+  de les héberger.
+- **Crédit obligatoire** (CC BY / BY-SA) : légende sur l'image en cours, et
+  liste complète en pied de page (`#credits-photos`) avec lien vers le fichier
+  source, la licence et la mention « image redimensionnée ».
+- Une seule image se charge d'abord (`src` + `fetchpriority`), les cinq autres
+  portent `data-src` et ne sont demandées qu'à la fin de l'animation
+  d'ouverture (`demarrerDecor`). Mouvement lent (fondu + zoom, cycle 42 s),
+  coupé sous `prefers-reduced-motion`.
+- Lisibilité tenue par un voile radial local et une teinte bleu nuit
+  (`.scene::after`, multiply) ; vérifiée à l'œil sur les six photos.
+  **Le contraste sur pixels n'a pas été remesuré** comme le 15/10 pour la
+  vidéo : à refaire si une photo plus claire entre dans la rotation.
+
+### Le pont à haubans d'Abidjan, et le contraste mesuré au pixel — 20/10/2026 (soir)
+
+L'éditeur a demandé d'alterner aussi des vues du pont à haubans d'Abidjan
+avec les capitales. `scripts/capitales-nuit.py` (`PASSE=pont`, workflow
+`capitales-nuit.yml`) a cherché sur Wikimedia Commons : les deux premières
+passes ont ramené des **péages et des skylines grises**, pas le pont —
+la requête « Pont HKB » désigne un autre ouvrage que le pont à haubans, dont
+les photos sont classées sous « Pont Hauban Abidjan ». Trois vues de Jean
+Yves ESSIGAN (CC BY 4.0) retenues, intercalées dans l'ordre :
+Abidjan, Lagos, **pont**, Nairobi, Le Caire, **pont**, Johannesburg,
+Addis-Abeba, **pont** (cycle de 63 s, 9 photos). Elles sont **de jour** :
+`data-diurne` les assombrit (`brightness(.6)`) pour tenir le niveau des vues
+de nuit. Un test refuse deux vues du pont de suite et exige un crédit par photo.
+
+**Contraste mesuré sur les pixels** (`scratchpad` : les 9 photos, au début et
+à la fin du zoom, texte rendu transparent, 10ᵉ centile du contraste sous
+chaque élément). Résultat : tout passe — pire cas du titre 11,4:1, du mot
+clé en bleu clair 5,1:1 (seuil 3), des boutons 14:1. Le mot clé tombait à
+**2,9:1 sur la vue du pont avant l'assombrissement** : c'est ce qui a imposé
+`data-diurne`. Piège de mesure : sans couper les transitions CSS, les
+boutons se mesuraient à 1,1:1 (mi-fondu) ; ce n'est pas un défaut de la page.
+Ce banc n'est pas en CI (il demande Pillow) : le refaire si une photo entre
+dans la rotation.
+
+### Images des sources dans les rapports bureautiques
+
+`chargerImagesRapport(arts, max)` embarque l'image de la source dans le PDF,
+le Word et le PowerPoint. Un document ne peut pas pointer vers une adresse :
+il faut les octets, que la page n'a pas le droit de demander par `fetch` (CSP
+`connect-src`) et qu'on ne cherche pas par un relais public. L'image est donc
+chargée comme l'écran le fait (`<img crossOrigin>`), redessinée à 480 px, et
+n'est embarquée que **si la source autorise le partage** (canevas non teinté) ;
+sinon le document garde le texte seul, sans repli. 24 images au plus par
+document (16 en PowerPoint), 4 s par image, les plus graves d'abord, rien
+si « économiser les données » est actif. **Non vérifié ici** : le résultat
+avec de vraies images de source, ce bac à sable n'ayant pas de réseau — seuls
+le câblage et le tri sont testés. Mesurer sur un export réel avant de parler
+d'un taux d'images.

@@ -220,17 +220,26 @@ test('câblage des deux pages : même module, mêmes identifiants, aucune dépen
     assert.match(html, /<video id="introVideoEl"[^>]*preload="none"[^>]*aria-hidden="true"/, nom + ' : la vidéo ne se télécharge qu\'à la lecture');
     assert.match(html, /id="introVideoSkip"/, nom + ' : bouton Passer');
   }
-  // L'accueil : le décor animé ne démarre qu'après l'intro (pas de double téléchargement).
-  assert.match(accueil, /id="heroVideo"[^>]*preload="none"/);
-  assert.doesNotMatch(accueil, /<video[^>]*class="scene-video"[^>]*autoplay/);
+  // L'accueil : le diaporama des capitales ne télécharge que sa première
+  // image avec la page ; les autres attendent la fin de l'intro (data-src).
+  const diapos = [...accueil.matchAll(/<img class="diapo"([^>]*)>/g)].map((m) => m[1]);
+  assert.ok(diapos.length >= 4, 'au moins quatre capitales');
+  assert.match(diapos[0], /(^|\s)src="assets\/capitales\//);
+  diapos.slice(1).forEach((d) => { assert.match(d, /data-src="assets\/capitales\//); assert.doesNotMatch(d, /(^|\s)src=/); });
+  assert.doesNotMatch(accueil, /<video[^>]*class="scene-video"/, 'plus de vidéo de décor');
   // L'appli : plus de logique dupliquée, uniquement l'appel au module.
   assert.match(appli, /SentiqIntro\.lancer\(/);
   assert.doesNotMatch(appli, /sessionStorage\.getItem\('sentinel_intro_vue'\)/, 'plus de seconde copie de la logique');
 });
 
-test('les deux vidéos restent légères et sans piste audio inutile', () => {
+test('l\'animation et le décor de l\'accueil restent légers, sans piste audio inutile', () => {
   const dossier = path.join(__dirname, '..', '..', 'web', 'assets');
-  const plafonds = { 'hero.mp4': 2.5e6, 'intro-sentiqs.mp4': 1.0e6 };
+  // Le décor vidéo de l'accueil (1,96 Mo) a cédé la place, le 20/10/2026,
+  // aux photos de capitales de nuit : plafond sur leur poids total.
+  const capitales = fs.readdirSync(path.join(dossier, 'capitales')).filter((f) => f.endsWith('.jpg'))
+    .reduce((t, f) => t + fs.statSync(path.join(dossier, 'capitales', f)).size, 0);
+  assert.ok(capitales <= 1.6e6, `capitales : ${(capitales / 1e6).toFixed(2)} Mo > plafond 1,6 Mo`);
+  const plafonds = { 'intro-sentiqs.mp4': 1.0e6 };
   for (const [f, max] of Object.entries(plafonds)) {
     const taille = fs.statSync(path.join(dossier, f)).size;
     assert.ok(taille <= max, `${f} : ${(taille / 1e6).toFixed(2)} Mo > plafond ${(max / 1e6).toFixed(1)} Mo`);
@@ -238,4 +247,20 @@ test('les deux vidéos restent légères et sans piste audio inutile', () => {
   // Pas de piste audio : l'élément est « muted », l'AAC ne servait à rien (~0,3 Mo).
   const intro = fs.readFileSync(path.join(dossier, 'intro-sentiqs.mp4'));
   assert.equal(intro.includes(Buffer.from('soun')), false, 'intro-sentiqs.mp4 ne doit plus contenir de piste audio');
+});
+
+test('page d accueil : chaque photo du diaporama est creditee, et le pont d Abidjan alterne avec les capitales', () => {
+  const accueil = fs.readFileSync(path.join(__dirname, '..', '..', 'web', 'index.html'), 'utf8');
+  const fichiers = [...accueil.matchAll(/<img class="diapo"[^>]*?(?:data-)?src="assets\/capitales\/([^"]+)\.jpg"/g)].map((m) => m[1]);
+  const legendes = [...accueil.matchAll(/<span class="diapo-legende"/g)].length;
+  assert.strictEqual(legendes, fichiers.length, 'une legende par photo');
+  const credits = accueil.slice(accueil.indexOf('id="credits-photos"'));
+  const json = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'web', 'assets', 'capitales', 'credits.json'), 'utf8')).map((c) => c.fichier);
+  fichiers.forEach((f) => assert.ok(json.includes('assets/capitales/' + f + '.jpg'), f + ' absent de credits.json'));
+  assert.strictEqual((credits.match(/image redimensionnée/g) || []).length >= fichiers.length, true, 'un credit en pied de page par photo');
+  const pont = fichiers.map((f) => /^pont-haubans/.test(f));
+  assert.ok(pont.filter(Boolean).length >= 3, 'le pont a haubans est dans la rotation');
+  for (let i = 1; i < pont.length; i++) assert.ok(!(pont[i] && pont[i - 1]), 'deux vues du pont de suite : ' + fichiers[i]);
+  // Les vues de jour sont assombries : le titre est mesure sur les pixels.
+  fichiers.forEach((f, i) => { if (pont[i]) assert.match(accueil, new RegExp('data-diurne data-src="assets/capitales/' + f + '\\.jpg"')); });
 });
