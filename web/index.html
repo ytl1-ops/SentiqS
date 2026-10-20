@@ -84,24 +84,59 @@ img,svg{display:block;max-width:100%}
 /* ── HERO / animated ops scene (adapted from the app's login screen) ─── */
 .hero{position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden}
 .scene{position:absolute;inset:0;overflow:hidden;z-index:0;pointer-events:none;background:#040608}
-.scene-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.scene-vignette{position:absolute;inset:0;background:radial-gradient(ellipse 80% 65% at 50% 38%,rgba(9,16,24,0) 0%,rgba(4,6,8,.35) 65%,rgba(4,6,8,.7) 100%)}
-@media (prefers-reduced-motion:reduce){.scene-video{display:none}.scene{background:#24384A}}
+/* Diaporama des capitales : chaque image tient 7 s sur un cycle de 42 s,
+   fondu enchaîné et lent mouvement (zoom et glissement). Avant le départ
+   (.en-mouvement) ou en animations réduites, seule la première est visible. */
+.scene{background:#0A1733}
+.diapo{position:absolute;inset:-2%;width:104%;height:104%;object-fit:cover;opacity:0;will-change:opacity,transform}
+.diapo:first-child{opacity:1}
+.scene.en-mouvement .diapo{animation:diapo 42s linear infinite both}
+.scene.en-mouvement .diapo:first-child{opacity:0}
+@keyframes diapo{
+  0%{opacity:0;transform:scale(1.02) translate3d(0,0,0)}
+  3%{opacity:1}
+  17%{opacity:1}
+  21%{opacity:0;transform:scale(1.12) translate3d(-2%,-1%,0)}
+  100%{opacity:0;transform:scale(1.12) translate3d(-2%,-1%,0)}
+}
+/* Voile bleu nuit : plus dense à gauche, sous le texte ; fondu vers la page en bas. */
+.scene-vignette{position:absolute;inset:0;background:
+  linear-gradient(180deg,rgba(5,8,11,0) 70%,rgba(5,8,11,.9) 100%),
+  linear-gradient(90deg,rgba(12,26,72,.62) 0%,rgba(12,26,72,.38) 50%,rgba(12,26,72,.12) 100%)}
+/* Teinte bleu nuit sur la photo (multiplication) : la ville reste lumineuse,
+   le ciel vire au bleu profond. */
+.scene::after{content:"";position:absolute;inset:0;background:#2A4A9E;mix-blend-mode:multiply;opacity:.55;pointer-events:none}
+.diapo-legendes{position:absolute;right:20px;bottom:18px;z-index:1}
+.diapo-legende{position:absolute;right:0;bottom:0;white-space:nowrap;font-family:var(--mono);font-size:11px;color:rgba(245,247,250,.85);
+  background:rgba(5,8,11,.6);padding:3px 9px;border-radius:3px;opacity:0}
+.diapo-legende:first-child{opacity:1}
+.scene.en-mouvement .diapo-legende{animation:legende 42s linear infinite both}
+.scene.en-mouvement .diapo-legende:first-child{opacity:0}
+@keyframes legende{0%{opacity:0}3%{opacity:1}17%{opacity:1}20%{opacity:0}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.scene.en-mouvement .diapo,.scene.en-mouvement .diapo-legende{animation:none}
+  .scene.en-mouvement .diapo:first-child,.scene.en-mouvement .diapo-legende:first-child{opacity:1}}
 
-.hero-inner{position:relative;z-index:2;width:100%;padding:150px 28px 90px}
-.hero-content{position:relative;isolation:isolate;max-width:760px;margin:0 auto;text-align:center}
+.hero-inner{position:relative;z-index:2;width:100%;max-width:1180px;margin:0 auto;padding:150px 28px 110px}
+.hero-content{position:relative;isolation:isolate;max-width:860px;text-align:left}
 .hero-content::before{content:"";position:absolute;z-index:-1;inset:-100px -200px -80px;pointer-events:none;
-  background:radial-gradient(ellipse closest-side at 50% 50%,rgba(4,6,8,.84) 0%,rgba(4,6,8,.78) 56%,rgba(4,6,8,0) 100%)}
+  background:radial-gradient(ellipse closest-side at 40% 50%,rgba(6,14,38,.5) 0%,rgba(6,14,38,.36) 60%,rgba(6,14,38,0) 100%)}
 .hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--navy);color:#fff;
   padding:7px 16px;border-radius:20px;font-family:var(--mono);font-size:11px;font-weight:600;
   letter-spacing:.14em;text-transform:uppercase;border:1px solid #2E4E63}
 .hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--sky);flex-shrink:0}
-.hero h1{text-shadow:0 2px 18px rgba(0,0,0,.45);font-family:var(--serif);font-weight:800;font-size:clamp(34px,5.4vw,64px);line-height:1.08;letter-spacing:-.01em;color:#fff;margin:18px 0 20px}
+.hero h1{text-shadow:0 2px 18px rgba(0,0,0,.45);font-family:var(--sans);font-weight:800;font-size:clamp(40px,7.2vw,92px);line-height:1;letter-spacing:-.02em;text-transform:uppercase;color:#fff;margin:0 0 18px}
+.hero h1 em{display:block}
 .hero h1 em{font-style:normal;color:var(--sky)}
-.hero-sub{font-size:16px;color:var(--ink2);max-width:600px;margin:0 auto 34px;line-height:1.65}
-.hero-ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:56px}
-.hero-stats{display:flex;justify-content:center;gap:0;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.1);padding-top:26px;max-width:640px;margin:0 auto}
-.hstat{flex:1;min-width:120px;text-align:center;padding:0 14px}
+.hero-sub{font-size:clamp(19px,2.2vw,26px);font-weight:500;color:#fff;max-width:640px;margin:0 0 12px;line-height:1.35;text-shadow:0 1px 10px rgba(0,0,0,.5)}
+.hero-sub2{font-size:15px;color:var(--ink2);max-width:560px;margin:0 0 32px;line-height:1.6}
+.hero-ctas{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:56px}
+/* « En savoir plus » : bouton à contour blanc, à la manière des grands sites
+   de sûreté ; se remplit au survol. */
+.btn-contour{color:#fff;border:2px solid #fff;background:rgba(8,20,52,.35);text-transform:uppercase;letter-spacing:.08em}
+.btn-contour:hover{background:#fff;color:#0A1733}
+.btn-contour:focus-visible{outline:2px solid var(--sky);outline-offset:3px}
+.hero-stats{display:flex;gap:0;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.14);padding-top:26px;max-width:640px}
+.hstat{flex:1;min-width:120px;text-align:left;padding:0 20px 0 0}
 .hstat b{display:block;font-family:var(--serif);font-weight:700;font-size:28px;color:#fff}
 .hstat span{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin-top:4px}
 
@@ -229,6 +264,10 @@ footer{padding:60px 0 36px;border-top:1px solid var(--line2);margin-top:60px}
 .foot-col h2{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink4);margin-bottom:12px}
 .foot-col a{display:block;font-size:13px;color:var(--ink2);margin-bottom:9px}
 .foot-col a:hover{color:#fff}
+.foot-credits{padding:18px 0 4px;font-size:11.5px;color:var(--ink3)}
+.foot-credits h2{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);margin:0 0 8px;font-weight:600}
+.foot-credits ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:4px 24px}
+.foot-credits a{color:var(--ink2);text-decoration:underline}
 .foot-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:11px;color:var(--ink4);padding-top:22px;border-top:1px solid var(--line2)}
 @media (max-width:760px){.foot-top{flex-direction:column}}
 
@@ -326,18 +365,19 @@ section p a{padding:5px 0}
 </div>
 <script src="js/intro.js"></script>
 <script>
-// Le décor animé de l'accueil ne démarre qu'une fois l'animation d'ouverture
-// terminée ou écartée : deux vidéos téléchargées en parallèle, c'est ce qui
-// pèse le plus sur un mobile en réseau moyen.
+// Le diaporama des capitales ne démarre (et ses images ne se téléchargent)
+// qu'une fois l'animation d'ouverture terminée ou écartée : télécharger en
+// parallèle, c'est ce qui pèse le plus sur un mobile en réseau moyen.
 (function () {
   var introFinie = false, domPret = false;
   function demarrerDecor() {
     if (!introFinie || !domPret) return;
-    var v = document.getElementById('heroVideo');
-    if (!v) return;
+    // Animations réduites : la première capitale reste seule, immobile.
     try { if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; } catch (_) {}
-    var p = v.play();
-    if (p && p.catch) p.catch(function () { /* lecture refusée : l'affiche reste */ });
+    var imgs = document.querySelectorAll('.scene img.diapo[data-src]');
+    for (var i = 0; i < imgs.length; i++) { imgs[i].src = imgs[i].getAttribute('data-src'); imgs[i].removeAttribute('data-src'); }
+    var scene = document.querySelector('.hero .scene');
+    if (scene) scene.classList.add('en-mouvement');
   }
   document.addEventListener('DOMContentLoaded', function () { domPret = true; demarrerDecor(); });
   try {
@@ -376,26 +416,43 @@ section p a{padding:5px 0}
 <main id="main" tabindex="-1">
 <!-- ═══ HERO ══════════════════════════════════════════════════════════ -->
 <header class="hero" id="top">
+  <!-- Capitales africaines de nuit, en fondu enchaîné et en lent mouvement
+       (demande de l'éditeur du 20/10/2026). Photos Wikimedia Commons sous
+       licence libre, créditées sur l'image et dans « Crédits photo » en pied
+       de page (voir assets/capitales/credits.json). Seule la première se
+       charge avec la page ; les autres attendent la fin de l'animation
+       d'ouverture (data-src, voir demarrerDecor). -->
   <div class="scene" aria-hidden="true">
-    <video class="scene-video" id="heroVideo" muted loop playsinline preload="none" poster="assets/hero-poster.jpg">
-      <source src="assets/hero.mp4" type="video/mp4">
-    </video>
+      <img class="diapo" src="assets/capitales/abidjan.jpg" fetchpriority="high" alt="" decoding="async" style="animation-delay:0s">
+      <img class="diapo" data-src="assets/capitales/lagos.jpg" alt="" decoding="async" style="animation-delay:7s">
+      <img class="diapo" data-src="assets/capitales/nairobi.jpg" alt="" decoding="async" style="animation-delay:14s">
+      <img class="diapo" data-src="assets/capitales/le-caire.jpg" alt="" decoding="async" style="animation-delay:21s">
+      <img class="diapo" data-src="assets/capitales/johannesburg.jpg" alt="" decoding="async" style="animation-delay:28s">
+      <img class="diapo" data-src="assets/capitales/addis-abeba.jpg" alt="" decoding="async" style="animation-delay:35s">
     <div class="scene-vignette"></div>
+    <div class="diapo-legendes">
+      <span class="diapo-legende" style="animation-delay:0s">Abidjan, de nuit · © abdallahh, CC BY 2.0</span>
+      <span class="diapo-legende" style="animation-delay:7s">Lagos, de nuit · © S.aderogba, CC BY-SA 4.0</span>
+      <span class="diapo-legende" style="animation-delay:14s">Nairobi, de nuit · © Nbi101, CC BY-SA 4.0</span>
+      <span class="diapo-legende" style="animation-delay:21s">Le Caire, de nuit · © Daniel Nussbaum, CC BY-SA 3.0</span>
+      <span class="diapo-legende" style="animation-delay:28s">Johannesburg, de nuit · © Nico Roets, CC BY 2.0</span>
+      <span class="diapo-legende" style="animation-delay:35s">Addis-Abeba, de nuit · © PMO Ethiopia, domaine public</span>
+    </div>
   </div>
 
   <div class="hero-inner">
     <div class="hero-content">
-      <span class="hero-badge"><span class="hero-badge-dot"></span>Renseignement sûreté · temps réel</span>
-      <h1>Veille stratégique pour un continent <em>en sûreté</em>.</h1>
-      <p class="hero-sub">SentiqS croise en continu des centaines de sources africaines — médias et réseaux sociaux — pour transformer le bruit médiatique en décisions de sûreté exploitables. En quelques minutes, pas en heures.</p>
+      <h1>SentiqS <em>Sûreté Afrique</em></h1>
+      <p class="hero-sub">Votre partenaire sûreté sur l'Afrique</p>
+      <p class="hero-sub2">Veille en continu sur 54 pays : des centaines de sources africaines croisées pour transformer le bruit médiatique en décisions de sûreté.</p>
       <div class="hero-ctas">
-        <button class="btn btn-primary btn-lg" onclick="openSignup()">Créer un compte gratuit</button>
-        <a class="btn btn-ghost btn-lg" href="#plateforme">Voir la plateforme</a>
+        <a class="btn btn-contour btn-lg" href="#plateforme">En savoir plus</a>
+        <button class="btn btn-ghost btn-lg" onclick="openSignup()">Essai gratuit</button>
       </div>
       <div class="hero-stats">
         <div class="hstat"><b>54</b><span>Pays couverts</span></div>
         <div class="hstat"><b>484</b><span>Sources suivies</span></div>
-        <div class="hstat"><b>&lt;12h</b><span>Filtre anti-hallucination</span></div>
+        <div class="hstat"><b>36 h</b><span>Fenêtre d'actualité vérifiée</span></div>
         <div class="hstat"><b>5</b><span>Formats de rapport</span></div>
       </div>
     </div>
@@ -636,6 +693,17 @@ section p a{padding:5px 0}
           <a href="mailto:yorot225@gmail.com">yorot225@gmail.com</a>
         </div>
       </div>
+    </div>
+    <div class="foot-credits" id="credits-photos">
+      <h2>Crédits photo</h2>
+      <ul>
+        <li>Abidjan, de nuit — <a href="https://commons.wikimedia.org/wiki/File:Plateau_Abidjan_de_nuit.jpg" target="_blank" rel="noopener">abdallahh</a>, <a href="https://creativecommons.org/licenses/by/2.0" rel="license noopener" target="_blank">CC BY 2.0</a>, image redimensionnée</li>
+        <li>Lagos, de nuit — <a href="https://commons.wikimedia.org/wiki/File:Night-view-of-lekki-link-bridge.jpg" target="_blank" rel="noopener">S.aderogba</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0" rel="license noopener" target="_blank">CC BY-SA 4.0</a>, image redimensionnée</li>
+        <li>Nairobi, de nuit — <a href="https://commons.wikimedia.org/wiki/File:Nairobi_night_skyline_at_dusk_.jpg" target="_blank" rel="noopener">Nbi101</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0" rel="license noopener" target="_blank">CC BY-SA 4.0</a>, image redimensionnée</li>
+        <li>Le Caire, de nuit — <a href="https://commons.wikimedia.org/wiki/File:Nile_and_Cairo_Tower_at_night_-_panoramio.jpg" target="_blank" rel="noopener">Daniel Nussbaum</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0" rel="license noopener" target="_blank">CC BY-SA 3.0</a>, image redimensionnée</li>
+        <li>Johannesburg, de nuit — <a href="https://commons.wikimedia.org/wiki/File:Joburg_at_night.jpg" target="_blank" rel="noopener">Nico Roets</a>, <a href="https://creativecommons.org/licenses/by/2.0" rel="license noopener" target="_blank">CC BY 2.0</a>, image redimensionnée</li>
+        <li>Addis-Abeba, de nuit — <a href="https://commons.wikimedia.org/wiki/File:Addis_Ababa_at_the_night_time.jpg" target="_blank" rel="noopener">PMO Ethiopia</a>, domaine public, image redimensionnée</li>
+      </ul>
     </div>
     <div class="foot-bottom">
       <span>SentiqS</span>

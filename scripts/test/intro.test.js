@@ -220,17 +220,26 @@ test('câblage des deux pages : même module, mêmes identifiants, aucune dépen
     assert.match(html, /<video id="introVideoEl"[^>]*preload="none"[^>]*aria-hidden="true"/, nom + ' : la vidéo ne se télécharge qu\'à la lecture');
     assert.match(html, /id="introVideoSkip"/, nom + ' : bouton Passer');
   }
-  // L'accueil : le décor animé ne démarre qu'après l'intro (pas de double téléchargement).
-  assert.match(accueil, /id="heroVideo"[^>]*preload="none"/);
-  assert.doesNotMatch(accueil, /<video[^>]*class="scene-video"[^>]*autoplay/);
+  // L'accueil : le diaporama des capitales ne télécharge que sa première
+  // image avec la page ; les autres attendent la fin de l'intro (data-src).
+  const diapos = [...accueil.matchAll(/<img class="diapo"([^>]*)>/g)].map((m) => m[1]);
+  assert.ok(diapos.length >= 4, 'au moins quatre capitales');
+  assert.match(diapos[0], /(^|\s)src="assets\/capitales\//);
+  diapos.slice(1).forEach((d) => { assert.match(d, /data-src="assets\/capitales\//); assert.doesNotMatch(d, /(^|\s)src=/); });
+  assert.doesNotMatch(accueil, /<video[^>]*class="scene-video"/, 'plus de vidéo de décor');
   // L'appli : plus de logique dupliquée, uniquement l'appel au module.
   assert.match(appli, /SentiqIntro\.lancer\(/);
   assert.doesNotMatch(appli, /sessionStorage\.getItem\('sentinel_intro_vue'\)/, 'plus de seconde copie de la logique');
 });
 
-test('les deux vidéos restent légères et sans piste audio inutile', () => {
+test('l\'animation et le décor de l\'accueil restent légers, sans piste audio inutile', () => {
   const dossier = path.join(__dirname, '..', '..', 'web', 'assets');
-  const plafonds = { 'hero.mp4': 2.5e6, 'intro-sentiqs.mp4': 1.0e6 };
+  // Le décor vidéo de l'accueil (1,96 Mo) a cédé la place, le 20/10/2026,
+  // aux photos de capitales de nuit : plafond sur leur poids total.
+  const capitales = fs.readdirSync(path.join(dossier, 'capitales')).filter((f) => f.endsWith('.jpg'))
+    .reduce((t, f) => t + fs.statSync(path.join(dossier, 'capitales', f)).size, 0);
+  assert.ok(capitales <= 1.2e6, `capitales : ${(capitales / 1e6).toFixed(2)} Mo > plafond 1,2 Mo`);
+  const plafonds = { 'intro-sentiqs.mp4': 1.0e6 };
   for (const [f, max] of Object.entries(plafonds)) {
     const taille = fs.statSync(path.join(dossier, f)).size;
     assert.ok(taille <= max, `${f} : ${(taille / 1e6).toFixed(2)} Mo > plafond ${(max / 1e6).toFixed(1)} Mo`);

@@ -1,0 +1,56 @@
+[
+ {
+  "fichier": "assets/capitales/abidjan.jpg",
+  "ville": "Abidjan",
+  "titre": "File:Plateau Abidjan de nuit.jpg",
+  "auteur": "abdallahh",
+  "licence": "CC BY 2.0",
+  "licence_url": "https://creativecommons.org/licenses/by/2.0",
+  "source": "https://commons.wikimedia.org/wiki/File:Plateau_Abidjan_de_nuit.jpg"
+ },
+ {
+  "fichier": "assets/capitales/lagos.jpg",
+  "ville": "Lagos",
+  "titre": "File:Night-view-of-lekki-link-bridge.jpg",
+  "auteur": "S.aderogba",
+  "licence": "CC BY-SA 4.0",
+  "licence_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "source": "https://commons.wikimedia.org/wiki/File:Night-view-of-lekki-link-bridge.jpg"
+ },
+ {
+  "fichier": "assets/capitales/nairobi.jpg",
+  "ville": "Nairobi",
+  "titre": "File:Nairobi night skyline at dusk .jpg",
+  "auteur": "Nbi101",
+  "licence": "CC BY-SA 4.0",
+  "licence_url": "https://creativecommons.org/licenses/by-sa/4.0",
+  "source": "https://commons.wikimedia.org/wiki/File:Nairobi_night_skyline_at_dusk_.jpg"
+ },
+ {
+  "fichier": "assets/capitales/le-caire.jpg",
+  "ville": "Le Caire",
+  "titre": "File:Nile and Cairo Tower at night - panoramio.jpg",
+  "auteur": "Daniel Nussbaum",
+  "licence": "CC BY-SA 3.0",
+  "licence_url": "https://creativecommons.org/licenses/by-sa/3.0",
+  "source": "https://commons.wikimedia.org/wiki/File:Nile_and_Cairo_Tower_at_night_-_panoramio.jpg"
+ },
+ {
+  "fichier": "assets/capitales/johannesburg.jpg",
+  "ville": "Johannesburg",
+  "titre": "File:Joburg at night.jpg",
+  "auteur": "Nico Roets",
+  "licence": "CC BY 2.0",
+  "licence_url": "https://creativecommons.org/licenses/by/2.0",
+  "source": "https://commons.wikimedia.org/wiki/File:Joburg_at_night.jpg"
+ },
+ {
+  "fichier": "assets/capitales/addis-abeba.jpg",
+  "ville": "Addis-Abeba",
+  "titre": "File:Addis Ababa at the night time.jpg",
+  "auteur": "PMO Ethiopia",
+  "licence": "Public domain",
+  "licence_url": "",
+  "source": "https://commons.wikimedia.org/wiki/File:Addis_Ababa_at_the_night_time.jpg"
+ }
+]

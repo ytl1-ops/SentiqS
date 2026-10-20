@@ -2692,3 +2692,35 @@ Trois demandes de l'éditeur, une passe.
 
 `scripts/test/videos-rapports-affichage.test.js` (11 tests, tous vus échouer
 sur la version précédente).
+
+---
+
+## La page de garde « capitales de nuit » — 20/10/2026 (soir)
+
+Demande de l'éditeur, sur le modèle de mise en page de scutum-sf.com (on en
+reprend la **composition** : grand titre en capitales calé à gauche, bouton
+contour « En savoir plus », photo plein cadre — jamais un texte, un logo ni une
+image) : « votre partenaire sûreté sur l'Afrique », avec des vues de nuit de
+grandes capitales africaines qui se fondent les unes dans les autres derrière
+le texte.
+
+- La vidéo `hero.mp4` (1,9 Mo) et son affiche sont **retirées** ; six photos de
+  Wikimedia Commons sous licence libre (CC0, domaine public, CC BY, CC BY-SA)
+  les remplacent dans `web/assets/capitales/` : Abidjan, Lagos, Nairobi,
+  Le Caire, Johannesburg, Addis-Abeba. `credits.json` porte auteur, licence et
+  lien de chaque fichier.
+- Elles ont été choisies et redimensionnées (1600 px) par
+  `scripts/capitales-nuit.py`, lancé en CI (`capitales-nuit.yml`) : le bac à
+  sable n'a pas de réseau. La CSP de l'accueil (`img-src 'self' data:`) impose
+  de les héberger.
+- **Crédit obligatoire** (CC BY / BY-SA) : légende sur l'image en cours, et
+  liste complète en pied de page (`#credits-photos`) avec lien vers le fichier
+  source, la licence et la mention « image redimensionnée ».
+- Une seule image se charge d'abord (`src` + `fetchpriority`), les cinq autres
+  portent `data-src` et ne sont demandées qu'à la fin de l'animation
+  d'ouverture (`demarrerDecor`). Mouvement lent (fondu + zoom, cycle 42 s),
+  coupé sous `prefers-reduced-motion`.
+- Lisibilité tenue par un voile radial local et une teinte bleu nuit
+  (`.scene::after`, multiply) ; vérifiée à l'œil sur les six photos.
+  **Le contraste sur pixels n'a pas été remesuré** comme le 15/10 pour la
+  vidéo : à refaire si une photo plus claire entre dans la rotation.
