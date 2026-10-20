@@ -2561,3 +2561,38 @@ La règle « capable d'alerter » (`peutAlerter`, `estRequeteGoogleNews`) a
 quitté `scripts/lib/capacite-alerte.js` pour le noyau, qui la partage avec la
 page ; la bibliothèque la réexporte. Mesuré sur la vraie page : 21 pays à
 source unique, exactement le cliquet `PLAFOND_PAYS_SOURCE_UNIQUE`.
+## La direction « Salle de veille » — 20/10/2026
+
+Demande : une présentation « robuste et sécuritaire », sur le modèle de
+palantir.com et lacoste.com. On en reprend des **principes**, jamais un logo,
+une image ou un texte : une seule couleur d'action (l'encre), la couleur
+réservée à ce qui signifie (les cinq niveaux de gravité), des filets d'un
+pixel au lieu des ombres, des angles courts (4 px), des petites capitales
+très espacées pour les repères, et un chrome sombre qui encadre un contenu
+clair.
+
+Ce qui a changé : `--b` passe du bronze à l'encre (`#14171C`, blanc cassé en
+sombre) ; neutres froids au lieu de chauds ; rayons `--r-md` 8 → 4 px ; plus
+d'ombres de carte. Barre du haut, rail des modules et scène de connexion
+passent à l'encre (`--ink`). Le bronze `--sig` devient la signature : filet
+sous la barre du haut, onglet actif, cadre du logo, nœuds du globe. Le thème
+sombre passe du bleu nuit au graphite. Les tuiles d'indicateurs du tableau
+de bord (`kpiCard`, classe `kpi-tile`) mettent le chiffre en avant (28 px,
+chiffres tabulaires). **La zone de lecture reste claire par défaut** : la
+consigne « pas de fond très sombre » vaut toujours pour le contenu.
+
+**Le mécanisme à connaître** : `.tb,.nav-wrap{--w:…;--t:…;--b:…}` redéfinit
+les jetons **localement**. Tout ce qui, dans ces deux zones, lit un jeton
+suit sans qu'on touche aux styles en ligne. Un élément ajouté dans la barre
+du haut avec une couleur **en dur** ne suivra pas : utiliser les jetons.
+
+Pas touché : les couleurs de gravité (un test l'exige), les documents
+exportés (Word/PDF/PowerPoint/bulletin gardent leur bronze, codé en dur),
+`NIV`, les couleurs de source du registre.
+
+Mesuré (7 modules × bureau/mobile × clair/sombre, DOM rendu) : 0 texte sous
+AA en clair hors « Recalculer » désactivé (exempté), comme avant. En sombre,
+deux défauts antérieurs corrigés au passage : « FLASH INFO » blanc sur le
+rouge clair (2,8:1) et la pastille « Collecte » verte foncée (3:1).
+`scripts/test/salle-de-veille.test.js` garde la redéfinition locale des
+jetons et le seuil AA des couples de jetons.
