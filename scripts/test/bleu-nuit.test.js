@@ -90,7 +90,7 @@ test('sans image, le repli dit le pays et la gravite, et l apercu Open Graph est
   assert.strictEqual(ctx._ogp.length, ctx.VISUEL_OGP_MAX);
 });
 
-test('A la une : gravite d abord, un seul fait par pays, l image departage', () => {
+test('A la une : gravite d abord, un seul fait par pays, rien hors d Afrique, l image departage', () => {
   const ctx = bacVisuel();
   const choix = ctx.choisirALaUne([
     art({ id: 'a', cy: 'CI', level: 'mod', pubDate: 9 }),
@@ -98,6 +98,7 @@ test('A la une : gravite d abord, un seul fait par pays, l image departage', () 
     art({ id: 'c', cy: 'ML', level: 'crit', pubDate: 5 }),
     art({ id: 'd', cy: 'BF', level: 'high', pubDate: 2 }),
     art({ id: 'e', cy: 'BF', level: 'high', pubDate: 1, _media: { img: 'https://x.org/i.jpg' } }),
+    art({ id: 'i', cy: 'INT', level: 'crit', pubDate: 99 }),
   ], 4);
   assert.deepStrictEqual(Array.from(choix, (a) => a.id), ['c', 'e', 'a']);
 });

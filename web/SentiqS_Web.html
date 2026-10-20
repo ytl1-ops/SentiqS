@@ -9456,10 +9456,13 @@ function carteUneHtml(a) {
 }
 // Choix des actus « a la une » : gravite d'abord, puis celles qui ont un
 // visuel de la source, puis la plus recente. Jamais plus d'une par pays,
-// pour que la bande ne raconte pas quatre fois le meme fait.
+// pour que la bande ne raconte pas quatre fois le meme fait, et jamais un
+// fait hors d'Afrique (cy 'INT') : premiere capture sur le cache reel du
+// 20/10/2026, un accident de la route en Australie tenait la une d'un outil
+// de veille sur 54 pays africains. Meme regle que la file « a traiter ».
 function choisirALaUne(arts, n) {
   const rang = { crit: 0, high: 1, mod: 2, ok: 3 };
-  const tries = arts.filter(a => a && !a.flagged && a.level in rang).slice().sort((x, y) =>
+  const tries = arts.filter(a => a && !a.flagged && a.level in rang && a.cy && a.cy !== 'INT').slice().sort((x, y) =>
     (rang[x.level] - rang[y.level]) || ((mediaActu(y).img ? 1 : 0) - (mediaActu(x).img ? 1 : 0)) || ((y.pubDate || 0) - (x.pubDate || 0)));
   const vus = new Set(), pris = [];
   for (const a of tries) { if (vus.has(a.cy)) continue; vus.add(a.cy); pris.push(a); if (pris.length >= n) break; }
