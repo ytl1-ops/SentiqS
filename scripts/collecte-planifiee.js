@@ -415,6 +415,7 @@ function ecrireResumeActions(md) {
             code: c.code, nom: c.name, niveau: s && s.key, total: s && s.total,
             verifies: d.verifies, facteurs: d.specials,
             live: d.liveApplique, historique: d.historiqueApplique,
+            confiance: s && s.confiance && s.confiance.cle,
           };
         });
       });
