@@ -2917,7 +2917,8 @@ html.force-mobile .tlbr .chips::-webkit-scrollbar{display:none}
         <i class="ti ti-login"></i> <span data-i18n="otp_verify">Valider et entrer</span>
       </button>
       <div class="auth-err" id="otpErr"></div>
-      <div class="auth-sub" id="otpAide" style="margin-top:10px" data-i18n="otp_help">Le code est valable quelques minutes. Pensez à vérifier vos courriers indésirables.</div>
+      <div class="auth-sub" id="otpAide" style="margin-top:10px" data-i18n="otp_help">Le code est valable quelques minutes et peut mettre jusqu'à deux minutes à arriver. Vérifiez vos courriers indésirables : le même e-mail contient aussi un lien de connexion.</div>
+      <div class="auth-alt" style="margin-bottom:6px"><span onclick="otpVersMotDePasse()" id="otpVersMdp" role="button" tabindex="0" data-i18n="otp_no_code">Pas de code ? Me connecter avec un mot de passe</span></div>
       <div class="auth-alt">
         <span onclick="renvoyerCodeEmail()" id="otpRenvoi" role="button" tabindex="0" data-i18n="otp_resend">Renvoyer le code</span>
         <span aria-hidden="true"> · </span>
@@ -5741,8 +5742,8 @@ const I18N = {
     login_title:'Connexion ou inscription', login_sub:"Votre adresse e-mail suffit : nous vous envoyons un code, sans mot de passe.",
     login_options:'Options · zone prioritaire', otp_send:'Recevoir mon code par e-mail', otp_use_password:'Utiliser un mot de passe', otp_use_code:'Recevoir un code par e-mail à la place',
     otp_title:'Entrez votre code', otp_sent_to:"Un code vient d'être envoyé à", otp_code_label:'Code reçu par e-mail', otp_verify:'Valider et entrer',
-    otp_help:'Le code est valable quelques minutes. Pensez à vérifier vos courriers indésirables.', otp_resend:'Renvoyer le code', otp_resend_in:'Renvoyer le code dans {s} s', otp_change:"Changer d'adresse",
-    otp_err_code:'Code incorrect ou expiré. Vérifiez-le ou demandez-en un nouveau.', otp_err_rate:'Trop de demandes pour cette adresse. Patientez une minute puis réessayez.', otp_err_send:"L'envoi du code a échoué. Réessayez dans un instant.", otp_err_signup:"Les inscriptions par e-mail ne sont pas ouvertes pour le moment.",
+    otp_help:'Le code est valable quelques minutes et peut mettre jusqu\'à deux minutes à arriver. Vérifiez vos courriers indésirables : le même e-mail contient aussi un lien de connexion.', otp_resend:'Renvoyer le code', otp_resend_in:'Renvoyer le code dans {s} s', otp_change:"Changer d'adresse",
+    otp_err_code:'Code incorrect ou expiré. Vérifiez-le ou demandez-en un nouveau.', otp_err_rate:'Trop de demandes pour cette adresse. Patientez une minute puis réessayez.', otp_err_send:"L'envoi du code a échoué. Réessayez dans un instant.", otp_err_signup:"Les inscriptions par e-mail ne sont pas ouvertes pour le moment.", otp_err_smtp:"Le service d'envoi d'e-mails du serveur ne répond pas : le code ne peut pas partir pour l'instant (administrateur : voir réglages SMTP).", otp_err_net:"Connexion au serveur impossible. Vérifiez votre réseau.", otp_err_fallback:"Connectez-vous avec votre mot de passe ci-dessous.", otp_no_code:"Pas de code ? Me connecter avec un mot de passe",
     login_email_label:'Adresse e-mail', login_code_label:"Mot de passe", login_btn:'Se connecter',
     login_first_time:'Nouveau ? Votre e-mail suffit.', login_request_access:'Créer un compte avec mot de passe', login_reset:"Mot de passe oublié ?",
     ph_login_code:"Votre mot de passe",
@@ -5890,8 +5891,8 @@ const I18N = {
     login_title:'Log in or sign up', login_sub:'Your email address is enough: we send you a code, no password needed.',
     login_options:'Options · priority zone', otp_send:'Email me a code', otp_use_password:'Use a password', otp_use_code:'Email me a code instead',
     otp_title:'Enter your code', otp_sent_to:'A code was just sent to', otp_code_label:'Code received by email', otp_verify:'Confirm and enter',
-    otp_help:'The code is valid for a few minutes. Check your spam folder too.', otp_resend:'Resend the code', otp_resend_in:'Resend the code in {s} s', otp_change:'Use another address',
-    otp_err_code:'Wrong or expired code. Check it or request a new one.', otp_err_rate:'Too many requests for this address. Wait a minute and try again.', otp_err_send:'The code could not be sent. Please try again shortly.', otp_err_signup:'Email sign-ups are not open at the moment.',
+    otp_help:'The code is valid for a few minutes and can take up to two minutes to arrive. Check your spam folder: the same e-mail also contains a sign-in link.', otp_resend:'Resend the code', otp_resend_in:'Resend the code in {s} s', otp_change:'Use another address',
+    otp_err_code:'Wrong or expired code. Check it or request a new one.', otp_err_rate:'Too many requests for this address. Wait a minute and try again.', otp_err_send:'The code could not be sent. Please try again shortly.', otp_err_signup:'Email sign-ups are not open at the moment.', otp_err_smtp:"The server's e-mail service is not responding: the code cannot be sent right now (administrator: check SMTP settings).", otp_err_net:'Cannot reach the server. Check your network.', otp_err_fallback:'Sign in with your password below.', otp_no_code:'No code? Sign in with a password',
     login_email_label:'Email address', login_code_label:'Password', login_btn:'Log in',
     login_first_time:'New here? Your email is enough.', login_request_access:'Create an account with a password', login_reset:'Forgot password?',
     ph_login_code:'Your password',
@@ -17005,6 +17006,10 @@ function messageErreurOtp(err, envoi) {
   const m = String((err && (err.message || err.code)) || '');
   if (/rate|too many|after \d+ seconds|429|over_email_send_rate_limit/i.test(m)) return t('otp_err_rate');
   if (/signups? not allowed|signup_disabled/i.test(m)) return t('otp_err_signup');
+  // Envoi impossible cote serveur (SMTP absent ou refuse, modele d'e-mail casse) :
+  // ce n'est pas une panne passagere, reessayer ne sert a rien — on le dit.
+  if (envoi && /error sending|sending .*email|smtp|unexpected_failure|hook|50[0-9]/i.test(m)) return t('otp_err_smtp');
+  if (envoi && /fetch|network|failed to load|timeout/i.test(m)) return t('otp_err_net');
   return envoi ? t('otp_err_send') : t('otp_err_code');
 }
 function _otpErreur(id, msg) { const e = document.getElementById(id); if (!e) return; e.textContent = msg || ''; e.classList.toggle('show', !!msg); }
@@ -17021,6 +17026,19 @@ function basculerModeConnexion() {
   _otpErreur('loginErr', '');
   const champ = document.getElementById(mdp ? 'loginPass' : 'loginEmail'); if (champ) champ.focus();
 }
+// Repli : quand le code ne part pas ou n'arrive pas, le mot de passe doit etre
+// a un clic — jamais une impasse. force=true ouvre le mode mot de passe sans
+// jamais le refermer (l'appel automatique apres une erreur d'envoi).
+function afficherModeMotDePasse() {
+  _otpAfficher('loginForm');
+  if (_modeConnexion !== 'mdp') basculerModeConnexion();
+  const champ = document.getElementById('loginPass'); if (champ) champ.focus();
+}
+function otpVersMotDePasse() {
+  clearInterval(_otpMinuteur);
+  const e = document.getElementById('loginEmail'); if (e && _otpEmail && !e.value) e.value = _otpEmail;
+  afficherModeMotDePasse();
+}
 function validerConnexion() { if (_modeConnexion === 'mdp') doLogin(); else envoyerCodeEmail(); }
 async function envoyerCodeEmail(renvoi) {
   const email = (renvoi && _otpEmail) ? _otpEmail : document.getElementById('loginEmail').value.trim().toLowerCase();
@@ -17033,7 +17051,17 @@ async function envoyerCodeEmail(renvoi) {
   const btn = document.getElementById('otpSendBtn'); if (btn) btn.disabled = true;
   try {
     const { error } = await client.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: location.origin + location.pathname } });
-    if (error) { _otpErreur(erreurId, messageErreurOtp(error, true)); return; }
+    if (error) {
+      console.warn('SentiqS — envoi du code refuse :', error.status || '', error.code || '', error.message || error);
+      window._dernierErreurOtp = { status: error.status, code: error.code, message: error.message };
+      const msg = messageErreurOtp(error, true);
+      if (renvoi) { _otpErreur('otpErr', msg); return; }
+      // Premiere demande refusee : on montre l'erreur ET le mot de passe, pour
+      // que l'utilisateur ne reste pas bloque devant un code qui ne viendra pas.
+      afficherModeMotDePasse();
+      _otpErreur('loginErr', msg + ' ' + t('otp_err_fallback'));
+      return;
+    }
     _otpEmail = email; _otpProchainEnvoi = Date.now() + OTP_RENVOI_MS;
     document.getElementById('otpEmailAff').textContent = email;
     document.getElementById('otpCode').value = '';

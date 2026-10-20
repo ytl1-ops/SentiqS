@@ -798,6 +798,7 @@ section p a{padding:5px 0}
       <button class="btn btn-primary" style="width:100%" id="suVerifyBtn" onclick="verifierCodeInscription()">Valider et entrer</button>
       <div class="modal-err" id="suCodeErr"></div>
       <div class="su-alt"><a href="javascript:void(0)" onclick="renvoyerCodeInscription()" id="suRenvoi">Renvoyer le code</a> · <a href="javascript:void(0)" onclick="retourSaisieEmail()">Changer d'adresse</a></div>
+      <div class="su-alt"><a href="SentiqS_Web.html">Pas de code ? Ouvrir l'application et me connecter avec un mot de passe</a></div>
     </div>
   </div>
 </div>
@@ -951,6 +952,8 @@ function _suMessage(err, envoi) {
   const m = String((err && (err.message || err.code)) || '');
   if (/rate|too many|after \d+ seconds|429/i.test(m)) return 'Trop de demandes pour cette adresse. Patientez une minute puis réessayez.';
   if (/signups? not allowed/i.test(m)) return 'Les inscriptions par e-mail ne sont pas ouvertes pour le moment.';
+  if (envoi && /error sending|sending .*email|smtp|unexpected_failure|hook|not authorized|50[0-9]/i.test(m)) return "Le service d'envoi d'e-mails du serveur ne répond pas : le code ne peut pas partir pour l'instant. Vous pouvez aussi vous connecter avec un mot de passe depuis l'application.";
+  if (envoi && /fetch|network|failed to load|timeout/i.test(m)) return 'Connexion au serveur impossible. Vérifiez votre réseau.';
   return envoi ? "L'envoi du code a échoué. Réessayez dans un instant." : 'Code incorrect ou expiré. Vérifiez-le ou demandez-en un nouveau.';
 }
 // Inscription ET connexion par un seul geste : signInWithOtp cree le compte

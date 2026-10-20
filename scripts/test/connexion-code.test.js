@@ -106,3 +106,20 @@ test('les textes du code existent dans les deux langues', () => {
     assert.strictEqual((HTML.match(new RegExp('\\b' + k + ':', 'g')) || []).length, 2, k + ' doit exister en FR et en EN');
   }
 });
+
+test('repli : erreur SMTP explicite, mot de passe ouvert apres un refus d envoi, lien de repli sur l ecran du code', () => {
+  const html = require('fs').readFileSync(require('path').join(__dirname, '../../web/SentiqS_Web.html'), 'utf8');
+  const idx = require('fs').readFileSync(require('path').join(__dirname, '../../web/index.html'), 'utf8');
+  const fn = html.slice(html.indexOf('function messageErreurOtp'), html.indexOf('function _otpErreur'));
+  assert.match(fn, /otp_err_smtp/);
+  assert.match(fn, /otp_err_net/);
+  const envoi = html.slice(html.indexOf('async function envoyerCodeEmail'), html.indexOf('function renvoyerCodeEmail'));
+  assert.match(envoi, /afficherModeMotDePasse\(\)/, 'un refus d\'envoi doit ouvrir le mot de passe');
+  assert.match(envoi, /_dernierErreurOtp/, 'le detail de l\'erreur doit etre gardé pour le diagnostic');
+  assert.match(html, /id="otpVersMdp"/);
+  assert.match(html, /function otpVersMotDePasse/);
+  assert.match(html, /otp_no_code:"Pas de code/);
+  assert.match(html, /otp_no_code:'No code/);
+  assert.match(idx, /Pas de code \? Ouvrir l'application/);
+  assert.match(idx, /error sending\|sending \.\*email\|smtp/);
+});
