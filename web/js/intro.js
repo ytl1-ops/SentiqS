@@ -103,6 +103,10 @@
     function surErreur() { fin('erreur'); }
     function surLecture() { if (minuteur) { clearTimeout(minuteur); minuteur = null; } }
     function surClic() { fin('passee'); }
+    // Barre de progression : la duree restante se lit sans chiffre.
+    function surTemps() {
+      try { if (video.duration > 0) overlay.style.setProperty('--p', String(Math.min(1, video.currentTime / video.duration))); } catch (_) {}
+    }
 
     var sources = [];
     try { sources = Array.prototype.slice.call(video.querySelectorAll('source')); } catch (_) {}
@@ -116,9 +120,19 @@
       video.removeEventListener('ended', surFin);
       video.removeEventListener('error', surErreur);
       video.removeEventListener('playing', surLecture);
+      video.removeEventListener('timeupdate', surTemps);
       sources.forEach(function (s) { s.removeEventListener('error', surErreur); });
       if (skip) skip.removeEventListener('click', surClic);
-      overlay.classList.add('hidden');
+      // Sortie en fondu (options.fondu, en ms) : la page se revele sous
+      // l'animation au lieu de surgir d'un coup. Seulement quand l'animation a
+      // vraiment joue ; un saut (mouvement reduit, erreur...) reste immediat.
+      var fondu = Number(options.fondu) || 0;
+      if (fondu > 0 && (motif === 'terminee' || motif === 'passee')) {
+        overlay.classList.add('intro-sortie');
+        setTimeout(function () { overlay.classList.add('hidden'); overlay.classList.remove('intro-sortie'); }, fondu);
+      } else {
+        overlay.classList.add('hidden');
+      }
       racine.classList.remove('intro-actif');
       inertes.forEach(function (e) { e.inert = false; });
       inertes = [];
@@ -149,6 +163,7 @@
     video.addEventListener('ended', surFin);
     video.addEventListener('error', surErreur);
     video.addEventListener('playing', surLecture);
+    video.addEventListener('timeupdate', surTemps);
     sources.forEach(function (s) { s.addEventListener('error', surErreur); });
     if (skip) skip.addEventListener('click', surClic);
     doc.addEventListener('keydown', surTouche);
