@@ -264,3 +264,52 @@ test('page d accueil : chaque photo du diaporama est creditee, et le pont d Abid
   // Les vues de jour sont assombries : le titre est mesure sur les pixels.
   fichiers.forEach((f, i) => { if (pont[i]) assert.match(accueil, new RegExp('data-diurne data-src="assets/capitales/' + f + '\\.jpg"')); });
 });
+
+// ── 21/10/2026 : sortie en fondu et barre de progression ─────────────────────
+test('lancer : avec « fondu », l\'overlay s\'efface en douceur puis se masque, et le reste de la page est libéré tout de suite', () => {
+  const d = decor(), fins = [];
+  const reels = global.setTimeout; const attentes = [];
+  global.setTimeout = (f, ms) => { attentes.push([f, ms]); return attentes.length; };
+  try {
+    Intro.lancer(d.els, { env: env(), fondu: 500, onFin: (m) => fins.push(m) });
+    attentes.length = 0; // on ignore le minuteur de démarrage
+    d.video.emettre('ended');
+  } finally { global.setTimeout = reels; }
+  assert.deepEqual(fins, ['terminee']);
+  assert.equal(d.overlay.classes.has('intro-sortie'), true, 'fondu enclenché');
+  assert.equal(d.overlay.classes.has('hidden'), false, 'pas encore masqué : il s\'efface');
+  assert.equal(d.principal.inert, false, 'la page est utilisable pendant le fondu');
+  const fond = attentes.find(([, ms]) => ms === 500);
+  assert.ok(fond, 'masquage différé de la durée du fondu');
+  fond[0]();
+  assert.equal(d.overlay.classes.has('hidden'), true);
+  assert.equal(d.overlay.classes.has('intro-sortie'), false);
+});
+
+test('lancer : un saut (erreur, autoplay refusé) reste immédiat, même avec « fondu »', () => {
+  const d = decor();
+  Intro.lancer(d.els, { env: env(), fondu: 500 });
+  d.video.emettre('error');
+  assert.equal(d.overlay.classes.has('hidden'), true, 'une erreur ne doit jamais laisser un écran noir pendant un fondu');
+  assert.equal(d.overlay.classes.has('intro-sortie'), false);
+});
+
+test('lancer : la barre de progression suit la lecture et ses écouteurs sont retirés', () => {
+  const d = decor(); const vus = [];
+  d.overlay.style = { setProperty: (k, v) => vus.push([k, v]) };
+  d.video.duration = 10; d.video.currentTime = 2.5;
+  Intro.lancer(d.els, { env: env() });
+  d.video.emettre('timeupdate');
+  assert.deepEqual(vus.pop(), ['--p', '0.25']);
+  d.video.emettre('ended');
+  assert.equal(d.video.nbEcouteurs('timeupdate'), 0);
+});
+
+test('les deux pages passent « fondu » et portent la barre de progression', () => {
+  for (const f of ['index.html', 'SentiqS_Web.html']) {
+    const html = fs.readFileSync(path.join(__dirname, '../../web', f), 'utf8');
+    assert.match(html, /fondu: 500/, f);
+    assert.match(html, /class="intro-progress"/, f);
+    assert.match(html, /\.intro-video-overlay\.intro-sortie\{opacity:0/, f);
+  }
+});

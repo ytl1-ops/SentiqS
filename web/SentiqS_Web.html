@@ -74,6 +74,7 @@ try {
 :root{
   /* Jetons de la revision du 15/10/2026 (texte sur accent, bleu et violet de texte). */
   --on-b:#FFFFFF;--bleu-txt:#2C5AAE;--violet-txt:#6D28D9;
+  --p:0; /* progression de l'animation d'ouverture, ecrite par js/intro.js */
   /* Palette "Horizon Cobalt & Bronze", direction B du 23/09/2026 : deux
      roles distincts au lieu d'un bleu unique partout (audit du meme jour —
      "cobalt utilise a la fois pour la structure, l'action et les liens,
@@ -963,8 +964,11 @@ body.plein-ecran-module > .stbar { display:none !important; }
    même raison : aucune des deux ne passe par cette fonction). */
 .intro-video-overlay{position:absolute;inset:0;z-index:10;background:#000;
   display:flex;align-items:center;justify-content:center;overflow:hidden}
+.intro-video-overlay{transition:opacity .5s ease}
+.intro-video-overlay.intro-sortie{opacity:0;pointer-events:none}
 .intro-video-overlay.hidden{display:none}
 .intro-video-el{width:100%;height:100%;object-fit:cover}
+.intro-progress{position:absolute;left:0;bottom:0;height:3px;width:calc(var(--p,0) * 100%);background:linear-gradient(90deg,#7FB3D3,#E6BA6E);transition:width .3s linear;z-index:11}
 .intro-video-skip{position:absolute;bottom:20px;right:20px;z-index:11;
   padding:8px 16px;border-radius:8px;background:rgba(0,0,0,.45);
   border:1px solid rgba(255,255,255,.25);color:#fff;font-size:11px;font-weight:700;
@@ -1058,6 +1062,16 @@ html.force-mobile .ops-label{display:none}
 .auth-btn:hover{background:#6E4A15;box-shadow:0 4px 12px rgba(138,93,26,.4);transform:translateY(-1px)}
 .auth-btn:active{transform:translateY(0)}
 .auth-btn:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;transform:none}
+.auth-options{margin:2px 0 8px}
+.auth-options>summary{cursor:pointer;font-size:11px;color:var(--lg);padding:6px 0;list-style:none;letter-spacing:.04em}
+.auth-options>summary::-webkit-details-marker{display:none}
+.auth-options>summary::before{content:'+ ';color:var(--sig)}
+.auth-options[open]>summary::before{content:'\2212 '}
+.auth-options select{width:100%;padding:10px 13px;background:var(--w);color:var(--t);border:1px solid var(--bd);border-radius:7px;font-size:13px;font-family:inherit}
+.auth-alt{text-align:center;margin-top:12px;font-size:12px;color:var(--lg)}
+.auth-alt [role=button]{color:var(--b);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.auth-alt [aria-disabled=true]{color:var(--lg);cursor:default;text-decoration:none}
+.auth-code{font-size:26px !important;letter-spacing:.5em;text-align:center;font-family:var(--font-mono,monospace);padding:12px 8px !important}
 .auth-err{font-size:11px;color:var(--r);background:var(--rl);
   border:1px solid var(--rb);border-radius:5px;padding:8px 12px;
   margin-top:10px;display:none}
@@ -2808,6 +2822,7 @@ html.force-mobile .tlbr .chips::-webkit-scrollbar{display:none}
     <source src="assets/intro-sentiqs.mp4" type="video/mp4">
   </video>
   <button type="button" id="introVideoSkip" class="intro-video-skip" data-i18n="intro_video_skip">Passer</button>
+  <div class="intro-progress" aria-hidden="true"></div>
 </div>
 <div class="skyline-scene" aria-hidden="true">
   <div class="ops-grid"></div>
@@ -2858,30 +2873,55 @@ html.force-mobile .tlbr .chips::-webkit-scrollbar{display:none}
     </div>
     <div class="auth-stats-sync" id="authStatsSync"></div>
     <div id="loginForm">
-      <div class="auth-title" data-i18n="login_title">Connexion</div>
-      <div class="auth-sub" data-i18n="login_sub">Acces restreint aux responsables surete autorises</div>
+      <div class="auth-title" data-i18n="login_title">Connexion ou inscription</div>
+      <div class="auth-sub" data-i18n="login_sub">Votre adresse e-mail suffit : nous vous envoyons un code, sans mot de passe.</div>
       <div class="auth-field">
         <label data-i18n="login_email_label" for="loginEmail">Adresse e-mail</label>
-        <input type="email" id="loginEmail" data-i18n-ph="ph_votre_email_com" placeholder="votre@email.com" autocomplete="email">
+        <input type="email" id="loginEmail" data-i18n-ph="ph_votre_email_com" placeholder="votre@email.com" autocomplete="email" inputmode="email" onkeydown="if(event.key==='Enter')validerConnexion()">
       </div>
-      <div class="auth-field">
+      <div class="auth-field" id="loginPassBloc" style="display:none">
         <label data-i18n="login_code_label" for="loginPass">Mot de passe</label>
-        <input type="password" id="loginPass" data-i18n-ph="ph_votre_mot_de_passe" placeholder="Votre mot de passe" data-i18n-ph="ph_login_code" autocomplete="current-password" onkeydown="if(event.key===&#39;Enter&#39;)doLogin()">
+        <input type="password" id="loginPass" data-i18n-ph="ph_votre_mot_de_passe" placeholder="Votre mot de passe" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
       </div>
-      <div class="auth-field">
-        <label data-i18n="login_zone_prio_label" for="loginZonePrioritaire">Zone prioritaire (optionnel)</label>
-        <select id="loginZonePrioritaire"></select>
-        <div style="font-size:9px;color:var(--lg);margin-top:3px;line-height:1.4" data-i18n="login_zone_prio_help">
-          La collecte démarre par les pays de cette zone (ex. Golfe de Guinée) et les couvre plus en profondeur, pour renseigner en priorité tous leurs modules (Alertes, Tableau de bord, Agenda...).
+      <details class="auth-options">
+        <summary data-i18n="login_options">Options · zone prioritaire</summary>
+        <div class="auth-field">
+          <label data-i18n="login_zone_prio_label" for="loginZonePrioritaire">Zone prioritaire (optionnel)</label>
+          <select id="loginZonePrioritaire"></select>
+          <div style="font-size:9px;color:var(--lg);margin-top:3px;line-height:1.4" data-i18n="login_zone_prio_help">
+            La collecte démarre par les pays de cette zone (ex. Golfe de Guinée) et les couvre plus en profondeur, pour renseigner en priorité tous leurs modules (Alertes, Tableau de bord, Agenda...).
+          </div>
         </div>
-      </div>
-      <button class="auth-btn" onclick="doLogin()" id="loginBtn">
+      </details>
+      <button class="auth-btn" onclick="envoyerCodeEmail()" id="otpSendBtn">
+        <i class="ti ti-mail"></i> <span data-i18n="otp_send">Recevoir mon code par e-mail</span>
+      </button>
+      <button class="auth-btn" onclick="doLogin()" id="loginBtn" style="display:none">
         <i class="ti ti-login"></i> <span data-i18n="login_btn">Se connecter</span>
       </button>
       <div class="auth-err" id="loginErr"></div>
+      <div class="auth-alt"><span onclick="basculerModeConnexion()" id="modeConnexionLien" role="button" tabindex="0" data-i18n="otp_use_password">Utiliser un mot de passe</span></div>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-        <div class="auth-link" style="flex:1"><span data-i18n="login_first_time">Premiere connexion ?</span> <span onclick="showRegisterForm()" data-i18n="login_request_access" role="button" tabindex="0">Demander un acces</span></div>
+        <div class="auth-link" style="flex:1"><span data-i18n="login_first_time">Nouveau ? Votre e-mail suffit.</span> <span onclick="showRegisterForm()" data-i18n="login_request_access" role="button" tabindex="0">Créer un compte avec mot de passe</span></div>
         <div class="auth-link"><span onclick="showForgotPasswordForm()" data-i18n="login_reset" role="button" tabindex="0">Mot de passe oublié ?</span></div>
+      </div>
+    </div>
+    <div id="otpForm" style="display:none">
+      <div class="auth-title" data-i18n="otp_title">Entrez votre code</div>
+      <div class="auth-sub"><span data-i18n="otp_sent_to">Un code vient d'être envoyé à</span> <b id="otpEmailAff"></b></div>
+      <div class="auth-field">
+        <label data-i18n="otp_code_label" for="otpCode">Code reçu par e-mail</label>
+        <input type="text" id="otpCode" class="auth-code" inputmode="numeric" autocomplete="one-time-code" maxlength="12" onkeydown="if(event.key==='Enter')verifierCodeEmail()" oninput="verifierCodeSiComplet()">
+      </div>
+      <button class="auth-btn" onclick="verifierCodeEmail()" id="otpVerifyBtn">
+        <i class="ti ti-login"></i> <span data-i18n="otp_verify">Valider et entrer</span>
+      </button>
+      <div class="auth-err" id="otpErr"></div>
+      <div class="auth-sub" id="otpAide" style="margin-top:10px" data-i18n="otp_help">Le code est valable quelques minutes. Pensez à vérifier vos courriers indésirables.</div>
+      <div class="auth-alt">
+        <span onclick="renvoyerCodeEmail()" id="otpRenvoi" role="button" tabindex="0" data-i18n="otp_resend">Renvoyer le code</span>
+        <span aria-hidden="true"> · </span>
+        <span onclick="changerAdresseOtp()" role="button" tabindex="0" data-i18n="otp_change">Changer d'adresse</span>
       </div>
     </div>
     <div id="setPasswordForm" style="display:none">
@@ -5698,9 +5738,13 @@ const I18N = {
     intro_video_skip:'Passer',
     auth_logo_sub:"Veille sûreté · 54 pays d'Afrique",
     auth_stat_pays:'Pays sous veille', auth_stat_actus:'Actus /{hc}', auth_stat_alertes:'Pays en alerte',
-    login_title:'Connexion', login_sub:'Accès restreint aux responsables sûreté autorisés',
+    login_title:'Connexion ou inscription', login_sub:"Votre adresse e-mail suffit : nous vous envoyons un code, sans mot de passe.",
+    login_options:'Options · zone prioritaire', otp_send:'Recevoir mon code par e-mail', otp_use_password:'Utiliser un mot de passe', otp_use_code:'Recevoir un code par e-mail à la place',
+    otp_title:'Entrez votre code', otp_sent_to:"Un code vient d'être envoyé à", otp_code_label:'Code reçu par e-mail', otp_verify:'Valider et entrer',
+    otp_help:'Le code est valable quelques minutes. Pensez à vérifier vos courriers indésirables.', otp_resend:'Renvoyer le code', otp_resend_in:'Renvoyer le code dans {s} s', otp_change:"Changer d'adresse",
+    otp_err_code:'Code incorrect ou expiré. Vérifiez-le ou demandez-en un nouveau.', otp_err_rate:'Trop de demandes pour cette adresse. Patientez une minute puis réessayez.', otp_err_send:"L'envoi du code a échoué. Réessayez dans un instant.", otp_err_signup:"Les inscriptions par e-mail ne sont pas ouvertes pour le moment.",
     login_email_label:'Adresse e-mail', login_code_label:"Mot de passe", login_btn:'Se connecter',
-    login_first_time:'Première connexion ?', login_request_access:'Demander un accès', login_reset:"Mot de passe oublié ?",
+    login_first_time:'Nouveau ? Votre e-mail suffit.', login_request_access:'Créer un compte avec mot de passe', login_reset:"Mot de passe oublié ?",
     ph_login_code:"Votre mot de passe",
     login_zone_prio_label:'Zone prioritaire (optionnel)',
     login_zone_prio_help:'La collecte démarre par les pays de cette zone (ex. Golfe de Guinée) et les couvre plus en profondeur, pour renseigner en priorité tous leurs modules (Alertes, Tableau de bord, Agenda...).',
@@ -5843,9 +5887,13 @@ const I18N = {
     intro_video_skip:'Skip',
     auth_logo_sub:'Security monitoring · 54 African countries',
     auth_stat_pays:'Countries monitored', auth_stat_actus:'News /{hc}', auth_stat_alertes:'Countries on alert',
-    login_title:'Log in', login_sub:'Access restricted to authorized security officers',
+    login_title:'Log in or sign up', login_sub:'Your email address is enough: we send you a code, no password needed.',
+    login_options:'Options · priority zone', otp_send:'Email me a code', otp_use_password:'Use a password', otp_use_code:'Email me a code instead',
+    otp_title:'Enter your code', otp_sent_to:'A code was just sent to', otp_code_label:'Code received by email', otp_verify:'Confirm and enter',
+    otp_help:'The code is valid for a few minutes. Check your spam folder too.', otp_resend:'Resend the code', otp_resend_in:'Resend the code in {s} s', otp_change:'Use another address',
+    otp_err_code:'Wrong or expired code. Check it or request a new one.', otp_err_rate:'Too many requests for this address. Wait a minute and try again.', otp_err_send:'The code could not be sent. Please try again shortly.', otp_err_signup:'Email sign-ups are not open at the moment.',
     login_email_label:'Email address', login_code_label:'Password', login_btn:'Log in',
-    login_first_time:'First time here?', login_request_access:'Request access', login_reset:'Forgot password?',
+    login_first_time:'New here? Your email is enough.', login_request_access:'Create an account with a password', login_reset:'Forgot password?',
     ph_login_code:'Your password',
     login_zone_prio_label:'Priority zone (optional)',
     login_zone_prio_help:'Collection starts with the countries in this zone (e.g. Gulf of Guinea) and covers them more thoroughly, to populate all their modules first (Alerts, Dashboard, Agenda...).',
@@ -16764,7 +16812,7 @@ async function _ouvrirSessionDepuisSupabase(authUser) {
     // status sont de toute facon toujours redetermines cote serveur
     // (trigger before insert, voir migration profiles_auth).
     const { data: cree, error: errCreation } = await client.from('profiles')
-      .insert({ id: authUser.id, email: authUser.email, data: {} })
+      .insert({ id: authUser.id, email: authUser.email, data: { plan: 'gratuit', createdAt: new Date().toISOString() } })
       .select('*').maybeSingle();
     if (errCreation) {
       if (errEl) { errEl.textContent = 'Erreur de creation du profil : ' + errCreation.message; errEl.classList.add('show'); }
@@ -16789,7 +16837,7 @@ async function _ouvrirSessionDepuisSupabase(authUser) {
     _modeDefinitionMdp = 'admin';
     document.getElementById('loginForm').style.display='none';
     document.getElementById('registerForm').style.display='none';
-    document.getElementById('forgotPasswordForm').style.display='none';
+    document.getElementById('forgotPasswordForm').style.display='none';document.getElementById('otpForm').style.display='none';
     document.getElementById('setPasswordForm').style.display='block';
     document.getElementById('spNewPass').value=''; document.getElementById('spConfirmPass').value='';
     document.getElementById('setPasswordErr').classList.remove('show');
@@ -16842,6 +16890,7 @@ function showForgotPasswordForm() {
   document.getElementById('loginForm').style.display='none';
   document.getElementById('registerForm').style.display='none';
   document.getElementById('setPasswordForm').style.display='none';
+  document.getElementById('otpForm').style.display='none';
   document.getElementById('forgotPasswordForm').style.display='block';
   document.getElementById('fpEmail').value='';
   document.getElementById('forgotPasswordErr').classList.remove('show');
@@ -16933,8 +16982,100 @@ function showUserChip(user) {
 function toggleUserMenu(e){if(e)e.stopPropagation();document.getElementById('userMenu').classList.toggle('open');}
 document.addEventListener('click',()=>{const m=document.getElementById('userMenu');if(m)m.classList.remove('open');});
 
-function showRegisterForm(){document.getElementById('loginForm').style.display='none';document.getElementById('registerForm').style.display='block';document.getElementById('setPasswordForm').style.display='none';document.getElementById('forgotPasswordForm').style.display='none';}
-function showLoginForm(){document.getElementById('loginForm').style.display='block';document.getElementById('registerForm').style.display='none';document.getElementById('setPasswordForm').style.display='none';document.getElementById('forgotPasswordForm').style.display='none';if(typeof remplirSelectZonePrioritaireLogin==='function')remplirSelectZonePrioritaireLogin();}
+function showRegisterForm(){document.getElementById('loginForm').style.display='none';document.getElementById('registerForm').style.display='block';document.getElementById('setPasswordForm').style.display='none';document.getElementById('forgotPasswordForm').style.display='none';document.getElementById('otpForm').style.display='none';}
+function showLoginForm(){document.getElementById('loginForm').style.display='block';document.getElementById('registerForm').style.display='none';document.getElementById('setPasswordForm').style.display='none';document.getElementById('forgotPasswordForm').style.display='none';document.getElementById('otpForm').style.display='none';if(typeof remplirSelectZonePrioritaireLogin==='function')remplirSelectZonePrioritaireLogin();}
+
+
+// ═══ CONNEXION PAR CODE E-MAIL (sans mot de passe) — 21/10/2026 ═══
+// Une seule porte pour s'inscrire ET se connecter : signInWithOtp cree le
+// compte s'il n'existe pas (shouldCreateUser), verifyOtp ouvre la session.
+// Le profil applicatif est cree par _ouvrirSessionDepuisSupabase au premier
+// passage, avec le plan gratuit de 72 h (role et statut restent decides par
+// le serveur). La connexion par mot de passe reste disponible.
+// Cote Supabase (reglages que seul le proprietaire peut faire) : le modele
+// d'e-mail « Magic Link » ET « Confirm signup » doivent contenir {{ .Token }}
+// pour que l'utilisateur recoive un code et pas seulement un lien.
+const OTP_RENVOI_MS = 60000;
+let _otpEmail = '', _otpProchainEnvoi = 0, _otpMinuteur = null, _modeConnexion = 'code';
+function normaliserCodeOtp(v) {
+  const c = String(v || '').replace(/[\s-]/g, '');
+  return /^\d{6,10}$/.test(c) ? c : null;
+}
+function messageErreurOtp(err, envoi) {
+  const m = String((err && (err.message || err.code)) || '');
+  if (/rate|too many|after \d+ seconds|429|over_email_send_rate_limit/i.test(m)) return t('otp_err_rate');
+  if (/signups? not allowed|signup_disabled/i.test(m)) return t('otp_err_signup');
+  return envoi ? t('otp_err_send') : t('otp_err_code');
+}
+function _otpErreur(id, msg) { const e = document.getElementById(id); if (!e) return; e.textContent = msg || ''; e.classList.toggle('show', !!msg); }
+function _otpAfficher(etape) {
+  ['loginForm', 'otpForm'].forEach(id => { const e = document.getElementById(id); if (e) e.style.display = (id === etape ? 'block' : 'none'); });
+}
+function basculerModeConnexion() {
+  _modeConnexion = _modeConnexion === 'code' ? 'mdp' : 'code';
+  const mdp = _modeConnexion === 'mdp';
+  document.getElementById('loginPassBloc').style.display = mdp ? 'block' : 'none';
+  document.getElementById('loginBtn').style.display = mdp ? 'block' : 'none';
+  document.getElementById('otpSendBtn').style.display = mdp ? 'none' : 'block';
+  document.getElementById('modeConnexionLien').textContent = t(mdp ? 'otp_use_code' : 'otp_use_password');
+  _otpErreur('loginErr', '');
+  const champ = document.getElementById(mdp ? 'loginPass' : 'loginEmail'); if (champ) champ.focus();
+}
+function validerConnexion() { if (_modeConnexion === 'mdp') doLogin(); else envoyerCodeEmail(); }
+async function envoyerCodeEmail(renvoi) {
+  const email = (renvoi && _otpEmail) ? _otpEmail : document.getElementById('loginEmail').value.trim().toLowerCase();
+  const erreurId = renvoi ? 'otpErr' : 'loginErr';
+  _otpErreur(erreurId, '');
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { _otpErreur(erreurId, t('err_invalid_email')); return; }
+  const client = getSentinelSupabase();
+  if (!client) { _otpErreur(erreurId, t('otp_err_send')); return; }
+  if (renvoi && Date.now() < _otpProchainEnvoi) return;
+  const btn = document.getElementById('otpSendBtn'); if (btn) btn.disabled = true;
+  try {
+    const { error } = await client.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: location.origin + location.pathname } });
+    if (error) { _otpErreur(erreurId, messageErreurOtp(error, true)); return; }
+    _otpEmail = email; _otpProchainEnvoi = Date.now() + OTP_RENVOI_MS;
+    document.getElementById('otpEmailAff').textContent = email;
+    document.getElementById('otpCode').value = '';
+    _otpAfficher('otpForm');
+    _otpDecompte();
+    const c = document.getElementById('otpCode'); if (c) c.focus();
+  } catch (e) { _otpErreur(erreurId, t('otp_err_send')); }
+  finally { if (btn) btn.disabled = false; }
+}
+function renvoyerCodeEmail() { if (Date.now() >= _otpProchainEnvoi) envoyerCodeEmail(true); }
+function _otpDecompte() {
+  clearInterval(_otpMinuteur);
+  const lien = document.getElementById('otpRenvoi');
+  const maj = () => {
+    const reste = Math.ceil((_otpProchainEnvoi - Date.now()) / 1000);
+    if (!lien) return;
+    if (reste > 0) { lien.textContent = t('otp_resend_in').replace('{s}', reste); lien.setAttribute('aria-disabled', 'true'); }
+    else { lien.textContent = t('otp_resend'); lien.removeAttribute('aria-disabled'); clearInterval(_otpMinuteur); }
+  };
+  maj(); _otpMinuteur = setInterval(maj, 1000);
+}
+function changerAdresseOtp() { clearInterval(_otpMinuteur); _otpErreur('otpErr', ''); _otpAfficher('loginForm'); const e = document.getElementById('loginEmail'); if (e) e.focus(); }
+function verifierCodeSiComplet() { const c = document.getElementById('otpCode'); if (c && /^\d{6}$/.test(c.value.trim())) verifierCodeEmail(); }
+let _otpEnCours = false;
+async function verifierCodeEmail() {
+  if (_otpEnCours) return;
+  _otpErreur('otpErr', '');
+  const code = normaliserCodeOtp(document.getElementById('otpCode').value);
+  if (!code) { _otpErreur('otpErr', t('otp_err_code')); return; }
+  const client = getSentinelSupabase();
+  if (!client) { _otpErreur('otpErr', t('otp_err_send')); return; }
+  _otpEnCours = true;
+  const btn = document.getElementById('otpVerifyBtn'); if (btn) btn.disabled = true;
+  try {
+    const { data, error } = await client.auth.verifyOtp({ email: _otpEmail, token: code, type: 'email' });
+    if (error || !data || !data.user) { _otpErreur('otpErr', messageErreurOtp(error, false)); return; }
+    clearInterval(_otpMinuteur);
+    const ok = await _ouvrirSessionDepuisSupabase(data.user);
+    if (!ok) { _otpAfficher('loginForm'); const l = document.getElementById('loginErr'); if (l && !l.textContent) _otpErreur('loginErr', t('otp_err_code')); }
+  } catch (e) { _otpErreur('otpErr', t('otp_err_send')); }
+  finally { _otpEnCours = false; if (btn) btn.disabled = false; }
+}
 
 // doRegister() : essai gratuit en libre-service, active immediatement (sauf
 // si le projet Supabase impose la confirmation par e-mail — voir plus bas),
@@ -17127,7 +17268,7 @@ function afficherIntroVideo() {
       overlay: document.getElementById('introVideoOverlay'),
       video: document.getElementById('introVideoEl'),
       skip: document.getElementById('introVideoSkip')
-    });
+    }, { fondu: 500 });
   } catch (_) { /* jamais bloquer l'acces a la connexion */ }
 }
 
@@ -17163,6 +17304,7 @@ async function checkAuth() {
   if (location.hash === '#bulletin' && typeof ouvrirBulletinPublic === 'function') ouvrirBulletinPublic();
   else if (location.hash === '#methodologie' && typeof ouvrirMethodologiePublique === 'function') ouvrirMethodologiePublique();
 
+  const _hashAvantSdk = (location.hash || '') + (location.search || '');
   const client = getSentinelSupabase();
   if (!client) {
     // Supabase indisponible (SDK non charge, hors ligne au tout premier
@@ -17185,7 +17327,7 @@ async function checkAuth() {
       _modeDefinitionMdp = 'recuperation';
       document.getElementById('loginForm').style.display='none';
       document.getElementById('registerForm').style.display='none';
-      document.getElementById('forgotPasswordForm').style.display='none';
+      document.getElementById('forgotPasswordForm').style.display='none';document.getElementById('otpForm').style.display='none';
       document.getElementById('setPasswordForm').style.display='block';
       document.getElementById('spNewPass').value=''; document.getElementById('spConfirmPass').value='';
     }
@@ -17197,7 +17339,14 @@ async function checkAuth() {
   // automatique du jeton) est neanmoins ignoree si la trace locale de
   // connexion ne date pas d'aujourd'hui — force une nouvelle saisie du mot
   // de passe a la premiere ouverture de chaque jour, sur cet appareil.
-  if (session && session.user && _sessionLocaleDuJour()) {
+  // Retour du lien e-mail (si le modele envoie un lien plutot qu'un code) :
+  // une connexion TOUTE FRAICHE, confirmee par le serveur (last_sign_in_at),
+  // compte comme la saisie du jour. Un simple « #access_token= » ajoute a la
+  // main ne suffit pas a contourner la reconnexion quotidienne.
+  const _retourLien = !!(session && session.user && /[#&?](access_token|code)=|#connexion-fraiche/.test(_hashAvantSdk) &&
+    (Date.now() - new Date(session.user.last_sign_in_at || 0).getTime()) < 120000);
+  if (_retourLien) { try { history.replaceState(null, '', location.pathname); } catch (_) {} }
+  if (session && session.user && (_retourLien || _sessionLocaleDuJour())) {
     const ok = await _ouvrirSessionDepuisSupabase(session.user);
     if (ok) return;
   } else if (session && session.user) {
