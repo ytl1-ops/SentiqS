@@ -2353,6 +2353,12 @@ tr[onclick][tabindex="0"]:focus-visible{outline:2px solid var(--b);outline-offse
    en tete le nombre d'actus critiques/elevees du pays. Rien n'est retire :
    le nom, le nombre d'articles et le lien vers la fiche pays y sont toujours. */
 .feed-pays-bloc{display:flex;flex-direction:column;flex-shrink:0}
+#bandeauErreur{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:99999;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 24px);padding:10px 14px;border-radius:var(--r-md,4px);background:var(--w);color:var(--t);border:1px solid var(--r);box-shadow:0 6px 24px rgba(0,0,0,.35);font-size:13px}
+#bandeauErreur button{min-height:36px;padding:0 14px;border-radius:var(--r-md,4px);border:1px solid var(--b);background:var(--b);color:var(--on-b,#fff);font-weight:700;cursor:pointer}
+#bandeauErreur .be-fermer{background:transparent;color:var(--t);border-color:var(--bd);min-width:36px;padding:0}
+.feed-plus{display:flex;align-items:center;justify-content:center;gap:12px;padding:18px 12px 28px;flex-wrap:wrap}
+.feed-plus-btn{min-height:44px;padding:0 22px;border-radius:var(--r-md,4px);border:1px solid var(--b);background:var(--b);color:var(--on-b,#fff);font-family:inherit;font-size:13px;font-weight:700;line-height:1;cursor:pointer}
+.feed-plus-n{font-size:var(--fs-micro,10px);color:var(--lg);letter-spacing:.06em}
 .feed-pays-hd{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:var(--sp-2);
   padding:var(--sp-2) var(--sp-4);background:var(--sf);color:var(--t);cursor:pointer;
   border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);border-left:3px solid var(--b)}
@@ -2691,6 +2697,50 @@ html.sans-images .art > .vact-vignette:not(.vact-video){display:none}
 .aff-opt.on{background:var(--b);border-color:var(--b);color:var(--on-b)}
 .aff-opt:focus-visible{outline:2px solid var(--sig);outline-offset:2px}
 .aff-aide{font-size:var(--fs-xs);color:var(--lg);margin-top:var(--sp-2)}
+
+/* ═══ REVISION « LECTURE » DU 21/10/2026 : zone de lecture plus grande, moins de boutons ═══
+   Mesure : 343 px (bureau) et 403 px (mobile) de bandeaux avant le Flux. */
+.tb-more{position:relative}
+.tb-more>summary{list-style:none;cursor:pointer}
+.tb-more>summary::-webkit-details-marker{display:none}
+.tb-more-panel{position:absolute;right:0;top:calc(100% + 6px);z-index:60;display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:10px;min-width:200px;
+  background:var(--w);border:1px solid var(--bd);border-radius:var(--r-md,4px);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.tb-more-panel .disp-switch{display:flex !important}
+.tb-more-panel .actu-btn{justify-content:flex-start}
+.dl-toggle{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:0 12px;border-radius:var(--r-md,4px);border:1px solid var(--bd);background:var(--sf);color:var(--t);font-family:inherit;font-size:var(--fs-xs,11px);font-weight:700;line-height:1;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.dl-toggle:focus-visible{outline:2px solid var(--sig);outline-offset:2px}
+.dl-toolbar>.dl-toggle+.dl-toolbar-label{display:none}
+.dl-toolbar.dl-replie>*:not(.dl-toggle){display:none !important}
+.dl-toolbar.dl-replie{padding:2px 12px;border-bottom:0}
+.dl-toolbar.dl-replie .dl-toggle{min-height:24px}
+.proxy-bar{align-items:center;padding:6px 14px}
+.proxy-bar .pb-title{display:none}
+.proxy-bar .pb-body{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.proxy-bar .pb-pills{margin-top:0}
+@media (max-width:760px){
+  html:not(.force-web) .proxy-bar{flex-direction:row;align-items:center;gap:8px;padding:6px 10px}
+  html:not(.force-web) .pb-ico{display:none}
+  html:not(.force-web) .pb-body{gap:8px}
+  html:not(.force-web) .tlbr{gap:6px}
+  html:not(.force-web) .tlbr .srch{flex:1 1 100%}
+  html:not(.force-web) .tlbr .geo-w{flex:1 1 auto}
+  html:not(.force-web) .tlbr .ssel{flex:1 1 auto}
+  html:not(.force-web) .tlbr .tlbr-actu{flex:0 0 auto;min-width:44px;min-height:40px;padding:0 10px}
+  html:not(.force-web) .tlbr .tlbr-actu span{display:none}
+  html:not(.force-web) .tlbr .chips{flex:1 1 100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  html:not(.force-web) .tlbr .chips::-webkit-scrollbar{display:none}
+}
+html.force-mobile .proxy-bar{flex-direction:row;align-items:center;gap:8px;padding:6px 10px}
+html.force-mobile .pb-ico{display:none}
+html.force-mobile .pb-body{gap:8px}
+html.force-mobile .tlbr{gap:6px}
+html.force-mobile .tlbr .srch{flex:1 1 100%}
+html.force-mobile .tlbr .geo-w{flex:1 1 auto}
+html.force-mobile .tlbr .ssel{flex:1 1 auto}
+html.force-mobile .tlbr .tlbr-actu{flex:0 0 auto;min-width:44px;min-height:40px;padding:0 10px}
+html.force-mobile .tlbr .tlbr-actu span{display:none}
+html.force-mobile .tlbr .chips{flex:1 1 100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+html.force-mobile .tlbr .chips::-webkit-scrollbar{display:none}
 
 </style>
 
@@ -3040,20 +3090,25 @@ html.sans-images .art > .vact-vignette:not(.vact-video){display:none}
       <span class="ltxt" id="liveTxt" data-i18n="live_pret">Collecte...</span>
     </div>
     <div id="globalCyBadge" onclick="clearGlobalCountryFilter()" title="Filtre pays actif sur toute la plateforme — cliquer pour reinitialiser" style="display:none;align-items:center;gap:5px;padding:5px 10px;background:rgba(138,93,26,.25);border:1px solid rgba(138,93,26,.5);border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;"></div>
-    <div class="disp-switch" id="dispSwitch" title="Forcer l&#39;affichage Web ou Mobile, quel que soit l&#39;écran utilisé">
-      <button class="disp-btn" data-disp="web" onclick="setDisplayMode(&#39;web&#39;)" title="Affichage Web (bureau)"><i class="ti ti-device-desktop"></i><span>WEB</span></button>
-      <button class="disp-btn" data-disp="tablette" onclick="setDisplayMode(&#39;tablette&#39;)" title="Affichage Tablette"><i class="ti ti-device-tablet"></i><span data-i18n="disp_tablette">TABLETTE</span></button>
-      <button class="disp-btn" data-disp="mobile" onclick="setDisplayMode(&#39;mobile&#39;)" title="Affichage Mobile"><i class="ti ti-device-mobile"></i><span>MOBILE</span></button>
-    </div>
     <button class="actu-btn" onclick="doCollect()" id="actuBtn">
       <i class="ti ti-refresh spin" id="actuIco"></i> <span data-i18n="btn_actualiser">Actualiser</span>
     </button>
-    <button class="actu-btn" onclick="toggleTheme()" id="themeBtn" title="Choisir le thème clair ou sombre" style="background:var(--sf)">
-      <i class="ti ti-moon" id="themeIco"></i> <span id="themeLabel" data-i18n="btn_theme_sombre">Sombre</span>
-    </button>
-    <button class="actu-btn" onclick="runDiagnostic()" id="diagBtn" title="Tester les services de collecte" style="background:var(--sf)">
-      <i class="ti ti-stethoscope"></i> <span data-i18n="btn_diagnostic">Diagnostic</span>
-    </button>
+    <details class="tb-more" id="tbMore">
+      <summary class="actu-btn" aria-label="Affichage et outils" title="Affichage et outils"><i class="ti ti-dots" aria-hidden="true"></i><span>Plus</span></summary>
+      <div class="tb-more-panel">
+      <div class="disp-switch" id="dispSwitch" title="Forcer l&#39;affichage Web ou Mobile, quel que soit l&#39;écran utilisé">
+        <button class="disp-btn" data-disp="web" onclick="setDisplayMode(&#39;web&#39;)" title="Affichage Web (bureau)"><i class="ti ti-device-desktop"></i><span>WEB</span></button>
+        <button class="disp-btn" data-disp="tablette" onclick="setDisplayMode(&#39;tablette&#39;)" title="Affichage Tablette"><i class="ti ti-device-tablet"></i><span data-i18n="disp_tablette">TABLETTE</span></button>
+        <button class="disp-btn" data-disp="mobile" onclick="setDisplayMode(&#39;mobile&#39;)" title="Affichage Mobile"><i class="ti ti-device-mobile"></i><span>MOBILE</span></button>
+      </div>
+      <button class="actu-btn" onclick="toggleTheme()" id="themeBtn" title="Choisir le thème clair ou sombre" style="background:var(--sf)">
+        <i class="ti ti-moon" id="themeIco"></i> <span id="themeLabel" data-i18n="btn_theme_sombre">Sombre</span>
+      </button>
+      <button class="actu-btn" onclick="runDiagnostic()" id="diagBtn" title="Tester les services de collecte" style="background:var(--sf)">
+        <i class="ti ti-stethoscope"></i> <span data-i18n="btn_diagnostic">Diagnostic</span>
+      </button>
+      </div>
+    </details>
     <span style="font-size:10px;color:var(--lg);font-weight:500;white-space:nowrap" id="tbTime">—</span>
     <div class="user-wrap" id="userWrap" style="display:none">
       <div class="user-chip" onclick="toggleUserMenu(event)">
@@ -3198,7 +3253,7 @@ html.sans-images .art > .vact-vignette:not(.vact-video){display:none}
           <option value="level">Priorité</option>
           <option value="score">Fiabilité</option>
         </select>
-        <button onclick="renderFeed()" title="Rafraîchir l'affichage du Flux depuis les données déjà collectées" style="padding:3px 12px;background:rgba(138,93,26,.12);border:1px solid rgba(138,93,26,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
+        <button class="tlbr-actu" aria-label="Actualiser l'affichage" onclick="renderFeed()" title="Rafraîchir l'affichage du Flux depuis les données déjà collectées" style="padding:3px 12px;background:rgba(138,93,26,.12);border:1px solid rgba(138,93,26,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
           <i class="ti ti-refresh"></i> <span data-i18n="btn_actualiser">Actualiser</span>
         </button>
       </div>
@@ -6965,13 +7020,48 @@ function _agentAuditeurDebloquerBoutons() {
     });
   } catch(_) { /* le filet de securite lui-meme ne doit jamais planter */ }
 }
+// Garde d'erreurs REPETEES. Une erreur isolee se journalise ; trois en dix
+// secondes, c'est un ecran qui ne repond plus : l'utilisateur ne voyait alors
+// rien et rechargeait a la main. On propose « Reessayer » (rend le Flux a
+// nouveau, repart de la premiere page) sans jamais bloquer ni masquer l'app.
+const GARDE_ERREURS_MAX = 3, GARDE_ERREURS_FENETRE_MS = 10000;
+let _erreursRecentes = [];
+function erreurRepetee(maintenant) {
+  _erreursRecentes = _erreursRecentes.filter(t => maintenant - t < GARDE_ERREURS_FENETRE_MS);
+  _erreursRecentes.push(maintenant);
+  return _erreursRecentes.length >= GARDE_ERREURS_MAX;
+}
+function reessayerAffichage() {
+  try {
+    _erreursRecentes = [];
+    const b = document.getElementById('bandeauErreur'); if (b) b.remove();
+    _fluxLimite = FLUX_PAGE;
+    renderFeed();
+  } catch (_) { /* le filet lui-meme ne doit jamais planter */ }
+}
+function afficherBandeauErreur() {
+  try {
+    if (document.getElementById('bandeauErreur')) return;
+    const en = typeof LANG !== 'undefined' && LANG === 'en';
+    const d = document.createElement('div');
+    d.id = 'bandeauErreur'; d.setAttribute('role', 'alert');
+    d.innerHTML = '<span>' + (en ? 'Something is not responding. Your data is safe.' : 'L\u2019affichage a rencontr\u00e9 un probl\u00e8me. Vos donn\u00e9es sont intactes.') + '</span>' +
+      '<button type="button" onclick="reessayerAffichage()">' + (en ? 'Retry' : 'R\u00e9essayer') + '</button>' +
+      '<button type="button" class="be-fermer" aria-label="' + (en ? 'Close' : 'Fermer') + '" onclick="this.parentNode.remove()">\u00d7</button>';
+    document.body.appendChild(d);
+  } catch (_) { /* idem */ }
+}
+function _gererErreurGlobale() {
+  _agentAuditeurDebloquerBoutons();
+  if (erreurRepetee(Date.now())) afficherBandeauErreur();
+}
 window.addEventListener('error', (e) => {
   console.error('SentiqS — Erreur non interceptée :', e.error || e.message);
-  _agentAuditeurDebloquerBoutons();
+  _gererErreurGlobale();
 });
 window.addEventListener('unhandledrejection', (e) => {
   console.error('SentiqS — Promesse rejetée non interceptée :', e.reason);
-  _agentAuditeurDebloquerBoutons();
+  _gererErreurGlobale();
 });
 
 function srcIsSkippable(src) {
@@ -7236,16 +7326,56 @@ function srcTypeBadge(src) {
 // Recalcule _isSocial et _srcBadge sur les articles du cache IndexedDB ou DEMO.
 // Ces champs sont calculés à la collecte dans parseRSS/parseJSON mais non
 // sérialisés : ils doivent être ré-injectés après chaque lecture depuis le cache.
-function rehydrateArticles(arts) {
+//
+// Signature du code de classement. Mesure du 21/10/2026 (2 600 articles) :
+// detectPaysFromText + classify coutent ~14 ms par article, soit 15,8 s de
+// gel a chaque ouverture, a chaque lecture du cache partage et a chaque cycle
+// de rafraichissement — l'essentiel de ce que l'utilisateur vivait comme un
+// « plantage ». Or un article deja classe par CE code n'a rien a recalculer.
+// Chaque article porte donc `_rv`, la signature du code qui l'a classe ; le
+// recalcul n'a lieu que si elle differe, c'est-a-dire apres un deploiement
+// (la raison d'etre du recalcul : un correctif de lexique doit prendre effet
+// sans attendre la collecte suivante). La signature est une empreinte de
+// TOUT le script inline (lexiques, registre, regles) : changer une seule
+// ligne la change, rien n'est a penser a incrementer.
+let _signatureCode = null;
+function signatureCode() {
+  if (_signatureCode !== null) return _signatureCode || null;
+  _signatureCode = '';
+  try {
+    let h = 2166136261;
+    for (const sc of document.scripts) {
+      if (sc.src) continue;
+      const t = sc.textContent;
+      for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); }
+    }
+    _signatureCode = (h >>> 0).toString(36);
+  } catch (_) { /* hors navigateur : pas de signature, on recalcule toujours */ }
+  return _signatureCode || null;
+}
+//
+// opts.budgetMs : cote navigateur, apres un deploiement, TOUS les articles du
+// cache sont a recalculer une fois. Plutot que de geler l'ecran dix secondes,
+// on recalcule dans la limite du budget et on laisse le reste (rehydraterParLots
+// reprend). Sans budget (job de collecte, publication) le calcul est complet :
+// publier un cache a moitie recalcule serait pire que ne rien changer.
+function rehydrateArticles(arts, opts) {
+  const _sig = signatureCode();
+  const _budget = opts && opts.budgetMs;
+  const _t0 = _budget ? performance.now() : 0;
+  let _reste = 0, _change = 0;
   arts.forEach(a => {
     const src = SRCS.find(s => s.id === a.primary);
+    let _aJour = !!(_sig && a._rv === _sig);
+    if (!_aJour && _budget && performance.now() - _t0 > _budget) { _reste++; _aJour = true; }
+    const _avant = a.level + '|' + a.cy;
 
     // Recalcul du PAYS avec la logique de detection courante. Sans cela, les
     // articles deja en cache (collectes lors d'une session precedente, avant
     // les corrections de detection) restent figes sur leur ancien pays —
     // typiquement le pays de la source, jamais reclasse. On recalcule donc a
     // chaque rehydratation a partir du titre + resume, comme a la collecte.
-    if (src && typeof detectPaysFromText === 'function' && !a._demo) {
+    if (!_aJour && src && typeof detectPaysFromText === 'function' && !a._demo) {
       const texteAnalyse = (a.analysis && !/^voir sur /i.test(a.analysis.trim())) ? a.analysis : '';
       const cyRecalc = detectPaysFromText(a.title || '', texteAnalyse, src.cy);
       if (cyRecalc && cyRecalc !== a.cy) {
@@ -7261,9 +7391,12 @@ function rehydrateArticles(arts) {
     // 12 h pendant lesquelles un litige entre deux personnes privees continue
     // d'ouvrir la liste des actualites a traiter, classe CRITIQUE.
     if (src && typeof classify === 'function' && !a._demo) {
-      const texteClass = (a.title || '') + ' ' + ((a.analysis && !/^voir sur /i.test(a.analysis.trim())) ? a.analysis : '');
-      const r = classify(texteClass, src, a.title || '');
-      if (r && r.lvl) { a.level = r.lvl; a.cat = r.cat; }
+      if (!_aJour) {
+        const texteClass = (a.title || '') + ' ' + ((a.analysis && !/^voir sur /i.test(a.analysis.trim())) ? a.analysis : '');
+        const r = classify(texteClass, src, a.title || '');
+        if (r && r.lvl) { a.level = r.lvl; a.cat = r.cat; }
+        if (_sig) a._rv = _sig;
+      }
       // « verifie » = recoupe par une seconde source, jamais un heritage :
       // la fusion du cache partage conserve les drapeaux poses par la
       // version precedente. Le 03/09/2026, 31 articles gardaient un
@@ -7273,6 +7406,7 @@ function rehydrateArticles(arts) {
       a.fiable = (Number(src.score) || 0) >= 80;
     }
 
+    if (a.level + '|' + a.cy !== _avant) _change++;
     if (a._srcRssMethod === undefined) {
       a._srcRssMethod = src ? (src.rss_method || null) : null;
       a._srcRssUrl = src ? (src.rss || '') : '';
@@ -7283,7 +7417,19 @@ function rehydrateArticles(arts) {
     a._isSocial = rm.includes('Twitter') || rm.includes('Telegram') || rm.includes('Facebook');
     if (!a._srcBadge) a._srcBadge = srcTypeBadge(src);
   });
+  rehydrateArticles.reste = _reste; rehydrateArticles.change = (rehydrateArticles.change || 0) + _change;
   return arts;
+}
+// Rehydratation du navigateur : par tranches de 40 ms, sans jamais geler
+// l'ecran ; quand tout est recalcule et que des niveaux ou des pays ont
+// bouge, les modules se redessinent une fois.
+function rehydraterParLots(arts) {
+  if (arts !== ALL) return; // un cache plus recent a remplace celui-ci
+  rehydrateArticles.change = rehydrateArticles.change || 0;
+  rehydrateArticles(arts, { budgetMs: 40 });
+  if (rehydrateArticles.reste > 0) { setTimeout(() => rehydraterParLots(arts), 20); return; }
+  const c = rehydrateArticles.change; rehydrateArticles.change = 0;
+  if (c > 0 && typeof synchroniserTousLesModules === 'function') synchroniserTousLesModules();
 }
 
 // _decodeEntitesHTML(str) : decode les entites HTML (nommees : &eacute; /
@@ -7427,6 +7573,7 @@ function parseJSON(d, src) {
       _media: _mediaJSON,
       _estAgenda: agendaType !== null, _agendaType: agendaType,
       _cyConfiance: cyConfiant ? 'detecte' : 'repli_source',
+      _rv: signatureCode(),
     };
   }).filter(Boolean);
 }
@@ -9357,10 +9504,17 @@ function fmtAge(ts) {
   const d   = new Date(ts);
   const now = new Date();
   const diffMin = Math.floor((now - d) / 60000);
-  // Heure locale formatée : HH:MM
-  const hhmm = d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+  // Heure locale formatée : HH:MM. Les formateurs Intl sont construits une
+  // seule fois : toLocaleTimeString() en recree un a chaque appel, soit 95 µs
+  // par article (248 ms pour 2 600 articles, mesure du 21/10/2026) a chaque
+  // lecture du cache.
+  if (!fmtAge._h) {
+    fmtAge._h = new Intl.DateTimeFormat('fr-FR', {hour:'2-digit', minute:'2-digit'});
+    fmtAge._d = new Intl.DateTimeFormat('fr-FR', {day:'2-digit', month:'2-digit'});
+  }
+  const hhmm = fmtAge._h.format(d);
   // Date courte : JJ/MM
-  const ddmm = d.toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit'});
+  const ddmm = fmtAge._d.format(d);
   // Aujourd'hui ?
   const isToday = d.toDateString() === now.toDateString();
   // Hier ?
@@ -9845,6 +9999,7 @@ function parseRSS(xml, src) {
       _media,
       _estAgenda: agendaType !== null, _agendaType: agendaType,
       _cyConfiance: cyConfiant ? 'detecte' : 'repli_source',
+      _rv: signatureCode(),
     });
   }
   return res;
@@ -12637,10 +12792,55 @@ function _debounce(fn, ms) {
   return function(...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), ms); };
 }
 let _renderFeedGen = 0;
+// Pagination du Flux. Mesure du 21/10/2026 avec 2 600 articles dans la
+// fenetre : le Flux ecrivait TOUTES les cartes d'un coup, soit 112 742
+// noeuds DOM, 7 Mo de HTML, 871 images et 3,2 s de gel du thread (1,9 s sur
+// mobile) avant le premier pixel. On n'ecrit plus que FLUX_PAGE cartes, les
+// plus pertinentes selon le tri courant, et « Afficher plus » en ajoute.
+const FLUX_PAGE = 40;
+let _fluxLimite = FLUX_PAGE, _fluxSignature = '';
+function fluxPlus() { _fluxLimite += FLUX_PAGE; renderFeed(); }
+
+// Menu « Plus » de l'en-tete et barres d'export repliees (21/10/2026).
+// Le menu ferme au clic ailleurs et a Echap ; les barres d'export (Flux,
+// Synthese, Agenda) montrent un seul bouton « Exporter » tant qu'on ne
+// l'ouvre pas : quatre boutons de format + identite + compteur occupaient
+// une rangee entiere devant la lecture.
+function initBarresExport() {
+  try {
+    document.querySelectorAll('.dl-toolbar').forEach(bar => {
+      if (bar.querySelector(':scope > .dl-toggle')) return;
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'dl-toggle';
+      b.setAttribute('aria-expanded', 'false');
+      b.innerHTML = '<i class="ti ti-download" aria-hidden="true"></i><span>' + (typeof LANG !== 'undefined' && LANG === 'en' ? 'Export' : 'Exporter') + '</span><i class="ti ti-chevron-down" aria-hidden="true"></i>';
+      b.onclick = () => { const ferme = bar.classList.toggle('dl-replie'); b.setAttribute('aria-expanded', ferme ? 'false' : 'true'); };
+      bar.insertBefore(b, bar.firstChild);
+      bar.classList.add('dl-replie');
+    });
+  } catch (_) {}
+}
+document.addEventListener('click', e => {
+  const m = document.getElementById('tbMore');
+  if (m && m.open && !m.contains(e.target)) m.open = false;
+});
+document.addEventListener('keydown', e => {
+  const m = document.getElementById('tbMore');
+  if (e.key === 'Escape' && m && m.open) { m.open = false; const s = m.querySelector('summary'); if (s) s.focus(); }
+});
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initBarresExport); else initBarresExport();
+function fluxSignatureFiltres() {
+  const g = id => { const e = document.getElementById(id); return e ? e.value : ''; };
+  return [fCat, fCy, fGeo, fSc, g('artQ'), g('sortSel')].join('|');
+}
 async function renderFeed() {
   const _monGen = ++_renderFeedGen;
   _visuelOgpDemandes = 0;
-  const arts=getFiltered();
+  const artsTous = getFiltered();
+  // Un filtre, un tri ou une recherche qui change repart de la premiere page.
+  const _sig = fluxSignatureFiltres();
+  if (_sig !== _fluxSignature) { _fluxSignature = _sig; _fluxLimite = FLUX_PAGE; }
+  const arts = artsTous.slice(0, _fluxLimite);
   const c=document.getElementById('feed');
   // Bandeau tableau de bord pays : construit tot pour s'afficher meme si
   // le pays selectionne n'a aucun article actif dans le Flux (le score
@@ -12656,7 +12856,7 @@ async function renderFeed() {
         '<span style="font-size:22px;">'+pysB0.flag+'</span>'+
         '<div style="flex:1;min-width:0;">'+
           '<div style="font-size:12px;font-weight:800;">'+pysB0.name+'</div>'+
-          '<div style="font-size:9px;color:var(--lg);">Capitale '+pysB0.capital+' · '+arts.length+' article'+(arts.length>1?'s':'')+' actif'+(arts.length>1?'s':'')+'</div>'+
+          '<div style="font-size:9px;color:var(--lg);">Capitale '+pysB0.capital+' · '+artsTous.length+' article'+(artsTous.length>1?'s':'')+' actif'+(artsTous.length>1?'s':'')+'</div>'+
         '</div>'+
         '<div style="text-align:right;">'+
           '<div style="padding:3px 10px;border-radius:5px;font-size:9px;font-weight:700;color:#fff;background:'+scB0.niv.col+';">'+scB0.niv.label+' · '+scB0.total100+'/100</div>'+
@@ -12665,7 +12865,7 @@ async function renderFeed() {
       '</div>';
     }
   }
-  if(!arts.length){
+  if(!artsTous.length){
     c.innerHTML=dashBanner0+'<div class="empty"><i class="ti ti-inbox"></i><p>'+t('empty_aucun')+'</p>'+
       '<span style="font-size:11px;color:var(--lg);margin-top:4px">'+
       (ALL.length?t('empty_filtres'):t('empty_actualiser'))+
@@ -12887,7 +13087,8 @@ async function renderFeed() {
     // En-tete pays uniquement si on est en mode "Tous les pays"
     if (fGeo === 'all') {
       const cc = CYS.find(x=>x.code===cyCode) || {flag:'🌍', name:cyCode};
-      const totalPays = artsCe.length;
+      const artsCeTous = artsTous.filter(a => a.cy === cyCode);
+      const totalPays = artsCeTous.length;
       // Refonte du 21/09/2026 : nom de pays en serif, meme traitement que
       // l'en-tete de section du tableau de bord — c'est la seule autre
       // rupture de ce niveau dans le Flux (le reste reste dense/sans-serif
@@ -12897,8 +13098,8 @@ async function renderFeed() {
       // toujours dans quel pays on lit) ; il annonce d'emblee combien d'actus
       // critiques / elevees le pays contient. Nom, total et lien vers la
       // fiche pays sont conserves.
-      const nCrit = artsCe.filter(a => a.level === 'crit').length;
-      const nHigh = artsCe.filter(a => a.level === 'high').length;
+      const nCrit = artsCeTous.filter(a => a.level === 'crit').length;
+      const nHigh = artsCeTous.filter(a => a.level === 'high').length;
       const en = LANG === 'en';
       const niv = (nCrit ? '<span class="rpill rc2">'+nCrit+' '+(en?'critical':'critique'+(nCrit>1?'s':''))+'</span>' : '')+
                   (nHigh ? '<span class="rpill rh2">'+nHigh+' '+(en?'high':'élevée'+(nHigh>1?'s':''))+'</span>' : '');
@@ -12932,7 +13133,7 @@ async function renderFeed() {
   // ── « A la une » : les faits les plus graves, image d'abord (une par pays).
   // Pas en dessous de quatre articles : une bande qui repete la liste juste
   // en dessous n'apporte rien.
-  const une = arts.length >= 4 ? choisirALaUne(arts, 4) : [];
+  const une = artsTous.length >= 4 ? choisirALaUne(artsTous, 4) : [];
   const uneHtml = une.length >= 3
     ? '<section class="une-bande" aria-label="'+(LANG==='en'?'Top stories':'À la une')+'"><h2 class="une-titre">'+(LANG==='en'?'Top stories':'À la une')+'</h2><div class="une-grille">'+une.map(carteUneHtml).join('')+'</div></section>'
     : '';
@@ -12944,7 +13145,13 @@ async function renderFeed() {
   c.innerHTML = '';
   requestAnimationFrame(() => {
     if (_monGen !== _renderFeedGen) return; // idem, verifie a nouveau juste avant l'ecriture DOM
-    c.innerHTML = dashBanner0 + uneHtml + (html || '<div class="empty"><i class="ti ti-inbox"></i><p>Aucun article</p></div>');
+    const reste = artsTous.length - arts.length;
+    const plusHtml = reste > 0
+      ? '<div class="feed-plus"><button type="button" class="feed-plus-btn" onclick="fluxPlus()">'+
+          (LANG==='en' ? 'Show '+Math.min(FLUX_PAGE,reste)+' more' : 'Afficher '+Math.min(FLUX_PAGE,reste)+' actus de plus')+
+          '</button><span class="feed-plus-n">'+arts.length+' / '+artsTous.length+'</span></div>'
+      : '';
+    c.innerHTML = dashBanner0 + uneHtml + (html || '<div class="empty"><i class="ti ti-inbox"></i><p>Aucun article</p></div>') + plusHtml;
   });
 }
 // Version temporisee pour le champ de recherche (#artQ) uniquement — les
@@ -15484,7 +15691,7 @@ async function init() {
         const fresh=saved.filter(a=>estRecentReel(a));
         if(fresh.length){
           ALL=fresh; ALL.forEach(a=>{a.time=fmtAge(a.pubDate||0);});
-          if (typeof rehydrateArticles === 'function') rehydrateArticles(ALL);
+          if (typeof rehydraterParLots === 'function') rehydraterParLots(ALL);
           // Repare les articles caches depuis une session precedente, avant meme
           // le premier rendu (evite d'afficher brievement des entites HTML non
           // decodees restees dans IndexedDB) — voir agentCorrigerTextesArticles.
@@ -16201,7 +16408,7 @@ function synchroniserTousLesModules() {
 function _appliquerArticlesPartages(articles) {
   ALL = articles.filter(a => estRecentReel(a));
   ALL.forEach(a => { a.time = fmtAge(a.pubDate || 0); });
-  if (typeof rehydrateArticles === 'function') rehydrateArticles(ALL);
+  if (typeof rehydraterParLots === 'function') rehydraterParLots(ALL);
   if (typeof agentCorrigerTextesArticles === 'function') agentCorrigerTextesArticles();
   dbPut(ALL);
   dbMeta('lastCollect', Date.now());
