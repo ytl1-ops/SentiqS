@@ -9688,7 +9688,8 @@ function detailRapportActu(a) {
   const infos = [];
   if (cot) infos.push((en ? 'Rating: ' : 'Cotation : ') + cot.libelle);
   if (a.pubDate) infos.push((en ? 'Published ' : 'Publié le ') + fmtFull(a.pubDate));
-  if (surv && !surv.inconnue) infos.push((en ? 'Event: ' : 'Survenance : ') + surv.texte);
+  // Meme instant que la publication : le redire ne dit rien de plus.
+  if (surv && !surv.inconnue && !(a.pubDate && surv.texte === fmtFull(a.pubDate))) infos.push((en ? 'Event: ' : 'Survenance : ') + surv.texte);
   const nSrc = (a.srcs || []).length;
   if (voir) infos.push((en ? 'Source: ' : 'Source : ') + srcName(a.primary) + (nSrc > 1 ? ' (+' + (nSrc - 1) + ')' : ''));
   else if (nSrc > 1) infos.push(en ? nSrc + ' sources' : nSrc + ' sources');
@@ -21308,19 +21309,20 @@ async function exportPPTX(type) {
     // Detail d'une actu sous son titre (voir detailRapportActu) : resume
     // coupe a la place disponible sur la diapositive, cotation et dates, lien
     // video cliquable. Renvoie la hauteur occupee, en pouces.
-    const detailPptx = (slide, a, x, y, w, maxResume) => {
+    const detailPptx = (slide, a, x, y, w, maxResume, sansImage) => {
       const d = detailRapportActu(a);
       let h = 0;
       // Image a droite : le texte se retrecit d'autant, jamais l'inverse.
-      const im = imagesPptx.get(a.id);
+      const im = sansImage ? null : imagesPptx.get(a.id);
       const ih = 0.62, iw = Math.min(1.5, ih * (im ? im.ratio : 1));
       if (im) {
         try { slide.addImage({data: im.dataUrl.replace(/^data:/, ''), x: x + w - iw, y, w: iw, h: ih}); w -= iw + 0.1; }
         catch (_) {}
       }
       if (d.resume) {
-        slide.addText(resumeCourt(d.resume, maxResume), {x, y, w, h:0.62, fontSize:10, color:'1F2937', fontFace:'IBM Plex Sans', valign:'top', fit:'shrink'});
-        h += 0.64;
+        const hRes = sansImage ? 0.46 : 0.62;
+        slide.addText(resumeCourt(d.resume, maxResume), {x, y, w, h:hRes, fontSize:10, color:'1F2937', fontFace:'IBM Plex Sans', valign:'top', fit:'shrink'});
+        h += hRes + 0.02;
       }
       const infos = d.infos.filter(t => !/^Source/.test(t)).join('  ·  ');
       const runs = [];
@@ -21340,7 +21342,7 @@ async function exportPPTX(type) {
       sl.addShape(pres.shapes.RECTANGLE, {x:0, y:ribbonY, w:13.33, h:ribbonH, fill:{color:NAVY}, line:{type:'none'}});
       circle(sl, 0.35, ribbonY + ribbonH/2 - 0.07, 0.14, 'FFFFFF');
       sl.addText(nomMarqueActuelle(), {x:0.62, y:ribbonY, w:5, h:ribbonH, fontSize:9, bold:true, color:'FFFFFF', fontFace:'IBM Plex Mono', valign:'middle'});
-      sl.addText('Page ', {x:12.2, y:ribbonY, w:1.1, h:ribbonH, fontSize:8.5, color:'FFFFFF', fontFace:'IBM Plex Mono', valign:'middle', align:'right'});
+      sl.addText('Page ', {x:12.1, y:ribbonY, w:0.78, h:ribbonH, fontSize:8.5, color:'FFFFFF', fontFace:'IBM Plex Mono', valign:'middle', align:'right'});
       sl.slideNumber = {x:12.9, y:ribbonY, w:0.35, h:ribbonH, fontSize:8.5, color:'FFFFFF', fontFace:'IBM Plex Mono', valign:'middle'};
       return sl;
     };
@@ -21371,9 +21373,12 @@ async function exportPPTX(type) {
     // photo disponible dans cet export automatise, remplacee par le motif
     // radar de la marque plutot qu'un emplacement image vide).
     const EEF = 'EEF1F5', SLATE = '5B7290', DARK2 = '3D4C5E';
-    let s = newSlide(EEF);
-    s.addText((LANG==='en'?'Operational report — All zones · Africa':'Rapport opérationnel — Toutes zones · Afrique'),
-      {x:0.6,y:2.15,w:7.2,h:0.4,fontSize:13,color:SLATE,fontFace:'IBM Plex Sans',charSpacing:2});
+    // Couverture « bleu nuit » : fond plein, filet or, logo de l'organisation
+    // sur une pastille blanche. Les couleurs de texte sont inversees.
+    const NUIT_P = '071431', NUIT2_P = '0F2450', OR_P = 'E6BA6E', CLAIR_P = 'CBD9EE';
+    let s = newSlide(NUIT_P);
+    s.addText((LANG==='en'?'OPERATIONAL REPORT — ALL ZONES · AFRICA':'RAPPORT OPÉRATIONNEL — TOUTES ZONES · AFRIQUE'),
+      {x:0.6,y:2.0,w:7.2,h:0.4,fontSize:12,bold:true,color:OR_P,fontFace:'IBM Plex Sans',charSpacing:2});
     // nomMarqueActuelle() plutot que 'SentiqS' en dur : seul endroit du
     // fichier ou la couverture PPTX ignorait une marque personnalisee alors
     // que Word/PDF/l'apercu HTML l'affichent tous correctement — un compte
@@ -21382,33 +21387,31 @@ async function exportPPTX(type) {
     const logoP = (typeof logoMarqueActuelle === 'function') ? logoMarqueActuelle() : null;
     if (logoP) {
       const lh = 0.9, lw = Math.min(lh * logoP.ratio, 3);
-      s.addImage({data: logoP.dataUrl.replace(/^data:/, ''), x:0.6, y:1.1, w:lw, h:lw / logoP.ratio});
+      s.addShape(pres.shapes.RECTANGLE, {x:0.6, y:0.55, w:lw + 0.3, h:lh + 0.3, fill:{color:'FFFFFF'}, line:{type:'none'}});
+      s.addImage({data: logoP.dataUrl.replace(/^data:/, ''), x:0.75, y:0.7, w:lw, h:lw / logoP.ratio});
     }
-    s.addText(nomMarqueActuelle(), {x:0.6,y:2.6,w:7.2,h:1.1,fontSize:52,bold:true,color:NAVY,fontFace:'Source Serif 4'});
+    // Taille du nom ajustee a sa longueur : a 52 pt un nom de 19 caracteres
+    // passait sur deux lignes et chevauchait le sous-titre.
+    const nomCouv = nomMarqueActuelle();
+    const taillNom = Math.max(26, Math.min(52, Math.floor(7.2 * 72 / (Math.max(nomCouv.length, 1) * 0.56))));
+    s.addText(nomCouv, {x:0.6,y:2.45,w:7.2,h:1.1,fontSize:taillNom,bold:true,color:'FFFFFF',fontFace:'Source Serif 4',valign:'middle'});
+    s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:3.62,w:0.9,h:0.04,fill:{color:OR_P},line:{type:'none'}});
     s.addText(titrePPTX.charAt(0)+titrePPTX.slice(1).toLowerCase()+' '+periode.label.toLowerCase()+' — '+perimetre,
-      {x:0.6,y:3.7,w:7.2,h:0.55,fontSize:19,bold:true,color:DARK2,fontFace:'IBM Plex Sans'});
+      {x:0.6,y:3.78,w:7.2,h:0.55,fontSize:19,bold:true,color:CLAIR_P,fontFace:'IBM Plex Sans'});
     const nowPPTX = new Date();
     s.addText((LANG==='en'?'Generated on ':'Généré le ')+nowPPTX.toLocaleDateString('fr-FR')+' '+(LANG==='en'?'at ':'à ')+nowPPTX.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'   ·   '+(LANG==='en'?'Slot ':'Créneau ')+nowPPTX.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+(identitePptx?'   ·   '+(LANG==='en'?'Shared by ':'Partagé par ')+identitePptx:''),
-      {x:0.6,y:4.35,w:7.2,h:0.4,fontSize:13,color:SLATE,fontFace:'IBM Plex Sans'});
-    s.addText(fmtD(dateDebut)+'  →  '+fmtD(dateFin), {x:0.6,y:4.72,w:7.2,h:0.35,fontSize:11.5,italic:true,color:SLATE,fontFace:'IBM Plex Sans'});
-    s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:5.35,w:4.4,h:0.42,fill:{type:'none'},line:{color:RED,width:1}});
+      {x:0.6,y:4.35,w:7.2,h:0.4,fontSize:13,color:CLAIR_P,fontFace:'IBM Plex Sans'});
+    s.addText(fmtD(dateDebut)+'  →  '+fmtD(dateFin), {x:0.6,y:4.72,w:7.2,h:0.35,fontSize:11.5,italic:true,color:CLAIR_P,fontFace:'IBM Plex Sans'});
+    s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:5.35,w:4.4,h:0.42,fill:{type:'none'},line:{color:OR_P,width:1}});
     s.addText((LANG==='en'?'Restricted use — security officers':'Usage restreint — responsables sûreté'),
-      {x:0.6,y:5.35,w:4.4,h:0.42,fontSize:11,bold:true,color:RED,fontFace:'IBM Plex Sans',charSpacing:1,align:'center',valign:'middle'});
+      {x:0.6,y:5.35,w:4.4,h:0.42,fontSize:11,bold:true,color:OR_P,fontFace:'IBM Plex Sans',charSpacing:1,align:'center',valign:'middle'});
 
     // Panneau droit (motif radar decoratif)
-    s.addShape(pres.shapes.RECTANGLE, {x:8.03,y:0,w:5.3,h:7.5,fill:{color:NAVY},line:{type:'none'}});
-    circle(s, 12.7,-0.5,2.3, NAVY2);
-    circle(s, 8.4,6.9,1.8, NAVY2);
+    s.addShape(pres.shapes.RECTANGLE, {x:8.03,y:0,w:5.3,h:7.15,fill:{color:NUIT2_P},line:{type:'none'}});
+    circle(s, 12.7,-0.5,2.3, '162E5E');
+    circle(s, 8.4,6.2,1.8, '162E5E');
     drawRadarPPTX(s, 10.68, 3.75, 1.55);
-    // Marque sur 2 lignes (motif conçu pour "SentiqS"/"SÛRETÉ") : coupee au
-    // premier espace pour une marque personnalisee, ou affichee sur une
-    // seule ligne si le nom n'en comporte pas.
-    (() => {
-      const mots = nomMarqueActuelle().split(' ');
-      const l1 = mots[0], l2 = mots.slice(1).join(' ');
-      s.addText(l1, {x:8.4,y:l2?5.75:5.95,w:4.5,h:0.5,fontSize:22,bold:true,color:'FFFFFF',fontFace:'Source Serif 4',charSpacing:2,align:'center'});
-      if (l2) s.addText(l2, {x:8.4,y:6.15,w:4.5,h:0.5,fontSize:22,bold:true,color:SKY,fontFace:'Source Serif 4',charSpacing:2,align:'center'});
-    })();
+    s.addShape(pres.shapes.RECTANGLE, {x:8.03,y:0,w:0.04,h:7.15,fill:{color:OR_P},line:{type:'none'}});
 
     // ── Calculs préalables — déterminent quelles sections seront réellement
     // incluses, pour que le Sommaire (slide 2) liste exactement ce qui suit.
@@ -21678,17 +21681,24 @@ async function exportPPTX(type) {
         sectionHead(s, 'Flux opérationnel', ci===0 ? (evenementsFlux.length+' événements des dernières '+libelleFenetre()+' — '+perimetre) : (perimetre+' (suite)'));
         chunk.forEach((a,i)=>{
           const y = 1.5 + i*1.36;
+          // Carte : fond clair, barre de gravite a gauche, image de la source
+          // a droite (le texte se retrecit d'autant).
+          const imF = imagesPptx.get(a.id);
+          const ihF = 1.05, iwF = imF ? Math.min(1.9, ihF * imF.ratio) : 0;
+          const twF = 11.7 - (imF ? iwF + 0.2 : 0);
+          s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:y-0.1,w:12.13,h:1.3,fill:{color:PAPER},line:{color:LINE,width:0.5}});
+          s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:y-0.1,w:0.07,h:1.3,fill:{color:LVL_COL[a.level]||'9CA3AF'},line:{type:'none'}});
+          if (imF) { try { s.addImage({data: imF.dataUrl.replace(/^data:/, ''), x:12.73-0.1-iwF, y:y-0.03, w:iwF, h:ihF}); } catch (_) {} }
           const pays = infoPays(a.cy);
           const col = LVL_COL[a.level] || '9CA3AF';
-          circle(s, 0.6, y+0.09, 0.09, col);
           const dateTxt = a.pubDate ? new Date(a.pubDate).toLocaleDateString('fr-FR')+' '+new Date(a.pubDate).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '';
           const cyNivP3 = _cyNivTexteEtCouleur(a.cy);
           s.addText([
             {text:'['+dateTxt+']  '+(pays.flag||'')+' '+pays.name+'  ·  '+lvlFr(a.level).toUpperCase()+(cyNivP3?'  ·  '+cyNivP3.texte:''), options:{fontSize:8.5,bold:true,color:MUTED,fontFace:'IBM Plex Mono'}},
           ].concat(sourcesVisibles() ? [{text:'  ·  '+srcName(a.primary), options:{fontSize:8.5,bold:true,color:'1B5FA8',underline:{style:'sng'},fontFace:'IBM Plex Mono',hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}}] : []),
-          {x:0.85,y:y-0.06,w:11.7,h:0.22});
-          s.addText(L(a.title)||'', {x:0.85,y:y+0.13,w:11.7,h:0.34,fontSize:11.5,bold:true,color:INK,fontFace:'IBM Plex Sans'});
-          detailPptx(s, a, 0.85, y+0.5, 11.7, 300);
+          {x:0.85,y:y-0.04,w:twF,h:0.22});
+          s.addText(L(a.title)||'', {x:0.85,y:y+0.17,w:twF,h:0.3,fontSize:11.5,bold:true,color:INK,fontFace:'IBM Plex Sans'});
+          detailPptx(s, a, 0.85, y+0.47, twF, 300, true);
         });
       }
     }
@@ -21847,7 +21857,9 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
   const NAVY = rgb(0.051,0.106,0.161), BLUE = rgb(0.114,0.373,0.659),
         INK = rgb(0.043,0.086,0.129), MUTED = rgb(0.42,0.46,0.5),
         LINE = rgb(0.82,0.85,0.88), BOXBG = rgb(0.97,0.98,0.99),
-        RED = rgb(0.545,0.102,0.102), PAPER = rgb(0.906,0.922,0.937);
+        RED = rgb(0.545,0.102,0.102), PAPER = rgb(0.906,0.922,0.937),
+        // Couverture « bleu nuit » : meme famille que le theme de l'ecran.
+        NUIT = rgb(0.027,0.078,0.192), OR = rgb(0.902,0.729,0.431), CLAIR = rgb(0.80,0.85,0.93);
   // Convertit un hex '#RRGGBB' (palette du gabarit imprimable — cf.
   // levelMeta()) en rgb() pdf-lib (0-1) : mêmes couleurs de niveau que
   // Word et l'aperçu HTML, pour une identité visuelle cohérente entre
@@ -21958,11 +21970,14 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
     bulletinHeader(titre, dateGenStr, creneauStr, syntheseTxt) {
       b.newPage();
       const cx = W/2;
-      const headH = 168;
-      b.page.drawRectangle({x:0, y:H-headH, width:W, height:headH, color:PAPER});
+      const headH = 190;
+      // Couverture bleu nuit pleine largeur, filet or en pied : le document
+      // s'ouvre sur la meme identite que l'ecran, pas sur un bandeau gris.
+      b.page.drawRectangle({x:0, y:H-headH, width:W, height:headH, color:NUIT});
+      b.page.drawRectangle({x:0, y:H-headH-2.5, width:W, height:2.5, color:OR});
 
       // Bandeau meta superieur
-      b.page.drawLine({start:{x:M,y:H-30},end:{x:W-M,y:H-30},thickness:1,color:NAVY});
+      b.page.drawLine({start:{x:M,y:H-34},end:{x:W-M,y:H-34},thickness:0.6,color:rgb(0.27,0.35,0.52)});
       // Identite d'envoi ("Signer en tant que") — meme correctif que Word/
       // PowerPoint/l'apercu HTML : voir identiteRapportW dans exportWord.
       // Tronquee (contrairement a Word) car dessinee a position fixe sans
@@ -21972,35 +21987,32 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
         : ((typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle() : '');
       const identitePdfTxt = identitePdf.length>28 ? identitePdf.slice(0,27)+'…' : identitePdf;
       const metaL = (LANG==='en'?'Generated on: ':'Généré le : ')+dateGenStr+'   |   '+(LANG==='en'?'Slot: ':'Créneau : ')+creneauStr+(identitePdfTxt?'   |   '+(LANG==='en'?'Shared by: ':'Partagé par : ')+identitePdfTxt:'');
-      b.page.drawText(_pdfSafe(metaL), {x:M, y:H-26, size:7.5, font:fontReg, color:MUTED});
+      b.page.drawText(_pdfSafe(metaL), {x:M, y:H-26, size:7.5, font:fontReg, color:CLAIR});
       const metaR = _pdfSafe(LANG==='en'?'RESTRICTED USE — SECURITY OFFICERS':'USAGE RESTREINT — RESPONSABLES SÛRETÉ');
       const metaRw = fontBold.widthOfTextAtSize(metaR, 7.5);
-      b.page.drawText(metaR, {x:W-M-metaRw, y:H-26, size:7.5, font:fontBold, color:RED});
+      b.page.drawText(metaR, {x:W-M-metaRw, y:H-26, size:7.5, font:fontBold, color:OR});
 
-      // Eyebrow centre (perimetre du rapport)
-      const eyebrow = _pdfSafe(((LANG==='en'?'OPERATIONAL REPORT':'RAPPORT OPÉRATIONNEL')+(b.footerPerimetre?' — '+b.footerPerimetre.toUpperCase():'')));
-      const ew = fontReg.widthOfTextAtSize(eyebrow, 8.5);
-      b.page.drawText(eyebrow, {x:cx-ew/2, y:H-50, size:8.5, font:fontReg, color:MUTED});
-
-      // Logo de l'organisation, a gauche du titre de marque (voir exportPDF).
+      // Bloc titre aligne a gauche : logo de l'organisation sur une pastille
+      // blanche (un logo fonce reste lisible sur le bleu nuit), puis
+      // surtitre or, nom de marque en serif blanc, libelle du rapport.
+      let tx = M;
       if (b.logo) {
-        const lh = 42, lw = Math.min(lh * b.logo.width / b.logo.height, 150);
-        b.page.drawImage(b.logo, {x:M, y:H-96, width:lw, height:lw * b.logo.height / b.logo.width});
+        const lh = 44, lw = Math.min(lh * b.logo.width / b.logo.height, 140), pad = 6;
+        const ly = H-headH+(headH-34-(lh+pad*2))/2+0;
+        b.page.drawRectangle({x:M, y:ly, width:lw+pad*2, height:lh+pad*2, color:rgb(1,1,1)});
+        b.page.drawImage(b.logo, {x:M+pad, y:ly+pad, width:lw, height:lw * b.logo.height / b.logo.width});
+        tx = M + lw + pad*2 + 18;
       }
-      // Titre de marque (serif, identique a Word/PPTX/apercu HTML)
-      const brandTxt = _pdfSafe(nomMarqueActuelle());
-      const bsize = 27;
-      const bw = fontSerif.widthOfTextAtSize(brandTxt, bsize);
-      b.page.drawText(brandTxt, {x:cx-bw/2, y:H-80, size:bsize, font:fontSerif, color:NAVY});
+      const eyebrow = _pdfSafe(((LANG==='en'?'OPERATIONAL REPORT':'RAPPORT OPÉRATIONNEL')+(b.footerPerimetre?'  ·  '+b.footerPerimetre.toUpperCase():'')));
+      b.page.drawText(eyebrow, {x:tx, y:H-82, size:8, font:fontBold, color:OR});
+      let brandTxt = _pdfSafe(nomMarqueActuelle());
+      let bsize = 30;
+      while (bsize > 18 && fontSerif.widthOfTextAtSize(brandTxt, bsize) > W-M-tx) bsize -= 1;
+      b.page.drawText(brandTxt, {x:tx, y:H-116, size:bsize, font:fontSerif, color:rgb(1,1,1)});
+      b.page.drawRectangle({x:tx, y:H-130, width:34, height:1.6, color:OR});
+      b.page.drawText(_pdfSafe(titre), {x:tx, y:H-152, size:14, font:fontBold, color:CLAIR});
 
-      // Sous-titre : libelle du rapport (ex. "Synthèse analytique")
-      const ttxt = _pdfSafe(titre);
-      const tsize = 12.5;
-      const tw = fontBold.widthOfTextAtSize(ttxt, tsize);
-      b.page.drawText(ttxt, {x:cx-tw/2, y:H-98, size:tsize, font:fontBold, color:INK});
-
-      b.page.drawLine({start:{x:M,y:H-headH+16},end:{x:W-M,y:H-headH+16},thickness:0.6,color:LINE});
-      b.y = H-headH-4;
+      b.y = H-headH-22;
       if (syntheseTxt) {
         b.wrap(syntheseTxt, 10, fontReg, W-M*2).forEach(line => {
           b.page.drawText(line, {x:M, y:b.y, size:10, font:fontReg, color:MUTED});
@@ -22109,7 +22121,10 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
       b.y -= 46;
     },
     sub(text, color) {
-      b.ensure(22);
+      // Place pour le titre ET le debut de la carte qui le suit : un titre de pays
+      // seul en bas de page, avec sa premiere actu sur la page d'apres, se lit
+      // comme un titre sans contenu.
+      b.ensure(100);
       const stxt = _pdfSafe(text);
       b.page.drawText(stxt, {x:M,y:b.y,size:11,font:fontBold,color:color||BLUE});
       const sw = fontBold.widthOfTextAtSize(stxt, 11);
@@ -22169,34 +22184,52 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
     // Item d'article façon gabarit de référence : pastille de niveau colorée
     // + titre en gras, puis ligne meta (pays — ville · délai relatif).
     articleItem(a, lieuTxt) {
+      // Carte d'actu : barre de gravite a gauche, image de la source a DROITE
+      // du texte (jamais sous lui : sous le texte elle se lisait comme
+      // l'illustration du pays suivant), carte tenue d'un bloc sur une page.
       const lm = (typeof levelMeta === 'function') ? levelMeta(a.level) : {col:'#4B5563', label:'INFO'};
+      const det = (typeof detailRapportActu === 'function') ? detailRapportActu(a) : null;
+      const im = b.imagesActus && b.imagesActus.get(a.id);
+      const barW = 3, padX = 11;
+      let imgW = 0, imgH = 0;
+      if (im) { imgH = Math.min(84, 112 / im.ratio); imgW = imgH * im.ratio; }
+      const textX = M + barW + padX;
+      const textW = W - M - textX - (im ? imgW + 14 : 0);
       const size = 10.5;
       const label = _pdfSafe(lm.label);
       const pillW = fontBold.widthOfTextAtSize(label, 7.5) + 12;
-      const firstMax = W-M*2-pillW-8, restMax = W-M*2;
       const words = _pdfSafe(a.title).replace(/\s+/g,' ').trim().split(' ');
-      const lines = []; let cur = '', max = firstMax;
+      const lines = []; let cur = '', max = textW - pillW - 8;
       for (const w of words) {
         const test = cur ? cur+' '+w : w;
-        if (fontBold.widthOfTextAtSize(test, size) > max && cur) { lines.push(cur); cur = w; max = restMax; }
+        if (fontBold.widthOfTextAtSize(test, size) > max && cur) { lines.push(cur); cur = w; max = textW; }
         else cur = test;
       }
       if (cur) lines.push(cur);
-      b.ensure(lines.length*(size+4) + 24);
+      const resume = det && det.resume ? b.wrap(_pdfSafe(det.resume), 9, fontReg, textW) : [];
+      const infosTxt = det ? det.infos.filter(t => !/^(Source|Source :)/.test(t)).join('   ·   ') : '';
+      const infos = infosTxt ? b.wrap(_pdfSafe(infosTxt), 8, fontReg, textW) : [];
+      // Hauteur de la carte, calculee AVANT de dessiner : elle ne se coupe pas.
+      const hTexte = 4 + lines.length*(size+4) + 14 + resume.length*12.5 + (infos.length ? 3 + infos.length*11 : 0)
+                   + (det && det.lienVideo ? 12 : 0);
+      const h = Math.max(hTexte, imgH + 6) + 6;
+      b.ensure(h + 12);
       const topY = b.y;
-      b.page.drawRectangle({x:M, y:topY-11, width:pillW, height:13, color:hexRgb(lm.bg)});
-      b.page.drawText(label, {x:M+6, y:topY-8, size:7.5, font:fontBold, color:hexRgb(lm.col)});
+      b.page.drawRectangle({x:M, y:topY-h, width:barW, height:h, color:hexRgb(lm.col)});
+      let y = topY - 4;
+      b.page.drawRectangle({x:textX, y:y-11, width:pillW, height:13, color:hexRgb(lm.bg)});
+      b.page.drawText(label, {x:textX+6, y:y-8, size:7.5, font:fontBold, color:hexRgb(lm.col)});
       lines.forEach((line,i) => {
-        b.page.drawText(line, {x: i===0 ? M+pillW+8 : M, y: topY-9-i*(size+4), size, font:fontBold, color:INK});
+        b.page.drawText(line, {x: i===0 ? textX+pillW+8 : textX, y: y-9-i*(size+4), size, font:fontBold, color:INK});
       });
-      b.y = topY - 9 - lines.length*(size+4) - 3;
+      y -= lines.length*(size+4) + 4;
       const cyNiv = _cyNivTexteEtCouleur(a.cy);
       const lieuTexte = _pdfSafe(lieuTxt+'   ·   '+(a.time||''));
-      b.page.drawText(lieuTexte, {x:M, y:b.y, size:8.5, font:fontReg, color:MUTED});
-      let xCursor = M + fontReg.widthOfTextAtSize(lieuTexte, 8.5);
+      b.page.drawText(lieuTexte, {x:textX, y:y-6, size:8.5, font:fontReg, color:MUTED});
+      let xCursor = textX + fontReg.widthOfTextAtSize(lieuTexte, 8.5);
       if (cyNiv) {
         const cyNivTxt = _pdfSafe('   ·   '+cyNiv.texte);
-        b.page.drawText(cyNivTxt, {x:xCursor, y:b.y, size:8, font:fontBold, color:hexRgb('#'+cyNiv.couleur)});
+        b.page.drawText(cyNivTxt, {x:xCursor, y:y-6, size:8, font:fontBold, color:hexRgb('#'+cyNiv.couleur)});
         xCursor += fontBold.widthOfTextAtSize(cyNivTxt, 8);
       }
       // Lien source cliquable (annotation Link, voir b.addLink) — reutilise
@@ -22206,40 +22239,28 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
       if (sourcesVisibles() && typeof articleLienDirect==='function' && typeof safeUrl==='function' && typeof srcName==='function') {
         const lienUrl = safeUrl(articleLienDirect(a), srcName(a.primary));
         const srcTxt = _pdfSafe('   ·   '+(LANG==='en'?'Source: ':'Source : ')+srcName(a.primary));
-        b.page.drawText(srcTxt, {x:xCursor, y:b.y, size:8, font:fontReg, color:BLUE});
+        b.page.drawText(srcTxt, {x:xCursor, y:y-6, size:8, font:fontReg, color:BLUE});
         const srcW = fontReg.widthOfTextAtSize(srcTxt, 8);
-        b.addLink(xCursor, b.y-2, srcW, 10, lienUrl);
+        b.addLink(xCursor, y-8, srcW, 10, lienUrl);
       }
-      // Detail sous le titre (voir detailRapportActu) : resume, cotation et
-      // dates, puis le lien video, cliquable comme le lien source.
-      const det = (typeof detailRapportActu === 'function') ? detailRapportActu(a) : null;
-      if (det) {
-        b.y -= 13;
-        if (det.resume) b.wrap(_pdfSafe(det.resume), 9, fontReg, W-M*2).forEach(line => {
-          b.ensure(14); b.page.drawText(line, {x:M, y:b.y, size:9, font:fontReg, color:INK}); b.y -= 12.5;
-        });
-        const infosTxt = det.infos.filter(t => !/^(Source|Source :)/.test(t)).join('   ·   ');
-        if (infosTxt) b.wrap(_pdfSafe(infosTxt), 8, fontReg, W-M*2).forEach(line => {
-          b.ensure(12); b.page.drawText(line, {x:M, y:b.y, size:8, font:fontReg, color:MUTED}); b.y -= 11;
-        });
-        if (det.lienVideo) {
-          b.ensure(12);
-          const vTxt = _pdfSafe('> '+det.libelleVideo);
-          b.page.drawText(vTxt, {x:M, y:b.y, size:8.5, font:fontBold, color:BLUE});
-          b.addLink(M, b.y-2, fontBold.widthOfTextAtSize(vTxt, 8.5), 11, det.lienVideo);
-          b.y -= 11;
-        }
-        const im = b.imagesActus && b.imagesActus.get(a.id);
-        if (im) {
-          const iw = Math.min(150, 90 * im.ratio), ih = iw / im.ratio;
-          b.ensure(ih + 6);
-          b.page.drawImage(im.pdf, {x:M, y:b.y - ih, width:iw, height:ih});
-          b.y -= ih + 4;
-        }
-        b.y -= 7;
-      } else {
-        b.y -= 18;
+      y -= 14;
+      resume.forEach(line => { b.page.drawText(line, {x:textX, y:y-6, size:9, font:fontReg, color:INK}); y -= 12.5; });
+      if (infos.length) {
+        y -= 3;
+        infos.forEach(line => { b.page.drawText(line, {x:textX, y:y-5, size:8, font:fontReg, color:MUTED}); y -= 11; });
       }
+      if (det && det.lienVideo) {
+        const vTxt = _pdfSafe('> '+det.libelleVideo);
+        b.page.drawText(vTxt, {x:textX, y:y-6, size:8.5, font:fontBold, color:BLUE});
+        b.addLink(textX, y-8, fontBold.widthOfTextAtSize(vTxt, 8.5), 11, det.lienVideo);
+      }
+      if (im) {
+        const ix = W - M - imgW, iy = topY - 4 - imgH;
+        b.page.drawImage(im.pdf, {x:ix, y:iy, width:imgW, height:imgH});
+        b.page.drawRectangle({x:ix, y:iy, width:imgW, height:imgH, borderColor:LINE, borderWidth:0.5});
+      }
+      b.page.drawLine({start:{x:textX,y:topY-h-5},end:{x:W-M,y:topY-h-5},thickness:0.4,color:LINE});
+      b.y = topY - h - 14;
     },
     // Grille 2 colonnes de cartes de corrélation (thème / pays / articles
     // concordants), sur le modele de la section F. du gabarit de reference —
@@ -23167,16 +23188,21 @@ function _apPageWrap(titreSection, sousTitre, statsHTML, bodyHTML, type) {
     + '</style></head><body>'
     + _apToolbar(type)
     + '<div class="sheet">'
-    + '<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #16233A;padding-bottom:10px;margin-bottom:18px;">'
-    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#6B7280;text-transform:uppercase;">Généré le '+_apEsc(dateGenLong)+(_apIdentiteEnvoi?' &nbsp;·&nbsp; Partagé par '+_apEsc(_apIdentiteEnvoi):'')+'</div>'
-    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#8B1A1A;font-weight:600;text-transform:uppercase;">Usage restreint — responsables sûreté</div>'
+    // Couverture « bleu nuit » pleine largeur de feuille, filet or en pied :
+    // meme identite que l'ecran, le PDF, le Word et le PowerPoint.
+    + '<div style="margin:-0.55in -0.55in 26px;padding:22px 0.55in 28px;background:linear-gradient(135deg,#071431,#0F2450);border-bottom:3px solid #E6BA6E;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;">'
+    + '<div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:1px solid rgba(203,217,238,.28);padding-bottom:10px;margin-bottom:22px;">'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#CBD9EE;text-transform:uppercase;">Généré le '+_apEsc(dateGenLong)+(_apIdentiteEnvoi?' &nbsp;·&nbsp; Partagé par '+_apEsc(_apIdentiteEnvoi):'')+'</div>'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#E6BA6E;font-weight:600;text-transform:uppercase;">Usage restreint — responsables sûreté</div>'
     + '</div>'
-    + '<div style="text-align:center;margin-bottom:6px;">'
-    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.16em;color:#9CA3AF;text-transform:uppercase;margin-bottom:10px;">'+_apEsc(titreSection)+' — '+_apEsc(perimetre)+'</div>'
-    + logoMarqueHtml(64)
-    + '<h1 style="font-family:\'Source Serif 4\',serif;font-weight:800;font-size:40px;letter-spacing:0.01em;color:#16233A;margin:0 0 8px;">'+_apEsc(nomMarqueActuelle())+'</h1>'
-    + '<div style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:600;font-size:16px;color:#0B1A27;margin-bottom:14px;">'+_apEsc(sousTitre)+'</div>'
-    + '</div>'
+    + '<div style="display:flex;align-items:center;gap:22px;">'
+    + (logoMarqueHtml(64) ? '<div style="background:#fff;padding:8px 12px;display:flex;align-items:center;flex:none;">'+logoMarqueHtml(64)+'</div>' : '')
+    + '<div style="min-width:0;">'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.16em;color:#E6BA6E;font-weight:600;text-transform:uppercase;margin-bottom:8px;">'+_apEsc(titreSection)+' — '+_apEsc(perimetre)+'</div>'
+    + '<h1 style="font-family:\'Source Serif 4\',serif;font-weight:800;font-size:40px;letter-spacing:0.01em;color:#fff;margin:0 0 6px;line-height:1.1;">'+_apEsc(nomMarqueActuelle())+'</h1>'
+    + '<div style="width:34px;height:2px;background:#E6BA6E;margin:0 0 10px;"></div>'
+    + '<div style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:600;font-size:16px;color:#CBD9EE;">'+_apEsc(sousTitre)+'</div>'
+    + '</div></div></div>'
     + statsHTML
     + bodyHTML
     + '<div style="margin-top:30px;background:#16233A;color:#FFFFFF;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;font-family:\'IBM Plex Mono\',monospace;font-size:10.5px;">'
@@ -23461,7 +23487,7 @@ async function exportWord(type){
     if(typeof docx==='undefined') throw new Error('docx.js non chargé');
     const {Document,Paragraph,TextRun,HeadingLevel,Table,TableRow,TableCell,
            WidthType,AlignmentType,BorderStyle,ShadingType,Packer,
-           Header,Footer,PageNumber,ExternalHyperlink,ImageRun}=docx;
+           Header,Footer,PageNumber,ExternalHyperlink,ImageRun,VerticalAlign}=docx;
     // Lien source cliquable (docx.js ExternalHyperlink) — reutilise
     // articleLienDirect(a)/safeUrl deja utilises dans le Flux/Excel/CSV,
     // pour ne jamais dupliquer/diverger la logique primaire vs corroborante.
@@ -23477,19 +23503,30 @@ async function exportWord(type){
     // Image de la source, embarquee si elle l'autorise (chargerImagesRapport).
     let imagesActus=new Map();
     const detailWord=(a, avecResume=true)=>{
-      const d=detailRapportActu(a), out=[];
+      const d=detailRapportActu(a), txt=[];
       const im=imagesActus.get(a.id);
-      if(im && ImageRun){
+      if(avecResume && d.resume) txt.push(new Paragraph({children:[new TextRun({text:d.resume,size:19,color:'1F2937',font:'IBM Plex Sans'})],spacing:{after:40}}));
+      const infos=d.infos.filter(t=>!/^Source/.test(t));
+      if(infos.length) txt.push(new Paragraph({children:[new TextRun({text:infos.join('   ·   '),size:16,color:'4B5563',font:'IBM Plex Mono'})],spacing:{after:d.lienVideo?20:80}}));
+      if(d.lienVideo) txt.push(new Paragraph({children:[new ExternalHyperlink({link:d.lienVideo,children:[new TextRun({text:'▶ '+d.libelleVideo,size:17,bold:true,color:'1B5FA8',underline:{},font:'IBM Plex Sans'})]})],spacing:{after:80}}));
+      // Avec image : le texte a gauche, l'image de la source a droite (sous le
+      // texte elle se lisait comme l'illustration de l'actu suivante).
+      if(im && ImageRun && txt.length){
         try{
-          const w=Math.round(Math.min(260, 150*im.ratio)), h=Math.round(w/im.ratio);
-          out.push(new Paragraph({children:[new ImageRun({data:im.octets(),transformation:{width:w,height:h}})],spacing:{before:40,after:40}}));
+          const w=Math.round(Math.min(150, 100*im.ratio)), h=Math.round(w/im.ratio);
+          const nb={style:BorderStyle.NONE,size:0,color:'FFFFFF'};
+          const sans={top:nb,bottom:nb,left:nb,right:nb};
+          return [new Table({
+            width:{size:9000,type:WidthType.DXA}, columnWidths:[6700,2300],
+            borders:{...sans,insideHorizontal:nb,insideVertical:nb},
+            rows:[new TableRow({cantSplit:true,children:[
+              new TableCell({width:{size:6700,type:WidthType.DXA},borders:sans,margins:{top:20,bottom:20,left:0,right:120},children:txt}),
+              new TableCell({width:{size:2300,type:WidthType.DXA},borders:sans,margins:{top:40,bottom:20,left:60,right:0},children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[new ImageRun({data:im.octets(),transformation:{width:w,height:h}})]})]}),
+            ]})],
+          }), new Paragraph({spacing:{after:60}})];
         }catch(e){ console.warn('SentiqS — image illisible pour Word'); }
       }
-      if(avecResume && d.resume) out.push(new Paragraph({children:[new TextRun({text:d.resume,size:19,color:'1F2937',font:'IBM Plex Sans'})],spacing:{after:40}}));
-      const infos=d.infos.filter(t=>!/^Source/.test(t));
-      if(infos.length) out.push(new Paragraph({children:[new TextRun({text:infos.join('   ·   '),size:16,color:'4B5563',font:'IBM Plex Mono'})],spacing:{after:d.lienVideo?20:80}}));
-      if(d.lienVideo) out.push(new Paragraph({children:[new ExternalHyperlink({link:d.lienVideo,children:[new TextRun({text:'▶ '+d.libelleVideo,size:17,bold:true,color:'1B5FA8',underline:{},font:'IBM Plex Sans'})]})],spacing:{after:80}}));
-      return out;
+      return txt;
     };
 
     const arts=getExportData();
@@ -23514,7 +23551,8 @@ async function exportWord(type){
     const FONT_SERIF='Source Serif 4', FONT_SANS='IBM Plex Sans', FONT_MONO='IBM Plex Mono';
     const lvlColor={crit:'8B1A1A',high:'7C4A00',mod:'1B5FA8',ok:'0F4F2A'};
     const heading=(text,lvl=1,color='0B1A27')=>new Paragraph({
-      text,heading:lvl===1?HeadingLevel.HEADING_1:lvl===2?HeadingLevel.HEADING_2:HeadingLevel.HEADING_3,
+      children:[new TextRun({text,bold:true,color,font:FONT_SANS,size:lvl===1?28:lvl===2?24:22})],
+      heading:lvl===1?HeadingLevel.HEADING_1:lvl===2?HeadingLevel.HEADING_2:HeadingLevel.HEADING_3,
       spacing:{before:240,after:120},
       border: lvl===2 ? {bottom:{style:BorderStyle.SINGLE,size:8,color,space:4}} : undefined,
       run:{color,bold:true,font:FONT_SANS}
@@ -23531,7 +23569,8 @@ async function exportWord(type){
     // blanc (ancien style, abandonné). Conserve le style Titre 1 pour rester
     // repérable au Sommaire.
     const topBar=(text,color)=>new Paragraph({
-      text, heading:HeadingLevel.HEADING_1,
+      children:[new TextRun({text,bold:true,size:26,color:color||'0D1B2A',font:FONT_SANS})],
+      heading:HeadingLevel.HEADING_1,
       spacing:{before:200,after:160},
       border:{bottom:{style:BorderStyle.SINGLE,size:10,color:color||'0D1B2A'}},
       run:{color:color||'0D1B2A',bold:true,size:24,font:FONT_SANS},
@@ -23698,30 +23737,45 @@ async function exportWord(type){
     children.push(new Paragraph({spacing:{before:120},border:{top:{style:BorderStyle.SINGLE,size:8,color:'0D1B2A'}}}));
     children.push(mastheadMetaRow);
     children.push(new Paragraph({spacing:{after:160}}));
-    children.push(new Paragraph({
-      alignment:AlignmentType.CENTER,
-      children:[new TextRun({text:((LANG==='en'?'OPERATIONAL REPORT':'RAPPORT OPÉRATIONNEL')+' — '+perimetreW.toUpperCase()),size:17,color:'9CA3AF',font:FONT_SANS})],
-      spacing:{after:100}
-    }));
-    // Logo de l'organisation (identite d'envoi) au-dessus du nom, s'il existe.
+    // Couverture « bleu nuit » : un bloc plein, filet or en pied. Le logo de
+    // l'organisation est dans une cellule blanche a gauche (un logo fonce
+    // reste lisible), le surtitre, le nom et le libelle du rapport a droite.
     const logoW = (typeof logoMarqueActuelle === 'function') ? logoMarqueActuelle() : null;
+    const NUIT_W='071431', OR_W='E6BA6E', CLAIR_W='CBD9EE';
+    const nbW={style:BorderStyle.NONE,size:0,color:NUIT_W};
+    let logoRun=null;
     if (logoW && ImageRun) {
-      try {
-        children.push(new Paragraph({alignment:AlignmentType.CENTER, spacing:{after:80},
-          children:[new ImageRun({data:logoMarqueOctets(logoW), transformation:{width:Math.round(Math.min(64*logoW.ratio, 240)), height:Math.round(Math.min(64*logoW.ratio, 240)/logoW.ratio)}})]}));
-      } catch (e) { console.warn('SentiqS — logo illisible pour Word'); }
+      try { logoRun=new ImageRun({data:logoMarqueOctets(logoW), transformation:{width:Math.round(Math.min(56*logoW.ratio, 150)), height:Math.round(Math.min(56*logoW.ratio, 150)/logoW.ratio)}}); }
+      catch (e) { console.warn('SentiqS — logo illisible pour Word'); }
     }
-    children.push(new Paragraph({
-      alignment:AlignmentType.CENTER,
-      children:[new TextRun({text:nomMarqueActuelle(),bold:true,size:54,color:'0D1B2A',font:FONT_SERIF})],
-      spacing:{after:60}
+    const celluleTitre=new TableCell({
+      width:{size:logoRun?7200:9000,type:WidthType.DXA},
+      shading:{type:ShadingType.CLEAR,fill:NUIT_W},
+      borders:{top:nbW,left:nbW,right:nbW,bottom:{style:BorderStyle.SINGLE,size:18,color:OR_W}},
+      margins:{top:260,bottom:260,left:300,right:200},
+      children:[
+        new Paragraph({spacing:{after:80},children:[new TextRun({text:((LANG==='en'?'OPERATIONAL REPORT':'RAPPORT OPÉRATIONNEL')+'  ·  '+perimetreW.toUpperCase()),bold:true,size:16,color:OR_W,font:FONT_SANS})]}),
+        new Paragraph({spacing:{after:60},children:[new TextRun({text:nomMarqueActuelle(),bold:true,size:56,color:'FFFFFF',font:FONT_SERIF})]}),
+        new Paragraph({children:[new TextRun({text:titreRapportW,bold:true,size:26,color:CLAIR_W,font:FONT_SANS})]}),
+      ],
+    });
+    const cellules=[];
+    if (logoRun) cellules.push(new TableCell({
+      width:{size:1800,type:WidthType.DXA},
+      shading:{type:ShadingType.CLEAR,fill:'FFFFFF'},
+      verticalAlign:VerticalAlign.CENTER,
+      borders:{top:nbW,left:nbW,right:nbW,bottom:{style:BorderStyle.SINGLE,size:18,color:OR_W}},
+      margins:{top:120,bottom:120,left:160,right:160},
+      children:[new Paragraph({alignment:AlignmentType.CENTER,children:[logoRun]})],
     }));
-    children.push(new Paragraph({
-      alignment:AlignmentType.CENTER,
-      children:[new TextRun({text:titreRapportW,bold:true,size:25,color:'0B1A27',font:FONT_SANS})],
-      spacing:{after:200},
-      border:{bottom:{style:BorderStyle.SINGLE,size:4,color:'D1D9E0'}},
+    cellules.push(celluleTitre);
+    children.push(new Paragraph({spacing:{after:80}}));
+    children.push(new Table({
+      width:{size:9000,type:WidthType.DXA}, columnWidths:logoRun?[1800,7200]:[9000],
+      borders:{top:nbW,bottom:nbW,left:nbW,right:nbW,insideHorizontal:nbW,insideVertical:nbW},
+      rows:[new TableRow({cantSplit:true,children:cellules})],
     }));
+    children.push(new Paragraph({spacing:{after:140}}));
     if (syntheseTxtW) {
       children.push(new Paragraph({
         children:[new TextRun({text:syntheseTxtW,size:20,color:'6B7280',font:FONT_SANS})],
