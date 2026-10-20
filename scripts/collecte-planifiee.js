@@ -31,6 +31,7 @@ const { evaluerAccessibilite } = require('./lib/couverture');
 const historique = require('./lib/historique');
 const alerteSortante = require('./lib/alerte-sortante');
 const alerteCouverture = require('./lib/alerte-couverture');
+const bulletin = require('./lib/bulletin');
 const santeCollecte = require('./lib/sante-collecte');
 
 // Firebase Hosting retire (sentinel-surete.web.app ne recoit plus de
@@ -67,6 +68,9 @@ function fenetreCollecteMs() { return _fenetre(COLLECT_TIMEOUT_MS, process.env.C
 // ni par une API qui n'existe pas. Voir scripts/lib/historique.js.
 const RACINE_HISTORIQUE = process.env.RACINE_HISTORIQUE
   || path.join(__dirname, '..', 'web', 'historique');
+// Bulletins quotidiens des pays pilotes, servis par Pages a cote de l'archive.
+const RACINE_BULLETINS = process.env.RACINE_BULLETINS
+  || path.join(__dirname, '..', 'web', 'bulletins');
 
 // Mémoire inter-runs de SRC_HEALTH / PROXY_HEALTH_PAYS — HORS dépôt
 // (répertoire dans .gitignore), restaurée/sauvegardée par actions/cache
@@ -450,14 +454,17 @@ function ecrireResumeActions(md) {
           if (fs.existsSync(cheminEtat)) etat = JSON.parse(fs.readFileSync(cheminEtat, 'utf8'));
         } catch (_) { etat = {}; }   // etat illisible : on repart de zero, donc silencieux
 
-        const mouvement = alerteSortante.changements(etat, inst);
+        // Seuil du flash : marron/rouge partout, orange pour les pays pilotes
+        // (voir filtrerFlash). L'etat, lui, avance sur TOUS les mouvements.
+        const mouvement = alerteSortante.filtrerFlash(alerteSortante.changements(etat, inst));
         const noms = {};
         for (const n of niveaux) if (n && n.code) noms[n.code] = n.nom || n.code;
         const message = alerteSortante.construireMessage(mouvement, { jour, noms });
 
         if (!message) {
-          console.log('  Alerte : aucun changement de niveau depuis le dernier signalement'
-            + (mouvement.descentes ? ' (' + mouvement.descentes + ' amelioration(s))' : '') + '.');
+          console.log('  Alerte : aucun changement au-dessus du seuil du flash depuis le dernier signalement'
+            + (mouvement.descentes ? ' (' + mouvement.descentes + ' amelioration(s))' : '')
+            + (mouvement.sousSeuil ? ' (' + mouvement.sousSeuil + ' montee(s) sous le seuil)' : '') + '.');
         } else if (!process.env.WEBHOOK_ALERTES) {
           console.log('  Alerte : ' + mouvement.montees.length
             + ' aggravation(s) — aucun canal configure (WEBHOOK_ALERTES absent). Message qui serait parti :');
@@ -474,6 +481,31 @@ function ecrireResumeActions(md) {
         // mouvements accumules.
         fs.writeFileSync(cheminEtat,
           JSON.stringify(alerteSortante.etatSuivant(etat, inst), null, 1) + '\n');
+
+        // ── BULLETIN QUOTIDIEN DES PAYS PILOTES ─────────────────────────
+        // Decision du 20/10/2026 : un bulletin par jour pour le responsable
+        // surete, Cote d'Ivoire d'abord. Ecrit par le premier passage a
+        // partir de 6 h GMT, sous web/bulletins/ (servi par Pages). Voir
+        // scripts/lib/bulletin.js.
+        for (const cy of Object.keys(bulletin.PAYS_BULLETIN)) {
+          try {
+            if (!bulletin.doitEcrire(RACINE_BULLETINS, cy, jour, Date.now())) continue;
+            const donnees = await page.evaluate((c) => (typeof donneesBulletinPays === 'function') ? donneesBulletinPays(c) : null, cy);
+            if (!donnees) { console.warn('  Bulletin ' + cy + ' : la page ne fournit pas donneesBulletinPays.'); continue; }
+            const serie = historique.construireSerie(historique.lireSerie(RACINE_HISTORIQUE));
+            bulletin.ecrire(RACINE_BULLETINS, donnees, { jour, genereMs: Date.now(), serie });
+            const annonce = bulletin.messageAnnonce(donnees, jour);
+            if (!process.env.WEBHOOK_ALERTES) {
+              console.log('  Bulletin ' + cy + ' ecrit — aucun canal configure. Message qui serait parti :');
+              annonce.text.split('\n').forEach((l) => console.log('    | ' + l));
+            } else {
+              const envoiB = await alerteSortante.envoyer(process.env.WEBHOOK_ALERTES, annonce);
+              console.log('  Bulletin ' + cy + ' ecrit et ' + (envoiB.ok ? 'annonce.' : 'NON annonce (' + envoiB.raison + ').'));
+            }
+          } catch (e) {
+            console.warn('  Bulletin ' + cy + ' : non ecrit (' + ((e && e.message) || e) + ')');
+          }
+        }
       }
     } catch (e) {
       // L'archive est un bonus : son echec ne doit jamais faire tomber une

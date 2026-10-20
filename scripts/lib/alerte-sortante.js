@@ -86,7 +86,7 @@ function changements(etatPrecedent, courant) {
  * Retourner null plutôt qu'un message « rien à signaler » est délibéré :
  * c'est ce qui garde le canal lisible.
  */
-function construireMessage({ montees, descentes }, { jour, noms, url } = {}) {
+function construireMessage({ montees, descentes, sousSeuil }, { jour, noms, url } = {}) {
   if (!montees || !montees.length) return null;
 
   const nom = (c) => (noms && noms[c]) || c;
@@ -95,9 +95,9 @@ function construireMessage({ montees, descentes }, { jour, noms, url } = {}) {
 
   const entete = 'SentiqS — ' + montees.length + ' pays en aggravation'
     + (jour ? ' (' + jour + ')' : '');
-  const pied = descentes
-    ? descentes + ' pays en amélioration, non détaillés.'
-    : null;
+  const pied = [descentes ? descentes + ' pays en amélioration, non détaillés.' : null,
+    sousSeuil ? sousSeuil + ' autre(s) montée(s) sous le seuil du flash, visibles dans l\'application.' : null]
+    .filter(Boolean).join(' ') || null;
 
   return {
     text: [entete, '', ...lignes, '', pied, 'Détail : ' + (url || URL_PRODUIT)]
@@ -142,4 +142,28 @@ function etatSuivant(etatPrecedent, courant) {
   return suivant;
 }
 
-module.exports = { URL_PRODUIT, etatDepuis, changements, etatSuivant, construireMessage, envoyer };
+// ── Seuil du flash (décision du 20/10/2026) ────────────────────────────────
+// Profil pilote : responsable sûreté d'entreprise. Un passage du vert au
+// jaune ne justifie pas de le réveiller ; un passage au marron ou au rouge,
+// si. Exception pour les pays pilotes : la Côte d'Ivoire est flashée dès
+// l'orange, parce que c'est là que l'utilisateur pilote a ses équipes.
+// Les montées sous le seuil restent comptées et l'état avance quand même
+// (etatSuivant n'est pas filtré) : une montée non annoncée n'est pas perdue,
+// elle est dans l'archive et dans le bulletin du jour.
+const SEUIL_FLASH = 'marron';
+const SEUIL_FLASH_PILOTES = { CI: 'orange' };
+
+function filtrerFlash(mouvement, seuils) {
+  const s = seuils || {};
+  const defaut = NIVEAUX_ORDRE.indexOf(s.defaut || SEUIL_FLASH);
+  const pilotes = s.pilotes || SEUIL_FLASH_PILOTES;
+  const montees = [];
+  let sousSeuil = 0;
+  for (const m of (mouvement && mouvement.montees) || []) {
+    const seuil = pilotes[m.code] ? NIVEAUX_ORDRE.indexOf(pilotes[m.code]) : defaut;
+    if (NIVEAUX_ORDRE.indexOf(m.vers) >= seuil) montees.push(m); else sousSeuil++;
+  }
+  return { montees, descentes: (mouvement && mouvement.descentes) || 0, sousSeuil };
+}
+
+module.exports = { URL_PRODUIT, SEUIL_FLASH, SEUIL_FLASH_PILOTES, filtrerFlash, etatDepuis, changements, etatSuivant, construireMessage, envoyer };

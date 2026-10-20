@@ -5959,6 +5959,44 @@ function blocAngleMortHTML(am) {
     + (am && !am.vide ? '<div style="margin-top:6px;font-size:var(--fs-micro,10px);color:var(--lg);">' + escHtml(rl('am_note')) + '</div>' : '')
     + '</div></div>';
 }
+// donneesBulletinPays(cy) : ce que le bulletin quotidien d'un pays pilote
+// affiche, en donnees brutes (le rendu vit dans scripts/lib/bulletin.js).
+// Appelee par le job de collecte APRES la collecte : rien n'est recalcule a
+// cote de la page, comme pour l'archive des niveaux. Decision du 20/10/2026 :
+// profil responsable surete, Cote d'Ivoire en pays pilote n° 1.
+const BULLETIN_FAITS_MAX = 12;
+function donneesBulletinPays(cy) {
+  const sc = calcAlertScore(cy);
+  const maintenant = Date.now();
+  const rangLevel = { crit: 0, high: 1, mod: 2 };
+  const duJour = (typeof ALL === 'undefined' ? [] : ALL).filter(a => a && a.cy === cy && estRecentReel(a));
+  const notables = duJour.filter(a => a.level in rangLevel)
+    .sort((x, y) => (rangLevel[x.level] - rangLevel[y.level]) || ((y.pubDate || 0) - (x.pubDate || 0)));
+  const faits = notables.slice(0, BULLETIN_FAITS_MAX).map(a => {
+    const src = SRCS.find(x => x.id === a.primary);
+    return {
+      titre: a.title, url: a.url || null, source: srcName(a.primary), niveau: a.level, cat: a.cat || null,
+      publieMs: a.pubDate || null, cotation: cotationArticle(a, src, SEUIL_SOURCE_ALERTE),
+    };
+  });
+  const socle = ALERTE_EVENTS.filter(e => e.cy === cy).map(e => {
+    const d = poidsVerifie(e, maintenant);
+    return { titre: e.title, date: e.date, niveau: e.level, src: e.src || null,
+             ageJ: d.ms ? Math.floor((maintenant - d.ms) / 86400000) : null, ms: d.ms };
+  }).sort((x, y) => (y.ms || 0) - (x.ms || 0));
+  const am = angleMortPerimetre([cy]);
+  const dans = l => l.some(p => p.cy === cy);
+  return {
+    cy, nom: (PAYS_INFO[cy] || {}).name || cy,
+    niveau: sc.key, libelle: NIV[sc.key].label, sous: NIV[sc.key].sous, total100: sc.total100,
+    confiance: sc.confiance, motifPlafond: sc.motifPlafond,
+    faits, faitsNotables: notables.length, articlesDuJour: duJour.length,
+    socle, facteurs: (FACTEURS_SPECIAUX[cy] || []).map(f => ({ label: f.label, bonus: f.bonus, revu: f.revu || null })),
+    angleMort: { muet: dans(am.muets), horsAlerte: dans(am.horsAlerte), sourceUnique: dans(am.sourceUnique), socleAncien: dans(am.socleAncien),
+                 sourcesAlerte: SRCS.filter(src => src.cy === cy && peutAlerter(src, SEUIL_SOURCE_ALERTE)).length },
+    fenetreH: Math.round(FENETRE_ACTUALITE_MS / 3600000),
+  };
+}
 // TR_CONCURRENCE_MAX : plafond de requetes de traduction simultanees. Un
 // rapport complet peut contenir plusieurs centaines de textes distincts a
 // traduire (titres, analyses, evenements agenda...) ; les envoyer tous en

@@ -176,13 +176,15 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          if [ -z "$(git status --porcelain web/historique)" ]; then
+          if [ -z "$(git status --porcelain web/historique web/bulletins)" ]; then
             echo "Rien de neuf dans l'archive — journée déjà couverte."
             exit 0
           fi
           git config user.name  "collecte-planifiee[bot]"
           git config user.email "collecte-planifiee@users.noreply.github.com"
           git add web/historique
+          # Bulletin quotidien des pays pilotes (scripts/lib/bulletin.js).
+          [ -d web/bulletins ] && git add web/bulletins
           jour=$(date -u +%Y-%m-%d)
           git commit -m "Archive des niveaux d'alerte du $jour"
           for essai in 1 2 3; do

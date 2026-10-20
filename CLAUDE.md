@@ -2442,6 +2442,50 @@ porte `js/intro.js` et les deux vidéos), tests `intro.test.js` (16) et
 
 ---
 
+## Le bulletin quotidien du pays pilote — 20/10/2026
+
+Décisions du 20/10/2026 (l'éditeur a délégué l'arbitrage) : profil pilote
+responsable sûreté d'entreprise, **Côte d'Ivoire en pays pilote n° 1**, un
+bulletin par jour vers 7 h GMT, un flash seulement quand un pays franchit un
+seuil.
+
+**Le bulletin** (`scripts/lib/bulletin.js`) est une page HTML statique écrite
+par le job de collecte sous `web/bulletins/<PAYS>/AAAA-MM-JJ.html` (plus
+`dernier.html`), commitée avec l'archive et servie par Pages. Les données
+viennent de `donneesBulletinPays(cy)` **dans la page**, appelée après la
+collecte : rien n'est recalculé à côté. Premier passage à partir de 6 h GMT,
+refus d'écraser = un par jour. La cadence réelle du job (3 h 24 à 5 h 51)
+fait arriver le bulletin entre 6 h et midi : c'est écrit dans la page.
+
+Cinq blocs : en bref (niveau, confiance, tendance), faits de la fenêtre cotés,
+ce qui porte le niveau (socle + facteurs), ce que nous ne savons pas, liens
+vers les conseils officiels (FCDO, Département d'État, France Diplomatie —
+des **liens**, jamais un résumé qui se périmerait).
+
+**Cotation client** (`cotationArticle`, noyau) : Confirmé = recoupé par une
+seconde source (rien de plus, le bulletin le dit) ; Probable = source unique
+capable d'alerter (même règle que `peutAlerter`) ; Non confirmé = le reste.
+
+**Piège évité :** la tendance se calcule contre le niveau **imprimé** dans le
+bulletin (`tendanceDuJour`), pas contre l'instantané du jour, qu'un passage
+antérieur a pu écrire avec un autre niveau. Et une baisse annoncée précise
+qu'elle peut tenir à une revue du socle : celle de la Côte d'Ivoire
+(orange → jaune le 20/10) vient du retrait des inondations, pas d'une
+amélioration sur le terrain.
+
+**Seuil du flash** (`filtrerFlash`, `alerte-sortante.js`) : marron et rouge
+partout, **orange pour la Côte d'Ivoire**. Les montées sous le seuil sont
+comptées dans le message et l'état avance quand même. Le bulletin annonce son
+adresse sur le même canal, une fois par jour.
+
+**ACLED : non** (décision du 20/10/2026, licence payante). Ne pas en dépendre.
+**`WEBHOOK_ALERTES` n'est pas branché** au 20/10/2026 : les messages qui
+seraient partis sont dans les journaux du job. Si le canal est un flux
+Teams « Workflows », vérifier au premier envoi qu'il accepte `{"text": ...}` :
+certains modèles n'acceptent qu'une carte adaptative.
+
+---
+
 ## Conventions
 
 - **Tout en français** : commits, commentaires, noms de fonctions et de
