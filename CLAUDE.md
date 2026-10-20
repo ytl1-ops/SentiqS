@@ -2648,3 +2648,20 @@ dans la page (`mediaActu`) la part d'actus avec image, et photographie le Flux
 et le tableau de bord ; le workflow `apercu-visuels.yml` le lance sur chaque
 PR qui touche la page et dépose les captures en artefact. Informatif, il
 n'échoue jamais une PR.
+
+**Le logo de l'organisation (identité d'envoi).** L'éditeur a précisé que
+l'identité d'envoi d'un rapport, c'est le nom **et le logo** de
+l'organisation. Paramètres > Personnalisation de marque reçoit un champ logo :
+l'image est réduite à `LOGO_MARQUE_MAX_PX` (360 px), gardée en data URL PNG
+(JPEG si trop lourde) dans `sentinel_marque_perso` (`logoMarque`,
+`logoMarqueRatio`), jamais envoyée à un serveur. `logoMarqueActuelle()` suit
+la règle du nom : plan payant seulement. Imprimé en tête de l'aperçu HTML
+(Flux, Agenda, Alertes, rapport complet, Synthèse), du Word, du PDF (à gauche
+du titre) et de la couverture PowerPoint. `pmSaveMarquePerso` reconstruit tout
+l'objet : un test exige qu'il garde le logo déjà enregistré.
+
+Les rapports HTML montrent aussi l'image de la source à côté de chaque
+article (même règle que `visuelActu`), sans repli quand il n'y en a pas, pour
+ne pas coûter d'encre. **Pas encore fait** : le logo et les images dans le
+bulletin quotidien (page publique produite par le job, sans personnalisation
+d'utilisateur) et dans les cartes d'actu des Word/PDF/PowerPoint.

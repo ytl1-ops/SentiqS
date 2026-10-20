@@ -3653,6 +3653,19 @@ html.force-mobile[data-theme="dark"] .art{margin:0 var(--sp-2) var(--sp-2)}
                 <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="marqueNom">Nom de la marque / société</label>
                 <input type="text" id="marqueNom" data-i18n-ph="ph_ex_groupe_surete_sarl" placeholder="Ex. Groupe Sûreté SARL" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
               </div>
+              <!-- Logo de l'organisation : imprime en tete des rapports (PDF,
+                   Word, PowerPoint, apercus) a cote du nom. Voir
+                   logoMarqueActuelle / preparerLogoMarque. -->
+              <div style="margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <div id="marqueLogoApercu" style="width:72px;height:72px;border:1px dashed var(--bd);border-radius:10px;display:grid;place-items:center;overflow:hidden;background:var(--sf);color:var(--lg);font-size:10px;text-align:center"><span data-i18n="lbl_aucun_logo">Aucun logo</span></div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <label for="marqueLogoFichier" style="font-size:10px;color:var(--lg)"><span data-i18n="lbl_logo_organisation">Logo de l'organisation (PNG ou JPEG, imprimé en tête des rapports)</span></label>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <input type="file" id="marqueLogoFichier" accept="image/png,image/jpeg,image/webp,image/svg+xml" onchange="choisirLogoMarque(this)" style="font-size:11px;max-width:240px">
+                    <button type="button" id="marqueLogoRetirer" class="btn-action" onclick="retirerLogoMarque()"><span data-i18n="btn_retirer_le_logo">Retirer le logo</span></button>
+                  </div>
+                </div>
+              </div>
               <!-- 3 identites d'envoi possibles (ex. plusieurs cellules/equipes qui
                    partagent sous des noms differents) : celle marquee "active"
                    ci-dessous est celle utilisee dans la signature des partages
@@ -5485,6 +5498,7 @@ const I18N = {
     ph_note_complementaire_optionnel:'Note complémentaire (optionnel)',
     ph_rechercher_un_pays_un_evenement_un_theme:'Rechercher un pays, un evenement, un theme, une source...',
     ph_ex_groupe_surete_sarl:'Ex. Groupe Sûreté SARL',
+    lbl_aucun_logo:'Aucun logo', lbl_logo_organisation:'Logo de l\'organisation (PNG ou JPEG, imprimé en tête des rapports)', btn_retirer_le_logo:'Retirer le logo',
     ph_ex_cellule_surete_abc:'Ex. Cellule Sûreté ABC',
     ph_ex_cellule_surete_nord:'Ex. Cellule Sûreté Nord',
     ph_ex_cellule_surete_sud:'Ex. Cellule Sûreté Sud',
@@ -5623,6 +5637,7 @@ const I18N = {
     ph_note_complementaire_optionnel:'Additional note (optional)',
     ph_rechercher_un_pays_un_evenement_un_theme:'Search a country, an event, a topic, a source...',
     ph_ex_groupe_surete_sarl:'e.g. Security Group Ltd',
+    lbl_aucun_logo:'No logo', lbl_logo_organisation:'Organisation logo (PNG or JPEG, printed at the top of reports)', btn_retirer_le_logo:'Remove logo',
     ph_ex_cellule_surete_abc:'e.g. ABC Security Unit',
     ph_ex_cellule_surete_nord:'e.g. North Security Unit',
     ph_ex_cellule_surete_sud:'e.g. South Security Unit',
@@ -10438,6 +10453,61 @@ function nomMarqueActuelle() {
   if (!fonctionnalitePayante()) return 'SentiqS';
   const m = getMarquePerso();
   return (m.nomMarque || '').trim() || 'SentiqS';
+}
+// ── Logo de l'organisation (20/10/2026) ─────────────────────────────────
+// L'identite d'envoi d'un rapport, c'est le NOM et le LOGO de l'organisation
+// qui l'envoie (precision de l'editeur). Le logo est choisi dans Parametres >
+// Personnalisation de marque, reduit a LOGO_MARQUE_MAX_PX de cote et garde
+// en data URL dans la personnalisation (aucun envoi a un serveur). Meme
+// regle que le nom : plan payant seulement, sinon aucun logo n'est imprime.
+const LOGO_MARQUE_MAX_PX = 360;
+function logoMarqueValide(l) {
+  return typeof l === 'string' && /^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(l);
+}
+function logoMarqueActuelle() {
+  if (!fonctionnalitePayante()) return null;
+  const m = getMarquePerso();
+  if (!logoMarqueValide(m.logoMarque)) return null;
+  const ratio = Number(m.logoMarqueRatio);
+  return { dataUrl: m.logoMarque, ratio: (ratio > 0.1 && ratio < 10) ? ratio : 1, png: m.logoMarque.startsWith('data:image/png') };
+}
+function logoMarqueOctets(logo) {
+  const b = atob(logo.dataUrl.split(',')[1]);
+  const u = new Uint8Array(b.length);
+  for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i);
+  return u;
+}
+// preparerLogoMarque(fichier) : { dataUrl, ratio } d'une image reduite a
+// LOGO_MARQUE_MAX_PX, en PNG (transparence gardee) sauf si trop lourd.
+function preparerLogoMarque(fichier) {
+  return new Promise((resolve, reject) => {
+    if (!fichier || !/^image\/(png|jpeg|webp|gif|svg\+xml)$/.test(fichier.type)) return reject(new Error('format'));
+    if (fichier.size > 5 * 1024 * 1024) return reject(new Error('taille'));
+    const url = URL.createObjectURL(fichier);
+    const img = new Image();
+    img.onload = () => {
+      const w0 = img.naturalWidth || img.width || 1, h0 = img.naturalHeight || img.height || 1;
+      const k = Math.min(1, LOGO_MARQUE_MAX_PX / Math.max(w0, h0));
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(w0 * k)); c.height = Math.max(1, Math.round(h0 * k));
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      let dataUrl = c.toDataURL('image/png');
+      if (dataUrl.length > 250000) {
+        const c2 = document.createElement('canvas'); c2.width = c.width; c2.height = c.height;
+        const g = c2.getContext('2d'); g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, c2.width, c2.height); g.drawImage(c, 0, 0);
+        dataUrl = c2.toDataURL('image/jpeg', 0.85);
+      }
+      resolve({ dataUrl, ratio: c.width / c.height });
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('lecture')); };
+    img.src = url;
+  });
+}
+// Bloc HTML du logo pour les documents (apercus imprimables), vide sans logo.
+function logoMarqueHtml(hauteurPx) {
+  const l = logoMarqueActuelle();
+  return l ? '<img src="' + l.dataUrl + '" alt="' + _apEsc(nomMarqueActuelle()) + '" style="height:' + hauteurPx + 'px;width:auto;max-width:' + Math.round(hauteurPx * 4) + 'px;object-fit:contain;display:block;margin:0 auto 10px">' : '';
 }
 // identitesMarquePerso(m) : normalise les 3 identites d'envoi possibles +
 // laquelle est active. Migre en douceur l'ancien champ unique
@@ -17732,6 +17802,8 @@ function renderMarquePerso() {
   const m = getMarquePerso();
   const { identite1, identite2, identite3, active } = identitesMarquePerso(m);
   nomEl.value = m.nomMarque || '';
+  _marqueLogoBrouillon = undefined;
+  afficherApercuLogoMarque(logoMarqueValide(m.logoMarque) ? m.logoMarque : '');
   id1El.value = identite1;
   id2El.value = identite2;
   id3El.value = identite3;
@@ -17746,7 +17818,7 @@ function renderMarquePerso() {
     badgeEl.style.color = payant ? '#0F4F2A' : '#7C4A00';
   }
   if (upsellEl) upsellEl.style.display = payant ? 'none' : 'flex';
-  [nomEl, id1El, id2El, id3El, document.getElementById('marqueIdentiteActive')].forEach(el => { if (el) { el.disabled = !payant; el.style.opacity = payant ? '1' : '.55'; } });
+  [nomEl, id1El, id2El, id3El, document.getElementById('marqueIdentiteActive'), document.getElementById('marqueLogoFichier'), document.getElementById('marqueLogoRetirer')].forEach(el => { if (el) { el.disabled = !payant; el.style.opacity = payant ? '1' : '.55'; } });
   document.querySelectorAll('#marqueModulesGrid select').forEach(el => { el.disabled = !payant; el.style.opacity = payant ? '1' : '.55'; });
   if (saveBtn) saveBtn.disabled = !payant;
 }
@@ -17772,6 +17844,32 @@ function renderMarqueIdentiteChoix(preferActive) {
   // l'identite visee existe encore).
   renderIdentitesModulesParams(false);
 }
+// Logo choisi mais pas encore enregistre : undefined = inchange, null = retire.
+let _marqueLogoBrouillon;
+function afficherApercuLogoMarque(dataUrl) {
+  const el = document.getElementById('marqueLogoApercu');
+  if (!el) return;
+  el.innerHTML = dataUrl
+    ? '<img src="' + dataUrl + '" alt="" style="max-width:100%;max-height:100%;object-fit:contain">'
+    : '<span>' + (LANG === 'en' ? 'No logo' : 'Aucun logo') + '</span>';
+}
+async function choisirLogoMarque(input) {
+  const f = input && input.files && input.files[0];
+  if (!f) return;
+  try {
+    _marqueLogoBrouillon = await preparerLogoMarque(f);
+    afficherApercuLogoMarque(_marqueLogoBrouillon.dataUrl);
+    pmMsg(LANG === 'en' ? 'Logo ready — click Save to keep it.' : 'Logo prêt — cliquez sur Enregistrer pour le garder.', 'ok', 'marqueMsg');
+  } catch (e) {
+    pmMsg(e.message === 'taille' ? (LANG === 'en' ? 'Image too large (5 MB max).' : 'Image trop lourde (5 Mo maximum).')
+      : (LANG === 'en' ? 'Unreadable image — use PNG or JPEG.' : 'Image illisible — utilisez un PNG ou un JPEG.'), 'err', 'marqueMsg');
+  }
+  input.value = '';
+}
+function retirerLogoMarque() {
+  _marqueLogoBrouillon = null;
+  afficherApercuLogoMarque('');
+}
 function pmSaveMarquePerso() {
   // Double verification cote enregistrement (pas seulement l'UI grisee) :
   // un plan gratuit ne doit jamais pouvoir persister de personnalisation,
@@ -17788,6 +17886,14 @@ function pmSaveMarquePerso() {
     identite3: (document.getElementById('marqueIdentite3').value || '').trim(),
     identiteActive: activeVal === '3' ? 3 : activeVal === '2' ? 2 : 1,
   };
+  // Logo : celui choisi depuis l'ouverture du panneau, sinon celui deja
+  // enregistre (cette fonction reconstruit tout l'objet : l'oublier ici
+  // effacerait le logo a chaque enregistrement).
+  const avant = getMarquePerso();
+  const logo = (_marqueLogoBrouillon !== undefined) ? _marqueLogoBrouillon
+    : (logoMarqueValide(avant.logoMarque) ? { dataUrl: avant.logoMarque, ratio: avant.logoMarqueRatio } : null);
+  if (logo) { nouvelle.logoMarque = logo.dataUrl; nouvelle.logoMarqueRatio = logo.ratio; }
+  _marqueLogoBrouillon = undefined;
   // Designations par module : celles du tableau de Parametres, par-dessus ce
   // qui est deja enregistre (un module absent du tableau garde sa valeur),
   // puis normalisees contre les identites QUI VIENNENT D'ETRE saisies — une
@@ -20938,6 +21044,12 @@ async function exportPPTX(type) {
     // fichier ou la couverture PPTX ignorait une marque personnalisee alors
     // que Word/PDF/l'apercu HTML l'affichent tous correctement — un compte
     // avec une marque configuree voyait "SentiqS" s'afficher quand meme ici.
+    // Logo de l'organisation (identite d'envoi), au-dessus du bloc de titre.
+    const logoP = (typeof logoMarqueActuelle === 'function') ? logoMarqueActuelle() : null;
+    if (logoP) {
+      const lh = 0.9, lw = Math.min(lh * logoP.ratio, 3);
+      s.addImage({data: logoP.dataUrl.replace(/^data:/, ''), x:0.6, y:1.1, w:lw, h:lw / logoP.ratio});
+    }
     s.addText(nomMarqueActuelle(), {x:0.6,y:2.6,w:7.2,h:1.1,fontSize:52,bold:true,color:NAVY,fontFace:'Source Serif 4'});
     s.addText(titrePPTX.charAt(0)+titrePPTX.slice(1).toLowerCase()+' '+periode.label.toLowerCase()+' — '+perimetre,
       {x:0.6,y:3.7,w:7.2,h:0.55,fontSize:19,bold:true,color:DARK2,fontFace:'IBM Plex Sans'});
@@ -21438,6 +21550,7 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
     // qu'aucun appelant ne l'a posee (guide d'utilisation), auquel cas le
     // bandeau retombe sur la resolution globale historique.
     identiteEnvoi: null,
+    logo: null,
     // Ruban de bas de page — bandeau plein bord-a-bord (pas d'encadre), logo
     // radar + nom de marque, sur le modele du ruban utilise en pied de page
     // du site. Pas d'adresse e-mail (usage interne uniquement).
@@ -21535,6 +21648,11 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
       const ew = fontReg.widthOfTextAtSize(eyebrow, 8.5);
       b.page.drawText(eyebrow, {x:cx-ew/2, y:H-50, size:8.5, font:fontReg, color:MUTED});
 
+      // Logo de l'organisation, a gauche du titre de marque (voir exportPDF).
+      if (b.logo) {
+        const lh = 42, lw = Math.min(lh * b.logo.width / b.logo.height, 150);
+        b.page.drawImage(b.logo, {x:M, y:H-96, width:lw, height:lw * b.logo.height / b.logo.width});
+      }
       // Titre de marque (serif, identique a Word/PPTX/apercu HTML)
       const brandTxt = _pdfSafe(nomMarqueActuelle());
       const bsize = 27;
@@ -22091,6 +22209,13 @@ async function exportPDF(type) {
     // Identite d'envoi propre au MODULE exporte (synthese/flux/agenda/...) :
     // voir identiteEnvoiActuelle(module). Lue par bulletinHeader.
     b.identiteEnvoi = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle(type) : '';
+    // Logo de l'organisation (identite d'envoi) : embarque une fois, dessine
+    // par bulletinHeader. Un logo illisible n'empeche jamais l'export.
+    const logoPdf = (typeof logoMarqueActuelle === 'function') ? logoMarqueActuelle() : null;
+    if (logoPdf) {
+      try { b.logo = logoPdf.png ? await doc.embedPng(logoMarqueOctets(logoPdf)) : await doc.embedJpg(logoMarqueOctets(logoPdf)); }
+      catch (e) { console.warn('SentiqS — logo illisible pour le PDF'); }
+    }
 
     // En-tête façon "Bulletin de veille" — logo radar, date/heure de
     // génération, créneau — utilisée pour tous les types de rapport PDF.
@@ -22536,14 +22661,23 @@ function _apArticleItem(a) {
   const villeTxt = geo.ville ? (geo.ville+(geo.estime?' (estimé)':'')) : '';
   const pays = infoPays(a.cy);
   const lieu = pays.name + (villeTxt ? ' — '+villeTxt : '');
-  return '<div style="margin-bottom:18px;break-inside:avoid;">'
+  // Image de la source (meme regle que visuelActu dans l'appli : https,
+  // creditee, jamais copiee) ; sans image, l'article reste en texte seul
+  // plutot qu'avec un repli qui couterait de l'encre a l'impression.
+  const media = (typeof mediaActu === 'function') ? mediaActu(a) : { img: null };
+  const dom = media.img && typeof domaineActu === 'function' ? domaineActu(a) : '';
+  const vignette = media.img
+    ? '<div style="flex:0 0 120px;"><img src="'+_apEsc(media.img)+'" alt="" referrerpolicy="no-referrer" onerror="this.parentElement.remove()" style="width:120px;height:80px;object-fit:cover;border-radius:4px;display:block;">'
+      + (dom ? '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:9.5px;color:#6B7280;margin-top:2px;">© '+_apEsc(dom)+'</div>' : '') + '</div>'
+    : '';
+  return '<div style="margin-bottom:18px;break-inside:avoid;display:flex;gap:14px;align-items:flex-start;">' + vignette + '<div style="flex:1;min-width:0;">'
     + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;flex-wrap:wrap;">'
     + _apLevelPill(a)
     + _apCyNivPill(a)
     + '<span style="font-weight:600;font-size:15px;color:#111827;">'+_apEsc(L(a.title))+'</span>'
     + '</div>'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#9CA3AF;">'+_apEsc(lieu)+' &nbsp;·&nbsp; '+_apEsc(a.time||'')+'</div>'
-    + '</div>';
+    + '</div></div>';
 }
 
 function _apCorrelationCard(s) {
@@ -22653,6 +22787,7 @@ function _apPageWrap(titreSection, sousTitre, statsHTML, bodyHTML, type) {
     + '</div>'
     + '<div style="text-align:center;margin-bottom:6px;">'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.16em;color:#9CA3AF;text-transform:uppercase;margin-bottom:10px;">'+_apEsc(titreSection)+' — '+_apEsc(perimetre)+'</div>'
+    + logoMarqueHtml(64)
     + '<h1 style="font-family:\'Source Serif 4\',serif;font-weight:800;font-size:40px;letter-spacing:0.01em;color:#16233A;margin:0 0 8px;">'+_apEsc(nomMarqueActuelle())+'</h1>'
     + '<div style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:600;font-size:16px;color:#0B1A27;margin-bottom:14px;">'+_apEsc(sousTitre)+'</div>'
     + '</div>'
@@ -22875,6 +23010,7 @@ function _buildRapportSyntheseHTML(arts) {
 
     + '<div style="text-align:center;margin-bottom:6px;">'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.16em;color:#9CA3AF;text-transform:uppercase;margin-bottom:10px;">Rapport opérationnel — '+_apEsc(perimetre)+'</div>'
+    + logoMarqueHtml(64)
     + '<h1 style="font-family:\'Source Serif 4\',serif;font-weight:800;font-size:40px;letter-spacing:0.01em;color:#16233A;margin:0 0 8px;">'+_apEsc(nomMarqueActuelle())+'</h1>'
     + '<div style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:600;font-size:16px;color:#0B1A27;margin-bottom:14px;">Analyse sécuritaire opérationnelle</div>'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#6B7280;">'+SRCS.length+' sources ('+nbSrcsMedia+' médias + '+nbSrcsSociales+' réseaux sociaux) &nbsp;·&nbsp; filtre anti-hallucination &lt;'+libelleFenetreCourt()+' &nbsp;·&nbsp; '+arts.length+' articles analysés</div>'
@@ -22939,7 +23075,7 @@ async function exportWord(type){
     if(typeof docx==='undefined') throw new Error('docx.js non chargé');
     const {Document,Paragraph,TextRun,HeadingLevel,Table,TableRow,TableCell,
            WidthType,AlignmentType,BorderStyle,ShadingType,Packer,
-           Header,Footer,PageNumber,ExternalHyperlink}=docx;
+           Header,Footer,PageNumber,ExternalHyperlink,ImageRun}=docx;
     // Lien source cliquable (docx.js ExternalHyperlink) — reutilise
     // articleLienDirect(a)/safeUrl deja utilises dans le Flux/Excel/CSV,
     // pour ne jamais dupliquer/diverger la logique primaire vs corroborante.
@@ -23160,6 +23296,14 @@ async function exportWord(type){
       children:[new TextRun({text:((LANG==='en'?'OPERATIONAL REPORT':'RAPPORT OPÉRATIONNEL')+' — '+perimetreW.toUpperCase()),size:17,color:'9CA3AF',font:FONT_SANS})],
       spacing:{after:100}
     }));
+    // Logo de l'organisation (identite d'envoi) au-dessus du nom, s'il existe.
+    const logoW = (typeof logoMarqueActuelle === 'function') ? logoMarqueActuelle() : null;
+    if (logoW && ImageRun) {
+      try {
+        children.push(new Paragraph({alignment:AlignmentType.CENTER, spacing:{after:80},
+          children:[new ImageRun({data:logoMarqueOctets(logoW), transformation:{width:Math.round(Math.min(64*logoW.ratio, 240)), height:Math.round(Math.min(64*logoW.ratio, 240)/logoW.ratio)}})]}));
+      } catch (e) { console.warn('SentiqS — logo illisible pour Word'); }
+    }
     children.push(new Paragraph({
       alignment:AlignmentType.CENTER,
       children:[new TextRun({text:nomMarqueActuelle(),bold:true,size:54,color:'0D1B2A',font:FONT_SERIF})],
