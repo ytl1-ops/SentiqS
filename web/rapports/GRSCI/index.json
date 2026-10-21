@@ -2,9 +2,13 @@
  "rapports": [
   {
    "mois": "2026-10",
-   "formats": ["pptx"],
+   "formats": [
+    "pptx",
+    "docx",
+    "pdf"
+   ],
    "jour": "2026-10-21",
-   "genere": "2026-10-21T03:21:00.000Z"
+   "genere": "2026-10-21T08:49:38.961Z"
   }
  ]
 }
