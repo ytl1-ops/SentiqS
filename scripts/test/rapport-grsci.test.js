@@ -90,3 +90,12 @@ test('les ressources du modèle sont présentes et le job est câblé', async ()
   const chemin = await g.ecrire(dir, FauxPptx, { jour: '2026-10-25', ci: pays('CI', 'CI', []), regionaux: [] });
   assert.ok(fs.existsSync(chemin) && chemin.endsWith('2026-10.pptx'));
 });
+
+test("le rebase de repli du job tolère les modifications laissées par npm", () => {
+  // Run 1098 du 20/10/2026 : push refusé, puis « cannot pull with rebase: You
+  // have unstaged changes » (package.json modifié par npm install) — le
+  // rapport était commité sur le runner et perdu.
+  const wf = fs.readFileSync(path.join(__dirname, '..', '..', '.github', 'workflows', 'collecte-planifiee.yml'), 'utf8');
+  assert.ok(/git pull --rebase --autostash origin main/.test(wf));
+  assert.ok(!/git pull --rebase origin main/.test(wf));
+});

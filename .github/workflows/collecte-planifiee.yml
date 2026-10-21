@@ -224,7 +224,10 @@ jobs:
               exit 0
             fi
             echo "Push refusé (essai $essai) — rebase puis nouvelle tentative."
-            git pull --rebase origin main
+            # --autostash : l'installation npm modifie package.json et le verrou
+            # dans l'arbre ; sans cela le rebase refusait (run 1098 du 20/10/2026,
+            # le rapport GRSCI était commité mais jamais poussé).
+            git pull --rebase --autostash origin main
             sleep $((essai * 4))
           done
           echo "::warning::Archive du $jour non poussée après trois tentatives."
