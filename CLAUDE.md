@@ -3042,3 +3042,49 @@ balises). Mesuré sur `main` aussi ; aucune insertion par le DOM ne le produit
 (sonde sur `innerHTML`, `outerHTML`, `document.write`, `DOMParser`, `Blob`) :
 piste la plus probable, l'analyseur de préchargement de Chromium qui reprend la
 lecture au milieu d'un script. Non corrigé.
+
+---
+
+## Une seule langue à l'écran, pour les actus aussi — 21/10/2026
+
+Consigne de YORO, le même jour : « ça peut être de l'arabe ou tout autre
+langue. Les langues à afficher sont uniquement le FR ou le ENG, pas les 2 en
+même temps. » La note du Flux annonçait l'inverse (« les titres restent dans
+la langue de leur source ») et `L()` rendait le texte source dès qu'une
+traduction échouait.
+
+- **Un texte de langue connue n'est jamais affiché brut** (`texteEtranger`,
+  `langueSure`) : arabe (alphabet), ou français / anglais / portugais reconnu
+  par `detectLangue` sur au moins quatre mots. Pas encore traduit : « Traduction
+  en cours… », la traduction part en arrière-plan (`_trPlanifier`, par lots) et
+  les vues ouvertes sont redessinées (`redessinerVuesOuvertes`, sorti de
+  `setLang`). Échec de tous les moteurs : « Texte en arabe — traduction
+  indisponible pour le moment » / « Arabic text — translation unavailable right
+  now », bouton Traduire et lien vers la source conservés. Même règle dans
+  les rapports (la note de fin de document compte ces textes), le bouton
+  Traduire et le partage.
+- **Ce qui garde son texte, volontairement** : un texte court (noms de pays,
+  villes, sigles) ou de langue incertaine (`detectLangue` → `other`). Les
+  effacer sur une détection hasardeuse ferait disparaître du français. Ils
+  sont quand même envoyés au traducteur, avec détection automatique.
+- **Un moteur qui rend le texte inchangé** l'a jugé déjà dans la langue
+  cible (`TR_DEJA_BON`) : ce n'est pas un échec.
+- **En anglais, la table de l'interface passe d'abord** (`traductionTable`) :
+  agenda, incidents et facteurs saisis en français ne dépendent d'aucun
+  service.
+- **Moteurs, dans l'ordre** : le traducteur intégré de Chrome (API
+  `Translator`, 138 et plus : sur l'appareil, sans quota ; un modèle à
+  télécharger n'est créé que depuis le bouton Traduire, qui fournit le geste
+  exigé), puis Google, MyMemory, Lingva. MyMemory passait en premier alors
+  que son quota est partagé par tous les utilisateurs.
+
+**Non mesuré d'ici** (le bac à sable n'a pas de réseau, Google y répond par
+sa page anti-robot) : le taux réel de traductions réussies dans le
+navigateur d'un utilisateur. Si les services gratuits saturent, les cartes
+diront « traduction indisponible » plutôt que de mélanger les langues :
+c'est le choix de l'éditeur. La réponse durable est un service à clé
+(DeepL, Google Cloud) appelé par le job de collecte, qui stockerait les
+titres déjà traduits dans le cache partagé — décision du propriétaire
+(clé, coût).
+
+`scripts/test/une-langue.test.js` (7 tests, vus échouer sur l'ancien code).

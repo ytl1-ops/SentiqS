@@ -72,11 +72,15 @@ test('la ligne pays passe au-dessus du titre dans le PDF et dans l apercu', () =
   assert.ok(ap.indexOf('lignePaysArticle(a)') !== -1 && ap.indexOf('lignePaysArticle(a)') < ap.indexOf('a.title'), 'pays avant titre (apercu)');
 });
 
-test('un texte laisse dans sa langue d origine est dit dans une note, pas tu', () => {
-  const c = monte('en', { detectLangue: () => 'fr', TR_CACHE: {}, _trTexteAffichable: (t) => t, _traduireParLots: async () => {} });
+test('un texte qui n a pas pu etre traduit est dit dans une note, pas tu', () => {
+  // Depuis le 21/10/2026 il n'est plus montre dans sa langue d'origine :
+  // il est signale comme non traduit (voir une-langue.test.js).
+  const c = monte('en', { AR_RANGE: /[\u0600-\u06FF]/, detectLangue: () => 'fr', TR_CACHE: {}, _trTexteAffichable: (t) => t, _traduireParLots: async (l) => { l.forEach((x) => { c.TR_CACHE['en:' + x] = x; }); } });
+  vm.runInContext(tranche('// ── Une seule langue a l\'ecran', '// retraduireActu(id)'), c);
   vm.runInContext(tranche('async function preTraduireRapport(textes) {', 'async function traduireAvantPartage'), c);
   vm.runInContext(tranche('function L(texte) {', '// ── PAYS = CLÉ'), c);
-  return c.preTraduireRapport(['Attaque a Gao']).then(() => {
-    assert.match(c.noteTraductionRapport(), /original language/);
+  return c.preTraduireRapport(['Attaque armee contre un convoi a Gao']).then(() => {
+    assert.match(c.noteTraductionRapport(), /could not be translated/);
+    assert.strictEqual(c.L('Attaque armee contre un convoi a Gao'), 'French text — translation unavailable right now');
   });
 });

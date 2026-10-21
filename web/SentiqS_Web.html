@@ -5762,7 +5762,7 @@ const I18N = {
     ph_recherche:'Rechercher...',
     flashinfo_lbl:'FLASH INFO',
     sb_geo:'Filtrer par pays / agence de presse', sb_agences:'Agences nationales',
-    note_flux:'Flux opérationnel : actualités sourcées des dernières {h}, triables et filtrables par pays, catégorie et niveau d\'alerte. Le badge « recoupé » signale un fait rapporté par plusieurs sources. Titres et résumés restent dans la langue de leur source : bouton Traduire sur chaque carte.',
+    note_flux:'Flux opérationnel : actualités sourcées des dernières {h}, triables et filtrables par pays, catégorie et niveau d\'alerte. Le badge « recoupé » signale un fait rapporté par plusieurs sources. Titres et résumés sont traduits automatiquement en français, quelle que soit la langue de la source ; si le service de traduction ne répond pas, la carte le dit et le bouton Traduire relance.',
     note_recherche:'Recherche : retrouvez un pays, un événement, un thème ou une source dans l\'ensemble des données collectées par SentiqS.',
     note_analyse:'Synthèse : rapport analytique thématique généré automatiquement à partir du Flux, filtrable par zone ou par pays.',
     note_agenda:'Agenda : événements en cours, à venir et échéances de sûreté, classés par statut et par zone.',
@@ -5912,7 +5912,7 @@ const I18N = {
     ph_recherche:'Search...',
     flashinfo_lbl:'BREAKING NEWS',
     sb_geo:'Filter by country / press agency', sb_agences:'National agencies',
-    note_flux:'Feed: sourced news from the last {h}, sortable and filterable by country, category and alert level. The cross-checked badge marks a fact reported by several sources. Headlines and summaries stay in the language of their source: use Translate on a card.',
+    note_flux:'Feed: sourced news from the last {h}, sortable and filterable by country, category and alert level. The cross-checked badge marks a fact reported by several sources. Headlines and summaries are translated automatically into English, whatever the language of the source; if the translation service does not respond, the card says so and the Translate button retries.',
     note_recherche:'Search: find a country, event, theme or source across all data collected by SentiqS.',
     note_analyse:'Summary: thematic analytical report automatically generated from the Feed, filterable by zone or country.',
     note_agenda:'Agenda: ongoing and upcoming security events and deadlines, classified by status and zone.',
@@ -6089,7 +6089,13 @@ function setLang(lang) {
   if (typeof appliquerTheme === 'function') {
     appliquerTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
   }
-  // Re-rendre le contenu deja affiche pour qu'il suive la langue choisie
+  redessinerVuesOuvertes();
+}
+// redessinerVuesOuvertes() : re-rend le contenu deja affiche. Appele par
+// setLang, et quand des traductions d'actus arrivent apres un premier rendu
+// (voir _trPlanifier) : la carte passe alors de « Traduction en cours » au
+// texte traduit sans que l'utilisateur ait a rouvrir le module.
+function redessinerVuesOuvertes() {
   if (typeof renderFeed === 'function') { _rendreOuSignaler('renderFeed', renderFeed); }
   if (typeof updSynthese === 'function' && document.getElementById('syCont')) { _rendreOuSignaler('updSynthese', updSynthese); }
   if (typeof renderDashboard === 'function' && document.getElementById('v-dashboard') && document.getElementById('v-dashboard').classList.contains('on')) { _rendreOuSignaler('renderDashboard', renderDashboard); }
@@ -6268,6 +6274,73 @@ function _trTexteTraduisible(texte, max) {
   return (dernierEspace > max * 0.6 ? coupe.slice(0, dernierEspace) : coupe) + '…';
 }
 
+// ── Une seule langue a l'ecran : FR ou EN, jamais la langue de la source ──
+// Consigne de YORO du 21/10/2026 : « ça peut être de l'arabe ou tout autre
+// langue. Les langues à afficher sont uniquement le FR ou le ENG, pas les 2
+// en même temps. » Jusque-la, une traduction echouee (moteurs gratuits en
+// panne ou a quota) affichait le texte source tel quel : une page en
+// francais semee de titres en arabe ou en anglais. Desormais un texte dont
+// la langue est CONNUE et differente de la langue choisie n'est jamais
+// affiche brut : il est traduit, ou la carte dit « Texte en arabe —
+// traduction indisponible » (bouton Traduire pour relancer, lien vers la
+// source). Un texte court ou de langue incertaine (detectLangue 'other',
+// moins de quatre mots : noms de pays, villes, sigles) garde son texte :
+// l'effacer sur une detection hasardeuse ferait disparaitre du francais.
+const NOMS_LANGUE = {
+  fr: { ar: 'arabe', en: 'anglais', pt: 'portugais', fr: 'français' },
+  en: { ar: 'Arabic', en: 'English', pt: 'Portuguese', fr: 'French' },
+};
+const TR_DEJA_BON = new Set();   // cle de cache : un moteur a rendu le texte inchange (deja dans la langue cible)
+function langueSure(texte) {
+  if (!texte) return null;
+  if (AR_RANGE.test(texte)) return 'ar';
+  if (String(texte).trim().split(/\s+/).length < 4) return null;
+  const l = detectLangue(texte);
+  return (l === 'fr' || l === 'en' || l === 'pt') ? l : null;
+}
+// Vrai si ce texte ne peut pas s'afficher tel quel dans la langue choisie.
+function texteEtranger(texte) {
+  const l = langueSure(_trTexteAffichable(texte));
+  return !!l && l !== LANG;
+}
+function texteNonTraduit(texte, enCours) {
+  if (enCours) return LANG === 'en' ? 'Translating…' : 'Traduction en cours…';
+  const l = langueSure(_trTexteAffichable(texte));
+  const nom = (NOMS_LANGUE[LANG] || NOMS_LANGUE.fr)[l] || '';
+  return LANG === 'en'
+    ? (nom ? nom + ' text' : 'Text') + ' — translation unavailable right now'
+    : (nom ? 'Texte en ' + nom : 'Texte') + ' — traduction indisponible pour le moment';
+}
+// La table FR → EN de l'interface (web/js/dico-en.js) couvre les donnees
+// saisies en francais (agenda, incidents, facteurs) : en anglais, elle passe
+// avant le traducteur en ligne et ne depend d'aucun service.
+function traductionTable(texte) {
+  if (LANG !== 'en' || typeof SentiqLangue === 'undefined' || !SentiqLangue.connu(texte)) return null;
+  return SentiqLangue.traduire(texte);
+}
+// Traduction echouee pour de bon : tous les moteurs ont ete essayes.
+function _trEchec(texte) {
+  const k = LANG + ':' + texte;
+  return TR_CACHE[k] === texte && !TR_DEJA_BON.has(k) && texteEtranger(texte) && traductionTable(texte) === null;
+}
+// Textes rencontres a l'affichage sans traduction en cache : traduits en
+// arriere-plan, par lots, puis les vues ouvertes sont redessinees une fois.
+const _TR_A_FAIRE = new Set();
+let _trMinuteur = null;
+function _trPlanifier(texte) {
+  if (_TR_A_FAIRE.has(texte)) return;
+  _TR_A_FAIRE.add(texte);
+  if (_trMinuteur) return;
+  _trMinuteur = setTimeout(async () => {
+    const lot = [..._TR_A_FAIRE];
+    try { await _traduireParLots(lot); } finally {
+      lot.forEach(x => _TR_A_FAIRE.delete(x));
+      _trMinuteur = null;
+      redessinerVuesOuvertes();
+    }
+  }, 250);
+}
+
 // retraduireActu(id) : declenchee par le bouton "Traduire" — pose sur chaque
 // actu du Flux ET sur le panneau de detail d'une actu (deux emplacements,
 // memes elements sous-jacents, cf. showDet) — visible sur toutes, pas
@@ -6310,11 +6383,11 @@ async function retraduireActu(id) {
     // Traduction echouee (outT === a.title) : afficher l'actu (texte source,
     // decode) plutot qu'un message d'erreur — le bouton reste disponible
     // pour reessayer (cf. plus bas).
-    const valT = (outT === a.title) ? _trTexteAffichable(a.title) : _trTexteAffichable(outT);
+    const valT = (outT === a.title) ? (_trEchec(a.title) ? texteNonTraduit(a.title) : _trTexteAffichable(a.title)) : _trTexteAffichable(outT);
     titleEls.forEach(el => { el.textContent = valT; });
   }
   if (analyseATraduire && !descDejaCorrecte) {
-    const valD = (outD === analyseATraduire) ? _trTexteAffichable(analyseATraduire) : _trTexteAffichable(outD);
+    const valD = (outD === analyseATraduire) ? (_trEchec(analyseATraduire) ? texteNonTraduit(analyseATraduire) : _trTexteAffichable(analyseATraduire)) : _trTexteAffichable(outD);
     descEls.forEach(el => {
       // Le panneau de detail (id detan-*) affiche un extrait tronque (usage
       // loyal) — reappliquer la meme troncature que showDet() lors du
@@ -6411,6 +6484,35 @@ async function _trViaGoogle(texte, srcLang, tgtLang) {
   return out;
 }
 
+// Moteur 0 — le traducteur integre du navigateur (API Translator de Chrome,
+// version 138 et suivantes) : sur l'appareil, gratuit, sans quota ni reseau
+// une fois le modele de langue present. Essaye en premier quand il existe ;
+// ailleurs (Safari, Firefox, mobile) il leve tout de suite et l'agent passe
+// aux moteurs en ligne. Un modele a telecharger demande un geste de
+// l'utilisateur : il n'est donc cree que s'il est deja disponible, ou depuis
+// le bouton Traduire (force).
+const _TR_NAVIGATEUR = {};
+async function _trViaNavigateur(texte, srcLang, tgtLang, force) {
+  if (typeof self === 'undefined' || !('Translator' in self)) throw new Error('navigateur: API absente');
+  let src = srcLang;
+  if (src === 'other') {
+    if (!('LanguageDetector' in self) || await self.LanguageDetector.availability() !== 'available') throw new Error('navigateur: detection indisponible');
+    const det = await self.LanguageDetector.create();
+    const r = (await det.detect(texte))[0];
+    if (!r || r.confidence < 0.6) throw new Error('navigateur: langue incertaine');
+    src = String(r.detectedLanguage).split('-')[0];
+    if (src === tgtLang) return texte;
+  }
+  const paire = src + '>' + tgtLang;
+  if (!_TR_NAVIGATEUR[paire]) {
+    const dispo = await self.Translator.availability({ sourceLanguage: src, targetLanguage: tgtLang });
+    if (dispo === 'unavailable' || (dispo !== 'available' && !force)) throw new Error('navigateur: ' + dispo);
+    _TR_NAVIGATEUR[paire] = self.Translator.create({ sourceLanguage: src, targetLanguage: tgtLang });
+  }
+  try { return await (await _TR_NAVIGATEUR[paire]).translate(texte); }
+  catch (e) { delete _TR_NAVIGATEUR[paire]; throw e; }
+}
+
 // Chaque moteur porte son disjoncteur (voir creerDisjoncteur dans
 // web/js/noyau.js). Mesure du 02/09/2026 : les trois miroirs de Lingva
 // repondent 500, 502 et 403 — ils sont morts, pas lents. Sans disjoncteur,
@@ -6418,13 +6520,19 @@ async function _trViaGoogle(texte, srcLang, tgtLang) {
 // l'attente a chaque fois. Deux echecs consecutifs suffisent maintenant a
 // court-circuiter un moteur pour le reste de la session ; un seul succes le
 // referme, parce qu'un miroir qui revient doit pouvoir resservir.
+// Ordre revu le 21/10/2026 : le navigateur d'abord (aucun quota), puis
+// Google (le plus rapide, detecte toute langue source), puis MyMemory, dont
+// le quota journalier est partage par tous les utilisateurs. Le moteur du
+// navigateur n'a pas de disjoncteur : il ne coute aucun appel reseau, et
+// une paire de langues absente ne dit rien des autres paires.
 const TR_AGENT_PROVIDERS = (typeof avecDisjoncteur === 'function')
   ? [
+      _trViaNavigateur,
+      avecDisjoncteur(_trViaGoogle,   creerDisjoncteur({ nom: 'google' })),
       avecDisjoncteur(_trViaMyMemory, creerDisjoncteur({ nom: 'mymemory' })),
       avecDisjoncteur(_trViaLingva,   creerDisjoncteur({ nom: 'lingva' })),
-      avecDisjoncteur(_trViaGoogle,   creerDisjoncteur({ nom: 'google' })),
     ]
-  : [_trViaMyMemory, _trViaLingva, _trViaGoogle];
+  : [_trViaNavigateur, _trViaGoogle, _trViaMyMemory, _trViaLingva];
 
 // _trDecodeEntities(str) : MyMemory (et parfois d'autres API de traduction
 // publiques) renvoie occasionnellement le texte traduit avec des caracteres
@@ -6474,8 +6582,11 @@ async function trFetch(texte, srcLang, tgtLang, force) {
   // comparaison avec tgtLang).
   for (const moteur of TR_AGENT_PROVIDERS) {
     try {
-      const out = await moteur(texteEnvoye, srcLang, tgtLang);
+      const out = await moteur(texteEnvoye, srcLang, tgtLang, force);
       if (typeof out === 'string' && out.trim()) {
+        // Un moteur qui rend le texte inchange l'a juge deja dans la langue
+        // cible (detectLangue s'est trompe) : ce n'est pas un echec.
+        if (out.trim() === String(texteEnvoye).trim()) { TR_DEJA_BON.add(cacheKey); TR_CACHE[cacheKey] = texte; return texte; }
         TR_CACHE[cacheKey] = _trDecodeEntities(out);
         return TR_CACHE[cacheKey];
       }
@@ -6642,14 +6753,14 @@ async function preTraduireRapport(textes) {
   await _traduireParLots(uniques);
   // Honnetete : si le traducteur est indisponible, certains textes restent
   // dans leur langue d'origine ; le document le dit au lieu de le taire.
-  _rapportNonTraduits = uniques.filter(t => detectLangue(L(t)) !== LANG).length;
+  _rapportNonTraduits = uniques.filter(_trEchec).length;
 }
 let _rapportNonTraduits = 0;
 function noteTraductionRapport() {
   if (!_rapportNonTraduits) return '';
   return LANG === 'en'
-    ? 'Note: ' + _rapportNonTraduits + ' source text(s) (articles, agenda, measures) are shown in their original language because the translation service was unavailable when this document was produced.'
-    : 'Note : ' + _rapportNonTraduits + ' texte(s) de source (articles, agenda, mesures) restent dans leur langue d\'origine, le service de traduction étant indisponible à la production de ce document.';
+    ? 'Note: ' + _rapportNonTraduits + ' source text(s) could not be translated (translation service unavailable when this document was produced); they are marked as such rather than shown in another language.'
+    : 'Note : ' + _rapportNonTraduits + ' texte(s) de source n\'ont pas pu être traduits (service de traduction indisponible à la production de ce document) ; ils sont signalés comme tels plutôt qu\'affichés dans une autre langue.';
 }
 // traduireAvantPartage(texte) : traduction ACTIVE (appel reel a l'agent de
 // traduction via trFetch, pas une simple consultation de cache) tentee a
@@ -6664,6 +6775,7 @@ async function traduireAvantPartage(texte) {
   const srcLang = detectLangue(texteAff);
   if (srcLang === LANG) return texteAff;
   const traduit = await trFetch(texteAff, srcLang, LANG);
+  if (traduit === texteAff && _trEchec(texteAff)) return texteNonTraduit(texteAff);
   return _trTexteAffichable(traduit);
 }
 // L(texte) : version synchrone (lecture cache uniquement), pour les rapports
@@ -6675,11 +6787,22 @@ async function traduireAvantPartage(texte) {
 function L(texte) {
   if (!texte) return texte;
   if (LANG === 'en' && typeof MESURES_EN !== 'undefined' && Object.prototype.hasOwnProperty.call(MESURES_EN, texte)) return MESURES_EN[texte];
+  const parTable = traductionTable(texte);
+  if (parTable !== null) return parTable;
   const texteAff = _trTexteAffichable(texte);
   const srcLang = detectLangue(texteAff);
   if (srcLang === LANG) return texteAff;
   const cacheKey = LANG + ':' + texte;
   const cached = TR_CACHE[cacheKey];
+  // Une seule langue a l'ecran (consigne du 21/10/2026, voir texteEtranger) :
+  // un texte de langue connue n'est jamais rendu brut. Pas encore traduit :
+  // « Traduction en cours », et la traduction part en arriere-plan ; echec
+  // de tous les moteurs : la mention, jamais le texte source.
+  if (texteEtranger(texte)) {
+    if (cached === undefined) { _trPlanifier(texte); return texteNonTraduit(texte, true); }
+    if (cached === texte) return TR_DEJA_BON.has(cacheKey) ? texteAff : texteNonTraduit(texte);
+    return _trTexteAffichable(cached);
+  }
   // Un document exporte est un instantane statique (jamais mis a jour apres
   // generation) : un texte-relais "traduction en cours"/"indisponible" y
   // resterait fige pour toujours, illisible. On y prefere systematiquement
