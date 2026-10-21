@@ -33,6 +33,7 @@ const alerteSortante = require('./lib/alerte-sortante');
 const alerteCouverture = require('./lib/alerte-couverture');
 const bulletin = require('./lib/bulletin');
 const rapportGrsci = require('./lib/rapport-grsci');
+const rapportGrsciWord = require('./lib/rapport-grsci-word');
 const santeCollecte = require('./lib/sante-collecte');
 
 // Firebase Hosting retire (sentinel-surete.web.app ne recoit plus de
@@ -531,6 +532,14 @@ function ecrireResumeActions(md) {
             else {
               const chemin = await rapportGrsci.ecrire(RACINE_GRSCI, PptxGenJS, { jour, ci, regionaux });
               console.log('  GRSCI : rapport ecrit — ' + chemin + ' (' + regionaux.length + ' pays regionaux).');
+              // Le même rapport en Word : vrais textes et tableaux modifiables.
+              // Son échec ne doit pas faire perdre le PowerPoint déjà écrit.
+              try {
+                const cheminWord = await rapportGrsciWord.ecrireWord(RACINE_GRSCI, require('docx'), { jour, ci, regionaux });
+                console.log('  GRSCI : version Word ecrite — ' + cheminWord);
+              } catch (e) {
+                console.warn('  GRSCI : version Word non ecrite (' + ((e && e.message) || e) + ')');
+              }
             }
           }
         } catch (e) {

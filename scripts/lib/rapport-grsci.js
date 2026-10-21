@@ -36,6 +36,36 @@ const COULEUR_NIVEAU = {
   vert: '16A34A', jaune: 'CA8A04', orange: 'EA580C', marron: '7C2D12', rouge: 'B91C1C',
 };
 const POLICE = 'Calibri';
+// Le modèle de 2024 écrit ses titres dans une police étroite, soulignés, en
+// vert et sans gras ; le corps reste en Calibri.
+const POLICE_TITRE = 'Arial Narrow';
+
+// Drapeaux simplifiés (bandes uniquement, sans étoile ni armoiries) pour le
+// coin de page, comme le modèle qui affiche le drapeau du pays traité.
+// `dir` : 'v' = bandes verticales, 'h' = horizontales ; 'bj' = le Bénin
+// (bande verte à gauche, jaune et rouge à droite).
+const DRAPEAUX = {
+  CI: { dir: 'v', c: ['F77F00', 'FFFFFF', '009E60'] },
+  BF: { dir: 'h', c: ['EF2B2D', '009E49'] },
+  ML: { dir: 'v', c: ['14B53A', 'FCD116', 'CE1126'] },
+  NE: { dir: 'h', c: ['E05206', 'FFFFFF', '0DB02B'] },
+  GH: { dir: 'h', c: ['CE1126', 'FCD116', '006B3F'] },
+  TG: { dir: 'h', c: ['006A4E', 'FFCE00', '006A4E', 'FFCE00', '006A4E'] },
+  BJ: { dir: 'bj', c: ['008751', 'FCD116', 'E8112D'] },
+  GN: { dir: 'v', c: ['CE1126', 'FCD116', '009460'] },
+  LR: { dir: 'h', c: ['BF0A30', 'FFFFFF', 'BF0A30', 'FFFFFF', 'BF0A30'] },
+  SN: { dir: 'v', c: ['00853F', 'FDEF42', 'E31B23'] },
+};
+
+// Rectangles (en proportion 0..1) d'un drapeau, partagés par le PowerPoint
+// et le Word.
+function rectsDrapeau(code) {
+  const f = DRAPEAUX[code];
+  if (!f) return [];
+  if (f.dir === 'bj') return [[0, 0, 0.4, 1, f.c[0]], [0.4, 0, 0.6, 0.5, f.c[1]], [0.4, 0.5, 0.6, 0.5, f.c[2]]];
+  const n = f.c.length;
+  return f.c.map((c, i) => (f.dir === 'v' ? [i / n, 0, 1 / n, 1, c] : [0, i / n, 1, 1 / n, c]));
+}
 
 const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet',
   'août', 'septembre', 'octobre', 'novembre', 'décembre'];
@@ -122,12 +152,13 @@ function pied(s, ctx, numero) {
   s.addText('|  ' + dateCourte(ctx.jour) + '   |   ' + numero, { x: 10.3, y: 6.9, w: 2.7, h: 0.3, fontFace: POLICE, fontSize: 10, color: TEXTE, align: 'right' });
 }
 
-function titrePage(s, num, titre, couleurDroite) {
-  s.addText(num, { x: 0.5, y: 0.3, w: 0.7, h: 0.6, fontFace: POLICE, fontSize: 22, bold: true, color: 'FFFFFF', fill: { color: VERT }, align: 'center', valign: 'middle' });
-  s.addText(titre, { x: 1.35, y: 0.3, w: 9.8, h: 0.6, fontFace: POLICE, fontSize: 28, bold: true, color: VERT, valign: 'middle' });
-  if (couleurDroite) {
-    // Drapeau en coin de page, comme dans le modèle : orange, blanc, vert.
-    ['F77F00', 'FFFFFF', '009E60'].forEach((c, i) => s.addShape('rect', { x: 11.9 + i * 0.33, y: 0.3, w: 0.33, h: 0.62, fill: { color: c }, line: { color: TEXTE, width: 0.5 } }));
+function titrePage(s, num, titre, pays) {
+  s.addText(num, { x: 0.5, y: 0.3, w: 0.7, h: 0.6, fontFace: POLICE_TITRE, fontSize: 24, color: 'FFFFFF', fill: { color: VERT }, align: 'center', valign: 'middle' });
+  s.addText(titre, { x: 1.35, y: 0.3, w: 9.8, h: 0.6, fontFace: POLICE_TITRE, fontSize: 28, underline: true, color: VERT, valign: 'middle' });
+  if (pays && DRAPEAUX[pays]) {
+    // Drapeau en coin de page, comme dans le modèle.
+    rectsDrapeau(pays).forEach(([x, y, w, h, c]) => s.addShape('rect', { x: 11.9 + x * 0.99, y: 0.3 + y * 0.62, w: w * 0.99, h: h * 0.62, fill: { color: c }, line: { color: c, width: 0 } }));
+    s.addShape('rect', { x: 11.9, y: 0.3, w: 0.99, h: 0.62, fill: { type: 'none' }, line: { color: TEXTE, width: 0.5 } });
   }
   s.addShape('line', { x: 0.5, y: 1.05, w: 12.35, h: 0, line: { color: 'A3A3A3', width: 0.5 } });
 }
@@ -142,18 +173,23 @@ function encadreDecryptage(s, lignes, y, h) {
   });
 }
 
-function ligneFait(f) {
+function faitTexte(f) {
   const niv = NIVEAU_LIBELLE[f.niveau] || '';
   const meta = [f.source, heure(f.publieMs), niv && ('niveau ' + niv), f.cotation && f.cotation.libelle].filter(Boolean).join(' · ');
+  return { titre: f.titre, meta };
+}
+
+function ligneFait(f) {
+  const { meta } = faitTexte(f);
   return [
     { text: f.titre, options: { bold: true, color: TEXTE, breakLine: true, bullet: { code: '2713' } } },
     { text: meta, options: { italic: true, color: LEGERE, fontSize: 11, breakLine: true, indentLevel: 1 } },
   ];
 }
 
-function pageFaits(pptx, ctx, d, rub, faits, i, n, couleurDroite) {
+function pageFaits(pptx, ctx, d, rub, faits, i, n, pays) {
   const s = pptx.addSlide();
-  titrePage(s, rub.num, rub.titre + (n > 1 ? ' (' + (i + 1) + '/' + n + ')' : ''), couleurDroite);
+  titrePage(s, rub.num, '- ' + rub.titre + (n > 1 ? ' (' + (i + 1) + '/' + n + ')' : ''), pays);
   s.addText(d.nom.toUpperCase() + ' — ' + faits.length + ' FAIT(S) DE LA FENÊTRE', {
     x: 0.5, y: 1.15, w: 12.3, h: 0.4, fontFace: POLICE, fontSize: 14, bold: true, color: VERT, underline: true,
   });
@@ -163,9 +199,9 @@ function pageFaits(pptx, ctx, d, rub, faits, i, n, couleurDroite) {
   pied(s, ctx, ctx.numero());
 }
 
-function pageNiveau(pptx, ctx, d, couleurDroite) {
+function pageNiveau(pptx, ctx, d, pays) {
   const s = pptx.addSlide();
-  titrePage(s, '0', 'EN BREF — ' + d.nom.toUpperCase(), couleurDroite);
+  titrePage(s, '0', 'EN BREF — ' + d.nom.toUpperCase(), pays);
   const col = COULEUR_NIVEAU[d.niveau] || '6B7280';
   s.addText(String(d.libelle || '').toUpperCase(), {
     x: 0.7, y: 1.35, w: 2.8, h: 0.9, fontFace: POLICE, fontSize: 28, bold: true,
@@ -193,9 +229,9 @@ function pageNiveau(pptx, ctx, d, couleurDroite) {
 
 function intercalaire(pptx, ctx, titre, image) {
   const s = pptx.addSlide();
-  s.background = { color: 'CCCCCC' };
+  s.background = { color: 'CDCDCD' };
   if (image) s.addImage({ path: path.join(ASSETS, image), x: 5.2, y: 0.7, w: 3.2, h: 3.2 });
-  s.addText(titre, { x: 0.5, y: 4.4, w: 12.3, h: 0.9, fontFace: POLICE, fontSize: 40, bold: true, color: '111111', align: 'center' });
+  s.addText(titre, { x: 0.5, y: 4.4, w: 12.3, h: 0.9, fontFace: POLICE_TITRE, fontSize: 44, color: '111111', align: 'center' });
   s.addShape('line', { x: 4.6, y: 5.3, w: 4.1, h: 0, line: { color: '000000', width: 4 } });
   pied(s, ctx, ctx.numero());
 }
@@ -205,7 +241,7 @@ function pageCouverture(pptx, ctx) {
   s.addImage({ path: path.join(ASSETS, 'couverture-abidjan.jpg'), x: 0.2, y: 0.1, w: 12.9, h: 6.4 });
   s.addText([
     { text: 'RENCONTRE MENSUELLE', options: { breakLine: true } }, { text: 'G.R.S.CI' },
-  ], { x: 2.5, y: 0.25, w: 8.3, h: 1.4, fontFace: POLICE, fontSize: 40, bold: true, color: 'FFFFFF', align: 'center', shadow: { type: 'outer', color: '000000', blur: 6, offset: 2, angle: 45, opacity: 0.6 } });
+  ], { x: 2.5, y: 0.25, w: 8.3, h: 1.4, fontFace: POLICE_TITRE, fontSize: 44, color: 'FFFFFF', align: 'center', shadow: { type: 'outer', color: '000000', blur: 6, offset: 2, angle: 45, opacity: 0.6 } });
   s.addShape('line', { x: 3.5, y: 1.75, w: 6.3, h: 0, line: { color: '000000', width: 3 } });
   s.addText(dateLongue(ctx.jour).toUpperCase(), { x: 8.3, y: 6.0, w: 4.7, h: 0.4, fontFace: POLICE, fontSize: 20, bold: true, color: 'FFFFFF', align: 'right' });
   s.addImage({ path: path.join(ASSETS, 'afrique.png'), x: 10.1, y: 6.75, w: 0.6, h: 0.6 });
@@ -286,11 +322,11 @@ function construire(PptxGenJS, { jour, ci, regionaux }) {
   pptx.author = 'SentiqS';
   let n = 0;
   const ctx = { jour, numero: () => ++n };
-  const drapeauCI = true; // drapeau ivoirien en coin de page
+  const drapeauCI = 'CI'; // drapeau ivoirien en coin de page
 
   pageCouverture(pptx, ctx);
   pageSommaire(pptx, ctx, ci, regionaux);
-  intercalaire(pptx, ctx, 'FAITS MARQUANTS EN CÔTE D\'IVOIRE', null);
+  intercalaire(pptx, ctx, 'FAITS MARQUANTS EN CÔTE D\'IVOIRE', 'carte-ci.jpg');
   pageNiveau(pptx, ctx, ci, drapeauCI);
   for (const rub of RUBRIQUES) {
     const faits = ci.faits.filter((f) => rubriqueDe(f) === rub.cle);
@@ -302,7 +338,7 @@ function construire(PptxGenJS, { jour, ci, regionaux }) {
   pageTableauRegional(pptx, ctx, regionaux);
   regionaux.forEach((d) => {
     const s = pptx.addSlide();
-    titrePage(s, 'I', d.nom + ' : situation au ' + dateCourte(jour));
+    titrePage(s, 'I', d.nom + ' : situation au ' + dateCourte(jour), d.cy);
     const col = COULEUR_NIVEAU[d.niveau] || '6B7280';
     s.addText(String(d.libelle || '').toUpperCase(), { x: 0.6, y: 1.2, w: 2.2, h: 0.5, fontFace: POLICE, fontSize: 16, bold: true, color: d.niveau === 'jaune' ? TEXTE : 'FFFFFF', fill: { color: col }, align: 'center', valign: 'middle' });
     const faits = (d.faits || []).slice(0, 4);
@@ -334,7 +370,57 @@ async function ecrire(racine, PptxGenJS, donnees) {
   fs.mkdirSync(racine, { recursive: true });
   const chemin = cheminRapport(racine, donnees.jour);
   await pptx.writeFile({ fileName: chemin });
+  majIndex(racine, chemin, donnees.jour);
   return chemin;
 }
 
-module.exports = { lireTendance, PAYS_REGIONAUX, construire, decryptage, doitEcrire, ecrire, cheminRapport, rubriqueDe, RUBRIQUES };
+/**
+ * Reconstruit index.json à partir des fichiers présents (AAAA-MM.pptx / .docx /
+ * .pdf) : Pages ne liste pas un dossier, et sans index le rapport existait mais
+ * personne ne pouvait le retrouver (signalement du 21/10/2026). Partir des
+ * fichiers plutôt que d'un état ajouté au fil de l'eau : le PDF est produit
+ * par une étape ultérieure du workflow, et l'index doit le voir sans que le
+ * job de collecte ne le sache. La date de génération déjà écrite est conservée.
+ */
+function reconstruireIndex(racine, maintenant) {
+  const fIndex = path.join(racine, 'index.json');
+  let avant = [];
+  try { avant = JSON.parse(fs.readFileSync(fIndex, 'utf8')).rapports || []; } catch (e) { /* premier rapport */ }
+  const parMois = {};
+  for (const f of fs.readdirSync(racine)) {
+    const m = /^(\d{4}-\d{2})\.(pptx|docx|pdf)$/.exec(f);
+    if (m) (parMois[m[1]] = parMois[m[1]] || []).push(m[2]);
+  }
+  const ordre = ['pptx', 'docx', 'pdf'];
+  const rapports = Object.keys(parMois).sort().reverse().map((mois) => {
+    const ancien = avant.find((r) => r.mois === mois) || {};
+    const st = fs.statSync(path.join(racine, mois + '.' + parMois[mois][0]));
+    return {
+      mois,
+      formats: parMois[mois].sort((a, b) => ordre.indexOf(a) - ordre.indexOf(b)),
+      jour: ancien.jour || null,
+      genere: ancien.genere || (maintenant || st.mtime).toISOString(),
+    };
+  });
+  fs.writeFileSync(fIndex, JSON.stringify({ rapports }, null, 1) + '\n');
+  return rapports;
+}
+
+/** Lien stable « dernier » + index, appelé après l'écriture du fichier du mois. */
+function majIndex(racine, chemin, jour, maintenant) {
+  fs.copyFileSync(chemin, path.join(racine, 'dernier.pptx'));
+  const rapports = reconstruireIndex(racine, maintenant);
+  const r = rapports.find((x) => x.mois === String(jour).slice(0, 7));
+  if (r) {
+    r.jour = jour;
+    r.genere = (maintenant || new Date()).toISOString();
+    fs.writeFileSync(path.join(racine, 'index.json'), JSON.stringify({ rapports }, null, 1) + '\n');
+  }
+}
+
+module.exports = {
+  lireTendance, PAYS_REGIONAUX, construire, decryptage, doitEcrire, ecrire, majIndex, reconstruireIndex, cheminRapport, rubriqueDe, RUBRIQUES,
+  // partagés avec la version Word (rapport-grsci-word.js)
+  ASSETS, VERT, ROUGE, GRIS, TEXTE, LEGERE, COULEUR_NIVEAU, POLICE, POLICE_TITRE, DRAPEAUX, rectsDrapeau,
+  dateLongue, dateCourte, paginer, faitTexte, FAITS_PAR_PAGE,
+};

@@ -78,7 +78,7 @@ jobs:
 
       - name: Installer Playwright + Chromium
         run: |
-          npm install playwright@1 pptxgenjs@3.12.0
+          npm install playwright@1 pptxgenjs@3.12.0 docx@8.5.0
           npx playwright install --with-deps chromium
 
       # Echeance absolue du passage, lue par scripts/collecte-planifiee.js :
@@ -165,6 +165,28 @@ jobs:
         # La collecte peut "reussir" sans rien publier d'utile. On verifie
         # donc l'effet, pas seulement l'absence d'erreur.
         run: node scripts/verifier-fraicheur-cache.js
+
+      - name: PDF du rapport mensuel GRSCI
+        # Le PDF est le PowerPoint du mois converti par LibreOffice : mêmes
+        # pages, mêmes couleurs. Seulement quand le PDF manque ou que le PowerPoint
+        # vient d'être réécrit (donc une fois par mois), pour ne pas installer
+        # LibreOffice à chaque passage. Un échec ne fait pas échouer la
+        # collecte : le PowerPoint et le Word sont déjà écrits.
+        if: success()
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          cd web/rapports/GRSCI 2>/dev/null || exit 0
+          for f in 20??-??.pptx; do
+            [ -f "$f" ] || continue
+            if [ ! -f "${f%.pptx}.pdf" ] || [ -n "$(git status --porcelain -- "$f")" ]; then
+              sudo apt-get install -y --no-install-recommends libreoffice-impress fonts-liberation >/dev/null
+              soffice --headless --convert-to pdf "$f" >/dev/null
+              cp "${f%.pptx}.pdf" dernier.pdf
+            fi
+          done
+          cd -
+          node scripts/indexer-rapports-grsci.js
 
       - name: Archiver l'instantané du jour
         # Un instantané par jour, écrit par le premier passage (voir
