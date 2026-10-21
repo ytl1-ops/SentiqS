@@ -99,3 +99,27 @@ test("le rebase de repli du job tolère les modifications laissées par npm", ()
   assert.ok(/git pull --rebase --autostash origin main/.test(wf));
   assert.ok(!/git pull --rebase origin main/.test(wf));
 });
+
+test("le rapport est retrouvable : lien stable, index lu par l'appli", async () => {
+  // Signalement du 21/10/2026 : le rapport existait sur le dépôt mais rien dans
+  // l'appli ne y menait, et Pages ne liste pas un dossier.
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'grsci-'));
+  await g.ecrire(dir, FauxPptx, { jour: '2026-10-25', ci: pays('CI', 'CI', []), regionaux: [] });
+  await g.ecrire(dir, FauxPptx, { jour: '2026-11-24', ci: pays('CI', 'CI', []), regionaux: [] });
+  await g.ecrire(dir, FauxPptx, { jour: '2026-11-26', ci: pays('CI', 'CI', []), regionaux: [] });
+  assert.ok(fs.existsSync(path.join(dir, 'dernier.pptx')));
+  const idx = JSON.parse(fs.readFileSync(path.join(dir, 'index.json'), 'utf8')).rapports;
+  assert.deepStrictEqual(idx.map((r) => r.mois), ['2026-11', '2026-10'], 'récent d’abord, un seul par mois');
+  assert.ok(!isNaN(new Date(idx[0].genere)), 'date de génération lisible');
+  const html = fs.readFileSync(path.join(__dirname, '..', '..', 'web', 'SentiqS_Web.html'), 'utf8');
+  assert.ok(/id="rpAutoListe"/.test(html) && /fetch\('rapports\/GRSCI\/index\.json'/.test(html));
+  assert.ok(/function updateDLCounts\(\)\{\s*chargerRapportsAuto\(\)/.test(html));
+});
+
+test('le rapport et son index publiés sont cohérents', () => {
+  const racine = path.join(__dirname, '..', '..', 'web', 'rapports', 'GRSCI');
+  const idx = JSON.parse(fs.readFileSync(path.join(racine, 'index.json'), 'utf8')).rapports;
+  assert.ok(idx.length >= 1);
+  for (const r of idx) assert.ok(fs.existsSync(path.join(racine, r.fichier)), r.fichier);
+  assert.ok(fs.existsSync(path.join(racine, 'dernier.pptx')));
+});

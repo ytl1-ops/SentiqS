@@ -334,7 +334,25 @@ async function ecrire(racine, PptxGenJS, donnees) {
   fs.mkdirSync(racine, { recursive: true });
   const chemin = cheminRapport(racine, donnees.jour);
   await pptx.writeFile({ fileName: chemin });
+  majIndex(racine, chemin, donnees.jour);
   return chemin;
 }
 
-module.exports = { lireTendance, PAYS_REGIONAUX, construire, decryptage, doitEcrire, ecrire, cheminRapport, rubriqueDe, RUBRIQUES };
+/**
+ * Publie un lien stable (dernier.pptx) et un index.json que l'appli lit :
+ * Pages ne liste pas un dossier, et sans index le rapport existait mais
+ * personne ne pouvait le retrouver (signalement du 21/10/2026).
+ */
+function majIndex(racine, chemin, jour, maintenant) {
+  fs.copyFileSync(chemin, path.join(racine, 'dernier.pptx'));
+  const fIndex = path.join(racine, 'index.json');
+  let liste = [];
+  try { liste = JSON.parse(fs.readFileSync(fIndex, 'utf8')).rapports || []; } catch (e) { /* premier rapport */ }
+  const mois = String(jour).slice(0, 7);
+  liste = liste.filter((r) => r.mois !== mois);
+  liste.push({ mois, fichier: path.basename(chemin), jour, genere: (maintenant || new Date()).toISOString() });
+  liste.sort((a, b) => (a.mois < b.mois ? 1 : -1));
+  fs.writeFileSync(fIndex, JSON.stringify({ rapports: liste }, null, 1) + '\n');
+}
+
+module.exports = { lireTendance, PAYS_REGIONAUX, construire, decryptage, doitEcrire, ecrire, majIndex, cheminRapport, rubriqueDe, RUBRIQUES };

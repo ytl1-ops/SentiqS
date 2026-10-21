@@ -3568,6 +3568,15 @@ html.force-mobile .tlbr .chips::-webkit-scrollbar{display:none}
           </div>
           <div id="rpLibellePerimetre" style="font-size:10px;color:var(--lg);margin-bottom:16px">Périmètre : toutes zones, tous pays</div>
 
+          <div class="acard" id="rpAuto" style="padding:14px;margin-bottom:12px" role="region" aria-label="Rapports automatiques">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <i class="ti ti-calendar-event" style="font-size:16px;color:var(--b)"></i>
+              <span style="font-size:12px;font-weight:700;color:var(--t)">Rapports automatiques</span>
+            </div>
+            <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Produits par la collecte planifiée, sans action de votre part. Le rapport GRSCI (Côte d'Ivoire et dynamiques régionales) est généré une fois par mois, au premier passage à partir du 24 ; il peut aussi être relancé à la demande depuis GitHub Actions.</div>
+            <div id="rpAutoListe" style="font-size:11px;color:var(--t)">Chargement…</div>
+          </div>
+
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
             <div class="acard" style="padding:14px">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
@@ -21974,7 +21983,34 @@ function lignePaysArticle(a) {
 }
 
 // ── UPDATE COMPTEURS DL ───────────────────────────────────────────
+// Rapports produits par le job planifie (web/rapports/GRSCI/index.json) :
+// Pages ne liste pas un dossier, l'index est donc la seule facon de les
+// retrouver depuis l'appli. Un echec de lecture n'est jamais muet.
+function chargerRapportsAuto(){
+  var el = document.getElementById('rpAutoListe');
+  if (!el) return;
+  fetch('rapports/GRSCI/index.json', { cache: 'no-cache' })
+    .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function(d){
+      var l = (d && d.rapports) || [];
+      if (!l.length) { el.textContent = "Aucun rapport GRSCI n'a encore été généré. Le prochain le sera au premier passage à partir du 24."; return; }
+      el.innerHTML = '';
+      l.forEach(function(r, i){
+        var a = document.createElement('a');
+        a.href = 'rapports/GRSCI/' + String(r.fichier || '').replace(/[^0-9A-Za-z._-]/g, '');
+        a.download = '';
+        a.style.cssText = 'display:flex;align-items:center;gap:6px;padding:4px 0;color:var(--b);font-weight:700;text-decoration:none';
+        var g = r.genere ? new Date(r.genere) : null;
+        var quand = g && !isNaN(g) ? ' — généré le ' + g.toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '';
+        a.innerHTML = '<i class="ti ti-presentation" aria-hidden="true"></i>';
+        a.appendChild(document.createTextNode('Rapport GRSCI ' + r.mois + ' (PowerPoint)' + (i === 0 ? ' — le plus récent' : '') + quand));
+        el.appendChild(a);
+      });
+    })
+    .catch(function(e){ el.textContent = 'Liste des rapports indisponible (' + ((e && e.message) || e) + ').'; });
+}
 function updateDLCounts(){
+  chargerRapportsAuto();
   const n=getExportData().length;
   const el=document.getElementById('dlFluxCount');
   if(el){
