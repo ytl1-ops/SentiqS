@@ -1,0 +1,60 @@
+rules_version = '2';
+// ═══════════════════════════════════════════════════════════════════════════
+//  SentiqS — règles Firestore (plan gratuit Spark, pas de fonction serveur)
+//
+//  Elles remplacent, pour Firebase, ce que faisaient côté Supabase les
+//  politiques RLS et les déclencheurs de
+//  app/sentinel-app/supabase/migrations/20260718020000_profiles_auth.sql :
+//    · seule l'adresse de l'administrateur (la même que dans la migration
+//      Supabase), VÉRIFIÉE, peut porter le rôle admin ; tout autre profil
+//      naît « user » et « active » ;
+//    · un utilisateur ne peut jamais changer son propre rôle ni son statut ;
+//    · un utilisateur ne lit et n'écrit que son profil ; l'administrateur
+//      lit, modifie et supprime tous les profils.
+//  Ce fichier n'est pas servi par Pages (hors de web/) : l'adresse de
+//  l'administrateur n'apparaît pas dans le code envoyé au navigateur.
+//
+//  À coller dans la console Firebase > Firestore > Règles (ou
+//  `firebase deploy --only firestore:rules`). Testé par
+//  scripts/test/firebase.test.js (forme), pas par l'émulateur.
+// ═══════════════════════════════════════════════════════════════════════════
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function connecte() { return request.auth != null; }
+    function emailAdmin() {
+      return connecte()
+        && request.auth.token.email == 'yorot225@gmail.com'
+        && request.auth.token.email_verified == true;
+    }
+    function estAdmin() {
+      return emailAdmin()
+        || (connecte() && get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == 'admin');
+    }
+
+    match /profiles/{uid} {
+      allow read: if connecte() && (request.auth.uid == uid || estAdmin());
+      allow create: if connecte() && request.auth.uid == uid
+        && request.resource.data.id == uid
+        && request.resource.data.status == 'active'
+        && (request.resource.data.role == 'user'
+            || (request.resource.data.role == 'admin' && emailAdmin()));
+      allow update: if connecte() && (
+        estAdmin()
+        || (request.auth.uid == uid
+            && request.resource.data.role == resource.data.role
+            && request.resource.data.status == resource.data.status
+            && request.resource.data.id == resource.data.id));
+      allow delete: if estAdmin();
+    }
+
+    // Journal des connexions : chacun écrit la sienne, seul l'admin lit.
+    match /connexions_log/{id} {
+      allow create: if connecte() && request.resource.data.email == request.auth.token.email;
+      allow read: if estAdmin();
+    }
+
+    // Tout le reste est fermé tant qu'une PR ne l'ouvre pas explicitement
+    // (cache d'actus, agenda, configuration partagée : étapes suivantes).
+  }
+}

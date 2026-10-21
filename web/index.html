@@ -18,7 +18,7 @@ aucune pub).
      *.supabase.co : le formulaire d'inscription public utilise desormais
      Supabase Auth (authentification reelle, voir submitSignup()) au lieu
      d'un code d'acces local genere cote client. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://apis.google.com; frame-src https://*.firebaseapp.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self' https://*.supabase.co https://*.googleapis.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self';">
 <title>SentiqS — Renseignement sûreté pour l'Afrique, en temps réel</title>
 <meta name="description" content="SentiqS croise en continu des centaines de sources africaines (médias et réseaux sociaux) pour transformer le bruit médiatique en décisions de sûreté exploitables. 54 pays, filtre anti-hallucination &lt;12h, rapports Word/PDF/PowerPoint.">
 <meta name="keywords" content="SentiqS, veille sûreté Afrique, sécurité Afrique, renseignement sûreté, alertes sécurité temps réel, intelligence risques Afrique">
@@ -786,19 +786,20 @@ section p a{padding:5px 0}
         <label for="suTerms">J'utilise SentiqS dans un cadre professionnel de sûreté/gestion des risques et j'accepte l'usage restreint de la plateforme.</label>
       </div>
       <button class="btn btn-primary" style="width:100%" id="suSubmitBtn" onclick="submitSignup()">Recevoir mon code</button>
+      <button class="btn btn-ghost" style="width:100%;margin-top:8px;display:none" id="suGoogleBtn" onclick="inscriptionGoogle()">Continuer avec Google</button>
       <div class="modal-err" id="suErr"></div>
     </div>
     <div id="signupCode" style="display:none">
-      <div class="modal-title">Entrez votre code</div>
-      <div class="modal-sub">Un code vient d'être envoyé à <b id="suEmailAff" style="color:#e7ecf2"></b>. Il est valable quelques minutes ; pensez aux courriers indésirables.</div>
-      <div class="field">
+      <div class="modal-title" id="suCodeTitre">Entrez votre code</div>
+      <div class="modal-sub"><span id="suCodeIntro">Un code vient d'être envoyé à</span> <b id="suEmailAff" style="color:#e7ecf2"></b>. <span id="suCodeAide">Il est valable quelques minutes ; pensez aux courriers indésirables.</span></div>
+      <div class="field" id="suCodeChamp">
         <label for="suCode">Code reçu par e-mail</label>
         <input type="text" id="suCode" class="su-code" inputmode="numeric" autocomplete="one-time-code" maxlength="12" placeholder="••••••" onkeydown="if(event.key==='Enter')verifierCodeInscription()" oninput="if(/^\d{6}$/.test(this.value.trim()))verifierCodeInscription()">
       </div>
       <button class="btn btn-primary" style="width:100%" id="suVerifyBtn" onclick="verifierCodeInscription()">Valider et entrer</button>
       <div class="modal-err" id="suCodeErr"></div>
       <div class="su-alt"><a href="javascript:void(0)" onclick="renvoyerCodeInscription()" id="suRenvoi">Renvoyer le code</a> · <a href="javascript:void(0)" onclick="retourSaisieEmail()">Changer d'adresse</a></div>
-      <div class="su-alt"><a href="SentiqS_Web.html">Pas de code ? Ouvrir l'application et me connecter avec un mot de passe</a></div>
+      <div class="su-alt"><a href="SentiqS_Web.html" id="suSecours">Pas de code ? Ouvrir l'application et me connecter avec un mot de passe</a></div>
     </div>
   </div>
 </div>
@@ -806,6 +807,9 @@ section p a{padding:5px 0}
 <!-- Supabase JS : authentification reelle (voir submitSignup()) — meme
      projet que l'application (SentiqS_Web.html). -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
+<!-- Firebase des que js/firebase-config.js est rempli (voir FIREBASE.md). -->
+<script src="js/firebase-config.js"></script>
+<script src="js/firebase.js"></script>
 <script>
 // ── Nav shrink/blur on scroll ────────────────────────────────────────
 const navEl = document.getElementById('nav');
@@ -937,6 +941,55 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSignu
 const SENTINEL_SUPABASE_URL      = 'https://zpdwqmliogxbuwirziny.supabase.co';
 const SENTINEL_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwZHdxbWxpb2d4YnV3aXJ6aW55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4NzUyOTYsImV4cCI6MjA5OTQ1MTI5Nn0.fQsTrrV5CIB77l0hxTHHN7oVICVzZdhwa9-d0WsCYI0';
 let _sentinelSupabaseClient = null;
+// Firebase (plan gratuit, sans SMTP) des que js/firebase-config.js est
+// rempli : meme adaptateur que l'application. Le lien envoye ici ouvre
+// SentiqS_Web.html, qui conclut la connexion et cree le profil.
+function _fournisseurFirebase() { return !!(window.SentiqFirebase && window.SentiqFirebase.actif()); }
+async function _clientInscription() {
+  if (_fournisseurFirebase()) { try { await window.SentiqFirebase.charger(); } catch (_) {} return window.SentiqFirebase.client(); }
+  return getSentinelSupabase();
+}
+// Avec Firebase l'e-mail porte un lien : textes et saisie du code s'adaptent,
+// et la connexion Google (sans quota d'e-mail) est proposee.
+function appliquerModeLienInscription() {
+  if (!_fournisseurFirebase()) return;
+  const t = (id, txt) => { const e = document.getElementById(id); if (e) e.textContent = txt; };
+  t('suModalSub', 'Pas de mot de passe : nous vous envoyons un lien de connexion. Accès immédiat, aucune carte bancaire requise.');
+  t('suSubmitBtn', 'Recevoir mon lien');
+  t('suCodeTitre', 'Ouvrez le lien reçu');
+  t('suCodeIntro', 'Un lien de connexion vient d\'être envoyé à');
+  t('suCodeAide', 'Ouvrez cet e-mail sur cet appareil et cliquez le lien : l\'application s\'ouvrira, connectée. Pensez aux courriers indésirables.');
+  t('suRenvoi', 'Renvoyer le lien');
+  t('suSecours', "Pas de lien ? Ouvrir l'application et me connecter avec Google ou un mot de passe");
+  ['suCodeChamp', 'suVerifyBtn'].forEach(id => { const e = document.getElementById(id); if (e) e.style.display = 'none'; });
+  const g = document.getElementById('suGoogleBtn'); if (g) g.style.display = 'block';
+}
+document.addEventListener('DOMContentLoaded', appliquerModeLienInscription);
+function _suLireProfil() {
+  const zone = document.getElementById('suZone').value;
+  return { name: document.getElementById('suName').value.trim(), organisation: document.getElementById('suOrg').value.trim(),
+           zonePrioritaire: zone === 'all' ? '' : zone, plan: 'gratuit', planSouhaite: signupPlanKey };
+}
+async function inscriptionGoogle() {
+  _suErr('suErr', '');
+  if (!document.getElementById('suTerms').checked) { _suErr('suErr', "Merci de confirmer l'usage professionnel de la plateforme."); return; }
+  const client = await _clientInscription();
+  if (!client || !client.auth.signInWithOAuth) { _suErr('suErr', "Service d'inscription indisponible pour le moment. Réessayez dans un instant."); return; }
+  const { data, error } = await client.auth.signInWithOAuth({ provider: 'google' });
+  if (error) { if (!/popup closed/i.test(error.message || '')) _suErr('suErr', 'La connexion Google a échoué. Réessayez, ou recevez un lien par e-mail.'); return; }
+  if (!data || !data.user) return;
+  await _suCreerProfilSiAbsent(client, data.user.id, data.user.email, _suLireProfil());
+  location.href = 'SentiqS_Web.html#connexion-fraiche';
+}
+async function _suCreerProfilSiAbsent(client, id, email, profil) {
+  try {
+    const { data: existant } = await client.from('profiles').select('id').eq('id', id).maybeSingle();
+    if (!existant) {
+      const { error: errProfil } = await client.from('profiles').insert({ id, email, data: Object.assign({}, profil, { plan: 'gratuit', createdAt: new Date().toISOString() }) });
+      if (errProfil) console.warn("SentiqS — creation du profil a l'inscription a echoue :", errProfil.message);
+    }
+  } catch (_) {}
+}
 function getSentinelSupabase() {
   if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') return null;
   if (!_sentinelSupabaseClient) {
@@ -950,6 +1003,7 @@ let _suEmail = '', _suProfil = {}, _suProchainEnvoi = 0, _suMinuteur = null, _su
 function _suErr(id, msg) { const e = document.getElementById(id); if (!e) return; e.textContent = msg || ''; e.classList.toggle('show', !!msg); }
 function _suMessage(err, envoi) {
   const m = String((err && (err.message || err.code)) || '');
+  if (/quota/i.test(m)) return "Limite quotidienne d'e-mails de connexion atteinte. Utilisez « Continuer avec Google », ou un mot de passe depuis l'application.";
   if (/rate|too many|after \d+ seconds|429/i.test(m)) return 'Trop de demandes pour cette adresse. Patientez une minute puis réessayez.';
   if (/signups? not allowed/i.test(m)) return 'Les inscriptions par e-mail ne sont pas ouvertes pour le moment.';
   if (envoi && /error sending|sending .*email|smtp|unexpected_failure|hook|not authorized|50[0-9]/i.test(m)) return "Le service d'envoi d'e-mails du serveur ne répond pas : le code ne peut pas partir pour l'instant. Vous pouvez aussi vous connecter avec un mot de passe depuis l'application.";
@@ -969,23 +1023,24 @@ async function _envoyerCodeInscription(renvoi) {
     email = document.getElementById('suEmail').value.trim().toLowerCase();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { _suErr(errId, 'Adresse e-mail invalide.'); return; }
     if (!document.getElementById('suTerms').checked) { _suErr(errId, "Merci de confirmer l'usage professionnel de la plateforme."); return; }
-    const zone = document.getElementById('suZone').value;
-    _suProfil = { name: document.getElementById('suName').value.trim(), organisation: document.getElementById('suOrg').value.trim(),
-                  zonePrioritaire: zone === 'all' ? '' : zone, plan: 'gratuit', planSouhaite: signupPlanKey };
+    _suProfil = _suLireProfil();
   }
-  const client = getSentinelSupabase();
+  const client = await _clientInscription();
   if (!client) { _suErr(errId, "Service d'inscription indisponible pour le moment. Réessayez dans un instant."); return; }
   const btn = document.getElementById('suSubmitBtn'); if (btn) btn.disabled = true;
   try {
     const { error } = await client.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: location.origin + location.pathname.replace(/[^/]*$/, '') + 'SentiqS_Web.html' } });
     if (error) { _suErr(errId, _suMessage(error, true)); return; }
+    // Firebase : le compte naitra au retour du lien, dans l'application ; elle
+    // reprend ce profil une fois (voir profilInscriptionEnAttente).
+    if (client.fournisseur === 'firebase') { try { localStorage.setItem('sentiq_profil_inscription', JSON.stringify({ email, profil: _suProfil })); } catch (_) {} }
     _suEmail = email; _suProchainEnvoi = Date.now() + OTP_RENVOI_MS;
     document.getElementById('suEmailAff').textContent = email;
     document.getElementById('suCode').value = '';
     document.getElementById('signupBody').style.display = 'none';
     document.getElementById('signupCode').style.display = 'block';
     _suDecompte();
-    document.getElementById('suCode').focus();
+    if (client.fournisseur !== 'firebase') document.getElementById('suCode').focus();
   } catch (_) { _suErr(errId, _suMessage(null, true)); }
   finally { if (btn) btn.disabled = false; }
 }
@@ -994,8 +1049,9 @@ function _suDecompte() {
   const lien = document.getElementById('suRenvoi');
   const maj = () => {
     const reste = Math.ceil((_suProchainEnvoi - Date.now()) / 1000);
-    if (reste > 0) { lien.textContent = 'Renvoyer le code dans ' + reste + ' s'; lien.setAttribute('aria-disabled', 'true'); }
-    else { lien.textContent = 'Renvoyer le code'; lien.removeAttribute('aria-disabled'); clearInterval(_suMinuteur); }
+    const mot = _fournisseurFirebase() ? 'le lien' : 'le code';
+    if (reste > 0) { lien.textContent = 'Renvoyer ' + mot + ' dans ' + reste + ' s'; lien.setAttribute('aria-disabled', 'true'); }
+    else { lien.textContent = 'Renvoyer ' + mot; lien.removeAttribute('aria-disabled'); clearInterval(_suMinuteur); }
   };
   maj(); _suMinuteur = setInterval(maj, 1000);
 }
@@ -1019,13 +1075,7 @@ async function verifierCodeInscription() {
     clearInterval(_suMinuteur);
     // Profil : cree seulement s'il n'existe pas (un compte existant qui se
     // reconnecte ici ne doit jamais voir son plan ou sa date d'essai reecrits).
-    try {
-      const { data: existant } = await client.from('profiles').select('id').eq('id', data.user.id).maybeSingle();
-      if (!existant) {
-        const { error: errProfil } = await client.from('profiles').insert({ id: data.user.id, email: _suEmail, data: Object.assign({}, _suProfil, { createdAt: new Date().toISOString() }) });
-        if (errProfil) console.warn("SentiqS — creation du profil a l'inscription a echoue :", errProfil.message);
-      }
-    } catch (_) {}
+    await _suCreerProfilSiAbsent(client, data.user.id, _suEmail, _suProfil);
     // L'application accepte cette arrivee comme une connexion du jour (elle
     // verifie cote serveur que la connexion date de moins de deux minutes).
     location.href = 'SentiqS_Web.html#connexion-fraiche';

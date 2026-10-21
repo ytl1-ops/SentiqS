@@ -48,7 +48,9 @@ test('l\'application cree le compte par signInWithOtp et ouvre la session par ve
 
 test('le premier passage cree un profil gratuit date (sinon l\'essai de 72 h ne s\'eteint jamais)', () => {
   const f = tranche('async function _ouvrirSessionDepuisSupabase', 'const user = _profilVersUtilisateur(row)');
-  assert.match(f, /data: \{ plan: 'gratuit', createdAt: new Date\(\)\.toISOString\(\) \}/);
+  // Le plan et la date viennent EN DERNIER dans Object.assign : rien de ce que
+  // l'accueil a laisse sur l'appareil (profilInscriptionEnAttente) ne les ecrase.
+  assert.match(f, /data: Object\.assign\(profilInscriptionEnAttente\(authUser\.email\), \{ plan: 'gratuit', createdAt: new Date\(\)\.toISOString\(\) \}\)/);
 });
 
 test('la connexion par mot de passe reste disponible', () => {
@@ -91,8 +93,13 @@ test('l\'accueil : « Essai gratuit » ne demande plus de mot de passe et passe 
 });
 
 test('l\'accueil n\'ecrase jamais le profil d\'un compte existant', () => {
-  const f = ACCUEIL.slice(ACCUEIL.indexOf('async function verifierCodeInscription'));
-  assert.match(f, /from\('profiles'\)\.select\('id'\)\.eq\('id', data\.user\.id\)\.maybeSingle\(\)[\s\S]*if \(!existant\)/);
+  const aide = ACCUEIL.slice(ACCUEIL.indexOf('async function _suCreerProfilSiAbsent'), ACCUEIL.indexOf('function getSentinelSupabase'));
+  assert.match(aide, /from\('profiles'\)\.select\('id'\)\.eq\('id', id\)\.maybeSingle\(\)[\s\S]*if \(!existant\)/);
+  // Les deux portes de l'accueil (code et Google) passent par cette garde.
+  const code = ACCUEIL.slice(ACCUEIL.indexOf('async function verifierCodeInscription'));
+  assert.match(code, /_suCreerProfilSiAbsent\(client, data\.user\.id, _suEmail, _suProfil\)/);
+  const google = ACCUEIL.slice(ACCUEIL.indexOf('async function inscriptionGoogle'), ACCUEIL.indexOf('async function _suCreerProfilSiAbsent'));
+  assert.match(google, /_suCreerProfilSiAbsent\(client, data\.user\.id/);
 });
 
 test('le nom et l\'organisation sont facultatifs, la case d\'usage professionnel reste exigee', () => {

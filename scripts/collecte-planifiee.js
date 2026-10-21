@@ -169,7 +169,7 @@ function ecrireResumeActions(md) {
     // au-delà de la fenêtre de fraîcheur, donc ne peut pas servir ici).
     const ageCachePrecedent = await page.evaluate(async () => {
       try {
-        const client = getSentinelSupabase();
+        const client = (typeof getClientDonnees === 'function' ? getClientDonnees() : getSentinelSupabase());
         if (!client) return null;
         const { data, error } = await client.from('collecte_partagee')
           .select('updated_at').eq('id', COLLECTE_PARTAGEE_ID).maybeSingle();
