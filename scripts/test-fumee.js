@@ -65,7 +65,7 @@ const serveur = http.createServer((req, res) => {
   try {
     await page.goto(base + '/SentiqS_Web.html', { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.waitForTimeout(2500);
-    sonde = await page.evaluate(() => { try {
+    sonde = await page.evaluate(async () => { try {
       const noyau = ['getNivKey', 'matchMot', 'dateEvenementMs', 'motsSignificatifs',
                      'borneRougeVerifie', 'articlesSontDoublons', 'normaliserAccents'];
       const manquants = noyau.filter((n) => typeof globalThis[n] !== 'function');
@@ -104,6 +104,28 @@ const serveur = http.createServer((req, res) => {
           const arts = parseRSS(xml, { id: 'fumee2', cy: 'GQ', score: 80, cat: 'securite', n: 'fumee2' }) || [];
           return arts.length === 1;
         })(),
+        // Bascule FR → EN → FR sur le DOM réel (21/10/2026) : avant, le
+        // sélecteur n'existait que sur l'écran de connexion et l'appli restait
+        // à moitié en français. Un libellé d'interface doit passer en anglais,
+        // y compris s'il est ajouté APRÈS la bascule ; un titre d'actu jamais ;
+        // et revenir au français rend le texte d'origine.
+        bascule: await (async () => {
+          if (typeof setLang !== 'function' || typeof SentiqLangue === 'undefined') return 'absente';
+          const avant = document.createElement('p'); avant.textContent = 'Tableau de bord';
+          const actu = document.createElement('p'); actu.textContent = 'Attaque contre un poste a Malabo';
+          ALL = [{ id: 'fumee-langue', title: 'Attaque contre un poste a Malabo', analysis: '' }];
+          document.body.append(avant, actu);
+          setLang('en');
+          const apres = document.createElement('p'); apres.textContent = 'Paramètres';
+          document.body.append(apres);
+          await new Promise((r) => setTimeout(r, 50));
+          const en = [avant.textContent, apres.textContent, actu.textContent, localStorage.getItem('sentinel_lang')].join('|');
+          setLang('fr');
+          const fr = [avant.textContent, apres.textContent, actu.textContent, localStorage.getItem('sentinel_lang')].join('|');
+          avant.remove(); actu.remove(); apres.remove(); ALL = [];
+          return en === 'Dashboard|Settings|Attaque contre un poste a Malabo|en'
+            && fr === 'Tableau de bord|Paramètres|Attaque contre un poste a Malabo|fr' ? 'ok' : (en + ' / ' + fr);
+        })(),
       };
       } catch (e) {
         // La sonde elle-meme ne doit jamais planter : quand le script inline
@@ -125,11 +147,12 @@ const serveur = http.createServer((req, res) => {
   console.log('Classification d\'un incident : ' + (sonde.classifieCritique ? 'critique, comme attendu' : 'INATTENDUE'));
   console.log('Date de flux entouree d\'espaces : ' + (sonde.dateEntoureeLue ? 'lue' : 'PERDUE'));
   console.log('Flux precede d\'espaces avant <?xml : ' + (sonde.documentPrecedeDEspacesLu ? 'lu' : 'REFUSE'));
+  console.log('Bascule de langue FR → EN → FR : ' + sonde.bascule);
   console.log('Erreurs JS non liees au reseau : ' + bloquantes.length);
   bloquantes.slice(0, 8).forEach((e) => console.error('   ' + e.slice(0, 200)));
 
   const ko = sonde.manquants.length || bloquantes.length || !sonde.nbSources
-    || !sonde.classifieCritique || !sonde.dateEntoureeLue || !sonde.documentPrecedeDEspacesLu || !sonde.score || String(sonde.score).startsWith('ERREUR');
+    || !sonde.classifieCritique || !sonde.dateEntoureeLue || !sonde.documentPrecedeDEspacesLu || sonde.bascule !== 'ok' || !sonde.score || String(sonde.score).startsWith('ERREUR');
   if (ko) {
     if (sonde.panne) console.error('\n✗ Le script inline n\'a pas pu s\'executer : ' + sonde.panne);
     if (sonde.manquants.length) console.error('\n✗ Absentes de la page : ' + sonde.manquants.join(', '));
