@@ -166,7 +166,7 @@ test('les chemins du navigateur rehydratent par tranches, le job et la publicati
 test('fmtAge n\'instancie plus un formateur Intl par appel, et garde son format', () => {
   const f = tranche('function fmtAge(ts) {', '\nfunction fmtFull');
   assert.doesNotMatch(f.replace(/\/\/.*$/gm, ''), /toLocaleTimeString|toLocaleDateString/);
-  const ctx = {};
+  const ctx = { localeRapport: () => 'fr-FR', LANG: 'fr' };
   vm.createContext(ctx);
   vm.runInContext(f + '\nthis.fmtAge = fmtAge;', ctx);
   const il = Date.now() - 5 * 60000;

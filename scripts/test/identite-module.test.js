@@ -190,9 +190,9 @@ const GENERATEURS = [
   ['image de rapport', 'async function genererImageRapportBlob', 'function toggleShareMenuRapport', 'identiteEnvoiActuelle(type)'],
   ['PowerPoint', 'async function exportPPTX(type)', 'function _pdfBuilder', 'identiteEnvoiActuelle(type)'],
   ['PDF', 'async function exportPDF(type)', 'function _apPageWrap', 'identiteEnvoiActuelle(type)'],
-  ['aperçu HTML', 'function _apPageWrap(', 'function _buildRapportSyntheseHTML', 'identiteEnvoiActuelle(type)'],
-  ['aperçu Synthèse', 'function _buildRapportSyntheseHTML', 'async function apercuSynthese', "identiteEnvoiActuelle('synthese')"],
-  ['Word', 'async function exportWord(type)', '</script>', 'identiteEnvoiActuelle(type)'],
+  ['aperçu HTML', 'function _apPageWrap(', 'function _buildRapportSyntheseHTML', 'emetteurRapport(type)'],
+  ['aperçu Synthèse', 'function _buildRapportSyntheseHTML', 'async function apercuSynthese', "emetteurRapport('synthese')"],
+  ['Word', 'async function exportWord(type)', '</script>', 'emetteurRapport(type)'],
   ['Excel', 'async function exportExcel(type)', 'async function exportCSV', 'identiteEnvoiActuelle(type)'],
 ];
 for (const [nom, debut, fin, attendu] of GENERATEURS) {

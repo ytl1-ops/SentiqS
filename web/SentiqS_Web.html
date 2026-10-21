@@ -6462,7 +6462,7 @@ function angleMortPerimetre(cys) {
 // Lignes de texte, une par famille non vide ; 12 noms au plus par ligne.
 function texteAngleMort(am) {
   if (!am || am.vide) return [rl('am_vide')];
-  const noms = l => { const n = l.map(p => L(p.nom)); return n.slice(0, 12).join(', ') + (n.length > 12 ? rl('am_autres')(n.length - 12) : ''); };
+  const noms = l => { const n = l.map(p => (LANG === 'en' && PAYS_EN[p.cy]) || L(p.nom)); if (LANG === 'en') n.sort((x, y) => x.localeCompare(y, 'en')); return n.slice(0, 12).join(', ') + (n.length > 12 ? rl('am_autres')(n.length - 12) : ''); };
   const lignes = [];
   if (am.muets.length) lignes.push(rl('am_muets') + ' (' + am.muets.length + ') : ' + noms(am.muets));
   if (am.horsAlerte.length) lignes.push(rl('am_hors') + ' (' + am.horsAlerte.length + ') : ' + noms(am.horsAlerte));
@@ -6546,6 +6546,16 @@ async function _traduireParLots(uniques) {
 async function preTraduireRapport(textes) {
   const uniques = [...new Set(textes.filter(Boolean))].filter(t => detectLangue(t) !== LANG);
   await _traduireParLots(uniques);
+  // Honnetete : si le traducteur est indisponible, certains textes restent
+  // dans leur langue d'origine ; le document le dit au lieu de le taire.
+  _rapportNonTraduits = uniques.filter(t => detectLangue(L(t)) !== LANG).length;
+}
+let _rapportNonTraduits = 0;
+function noteTraductionRapport() {
+  if (!_rapportNonTraduits) return '';
+  return LANG === 'en'
+    ? 'Note: ' + _rapportNonTraduits + ' source text(s) (articles, agenda, measures) are shown in their original language because the translation service was unavailable when this document was produced.'
+    : 'Note : ' + _rapportNonTraduits + ' texte(s) de source (articles, agenda, mesures) restent dans leur langue d\'origine, le service de traduction étant indisponible à la production de ce document.';
 }
 // traduireAvantPartage(texte) : traduction ACTIVE (appel reel a l'agent de
 // traduction via trFetch, pas une simple consultation de cache) tentee a
@@ -6570,6 +6580,7 @@ async function traduireAvantPartage(texte) {
 // celle active (FR ou EN), quelle que soit sa langue d'origine.
 function L(texte) {
   if (!texte) return texte;
+  if (LANG === 'en' && typeof MESURES_EN !== 'undefined' && Object.prototype.hasOwnProperty.call(MESURES_EN, texte)) return MESURES_EN[texte];
   const texteAff = _trTexteAffichable(texte);
   const srcLang = detectLangue(texteAff);
   if (srcLang === LANG) return texteAff;
@@ -9557,9 +9568,11 @@ function fmtAge(ts) {
   // seule fois : toLocaleTimeString() en recree un a chaque appel, soit 95 µs
   // par article (248 ms pour 2 600 articles, mesure du 21/10/2026) a chaque
   // lecture du cache.
-  if (!fmtAge._h) {
-    fmtAge._h = new Intl.DateTimeFormat('fr-FR', {hour:'2-digit', minute:'2-digit'});
-    fmtAge._d = new Intl.DateTimeFormat('fr-FR', {day:'2-digit', month:'2-digit'});
+  const loc = localeRapport();
+  if (fmtAge._loc !== loc) {
+    fmtAge._loc = loc;
+    fmtAge._h = new Intl.DateTimeFormat(loc, {hour:'2-digit', minute:'2-digit'});
+    fmtAge._d = new Intl.DateTimeFormat(loc, {day:'2-digit', month:'2-digit'});
   }
   const hhmm = fmtAge._h.format(d);
   // Date courte : JJ/MM
@@ -9570,6 +9583,13 @@ function fmtAge(ts) {
   const yesterday = new Date(now); yesterday.setDate(now.getDate()-1);
   const isYesterday = d.toDateString() === yesterday.toDateString();
 
+  if (LANG === 'en') {
+    if (diffMin < 1)    return "Just now";
+    if (diffMin < 60)   return diffMin + " min ago · " + hhmm;
+    if (isToday)        return "Today " + hhmm;
+    if (isYesterday)    return "Yesterday " + hhmm;
+    return ddmm + ' · ' + hhmm;
+  }
   if (diffMin < 1)    return "Il y a quelques secondes";
   if (diffMin < 60)   return "Il y a " + diffMin + " min · " + hhmm;
   if (isToday)        return "Aujourd'hui " + hhmm;
@@ -9579,10 +9599,11 @@ function fmtAge(ts) {
 
 function fmtFull(ts) {
   if (!ts) return '—';
-  return new Date(ts).toLocaleString('fr-FR', {
+  const d = new Date(ts);
+  return d.toLocaleString(localeRapport(), {
     weekday:'short', day:'numeric', month:'long',
-    hour:'2-digit', minute:'2-digit', timeZoneName:'short'
-  });
+    hour:'2-digit', minute:'2-digit'
+  }) + ' ' + libelleFuseau(d);
 }
 
 // fmtSurvenance(article) : formate la date/heure de survenance estimee pour
@@ -9596,10 +9617,10 @@ function fmtSurvenance(article) {
   // traite conservativement comme "ancienne" pour la mise en forme/filtrage
   // (coherent avec la philosophie "mieux vaut ecarter un article ambigu").
   if (surv.inconnue) {
-    return { texte: 'Inconnue', ts: surv.ts, ancien:true, estimee:true, inconnue:true };
+    return { texte: LANG === 'en' ? 'Unknown' : 'Inconnue', ts: surv.ts, ancien:true, estimee:true, inconnue:true };
   }
   const ancien = (Date.now() - surv.ts) >= FENETRE_ACTUALITE_MS;
-  const suffixe = surv.label ? ' (' + surv.label + ')' : '';
+  const suffixe = surv.label ? ' (' + libelleSurvenanceR(surv.label) + ')' : '';
   return { texte: fmtFull(surv.ts) + suffixe, ts: surv.ts, ancien, estimee: surv.estimee, inconnue:false };
 }
 
@@ -9889,10 +9910,16 @@ function detailRapportActu(a) {
   const cot = typeof cotationArticle === 'function' ? cotationArticle(a, gs(a.primary), SEUIL_SOURCE_ALERTE) : null;
   const surv = typeof fmtSurvenance === 'function' ? fmtSurvenance(a) : null;
   const infos = [];
-  if (cot) infos.push((en ? 'Rating: ' : 'Cotation : ') + cot.libelle);
+  if (cot) infos.push((en ? 'Rating: ' : 'Cotation : ') + libelleCotationR(cot));
   if (a.pubDate) infos.push((en ? 'Published ' : 'Publié le ') + fmtFull(a.pubDate));
-  // Meme instant que la publication : le redire ne dit rien de plus.
-  if (surv && !surv.inconnue && !(a.pubDate && surv.texte === fmtFull(a.pubDate))) infos.push((en ? 'Event: ' : 'Survenance : ') + surv.texte);
+  // Meme instant que la publication : le redire ne dit rien de plus. Une
+  // survenance ancienne ou inconnue, elle, se dit : c'est ce qui previent un
+  // lecteur qu'une « actu du jour » decrit peut-etre un fait deja vieux.
+  if (surv && surv.inconnue) infos.push((en ? 'Event: unknown — to be verified' : 'Survenance : inconnue — à vérifier'));
+  else if (surv && !(a.pubDate && surv.texte === fmtFull(a.pubDate))) {
+    infos.push((en ? 'Event: ' : 'Survenance : ') + surv.texte
+      + (surv.ancien ? (en ? ' — older than ' : ' — plus de ') + libelleFenetreCourt() : ''));
+  }
   const nSrc = (a.srcs || []).length;
   if (voir) infos.push((en ? 'Source: ' : 'Source : ') + srcName(a.primary) + (nSrc > 1 ? ' (+' + (nSrc - 1) + ')' : ''));
   else if (nSrc > 1) infos.push(en ? nSrc + ' sources' : nSrc + ' sources');
@@ -19525,7 +19552,8 @@ function niveauAlertePays(cy) {
 function _cyNivTexteEtCouleur(cy) {
   if (!cy || cy === 'INT') return null;
   const npy = niveauAlertePays(cy);
-  return { texte: 'PAYS '+npy.label, couleur: (npy.col||'#4B5563').replace('#','') };
+  const cle = Object.keys(NIV).find(k => NIV[k] === npy) || 'vert';
+  return { texte: LANG === 'en' ? 'COUNTRY: ' + rl('niv')[cle] : 'PAYS ' + npy.label, couleur: (npy.col||'#4B5563').replace('#','') };
 }
 
 // getNivKey(total) : convertit le score composite d'un pays (voir calcAlertScore,
@@ -19567,6 +19595,69 @@ const MESURES = {
     installations:['Fonctionnement normal', 'Sécurité standard maintenue', 'Aucune action requise'],
     vehicules:   ['Circulation normale', 'Aucune restriction', 'Prudence routière habituelle'],
   },
+};
+
+// Mesures de protection (MESURES) dites en anglais : textes fixes, ecrits par
+// l'equipe — la traduction automatique n'a pas a les deviner, et quand ses
+// moteurs tombent (mesure du 02/09/2026) un rapport anglais les gardait en
+// francais. Lues par L() avant tout appel au traducteur.
+const MESURES_EN = {
+  'Évacuation ou confinement strict immédiat': 'Immediate evacuation or strict lockdown',
+  'Point de rassemblement sécurisé activé': 'Secure assembly point activated',
+  'Contact ambassade/consulat sous 1h': 'Contact embassy/consulate within 1 hour',
+  'Suspension des déplacements non essentiels': 'Non-essential travel suspended',
+  'Rappel du personnel en zone à risque': 'Staff in at-risk areas recalled',
+  'Activation de la cellule de crise': 'Crisis cell activated',
+  'Fermeture ou repli sur site sécurisé': 'Closure or fallback to a secure site',
+  'Renforcement du dispositif de gardiennage': 'Guarding reinforced',
+  'Vérification des accès et périmètres': 'Access points and perimeters checked',
+  'Suspension des convois routiers': 'Road convoys suspended',
+  'Trajets par voie aérienne si possible': 'Travel by air where possible',
+  'Escorte obligatoire si déplacement impératif': 'Escort mandatory if travel is unavoidable',
+  'Déplacements restreints aux trajets essentiels': 'Travel restricted to essential trips',
+  'Signalement systématique des sorties': 'Systematic reporting of outings',
+  "Dossiers d'évacuation tenus à jour": 'Evacuation files kept up to date',
+  'Vigilance renforcée sur les sites sensibles': 'Heightened vigilance at sensitive sites',
+  'Activités limitées en soirée': 'Evening activities limited',
+  'Point de situation quotidien': 'Daily situation update',
+  'Contrôle renforcé des accès': 'Reinforced access control',
+  'Vérification des plans de repli': 'Fallback plans checked',
+  'Stocks de sécurité (eau, carburant) à jour': 'Safety stocks (water, fuel) up to date',
+  'Déplacements groupés recommandés': 'Group travel recommended',
+  'Éviter les axes identifiés à risque': 'Avoid routes identified as at risk',
+  'Suivi des trajets sensibles': 'Sensitive journeys tracked',
+  'Déplacements de jour privilégiés': 'Daytime travel preferred',
+  'Éviter les zones signalées en alerte': 'Avoid areas flagged on alert',
+  'Informer un référent avant tout déplacement': 'Tell a focal point before any journey',
+  'Surveillance accrue de la situation locale': 'Increased monitoring of the local situation',
+  'Itinéraires alternatifs anticipés': 'Alternative routes planned ahead',
+  'Contact maintenu avec les autorités locales': 'Contact with local authorities maintained',
+  "Contrôles d'accès maintenus": 'Access controls maintained',
+  "Revue des procédures d'urgence": 'Emergency procedures reviewed',
+  'Communication interne sur la situation': 'Internal communication on the situation',
+  'Prudence sur les axes secondaires': 'Caution on secondary roads',
+  'Véhicules peu identifiables en zone sensible': 'Low-profile vehicles in sensitive areas',
+  'Plein de carburant systématique': 'Always keep the tank full',
+  'Déplacements normaux, vigilance standard': 'Normal travel, standard vigilance',
+  "Suivi de l'actualité locale": 'Follow local news',
+  'Éviter les rassemblements non annoncés': 'Avoid unannounced gatherings',
+  'Suivi de routine de la situation': 'Routine monitoring of the situation',
+  'Sensibilisation du personnel maintenue': 'Staff awareness maintained',
+  'Aucune restriction particulière': 'No particular restriction',
+  'Fonctionnement normal': 'Normal operation',
+  "Contrôles d'accès habituels": 'Usual access controls',
+  'Veille informationnelle continue': 'Continuous information watch',
+  'Circulation normale': 'Normal traffic',
+  "Consignes de prudence habituelles": 'Usual safety instructions',
+  "Aucune restriction d'itinéraire": 'No route restriction',
+  'Aucune restriction': 'No restriction',
+  'Situation stable, activités normales': 'Stable situation, normal activity',
+  'Veille informationnelle passive': 'Passive information watch',
+  'Aucune mesure particulière': 'No particular measure',
+  'Suivi de routine': 'Routine monitoring',
+  'Sécurité standard maintenue': 'Standard security maintained',
+  'Aucune action requise': 'No action required',
+  'Prudence routière habituelle': 'Usual road caution',
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -21451,10 +21542,12 @@ function getExportSources() {
   return SRCS.filter(s => s.cy === 'INT' || filtreZonePaysActif(s.cy));
 }
 
+const ZONES_EN = { sahel:'Sahel', golfe_guinee:'Gulf of Guinea', ao_cotiere:'Coastal West Africa', afrique_centrale:'Central Africa',
+  corne_afrique:'Horn of Africa', grands_lacs:'Great Lakes', afrique_australe:'Southern Africa', afrique_nord:'North Africa' };
 function libellePerimetreRapport() {
-  if (fRapportCy !== 'all') return (PAYS_INFO[fRapportCy]||{}).flag + ' ' + (PAYS_INFO[fRapportCy]||{}).name;
-  if (fRapportZone !== 'all') return (ZONES_GEO[fRapportZone]||{}).nom;
-  return 'Toutes zones — Afrique';
+  if (fRapportCy !== 'all') return (PAYS_INFO[fRapportCy]||{}).flag + ' ' + paysR(fRapportCy).name;
+  if (fRapportZone !== 'all') return (LANG === 'en' && ZONES_EN[fRapportZone]) || (ZONES_GEO[fRapportZone]||{}).nom;
+  return LANG === 'en' ? 'All zones — Africa' : 'Toutes zones — Afrique';
 }
 
 function suffixePerimetre() {
@@ -21479,6 +21572,297 @@ function catFr(c){
   return dict[c]||c;
 }
 function srcName(id){const s=SRCS.find(x=>x.id===id);return s?s.n:id;}
+
+// ════════════════════════════════════════════════════════════════════
+//  COUCHE COMMUNE DES RAPPORTS (21/10/2026)
+//  Trois defauts constates sur un vrai Word (YORO, 20/10/2026) :
+//  1. l'identite d'envoi choisie n'apparaissait qu'en suffixe « Partage par »,
+//     alors que la couverture, l'en-tete et le pied portaient la marque ;
+//  2. un rapport demande en anglais restait a moitie francais : dates
+//     ('fr-FR' en dur), « Cotation », « Survenance », noms de pays, rubriques ;
+//  3. les actus etaient rangees par rubrique OU par pays, jamais les deux, et
+//     la ligne pays (ville, niveau, heure) se lisait sous le titre.
+//  Tous les generateurs (Word, PDF, PowerPoint, apercus HTML) lisent ces
+//  fonctions : une seule source pour la langue, l'emetteur et le classement.
+// ════════════════════════════════════════════════════════════════════
+const PAYS_EN = {
+  AO:'Angola', BF:'Burkina Faso', BI:'Burundi', BJ:'Benin', BW:'Botswana', CD:'DR Congo', CF:'Central African Republic',
+  CG:'Congo-Brazzaville', CI:'Côte d\'Ivoire', CM:'Cameroon', CV:'Cape Verde', DJ:'Djibouti', DZ:'Algeria', EG:'Egypt',
+  ER:'Eritrea', ET:'Ethiopia', GA:'Gabon', GH:'Ghana', GM:'The Gambia', GN:'Guinea', GQ:'Equatorial Guinea',
+  GW:'Guinea-Bissau', KE:'Kenya', KM:'Comoros', LR:'Liberia', LS:'Lesotho', LY:'Libya', MA:'Morocco', MG:'Madagascar',
+  ML:'Mali', MR:'Mauritania', MU:'Mauritius', MW:'Malawi', MZ:'Mozambique', NA:'Namibia', NE:'Niger', NG:'Nigeria',
+  RW:'Rwanda', SC:'Seychelles', SD:'Sudan', SL:'Sierra Leone', SN:'Senegal', SO:'Somalia', SS:'South Sudan',
+  ST:'São Tomé and Príncipe', SZ:'Eswatini', TD:'Chad', TG:'Togo', TN:'Tunisia', TZ:'Tanzania', UG:'Uganda',
+  ZA:'South Africa', ZM:'Zambia', ZW:'Zimbabwe',
+};
+function localeRapport() { return LANG === 'en' ? 'en-GB' : 'fr-FR'; }
+// Pays dans la langue du rapport. infoPays() reste en francais : le moteur de
+// detection de pays et l'interface en dependent.
+function paysR(cy) {
+  const p = infoPays(cy);
+  if (LANG !== 'en') return p;
+  if (cy === 'INT') return { ...p, name: 'International' };
+  return PAYS_EN[cy] ? { ...p, name: PAYS_EN[cy] } : p;
+}
+// « UTC », « UTC+1 », « UTC−5:30 » : meme forme dans les deux langues. Le
+// libelle court d'Intl donnait « UTC+0 » en francais et « GMT » en anglais, a
+// cote d'un « Il y a 19 min » : trois facons de dire l'heure dans une page.
+function libelleFuseau(d) {
+  const m = -d.getTimezoneOffset();
+  if (!m) return 'UTC';
+  const h = Math.floor(Math.abs(m) / 60), mm = Math.abs(m) % 60;
+  return 'UTC' + (m > 0 ? '+' : '−') + h + (mm ? ':' + String(mm).padStart(2, '0') : '');
+}
+// « 21 octobre 2026 à 03:06 » / « 21 October 2026 at 03:06 »
+function fmtDateLongueRapport(d) {
+  d = d || new Date();
+  const loc = localeRapport();
+  return d.toLocaleDateString(loc, { day: 'numeric', month: 'long', year: 'numeric' })
+    + (LANG === 'en' ? ' at ' : ' à ') + d.toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit' });
+}
+function fmtHeureRapport(d) { return (d || new Date()).toLocaleTimeString(localeRapport(), { hour: '2-digit', minute: '2-digit' }); }
+function fmtDateCourteRapport(d) { return (d || new Date()).toLocaleDateString(localeRapport()); }
+// Date d'un article dans un rapport : toujours absolue. « Il y a 19 min » dans
+// un fichier envoye devient faux a la minute suivante.
+function fmtQuandRapport(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  return d.toLocaleDateString(localeRapport(), { day: 'numeric', month: 'short' }) + ', ' + fmtHeureRapport(d);
+}
+// Villes dont l'usage anglais differe du francais (capitales par defaut de
+// detectGeo, villes citees dans VILLES_COMMUNES).
+const VILLES_EN = { 'Alger':'Algiers', 'Le Caire':'Cairo', 'Addis-Abeba':'Addis Ababa', 'Mogadiscio':'Mogadishu', 'Djouba':'Juba',
+  'Port-Louis':'Port Louis', 'São Tomé':'São Tomé', 'Tombouctou':'Timbuktu', 'Saint-Louis':'Saint-Louis', 'Ménaka':'Menaka' };
+const COTATION_EN = { confirme: 'Confirmed', probable: 'Probable', non_confirme: 'Unconfirmed' };
+function libelleCotationR(cot) {
+  if (!cot) return '';
+  return LANG === 'en' ? (COTATION_EN[cot.cle] || cot.libelle) : cot.libelle;
+}
+// Libelles de survenance produits par extraireDateSurvenance (« hier », « il y a
+// 3 jours »…) : du francais, par construction (le texte source l'est).
+function libelleSurvenanceR(label) {
+  if (!label || LANG !== 'en') return label;
+  const fixes = { 'avant-hier': 'the day before yesterday', 'hier': 'yesterday', "aujourd'hui": 'today',
+    'la semaine dernière': 'last week', 'le mois dernier': 'last month', "l'année dernière": 'last year',
+    'hier soir (match, déduit)': 'last night (match, inferred)' };
+  if (fixes[label]) return fixes[label];
+  const m = /^il y a (\d+|un|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix) (jour|jours|semaine|semaines|mois|an|ans|année|années)$/.exec(label);
+  if (m) {
+    const nb = { un: 1, une: 1, deux: 2, trois: 3, quatre: 4, cinq: 5, six: 6, sept: 7, huit: 8, neuf: 9, dix: 10 }[m[1]] || +m[1];
+    const u = { jour: 'day', jours: 'day', semaine: 'week', semaines: 'week', mois: 'month', an: 'year', ans: 'year', 'année': 'year', 'années': 'year' }[m[2]];
+    return nb + ' ' + u + (nb > 1 ? 's' : '') + ' ago';
+  }
+  const jours = { lundi: 'Monday', mardi: 'Tuesday', mercredi: 'Wednesday', jeudi: 'Thursday', vendredi: 'Friday', samedi: 'Saturday', dimanche: 'Sunday' };
+  return jours[label] || label;
+}
+// Emetteur d'un rapport : l'identite d'envoi designee pour ce module (ou choisie
+// pour cet envoi), a defaut la marque. C'est ce nom qui signe la couverture,
+// l'en-tete et le pied de page, partout. Plan gratuit : identiteEnvoiActuelle
+// renvoie '' et la marque reste.
+function emetteurRapport(module) {
+  const id = (typeof identiteEnvoiActuelle === 'function') ? identiteEnvoiActuelle(module) : '';
+  return id || nomMarqueActuelle();
+}
+// Rubriques, dans l'ordre de lecture d'un responsable sûreté.
+const RUBRIQUES_RAPPORT = [
+  { k: 'securite',     fr: 'Sécurité',         en: 'Security',        col: '8B1A1A' },
+  { k: 'politique',    fr: 'Politique',        en: 'Politics',        col: '1B5FA8' },
+  { k: 'geopolitique', fr: 'Géopolitique',     en: 'Geopolitics',     col: '5B3A8C' },
+  { k: 'economique',   fr: 'Économie',         en: 'Economy',         col: '0F4F2A' },
+  { k: 'humanitaire',  fr: 'Humanitaire',      en: 'Humanitarian',    col: '7C4A00' },
+  { k: 'divers',       fr: 'Autres rubriques', en: 'Other topics',    col: '4B5563' },
+];
+// Une actu « politique » devient « géopolitique » quand son sujet est
+// d'abord entre États ou organisations (sommet, sanctions, frontière, force
+// étrangère…). Le classement de la collecte n'a que quatre catégories : la
+// géopolitique se lit dans le texte, et seulement pour la politique (un
+// incident de sécurité reste de la sécurité, même à une frontière).
+const GEOPOLITIQUE_RE = /(sommet|summit|cedeao|ecowas|union africaine|african union|confédération des États du Sahel|alliance des États du Sahel|diplomat|ambassad|sanctions?\b|frontière|frontiere|\bborder\b|bilatér|bilater|accord de paix|peace (?:deal|talks|agreement)|conseil de sécurité|conseil de securite|security council|traité|treaty|brics|\brussi|wagner|africa corps|\bchin(?:a|e|ois)\b|coopération militaire|military cooperation|retrait des troupes|troop withdrawal|visite officielle|state visit)/i;
+// Sigles : sensibles à la casse (« UN » minuscule est l'article « un »).
+const GEOPOLITIQUE_SIGLES_RE = /\b(?:ONU|UA|AES|G20|OTAN|NATO)\b/;
+function rubriqueRapport(a) {
+  const c = a && a.cat;
+  if (c === 'securite' || c === 'humanitaire' || c === 'economique') return c;
+  if (c === 'politique') return (a.cy === 'INT' || GEOPOLITIQUE_RE.test(String(a.title || '') + ' ' + String(a.analysis || '')) || GEOPOLITIQUE_SIGLES_RE.test(String(a.title || '') + ' ' + String(a.analysis || ''))) ? 'geopolitique' : 'politique';
+  return 'divers';
+}
+function libelleRubrique(r) { return LANG === 'en' ? r.en : r.fr; }
+// Rubrique, puis pays, puis actus : le classement des rapports. Dans une
+// rubrique, les pays vont du plus grave au moins grave (puis par nombre
+// d'actus, puis par nom), « International » en dernier ; dans un pays, les
+// actus vont du niveau le plus haut au plus bas, puis du plus récent au plus
+// ancien. `max` borne le nombre d'actus d'une rubrique (les plus graves
+// d'abord) pour la synthèse, qui ne liste pas tout.
+function groupesRubriquePays(arts, opts) {
+  const max = opts && opts.max;
+  const rang = { crit: 0, high: 1, mod: 2, ok: 3 };
+  const cmp = (x, y) => ((rang[x.level] ?? 3) - (rang[y.level] ?? 3)) || ((y.pubDate || 0) - (x.pubDate || 0));
+  const parRub = {};
+  (arts || []).forEach(a => { const k = rubriqueRapport(a); (parRub[k] = parRub[k] || []).push(a); });
+  return RUBRIQUES_RAPPORT.filter(r => parRub[r.k]).map(r => {
+    let items = parRub[r.k].slice().sort(cmp);
+    if (max) items = items.slice(0, max);
+    const parCy = {}, ordre = [];
+    items.forEach(a => {
+      const cy = (a.cy && typeof PAYS_INFO !== 'undefined' && PAYS_INFO[a.cy]) ? a.cy : 'INT';
+      if (!parCy[cy]) { parCy[cy] = []; ordre.push(cy); }
+      parCy[cy].push(a);
+    });
+    const pays = ordre.map(cy => ({ cy, pays: paysR(cy), items: parCy[cy] })).sort((x, y) =>
+      ((x.cy === 'INT') - (y.cy === 'INT'))
+      || ((rang[x.items[0].level] ?? 3) - (rang[y.items[0].level] ?? 3))
+      || (y.items.length - x.items.length)
+      || x.pays.name.localeCompare(y.pays.name, localeRapport()));
+    return { rub: r, libelle: libelleRubrique(r), nb: items.length, pays };
+  });
+}
+// ── Libelles fixes des rapports, dits dans la langue choisie ──────────────
+// Les generateurs ecrivent encore beaucoup de libelles en francais (titres de
+// section, intitules, phrases a trous). Plutot que de ternariser cent
+// endroits, chaque puits de texte (TextRun Word, _pdfSafe, addText PowerPoint,
+// HTML des apercus) passe par trRapport(), qui ne touche QU'AUX libelles
+// connus : texte entier (dictionnaire) ou forme reconnue (motifs ancres). Un
+// titre d'article ne ressemble a aucun des deux ; il n'est jamais modifie.
+// Un libelle absent reste en francais — le test `rapport-langue` en rejoue
+// les exports en anglais et refuse tout mot francais non liste.
+const RAPPORT_EN_FIXE = {
+  'Usage restreint — responsables sûreté': 'Restricted use — security officers',
+  'USAGE RESTREINT — RESPONSABLES SÛRETÉ': 'RESTRICTED USE — SECURITY OFFICERS',
+  'Rapport opérationnel': 'Operational report', 'RAPPORT OPÉRATIONNEL': 'OPERATIONAL REPORT',
+  'Analyse sécuritaire opérationnelle': 'Operational security analysis',
+  'ARTICLES': 'ARTICLES', 'CRITIQUES': 'CRITICAL', 'PAYS': 'COUNTRIES', 'SOURCES': 'SOURCES',
+  'Articles': 'Articles', 'Critiques': 'Critical', 'Pays': 'Countries', 'Sources': 'Sources',
+  'ÉVÉNEMENTS': 'EVENTS', 'Pays couverts': 'Countries covered', 'Articles analysés': 'Articles analysed',
+  'Sources actives': 'Active sources', 'Médias': 'Media', 'Réseaux sociaux': 'Social networks',
+  'Fiabilité moy.': 'Avg. reliability',
+  'I. SYNTHÈSE ANALYTIQUE — SITUATION RÉGIONALE': 'I. ANALYTICAL SUMMARY — REGIONAL SITUATION',
+  'I. SYNTHÈSE ANALYTIQUE — Situation régionale': 'I. ANALYTICAL SUMMARY — Regional situation',
+  'I. SYNTHÈSE ANALYTIQUE': 'I. ANALYTICAL SUMMARY',
+  'II. FLUX OPÉRATIONNEL': 'II. OPERATIONAL FEED',
+  'III. AGENDA SÛRETÉ': 'III. SECURITY AGENDA',
+  'III. AGENDA SÛRETÉ — Événements & échéances': 'III. SECURITY AGENDA — Events & deadlines',
+  'FLUX OPÉRATIONNEL — ÉVÉNEMENTS DES DERNIÈRES': 'OPERATIONAL FEED — EVENTS OF THE LAST',
+  'AGENDA SÛRETÉ — ÉVÉNEMENTS EN COURS ET À VENIR': 'SECURITY AGENDA — ONGOING AND UPCOMING EVENTS',
+  'ALERTES PAYS — NIVEAU COMPOSITE': 'COUNTRY ALERTS — COMPOSITE LEVEL',
+  'Flux opérationnel': 'Operational feed', 'Agenda sûreté': 'Security agenda', 'Alertes pays': 'Country alerts',
+  'Niveau composite par pays': 'Composite level by country',
+  'Événements en cours et à venir': 'Ongoing and upcoming events',
+  'Aucun événement pour ce périmètre.': 'No event for this scope.',
+  'Aucun pays dans ce périmètre.': 'No country in this scope.',
+  'E. Réseaux sociaux — Buzz, tendance, risque': 'E. Social networks — Buzz, trend, risk',
+  'BUZZ — Volume & activité': 'BUZZ — Volume & activity', 'BUZZ — VOLUME & ACTIVITÉ': 'BUZZ — VOLUME & ACTIVITY',
+  'TENDANCE — Thèmes émergents': 'TREND — Emerging themes', 'TENDANCE — THÈMES ÉMERGENTS': 'TREND — EMERGING THEMES',
+  'RISQUE — Alertes & menaces': 'RISK — Alerts & threats', 'RISQUE — ALERTES & MENACES': 'RISK — ALERTS & THREATS',
+  'Pas assez de volume pour dégager une tendance.': 'Not enough volume to identify a trend.',
+  'Pas assez de volume pour dégager une tendance sur la période.': 'Not enough volume to identify a trend over the period.',
+  'Aucune publication à sujet prioritaire détectée sur la période.': 'No priority-topic publication detected over the period.',
+  'Aucune publication correspondant aux sujets prioritaires (IA, politique, insécurité, incendie, attaque, vol, viol, corruption, blanchiment, vie chère...) sur la période.': 'No publication matching the priority topics (AI, politics, insecurity, fire, attack, theft, rape, corruption, money laundering, cost of living...) over the period.',
+  'F. Corrélations entre pays — Signaux régionaux': 'F. Cross-country correlations — Regional signals',
+  'F. Corrélations Entre Pays — Signaux Régionaux': 'F. Cross-Country Correlations — Regional Signals',
+  'CONSTATATIONS': 'FINDINGS',
+  'Aucun thème commun détecté entre plusieurs pays sur la période — pas de dynamique régionale identifiée dans le volume actuel.': 'No theme shared across several countries over the period — no regional dynamic identified in the current volume.',
+  'Recommandation : ': 'Recommendation: ', 'Action recommandée : ': 'Recommended action: ',
+  'EN COURS': 'ONGOING', 'URGENT': 'URGENT', 'PLANIFIÉ': 'PLANNED', 'SURVEILLANCE': 'MONITORING', 'ACHEVÉ': 'COMPLETED',
+  'Sommaire': 'Contents', "Vue d'ensemble": 'Overview', "Niveau d'alerte": 'Alert level',
+  'Incidents marquants': 'Key incidents', 'Réseaux sociaux — publications prioritaires': 'Social networks — priority posts',
+  'Agenda & échéances': 'Agenda & deadlines', 'Corrélations entre pays': 'Cross-country correlations',
+  'Matrice des sources': 'Sources matrix', 'Méthodologie': 'Methodology',
+  'Répartition par niveau': 'Breakdown by level', 'Pays les plus actifs': 'Most active countries',
+  'Critique': 'Critical', 'Élevé': 'High', 'Modéré': 'Moderate', 'Stable': 'Stable',
+  'Facteurs aggravants': 'Aggravating factors', 'Actualité nationale': 'National news',
+  'Actualité régionale — pays limitrophes': 'Regional news — neighbouring countries',
+  'ACTUALITÉ NATIONALE': 'NATIONAL NEWS', 'ACTUALITÉ RÉGIONALE — PAYS LIMITROPHES': 'REGIONAL NEWS — NEIGHBOURING COUNTRIES',
+  'Dossier pays — Actualité': 'Country file — News',
+  'Mesure clé — Expatriés / Étrangers': 'Key measure — Expats / Foreign nationals', 'Mesure clé — Installations': 'Key measure — Facilities',
+  'Aucun facteur aggravant particulier signalé pour ce pays.': 'No particular aggravating factor reported for this country.',
+  'Score composite (/100)': 'Composite score (/100)',
+  'Niveau': 'Level', 'Chaînes les plus actives : ': 'Most active channels: ', 'Chaînes actives : ': 'Active channels: ',
+  'Analyse sécuritaire': 'Security analysis',
+  'Du flux, mais aucune source fiable': 'Some news, but no reliable source',
+  'GUIDE DE LECTURE': 'READING GUIDE',
+  'Tableau de bord': 'Dashboard',
+};
+// Motifs ancres (^…$) : phrases a trous.
+const RAPPORT_EN_MOTIFS = [
+  [/^(\d+) articles collectés · Filtre anti-hallucination actif · Sources : (\d+) flux RSS$/, '$1 articles collected · Anti-hallucination filter active · Sources: $2 RSS feeds'],
+  [/^Aucun article disponible pour ce périmètre sur la période\.$/, 'No article available for this scope over the period.'],
+  [/^Rapport opérationnel — (.+)$/, 'Operational report — $1'],
+  [/^(\d+) sources \((\d+) médias \+ (\d+) réseaux sociaux\) · filtre anti-hallucination <(.+?) · (\d+) articles analysés$/, '$1 sources ($2 media + $3 social networks) · anti-hallucination filter <$4 · $5 articles analysed'],
+  [/^(\d+) pays · (\d+) art\.$/, '$1 countries · $2 art.'],
+  [/^(\d+) thèmes? détectés? simultanément dans au moins 2 pays sur la période <(.+?) — une dynamique régionale qu'une lecture pays par pays ne révèle pas isolément\.$/, '$1 theme(s) detected simultaneously in at least 2 countries over the period <$2 — a regional dynamic that a country-by-country reading does not reveal on its own.'],
+  [/^(\d+) publications analysées \((.*)\) — (\d+) positives, (\d+) négatives, (\d+) neutres\.$/, '$1 publications analysed ($2) — $3 positive, $4 negative, $5 neutral.'],
+  [/^(\d+) publications — (\d+) positives, (\d+) négatives, (\d+) neutres\.$/, '$1 publications — $2 positive, $3 negative, $4 neutral.'],
+  [/^Thèmes dominants : (.*)\.$/, 'Dominant themes: $1.'],
+  [/^Sentiment : (.*)$/, 'Sentiment: $1'],
+  [/^(.*)Sentiment : (.+?)  ·  Criticité : (.+?)  ·  Fiabilité : (.+)$/, '$1Sentiment: $2  ·  Criticality: $3  ·  Reliability: $4'],
+  [/^(.*) · Sentiment : (.+?) · Criticité : (.+?) · Fiabilité : (.+)$/, '$1 · Sentiment: $2 · Criticality: $3 · Reliability: $4'],
+  [/^Fiabilité : (.+)$/, 'Reliability: $1'],
+  [/^Chaînes les plus actives : (.*)$/, 'Most active channels: $1'],
+  [/^Incidents : (\d+) · Aggravants : (\d+)$/, 'Incidents: $1 · Aggravating: $2'],
+  [/^(\d+) articles? · (.*)$/, '$1 article(s) · $2'],
+  [/^Page (\d+)$/, 'Page $1'],
+  [/^Rapport complet$/, 'Full report'],
+];
+const RAPPORT_EN_MOIS = { jan:'Jan', janv:'Jan', fev:'Feb', fév:'Feb', mar:'Mar', mars:'Mar', avr:'Apr', mai:'May', jun:'Jun', juin:'Jun',
+  jul:'Jul', juil:'Jul', aou:'Aug', aoû:'Aug', août:'Aug', sep:'Sep', sept:'Sep', oct:'Oct', nov:'Nov', dec:'Dec', déc:'Dec' };
+const RAPPORT_EN_STATUTS = { 'EN COURS':'ONGOING', 'URGENT':'URGENT', 'PLANIFIÉ':'PLANNED', 'SURVEILLANCE':'MONITORING', 'ACHEVÉ':'COMPLETED' };
+let _rapportEnMaj = null;
+function trRapport(texte) {
+  if (LANG !== 'en' || typeof texte !== 'string' || !texte) return texte;
+  const m = /^(\s*)([\s\S]*?)(\s*)$/.exec(texte);
+  let coeur = m[2];
+  if (!coeur) return texte;
+  const fin = v => m[1] + v + m[3];
+  if (Object.prototype.hasOwnProperty.call(RAPPORT_EN_FIXE, coeur)) return fin(RAPPORT_EN_FIXE[coeur]);
+  // Meme libelle en capitales (« ARTICLES ANALYSÉS »).
+  if (!_rapportEnMaj) { _rapportEnMaj = {}; for (const k in RAPPORT_EN_FIXE) _rapportEnMaj[k.toUpperCase()] = RAPPORT_EN_FIXE[k].toUpperCase(); }
+  if (coeur === coeur.toUpperCase() && Object.prototype.hasOwnProperty.call(_rapportEnMaj, coeur)) return fin(_rapportEnMaj[coeur]);
+  for (const [re, rep] of RAPPORT_EN_MOTIFS) if (re.test(coeur)) return fin(coeur.replace(re, rep));
+  // « FLUX OPÉRATIONNEL — ÉVÉNEMENTS DES DERNIÈRES 36H » : libelle fixe + duree.
+  const pref = Object.keys(RAPPORT_EN_FIXE).find(k => k.endsWith('DERNIÈRES') && coeur.startsWith(k + ' '));
+  if (pref) return fin(RAPPORT_EN_FIXE[pref] + coeur.slice(pref.length));
+  let r = coeur;
+  // Agenda : « 14 Fev », « [PLANIFIÉ] », « — URGENT ».
+  r = r.replace(/^(\d{1,2}) ([A-Za-zéûÉ]{3,5})(?= |$)/, (t, j, mo) => RAPPORT_EN_MOIS[mo.toLowerCase()] ? j + ' ' + RAPPORT_EN_MOIS[mo.toLowerCase()] : t);
+  r = r.replace(/\[(EN COURS|URGENT|PLANIFIÉ|SURVEILLANCE|ACHEVÉ)\]/g, (t, st) => '[' + RAPPORT_EN_STATUTS[st] + ']');
+  r = r.replace(/\s+—\s+(EN COURS|URGENT|PLANIFIÉ|SURVEILLANCE|ACHEVÉ)$/, (t, st) => ' — ' + RAPPORT_EN_STATUTS[st]);
+  r = r.replace(/^Recommandation :/, 'Recommendation:');
+  r = r.replace(/^Signaux régionaux — /, 'Regional signals — ').replace(/ — classement par score composite$/, ' — ranked by composite score');
+  r = r.replace(/ \(suite\)$/, ' (continued)');
+  r = r.replace(/^(II\. FLUX OPÉRATIONNEL) — Articles </, 'II. OPERATIONAL FEED — Articles <')
+       .replace(/^IV\. ALERTES PAYS — Niveau composite & dossier régional$/, 'IV. COUNTRY ALERTS — Composite level & regional file')
+       .replace(/^(\d+) événements des dernières (.+?) — /, '$1 events of the last $2 — ');
+  if (r !== coeur) return fin(r);
+  return texte;
+}
+// HTML d'un apercu : seuls les noeuds de texte (entre une balise fermante et
+// une ouvrante) passent par trRapport ; les attributs et le CSS restent intacts.
+function localiserHtmlRapport(html) {
+  if (LANG !== 'en') return html;
+  const decode = t => t.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#0?39;/g, "'").replace(/&nbsp;/g, ' ');
+  const encode = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // Hors <style>, <script>, <title>.
+  return String(html).replace(/(<(?:style|script)[\s\S]*?<\/(?:style|script)>)|>([^<>]+)</g, (tout, bloc, texte) => {
+    if (bloc) return bloc;
+    const t = decode(texte), r = trRapport(t.replace(/ /g, ' '));
+    return r === t.replace(/ /g, ' ') ? tout : '>' + encode(r) + '<';
+  });
+}
+
+// Les « données pays » d'une actu, dites une fois et lues par tous les
+// formats, AU-DESSUS du titre : pays, ville (estimée ou non), niveau d'alerte
+// du pays, heure de publication.
+function lignePaysArticle(a) {
+  const cy = (a.cy && PAYS_INFO[a.cy]) ? a.cy : 'INT';
+  const p = paysR(cy);
+  const geo = (typeof detectGeo === 'function') ? detectGeo(a.cy, String(a.title || '') + ' ' + String(a.analysis || '')) : {};
+  const villeNom = geo && geo.ville ? ((LANG === 'en' && VILLES_EN[geo.ville]) || geo.ville) : '';
+  const ville = villeNom ? villeNom + (geo.estime ? (LANG === 'en' ? ' (estimated)' : ' (estimé)') : '') : '';
+  const niveau = _cyNivTexteEtCouleur(a.cy);
+  const quand = a.pubDate ? fmtQuandRapport(a.pubDate) : '';
+  const texte = [p.name + (ville ? ' — ' + ville : ''), niveau ? niveau.texte : '', quand].filter(Boolean).join('   ·   ');
+  return { flag: p.flag || '', nom: p.name, ville, niveau, quand, texte };
+}
 
 // ── UPDATE COMPTEURS DL ───────────────────────────────────────────
 function updateDLCounts(){
@@ -21641,19 +22025,19 @@ async function exportPPTX(type) {
     if (typeof PptxGenJS === 'undefined') throw new Error('pptxgenjs non chargé — verifiez la connexion internet');
 
     const TITRES_PPTX = {
-      rapport_complet: 'RAPPORT COMPLET',
-      synthese: 'SYNTHÈSE ANALYTIQUE',
-      flux: 'FLUX OPÉRATIONNEL',
-      agenda: 'AGENDA SÛRETÉ',
-      alertes: 'ALERTES PAYS',
-      sources: 'MATRICE DES SOURCES',
+      rapport_complet: rl('titres_rapport').rapport_complet.toUpperCase(),
+      synthese: rl('titres_rapport').synthese.toUpperCase(),
+      flux: rl('titres_rapport').flux.toUpperCase(),
+      agenda: rl('titres_rapport').agenda.toUpperCase(),
+      alertes: rl('titres_rapport').alertes.toUpperCase(),
+      sources: rl('titres_rapport').sources.toUpperCase(),
     };
     const titrePPTX = TITRES_PPTX[type] || TITRES_PPTX.rapport_complet;
 
     const PERIODES = {
-      hebdo:       {jours:7,  label:'Hebdomadaire'},
-      mensuel:     {jours:30, label:'Mensuel'},
-      trimestriel: {jours:90, label:'Trimestriel'},
+      hebdo:       {jours:7,  label:LANG==='en'?'Weekly':'Hebdomadaire'},
+      mensuel:     {jours:30, label:LANG==='en'?'Monthly':'Mensuel'},
+      trimestriel: {jours:90, label:LANG==='en'?'Quarterly':'Trimestriel'},
     };
     const periodeSel = (document.getElementById('rpPeriode')||{}).value || 'mensuel';
     const periode = PERIODES[periodeSel] || PERIODES.mensuel;
@@ -21667,7 +22051,7 @@ async function exportPPTX(type) {
 
     const dateFin = new Date();
     const dateDebut = new Date(Date.now() - periode.jours*24*60*60*1000);
-    const fmtD = d => d.toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+    const fmtD = d => d.toLocaleDateString(localeRapport(),{day:'2-digit',month:'long',year:'numeric'});
 
     // ── Palette : identité déjà établie par SentiqS, alignée sur le gabarit
     // imprimable (Claude Design) — mêmes hex que Word/PDF/l'aperçu HTML pour
@@ -21684,7 +22068,8 @@ async function exportPPTX(type) {
     const identitePptx = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle(type) : '';
     const pres = new PptxGenJS();
     pres.layout = 'LAYOUT_WIDE';
-    pres.author = identitePptx || nomMarqueActuelle();
+    const emetteurP = emetteurRapport(type);
+    pres.author = emetteurP;
     pres.company = nomMarqueActuelle();
     pres.title = titrePPTX + ' ' + periode.label + ' — ' + perimetre;
 
@@ -21716,16 +22101,30 @@ async function exportPPTX(type) {
       return h;
     };
 
+    // Ligne « donnees pays » d'une actu, EN GRAS au-dessus de son titre : pays,
+    // ville, niveau du pays, heure (lignePaysArticle), puis la source cliquable.
+    const ligneRunsPptx = (a, fs, mono) => {
+      const lp = lignePaysArticle(a), ff = mono ? 'IBM Plex Mono' : 'IBM Plex Sans';
+      const runs = [{text:(lp.flag?lp.flag+' ':'')+lp.nom+(lp.ville?' — '+lp.ville:''), options:{fontSize:fs,bold:true,color:INK,fontFace:ff}}];
+      if (lp.niveau) runs.push({text:'  ·  '+lp.niveau.texte, options:{fontSize:fs-0.5,bold:true,color:lp.niveau.couleur,fontFace:ff}});
+      if (lp.quand) runs.push({text:'  ·  '+lp.quand, options:{fontSize:fs-0.5,bold:true,color:MUTED,fontFace:ff}});
+      if (sourcesVisibles()) runs.push({text:'  ·  '+srcName(a.primary), options:{fontSize:fs-0.5,color:'1B5FA8',underline:{style:'sng'},fontFace:ff,hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}});
+      return runs;
+    };
+
     // Diapositive avec fond + ruban de pied de page systématique (bandeau
     // plein bord-a-bord bleu nuit : logo radar + marque + pagination, sur
     // chaque diapositive — pas d'adresse e-mail, usage interne uniquement).
     const newSlide = (bg) => {
       const sl = pres.addSlide();
+      // Libelles fixes dans la langue du rapport (trRapport), titres d'actu intacts.
+      const addTextBrut = sl.addText.bind(sl);
+      sl.addText = (t, o) => addTextBrut(Array.isArray(t) ? t.map(r => (r && typeof r.text === 'string') ? {...r, text:trRapport(r.text)} : r) : trRapport(t), o);
       sl.background = {color:bg};
       const ribbonY = 7.15, ribbonH = 0.35;
       sl.addShape(pres.shapes.RECTANGLE, {x:0, y:ribbonY, w:13.33, h:ribbonH, fill:{color:NAVY}, line:{type:'none'}});
       circle(sl, 0.35, ribbonY + ribbonH/2 - 0.07, 0.14, 'FFFFFF');
-      sl.addText(nomMarqueActuelle(), {x:0.62, y:ribbonY, w:5, h:ribbonH, fontSize:9, bold:true, color:'FFFFFF', fontFace:'IBM Plex Mono', valign:'middle'});
+      sl.addText(emetteurP, {x:0.62, y:ribbonY, w:5, h:ribbonH, fontSize:9, bold:true, color:'FFFFFF', fontFace:'IBM Plex Mono', valign:'middle'});
       sl.addText('Page ', {x:12.1, y:ribbonY, w:0.78, h:ribbonH, fontSize:8.5, color:'FFFFFF', fontFace:'IBM Plex Mono', valign:'middle', align:'right'});
       sl.slideNumber = {x:12.9, y:ribbonY, w:0.35, h:ribbonH, fontSize:8.5, color:'FFFFFF', fontFace:'IBM Plex Mono', valign:'middle'};
       return sl;
@@ -21776,14 +22175,14 @@ async function exportPPTX(type) {
     }
     // Taille du nom ajustee a sa longueur : a 52 pt un nom de 19 caracteres
     // passait sur deux lignes et chevauchait le sous-titre.
-    const nomCouv = nomMarqueActuelle();
+    const nomCouv = emetteurP;
     const taillNom = Math.max(26, Math.min(52, Math.floor(7.2 * 72 / (Math.max(nomCouv.length, 1) * 0.56))));
     s.addText(nomCouv, {x:0.6,y:2.45,w:7.2,h:1.1,fontSize:taillNom,bold:true,color:'FFFFFF',fontFace:'Source Serif 4',valign:'middle'});
     s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:3.62,w:0.9,h:0.04,fill:{color:OR_P},line:{type:'none'}});
     s.addText(titrePPTX.charAt(0)+titrePPTX.slice(1).toLowerCase()+' '+periode.label.toLowerCase()+' — '+perimetre,
       {x:0.6,y:3.78,w:7.2,h:0.55,fontSize:19,bold:true,color:CLAIR_P,fontFace:'IBM Plex Sans'});
     const nowPPTX = new Date();
-    s.addText((LANG==='en'?'Generated on ':'Généré le ')+nowPPTX.toLocaleDateString('fr-FR')+' '+(LANG==='en'?'at ':'à ')+nowPPTX.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'   ·   '+(LANG==='en'?'Slot ':'Créneau ')+nowPPTX.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+(identitePptx?'   ·   '+(LANG==='en'?'Shared by ':'Partagé par ')+identitePptx:''),
+    s.addText((LANG==='en'?'Generated on ':'Généré le ')+fmtDateCourteRapport(nowPPTX)+' '+(LANG==='en'?'at ':'à ')+fmtHeureRapport(nowPPTX)+'   ·   '+(LANG==='en'?'Slot ':'Créneau ')+fmtHeureRapport(nowPPTX),
       {x:0.6,y:4.35,w:7.2,h:0.4,fontSize:13,color:CLAIR_P,fontFace:'IBM Plex Sans'});
     s.addText(fmtD(dateDebut)+'  →  '+fmtD(dateFin), {x:0.6,y:4.72,w:7.2,h:0.35,fontSize:11.5,italic:true,color:CLAIR_P,fontFace:'IBM Plex Sans'});
     s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:5.35,w:4.4,h:0.42,fill:{type:'none'},line:{color:OR_P,width:1}});
@@ -21809,7 +22208,7 @@ async function exportPPTX(type) {
     const nbSrcs = new Set(arts.map(a=>a.primary)).size;
 
     const scoresSlide = (scopeCy ? [scopeCy] : Object.keys(PAYS_INFO).filter(cy => !scopeZone || CY_TO_ZONE[cy]===scopeZone))
-      .map(cy => ({cy, pays:PAYS_INFO[cy], sc:calcAlertScore(cy)}))
+      .map(cy => ({cy, pays:paysR(cy), sc:calcAlertScore(cy)}))
       .sort((a,b)=>b.sc.total-a.sc.total);
     const marquants = arts.filter(a=>a.level==='crit'||a.level==='high')
       .sort((a,b)=>(b.pubDate||0)-(a.pubDate||0)).slice(0,6);
@@ -21828,15 +22227,15 @@ async function exportPPTX(type) {
     // les synthèses") plutôt que de dupliquer le même contenu exhaustif.
     const rangOrdrePptx = {crit:0, high:1, mod:2, ok:3};
     const cmpPptx = (x,y) => { const r=(rangOrdrePptx[x.level]??3)-(rangOrdrePptx[y.level]??3); if (r!==0) return r; return (y.pubDate||0)-(x.pubDate||0); };
-    const byCatPPTX = {securite:[], humanitaire:[], politique:[], economique:[]};
-    arts.forEach(a => { if (byCatPPTX[a.cat]) byCatPPTX[a.cat].push(a); });
-    const CAT_DEFS_PPTX = [
-      {k:'securite',    lettre:'A', lb:'Situation sécuritaire',   col:'8B1A1A'},
-      {k:'humanitaire', lettre:'B', lb:'Axe humanitaire',         col:'7C4A00'},
-      {k:'politique',   lettre:'C', lb:'Environnement politique', col:'1B5FA8'},
-      {k:'economique',  lettre:'D', lb:'Contexte économique',     col:'0F4F2A'},
-    ].map(cd => ({...cd, items: byCatPPTX[cd.k].slice().sort(cmpPptx).slice(0,8)}))
-     .filter(cd => cd.items.length);
+    // Rubriques (Securite, Politique, Geopolitique, Economie, Humanitaire…) puis
+    // pays : groupesRubriquePays, comme le Word, le PDF et l'apercu HTML. Les
+    // actus d'une rubrique sont mises a plat dans l'ordre pays par pays ; la
+    // ligne pays au-dessus de chaque titre (ligneRunsPptx) dit de quel pays
+    // il s'agit.
+    const CAT_DEFS_PPTX = groupesRubriquePays(arts, {max:8}).map((g, i) => ({
+      k: g.rub.k, lettre: String.fromCharCode(65 + i), lb: g.libelle, col: g.rub.col,
+      items: g.pays.flatMap(gp => gp.items),
+    }));
 
     const incVue    = (type==='rapport_complet' || type==='synthese');
     const incAlerte = (type==='rapport_complet' || type==='alertes') && scoresSlide.length;
@@ -21845,7 +22244,7 @@ async function exportPPTX(type) {
     const incSocial = (type==='rapport_complet' || type==='synthese') && postsPPTX.length;
     const incAgenda = (type==='rapport_complet' || type==='agenda') && agenda.length;
     const incCorrel = (type==='rapport_complet' || type==='synthese') && signauxPPTX.length;
-    const evenementsFlux = arts.slice().sort((x,y)=>(y.pubDate||0)-(x.pubDate||0)).slice(0,60);
+    const evenementsFlux = groupesRubriquePays(arts).flatMap(g => g.pays.flatMap(gp => gp.items)).slice(0,60);
     const incFlux   = type==='flux' && evenementsFlux.length;
     const srcsPPTX  = getExportSources();
     // Matrice des sources reservee aux administrateurs (voir sourcesVisibles)
@@ -21914,7 +22313,7 @@ async function exportPPTX(type) {
     // Top pays par nombre d'articles (colonne droite)
     const parPays = {};
     arts.forEach(a=>{ parPays[a.cy] = (parPays[a.cy]||0)+1; });
-    const topPays = Object.keys(parPays).map(cy=>({cy,n:parPays[cy],pays:PAYS_INFO[cy]})).filter(x=>x.pays)
+    const topPays = Object.keys(parPays).map(cy=>({cy,n:parPays[cy],pays:PAYS_INFO[cy]?paysR(cy):null})).filter(x=>x.pays)
       .sort((a,b)=>b.n-a.n).slice(0,6);
     if (topPays.length) {
       s.addText('Pays les plus actifs', {x:6.2,y:3.5,w:6,h:0.4,fontSize:13,bold:true,color:INK,fontFace:'IBM Plex Sans'});
@@ -21968,12 +22367,12 @@ async function exportPPTX(type) {
         // seulement une fois buildCountryDossier execute, donc non couverts
         // par la pre-traduction generale du haut de fonction (qui s'execute
         // avant que ces pays specifiques soient determines).
-        await preTraduireRapport(dossierP.regional.map(a => infoPays(a.cy).name));
+        await preTraduireRapport(dossierP.regional.map(a => paysR(a.cy).name));
         // Une diapositive par rubrique (nationale, regionale) : chaque actu
         // porte son resume et ses liens, ce qui ne tient plus a huit par page.
         const rubriquesP = [
           {items: dossierP.national, titre:'ACTUALITÉ NATIONALE', prefixe: () => ''},
-          {items: dossierP.regional, titre:'ACTUALITÉ RÉGIONALE — PAYS LIMITROPHES', prefixe: a => '['+L(infoPays(a.cy).name)+']  '},
+          {items: dossierP.regional, titre:'ACTUALITÉ RÉGIONALE — PAYS LIMITROPHES', prefixe: a => '['+L(paysR(a.cy).name)+']  '},
         ];
         rubriquesP.forEach(r => {
           if (!r.items.length) return;
@@ -21981,9 +22380,10 @@ async function exportPPTX(type) {
           sectionHead(s, 'Dossier pays — Actualité', scoresSlide[0].pays.name);
           s.addText(r.titre, {x:0.6,y:1.6,w:11.6,h:0.3,fontSize:11,bold:true,color:BLUE,fontFace:'IBM Plex Mono'});
           r.items.forEach((a, i) => {
-            const yP = 1.95 + i*1.25;
-            s.addText(r.prefixe(a)+L(a.title)+'  ('+(a.time||'')+')', {x:0.6,y:yP,w:11.6,h:0.36,fontSize:11.5,bold:true,color:INK,fontFace:'IBM Plex Sans'});
-            detailPptx(s, a, 0.6, yP+0.38, 11.6, 280);
+            const yP = 1.95 + i*1.3;
+            s.addText(ligneRunsPptx(a, 9.5), {x:0.6,y:yP-0.12,w:11.6,h:0.26});
+            s.addText(L(a.title), {x:0.6,y:yP+0.14,w:11.6,h:0.3,fontSize:11.5,bold:true,color:INK,fontFace:'IBM Plex Sans'});
+            detailPptx(s, a, 0.6, yP+0.46, 11.6, 260);
           });
         });
       } else {
@@ -22010,14 +22410,10 @@ async function exportPPTX(type) {
         const i = iTot % 3;
         if (i === 0) { s = newSlide('FFFFFF'); sectionHead(s, 'Incidents marquants', iTot===0 ? (periode.label+' — '+perimetre) : (perimetre+' (suite)')); }
         const y = 1.55 + i*1.85;
-        const pays = infoPays(a.cy);
+        const pays = paysR(a.cy);
         const col = LVL_COL[a.level] || '9CA3AF';
-        const cyNivP1 = _cyNivTexteEtCouleur(a.cy);
         circle(s, 0.6, y+0.06, 0.16, col);
-        s.addText([
-          {text:(pays.flag||'')+' '+pays.name+'  ·  '+(a.time||'')+(cyNivP1?'  ·  '+cyNivP1.texte:''), options:{fontSize:10,color:MUTED,fontFace:'IBM Plex Sans'}},
-        ].concat(sourcesVisibles() ? [{text:'  ·  '+srcName(a.primary), options:{fontSize:10,color:'1B5FA8',underline:{style:'sng'},fontFace:'IBM Plex Sans',hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}}] : []),
-        {x:0.95,y:y-0.08,w:11.6,h:0.3});
+        s.addText(ligneRunsPptx(a, 10), {x:0.95,y:y-0.08,w:11.6,h:0.3});
         s.addText(L(a.title)||'', {x:0.95,y:y+0.18,w:11.6,h:0.55,fontSize:13,bold:true,color:INK,fontFace:'IBM Plex Sans'});
         detailPptx(s, a, 0.95, y+0.74, 11.6, 420);
       });
@@ -22038,17 +22434,13 @@ async function exportPPTX(type) {
           sectionHead(s, cd.lettre+'. '+cd.lb, ci===0 ? (periode.label+' — '+perimetre) : (perimetre+' (suite)'));
           chunk.forEach((a,i)=>{
             const y = 1.55 + i*1.85;
-            const pays = infoPays(a.cy);
+            const pays = paysR(a.cy);
             const col = LVL_COL[a.level] || '9CA3AF';
-            s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:y,w:0.95,h:0.28,fill:{color:col},line:{type:'none'}});
-            s.addText(lvlFr(a.level).toUpperCase(), {x:0.6,y:y,w:0.95,h:0.28,fontSize:8,bold:true,color:'FFFFFF',align:'center',valign:'middle',fontFace:'IBM Plex Mono'});
-            s.addText(L(a.title)||'', {x:1.7,y:y-0.06,w:10.9,h:0.55,fontSize:12,bold:true,color:INK,fontFace:'IBM Plex Sans'});
-            const cyNivP2 = _cyNivTexteEtCouleur(a.cy);
-            s.addText([
-              {text:pays.name+(a._ville?' — '+a._ville:'')+'  ·  '+(a.time||'')+(cyNivP2?'  ·  '+cyNivP2.texte:''), options:{fontSize:9,color:MUTED,fontFace:'IBM Plex Sans'}},
-            ].concat(sourcesVisibles() ? [{text:'  ·  '+srcName(a.primary), options:{fontSize:9,color:'1B5FA8',underline:{style:'sng'},fontFace:'IBM Plex Sans',hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}}] : []),
-            {x:1.7,y:y+0.44,w:10.9,h:0.3});
-            detailPptx(s, a, 1.7, y+0.78, 10.9, 420);
+            s.addText(ligneRunsPptx(a, 10), {x:0.6,y:y-0.12,w:12,h:0.28});
+            s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:y+0.24,w:0.95,h:0.28,fill:{color:col},line:{type:'none'}});
+            s.addText(lvlFr(a.level).toUpperCase(), {x:0.6,y:y+0.24,w:0.95,h:0.28,fontSize:8,bold:true,color:'FFFFFF',align:'center',valign:'middle',fontFace:'IBM Plex Mono'});
+            s.addText(L(a.title)||'', {x:1.7,y:y+0.18,w:10.9,h:0.55,fontSize:12,bold:true,color:INK,fontFace:'IBM Plex Sans'});
+            detailPptx(s, a, 1.7, y+0.8, 10.9, 400);
           });
         }
       });
@@ -22073,14 +22465,9 @@ async function exportPPTX(type) {
           s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:y-0.1,w:12.13,h:1.3,fill:{color:PAPER},line:{color:LINE,width:0.5}});
           s.addShape(pres.shapes.RECTANGLE, {x:0.6,y:y-0.1,w:0.07,h:1.3,fill:{color:LVL_COL[a.level]||'9CA3AF'},line:{type:'none'}});
           if (imF) { try { s.addImage({data: imF.dataUrl.replace(/^data:/, ''), x:12.73-0.1-iwF, y:y-0.03, w:iwF, h:ihF}); } catch (_) {} }
-          const pays = infoPays(a.cy);
+          const pays = paysR(a.cy);
           const col = LVL_COL[a.level] || '9CA3AF';
-          const dateTxt = a.pubDate ? new Date(a.pubDate).toLocaleDateString('fr-FR')+' '+new Date(a.pubDate).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '';
-          const cyNivP3 = _cyNivTexteEtCouleur(a.cy);
-          s.addText([
-            {text:'['+dateTxt+']  '+(pays.flag||'')+' '+pays.name+'  ·  '+lvlFr(a.level).toUpperCase()+(cyNivP3?'  ·  '+cyNivP3.texte:''), options:{fontSize:8.5,bold:true,color:MUTED,fontFace:'IBM Plex Mono'}},
-          ].concat(sourcesVisibles() ? [{text:'  ·  '+srcName(a.primary), options:{fontSize:8.5,bold:true,color:'1B5FA8',underline:{style:'sng'},fontFace:'IBM Plex Mono',hyperlink:{url:safeUrl(articleLienDirect(a),srcName(a.primary))}}}] : []),
-          {x:0.85,y:y-0.04,w:twF,h:0.22});
+          s.addText(ligneRunsPptx(a, 8.5, true), {x:0.85,y:y-0.04,w:twF,h:0.22});
           s.addText(L(a.title)||'', {x:0.85,y:y+0.17,w:twF,h:0.3,fontSize:11.5,bold:true,color:INK,fontFace:'IBM Plex Sans'});
           detailPptx(s, a, 0.85, y+0.47, twF, 300, true);
         });
@@ -22130,7 +22517,7 @@ async function exportPPTX(type) {
         const col = i % 2, row = Math.floor(i/2);
         const x = gx + col*(colW+gap), y = gy + row*(rowH+gap);
         s.addShape(pres.shapes.RECTANGLE, {x,y,w:colW,h:rowH,fill:{color:'FFFFFF'},line:{color:LINE,width:0.75}});
-        const paysNoms = sig.pays.map(cy=>(PAYS_INFO[cy]||{}).name || cy).join(', ');
+        const paysNoms = sig.pays.map(cy=>paysR(cy).name || cy).join(', ');
         s.addText('#'+sig.terme, {x:x+0.18,y:y+0.1,w:colW-2,h:0.3,fontSize:13,bold:true,color:'0B1A27',fontFace:'IBM Plex Sans'});
         s.addText(sig.pays.length+' pays · '+sig.articles.length+' art.', {x:x+colW-2,y:y+0.1,w:1.85,h:0.3,fontSize:10,bold:true,color:BLUE,fontFace:'IBM Plex Sans',align:'right'});
         s.addText(paysNoms, {x:x+0.18,y:y+0.44,w:colW-0.36,h:0.42,fontSize:9,color:MUTED,fontFace:'IBM Plex Sans'});
@@ -22152,7 +22539,7 @@ async function exportPPTX(type) {
         sectionHead(s, 'Matrice des sources', ci===0 ? (srcsSortedFull.length+' sources suivies — '+perimetre) : (perimetre+' (suite)'));
         chunk.forEach((sr,i)=>{
           const y = 1.55 + i*0.42;
-          const paysSr = infoPays(sr.cy) || {};
+          const paysSr = paysR(sr.cy) || {};
           s.addText((sr.n||''), {x:0.6,y,w:6.2,h:0.34,fontSize:10.5,bold:true,color:INK,fontFace:'IBM Plex Sans'});
           s.addText((paysSr.name||sr.cy||'')+' · '+(sr.sc||''), {x:6.9,y,w:3.3,h:0.34,fontSize:9.5,color:MUTED,fontFace:'IBM Plex Sans'});
           s.addText((sr.score||0)+'%', {x:10.3,y,w:0.9,h:0.34,fontSize:9.5,bold:true,color:BLUE,fontFace:'IBM Plex Sans',align:'right'});
@@ -22170,7 +22557,9 @@ async function exportPPTX(type) {
     circle(s, -0.8, 4.8, 2.4, NAVY2);
     s.addText('Méthodologie', {x:0.7,y:2.0,w:9,h:0.6,fontSize:24,bold:true,color:'FFFFFF',fontFace:'Source Serif 4'});
     s.addText(
-      'Données issues de la veille RSS SentiqS — '+nbSrcs+' sources actives sur la période, '+
+      LANG==='en'
+        ? 'Data from the SentiqS RSS watch — '+nbSrcs+' active sources over the period, anti-hallucination filter (time-stamped, sourced articles only). Alert levels are computed automatically from verified incidents and feed signals, with a cap on uncorroborated signals.'
+        : 'Données issues de la veille RSS SentiqS — '+nbSrcs+' sources actives sur la période, '+
       'filtre anti-hallucination (articles horodatés et sourcés uniquement). Niveaux d\'alerte calculés '+
       'automatiquement à partir des incidents vérifiés et des signaux de flux, avec plafonnement des '+
       'signaux non corroborés.',
@@ -22205,6 +22594,7 @@ function _pdfSafe(text) {
   // (parseRSS/parseJSON) et de l'agent correcteur (agentCorrigerTextesArticles),
   // au cas ou une donnee encore corrompue (cache historique, source non
   // couverte) arriverait jusqu'a l'ecriture PDF.
+  text = trRapport(text);
   let s = (typeof _decodeEntitesHTML === 'function' ? _decodeEntitesHTML(String(text==null ? '' : text)) : String(text==null ? '' : text))
     .replace(/[\u{1F1E6}-\u{1F1FF}]/gu, '')  // lettres indicatrices régionales (drapeaux)
     .replace(/[\u{1F300}-\u{1FAFF}]/gu, '')  // emoji / pictogrammes
@@ -22280,6 +22670,8 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
     // qu'aucun appelant ne l'a posee (guide d'utilisation), auquel cas le
     // bandeau retombe sur la resolution globale historique.
     identiteEnvoi: null,
+    // emetteur : nom qui signe le document (identite d'envoi, a defaut la marque).
+    emetteur: null,
     logo: null,
     // Ruban de bas de page — bandeau plein bord-a-bord (pas d'encadre), logo
     // radar + nom de marque, sur le modele du ruban utilise en pied de page
@@ -22293,7 +22685,7 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
       b.page.drawEllipse({x:logoCx, y:midY, xScale:logoR, yScale:logoR, borderColor:rgb(1,1,1), borderWidth:0.9});
       b.page.drawEllipse({x:logoCx, y:midY, xScale:logoR*0.55, yScale:logoR*0.55, borderColor:rgb(1,1,1), borderWidth:0.6});
       b.page.drawEllipse({x:logoCx, y:midY, xScale:logoR*0.16, yScale:logoR*0.16, color:rgb(1,1,1)});
-      const brand = _pdfSafe(nomMarqueActuelle());
+      const brand = _pdfSafe(b.emetteur || nomMarqueActuelle());
       b.page.drawText(brand, {x:logoCx+logoR+9, y:midY-3.5, size:9, font:fontBold, color:rgb(1,1,1)});
       const sep = b.footerPerimetre ? '  ·  '+b.footerPerimetre : '';
       const mid = _pdfSafe((b.footerDate||'')+sep);
@@ -22362,15 +22754,9 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
 
       // Bandeau meta superieur
       b.page.drawLine({start:{x:M,y:H-34},end:{x:W-M,y:H-34},thickness:0.6,color:rgb(0.27,0.35,0.52)});
-      // Identite d'envoi ("Signer en tant que") — meme correctif que Word/
-      // PowerPoint/l'apercu HTML : voir identiteRapportW dans exportWord.
-      // Tronquee (contrairement a Word) car dessinee a position fixe sans
-      // retour a la ligne, au risque sinon de chevaucher le bandeau
-      // "USAGE RESTREINT" aligne a droite sur la meme ligne.
-      const identitePdf = (b.identiteEnvoi !== null) ? b.identiteEnvoi
-        : ((typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle() : '');
-      const identitePdfTxt = identitePdf.length>28 ? identitePdf.slice(0,27)+'…' : identitePdf;
-      const metaL = (LANG==='en'?'Generated on: ':'Généré le : ')+dateGenStr+'   |   '+(LANG==='en'?'Slot: ':'Créneau : ')+creneauStr+(identitePdfTxt?'   |   '+(LANG==='en'?'Shared by: ':'Partagé par : ')+identitePdfTxt:'');
+      // L'identite d'envoi signe desormais le titre et le pied de chaque page
+      // (b.emetteur) : le suffixe « Partage par » de ce bandeau la redisait.
+      const metaL = (LANG==='en'?'Generated on: ':'Généré le : ')+dateGenStr+'   |   '+(LANG==='en'?'Slot: ':'Créneau : ')+creneauStr;
       b.page.drawText(_pdfSafe(metaL), {x:M, y:H-26, size:7.5, font:fontReg, color:CLAIR});
       const metaR = _pdfSafe(LANG==='en'?'RESTRICTED USE — SECURITY OFFICERS':'USAGE RESTREINT — RESPONSABLES SÛRETÉ');
       const metaRw = fontBold.widthOfTextAtSize(metaR, 7.5);
@@ -22389,7 +22775,7 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
       }
       const eyebrow = _pdfSafe(((LANG==='en'?'OPERATIONAL REPORT':'RAPPORT OPÉRATIONNEL')+(b.footerPerimetre?'  ·  '+b.footerPerimetre.toUpperCase():'')));
       b.page.drawText(eyebrow, {x:tx, y:H-82, size:8, font:fontBold, color:OR});
-      let brandTxt = _pdfSafe(nomMarqueActuelle());
+      let brandTxt = _pdfSafe(b.emetteur || nomMarqueActuelle());
       let bsize = 30;
       while (bsize > 18 && fontSerif.widthOfTextAtSize(brandTxt, bsize) > W-M-tx) bsize -= 1;
       b.page.drawText(brandTxt, {x:tx, y:H-116, size:bsize, font:fontSerif, color:rgb(1,1,1)});
@@ -22403,6 +22789,8 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
           b.y -= 14.5;
         });
       }
+      const noteT = noteTraductionRapport();
+      if (noteT) b.wrap(_pdfSafe(noteT), 8.5, fontReg, W-M*2).forEach(line => { b.page.drawText(line, {x:M, y:b.y, size:8.5, font:fontReg, color:MUTED}); b.y -= 12; });
       b.y -= 8;
       b.page.drawLine({start:{x:M,y:b.y+6},end:{x:W-M,y:b.y+6},thickness:0.6,color:LINE});
       b.y -= 12;
@@ -22567,7 +22955,7 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
     },
     // Item d'article façon gabarit de référence : pastille de niveau colorée
     // + titre en gras, puis ligne meta (pays — ville · délai relatif).
-    articleItem(a, lieuTxt) {
+    articleItem(a) {
       // Carte d'actu : barre de gravite a gauche, image de la source a DROITE
       // du texte (jamais sous lui : sous le texte elle se lisait comme
       // l'illustration du pays suivant), carte tenue d'un bloc sur une page.
@@ -22580,8 +22968,18 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
       const textX = M + barW + padX;
       const textW = W - M - textX - (im ? imgW + 14 : 0);
       const size = 10.5;
-      const label = _pdfSafe(lm.label);
+      const label = _pdfSafe(lvlFr(a.level));
       const pillW = fontBold.widthOfTextAtSize(label, 7.5) + 12;
+      // Donnees pays EN GRAS AU-DESSUS du titre (pays, ville, niveau du pays,
+      // heure) : lignePaysArticle, la meme pour tous les formats.
+      const lp = lignePaysArticle(a);
+      const paysTxt = _pdfSafe(lp.nom + (lp.ville ? ' — ' + lp.ville : ''));
+      const niveauTxt = lp.niveau ? _pdfSafe('   ·   ' + lp.niveau.texte) : '';
+      let quandTxt = lp.quand ? _pdfSafe('   ·   ' + lp.quand) : '';
+      // Ligne trop longue (ville + niveau + heure a cote d'une image) : l'heure
+      // part, elle reste dite par « Publié le » dans le detail.
+      if (fontBold.widthOfTextAtSize(paysTxt, 9) + (niveauTxt ? fontBold.widthOfTextAtSize(niveauTxt, 8) : 0) + fontBold.widthOfTextAtSize(quandTxt, 8) > textW) quandTxt = '';
+      const voirSrcPdf = sourcesVisibles() && typeof articleLienDirect==='function' && typeof safeUrl==='function' && typeof srcName==='function';
       const words = _pdfSafe(a.title).replace(/\s+/g,' ').trim().split(' ');
       const lines = []; let cur = '', max = textW - pillW - 8;
       for (const w of words) {
@@ -22594,40 +22992,41 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
       const infosTxt = det ? det.infos.filter(t => !/^(Source|Source :)/.test(t)).join('   ·   ') : '';
       const infos = infosTxt ? b.wrap(_pdfSafe(infosTxt), 8, fontReg, textW) : [];
       // Hauteur de la carte, calculee AVANT de dessiner : elle ne se coupe pas.
-      const hTexte = 4 + lines.length*(size+4) + 14 + resume.length*12.5 + (infos.length ? 3 + infos.length*11 : 0)
+      const hTexte = 4 + 13 + lines.length*(size+4) + (voirSrcPdf ? 14 : 4) + resume.length*12.5 + (infos.length ? 3 + infos.length*11 : 0)
                    + (det && det.lienVideo ? 12 : 0);
       const h = Math.max(hTexte, imgH + 6) + 6;
       b.ensure(h + 12);
       const topY = b.y;
       b.page.drawRectangle({x:M, y:topY-h, width:barW, height:h, color:hexRgb(lm.col)});
       let y = topY - 4;
+      let xp = textX;
+      b.page.drawText(paysTxt, {x:xp, y:y-8, size:9, font:fontBold, color:INK});
+      xp += fontBold.widthOfTextAtSize(paysTxt, 9);
+      if (niveauTxt) {
+        b.page.drawText(niveauTxt, {x:xp, y:y-8, size:8, font:fontBold, color:hexRgb('#'+lp.niveau.couleur)});
+        xp += fontBold.widthOfTextAtSize(niveauTxt, 8);
+      }
+      if (quandTxt) b.page.drawText(quandTxt, {x:xp, y:y-8, size:8, font:fontBold, color:MUTED});
+      y -= 13;
       b.page.drawRectangle({x:textX, y:y-11, width:pillW, height:13, color:hexRgb(lm.bg)});
       b.page.drawText(label, {x:textX+6, y:y-8, size:7.5, font:fontBold, color:hexRgb(lm.col)});
       lines.forEach((line,i) => {
         b.page.drawText(line, {x: i===0 ? textX+pillW+8 : textX, y: y-9-i*(size+4), size, font:fontBold, color:INK});
       });
       y -= lines.length*(size+4) + 4;
-      const cyNiv = _cyNivTexteEtCouleur(a.cy);
-      const lieuTexte = _pdfSafe(lieuTxt+'   ·   '+(a.time||''));
-      b.page.drawText(lieuTexte, {x:textX, y:y-6, size:8.5, font:fontReg, color:MUTED});
-      let xCursor = textX + fontReg.widthOfTextAtSize(lieuTexte, 8.5);
-      if (cyNiv) {
-        const cyNivTxt = _pdfSafe('   ·   '+cyNiv.texte);
-        b.page.drawText(cyNivTxt, {x:xCursor, y:y-6, size:8, font:fontBold, color:hexRgb('#'+cyNiv.couleur)});
-        xCursor += fontBold.widthOfTextAtSize(cyNivTxt, 8);
-      }
+      let xCursor = textX;
       // Lien source cliquable (annotation Link, voir b.addLink) — reutilise
       // articleLienDirect(a)/safeUrl comme le Flux/Excel/CSV/Word/PPTX, pour
       // ne jamais dupliquer/diverger la logique primaire vs corroborante.
       // Reserve aux administrateurs (voir sourcesVisibles).
-      if (sourcesVisibles() && typeof articleLienDirect==='function' && typeof safeUrl==='function' && typeof srcName==='function') {
+      if (voirSrcPdf) {
         const lienUrl = safeUrl(articleLienDirect(a), srcName(a.primary));
-        const srcTxt = _pdfSafe('   ·   '+(LANG==='en'?'Source: ':'Source : ')+srcName(a.primary));
+        const srcTxt = _pdfSafe((LANG==='en'?'Source: ':'Source : ')+srcName(a.primary));
         b.page.drawText(srcTxt, {x:xCursor, y:y-6, size:8, font:fontReg, color:BLUE});
         const srcW = fontReg.widthOfTextAtSize(srcTxt, 8);
         b.addLink(xCursor, y-8, srcW, 10, lienUrl);
       }
-      y -= 14;
+      y -= voirSrcPdf ? 14 : 4;
       resume.forEach(line => { b.page.drawText(line, {x:textX, y:y-6, size:9, font:fontReg, color:INK}); y -= 12.5; });
       if (infos.length) {
         y -= 3;
@@ -22646,6 +23045,20 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
       b.page.drawLine({start:{x:textX,y:topY-h-5},end:{x:W-M,y:topY-h-5},thickness:0.4,color:LINE});
       b.y = topY - h - 14;
     },
+    // Rubrique (bandeau), pays (sous-titre), puis les cartes d'actu : le meme
+    // classement que le Word et l'apercu HTML (groupesRubriquePays).
+    rubriques(groupes, numeroter, deja) {
+      let n = 0;
+      groupes.forEach(g => {
+        b.catHeading((numeroter ? String.fromCharCode(65 + n++) + '. ' : '') + g.libelle + '  (' + g.nb + ')', '#' + g.rub.col);
+        g.pays.forEach(gp => {
+          b.sub(gp.pays.name + '  (' + gp.items.length + ')', hexRgb('#' + g.rub.col));
+          gp.items.forEach(a => { if (deja) deja.add(_articleKey(a)); b.articleItem({...a, title: L(a.title)}); });
+          b.y -= 4;
+        });
+        b.y -= 6;
+      });
+    },
     // Grille 2 colonnes de cartes de corrélation (thème / pays / articles
     // concordants), sur le modele de la section F. du gabarit de reference —
     // chaque ligne de la grille est mise en page d'un bloc pour que les deux
@@ -22655,7 +23068,7 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
       for (let i=0; i<signaux.length; i+=2) {
         const row = [signaux[i], signaux[i+1]].filter(Boolean);
         const cards = row.map(s => {
-          const paysNoms = s.pays.map(cy => (PAYS_INFO[cy]||{}).name || cy).join(', ');
+          const paysNoms = s.pays.map(cy => paysR(cy).name || cy).join(', ');
           const titres = s.articles.slice(0,3).map(a=>L(a.title)).join(' · ');
           const paysLines = b.wrap(paysNoms, 7.5, fontReg, colW-pad*2);
           const titresLines = b.wrap(titres, 8, fontReg, colW-pad*2);
@@ -22967,13 +23380,14 @@ async function exportPDF(type) {
     const b = _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb);
 
     const perimetre = libellePerimetreRapport();
-    const dateStr = new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' à '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    const dateStr = fmtDateLongueRapport(new Date());
     const titre = rl('titres_rapport')[type] || (LANG==='en'?'Report':'Rapport');
 
     const nbSrcsMediaPDF = SRCS.filter(s => !(s.rss_method||'').match(/Twitter|Telegram|Facebook/)).length;
     const nbSrcsSocialesPDF = SRCS.length - nbSrcsMediaPDF;
     b.footerPerimetre = perimetre;
-    b.footerDate = new Date().toLocaleDateString('fr-FR');
+    b.footerDate = fmtDateCourteRapport(new Date());
+    b.emetteur = emetteurRapport(type);
     // Identite d'envoi propre au MODULE exporte (synthese/flux/agenda/...) :
     // voir identiteEnvoiActuelle(module). Lue par bulletinHeader.
     b.identiteEnvoi = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle(type) : '';
@@ -22999,8 +23413,8 @@ async function exportPDF(type) {
     // En-tête façon "Bulletin de veille" — logo radar, date/heure de
     // génération, créneau — utilisée pour tous les types de rapport PDF.
     const now = new Date();
-    const dateGenStr = now.toLocaleDateString('fr-FR') + ' ' + now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    const creneauStr = now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    const dateGenStr = fmtDateCourteRapport(now) + ' ' + now.toLocaleTimeString(localeRapport(),{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const creneauStr = fmtHeureRapport(now);
 
     if (type === 'synthese') {
       const arts = getExportData();
@@ -23032,29 +23446,9 @@ async function exportPDF(type) {
       // l'aperçu HTML (gabarit Claude Design), pour une lecture identique
       // quel que soit le format d'export.
       b.bulletinSection(LANG==='en'?'I. Analytical Summary — Regional Situation':'I. Synthèse Analytique — Situation Régionale');
-      const byCatPDF = {securite:[], humanitaire:[], politique:[], economique:[]};
-      arts.forEach(a => { if (byCatPDF[a.cat]) byCatPDF[a.cat].push(a); });
-      const catDefsPDF = [
-        {k:'securite',    lettre:'A', lb:LANG==='en'?'Security situation':'Situation sécuritaire',   col:'#8B1A1A'},
-        {k:'humanitaire', lettre:'B', lb:LANG==='en'?'Humanitarian axis':'Axe humanitaire',           col:'#7C4A00'},
-        {k:'politique',   lettre:'C', lb:LANG==='en'?'Political environment':'Environnement politique', col:'#2C5AAE'},
-        {k:'economique',  lettre:'D', lb:LANG==='en'?'Economic context':'Contexte économique',        col:'#0F4F2A'},
-      ];
-      let unItemAffichePDF = false;
-      catDefsPDF.forEach(cd => {
-        const items = byCatPDF[cd.k].slice().sort(cmpS).slice(0,8);
-        if (!items.length) return;
-        unItemAffichePDF = true;
-        b.catHeading(cd.lettre+'. '+cd.lb, cd.col);
-        items.forEach(a => {
-          const geoPDF = detectGeo(a.cy, a.title+' '+(a.analysis||''));
-          const villeTxtPDF = geoPDF.ville ? (geoPDF.ville+(geoPDF.estime?(LANG==='en'?' (estimated)':' (estimé)'):'')) : '';
-          const paysPDF = infoPays(a.cy);
-          b.articleItem({...a, title:L(a.title)}, paysPDF.name+(villeTxtPDF?' — '+villeTxtPDF:''));
-        });
-        b.y -= 6;
-      });
-      if (!unItemAffichePDF) b.empty(LANG==='en'?'No article available for this scope over the period.':'Aucun article disponible pour ce périmètre sur la période.');
+      const groupesSP = groupesRubriquePays(arts, {max:8});
+      b.rubriques(groupesSP, true);
+      if (!groupesSP.length) b.empty(LANG==='en'?'No article available for this scope over the period.':'Aucun article disponible pour ce périmètre sur la période.');
 
       const socialArts = arts.filter(a=>a._isSocial);
       if (socialArts.length) {
@@ -23108,26 +23502,18 @@ async function exportPDF(type) {
       // Inclut les noms des pays de regroupement (groupeArticlesParPays) —
       // sinon les en-tetes de section pays restent en francais dans un
       // rapport genere en anglais.
-      await preTraduireRapport([...arts.flatMap(a => [a.title, a.analysis]), ...[...new Set(arts.map(a=>a.cy))].map(cy=>infoPays(cy).name)]);
+      await preTraduireRapport([...arts.flatMap(a => [a.title, a.analysis]), ...[...new Set(arts.map(a=>a.cy))].map(cy=>paysR(cy).name)]);
       const nbSrcActifsF = new Set(arts.map(a=>a.primary)).size;
       b.bulletinHeader(titre, dateGenStr, creneauStr,
         (LANG==='en'
           ? arts.length+' events collected over the last '+libelleFenetre()+', across '+nbSrcActifsF+' consolidated feeds.'
           : arts.length+' événements collectés sur les dernières '+libelleFenetre()+', à partir de '+nbSrcActifsF+' flux consolidés.'));
       b.bulletinSection(LANG==='en'?'Events of the Last '+libelleFenetre():'Événements des Dernières '+libelleFenetre());
-      // Classées par pays (pays hors Afrique -> International), pastille de
-      // niveau + titre + date de publication par article — plus de simple
-      // liste chronologique brute.
-      const groupesFluxPDF = groupeArticlesParPays(arts);
+      // Classées par rubrique puis par pays (pays hors Afrique -> International),
+      // donnees pays au-dessus du titre de chaque actu.
+      const groupesFluxPDF = groupesRubriquePays(arts);
       if (groupesFluxPDF.length) {
-        groupesFluxPDF.forEach(g => {
-          b.sub(g.pays.flag+' '+L(g.pays.name), rgb(0.051,0.106,0.161));
-          g.items.slice().sort((x,y)=>(y.pubDate||0)-(x.pubDate||0)).forEach(a => {
-            const dateTxtPDF = a.pubDate ? new Date(a.pubDate).toLocaleDateString('fr-FR')+' '+new Date(a.pubDate).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : (a.time||'');
-            b.articleItem({...a, title:L(a.title)}, dateTxtPDF);
-          });
-          b.y -= 6;
-        });
+        b.rubriques(groupesFluxPDF, false);
       } else {
         b.empty(LANG==='en'?'No article available for this scope over the period.':'Aucun article disponible pour ce périmètre sur la période.');
       }
@@ -23161,7 +23547,7 @@ async function exportPDF(type) {
 
     else if (type === 'alertes') {
       const cys = fRapportCy!=='all' ? [fRapportCy] : Object.keys(PAYS_INFO).filter(cy => !fRapportZone || fRapportZone==='all' || CY_TO_ZONE[cy]===fRapportZone);
-      const scores = cys.map(cy=>({cy, pays:PAYS_INFO[cy], sc:calcAlertScore(cy)})).sort((a,b2)=>b2.sc.total-a.sc.total);
+      const scores = cys.map(cy=>({cy, pays:paysR(cy), sc:calcAlertScore(cy)})).sort((a,b2)=>b2.sc.total-a.sc.total);
       // Ce que nous ne savons pas (20/10/2026) : avant les fiches pays.
       const amPdf = angleMortPerimetre(cys);
       b.sub(rl('am_titre'), rgb(0.29,0.33,0.39));
@@ -23236,18 +23622,11 @@ async function exportPDF(type) {
           if (mes && mes.installations && mes.installations[0]) b.bullet(rl('installations')+' : '+L(mes.installations[0]));
           if (s.dossier && s.dossier.national.length) {
             b.para((LANG==='en'?'National news':'Actualité nationale'), {bold:true, size:9, color:rgb(0.114,0.373,0.659)});
-            s.dossier.national.forEach(a => {
-              const geoDos = detectGeo(a.cy, a.title+' '+(a.analysis||''));
-              const villeDos = geoDos.ville ? (geoDos.ville+(geoDos.estime?(LANG==='en'?' (estimated)':' (estimé)'):'')) : '';
-              b.articleItem({...a, title:L(a.title)}, s.pays.name+(villeDos?' — '+villeDos:''));
-            });
+            s.dossier.national.forEach(a => b.articleItem({...a, title:L(a.title)}));
           }
           if (s.dossier && s.dossier.regional.length) {
             b.para((LANG==='en'?'Regional news — neighbouring countries':'Actualité régionale — pays limitrophes'), {bold:true, size:9, color:rgb(0.114,0.373,0.659)});
-            s.dossier.regional.forEach(a => {
-              const paysVoisin = infoPays(a.cy) || {};
-              b.articleItem({...a, title:L(a.title)}, paysVoisin.name || a.cy);
-            });
+            s.dossier.regional.forEach(a => b.articleItem({...a, title:L(a.title)}));
           }
           b.y -= 6;
         } catch(errPays) {
@@ -23271,7 +23650,7 @@ async function exportPDF(type) {
       await preTraduireRapport([
         ...arts.flatMap(a => [a.title, a.analysis]),
         ...agendaC.flatMap(e => [e.title, e.desc, e.reco]),
-        ...[...new Set(arts.map(a=>a.cy))].map(cy=>infoPays(cy).name),
+        ...[...new Set(arts.map(a=>a.cy))].map(cy=>paysR(cy).name),
       ]);
       const nbSrcActifsC = new Set(arts.map(a=>a.primary)).size;
       b.bulletinHeader(titre, dateGenStr, creneauStr,
@@ -23298,30 +23677,9 @@ async function exportPDF(type) {
       const rangOrdreC = {crit:0, high:1, mod:2, ok:3};
       const cmpC = (x,y) => { const r=(rangOrdreC[x.level]??3)-(rangOrdreC[y.level]??3); if (r!==0) return r; return (y.pubDate||0)-(x.pubDate||0); };
       b.bulletinSection(LANG==='en'?'I. Analytical Summary — Regional Situation':'I. Synthèse Analytique — Situation Régionale');
-      const byCatC = {securite:[], humanitaire:[], politique:[], economique:[]};
-      arts.forEach(a => { if (byCatC[a.cat]) byCatC[a.cat].push(a); });
-      const catDefsC = [
-        {k:'securite',    lettre:'A', lb:LANG==='en'?'Security situation':'Situation sécuritaire',   col:'#8B1A1A'},
-        {k:'humanitaire', lettre:'B', lb:LANG==='en'?'Humanitarian axis':'Axe humanitaire',           col:'#7C4A00'},
-        {k:'politique',   lettre:'C', lb:LANG==='en'?'Political environment':'Environnement politique', col:'#2C5AAE'},
-        {k:'economique',  lettre:'D', lb:LANG==='en'?'Economic context':'Contexte économique',        col:'#0F4F2A'},
-      ];
-      let unItemAffichéC = false;
-      catDefsC.forEach(cd => {
-        const items = byCatC[cd.k].slice().sort(cmpC).slice(0,8);
-        if (!items.length) return;
-        unItemAffichéC = true;
-        b.catHeading(cd.lettre+'. '+cd.lb, cd.col);
-        items.forEach(a => {
-          usedKeysC.add(_articleKey(a));
-          const geoC = detectGeo(a.cy, a.title+' '+(a.analysis||''));
-          const villeTxtC = geoC.ville ? (geoC.ville+(geoC.estime?(LANG==='en'?' (estimated)':' (estimé)'):'')) : '';
-          const paysC = infoPays(a.cy);
-          b.articleItem({...a, title:L(a.title)}, paysC.name+(villeTxtC?' — '+villeTxtC:''));
-        });
-        b.y -= 6;
-      });
-      if (!unItemAffichéC) b.empty(LANG==='en'?'No article available for this scope over the period.':'Aucun article disponible pour ce périmètre sur la période.');
+      const groupesSC = groupesRubriquePays(arts, {max:8});
+      b.rubriques(groupesSC, true, usedKeysC);
+      if (!groupesSC.length) b.empty(LANG==='en'?'No article available for this scope over the period.':'Aucun article disponible pour ce périmètre sur la période.');
 
       if (typeof _corrBuildSignaux === 'function') {
         const signauxC = _corrBuildSignaux(arts);
@@ -23336,16 +23694,9 @@ async function exportPDF(type) {
       // pays hors Afrique), sans répéter les articles déjà montrés en I.
       b.bulletinSection(LANG==='en'?'II. Operational Feed — Events of the Last '+libelleFenetre():'II. Flux Opérationnel — Événements des Dernières '+libelleFenetre());
       const artsFluxC = arts.filter(a => !usedKeysC.has(_articleKey(a)));
-      const groupesFluxC = groupeArticlesParPays(artsFluxC);
+      const groupesFluxC = groupesRubriquePays(artsFluxC);
       if (groupesFluxC.length) {
-        groupesFluxC.forEach(g => {
-          b.sub(g.pays.flag+' '+L(g.pays.name), rgb(0.051,0.106,0.161));
-          g.items.slice().sort((x,y)=>(y.pubDate||0)-(x.pubDate||0)).forEach(a => {
-            const dateTxtC = a.pubDate ? new Date(a.pubDate).toLocaleDateString('fr-FR')+' '+new Date(a.pubDate).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : (a.time||'');
-            b.articleItem({...a, title:L(a.title)}, dateTxtC);
-          });
-          b.y -= 6;
-        });
+        b.rubriques(groupesFluxC, false);
       } else {
         b.empty(LANG==='en'?'No article available for this scope over the period.':'Aucun article disponible pour ce périmètre sur la période.');
       }
@@ -23381,7 +23732,7 @@ async function exportPDF(type) {
       ]);
       b.bulletinSection(LANG==='en'?'Sources Matrix':'Matrice des Sources');
       srcs.slice(0, CAP_SOURCES).forEach(sr => {
-        const paysS = infoPays(sr.cy) || {};
+        const paysS = paysR(sr.cy) || {};
         b.bullet((sr.n||'')+'  —  '+(paysS.name||sr.cy||'')+' · '+(sr.sc||'')+' · '+(LANG==='en'?'Reliability ':'Fiabilité ')+(sr.score||0)+'% · '+(sr.rss_method||''));
       });
       if (!srcs.length) b.empty(LANG==='en'?'No source for this scope.':'Aucune source pour ce périmètre.');
@@ -23432,14 +23783,11 @@ function _apLevelPill(a) {
 function _apCyNivPill(a) {
   if (!a.cy || a.cy === 'INT') return '';
   const npy = niveauAlertePays(a.cy);
-  return '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:9px;font-weight:800;color:#fff;background:'+npy.col+';padding:2px 7px;border-radius:3px;letter-spacing:0.04em;" title="Niveau d\'alerte sûreté du pays (distinct du niveau de cette actu)">PAYS '+_apEsc(npy.label)+'</span>';
+  return '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:9px;font-weight:800;color:#fff;background:'+npy.col+';padding:2px 7px;border-radius:3px;letter-spacing:0.04em;" title="'+(LANG==='en'?'Security alert level of the country (distinct from this article\'s level)':'Niveau d\'alerte sûreté du pays (distinct du niveau de cette actu)')+'">'+_apEsc(_cyNivTexteEtCouleur(a.cy).texte)+'</span>';
 }
 
 function _apArticleItem(a) {
-  const geo = detectGeo(a.cy, a.title+' '+(a.analysis||''));
-  const villeTxt = geo.ville ? (geo.ville+(geo.estime?' (estimé)':'')) : '';
-  const pays = infoPays(a.cy);
-  const lieu = pays.name + (villeTxt ? ' — '+villeTxt : '');
+  const lp = lignePaysArticle(a);
   // Image de la source (meme regle que visuelActu dans l'appli : https,
   // creditee, jamais copiee) ; sans image, l'article reste en texte seul
   // plutot qu'avec un repli qui couterait de l'encre a l'impression.
@@ -23450,12 +23798,16 @@ function _apArticleItem(a) {
       + (dom ? '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:9.5px;color:#6B7280;margin-top:2px;">© '+_apEsc(dom)+'</div>' : '') + '</div>'
     : '';
   return '<div style="margin-bottom:18px;break-inside:avoid;display:flex;gap:14px;align-items:flex-start;">' + vignette + '<div style="flex:1;min-width:0;">'
+    // Donnees pays EN GRAS AU-DESSUS du titre : pays, ville, niveau du pays, heure.
+    + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:5px;flex-wrap:wrap;font-weight:700;font-size:13px;color:#0B1A27;">'
+    + '<span>'+_apEsc((lp.flag?lp.flag+' ':'')+lp.nom+(lp.ville?' — '+lp.ville:''))+'</span>'
+    + _apCyNivPill(a)
+    + (lp.quand ? '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:11.5px;color:#4B5563;">'+_apEsc(lp.quand)+'</span>' : '')
+    + '</div>'
     + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;flex-wrap:wrap;">'
     + _apLevelPill(a)
-    + _apCyNivPill(a)
     + '<span style="font-weight:600;font-size:15px;color:#111827;">'+_apEsc(L(a.title))+'</span>'
     + '</div>'
-    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#6B7280;">'+_apEsc(lieu)+' &nbsp;·&nbsp; '+_apEsc(a.time||'')+'</div>'
     + _apDetailActu(a)
     + '</div></div>';
 }
@@ -23472,7 +23824,7 @@ function _apDetailActu(a) {
 }
 
 function _apCorrelationCard(s) {
-  const paysNoms = s.pays.map(cy => (PAYS_INFO[cy]||{}).name || cy).join(', ');
+  const paysNoms = s.pays.map(cy => paysR(cy).name || cy).join(', ');
   const titres = s.articles.slice(0,3).map(a => L(a.title)).join(' · ');
   return '<div style="border:1px solid #D1D9E0;border-radius:4px;padding:12px 14px;break-inside:avoid;">'
     + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">'
@@ -23519,6 +23871,22 @@ const AP_CAT_DEFS = [
   {k:'economique',  lettre:'D', lb:'Contexte économique',      col:'#0F4F2A'},
 ];
 
+// Rubrique (h2 colore), pays (h3), puis les actus : le classement commun des
+// rapports (groupesRubriquePays), identique au Word, au PDF et au PowerPoint.
+function _apRubriques(groupes, numeroter, deja) {
+  let html = '', n = 0;
+  groupes.forEach(g => {
+    const col = '#' + g.rub.col;
+    html += '<h2 style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:16px;color:'+col+';border-bottom:2px solid '+col+';padding-bottom:6px;margin:24px 0 12px;">'+(numeroter ? String.fromCharCode(65 + n++)+'. ' : '')+_apEsc(g.libelle)+' <span style="font-weight:500;font-size:12px;">('+g.nb+')</span></h2>';
+    g.pays.forEach(gp => {
+      html += '<h3 style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:13.5px;color:#16233A;margin:14px 0 10px;">'+_apEsc((gp.pays.flag||'')+' '+gp.pays.name)+' <span style="font-weight:500;font-size:12px;color:#6B7280;">('+gp.items.length+')</span></h3>';
+      html += gp.items.map(_apArticleItem).join('');
+      if (deja) gp.items.forEach(a => deja.add(_articleKey(a)));
+    });
+  });
+  return html;
+}
+
 // ── APERÇU GÉNÉRIQUE (Flux/Agenda/Alertes/Rapport complet) ──────────────────
 // _apPageWrap/_apStatsGrid/_apSectionBand : gabarit partagé (masthead, grille
 // de stats, bandeau de section, ruban de pied de page) extrait du modèle
@@ -23553,14 +23921,17 @@ function _apToolbar(type) {
     + '<style>@media print{.sentinel-toolbar{display:none !important}}</style>';
 }
 function _apPageWrap(titreSection, sousTitre, statsHTML, bodyHTML, type) {
+  return localiserHtmlRapport(_apPageWrapBrut(titreSection, sousTitre, statsHTML, bodyHTML, type));
+}
+function _apPageWrapBrut(titreSection, sousTitre, statsHTML, bodyHTML, type) {
   const now = new Date();
-  const dateGenLong = now.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' à '+now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  const dateGenLong = fmtDateLongueRapport(now);
   const perimetre = (typeof libellePerimetreRapport === 'function') ? libellePerimetreRapport() : '';
   // Identite d'envoi ("Signer en tant que") — meme correctif que Word/PDF/
   // PowerPoint : voir identiteRapportW dans exportWord.
-  const _apIdentiteEnvoi = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle(type) : '';
+  const _apEmetteur = emetteurRapport(type);
   return '<!DOCTYPE html><html><head><meta charset="utf-8">'
-    + '<title>SentiqS '+_apEsc(titreSection)+' — '+_apEsc(now.toLocaleDateString('fr-FR'))+'</title>'
+    + '<title>'+_apEsc(_apEmetteur)+' '+_apEsc(titreSection)+' — '+_apEsc(fmtDateCourteRapport(now))+'</title>'
     + '<link rel="preconnect" href="https://fonts.googleapis.com">'
     + '<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">'
     + '<style>'
@@ -23576,22 +23947,23 @@ function _apPageWrap(titreSection, sousTitre, statsHTML, bodyHTML, type) {
     // meme identite que l'ecran, le PDF, le Word et le PowerPoint.
     + '<div style="margin:-0.55in -0.55in 26px;padding:22px 0.55in 28px;background:linear-gradient(135deg,#071431,#0F2450);border-bottom:3px solid #E6BA6E;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;">'
     + '<div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:1px solid rgba(203,217,238,.28);padding-bottom:10px;margin-bottom:22px;">'
-    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#CBD9EE;text-transform:uppercase;">Généré le '+_apEsc(dateGenLong)+(_apIdentiteEnvoi?' &nbsp;·&nbsp; Partagé par '+_apEsc(_apIdentiteEnvoi):'')+'</div>'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#CBD9EE;text-transform:uppercase;">'+(LANG==='en'?'Generated on ':'Généré le ')+_apEsc(dateGenLong)+'</div>'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#E6BA6E;font-weight:600;text-transform:uppercase;">Usage restreint — responsables sûreté</div>'
     + '</div>'
     + '<div style="display:flex;align-items:center;gap:22px;">'
     + (logoMarqueHtml(64) ? '<div style="background:#fff;padding:8px 12px;display:flex;align-items:center;flex:none;">'+logoMarqueHtml(64)+'</div>' : '')
     + '<div style="min-width:0;">'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.16em;color:#E6BA6E;font-weight:600;text-transform:uppercase;margin-bottom:8px;">'+_apEsc(titreSection)+' — '+_apEsc(perimetre)+'</div>'
-    + '<h1 style="font-family:\'Source Serif 4\',serif;font-weight:800;font-size:40px;letter-spacing:0.01em;color:#fff;margin:0 0 6px;line-height:1.1;">'+_apEsc(nomMarqueActuelle())+'</h1>'
+    + '<h1 style="font-family:\'Source Serif 4\',serif;font-weight:800;font-size:40px;letter-spacing:0.01em;color:#fff;margin:0 0 6px;line-height:1.1;">'+_apEsc(_apEmetteur)+'</h1>'
     + '<div style="width:34px;height:2px;background:#E6BA6E;margin:0 0 10px;"></div>'
     + '<div style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:600;font-size:16px;color:#CBD9EE;">'+_apEsc(sousTitre)+'</div>'
     + '</div></div></div>'
+    + (noteTraductionRapport() ? '<p style="font-size:11px;font-style:italic;color:#6B7280;margin:0 0 10px">'+_apEsc(noteTraductionRapport())+'</p>' : '')
     + statsHTML
     + bodyHTML
     + '<div style="margin-top:30px;background:#16233A;color:#FFFFFF;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;font-family:\'IBM Plex Mono\',monospace;font-size:10.5px;">'
-    + '<span style="display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:0.04em;"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="#fff" stroke-width="1.3"/><circle cx="8" cy="8" r="1.5" fill="#fff"/></svg>'+_apEsc(nomMarqueActuelle())+'</span>'
-    + '<span style="color:#B9C6D6;">'+_apEsc(dateGenLong)+' UTC</span>'
+    + '<span style="display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:0.04em;"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="#fff" stroke-width="1.3"/><circle cx="8" cy="8" r="1.5" fill="#fff"/></svg>'+_apEsc(_apEmetteur)+'</span>'
+    + '<span style="color:#B9C6D6;">'+_apEsc(dateGenLong)+' '+libelleFuseau(now)+'</span>'
     + '</div>'
     + '</div>'
     + '</body></html>';
@@ -23614,7 +23986,7 @@ function _apAgendaItem(e) {
     + '</div>';
 }
 function _apAlerteItem(score) {
-  const pays = PAYS_INFO[score.cy] || {flag:'',name:score.cy};
+  const pays = paysR(score.cy);
   const n = score.niv;
   return '<div style="margin-bottom:14px;break-inside:avoid;border:1px solid #D1D9E0;border-radius:4px;padding:12px 14px;">'
     + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">'
@@ -23628,17 +24000,14 @@ function _apAlerteItem(score) {
 async function _buildRapportFluxHTML(arts) {
   await preTraduireRapport([
     ...arts.flatMap(a => [a.title, a.analysis]),
-    ...[...new Set(arts.map(a=>a.cy))].map(cy=>infoPays(cy).name),
+    ...[...new Set(arts.map(a=>a.cy))].map(cy=>paysR(cy).name),
   ]);
-  const groupes = groupeArticlesParPays(arts);
+  const groupes = groupesRubriquePays(arts);
   let body = _apSectionBand('FLUX OPÉRATIONNEL — ÉVÉNEMENTS DES DERNIÈRES '+libelleFenetre().toUpperCase());
-  groupes.forEach(g => {
-    body += '<h2 style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:15px;color:#16233A;border-bottom:1px solid #16233A;padding-bottom:5px;margin:20px 0 12px;">'+_apEsc(g.pays.flag+' '+L(g.pays.name))+'</h2>';
-    body += g.items.map(_apArticleItem).join('');
-  });
+  body += _apRubriques(groupes, false);
   const stats = _apStatsGrid([
     {value:arts.length, label:'ARTICLES', color:'#16233A'},
-    {value:groupes.filter(g=>g.cy!=='INT').length, label:'PAYS', color:'#8A5D1A'},
+    {value:new Set(arts.filter(a=>a.cy&&a.cy!=='INT').map(a=>a.cy)).size, label:'PAYS', color:'#8A5D1A'},
     {value:new Set(arts.map(a=>a.primary)).size, label:'SOURCES', color:'#0F4F2A'},
   ]);
   return _apPageWrap('Flux opérationnel', 'Événements des dernières '+libelleFenetre(), stats, body, 'flux');
@@ -23669,32 +24038,17 @@ async function _buildRapportCompletHTML(arts, agenda) {
   await preTraduireRapport([
     ...arts.flatMap(a => [a.title, a.analysis]),
     ...agenda.flatMap(e => [e.title, e.desc]),
-    ...[...new Set(arts.map(a=>a.cy))].map(cy=>infoPays(cy).name),
+    ...[...new Set(arts.map(a=>a.cy))].map(cy=>paysR(cy).name),
   ]);
-  const rangOrdre = {crit:0, high:1, mod:2, ok:3};
-  const cmp = (x,y) => { const r=(rangOrdre[x.level]??3)-(rangOrdre[y.level]??3); if (r!==0) return r; return (y.pubDate||0)-(x.pubDate||0); };
-  const byCat = {securite:[], humanitaire:[], politique:[], economique:[]};
-  arts.forEach(a => { if (byCat[a.cat]) byCat[a.cat].push(a); });
-
   let body = _apSectionBand('I. SYNTHÈSE ANALYTIQUE');
   const dejaMontres = new Set();
-  AP_CAT_DEFS.forEach(cd => {
-    const items = byCat[cd.k].slice().sort(cmp).slice(0,8);
-    if (!items.length) return;
-    body += '<h2 style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:16px;color:'+cd.col+';border-bottom:2px solid '+cd.col+';padding-bottom:6px;margin:0 0 14px;">'+cd.lettre+'. '+_apEsc(cd.lb)+'</h2>';
-    body += items.map(_apArticleItem).join('');
-    items.forEach(a => dejaMontres.add(_articleKey(a)));
-  });
+  body += _apRubriques(groupesRubriquePays(arts, {max:8}), true, dejaMontres);
 
   body += _apSectionBand('II. FLUX OPÉRATIONNEL');
   // Dedup partagee avec la section I : un article deja montre dans la
   // synthese n'est pas repete dans le flux (meme regle que les exports
-  // PDF/Word), sans re-trier/re-trancher byCat a chaque article verifie.
-  const groupes = groupeArticlesParPays(arts.filter(a => !dejaMontres.has(_articleKey(a))));
-  groupes.forEach(g => {
-    body += '<h2 style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:15px;color:#16233A;border-bottom:1px solid #16233A;padding-bottom:5px;margin:20px 0 12px;">'+_apEsc(g.pays.flag+' '+L(g.pays.name))+'</h2>';
-    body += g.items.map(_apArticleItem).join('');
-  });
+  // PDF/Word).
+  body += _apRubriques(groupesRubriquePays(arts.filter(a => !dejaMontres.has(_articleKey(a)))), false);
 
   if (agenda.length) {
     body += _apSectionBand('III. AGENDA SÛRETÉ');
@@ -23718,7 +24072,7 @@ async function apercuRapport(type) {
     else if (type === 'agenda') html = await _buildRapportAgendaHTML(getExportAgenda());
     else if (type === 'alertes') {
       const cysA = fRapportCy !== 'all' ? [fRapportCy] : Object.keys(PAYS_INFO).filter(cy => !fRapportZone || fRapportZone==='all' || CY_TO_ZONE[cy]===fRapportZone);
-      const scoresA = cysA.map(cy => { const sc = calcAlertScore(cy); return {cy, pays:PAYS_INFO[cy], niv:sc.niv, total100:sc.total100, baseScore:sc.baseScore, specialScore:sc.specialScore, confiance:sc.confiance}; }).sort((a,b)=>b.total100-a.total100);
+      const scoresA = cysA.map(cy => { const sc = calcAlertScore(cy); return {cy, pays:paysR(cy), niv:sc.niv, total100:sc.total100, baseScore:sc.baseScore, specialScore:sc.specialScore, confiance:sc.confiance}; }).sort((a,b)=>b.total100-a.total100);
       html = await _buildRapportAlertesHTML(scoresA);
     }
     else if (type === 'rapport_complet') html = await _buildRapportCompletHTML(arts, getExportAgenda());
@@ -23738,13 +24092,16 @@ async function apercuRapport(type) {
 }
 
 function _buildRapportSyntheseHTML(arts) {
+  return localiserHtmlRapport(_buildRapportSyntheseHTMLBrut(arts));
+}
+function _buildRapportSyntheseHTMLBrut(arts) {
   const now = new Date();
-  const dateGenLong = now.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' à '+now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-  const creneau = now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  const dateGenLong = fmtDateLongueRapport(now);
+  const creneau = fmtHeureRapport(now);
   const perimetre = libellePerimetreRapport();
   // Identite d'envoi ("Signer en tant que") — meme correctif que Word/PDF/
   // PowerPoint/_apPageWrap : voir identiteRapportW dans exportWord.
-  const _synthIdentiteEnvoi = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle('synthese') : '';
+  const _synthEmetteur = emetteurRapport('synthese');
 
   const nbSrcsMedia = SRCS.filter(s => !(s.rss_method||'').match(/Twitter|Telegram|Facebook/)).length;
   const nbSrcsSociales = SRCS.length - nbSrcsMedia;
@@ -23752,19 +24109,7 @@ function _buildRapportSyntheseHTML(arts) {
   const nbPaysCouverts = new Set(arts.filter(a => a.cy && a.cy!=='INT').map(a => a.cy)).size;
   const nbSrcActifs = new Set(arts.map(a => a.primary)).size;
 
-  const rangOrdre = {crit:0, high:1, mod:2, ok:3};
-  const cmp = (x,y) => { const r=(rangOrdre[x.level]??3)-(rangOrdre[y.level]??3); if (r!==0) return r; return (y.pubDate||0)-(x.pubDate||0); };
-
-  const byCat = {securite:[], humanitaire:[], politique:[], economique:[]};
-  arts.forEach(a => { if (byCat[a.cat]) byCat[a.cat].push(a); });
-
-  let sectionsHTML = '';
-  AP_CAT_DEFS.forEach(cd => {
-    const items = byCat[cd.k].slice().sort(cmp).slice(0,8);
-    if (!items.length) return;
-    sectionsHTML += '<h2 style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:700;font-size:16px;color:'+cd.col+';border-bottom:2px solid '+cd.col+';padding-bottom:6px;margin:0 0 14px;">'+cd.lettre+'. '+_apEsc(cd.lb)+'</h2>';
-    sectionsHTML += items.map(_apArticleItem).join('');
-  });
+  let sectionsHTML = _apRubriques(groupesRubriquePays(arts, {max:8}), true);
 
   sectionsHTML += _apSocialSection(arts);
 
@@ -23786,7 +24131,7 @@ function _buildRapportSyntheseHTML(arts) {
   const session = (typeof getSession === 'function') ? getSession() : {email:''};
 
   return '<!DOCTYPE html><html><head><meta charset="utf-8">'
-    + '<title>SentiqS Synthèse — '+_apEsc(now.toLocaleDateString('fr-FR'))+'</title>'
+    + '<title>'+_apEsc(_synthEmetteur)+' '+(LANG==='en'?'Summary':'Synthèse')+' — '+_apEsc(fmtDateCourteRapport(now))+'</title>'
     + '<link rel="preconnect" href="https://fonts.googleapis.com">'
     + '<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">'
     + '<style>'
@@ -23800,14 +24145,14 @@ function _buildRapportSyntheseHTML(arts) {
     + '<div class="sheet">'
 
     + '<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #16233A;padding-bottom:10px;margin-bottom:18px;">'
-    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#6B7280;text-transform:uppercase;">Généré le '+_apEsc(dateGenLong)+' &nbsp;·&nbsp; Créneau '+_apEsc(creneau)+(_synthIdentiteEnvoi?' &nbsp;·&nbsp; Partagé par '+_apEsc(_synthIdentiteEnvoi):'')+'</div>'
+    + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#6B7280;text-transform:uppercase;">'+(LANG==='en'?'Generated on ':'Généré le ')+_apEsc(dateGenLong)+' &nbsp;·&nbsp; '+(LANG==='en'?'Slot ':'Créneau ')+_apEsc(creneau)+'</div>'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.06em;color:#8B1A1A;font-weight:600;text-transform:uppercase;">Usage restreint — responsables sûreté</div>'
     + '</div>'
 
     + '<div style="text-align:center;margin-bottom:6px;">'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;letter-spacing:0.16em;color:#9CA3AF;text-transform:uppercase;margin-bottom:10px;">Rapport opérationnel — '+_apEsc(perimetre)+'</div>'
     + logoMarqueHtml(64)
-    + '<h1 style="font-family:\'Source Serif 4\',serif;font-weight:800;font-size:40px;letter-spacing:0.01em;color:#16233A;margin:0 0 8px;">'+_apEsc(nomMarqueActuelle())+'</h1>'
+    + '<h1 style="font-family:\'Source Serif 4\',serif;font-weight:800;font-size:40px;letter-spacing:0.01em;color:#16233A;margin:0 0 8px;">'+_apEsc(_synthEmetteur)+'</h1>'
     + '<div style="font-family:\'IBM Plex Sans\',sans-serif;font-weight:600;font-size:16px;color:#0B1A27;margin-bottom:14px;">Analyse sécuritaire opérationnelle</div>'
     + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#6B7280;">'+SRCS.length+' sources ('+nbSrcsMedia+' médias + '+nbSrcsSociales+' réseaux sociaux) &nbsp;·&nbsp; filtre anti-hallucination &lt;'+libelleFenetreCourt()+' &nbsp;·&nbsp; '+arts.length+' articles analysés</div>'
     + '</div>'
@@ -23825,8 +24170,8 @@ function _buildRapportSyntheseHTML(arts) {
     + corrHTML
 
     + '<div style="margin-top:30px;background:#16233A;color:#FFFFFF;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;font-family:\'IBM Plex Mono\',monospace;font-size:10.5px;">'
-    + '<span style="display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:0.04em;"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="#fff" stroke-width="1.3"/><circle cx="8" cy="8" r="1.5" fill="#fff"/></svg>'+_apEsc(nomMarqueActuelle())+'</span>'
-    + '<span style="color:#B9C6D6;">'+_apEsc(dateGenLong)+' UTC</span>'
+    + '<span style="display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:0.04em;"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="#fff" stroke-width="1.3"/><circle cx="8" cy="8" r="1.5" fill="#fff"/></svg>'+_apEsc(_synthEmetteur)+'</span>'
+    + '<span style="color:#B9C6D6;">'+_apEsc(dateGenLong)+' '+libelleFuseau(now)+'</span>'
     + '</div>'
 
     + '</div>'
@@ -23869,9 +24214,14 @@ async function exportWord(type){
   try{
     try { await chargerBibliotheque('docx'); } catch (_) {}
     if(typeof docx==='undefined') throw new Error('docx.js non chargé');
-    const {Document,Paragraph,TextRun,HeadingLevel,Table,TableRow,TableCell,
+    const {Document,Paragraph,TextRun:TextRunDocx,HeadingLevel,Table,TableRow,TableCell,
            WidthType,AlignmentType,BorderStyle,ShadingType,Packer,
            Header,Footer,PageNumber,ExternalHyperlink,ImageRun,VerticalAlign}=docx;
+    // TextRun qui dit ses libelles fixes dans la langue du rapport (trRapport) :
+    // un titre d'article n'y est jamais touche.
+    class TextRun extends TextRunDocx {
+      constructor(o){ super(typeof o==='string' ? trRapport(o) : (o && typeof o.text==='string' ? {...o, text:trRapport(o.text)} : o)); }
+    }
     // Lien source cliquable (docx.js ExternalHyperlink) — reutilise
     // articleLienDirect(a)/safeUrl deja utilises dans le Flux/Excel/CSV,
     // pour ne jamais dupliquer/diverger la logique primaire vs corroborante.
@@ -23913,9 +24263,41 @@ async function exportWord(type){
       return txt;
     };
 
+    // Bloc d'une actu : LES DONNEES PAYS EN GRAS AU-DESSUS DU TITRE (pays, ville,
+    // niveau du pays, heure), puis le titre, puis le detail. Le meme ordre dans
+    // chaque section : plus de ligne pays qui se lit sous le resume.
+    const articleBlocW=(a, avecResume=true)=>{
+      const lp=lignePaysArticle(a), out=[];
+      out.push(new Paragraph({keepNext:true,spacing:{before:160,after:20},children:[
+        new TextRun({text:(lp.flag?lp.flag+' ':'')+lp.nom+(lp.ville?' — '+lp.ville:''),bold:true,size:19,color:'0B1A27',font:'IBM Plex Sans'}),
+        ...(lp.niveau?[new TextRun({text:'   ·   '+lp.niveau.texte,bold:true,size:17,color:lp.niveau.couleur,font:'IBM Plex Mono'})]:[]),
+        ...(lp.quand?[new TextRun({text:'   ·   '+lp.quand,bold:true,size:17,color:'4B5563',font:'IBM Plex Mono'})]:[]),
+      ]}));
+      out.push(new Paragraph({keepNext:true,spacing:{after:60},children:[
+        new TextRun({text:'['+lvlFr(a.level)+'] ',bold:true,size:20,color:lvlColor[a.level]||'1B5FA8',font:'IBM Plex Mono'}),
+        new TextRun({text:L(a.title),bold:true,size:22,color:'111827',font:'IBM Plex Sans'}),
+      ]}));
+      out.push(...detailWord(a, avecResume));
+      if(sourcesVisibles()) out.push(new Paragraph({spacing:{after:60},children:[lienSourceRun(a)]}));
+      return out;
+    };
+    // Rubrique (bandeau colore) puis pays (sous-titre), puis les actus.
+    const rubriquesW=(groupes,numeroter)=>{
+      const out=[]; let n=0;
+      groupes.forEach(g=>{
+        out.push(heading((numeroter?String.fromCharCode(65+n++)+'. ':'')+g.libelle+'  ('+g.nb+')',2,g.rub.col));
+        g.pays.forEach(gp=>{
+          out.push(new Paragraph({keepNext:true,spacing:{before:140,after:20},children:[new TextRun({text:(gp.pays.flag||'')+' '+gp.pays.name+'  ('+gp.items.length+')',bold:true,size:21,color:g.rub.col,font:'IBM Plex Sans'})]}));
+          gp.items.forEach(a=>out.push(...articleBlocW(a,true)));
+        });
+      });
+      return out;
+    };
+
     const arts=getExportData();
     const now=new Date();
-    const dateStr=now.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+' à '+now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    const dateStr=fmtDateLongueRapport(now);
+    const emetteurW=emetteurRapport(type);
     imagesActus=await chargerImagesRapport(arts);
 
     // Traduction des titres/analyses/evenements vers la langue active avant
@@ -24016,7 +24398,7 @@ async function exportWord(type){
             new TextRun({text:'#'+s.terme,bold:true,size:19,color:'0B1A27',font:FONT_SANS}),
             new TextRun({text:'   '+s.pays.length+' pays · '+s.articles.length+' art.',bold:true,size:16,color:'1B5FA8',font:FONT_MONO}),
           ],spacing:{after:40}}),
-          new Paragraph({children:[new TextRun({text:s.pays.map(cy=>(PAYS_INFO[cy]||{}).name||cy).join(', '),size:15,color:'6B7280',font:FONT_SANS})],spacing:{after:40}}),
+          new Paragraph({children:[new TextRun({text:s.pays.map(cy=>paysR(cy).name||cy).join(', '),size:15,color:'6B7280',font:FONT_SANS})],spacing:{after:40}}),
           new Paragraph({children:[new TextRun({text:s.articles.slice(0,3).map(a=>L(a.title)).join(' · '),size:16,color:'374151',font:FONT_SANS})]}),
         ],
       });
@@ -24110,7 +24492,7 @@ async function exportWord(type){
       borders:{top:{style:BorderStyle.NONE},bottom:{style:BorderStyle.NONE},left:{style:BorderStyle.NONE},right:{style:BorderStyle.NONE},insideHorizontal:{style:BorderStyle.NONE},insideVertical:{style:BorderStyle.NONE}},
       rows:[new TableRow({children:[
         new TableCell({width:{size:60,type:WidthType.PERCENTAGE},borders:{top:{style:BorderStyle.NONE},bottom:{style:BorderStyle.NONE},left:{style:BorderStyle.NONE},right:{style:BorderStyle.NONE}},children:[
-          new Paragraph({children:[new TextRun({text:(LANG==='en'?'Generated on: ':'Généré le : ')+dateStr+'   |   '+(LANG==='en'?'Slot: ':'Créneau : ')+now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),size:16,color:'6B7280',font:FONT_MONO})]}),
+          new Paragraph({children:[new TextRun({text:(LANG==='en'?'Generated on: ':'Généré le : ')+dateStr+'   |   '+(LANG==='en'?'Slot: ':'Créneau : ')+fmtHeureRapport(now),size:16,color:'6B7280',font:FONT_MONO})]}),
         ]}),
         new TableCell({width:{size:40,type:WidthType.PERCENTAGE},borders:{top:{style:BorderStyle.NONE},bottom:{style:BorderStyle.NONE},left:{style:BorderStyle.NONE},right:{style:BorderStyle.NONE}},children:[
           new Paragraph({alignment:AlignmentType.RIGHT,children:[new TextRun({text:LANG==='en'?'RESTRICTED USE — SECURITY OFFICERS':'USAGE RESTREINT — RESPONSABLES SÛRETÉ',bold:true,size:16,color:'8B1A1A',font:FONT_MONO})]}),
@@ -24139,7 +24521,7 @@ async function exportWord(type){
       margins:{top:260,bottom:260,left:300,right:200},
       children:[
         new Paragraph({spacing:{after:80},children:[new TextRun({text:((LANG==='en'?'OPERATIONAL REPORT':'RAPPORT OPÉRATIONNEL')+'  ·  '+perimetreW.toUpperCase()),bold:true,size:16,color:OR_W,font:FONT_SANS})]}),
-        new Paragraph({spacing:{after:60},children:[new TextRun({text:nomMarqueActuelle(),bold:true,size:56,color:'FFFFFF',font:FONT_SERIF})]}),
+        new Paragraph({spacing:{after:60},children:[new TextRun({text:emetteurW,bold:true,size:56,color:'FFFFFF',font:FONT_SERIF})]}),
         new Paragraph({children:[new TextRun({text:titreRapportW,bold:true,size:26,color:CLAIR_W,font:FONT_SANS})]}),
       ],
     });
@@ -24167,6 +24549,8 @@ async function exportWord(type){
         border:{bottom:{style:BorderStyle.SINGLE,size:4,color:'D1D9E0'}},
       }));
     }
+    { const noteT = noteTraductionRapport();
+      if (noteT) children.push(new Paragraph({children:[new TextRun({text:noteT,size:17,italics:true,color:'6B7280',font:FONT_SANS})],spacing:{after:120}})); }
     if (statsItemsW) {
       children.push(kpiTable(statsItemsW));
       children.push(new Paragraph({spacing:{after:200}}));
@@ -24183,46 +24567,13 @@ async function exportWord(type){
       children.push(divider());
       children.push(topBar('I. SYNTHÈSE ANALYTIQUE — Situation régionale'));
 
-      const byCat={securite:[],humanitaire:[],politique:[],economique:[]};
-      arts.slice().sort((a,b)=>(b.pubDate||0)-(a.pubDate||0)).slice(0,120)
-          .forEach(a=>{if(byCat[a.cat])byCat[a.cat].push(a);});
-
-      const catDefs=[
-        {k:'securite',  lb:'A. Situation sécuritaire',  col:'8B1A1A'},
-        {k:'humanitaire',lb:'B. Axe humanitaire',        col:'7C4A00'},
-        {k:'politique', lb:'C. Environnement politique', col:'1B5FA8'},
-        {k:'economique',lb:'D. Contexte économique',     col:'0F4F2A'},
-      ];
-      for(const cd of catDefs){
-        const items=byCat[cd.k].slice(0,8);
-        if(!items.length)continue;
-        children.push(heading(cd.lb,2,cd.col));
-        for(const a of items){
-          usedKeysWDoc.add(_articleKey(a));
-          const geoW=detectGeo(a.cy, a.title+' '+(a.analysis||''));
-          const villeTxtW=geoW.ville?(' — '+geoW.ville+(geoW.estime?' (estimé)':'')):'';
-          children.push(new Paragraph({
-            children:[new TextRun({text:'['+lvlFr(a.level)+'] ',bold:true,size:20,color:lvlColor[a.level]||'1B5FA8',font:FONT_MONO}),
-                      new TextRun({text:L(a.title),bold:true,size:22,color:'111827',font:FONT_SANS})],spacing:{after:60}
-          }));
-          children.push(para(L(a.analysis)||''));
-          const survW=fmtSurvenance(a);
-          children.push(new Paragraph({
-            children:[new TextRun({text:'Survenance : '+survW.texte+(survW.inconnue?' — à vérifier':(survW.ancien?' — plus de '+libelleFenetreCourt():'')),size:17,bold:survW.ancien,color:survW.inconnue?'B45309':(survW.ancien?'DC2626':'9CA3AF'),font:FONT_MONO})],
-            spacing:{after:40}
-          }));
-          const cyNivW1=_cyNivTexteEtCouleur(a.cy);
-          children.push(new Paragraph({
-            children:[
-              new TextRun({text:(infoPays(a.cy).flag||'')+' '+infoPays(a.cy).name+villeTxtW+' — '+a.time+'   ·   ',size:18,italic:true,color:'9CA3AF',font:FONT_MONO}),
-              ...(cyNivW1?[new TextRun({text:cyNivW1.texte+'   ·   ',size:17,bold:true,color:cyNivW1.couleur,font:FONT_MONO})]:[]),
-              lienSourceRun(a),
-            ],
-            spacing:{after:40}
-          }));
-          children.push(...detailWord(a, false));
-        }
-      }
+      // Rubriques puis pays (groupesRubriquePays) : 8 actus au plus par rubrique,
+      // les plus graves d'abord ; chaque actu garde ses donnees pays au-dessus
+      // de son titre. Les actus montrees ici ne reviennent pas dans le flux.
+      const groupesSW=groupesRubriquePays(arts,{max:8});
+      groupesSW.forEach(g=>g.pays.forEach(gp=>gp.items.forEach(a=>usedKeysWDoc.add(_articleKey(a)))));
+      children.push(...rubriquesW(groupesSW,true));
+      if(!groupesSW.length) children.push(para(LANG==='en'?'No article available for this scope over the period.':'Aucun article disponible pour ce périmètre sur la période.', {italic:true, color:'6B7280'}));
 
       const socialArts=arts.filter(a=>a._isSocial);
       if(socialArts.length){
@@ -24306,33 +24657,14 @@ async function exportWord(type){
       children.push(topBar('II. FLUX OPÉRATIONNEL — Articles <'+libelleFenetreCourt()));
       children.push(para(arts.length+' articles collectés · Filtre anti-hallucination actif · Sources : '+SRCS.length+' flux RSS'));
 
-      // Classé par pays (International pour les pays hors Afrique), sans
-      // répéter les articles déjà montrés en section I (Rapport complet) —
-      // pastille de niveau + titre en gras, puis date de publication.
+      // Classé par rubrique puis par pays (International pour les pays hors
+      // Afrique), sans répéter les articles déjà montrés en section I.
       const artsFluxW = arts.filter(a => !usedKeysWDoc.has(_articleKey(a)));
-      const groupesFluxW = groupeArticlesParPays(artsFluxW);
+      const groupesFluxW = groupesRubriquePays(artsFluxW);
       if (groupesFluxW.length) {
-        groupesFluxW.forEach(g => {
-          const cyNivW2 = _cyNivTexteEtCouleur(g.cy);
-          children.push(heading((g.pays.flag||'')+' '+g.pays.name+(cyNivW2?'  —  '+cyNivW2.texte:''), 2, '1B5FA8'));
-          g.items.slice().sort((a,z)=>(z.pubDate||0)-(a.pubDate||0)).forEach(a => {
-            const color=lvlColor[a.level]||'1B5FA8';
-            const dateTxtW = a.pubDate ? new Date(a.pubDate).toLocaleDateString('fr-FR')+' '+new Date(a.pubDate).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : (a.time||'');
-            children.push(new Paragraph({
-              children:[
-                new TextRun({text:'['+lvlFr(a.level)+'] ',bold:true,size:20,color,font:FONT_MONO}),
-                new TextRun({text:L(a.title),bold:true,size:20,color:'0B1A27',font:FONT_SANS}),
-              ],spacing:{before:80,after:20}
-            }));
-            children.push(new Paragraph({
-              children:[new TextRun({text:dateTxtW+'   ·   ',size:17,italic:true,color:'9CA3AF',font:FONT_MONO}), lienSourceRun(a)],
-              spacing:{after:40}
-            }));
-            children.push(...detailWord(a));
-          });
-        });
+        children.push(...rubriquesW(groupesFluxW,false));
       } else {
-        children.push(para('Aucun article disponible pour ce périmètre sur la période.', {italic:true, color:'6B7280'}));
+        children.push(para(LANG==='en'?'No article available for this scope over the period.':'Aucun article disponible pour ce périmètre sur la période.', {italic:true, color:'6B7280'}));
       }
     }
 
@@ -24366,7 +24698,7 @@ async function exportWord(type){
       // le bon format pour des centaines de lignes, la liste exhaustive
       // reste disponible via l'export Excel dédié.
       srcsW.slice(0, CAP_SOURCES_W).forEach(sr=>{
-        const paysW=infoPays(sr.cy)||{};
+        const paysW=paysR(sr.cy)||{};
         children.push(para('▶ '+(sr.n||'')+'  —  '+(paysW.name||sr.cy||'')+' · '+(sr.sc||'')+' · Fiabilité '+(sr.score||0)+'% · '+(sr.rss_method||'')));
       });
       if(!srcsW.length) children.push(para('Aucune source pour ce périmètre.', {italic:true, color:'6B7280'}));
@@ -24377,7 +24709,7 @@ async function exportWord(type){
       children.push(divider());
       children.push(topBar('IV. ALERTES PAYS — Niveau composite & dossier régional', '8B1A1A'));
       const cysW = fRapportCy!=='all' ? [fRapportCy] : Object.keys(PAYS_INFO).filter(cy => !fRapportZone || fRapportZone==='all' || CY_TO_ZONE[cy]===fRapportZone);
-      const scoresW = cysW.map(cy=>({cy, pays:PAYS_INFO[cy], sc:calcAlertScore(cy)})).sort((a,b2)=>b2.sc.total-a.sc.total);
+      const scoresW = cysW.map(cy=>({cy, pays:paysR(cy), sc:calcAlertScore(cy)})).sort((a,b2)=>b2.sc.total-a.sc.total);
       // Ce que nous ne savons pas (20/10/2026) : apres le guide de lecture.
       const amW = angleMortPerimetre(cysW);
       // Noms de pays et mesures de protection non couverts par la
@@ -24425,35 +24757,15 @@ async function exportWord(type){
           // titre en gras, puis ligne meta lieu · heure) — même présentation
           // que les sections A-D de la Synthèse, pour un dossier pays
           // "détaillé" au sens du gabarit fourni, pas une simple liste à puces.
-          const dossierArticleWordS = (a, lieuTxt) => {
-            const colL = lvlColor[a.level]||'1B5FA8';
-            children.push(new Paragraph({
-              children:[
-                new TextRun({text:'['+lvlFr(a.level)+'] ', bold:true, size:18, color:colL, font:FONT_MONO}),
-                new TextRun({text:L(a.title), bold:true, size:20, color:'111827', font:FONT_SANS}),
-              ], spacing:{before:60,after:20}
-            }));
-            children.push(new Paragraph({
-              children:[new TextRun({text:lieuTxt+'   ·   '+(a.time||'')+'   ·   ', size:16, italic:true, color:'9CA3AF', font:FONT_MONO}), lienSourceRun(a)],
-              spacing:{after:40}
-            }));
-            children.push(...detailWord(a));
-          };
+          const dossierArticleWordS = (a) => { children.push(...articleBlocW(a,true)); };
           const dossierW = s.dossier || {national:[],regional:[]};
           if (dossierW.national.length) {
             children.push(para(LANG==='en'?'National news':'Actualité nationale', {bold:true, color:'1B5FA8'}));
-            dossierW.national.forEach(a => {
-              const geoDosW = detectGeo(a.cy, a.title+' '+(a.analysis||''));
-              const villeDosW = geoDosW.ville ? (geoDosW.ville+(geoDosW.estime?' (estimé)':'')) : '';
-              dossierArticleWordS(a, s.pays.name+(villeDosW?' — '+villeDosW:''));
-            });
+            dossierW.national.forEach(a => dossierArticleWordS(a));
           }
           if (dossierW.regional.length) {
             children.push(para(LANG==='en'?'Regional news — neighbouring countries':'Actualité régionale — pays limitrophes', {bold:true, color:'1B5FA8'}));
-            dossierW.regional.forEach(a => {
-              const paysVoisinW = infoPays(a.cy) || {};
-              dossierArticleWordS(a, paysVoisinW.name || a.cy);
-            });
+            dossierW.regional.forEach(a => dossierArticleWordS(a));
           }
           children.push(new Paragraph({spacing:{after:160}}));
         } catch(errPaysW) {
@@ -24473,18 +24785,20 @@ async function exportWord(type){
     // l'affichait (correctif du meme jour sur genererImageActuBlob/
     // genererImageRapportBlob). Ajoutee ici en suffixe, jamais a la place de
     // la marque.
-    const identiteRapportW = (typeof identiteEnvoiActuelle==='function') ? identiteEnvoiActuelle(type) : '';
+    // Depuis le 21/10/2026 l'identite signe aussi la couverture, l'en-tete et
+    // le pied (emetteurW) : le suffixe « Partage par » ne la repetait plus
+    // qu'a cote d'une marque qui n'etait pas celle choisie.
     children.push(divider());
     children.push(new Paragraph({
       alignment:AlignmentType.CENTER,
-      children:[new TextRun({text:nomMarqueActuelle()+' · '+dateStr+' UTC'+(identiteRapportW?' · '+(LANG==='en'?'Shared by ':'Partagé par ')+identiteRapportW:''),size:18,italic:true,color:'9CA3AF'})],
+      children:[new TextRun({text:emetteurW+' · '+dateStr+' '+libelleFuseau(now),size:18,italic:true,color:'9CA3AF'})],
     }));
 
     // En-tête/pied de page systématiques (marque + périmètre + numéro de
     // page), sur le modèle du bandeau GRSCI présent sur chaque diapositive.
     const wordHeader=new Header({children:[new Paragraph({
       alignment:AlignmentType.RIGHT,
-      children:[new TextRun({text:nomMarqueActuelle()+' · '+libellePerimetreRapport(),size:16,italics:true,color:'6B7280'})],
+      children:[new TextRun({text:emetteurW+' · '+libellePerimetreRapport(),size:16,italics:true,color:'6B7280'})],
     })]});
     // Ruban de pied de page — bandeau plein bord-a-bord (pas d'encadre), sur
     // le modele du ruban de bas de page du site/du PDF.
@@ -24499,7 +24813,7 @@ async function exportWord(type){
       width:{size:100,type:WidthType.PERCENTAGE},
       borders:{top:{style:BorderStyle.NONE},bottom:{style:BorderStyle.NONE},left:{style:BorderStyle.NONE},right:{style:BorderStyle.NONE},insideHorizontal:{style:BorderStyle.NONE},insideVertical:{style:BorderStyle.NONE}},
       rows:[new TableRow({children:[
-        footerCell([new TextRun({text:nomMarqueActuelle(),bold:true,size:16,color:'FFFFFF',font:FONT_MONO})],AlignmentType.LEFT),
+        footerCell([new TextRun({text:emetteurW,bold:true,size:16,color:'FFFFFF',font:FONT_MONO})],AlignmentType.LEFT),
         footerCell([new TextRun({text:'Page ',size:16,color:'FFFFFF',font:FONT_MONO}),new TextRun({children:[PageNumber.CURRENT],size:16,color:'FFFFFF',font:FONT_MONO})],AlignmentType.RIGHT),
       ]})],
     })]});
