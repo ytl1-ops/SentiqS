@@ -3019,6 +3019,26 @@ Vérifié : `scripts/test/langue-interface.test.js` (10), le test de fumée
 bascule FR → EN → FR sur le vrai DOM (libellé d'avant et d'après la bascule
 traduits, titre d'actu intact, retour exact au français), accessibilité du DOM
 rendu inchangée (0/0/0), captures FR/EN des neuf modules et du Flux mobile.
-**Non couvert** : la page d'accueil `index.html` et les pages légales n'ont
-pas de version anglaise ; les données d'agenda saisies *après* ce jour ne
-seront en anglais que si on les ajoute à la table.
+**Non couvert** : les données d'agenda saisies *après* ce jour ne seront en
+anglais que si on les ajoute à la table.
+
+**L'accueil et les pages légales suivent depuis le même jour.** Même moteur,
+table à part (`web/js/dico-site-en.js`, 349 entrées : ces pages n'ont pas besoin
+des 926 de l'appli), même choix mémorisé (`sentinel_lang`) : passer en anglais
+sur l'accueil ouvre l'appli en anglais. Le sélecteur (`web/js/langue-site.js`)
+pose aussi `<html lang>` et traduit `data-l`, les étiquettes de colonnes des
+tableaux empilés sur mobile, que le moteur ne lit pas. Pages légales : la
+traduction est d'information, une note visible seulement en anglais dit que le
+français fait foi, et les « À COMPLÉTER » sont traduits tels quels (le lecteur
+anglophone voit le même manque). À 420 px et moins, l'accueil masque le nom à
+côté du logo pour faire tenir le sélecteur (le nom reste dans `aria-label`).
+`verifier-pages-hors-appli.js` mesure désormais les deux langues (48 rendus).
+Les fiches pays restent en français seul.
+
+**Fumée intermittente, antérieure à ce changement** : `test-fumee.js` voit une
+fois sur deux ou trois un 404 sur `'%20+%20l.dataUrl%20+%20'` (chaînes
+`'<img src="' + l.dataUrl + '"` des lignes ~11140 et ~18758, lues comme des
+balises). Mesuré sur `main` aussi ; aucune insertion par le DOM ne le produit
+(sonde sur `innerHTML`, `outerHTML`, `document.write`, `DOMParser`, `Blob`) :
+piste la plus probable, l'analyseur de préchargement de Chromium qui reprend la
+lecture au milieu d'un script. Non corrigé.
