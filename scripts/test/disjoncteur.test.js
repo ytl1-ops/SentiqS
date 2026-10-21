@@ -85,12 +85,13 @@ test('la chaine reste utilisable si le noyau n est pas charge', () => {
   // Le noyau est charge par <script src> : s il manquait, la traduction doit
   // continuer de fonctionner sans disjoncteur plutot que de casser la page.
   const ctx = bac(
-    'function _trViaMyMemory(){}; function _trViaLingva(){}; function _trViaGoogle(){};',
+    'function _trViaNavigateur(){}; function _trViaMyMemory(){}; function _trViaLingva(){}; function _trViaGoogle(){};',
     'var avecDisjoncteur = undefined; var creerDisjoncteur = undefined;',
     tranche('// Chaque moteur porte son disjoncteur', '// _trDecodeEntities'),
   );
   exposer(ctx, 'TR_AGENT_PROVIDERS');
-  assert.strictEqual(ctx.TR_AGENT_PROVIDERS.length, 3);
+  // Trois moteurs en ligne + le traducteur du navigateur (21/10/2026).
+  assert.strictEqual(ctx.TR_AGENT_PROVIDERS.length, 4);
 });
 
 test('le delai des miroirs Lingva est descendu a 4 secondes', () => {

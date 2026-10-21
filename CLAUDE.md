@@ -3019,6 +3019,72 @@ Vérifié : `scripts/test/langue-interface.test.js` (10), le test de fumée
 bascule FR → EN → FR sur le vrai DOM (libellé d'avant et d'après la bascule
 traduits, titre d'actu intact, retour exact au français), accessibilité du DOM
 rendu inchangée (0/0/0), captures FR/EN des neuf modules et du Flux mobile.
-**Non couvert** : la page d'accueil `index.html` et les pages légales n'ont
-pas de version anglaise ; les données d'agenda saisies *après* ce jour ne
-seront en anglais que si on les ajoute à la table.
+**Non couvert** : les données d'agenda saisies *après* ce jour ne seront en
+anglais que si on les ajoute à la table.
+
+**L'accueil et les pages légales suivent depuis le même jour.** Même moteur,
+table à part (`web/js/dico-site-en.js`, 349 entrées : ces pages n'ont pas besoin
+des 926 de l'appli), même choix mémorisé (`sentinel_lang`) : passer en anglais
+sur l'accueil ouvre l'appli en anglais. Le sélecteur (`web/js/langue-site.js`)
+pose aussi `<html lang>` et traduit `data-l`, les étiquettes de colonnes des
+tableaux empilés sur mobile, que le moteur ne lit pas. Pages légales : la
+traduction est d'information, une note visible seulement en anglais dit que le
+français fait foi, et les « À COMPLÉTER » sont traduits tels quels (le lecteur
+anglophone voit le même manque). À 420 px et moins, l'accueil masque le nom à
+côté du logo pour faire tenir le sélecteur (le nom reste dans `aria-label`).
+`verifier-pages-hors-appli.js` mesure désormais les deux langues (48 rendus).
+Les fiches pays restent en français seul.
+
+**Fumée intermittente, antérieure à ce changement** : `test-fumee.js` voit une
+fois sur deux ou trois un 404 sur `'%20+%20l.dataUrl%20+%20'` (chaînes
+`'<img src="' + l.dataUrl + '"` des lignes ~11140 et ~18758, lues comme des
+balises). Mesuré sur `main` aussi ; aucune insertion par le DOM ne le produit
+(sonde sur `innerHTML`, `outerHTML`, `document.write`, `DOMParser`, `Blob`) :
+piste la plus probable, l'analyseur de préchargement de Chromium qui reprend la
+lecture au milieu d'un script. Non corrigé.
+
+---
+
+## Une seule langue à l'écran, pour les actus aussi — 21/10/2026
+
+Consigne de YORO, le même jour : « ça peut être de l'arabe ou tout autre
+langue. Les langues à afficher sont uniquement le FR ou le ENG, pas les 2 en
+même temps. » La note du Flux annonçait l'inverse (« les titres restent dans
+la langue de leur source ») et `L()` rendait le texte source dès qu'une
+traduction échouait.
+
+- **Un texte de langue connue n'est jamais affiché brut** (`texteEtranger`,
+  `langueSure`) : arabe (alphabet), ou français / anglais / portugais reconnu
+  par `detectLangue` sur au moins quatre mots. Pas encore traduit : « Traduction
+  en cours… », la traduction part en arrière-plan (`_trPlanifier`, par lots) et
+  les vues ouvertes sont redessinées (`redessinerVuesOuvertes`, sorti de
+  `setLang`). Échec de tous les moteurs : « Texte en arabe — traduction
+  indisponible pour le moment » / « Arabic text — translation unavailable right
+  now », bouton Traduire et lien vers la source conservés. Même règle dans
+  les rapports (la note de fin de document compte ces textes), le bouton
+  Traduire et le partage.
+- **Ce qui garde son texte, volontairement** : un texte court (noms de pays,
+  villes, sigles) ou de langue incertaine (`detectLangue` → `other`). Les
+  effacer sur une détection hasardeuse ferait disparaître du français. Ils
+  sont quand même envoyés au traducteur, avec détection automatique.
+- **Un moteur qui rend le texte inchangé** l'a jugé déjà dans la langue
+  cible (`TR_DEJA_BON`) : ce n'est pas un échec.
+- **En anglais, la table de l'interface passe d'abord** (`traductionTable`) :
+  agenda, incidents et facteurs saisis en français ne dépendent d'aucun
+  service.
+- **Moteurs, dans l'ordre** : le traducteur intégré de Chrome (API
+  `Translator`, 138 et plus : sur l'appareil, sans quota ; un modèle à
+  télécharger n'est créé que depuis le bouton Traduire, qui fournit le geste
+  exigé), puis Google, MyMemory, Lingva. MyMemory passait en premier alors
+  que son quota est partagé par tous les utilisateurs.
+
+**Non mesuré d'ici** (le bac à sable n'a pas de réseau, Google y répond par
+sa page anti-robot) : le taux réel de traductions réussies dans le
+navigateur d'un utilisateur. Si les services gratuits saturent, les cartes
+diront « traduction indisponible » plutôt que de mélanger les langues :
+c'est le choix de l'éditeur. La réponse durable est un service à clé
+(DeepL, Google Cloud) appelé par le job de collecte, qui stockerait les
+titres déjà traduits dans le cache partagé — décision du propriétaire
+(clé, coût).
+
+`scripts/test/une-langue.test.js` (7 tests, vus échouer sur l'ancien code).

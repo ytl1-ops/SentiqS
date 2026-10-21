@@ -109,7 +109,8 @@ test('le choix de langue se lit et se mémorise, toute valeur inattendue vaut fr
   assert.doesNotThrow(() => L.memoriser('en', casse));
 });
 
-test('la note du Flux dit en anglais que les actus restent dans la langue de leur source', () => {
-  assert.match(HTML, /note_flux:'Feed:.{0,300}stay in the language of their source/);
-  assert.match(HTML, /note_flux:'Flux opérationnel.{0,300}restent dans la langue de leur source/);
+test('la note du Flux dit dans les deux langues que les actus sont traduites', () => {
+  // Consigne du 21/10/2026 : une seule langue à l'écran (voir une-langue.test.js).
+  assert.match(HTML, /note_flux:'Feed:.{0,300}translated automatically into English/);
+  assert.match(HTML, /note_flux:'Flux opérationnel.{0,300}traduits automatiquement en français/);
 });

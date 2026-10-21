@@ -37,9 +37,29 @@
     td[data-l]::before { content: attr(data-l); display: block; font-size: .75rem; text-transform: uppercase;
                          letter-spacing: .06em; color: var(--maj); }
   }
+  /* Sélecteur FR/EN (21/10/2026). L'anglais est une traduction d'information :
+     la note qui le dit ne s'affiche qu'en anglais. */
+  .entete-langue { display: flex; justify-content: flex-end; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .lang-switch { display: flex; border: 1px solid var(--bord); border-radius: 6px; overflow: hidden; }
+  .lang-btn { background: transparent; color: inherit; border: 0; font: inherit; font-size: .8rem; font-weight: 700;
+              min-width: 2.5rem; min-height: 2.25rem; cursor: pointer; }
+  .lang-btn.on { background: var(--bord); }
+  .lang-btn:focus-visible { outline: 2px solid var(--lien); outline-offset: -2px; }
+  .foi { margin: 0; font-size: .85rem; color: var(--maj); }
+  html[lang="fr"] .foi { display: none; }
 </style>
+<script src="../js/langue.js"></script>
+<script src="../js/dico-site-en.js"></script>
+<script src="../js/langue-site.js"></script>
 </head>
 <body>
+<header class="entete-langue">
+  <p class="foi">La version française fait foi.</p>
+  <div class="lang-switch" role="group" aria-label="Langue / Language">
+  <button type="button" class="lang-btn" data-lang="fr" lang="fr" translate="no" title="Français" aria-pressed="true">FR</button>
+  <button type="button" class="lang-btn" data-lang="en" lang="en" translate="no" title="English" aria-pressed="false">EN</button>
+</div>
+</header>
 <main>
 <h1>Conditions générales de vente</h1>
 <p class="maj">En vigueur au <span class="todo">[[À COMPLÉTER : date]]</span></p>

@@ -115,18 +115,23 @@ function mesurer() {
   let mesures = 0;
   try {
     for (const [env, vp, mobile] of [['bureau', { width: 1360, height: 860 }, false], ['mobile', { width: 390, height: 844 }, true]]) {
-      for (const schema of ['light', 'dark']) {
+      // Accueil et pages légales existent aussi en anglais depuis le 21/10/2026 :
+      // un texte anglais plus long peut déborder là où le français tenait.
+      for (const [schema, langue] of [['light', 'fr'], ['dark', 'fr'], ['light', 'en'], ['dark', 'en']]) {
         const ctx = await nav.newContext({ viewport: vp, isMobile: mobile, hasTouch: mobile, reducedMotion: 'reduce', colorScheme: schema });
+        await ctx.addInitScript((lg) => { try { localStorage.setItem('sentinel_lang', lg); } catch (_) {} }, langue);
         await ctx.route('**', (r) => (r.request().url().startsWith(base) ? r.continue() : r.abort()));
         for (const p of pages) {
           // L'accueil, les fiches pays et le hub sont sombres dans les deux cas : un seul passage suffit.
           if (schema === 'dark' && !p.startsWith('legal/')) continue;
+          // Les fiches pays n'ont pas de version anglaise.
+          if (langue === 'en' && p.startsWith('pays/')) continue;
           const page = await ctx.newPage();
           await page.goto(base + '/' + p, { waitUntil: 'domcontentloaded', timeout: 60000 });
           await page.waitForTimeout(400);
           await page.evaluate(() => document.querySelectorAll('.rv').forEach((e) => e.classList.add('in')));
           const m = await page.evaluate(mesurer);
-          const etiquette = env + ' ' + p + (schema === 'dark' ? ' [sombre]' : '');
+          const etiquette = env + ' ' + p + (schema === 'dark' ? ' [sombre]' : '') + (langue === 'en' ? ' [EN]' : '');
           m.contraste.forEach((x) => tot.contraste.push(etiquette + ' : ' + x));
           m.petit.forEach((x) => tot.petit.push(etiquette + ' : ' + x));
           m.cibles.forEach((x) => tot.cibles.push(etiquette + ' : ' + x));
@@ -144,7 +149,7 @@ function mesurer() {
   }
   await nav.close(); serveur.close();
 
-  console.log('Pages mesurées        : ' + pages.length + ' (' + mesures + ' rendus : bureau + mobile, clair + sombre pour les pages légales)');
+  console.log('Pages mesurées        : ' + pages.length + ' (' + mesures + ' rendus : bureau + mobile, clair + sombre pour les pages légales, FR + EN hors fiches pays)');
   console.log('Contraste             : ' + tot.contraste.length + ' texte(s) sous le seuil AA, pour un plafond de ' + PLAFOND_CONTRASTE);
   console.log('Texte sous 10 px      : ' + tot.petit.length + ', pour un plafond de ' + PLAFOND_PETIT);
   console.log('Cibles sous 24 px     : ' + tot.cibles.length + ', pour un plafond de ' + PLAFOND_CIBLES);
