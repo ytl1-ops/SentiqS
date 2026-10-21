@@ -2960,3 +2960,9 @@ garde l'ordre d'exécution, qui compte) et l'appli lance `charger()` dès
 l'analyse de l'en-tête, pendant l'animation de garde. Deux tests de plus dans
 `firebase.test.js`. **Non mesuré d'ici** (pas de réseau) : le gain réel sur
 la page publiée.
+
+**Deux administrateurs depuis le 21/10/2026**, à la demande explicite de
+YORO : yorot225@gmail.com et a3fyee@gmail.com (le compte de la console
+Firebase), listés dans `emailAdmin()` des règles. Une adresse de plus est un
+octroi de droits : ne l'ajouter que sur demande du propriétaire, et recoller
+les règles dans la console après.

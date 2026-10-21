@@ -41,7 +41,7 @@ Source : documentation Firebase « Authentication limits », lue le 21/10/2026.
 
 - **Les comptes Supabase ne sont pas repris.** Chacun recrée son compte au
   premier passage (lien e-mail ou Google) ; l'essai de 72 h repart de ce jour.
-- **Administrateur** : seule l'adresse inscrite dans les règles, vérifiée,
-  reçoit le rôle admin. Une autre adresse Google entre comme utilisateur.
+- **Administrateurs** : yorot225@gmail.com et a3fyee@gmail.com (21/10/2026), vérifiées, inscrites dans les règles,
+  reçoivent le rôle admin. Toute autre adresse entre comme utilisateur.
 - Si les règles changent dans le dépôt, les recoller dans la console
   (Firestore > Règles) ou `firebase deploy --only firestore:rules`.
