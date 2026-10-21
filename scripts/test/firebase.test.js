@@ -257,3 +257,23 @@ test('le bouton Google n\'apparait qu\'avec Firebase', () => {
   assert.match(f, /getElementById\('googleBtn'\); if \(g\) g\.style\.display = 'block'/);
   assert.match(ACCUEIL, /id="suGoogleBtn" onclick="inscriptionGoogle\(\)"/);
 });
+
+// Mesure du 21/10/2026 sur la page publiée : plus de 8 s avant l'écran de
+// connexion, les trois scripts du kit étant chargés l'un après l'autre.
+test('le kit se télécharge en parallèle, exécuté dans l\'ordre', async () => {
+  const ajoutes = [];
+  const doc = { createElement: () => ({}), head: { appendChild: (s) => ajoutes.push(s) } };
+  const p = FB.chargerSdk(doc);
+  // Les trois balises sont posées AVANT qu'une seule ait fini de charger.
+  assert.strictEqual(ajoutes.length, 3);
+  assert.deepStrictEqual(ajoutes.map((s) => s.async), [false, false, false]);
+  assert.match(ajoutes[0].src, /firebase-app-compat\.js$/);
+  ajoutes.forEach((s) => s.onload());
+  await p;
+});
+
+test('l\'appli lance le chargement du kit dès l\'ouverture', () => {
+  const i = HTML.indexOf('<script src="js/firebase.js"></script>');
+  const suite = HTML.slice(i, i + 400);
+  assert.match(suite, /SentiqFirebase\.charger\(\)\.catch\(/);
+});

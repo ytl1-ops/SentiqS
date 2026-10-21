@@ -45,23 +45,25 @@
     return !!(cfg && typeof cfg === 'object' && cfg.apiKey && cfg.projectId && cfg.authDomain);
   }
 
-  // Charge les trois scripts compat l'un après l'autre (l'ordre compte :
-  // auth et firestore s'enregistrent sur l'app). Résout tout de suite si le
-  // kit est déjà là (tests, second appel).
+  // Charge les trois scripts compat EN PARALLÈLE, exécutés dans l'ordre
+  // (async = false : le navigateur télécharge tout d'un coup mais exécute dans
+  // l'ordre d'insertion ; l'ordre compte, auth et firestore s'enregistrent sur
+  // l'app). Le chargement l'un après l'autre coûtait trois allers-retours :
+  // plus de 8 s à la première ouverture de la page publiée, le 21/10/2026.
+  // Résout tout de suite si le kit est déjà là (tests, second appel).
   function chargerSdk(doc) {
     if (global.firebase && global.firebase.auth && global.firebase.firestore) return Promise.resolve(global.firebase);
     doc = doc || global.document;
-    return MODULES_SDK.reduce(function (p, fichier) {
-      return p.then(function () {
-        return new Promise(function (ok, ko) {
-          var s = doc.createElement('script');
-          s.src = BASE_SDK + fichier;
-          s.onload = function () { ok(); };
-          s.onerror = function () { ko(new Error('SDK Firebase introuvable : ' + fichier)); };
-          doc.head.appendChild(s);
-        });
+    return Promise.all(MODULES_SDK.map(function (fichier) {
+      return new Promise(function (ok, ko) {
+        var s = doc.createElement('script');
+        s.src = BASE_SDK + fichier;
+        s.async = false;
+        s.onload = function () { ok(); };
+        s.onerror = function () { ko(new Error('SDK Firebase introuvable : ' + fichier)); };
+        doc.head.appendChild(s);
       });
-    }, Promise.resolve()).then(function () { return global.firebase; });
+    })).then(function () { return global.firebase; });
   }
 
   // Erreur Firebase -> forme { message, code, status } attendue par la page.
@@ -342,6 +344,7 @@
     CLE_EMAIL_LIEN: CLE_EMAIL_LIEN,
     configuree: configuree,
     creerClient: creerClient,
+    chargerSdk: chargerSdk,
     erreur: erreur,
     utilisateur: utilisateur,
     // Vrai dès que la configuration publique est remplie : la page bascule.
