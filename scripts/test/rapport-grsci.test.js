@@ -111,6 +111,11 @@ test("le rapport est retrouvable : lien stable, index lu par l'appli", async () 
   const idx = JSON.parse(fs.readFileSync(path.join(dir, 'index.json'), 'utf8')).rapports;
   assert.deepStrictEqual(idx.map((r) => r.mois), ['2026-11', '2026-10'], 'récent d’abord, un seul par mois');
   assert.ok(!isNaN(new Date(idx[0].genere)), 'date de génération lisible');
+  assert.deepStrictEqual(idx[0].formats, ['pptx']);
+  fs.writeFileSync(path.join(dir, '2026-11.pdf'), 'x');
+  const apres = g.reconstruireIndex(dir);
+  assert.deepStrictEqual(apres[0].formats, ['pptx', 'pdf'], 'le PDF ajouté après coup est vu par l\u2019index');
+  assert.strictEqual(apres[0].genere, idx[0].genere, 'la date de génération déjà écrite est conservée');
   const html = fs.readFileSync(path.join(__dirname, '..', '..', 'web', 'SentiqS_Web.html'), 'utf8');
   assert.ok(/id="rpAutoListe"/.test(html) && /fetch\('rapports\/GRSCI\/index\.json'/.test(html));
   assert.ok(/function updateDLCounts\(\)\{\s*chargerRapportsAuto\(\)/.test(html));
@@ -120,6 +125,61 @@ test('le rapport et son index publiés sont cohérents', () => {
   const racine = path.join(__dirname, '..', '..', 'web', 'rapports', 'GRSCI');
   const idx = JSON.parse(fs.readFileSync(path.join(racine, 'index.json'), 'utf8')).rapports;
   assert.ok(idx.length >= 1);
-  for (const r of idx) assert.ok(fs.existsSync(path.join(racine, r.fichier)), r.fichier);
+  for (const r of idx) for (const f of r.formats) assert.ok(fs.existsSync(path.join(racine, r.mois + '.' + f)), r.mois + '.' + f);
   assert.ok(fs.existsSync(path.join(racine, 'dernier.pptx')));
+});
+
+// Faux `docx` : chaque classe garde ses options, les énumérations rendent leur nom.
+function fauxDocx() {
+  const enums = new Set(['WidthType', 'ShadingType', 'AlignmentType', 'BorderStyle', 'PageNumber', 'PageOrientation', 'HeightRule', 'VerticalAlign',
+    'HorizontalPositionRelativeFrom', 'VerticalPositionRelativeFrom', 'TextWrappingType']);
+  const textes = [];
+  const classes = {};
+  return {
+    textes,
+    docx: new Proxy({}, {
+      get(_, nom) {
+        if (nom === 'Packer') return { toBuffer: async () => Buffer.from('docx-factice') };
+        if (enums.has(nom)) return new Proxy({}, { get: (__, k) => nom + '.' + String(k) });
+        if (!classes[nom]) {
+          classes[nom] = function (o) {
+            this.nom = nom; this.o = o;
+            if (nom === 'TextRun' && o && o.text) textes.push(o.text);
+          };
+        }
+        return classes[nom];
+      },
+    }),
+  };
+}
+
+test('la version Word reprend les pages du PowerPoint avec de vrais textes', async () => {
+  const w = require('../lib/rapport-grsci-word.js');
+  const { docx, textes } = fauxDocx();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'grsci-'));
+  const ci = pays('CI', 'Côte d\u2019Ivoire', [fait('Manifestation anti 4e mandat', 'politique'), fait('Faux QR codes', 'humanitaire')]);
+  const chemin = await w.ecrireWord(dir, docx, { jour: '2026-10-25', ci, regionaux: [pays('ML', 'Mali', [])] });
+  assert.ok(chemin.endsWith('2026-10.docx') && fs.existsSync(chemin) && fs.existsSync(path.join(dir, 'dernier.docx')));
+  const tout = textes.join('\n');
+  for (const attendu of ['RENCONTRE MENSUELLE', 'TABLE DES MATIÈRES', 'EN BREF', '- POLITIQUE', 'SOCIAL ET HUMANITAIRE', 'DYNAMIQUES RÉGIONALES', 'TABLEAU RÉGIONAL', 'DÉCRYPTAGE', 'CE QUE NOUS NE SAVONS PAS', 'Manifestation anti 4e mandat']) {
+    assert.ok(tout.includes(attendu), attendu);
+  }
+  assert.ok(/lecture automatique/.test(tout));
+  assert.ok(fs.existsSync(path.join(dir, 'index.json')) && JSON.parse(fs.readFileSync(path.join(dir, 'index.json'), 'utf8')).rapports[0].formats.includes('docx'));
+});
+
+test('les drapeaux couvrent le pays pilote et les neuf pays régionaux', () => {
+  for (const cy of ['CI', ...g.PAYS_REGIONAUX]) {
+    const r = g.rectsDrapeau(cy);
+    assert.ok(r.length >= 2, cy);
+    const aire = r.reduce((a, x) => a + x[2] * x[3], 0);
+    assert.ok(Math.abs(aire - 1) < 1e-9, cy + ' : les bandes recouvrent exactement le drapeau');
+  }
+});
+
+test('le workflow installe docx, convertit en PDF et le job écrit le Word', () => {
+  const wf = fs.readFileSync(path.join(__dirname, '..', '..', '.github', 'workflows', 'collecte-planifiee.yml'), 'utf8');
+  assert.ok(/docx@8\.5\.0/.test(wf) && /soffice --headless --convert-to pdf/.test(wf) && /indexer-rapports-grsci/.test(wf));
+  const job = fs.readFileSync(path.join(__dirname, '..', 'collecte-planifiee.js'), 'utf8');
+  assert.ok(/ecrireWord/.test(job));
 });

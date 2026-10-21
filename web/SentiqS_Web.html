@@ -3573,7 +3573,7 @@ html.force-mobile .tlbr .chips::-webkit-scrollbar{display:none}
               <i class="ti ti-calendar-event" style="font-size:16px;color:var(--b)"></i>
               <span style="font-size:12px;font-weight:700;color:var(--t)">Rapports automatiques</span>
             </div>
-            <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Produits par la collecte planifiée, sans action de votre part. Le rapport GRSCI (Côte d'Ivoire et dynamiques régionales) est généré une fois par mois, au premier passage à partir du 24 ; il peut aussi être relancé à la demande depuis GitHub Actions.</div>
+            <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Produits par la collecte planifiée, sans action de votre part. Le rapport GRSCI (Côte d'Ivoire et dynamiques régionales) suit le modèle du groupe : PowerPoint et Word modifiables, et PDF. Il est généré une fois par mois, au premier passage à partir du 24 ; il peut aussi être relancé à la demande depuis GitHub Actions (« Collecte planifiée », case grsci).</div>
             <div id="rpAutoListe" style="font-size:11px;color:var(--t)">Chargement…</div>
           </div>
 
@@ -21995,16 +21995,26 @@ function chargerRapportsAuto(){
       var l = (d && d.rapports) || [];
       if (!l.length) { el.textContent = "Aucun rapport GRSCI n'a encore été généré. Le prochain le sera au premier passage à partir du 24."; return; }
       el.innerHTML = '';
+      var NOMS = { pptx: 'PowerPoint', docx: 'Word', pdf: 'PDF' };
       l.forEach(function(r, i){
-        var a = document.createElement('a');
-        a.href = 'rapports/GRSCI/' + String(r.fichier || '').replace(/[^0-9A-Za-z._-]/g, '');
-        a.download = '';
-        a.style.cssText = 'display:flex;align-items:center;gap:6px;padding:4px 0;color:var(--b);font-weight:700;text-decoration:none';
+        var ligne = document.createElement('div');
+        ligne.style.cssText = 'display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;padding:5px 0';
         var g = r.genere ? new Date(r.genere) : null;
         var quand = g && !isNaN(g) ? ' — généré le ' + g.toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '';
-        a.innerHTML = '<i class="ti ti-presentation" aria-hidden="true"></i>';
-        a.appendChild(document.createTextNode('Rapport GRSCI ' + r.mois + ' (PowerPoint)' + (i === 0 ? ' — le plus récent' : '') + quand));
-        el.appendChild(a);
+        var t = document.createElement('span');
+        t.style.fontWeight = '700';
+        t.textContent = 'Rapport GRSCI ' + r.mois + (i === 0 ? ' (le plus récent)' : '') + quand;
+        ligne.appendChild(t);
+        (r.formats || []).forEach(function(f){
+          if (!NOMS[f] || !/^\d{4}-\d{2}$/.test(String(r.mois))) return;
+          var a = document.createElement('a');
+          a.href = 'rapports/GRSCI/' + r.mois + '.' + f;
+          a.download = '';
+          a.style.cssText = 'display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border:1px solid var(--bd);border-radius:5px;color:var(--b);font-weight:700;text-decoration:none';
+          a.textContent = NOMS[f];
+          ligne.appendChild(a);
+        });
+        el.appendChild(ligne);
       });
     })
     .catch(function(e){ el.textContent = 'Liste des rapports indisponible (' + ((e && e.message) || e) + ').'; });
