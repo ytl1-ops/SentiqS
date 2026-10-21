@@ -2881,3 +2881,38 @@ Demande de l'éditeur : s'enregistrer et se connecter avec le seul e-mail, « co
 Premier essai réel (YORO, 20/10 au soir) : l'écran « Entrez votre code » s'affiche, **rien dans la boîte ni dans les indésirables**. `signInWithOtp` n'a donc pas renvoyé d'erreur et aucun e-mail n'est parti. Cause la plus probable, **non vérifiable d'ici** (le bac à sable ne joint pas Supabase) : l'expéditeur intégré de Supabase ne livre qu'aux membres de l'équipe du projet et est plafonné à quelques e-mails par heure ; au-delà, l'envoi est refusé ou perdu. Aucun code côté page ne le contourne : il faut un fournisseur SMTP (Authentication → SMTP Settings), et le journal Authentication → Logs dit ce qui s'est passé pour chaque tentative.
 
 Ce que la page fait désormais : une erreur d'envoi (SMTP, réseau, limite) est dite en clair ; après un refus à la première demande, le **mot de passe s'ouvre tout seul** ; l'écran du code porte « Pas de code ? Me connecter avec un mot de passe » ; la fenêtre d'inscription de l'accueil renvoie vers l'application. L'URL/clé du client (`zpdwqmliogxbuwirziny`) est celle des deux pages ; le tableau de bord lié à GitHub par le robot Supabase pointe un **autre** projet (`yttctytqjtmaiheegqky`) : régler le bon.
+
+---
+
+## Les rapports : émetteur, langue, rubriques — 21/10/2026
+
+Signalement de l'éditeur : un Word sorti signé « SentiqS » alors que l'identité
+d'envoi avait été changée, des libellés restés en français en mode anglais, des
+actus listées en vrac.
+
+- **L'émetteur signe tout.** `emetteurRapport(module)` (identité d'envoi du
+  module, à défaut la marque) sert de couverture, d'en-tête et de pied de page
+  dans Word, PDF, PowerPoint et aperçus. Avant, l'identité n'était qu'un suffixe
+  « Partagé par » et la marque restait en grand. Plan gratuit : la marque.
+- **Une langue, dite partout.** `trRapport()` est posé sur chaque puits de texte
+  (TextRun Word, `_pdfSafe`, `addText` PowerPoint, `localiserHtmlRapport`). Il ne
+  touche qu'aux libellés connus (dictionnaire `RAPPORT_EN_FIXE`, motifs ancrés) :
+  **jamais un titre d'article**. Un libellé absent reste en français : en ajouter
+  un au dictionnaire, pas ailleurs. Dates, cotation, survenance, villes, pays,
+  mesures passent par `localeRapport()`, `libelleCotationR`, `paysR`, `VILLES_EN`.
+- **Ce que la traduction ne couvre pas** : le traducteur gratuit est
+  indisponible hors ligne ; `preTraduireRapport` compte les textes restés dans
+  leur langue d'origine et `noteTraductionRapport()` le dit dans le document
+  (Word, PDF, aperçu) au lieu de le taire. L'agenda et les mesures sont de la
+  donnée saisie en français sans accents : non traduits.
+- **Rubrique, puis pays, puis actus** (`groupesRubriquePays`). « Géopolitique » =
+  catégorie politique + pays international, ou mot de `GEOPOLITIQUE_RE`. **Les
+  sigles (ONU, UA, AES…) sont en `GEOPOLITIQUE_SIGLES_RE`, sensible à la casse** :
+  en insensible, « un » du français faisait tout passer en géopolitique.
+- **Les données pays passent au-dessus du titre, en gras** (`lignePaysArticle`) :
+  pays — ville, niveau du pays, heure.
+
+`scripts/test/rapport-langue.test.js` (8 tests, tous vus échouer sur l'ancien
+code). Vérifié sur de vrais Word/PDF/PowerPoint FR et EN (docx/pdf-lib/pptxgenjs
+servis en local, LibreOffice → PDF → images), lus page par page. Non vérifié :
+Excel avec la vraie SheetJS, rendu dans Word lui-même.

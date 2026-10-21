@@ -11,11 +11,12 @@
 // tests de ce depot : un export Word ou PDF ne se rejoue pas ici sans les
 // bibliotheques. Chacune a ete vue echouer sur le code d'avant.
 const test = require('node:test');
+const vm = require('node:vm');
 const assert = require('node:assert');
 const { tranche, bac, exposer } = require('./_bac');
 
 const pdfEntete = () => tranche('    bulletinHeader(titre, dateGenStr, creneauStr, syntheseTxt) {', '    // Bandeau de statistiques cle');
-const pdfCarte = () => tranche('    articleItem(a, lieuTxt) {', '    // Grille 2 colonnes');
+const pdfCarte = () => tranche('    articleItem(a) {', '    // Grille 2 colonnes');
 
 test('PDF : la couverture est bleu nuit avec un filet or, plus un bandeau gris', () => {
   const t = pdfEntete();
@@ -95,6 +96,9 @@ test('apercu HTML : meme couverture bleu nuit que les autres formats', () => {
 function bacDetail(pub, surv) {
   const ctx = bac(tranche('const VISUEL_OGP_MAX', 'function parseRSS(xml, src) {'));
   exposer(ctx, 'RESUME_RAPPORT_MAX');
+  Object.assign(ctx, { LANG: 'fr', infoPays: () => ({ flag: '', name: 'X' }), PAYS_INFO: {}, detectGeo: () => ({}),
+    _cyNivTexteEtCouleur: () => null, nomMarqueActuelle: () => 'SentiqS', identiteEnvoiActuelle: () => '' });
+  vm.runInContext(tranche('const PAYS_EN = {', '// ── UPDATE COMPTEURS DL'), ctx);
   Object.assign(ctx, {
     URL, LANG: 'fr', MEDIA_CACHE: {}, SEUIL_SOURCE_ALERTE: 70, CYS: [], escHtml: (s) => s, catFr: (c) => c,
     safeUrl: (u) => u, L: (t) => t, fmtAge: () => '2 h', fmtFull: () => pub,

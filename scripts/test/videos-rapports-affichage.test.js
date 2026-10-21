@@ -21,6 +21,10 @@ function bacVisuel(o = {}) {
   const ctx = bac(tranche('const VISUEL_OGP_MAX', 'function parseRSS(xml, src) {'));
   exposer(ctx, 'RESUME_RAPPORT_MAX');
   const ogp = [];
+  // Couche commune des rapports (langue, cotation, ligne pays au-dessus du titre).
+  Object.assign(ctx, { LANG: 'fr', infoPays: (cy) => ({ flag: '', name: (cy === 'CI' ? "Côte d'Ivoire" : 'International') }), PAYS_INFO: { CI: {} },
+    detectGeo: () => ({}), _cyNivTexteEtCouleur: () => null, nomMarqueActuelle: () => 'SentiqS', identiteEnvoiActuelle: () => '' });
+  vm.runInContext(tranche('const PAYS_EN = {', '// ── UPDATE COMPTEURS DL'), ctx);
   Object.assign(ctx, {
     URL, LANG: 'fr', MEDIA_CACHE: {}, SEUIL_SOURCE_ALERTE: 70, CYS: [{ code: 'CI', flag: '', name: "Côte d'Ivoire" }],
     escHtml, catFr: (c) => c, safeUrl: (u) => u, L: (t) => t, fmtAge: () => '2 h', fmtFull: () => '20/10/2026 08:00',
@@ -97,9 +101,9 @@ test('l apercu HTML imprime le resume et les liens sous chaque titre', () => {
 });
 
 test('PDF, Word et PowerPoint passent tous par le detail', () => {
-  assert.match(tranche('    articleItem(a, lieuTxt) {', '    // Grille 2 colonnes'), /detailRapportActu\(a\)/);
+  assert.match(tranche('    articleItem(a) {', '    // Grille 2 colonnes'), /detailRapportActu\(a\)/);
   const word = tranche('async function exportWord(', 'function initMobileCollapsibles()');
-  assert.ok((word.match(/children\.push\(\.\.\.detailWord\(a/g) || []).length >= 3, 'Word : trois sections d actus');
+  assert.ok(/detailWord\(a, avecResume\)/.test(word) && /rubriquesW|articleBlocW/.test(word), 'Word : les actus passent par le detail commun');
   const pptx = tranche('async function exportPPTX(type) {', 'function _pdfSafe(text) {');
   assert.ok((pptx.match(/detailPptx\(s, a,/g) || []).length >= 4, 'PowerPoint : quatre sections d actus');
 });
@@ -186,7 +190,7 @@ test('« economiser les donnees » : aucune image demandee pour un rapport', asy
 });
 
 test('PDF, Word et PowerPoint embarquent l image de la source', () => {
-  assert.match(tranche('    articleItem(a, lieuTxt) {', '    // Grille 2 colonnes'), /b\.imagesActus\.get\(a\.id\)[\s\S]*drawImage\(im\.pdf/);
+  assert.match(tranche('    articleItem(a) {', '    // Grille 2 colonnes'), /b\.imagesActus\.get\(a\.id\)[\s\S]*drawImage\(im\.pdf/);
   assert.match(tranche('async function exportWord(', 'function initMobileCollapsibles()'), /new ImageRun\(\{data:im\.octets\(\)[\s\S]*imagesActus=await chargerImagesRapport\(arts\)/);
   assert.match(tranche('async function exportPPTX(type) {', 'function _pdfSafe(text) {'), /imagesPptx = await chargerImagesRapport\(arts, 16\)[\s\S]*slide\.addImage\(\{data: im\.dataUrl/);
   assert.match(tranche('async function exportPDF(type) {', "if (type === 'synthese') {"), /chargerImagesRapport\(getExportData\(\)\)[\s\S]*embedJpg/);
