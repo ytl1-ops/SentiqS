@@ -236,10 +236,13 @@ test('les regles Firestore portent ce que faisaient les declencheurs Supabase', 
   assert.match(REGLES, /request\.resource\.data\.status == resource\.data\.status/, 'ni de son statut');
   assert.match(REGLES, /allow delete: if estAdmin\(\);/);
   assert.doesNotMatch(REGLES, /allow read, write: if true/);
-  // L'adresse de l'administrateur vit dans les regles, jamais dans le code servi.
-  const adresse = (REGLES.match(/token\.email == '([^']+)'/) || [])[1];
-  assert.ok(adresse);
-  assert.doesNotMatch(fs.readFileSync(path.join(RACINE, 'web/js/firebase.js'), 'utf8'), new RegExp(adresse.replace('.', '\\.')));
+  // Les adresses des administrateurs vivent dans les regles, jamais dans le
+  // code servi. Deux depuis le 21/10/2026, a la demande de YORO.
+  const liste = (REGLES.match(/token\.email in \[([^\]]+)\]/) || [])[1] || '';
+  const adresses = liste.match(/'[^']+'/g).map((a) => a.slice(1, -1));
+  assert.deepStrictEqual(adresses, ['yorot225@gmail.com', 'a3fyee@gmail.com']);
+  const adaptateur = fs.readFileSync(path.join(RACINE, 'web/js/firebase.js'), 'utf8');
+  for (const a of adresses) assert.ok(!adaptateur.includes(a), a);
 });
 
 test('la politique de securite des deux pages autorise Firebase Auth, Firestore et la fenetre Google', () => {
