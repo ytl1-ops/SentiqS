@@ -2979,3 +2979,46 @@ YORO : yorot225@gmail.com et a3fyee@gmail.com (le compte de la console
 Firebase), listés dans `emailAdmin()` des règles. Une adresse de plus est un
 octroi de droits : ne l'ajouter que sur demande du propriétaire, et recoller
 les règles dans la console après.
+
+---
+
+## Le passage FR ⇄ EN, partout — 21/10/2026
+
+Signalement de YORO : « les traductions des pages sont incorrectes, passage
+d'une langue à une autre pas possible ». Mesuré dans Chromium : le sélecteur
+n'existait que sur l'écran de connexion ; une fois connecté, aucun moyen de
+changer de langue, et en anglais **1 044 textes** restaient en français —
+environ 800 libellés écrits en dur dans les fonctions de rendu (hors `I18N`),
+et 377 phrases de données saisies (agenda, incidents vérifiés, facteurs).
+
+**Une seule table, appliquée au DOM rendu.** `web/js/langue.js` (moteur) et
+`web/js/dico-en.js` (table FR → EN, 926 entrées), chargés dans l'en-tête. En
+anglais, tout le DOM est traduit, puis un `MutationObserver` traduit ce que les
+rendus ajoutent ; le retour au français restaure les originaux (gardés dans des
+`WeakMap`). `I18N`/`data-i18n` restent en place : la table rattrape ce qu'ils
+ne couvraient pas, sans réécrire 200 fonctions de rendu.
+
+- **Ajouter un libellé : l'écrire dans `dico-en.js`**, jamais dans le rendu.
+  Clé = le texte affiché ; accents, casse, espaces et ponctuation finale sont
+  indifférents ; un `#` tient la place de chaque nombre, reporté dans l'ordre.
+  Une phrase inconnue est cherchée par segments (phrase, tiret, `;`, `:`,
+  virgule, `/`). Une phrase *dont une partie n'est pas un nombre* (date mise en
+  forme, niveau) passe par `ajouterMotifs`, en fin de fichier.
+- **Le contenu des sources n'est jamais traduit par la table** : `setLang`
+  passe `estContenuSource` (titres et résumés présents dans `ALL`), et un test
+  refuse un titre d'actu dans la table. La note du Flux le dit, avec le bouton
+  « Traduire » de chaque carte. `translate="no"` exclut un élément.
+- Les noms de pays, zones et villes ne sont pas dans la table : ils sont lus
+  dans `PAYS_EN`, `ZONES_EN`, `VILLES_EN` à la première bascule.
+- `trRapport` (rapports exportés) se rabat sur la même table.
+- **Sélecteur FR/EN dans la barre du haut** (`.lang-switch-tb`) en plus de
+  l'écran de connexion ; choix dans `sentinel_lang`, appliqué dans l'en-tête
+  avant le premier rendu ; le module ouvert est redessiné à la bascule.
+
+Vérifié : `scripts/test/langue-interface.test.js` (10), le test de fumée
+bascule FR → EN → FR sur le vrai DOM (libellé d'avant et d'après la bascule
+traduits, titre d'actu intact, retour exact au français), accessibilité du DOM
+rendu inchangée (0/0/0), captures FR/EN des neuf modules et du Flux mobile.
+**Non couvert** : la page d'accueil `index.html` et les pages légales n'ont
+pas de version anglaise ; les données d'agenda saisies *après* ce jour ne
+seront en anglais que si on les ajoute à la table.

@@ -56,6 +56,15 @@ try {
   if (localStorage.getItem('sentinel_theme_choix') === 'light') document.documentElement.setAttribute('data-theme', 'light');
 } catch (e) {}
 </script>
+<!-- Langue de l'interface (21/10/2026) : la table FR -> EN et son
+     application au DOM (js/langue.js). Chargees dans l'en-tete et appliquees
+     AVANT l'analyse du <body> : en anglais, le texte statique se traduit au
+     fil de l'analyse, sans flash de francais. -->
+<script src="js/langue.js"></script>
+<script src="js/dico-en.js"></script>
+<script>
+try { if (SentiqLangue.lireChoix() === 'en') { document.documentElement.setAttribute('lang', 'en'); SentiqLangue.activer('en'); } } catch (e) {}
+</script>
 <title>SentiqS — Veille sûreté et sécurité en Afrique (54 pays) en temps réel</title>
 <meta name="description" content="SentiqS assure une veille sûreté et sécurité en temps réel dans 54 pays d'Afrique : alertes fiables, sources RSS vérifiées et corroborées, synthèses et rapports pour anticiper les risques.">
 <meta name="keywords" content="SentiqS, veille sûreté Afrique, sécurité Afrique, alertes sécurité temps réel, intelligence risques, veille géopolitique, RSS sûreté, sûreté entreprise Afrique">
@@ -2853,11 +2862,10 @@ html.force-mobile .tlbr .chips::-webkit-scrollbar{display:none}
   <div class="ops-label br" data-i18n="auth_ops_surete">Sûreté opérationnelle</div>
 </div>
   <div class="auth-box">
-    <!-- Selecteur de langue : uniquement ici, sur l'ecran de connexion
-         (demande explicite). Le choix est sauvegarde (sentinel_lang) et
-         charge au demarrage suivant (voir LANG + checkAuth -> setLang) —
-         pas de bascule pendant l'utilisation de l'app, pour eviter de
-         re-rendre plusieurs modules a chaque clic une fois connecte. -->
+    <!-- Selecteur de langue de l'ecran de connexion. Le meme existe dans la
+         barre du haut de l'appli (21/10/2026) : une reconnexion automatique
+         du jour saute cet ecran, et sans second selecteur on ne pouvait plus
+         changer de langue une fois connecte. Choix memorise (sentinel_lang). -->
     <div class="lang-switch" style="position:absolute;top:12px;right:12px;z-index:5">
       <button class="lang-btn on" data-lang="fr" onclick="setLang('fr')">FR</button>
       <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
@@ -3147,6 +3155,10 @@ html.force-mobile .tlbr .chips::-webkit-scrollbar{display:none}
       <span class="ltxt" id="liveTxt" data-i18n="live_pret">Collecte...</span>
     </div>
     <div id="globalCyBadge" onclick="clearGlobalCountryFilter()" title="Filtre pays actif sur toute la plateforme — cliquer pour reinitialiser" style="display:none;align-items:center;gap:5px;padding:5px 10px;background:rgba(138,93,26,.25);border:1px solid rgba(138,93,26,.5);border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;"></div>
+    <div class="lang-switch lang-switch-tb" role="group" aria-label="Langue / Language">
+      <button class="lang-btn" data-lang="fr" onclick="setLang('fr')" lang="fr" translate="no" title="Français">FR</button>
+      <button class="lang-btn" data-lang="en" onclick="setLang('en')" lang="en" translate="no" title="English">EN</button>
+    </div>
     <button class="actu-btn" onclick="doCollect()" id="actuBtn">
       <i class="ti ti-refresh spin" id="actuIco"></i> <span data-i18n="btn_actualiser">Actualiser</span>
     </button>
@@ -5632,13 +5644,14 @@ let ALL       = [];
 // TR_CACHE/trFetch(), definis plus loin une fois les fonctions de rendu
 // disponibles. Declares ici en tete de script car reference des le debut du
 // fichier (NIV, lvlFr, catFr).
-// Langue choisie une seule fois, a l'ecran de connexion (voir demande
-// explicite) : chargee ici depuis le dernier choix sauvegarde, appliquee au
-// DOM au demarrage par checkAuth() -> setLang(LANG). Pas de bascule pendant
-// l'utilisation de l'app (le selecteur FR/EN n'existe plus que sur l'ecran
-// de connexion), pour eviter de re-rendre inutilement plusieurs modules a
-// chaque clic une fois l'app chargee.
-let LANG = (() => { try { return localStorage.getItem('sentinel_lang') || 'fr'; } catch (_) { return 'fr'; } })();
+// Langue chargee ici depuis le dernier choix sauvegarde, appliquee au DOM au
+// demarrage par checkAuth() -> setLang(LANG). Depuis le 21/10/2026 elle se
+// change aussi une fois connecte (selecteur FR/EN de la barre du haut) : la
+// reconnexion automatique du jour sautait l'ecran de connexion, seul endroit
+// ou le selecteur existait — l'utilisateur ne pouvait plus changer de langue.
+// Les libelles ecrits en dur dans les rendus passent par js/langue.js (table
+// FR -> EN appliquee au DOM rendu), voir setLang.
+let LANG = (() => { try { return localStorage.getItem('sentinel_lang') === 'en' ? 'en' : 'fr'; } catch (_) { return 'fr'; } })();
 const TR_CACHE = {};
 
 // I18N : libellés d'interface statiques (menus, états vides, catégories de mesures).
@@ -5749,7 +5762,7 @@ const I18N = {
     ph_recherche:'Rechercher...',
     flashinfo_lbl:'FLASH INFO',
     sb_geo:'Filtrer par pays / agence de presse', sb_agences:'Agences nationales',
-    note_flux:'Flux opérationnel : actualités sourcées des dernières {h}, triables et filtrables par pays, catégorie et niveau d\'alerte. Le badge « recoupé » signale un fait rapporté par plusieurs sources.',
+    note_flux:'Flux opérationnel : actualités sourcées des dernières {h}, triables et filtrables par pays, catégorie et niveau d\'alerte. Le badge « recoupé » signale un fait rapporté par plusieurs sources. Titres et résumés restent dans la langue de leur source : bouton Traduire sur chaque carte.',
     note_recherche:'Recherche : retrouvez un pays, un événement, un thème ou une source dans l\'ensemble des données collectées par SentiqS.',
     note_analyse:'Synthèse : rapport analytique thématique généré automatiquement à partir du Flux, filtrable par zone ou par pays.',
     note_agenda:'Agenda : événements en cours, à venir et échéances de sûreté, classés par statut et par zone.',
@@ -5899,7 +5912,7 @@ const I18N = {
     ph_recherche:'Search...',
     flashinfo_lbl:'BREAKING NEWS',
     sb_geo:'Filter by country / press agency', sb_agences:'National agencies',
-    note_flux:'Feed: sourced news from the last {h}, sortable and filterable by country, category and alert level. The cross-checked badge marks a fact reported by several sources.',
+    note_flux:'Feed: sourced news from the last {h}, sortable and filterable by country, category and alert level. The cross-checked badge marks a fact reported by several sources. Headlines and summaries stay in the language of their source: use Translate on a card.',
     note_recherche:'Search: find a country, event, theme or source across all data collected by SentiqS.',
     note_analyse:'Summary: thematic analytical report automatically generated from the Feed, filterable by zone or country.',
     note_agenda:'Agenda: ongoing and upcoming security events and deadlines, classified by status and zone.',
@@ -5967,10 +5980,6 @@ function t(cle) { return (I18N[LANG] && I18N[LANG][cle]) || I18N.fr[cle] || cle;
 // module cible, les faire passer par t('cle') + entrees I18N.fr/I18N.en
 // correspondantes (voir le bloc auth_* ci-dessus comme modele).
 
-// setLang(lang) : bascule la langue d'interface FR/EN. Referencee par les
-// boutons FR/EN du bandeau superieur mais jamais definie auparavant (bouton
-// mort). Le francais reste la langue par defaut (LANG='fr') ; ce bouton ne
-// fait que permettre un basculement volontaire vers l'anglais.
 // _rendreOuSignaler(nom, fn) : execute un rendu et, en cas d'echec, le dit.
 //
 // Ces quatre appels etaient enveloppes dans des `catch(_) {}` : si renderFeed
@@ -5994,8 +6003,50 @@ function _rendreOuSignaler(nom, fn) {
   }
 }
 
+// estContenuSource(texte) : vrai pour un titre ou un resume d'actu tel que la
+// source l'a publie. La table d'interface (js/langue.js) n'y touche jamais :
+// le contenu d'une source reste dans sa langue, l'interface le dit.
+let _contenuSourcesRef = null, _contenuSourcesTaille = -1, _contenuSources = new Set(), _contenuSourcesListe = [];
+function estContenuSource(texte) {
+  if (typeof ALL === 'undefined' || !Array.isArray(ALL) || !ALL.length || !texte) return false;
+  if (ALL !== _contenuSourcesRef || ALL.length !== _contenuSourcesTaille) {
+    _contenuSources = new Set();
+    for (const a of ALL) {
+      for (const v of [a.title, a.analysis]) if (typeof v === 'string' && v.trim()) _contenuSources.add(v.trim());
+    }
+    _contenuSourcesListe = [..._contenuSources];
+    _contenuSourcesRef = ALL; _contenuSourcesTaille = ALL.length;
+  }
+  if (_contenuSources.has(texte)) return true;
+  // Resume tronque a l'affichage (« … »).
+  const m = /^([\s\S]{12,}?)\s*(?:…|\.\.\.)$/.exec(texte);
+  return !!(m && _contenuSourcesListe.some(v => v.startsWith(m[1])));
+}
+// Noms de pays, de zones et de villes : declares a la table une seule fois,
+// depuis les donnees de la page (aucune liste recopiee).
+let _languePaysDeclares = false;
+function declarerNomsLangue() {
+  if (_languePaysDeclares || typeof SentiqLangue === 'undefined') return;
+  try {
+    const t = {};
+    if (typeof PAYS_INFO !== 'undefined' && typeof PAYS_EN !== 'undefined') {
+      for (const cy in PAYS_INFO) if (PAYS_EN[cy] && PAYS_INFO[cy].name) t[PAYS_INFO[cy].name] = PAYS_EN[cy];
+    }
+    if (typeof ZONES_GEO !== 'undefined' && typeof ZONES_EN !== 'undefined') {
+      for (const z in ZONES_GEO) if (ZONES_EN[z] && ZONES_GEO[z].nom) t[ZONES_GEO[z].nom] = ZONES_EN[z];
+    }
+    if (typeof VILLES_EN !== 'undefined') Object.assign(t, VILLES_EN);
+    SentiqLangue.ajouter(t);
+    _languePaysDeclares = true;
+  } catch (_) { /* donnees pas encore initialisees : nouvel essai au prochain appel */ }
+}
 function setLang(lang) {
   LANG = (lang === 'en') ? 'en' : 'fr';
+  declarerNomsLangue();
+  if (typeof SentiqLangue !== 'undefined') {
+    SentiqLangue.memoriser(LANG);
+    SentiqLangue.activer(LANG, { ignorer: estContenuSource });
+  }
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('on', b.dataset.lang === LANG));
   document.documentElement.setAttribute('lang', LANG);
   // Les durees ecrites en dur dans le HTML statique sont remplies ici, a
@@ -6043,7 +6094,23 @@ function setLang(lang) {
   if (typeof updSynthese === 'function' && document.getElementById('syCont')) { _rendreOuSignaler('updSynthese', updSynthese); }
   if (typeof renderDashboard === 'function' && document.getElementById('v-dashboard') && document.getElementById('v-dashboard').classList.contains('on')) { _rendreOuSignaler('renderDashboard', renderDashboard); }
   if (typeof renderAuthStats === 'function') { _rendreOuSignaler('renderAuthStats', renderAuthStats); }
+  // Le module ouvert se redessine dans la nouvelle langue (dates, noms de
+  // pays, libelles calcules) — les autres le feront a leur ouverture.
+  const vueOn = document.querySelector('.view.on');
+  const nomVue = vueOn ? vueOn.id.replace(/^v-/, '') : '';
+  const rendus = {
+    alertes: () => { if (typeof recalcAlertes === 'function') recalcAlertes({ silencieux: true }); },
+    agenda: () => { if (typeof renderAgenda === 'function') renderAgenda(); },
+    geopolitique: () => { if (typeof renderGeopolitique === 'function') renderGeopolitique(); },
+    rapports: () => { if (typeof peuplerFiltresRapports === 'function') peuplerFiltresRapports(); },
+    recherche: () => { if (typeof renderRecherche === 'function') renderRecherche(); },
+    params: () => { if (typeof loadParamsModule === 'function') loadParamsModule(); },
+  };
+  if (rendus[nomVue] && _MEM_SESSION_PRET()) _rendreOuSignaler('rendu ' + nomVue, rendus[nomVue]);
 }
+// Vrai une fois une session ouverte (utilisateur ou collecteur) : avant, les
+// modules ne sont pas peuples et n'ont rien a redessiner.
+function _MEM_SESSION_PRET() { try { return !!(typeof _MEM_SESSION !== 'undefined' && _MEM_SESSION); } catch (_) { return false; } }
 
 // setDisplayMode(mode) : force l'affichage Web ou Mobile independamment de la
 // largeur reelle de l'ecran, via les classes .force-web/.force-mobile sur <html>
@@ -21951,6 +22018,12 @@ function trRapport(texte) {
        .replace(/^IV\. ALERTES PAYS — Niveau composite & dossier régional$/, 'IV. COUNTRY ALERTS — Composite level & regional file')
        .replace(/^(\d+) événements des dernières (.+?) — /, '$1 events of the last $2 — ');
   if (r !== coeur) return fin(r);
+  // Dernier recours : la table de l'interface (js/langue.js) — un libelle
+  // traduit a l'ecran l'est aussi dans le document exporte.
+  if (typeof SentiqLangue !== 'undefined' && !estContenuSource(coeur)) {
+    const t = SentiqLangue.traduire(coeur);
+    if (t !== coeur) return fin(t);
+  }
   return texte;
 }
 // HTML d'un apercu : seuls les noeuds de texte (entre une balise fermante et
