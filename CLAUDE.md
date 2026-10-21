@@ -2486,33 +2486,46 @@ certains modèles n'acceptent qu'une carte adaptative.
 
 ---
 
-## Le rapport mensuel GRSCI — 20/10/2026
+## Le rapport mensuel GRSCI — 20/10/2026, révisé le 21/10/2026
 
-Demande de YORO : un rapport « Faits marquants en Côte d'Ivoire » et
-« Dynamiques régionales » dans la forme du modèle de la rencontre mensuelle du
-GRSCI d'octobre 2024, automatisé comme le bulletin.
+Demande de YORO : « Faits marquants en Côte d'Ivoire » et « Dynamiques
+régionales » dans la forme du modèle de la rencontre mensuelle du GRSCI
+d'octobre 2024, automatisés comme le bulletin.
 
-`scripts/lib/rapport-grsci.js` produit un PowerPoint (pptxgenjs 3.12.0, la
-version déjà chargée par la page) : couverture, table des matières,
-intercalaires, une page « en bref » (niveau, confiance, tendance, ce qui porte
-le niveau), les faits par rubrique, un tableau régional, une page par pays
-(BF ML NE GH TG BJ GN LR SN) et « Ce que nous ne savons pas ». Logo, photo de
-couverture et carte d'Afrique viennent du modèle (`scripts/assets/grsci/`).
-Les données sont celles de `donneesBulletinPays` : rien n'est recalculé.
+**Révision du 21/10/2026 : le rapport suit le modèle, pas l'appli.** La première
+version importait le vocabulaire de l'outil (niveau d'alerte coloré, indice de
+confiance, score, cotation, « décryptage automatique », tableau régional). Le
+modèle n'en a aucun : tout cela est retiré. Le rapport ne lit de
+`donneesBulletinPays` que les faits (titre, source, date, lien). Un test
+(`rapport-grsci.test.js`) interdit ce vocabulaire dans le PowerPoint et le Word.
 
-**Le « Décryptage » du modèle est un jugement d'analyste ; ici il est
-construit uniquement à partir des mesures** (niveau, tendance, âge du socle,
-faits de la fenêtre) et porte la mention « lecture automatique, à valider ».
-Ne jamais lui faire écrire une cause ou une prévision que les données ne
-portent pas.
+Trois formats, même contenu, mêmes pages que le modèle : couverture (photo
+d'Abidjan, date), table des matières à deux cadres, intercalaire « Faits
+marquants » (carte de la Côte d'Ivoire du modèle), rubriques I Politique,
+II Social, III Sécurité, IV Divers (❑ titre vert souligné, « ▪ Source : » en
+lien, date), intercalaire « Dynamiques régionales » (carte d'Afrique), une page
+par pays numérotée avec son drapeau, MERCI, bandeau de pied (logo, nom du
+groupe, date, numéro).
+- `scripts/lib/rapport-grsci.js` : PowerPoint (pptxgenjs 3.12.0) ;
+- `scripts/lib/rapport-grsci-word.js` : Word modifiable (`docx` 8.5.0), page 16:9 ;
+- le PDF est le PowerPoint converti par LibreOffice dans le workflow
+  (`continue-on-error` : son échec ne perd pas les deux autres) ;
+- `scripts/indexer-rapports-grsci.js` reconstruit `index.json` à partir des
+  fichiers ; le module Rapports (carte « Rapports automatiques ») le lit et
+  offre les trois téléchargements ; liens stables `dernier.pptx|docx|pdf`.
 
-Un rapport par mois sous `web/rapports/GRSCI/AAAA-MM.pptx`, écrit par le
-premier passage du job à partir du 24 (la rencontre a lieu vers le 25).
-`workflow_dispatch` avec `grsci` = vrai (variable `GRSCI_FORCER=1`) le produit
-tout de suite. Non fait, et pourquoi : le Social du modèle n'existe pas comme
-catégorie dans le flux (il est lu dans « humanitaire »), et les cartes
-(coupeurs de route, zones café-cacao, incidents du Burkina) sont des travaux
-d'analyste à partir de données que l'outil n'a pas.
+Un rapport par mois sous `web/rapports/GRSCI/AAAA-MM.*`, écrit par le premier
+passage du job à partir du 24. `workflow_dispatch` avec `grsci` = vrai
+(`GRSCI_FORCER=1`) le produit tout de suite.
+
+**Écarts restants avec le modèle, assumés** : le « Décryptage » d'analyste, les
+cartes et photos d'illustration d'un fait, les tableaux de l'analyste et les
+commentaires ne s'automatisent pas — ils restent à ajouter à la main dans le
+Word ou le PowerPoint, qui sont modifiables. Les accents manquent dans certains
+titres de faits (la donnée saisie n'en a pas). Le Social est lu dans la
+catégorie « humanitaire ». La période du premier pays (« situation Fin
+octobre ») est calculée. Rendus relus avec LibreOffice, pas avec PowerPoint ni
+Word.
 
 ---
 

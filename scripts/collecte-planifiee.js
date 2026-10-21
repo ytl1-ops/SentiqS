@@ -522,12 +522,10 @@ function ecrireResumeActions(md) {
           const force = process.env.GRSCI_FORCER === '1';
           if (force || rapportGrsci.doitEcrire(RACINE_GRSCI, jour, 24)) {
             const PptxGenJS = require('pptxgenjs');
-            const serie = historique.construireSerie(historique.lireSerie(RACINE_HISTORIQUE));
             const lire = (cy) => page.evaluate((c) => (typeof donneesBulletinPays === 'function') ? donneesBulletinPays(c) : null, cy);
-            const avecTendance = (d) => d && Object.assign(d, { tendance: bulletin.tendanceDuJour(serie, d, jour) });
-            const ci = avecTendance(await lire('CI'));
+            const ci = await lire('CI');
             const regionaux = [];
-            for (const cy of rapportGrsci.PAYS_REGIONAUX) { const d = avecTendance(await lire(cy)); if (d) regionaux.push(d); }
+            for (const cy of rapportGrsci.PAYS_REGIONAUX) { const d = await lire(cy); if (d) regionaux.push(d); }
             if (!ci) { console.warn('  GRSCI : la page ne fournit pas donneesBulletinPays.'); }
             else {
               const chemin = await rapportGrsci.ecrire(RACINE_GRSCI, PptxGenJS, { jour, ci, regionaux });

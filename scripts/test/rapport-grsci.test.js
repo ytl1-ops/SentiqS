@@ -31,17 +31,18 @@ const pays = (cy, nom, faits) => ({
 });
 const tout = (p) => p.slides.map((s) => s.textes.join(' | ')).join('\n');
 
-test('le rapport suit le plan du modèle : couverture, sommaire, CI, régional', () => {
+test('le rapport suit le plan du modèle : couverture, sommaire, CI, régional, merci', () => {
   const ci = pays('CI', "Côte d'Ivoire", [fait('Attaque sur un axe', 'securite'), fait('Réforme électorale', 'politique'), fait('Grève', 'humanitaire')]);
-  const reg = g.PAYS_REGIONAUX.map((c) => pays(c, 'Pays ' + c, []));
+  const reg = g.PAYS_REGIONAUX.map((c) => pays(c, 'Pays ' + c, [fait('Fait ' + c, 'securite')]));
   const p = g.construire(FauxPptx, { jour: '2026-10-25', ci, regionaux: reg });
   const t = tout(p);
   assert.ok(t.includes('RENCONTRE MENSUELLE'));
   assert.ok(t.includes('TABLE DES MATIÈRES'));
   assert.ok(t.includes("FAITS MARQUANTS EN CÔTE D'IVOIRE"));
   assert.ok(t.includes('DYNAMIQUES RÉGIONALES'));
-  assert.ok(t.includes('POLITIQUE') && t.includes('SÉCURITÉ') && t.includes('SOCIAL ET HUMANITAIRE'));
-  assert.strictEqual(p.slides.filter((s) => s.textes.some((x) => x.includes('situation au 25/10/26'))).length, reg.length);
+  assert.ok(t.includes('- POLITIQUE') && t.includes('- SÉCURITÉ') && t.includes('- SOCIAL'));
+  assert.ok(t.includes('MERCI'));
+  assert.strictEqual(p.slides.filter((s) => s.textes.some((x) => x.includes('situation Fin octobre'))).length, 1);
   assert.ok(p.slides[0].images.some((i) => i.endsWith('couverture-abidjan.jpg')));
   for (const s of p.slides) assert.ok(s.images.some((i) => i.endsWith('logo-grsci.png')), 'logo absent du pied');
 });
@@ -50,23 +51,28 @@ test('une rubrique sans fait ne produit pas de page, et beaucoup de faits se pag
   const ci = pays('CI', 'CI', Array.from({ length: 7 }, (_, i) => fait('Sécurité ' + i, 'securite')));
   const p = g.construire(FauxPptx, { jour: '2026-10-25', ci, regionaux: [] });
   const t = tout(p);
-  assert.ok(!t.includes('POLITIQUE (') && !/\bI\b \| POLITIQUE/.test(t));
-  assert.ok(t.includes('SÉCURITÉ (1/2)') && t.includes('SÉCURITÉ (2/2)'));
+  assert.ok(!t.includes('- POLITIQUE'));
+  assert.strictEqual(p.slides.filter((s) => s.textes.some((x) => x.includes('- SÉCURITÉ'))).length, 2);
 });
 
-test("le décryptage ne contient que des constats tirés des données, et dit qu'il est automatique", () => {
-  const d = pays('CI', 'CI', []);
-  const lignes = g.decryptage(d);
-  assert.ok(lignes.some((l) => l.includes('22.1/100')));
-  assert.ok(lignes.some((l) => l.includes('en baisse de 2 crans depuis le 11/09/2026')));
-  assert.ok(lignes.some((l) => l.includes("ne veut pas dire qu'il ne s'est rien passé")));
-  const t = tout(g.construire(FauxPptx, { jour: '2026-10-25', ci: d, regionaux: [] }));
-  assert.ok(t.includes('lecture automatique, à valider'));
+// Garde de la demande du 21/10/2026 : le rapport suit le modèle du groupe, pas
+// le vocabulaire de l'appli. Si ce test tombe, quelqu'un a réintroduit un
+// niveau, une confiance, un score ou une cotation dans un document du groupe.
+const VOCABULAIRE_APPLI = /EN BREF|niveau d.alerte|confiance|score|\/100|Confirm|Probable|Non confirm|MARRON|ROUGE|ORANGE|JAUNE|d.cryptage|lecture automatique|ne savons pas|TABLEAU R/i;
+
+test("aucun vocabulaire de l'appli dans le PowerPoint ni le Word", async () => {
+  const ci = pays('CI', 'CI', [fait('Attaque', 'securite', 'critical'), fait('Grève', 'humanitaire')]);
+  const reg = [pays('ML', 'Mali', [fait('Embuscade', 'securite')])];
+  assert.doesNotMatch(tout(g.construire(FauxPptx, { jour: '2026-10-25', ci, regionaux: reg })), VOCABULAIRE_APPLI);
+  const { docx, textes } = fauxDocx();
+  await require('../lib/rapport-grsci-word.js').ecrireWord(fs.mkdtempSync(path.join(os.tmpdir(), 'grsci-')), docx, { jour: '2026-10-25', ci, regionaux: reg });
+  assert.doesNotMatch(textes.join('\n'), VOCABULAIRE_APPLI);
 });
 
-test('un pays muet est dit invisible, pas calme', () => {
-  const d = Object.assign(pays('CI', 'CI', []), { angleMort: { muet: true } });
-  assert.ok(g.decryptage(d).some((l) => /ne voit rien/.test(l) && /pas un signe de calme/.test(l)));
+test('chaque fait porte sa source et sa date, sans rien ajouter', () => {
+  const ci = pays('CI', 'CI', [fait('Attaque sur un axe', 'securite')]);
+  const t = tout(g.construire(FauxPptx, { jour: '2026-10-25', ci, regionaux: [] }));
+  assert.ok(/attaque sur un axe/i.test(t) && /KOACI/.test(t) && /Source/.test(t));
 });
 
 test('un rapport par mois, à partir du jour demandé', () => {
@@ -161,10 +167,9 @@ test('la version Word reprend les pages du PowerPoint avec de vrais textes', asy
   const chemin = await w.ecrireWord(dir, docx, { jour: '2026-10-25', ci, regionaux: [pays('ML', 'Mali', [])] });
   assert.ok(chemin.endsWith('2026-10.docx') && fs.existsSync(chemin) && fs.existsSync(path.join(dir, 'dernier.docx')));
   const tout = textes.join('\n');
-  for (const attendu of ['RENCONTRE MENSUELLE', 'TABLE DES MATIÈRES', 'EN BREF', '- POLITIQUE', 'SOCIAL ET HUMANITAIRE', 'DYNAMIQUES RÉGIONALES', 'TABLEAU RÉGIONAL', 'DÉCRYPTAGE', 'CE QUE NOUS NE SAVONS PAS', 'Manifestation anti 4e mandat']) {
+  for (const attendu of ['RENCONTRE MENSUELLE', 'TABLE DES MATIÈRES', '- POLITIQUE', '- SOCIAL', 'DYNAMIQUES RÉGIONALES', 'MERCI', 'MANIFESTATION ANTI 4E MANDAT']) {
     assert.ok(tout.includes(attendu), attendu);
   }
-  assert.ok(/lecture automatique/.test(tout));
   assert.ok(fs.existsSync(path.join(dir, 'index.json')) && JSON.parse(fs.readFileSync(path.join(dir, 'index.json'), 'utf8')).rapports[0].formats.includes('docx'));
 });
 

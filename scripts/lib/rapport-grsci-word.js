@@ -9,6 +9,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 const g = require('./rapport-grsci.js');
 
+// Comme le PowerPoint, il respecte la présentation du modèle du groupe : pas de
+// niveau d'alerte, de confiance, de score ni de cotation (notions de l'appli).
+//
 // Page 16:9 du modèle (954 × 540 pt), en vingtièmes de point.
 const LARGEUR = 19080;
 const HAUTEUR = 10800;
@@ -19,7 +22,7 @@ function construireWord(D, { jour, ci, regionaux }) {
   const {
     Document, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, ShadingType, AlignmentType,
     BorderStyle, ImageRun, Footer, PageNumber, PageOrientation, HeightRule, VerticalAlign,
-    HorizontalPositionRelativeFrom, VerticalPositionRelativeFrom, TextWrappingType,
+    HorizontalPositionRelativeFrom, VerticalPositionRelativeFrom, TextWrappingType, ExternalHyperlink,
   } = D;
   const img = (f) => fs.readFileSync(path.join(g.ASSETS, f));
   const AUCUNE = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
@@ -58,48 +61,26 @@ function construireWord(D, { jour, ci, regionaux }) {
       width: { size: UTILE, type: WidthType.DXA }, columnWidths: [1000, UTILE - 1000 - 1500, 1500],
       rows: [new TableRow({ children: [
         cell([par(run(num, { font: g.POLICE_TITRE, size: 44, color: 'FFFFFF' }), { alignment: AlignmentType.CENTER })], 1000, { shading: { type: ShadingType.CLEAR, fill: g.VERT, color: 'auto' } }),
-        cell([par(run(titre, { font: g.POLICE_TITRE, size: 56, color: g.VERT, underline: {} }), { indent: { left: 200 } })], UTILE - 1000 - 1500),
+        cell([par(run(titre, Object.assign({ font: g.POLICE_TITRE, size: 56, color: g.VERT }, /^- /.test(titre) ? { underline: {} } : {})), { indent: { left: 200 } })], UTILE - 1000 - 1500),
         cell([drapeau(pays)], 1500),
       ] })],
     });
     return [new Paragraph({ children: [], pageBreakBefore: debutPage(), spacing: { after: 0, before: 0 }, run: { size: 2 } }), tableau, par(run('', { size: 12 }), { border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: 'A3A3A3', space: 1 } } })];
   }
 
-  const puce = (t, o) => par([run('▪  '), run(t, o)], { indent: { left: 360 }, spacing: { after: 60 } });
-
+  // Le modèle : titre ❑ en majuscules vertes soulignées, puis la source et la date.
   function lignesFaits(faits) {
     const out = [];
     faits.forEach((f) => {
-      const { titre, meta } = g.faitTexte(f);
-      out.push(par([run('✓  ', { bold: true }), run(titre, { bold: true, size: 26 })], { indent: { left: 360 }, spacing: { before: 100 } }));
-      if (meta) out.push(par(run(meta, { italics: true, color: g.LEGERE, size: 20 }), { indent: { left: 720 } }));
+      const t = g.faitTexte(f);
+      out.push(par([run('\u2751  ', { color: g.VERT, size: 28 }), run(t.titre, { bold: true, underline: {}, color: g.VERT, size: 28 })], { indent: { left: 360 }, spacing: { before: 160 } }));
+      const source = t.url
+        ? new ExternalHyperlink({ link: t.url, children: [run(t.source, { color: g.VERT, size: 26, underline: {} })] })
+        : run(t.source, { size: 26 });
+      out.push(par([run('\u25AA  Source : ', { size: 26 }), source, run(t.quand ? ' \u2014 ' + t.quand : '', { size: 26 })], { indent: { left: 720 } }));
     });
     return out;
   }
-
-  function encadre(lignes) {
-    const cellule = new TableCell({
-      borders: CADRE, width: { size: UTILE, type: WidthType.DXA }, shading: { type: ShadingType.CLEAR, fill: g.GRIS, color: 'auto' },
-      margins: { top: 100, bottom: 100, left: 200, right: 200 },
-      children: [
-        par(run('DÉCRYPTAGE — lecture automatique, à valider par l\'analyste', { bold: true, underline: {}, color: g.ROUGE, size: 24 }), { alignment: AlignmentType.CENTER, spacing: { after: 80 } }),
-        ...lignes.map((t) => par([run('▪  ', { color: g.ROUGE }), run(t, { color: g.ROUGE, size: 22 })], { indent: { left: 240 }, spacing: { after: 40 } })),
-      ],
-    });
-    return [par(run('', { size: 12 })), new Table({ width: { size: UTILE, type: WidthType.DXA }, columnWidths: [UTILE], rows: [new TableRow({ cantSplit: true, children: [cellule] })] })];
-  }
-
-  const badge = (d) => {
-    const col = g.COULEUR_NIVEAU[d.niveau] || '6B7280';
-    return new Table({
-      width: { size: 3400, type: WidthType.DXA }, columnWidths: [3400],
-      rows: [new TableRow({ height: { value: 900, rule: HeightRule.ATLEAST }, children: [new TableCell({
-        borders: SANS_BORDURE, width: { size: 3400, type: WidthType.DXA }, verticalAlign: VerticalAlign.CENTER,
-        shading: { type: ShadingType.CLEAR, fill: col, color: 'auto' },
-        children: [par(run(String(d.libelle || '').toUpperCase(), { bold: true, size: 48, color: d.niveau === 'jaune' ? g.TEXTE : 'FFFFFF' }), { alignment: AlignmentType.CENTER })],
-      })] })],
-    });
-  };
 
   const corps = [];
 
@@ -116,25 +97,26 @@ function construireWord(D, { jour, ci, regionaux }) {
   for (let i = 0; i < 12; i++) corps.push(par(run('', { size: 40 })));
   corps.push(par(run(g.dateLongue(jour).toUpperCase(), { bold: true, size: 40, color: 'FFFFFF' }), { alignment: AlignmentType.RIGHT }));
 
-  // — Table des matières
-  corps.push(...entete('0', 'TABLE DES MATIÈRES'));
+  // — Table des matières : deux cadres, comme le modèle.
+  corps.push(...entete('0', '- TABLE DES MATIÈRES'));
   {
+    const court = (t) => (t.length > 84 ? t.slice(0, 81) + '…' : t);
     const gauche = [];
     for (const r of g.RUBRIQUES) {
       const faits = ci.faits.filter((f) => g.rubriqueDe(f) === r.cle);
       if (!faits.length) continue;
-      gauche.push(par(run(r.titre, { bold: true, underline: {}, color: g.VERT }), { spacing: { before: 80 } }));
-      faits.slice(0, 5).forEach((f) => gauche.push(puce(f.titre.length > 70 ? f.titre.slice(0, 67) + '…' : f.titre, { size: 20 })));
+      gauche.push(par(run(r.titre, { bold: true, color: g.VERT, size: 20 }), { spacing: { before: 100 } }));
+      faits.slice(0, 6).forEach((f) => gauche.push(par([run('\u2751  ', { size: 18 }), run(court(g.titreDeFait(f)), { size: 18 })], { indent: { left: 240 } })));
     }
-    if (!gauche.length) gauche.push(par(run('Aucun fait au-dessus du normal dans la fenêtre.')));
+    if (!gauche.length) gauche.push(par(run('Aucun fait marquant relevé sur la période.', { italics: true })));
     const droite = [];
     regionaux.forEach((d) => {
-      droite.push(par(run(d.nom.toUpperCase(), { bold: true, underline: {}, color: g.VERT }), { spacing: { before: 80 } }));
-      droite.push(puce(String(d.libelle || '') + ' · confiance ' + (d.confiance ? d.confiance.libelle : '—') + ' · ' + d.faitsNotables + ' fait(s)', { size: 20 }));
+      droite.push(par(run(d.nom.toUpperCase(), { bold: true, color: g.VERT, size: 20 }), { spacing: { before: 100 } }));
+      (d.faits || []).slice(0, 1).forEach((f) => droite.push(par([run('\u2751  ', { size: 18 }), run(court(g.titreDeFait(f)), { size: 18 })], { indent: { left: 240 } })));
     });
     const bloc = (titre, enfants) => new TableCell({
-      borders: CADRE, width: { size: Math.floor(UTILE / 2) - 100, type: WidthType.DXA }, shading: { type: ShadingType.CLEAR, fill: g.GRIS, color: 'auto' }, margins: { top: 100, left: 150, right: 150 },
-      children: [par(run(titre, { bold: true, underline: {}, color: g.VERT }), { alignment: AlignmentType.CENTER }), ...enfants],
+      borders: CADRE, width: { size: Math.floor(UTILE / 2) - 100, type: WidthType.DXA }, margins: { top: 100, left: 150, right: 150 },
+      children: [par(run(titre, { font: g.POLICE_TITRE, color: g.VERT, size: 30 }), { alignment: AlignmentType.CENTER }), ...enfants],
     });
     corps.push(par(run('', { size: 12 })));
     corps.push(new Table({
@@ -159,72 +141,37 @@ function construireWord(D, { jour, ci, regionaux }) {
   };
   intercalaire('FAITS MARQUANTS EN CÔTE D\'IVOIRE', 'carte-ci.jpg');
 
-  // — En bref
-  corps.push(...entete('0', 'EN BREF — ' + ci.nom.toUpperCase(), 'CI'));
-  corps.push(par(run('', { size: 12 })), badge(ci));
-  corps.push(par([run('Niveau ' + String(ci.sous || '').toLowerCase() + ' · score ' + ci.total100 + '/100', { bold: true, size: 28 })], { spacing: { before: 120 } }));
-  corps.push(par(run('Confiance ' + (ci.confiance ? ci.confiance.libelle : 'non évaluée') + (ci.confiance && ci.confiance.motif ? ' — ' + ci.confiance.motif : ''), { color: g.LEGERE, size: 24 })));
-  corps.push(par(run(g.lireTendance(ci.tendance).phrase || 'Tendance : moins de deux relevés, aucune trajectoire annoncée.', { color: g.LEGERE, size: 24 })));
-  corps.push(par(run('CE QUI PORTE LE NIVEAU', { bold: true, underline: {}, color: g.VERT, size: 26 }), { spacing: { before: 160 } }));
-  const portes = [].concat((ci.socle || []).slice(0, 4).map((x) => x.titre + ' — ' + x.date + ' (' + x.ageJ + ' j)'),
-    (ci.facteurs || []).slice(0, 3).map((x) => x.label + (x.revu ? ' — revu ' + x.revu : ' — non daté')));
-  (portes.length ? portes : ['Aucun incident vérifié ni facteur structurel : le niveau est celui du signal du jour.']).forEach((t) => corps.push(puce(t, { size: 22 })));
-  corps.push(...encadre(g.decryptage(ci)));
-
-  // — Rubriques
+  // — Rubriques de la Côte d'Ivoire
   for (const rub of g.RUBRIQUES) {
     const faits = ci.faits.filter((f) => g.rubriqueDe(f) === rub.cle);
     if (!faits.length) continue;
-    const pages = g.paginer(faits, g.FAITS_PAR_PAGE);
-    pages.forEach((p, i) => {
-      corps.push(...entete(rub.num, '- ' + rub.titre + (pages.length > 1 ? ' (' + (i + 1) + '/' + pages.length + ')' : ''), 'CI'));
-      corps.push(par(run(ci.nom.toUpperCase() + ' — ' + p.length + ' FAIT(S) DE LA FENÊTRE', { bold: true, underline: {}, color: g.VERT, size: 26 }), { spacing: { before: 120 } }));
+    g.paginer(faits, g.FAITS_PAR_PAGE).forEach((p) => {
+      corps.push(...entete(rub.num, '- ' + rub.titre, 'CI'));
       corps.push(...lignesFaits(p));
     });
   }
 
-  // — Dynamiques régionales
+  // — Dynamiques régionales : une rubrique numérotée par pays, avec son drapeau.
   intercalaire('DYNAMIQUES RÉGIONALES', 'afrique.png');
-  corps.push(...entete('I', 'TABLEAU RÉGIONAL — NIVEAUX D\'ALERTE'));
-  {
-    const larg = [3400, 2800, 1800, 3000, 1800, UTILE - 12800];
-    const cel = (t, i, o) => new TableCell(Object.assign({ width: { size: larg[i], type: WidthType.DXA }, borders: { top: FILET('BBBBBB'), bottom: FILET('BBBBBB'), left: FILET('BBBBBB'), right: FILET('BBBBBB') }, verticalAlign: VerticalAlign.CENTER, children: [par(run(t, (o && o.run) || {}), { alignment: i === 0 ? AlignmentType.LEFT : AlignmentType.CENTER })] }, (o && o.cell) || {}));
-    const tete = new TableRow({ tableHeader: true, children: ['Pays', 'Niveau', 'Score', 'Confiance', 'Faits', 'Tendance'].map((t, i) => cel(t, i, { run: { bold: true, color: 'FFFFFF' }, cell: { shading: { type: ShadingType.CLEAR, fill: g.VERT, color: 'auto' } } })) });
-    const lignes = regionaux.map((d) => new TableRow({ children: [
-      cel(d.nom, 0, { run: { bold: true } }),
-      cel(String(d.libelle || ''), 1, { run: { bold: true, color: d.niveau === 'jaune' ? g.TEXTE : 'FFFFFF' }, cell: { shading: { type: ShadingType.CLEAR, fill: g.COULEUR_NIVEAU[d.niveau] || '6B7280', color: 'auto' } } }),
-      cel(String(d.total100), 2), cel(d.confiance ? d.confiance.libelle : '—', 3), cel(String(d.faitsNotables), 4), cel(g.lireTendance(d.tendance).court, 5),
-    ] }));
-    corps.push(par(run('', { size: 12 })), new Table({ width: { size: UTILE, type: WidthType.DXA }, columnWidths: larg, rows: [tete, ...lignes] }));
-    corps.push(par(run('Un niveau « jaune » n\'est pas l\'absence de risque : lire la confiance avant le niveau.', { italics: true, color: g.LEGERE, size: 22 }), { spacing: { before: 120 } }));
-  }
-  regionaux.forEach((d) => {
-    corps.push(...entete('I', d.nom + ' : situation au ' + g.dateCourte(jour), d.cy));
-    corps.push(par(run('', { size: 12 })), badge(d));
-    const faits = (d.faits || []).slice(0, 4);
-    if (faits.length) corps.push(...lignesFaits(faits));
-    else corps.push(par(run('Aucun fait au-dessus du normal dans la fenêtre.', { color: g.LEGERE }), { spacing: { before: 120 } }));
-    corps.push(...encadre(g.decryptage(d)));
+  regionaux.forEach((d, i) => {
+    const pages = g.paginer((d.faits || []).slice(0, g.MAX_FAITS_PAYS), g.FAITS_PAR_PAGE);
+    if (!pages.length) pages.push([]);
+    pages.forEach((p, k) => {
+      corps.push(...entete(g.ROMAIN[i + 1], k > 0 ? d.nom : (i === 0 ? d.nom + ' : situation ' + g.periode(jour) : d.nom), d.cy));
+      if (p.length) corps.push(...lignesFaits(p));
+      else corps.push(par(run('Aucun fait marquant relevé sur la période.', { italics: true, color: g.LEGERE }), { spacing: { before: 160 } }));
+    });
   });
 
-  // — Ce que nous ne savons pas
-  corps.push(...entete('V', 'CE QUE NOUS NE SAVONS PAS'));
-  {
-    const lignes = [];
-    [ci, ...regionaux].forEach((d) => {
-      const am = d.angleMort || {};
-      const motifs = [];
-      if (am.muet) motifs.push('aucune actualité récente');
-      if (am.horsAlerte) motifs.push('du flux mais aucune source fiable');
-      if (am.sourceUnique) motifs.push('une seule source capable d\'alerter');
-      if (am.socleAncien) motifs.push('socle de plus de 90 jours');
-      if (motifs.length) lignes.push(d.nom + ' : ' + motifs.join(' ; '));
-    });
-    if (!lignes.length) lignes.push('Aucun angle mort identifié sur ces pays.');
-    corps.push(par(run('', { size: 12 })));
-    lignes.forEach((t) => corps.push(puce(t, { size: 26 })));
-    corps.push(par(run('Un pays listé n\'est pas plus dangereux : c\'est un pays que l\'outil voit mal. « Confirmé » veut dire recoupé par une seconde source, pas confirmé officiellement.', { italics: true, color: g.ROUGE, size: 24 }), { spacing: { before: 200 } }));
-  }
+  // — Dernière page, comme le modèle.
+  corps.push(new Paragraph({ children: [], pageBreakBefore: debutPage(), spacing: { after: 0 }, run: { size: 2 } }));
+  corps.push(new Table({
+    width: { size: UTILE, type: WidthType.DXA }, columnWidths: [UTILE],
+    rows: [new TableRow({ height: { value: 8200, rule: HeightRule.EXACT }, children: [new TableCell({
+      borders: SANS_BORDURE, width: { size: UTILE, type: WidthType.DXA }, verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.CLEAR, fill: 'CDCDCD', color: 'auto' },
+      children: [par(run('MERCI', { font: g.POLICE_TITRE, size: 120, color: '111111' }), { alignment: AlignmentType.CENTER })],
+    })] })],
+  }));
 
   // Pied de page : logo, nom du groupe encadré, date et numéro — comme le modèle.
   const pied = new Footer({ children: [new Table({
