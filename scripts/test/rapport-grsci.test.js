@@ -188,3 +188,10 @@ test('le workflow installe docx, convertit en PDF et le job écrit le Word', () 
   const job = fs.readFileSync(path.join(__dirname, '..', 'collecte-planifiee.js'), 'utf8');
   assert.ok(/ecrireWord/.test(job));
 });
+
+test('le numéro de rubrique long (VIII) ne passe pas sur deux lignes', () => {
+  const g = require('../lib/rapport-grsci.js');
+  assert.ok(g.tailleNumero('VIII') < g.tailleNumero('II'), 'VIII doit être plus petit que II');
+  assert.ok(g.tailleNumero('IV') <= 24);
+  assert.ok(g.tailleNumero('VIII') <= 17);
+});

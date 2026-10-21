@@ -105,9 +105,16 @@ function pied(s, ctx, numero) {
   s.addText('|  ' + dateCourte(ctx.jour) + '   |   ' + numero, { x: 10.3, y: 6.9, w: 2.7, h: 0.3, fontFace: POLICE, fontSize: 10, color: TEXTE, align: 'right' });
 }
 
+function tailleNumero(num) {
+  const n = String(num).length;
+  return n <= 2 ? 24 : n === 3 ? 17 : 13;
+}
+
 function titrePage(s, num, titre, pays) {
   const souligne = /^- /.test(titre);
-  s.addText(num, { x: 0.5, y: 0.3, w: 0.7, h: 0.6, fontFace: POLICE_TITRE, fontSize: 24, color: 'FFFFFF', fill: { color: VERT }, align: 'center', valign: 'middle' });
+  // « VIII » ne tient pas dans le carré de « I » à 24 pt : il passait sur deux
+  // lignes (page du Liberia, 21/10/2026). On réduit le corps selon la longueur.
+  s.addText(num, { x: 0.5, y: 0.3, w: 0.7, h: 0.6, fontFace: POLICE_TITRE, fontSize: tailleNumero(num), color: 'FFFFFF', fill: { color: VERT }, align: 'center', valign: 'middle' });
   s.addText(titre, { x: 1.35, y: 0.3, w: 9.8, h: 0.6, fontFace: POLICE_TITRE, fontSize: 28, underline: souligne, color: VERT, valign: 'middle' });
   if (pays && DRAPEAUX[pays]) {
     // Drapeau en coin de page, comme dans le modèle.
@@ -203,7 +210,7 @@ function pageSommaire(pptx, ctx, ci, regionaux) {
     s.addText(titre, { x, y: 1.3, w: 6.05, h: 0.4, fontFace: POLICE_TITRE, fontSize: 15, color: VERT, align: 'center' });
     s.addText(lignes, { x: x + 0.2, y: 1.8, w: 5.65, h: 4.6, fontFace: POLICE, fontSize: 9, color: TEXTE, valign: 'top', paraSpaceAfter: 2 });
   };
-  const court = (t) => (t.length > 84 ? t.slice(0, 81) + '…' : t);
+  const court = (t) => (t.length > 110 ? t.slice(0, 107) + '…' : t);
   const gauche = [];
   for (const r of RUBRIQUES) {
     const faits = ci.faits.filter((f) => rubriqueDe(f) === r.cle);
@@ -333,5 +340,5 @@ module.exports = {
   PAYS_REGIONAUX, construire, doitEcrire, ecrire, majIndex, reconstruireIndex, cheminRapport, rubriqueDe, RUBRIQUES,
   // partagés avec la version Word (rapport-grsci-word.js)
   ASSETS, VERT, TEXTE, LEGERE, POLICE, POLICE_TITRE, DRAPEAUX, rectsDrapeau,
-  dateLongue, dateCourte, paginer, faitTexte, FAITS_PAR_PAGE, ROMAIN, MAX_FAITS_PAYS, periode, titreDeFait,
+  dateLongue, dateCourte, tailleNumero, paginer, faitTexte, FAITS_PAR_PAGE, ROMAIN, MAX_FAITS_PAYS, periode, titreDeFait,
 };

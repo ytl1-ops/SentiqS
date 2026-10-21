@@ -60,7 +60,7 @@ function construireWord(D, { jour, ci, regionaux }) {
     const tableau = new Table({
       width: { size: UTILE, type: WidthType.DXA }, columnWidths: [1000, UTILE - 1000 - 1500, 1500],
       rows: [new TableRow({ children: [
-        cell([par(run(num, { font: g.POLICE_TITRE, size: 44, color: 'FFFFFF' }), { alignment: AlignmentType.CENTER })], 1000, { shading: { type: ShadingType.CLEAR, fill: g.VERT, color: 'auto' } }),
+        cell([par(run(num, { font: g.POLICE_TITRE, size: g.tailleNumero(num) * 2 - 4, color: 'FFFFFF' }), { alignment: AlignmentType.CENTER })], 1000, { shading: { type: ShadingType.CLEAR, fill: g.VERT, color: 'auto' } }),
         cell([par(run(titre, Object.assign({ font: g.POLICE_TITRE, size: 56, color: g.VERT }, /^- /.test(titre) ? { underline: {} } : {})), { indent: { left: 200 } })], UTILE - 1000 - 1500),
         cell([drapeau(pays)], 1500),
       ] })],
