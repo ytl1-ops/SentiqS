@@ -32,6 +32,9 @@
      Supabase sinon (voir getSentinelSupabase et FIREBASE.md). -->
 <script src="js/firebase-config.js"></script>
 <script src="js/firebase.js"></script>
+<!-- Le kit se télécharge dès l'ouverture, pendant l'animation de garde, au lieu
+     d'attendre checkAuth : la connexion ne patiente plus après la vidéo. -->
+<script>try { if (window.SentiqFirebase) window.SentiqFirebase.charger().catch(function () {}); } catch (_) {}</script>
 <script>
 try {
   if (window.top !== window.self) { window.top.location = window.self.location; }

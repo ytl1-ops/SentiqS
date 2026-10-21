@@ -2951,3 +2951,12 @@ mémoire), la page dans Chromium avec le vrai kit servi en local (bouton
 Google, textes « lien », aucune erreur). **Non vérifié d'ici** : un envoi
 réel de lien et une connexion Google réelle (le bac à sable n'a pas de
 réseau) — à faire sur la page publiée.
+
+**Le premier chargement attendait le kit l'un après l'autre.** Sur la page
+publiée, plus de 8 s avant l'écran de connexion : les trois scripts compat
+(app, auth, firestore) se chargeaient en série, et seulement une fois
+`checkAuth` atteint. Ils se téléchargent maintenant ensemble (`async = false`
+garde l'ordre d'exécution, qui compte) et l'appli lance `charger()` dès
+l'analyse de l'en-tête, pendant l'animation de garde. Deux tests de plus dans
+`firebase.test.js`. **Non mesuré d'ici** (pas de réseau) : le gain réel sur
+la page publiée.
