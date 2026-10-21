@@ -26,7 +26,9 @@ function monter({ client = 'defaut', upsert } = {}) {
   const contexte = {
     Date,
     console: { warn: (...a) => journal.avertissements.push(a.join(' ')) },
-    getSentinelSupabase: () => (client === 'defaut' ? faux : client),
+    // L'agenda partage reste sur Supabase pendant la bascule Firebase : il
+    // lit le client de donnees, jamais le client d'identite.
+    getClientDonnees: () => (client === 'defaut' ? faux : client),
     estAgendaRecent: () => true,
     srcName: (p) => 'Source ' + p,
   };

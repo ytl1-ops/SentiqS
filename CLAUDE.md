@@ -2916,3 +2916,38 @@ actus listées en vrac.
 code). Vérifié sur de vrais Word/PDF/PowerPoint FR et EN (docx/pdf-lib/pptxgenjs
 servis en local, LibreOffice → PDF → images), lus page par page. Non vérifié :
 Excel avec la vraie SheetJS, rendu dans Word lui-même.
+
+---
+
+## La connexion passe par Firebase — 21/10/2026
+
+Le code de Supabase n'arrivait pas (expéditeur intégré réservé à l'équipe du
+projet, SMTP requis). Décision : Firebase, plan gratuit Spark. Détail, quotas
+et réglages de la console dans `FIREBASE.md`.
+
+- `web/js/firebase.js` imite la **petite** partie de supabase-js que la page
+  utilise (`auth.*`, `from(table)`), servie par Firebase Auth et Firestore.
+  `getSentinelSupabase()` la renvoie dès que `web/js/firebase-config.js` est
+  rempli ; `null` ramène tout sur Supabase. Le kit Firebase (~500 Ko) n'est
+  chargé que dans ce cas.
+- **Seules l'identité, les profils et le journal des connexions basculent.**
+  Le cache d'actus, l'agenda, la configuration et le corpus passent par
+  `getClientDonnees()`, toujours Supabase : un cache illisible ferait
+  relancer à chaque visiteur sa collecte complète. Ne pas les rebrancher sur
+  `getSentinelSupabase()` avant leur propre étape.
+- **Pas de code à six chiffres** : Firebase envoie un lien. `verifyOtp()`
+  répond `lien_seulement`. Le gratuit n'envoie que **5 liens par jour** pour
+  tout le projet : la connexion Google (sans quota) et le mot de passe restent
+  visibles, et `otp_err_quota` le dit en clair.
+- Pas de déclencheur serveur : rôle et statut sont imposés par
+  `firebase/firestore.rules`. L'adaptateur tente le rôle admin puis retombe
+  sur `user` si les règles refusent — le code servi ne connaît jamais
+  l'adresse de l'administrateur.
+- La reconnexion du jour tient : `connexion_fraiche` n'est vrai que si
+  l'adaptateur vient de conclure un lien ou une connexion Google dans la page.
+
+Vérifié : `scripts/test/firebase.test.js` (17, sur un faux Firebase en
+mémoire), la page dans Chromium avec le vrai kit servi en local (bouton
+Google, textes « lien », aucune erreur). **Non vérifié d'ici** : un envoi
+réel de lien et une connexion Google réelle (le bac à sable n'a pas de
+réseau) — à faire sur la page publiée.

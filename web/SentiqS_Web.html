@@ -18,7 +18,7 @@
      X-Frame-Options:DENY en en-tete HTTP reel) retire — seul GitHub Pages
      sert desormais le site, et GitHub Pages ne permet pas de personnaliser
      les en-tetes de reponse : X-Frame-Options n'est plus applique. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.sheetjs.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://translate.googleapis.com https://api.mymemory.translated.net https://lingva.ml https://translate.plausibility.cloud https://lingva.garudalinux.org https://api.rss2json.com https://api.allorigins.win https://api.codetabs.com https://proxy.cors.sh https://test.cors.workers.dev https://corsproxy.org https://thingproxy.freeboard.io https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.sheetjs.com https://apis.google.com; frame-src https://*.firebaseapp.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://*.googleapis.com https://translate.googleapis.com https://api.mymemory.translated.net https://lingva.ml https://translate.plausibility.cloud https://lingva.garudalinux.org https://api.rss2json.com https://api.allorigins.win https://api.codetabs.com https://proxy.cors.sh https://test.cors.workers.dev https://corsproxy.org https://thingproxy.freeboard.io https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self';">
 <!-- Anti-clickjacking en JS : GitHub Pages (seul hebergeur desormais, voir
      plus haut) ne permet pas de fixer l'en-tete HTTP X-Frame-Options —
      cette protection compense en sortant la page de tout iframe cross-
@@ -28,6 +28,10 @@
      AVANT lui : le script applicatif s'appuie sur ces noms. -->
 <script src="js/noyau.js"></script>
 <script src="js/intro.js"></script>
+<!-- Fournisseur d'identite : Firebase si js/firebase-config.js est rempli,
+     Supabase sinon (voir getSentinelSupabase et FIREBASE.md). -->
+<script src="js/firebase-config.js"></script>
+<script src="js/firebase.js"></script>
 <script>
 try {
   if (window.top !== window.self) { window.top.location = window.self.location; }
@@ -955,6 +959,12 @@ body.plein-ecran-module > .stbar { display:none !important; }
   z-index:9000;display:flex;align-items:center;justify-content:center;
   overflow-y:auto;-webkit-overflow-scrolling:touch;padding:32px 16px}
 .auth-overlay.hidden{display:none}
+/* Firebase : l'e-mail porte un lien, pas de code a saisir (voir appliquerModeLien). */
+#otpForm.mode-lien .auth-field,#otpForm.mode-lien #otpVerifyBtn{display:none}
+/* Bouton secondaire : le theme sombre force le texte des .auth-btn en
+   couleur « sur action » (!important), d'ou la specificite renforcee. */
+.auth-btn.auth-btn-google,html[data-theme="dark"] .auth-btn.auth-btn-google{background:var(--w);color:var(--t) !important;border:1px solid var(--bd);margin-top:8px}
+.auth-btn.auth-btn-google:hover,html[data-theme="dark"] .auth-btn.auth-btn-google:hover{background:var(--sf);border-color:var(--b)}
 
 /* ═══ VIDÉO DE DÉMARRAGE ════════════════════════════════════════════════
    Joue une fois par onglet (sessionStorage, partagé avec la page d'accueil —
@@ -2895,6 +2905,9 @@ html.force-mobile .tlbr .chips::-webkit-scrollbar{display:none}
       </details>
       <button class="auth-btn" onclick="envoyerCodeEmail()" id="otpSendBtn">
         <i class="ti ti-mail"></i> <span data-i18n="otp_send">Recevoir mon code par e-mail</span>
+      </button>
+      <button class="auth-btn auth-btn-google" onclick="connexionGoogle()" id="googleBtn" style="display:none">
+        <i class="ti ti-brand-google"></i> <span data-i18n="login_google">Continuer avec Google</span>
       </button>
       <button class="auth-btn" onclick="doLogin()" id="loginBtn" style="display:none">
         <i class="ti ti-login"></i> <span data-i18n="login_btn">Se connecter</span>
@@ -5744,6 +5757,7 @@ const I18N = {
     otp_title:'Entrez votre code', otp_sent_to:"Un code vient d'être envoyé à", otp_code_label:'Code reçu par e-mail', otp_verify:'Valider et entrer',
     otp_help:'Le code est valable quelques minutes et peut mettre jusqu\'à deux minutes à arriver. Vérifiez vos courriers indésirables : le même e-mail contient aussi un lien de connexion.', otp_resend:'Renvoyer le code', otp_resend_in:'Renvoyer le code dans {s} s', otp_change:"Changer d'adresse",
     otp_err_code:'Code incorrect ou expiré. Vérifiez-le ou demandez-en un nouveau.', otp_err_rate:'Trop de demandes pour cette adresse. Patientez une minute puis réessayez.', otp_err_send:"L'envoi du code a échoué. Réessayez dans un instant.", otp_err_signup:"Les inscriptions par e-mail ne sont pas ouvertes pour le moment.", otp_err_smtp:"Le service d'envoi d'e-mails du serveur ne répond pas : le code ne peut pas partir pour l'instant (administrateur : voir réglages SMTP).", otp_err_net:"Connexion au serveur impossible. Vérifiez votre réseau.", otp_err_fallback:"Connectez-vous avec votre mot de passe ci-dessous.", otp_no_code:"Pas de code ? Me connecter avec un mot de passe",
+    login_google:'Continuer avec Google', login_google_err:"La connexion Google a échoué. Réessayez, ou utilisez le lien par e-mail.", login_sub_lien:'Votre adresse e-mail suffit : nous vous envoyons un lien de connexion, sans mot de passe.', otp_send_lien:'Recevoir mon lien par e-mail', otp_use_lien:'Recevoir un lien par e-mail à la place', otp_title_lien:'Ouvrez le lien reçu', otp_sent_to_lien:'Un lien de connexion vient d\'être envoyé à', otp_help_lien:"Ouvrez cet e-mail sur cet appareil et cliquez le lien : vous serez connecté directement. Il peut mettre une à deux minutes à arriver ; vérifiez vos courriers indésirables.", otp_no_lien:'Pas de lien ? Me connecter avec Google ou un mot de passe', otp_resend_lien:'Renvoyer le lien', otp_resend_lien_in:'Renvoyer le lien dans {s} s', otp_err_quota:"Limite quotidienne d'e-mails de connexion atteinte. Utilisez « Continuer avec Google » ou un mot de passe.", otp_err_lien:'Ce lien a expiré ou a déjà servi. Demandez-en un nouveau.', otp_lien_confirmer:"Lien de connexion reçu : saisissez l'adresse e-mail à laquelle il a été envoyé, puis validez.",
     login_email_label:'Adresse e-mail', login_code_label:"Mot de passe", login_btn:'Se connecter',
     login_first_time:'Nouveau ? Votre e-mail suffit.', login_request_access:'Créer un compte avec mot de passe', login_reset:"Mot de passe oublié ?",
     ph_login_code:"Votre mot de passe",
@@ -5893,6 +5907,7 @@ const I18N = {
     otp_title:'Enter your code', otp_sent_to:'A code was just sent to', otp_code_label:'Code received by email', otp_verify:'Confirm and enter',
     otp_help:'The code is valid for a few minutes and can take up to two minutes to arrive. Check your spam folder: the same e-mail also contains a sign-in link.', otp_resend:'Resend the code', otp_resend_in:'Resend the code in {s} s', otp_change:'Use another address',
     otp_err_code:'Wrong or expired code. Check it or request a new one.', otp_err_rate:'Too many requests for this address. Wait a minute and try again.', otp_err_send:'The code could not be sent. Please try again shortly.', otp_err_signup:'Email sign-ups are not open at the moment.', otp_err_smtp:"The server's e-mail service is not responding: the code cannot be sent right now (administrator: check SMTP settings).", otp_err_net:'Cannot reach the server. Check your network.', otp_err_fallback:'Sign in with your password below.', otp_no_code:'No code? Sign in with a password',
+    login_google:'Continue with Google', login_google_err:'Google sign-in failed. Try again, or use the e-mail link.', login_sub_lien:'Your e-mail address is enough: we send you a sign-in link, no password.', otp_send_lien:'Email me a sign-in link', otp_use_lien:'Email me a link instead', otp_title_lien:'Open the link we sent', otp_sent_to_lien:'A sign-in link has been sent to', otp_help_lien:'Open this e-mail on this device and click the link: you will be signed in directly. It may take a minute or two; check your spam folder.', otp_no_lien:'No link? Sign in with Google or a password', otp_resend_lien:'Resend the link', otp_resend_lien_in:'Resend the link in {s} s', otp_err_quota:'Daily sign-in e-mail limit reached. Use “Continue with Google” or a password.', otp_err_lien:'This link has expired or was already used. Request a new one.', otp_lien_confirmer:'Sign-in link received: enter the e-mail address it was sent to, then confirm.',
     login_email_label:'Email address', login_code_label:'Password', login_btn:'Log in',
     login_first_time:'New here? Your email is enough.', login_request_access:'Create an account with a password', login_reset:'Forgot password?',
     ph_login_code:'Your password',
@@ -15955,7 +15970,13 @@ const PENDING_KEY = 'sentinel_pending_v1';
 const SENTINEL_SUPABASE_URL      = 'https://zpdwqmliogxbuwirziny.supabase.co';
 const SENTINEL_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwZHdxbWxpb2d4YnV3aXJ6aW55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4NzUyOTYsImV4cCI6MjA5OTQ1MTI5Nn0.fQsTrrV5CIB77l0hxTHHN7oVICVzZdhwa9-d0WsCYI0';
 let _sentinelSupabaseClient = null;
+// Bascule Firebase du 21/10/2026 (plan gratuit, sans SMTP) : des que la
+// configuration publique de web/js/firebase-config.js est remplie, c'est
+// l'adaptateur Firebase (meme API que supabase-js pour ce que la page
+// utilise) qui repond ici — et seulement ici. Sinon, Supabase comme avant.
+function _fournisseurFirebase() { return !!(window.SentiqFirebase && window.SentiqFirebase.actif()); }
 function getSentinelSupabase() {
+  if (_fournisseurFirebase()) return window.SentiqFirebase.client();
   if (!SENTINEL_SUPABASE_URL || !SENTINEL_SUPABASE_ANON_KEY) return null;
   if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') return null;
   if (!_sentinelSupabaseClient) {
@@ -15972,7 +15993,22 @@ function getSentinelSupabase() {
 // signInWithPassword() sur le client qui les appelle ; une instance
 // jetable isole entierement cet effet de bord du client "principal"
 // (getSentinelSupabase) utilise pour la session de l'utilisateur courant.
+// getClientDonnees() : le cache d'actus, l'agenda, la configuration et le
+// corpus partages restent sur Supabase tant que leur bascule n'est pas faite
+// (etapes suivantes de la migration). Ils ne passent donc jamais par
+// l'adaptateur Firebase, meme une fois la connexion basculee : un cache
+// illisible ferait relancer a chaque visiteur sa propre collecte complete.
+function getClientDonnees() {
+  if (!SENTINEL_SUPABASE_URL || !SENTINEL_SUPABASE_ANON_KEY) return null;
+  if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') return null;
+  if (!_sentinelSupabaseClient) {
+    try { _sentinelSupabaseClient = window.supabase.createClient(SENTINEL_SUPABASE_URL, SENTINEL_SUPABASE_ANON_KEY); }
+    catch (_) { return null; }
+  }
+  return _sentinelSupabaseClient;
+}
 function _clientSupabaseEphemere() {
+  if (_fournisseurFirebase()) return window.SentiqFirebase.clientEphemere();
   if (!SENTINEL_SUPABASE_URL || !SENTINEL_SUPABASE_ANON_KEY) return null;
   if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') return null;
   try {
@@ -16071,7 +16107,7 @@ const COLLECTE_PARTAGEE_FRAICHEUR_MS = 40 * 60 * 1000;
 // collecte reseau locale normale, sans jamais bloquer ni faire echouer le
 // chargement de l'app.
 async function lireCollectePartagee() {
-  const client = getSentinelSupabase();
+  const client = getClientDonnees();
   if (!client) return null;
   try {
     const { data, error } = await client.from('collecte_partagee')
@@ -16153,7 +16189,7 @@ async function _publierViaFonctionEdge(articles, force) {
 async function publierCollectePartagee(articles, force) {
   const viaEdge = await _publierViaFonctionEdge(articles, force);
   if (viaEdge) return viaEdge;
-  const client = getSentinelSupabase();
+  const client = getClientDonnees();
   if (!client) return { ok: false, raison: 'Supabase non configure/joignable' };
   if (!Array.isArray(articles) || !articles.length) return { ok: false, raison: 'Aucun article a publier' };
   try {
@@ -16223,7 +16259,7 @@ async function publierCollectePartagee(articles, force) {
 // projet Supabase depuis sa creation, jamais signalee nulle part).
 const CACHE_PARTAGE_PANNE_SEUIL_MS = 90 * 60 * 1000; // 3x le cycle nominal (~30 min)
 async function diagnostiquerCachePartage() {
-  const client = getSentinelSupabase();
+  const client = getClientDonnees();
   if (!client) return { disponible: false, raison: 'Supabase non configure/joignable' };
   try {
     const { data, error } = await client.from('collecte_partagee').select('articles,updated_at').eq('id', COLLECTE_PARTAGEE_ID).maybeSingle();
@@ -16258,7 +16294,7 @@ async function diagnostiquerCachePartage() {
 // un upsert de plusieurs centaines de lignes a chaque cycle.
 const ARTICLES_RAG_MAX_PAR_APPEL = 300;
 async function publierArticlesRagPartages(articles) {
-  const client = getSentinelSupabase();
+  const client = getClientDonnees();
   if (!client || !Array.isArray(articles) || !articles.length) return;
   try {
     const lignes = articles
@@ -16312,7 +16348,7 @@ async function publierArticlesRagPartages(articles) {
 // entree d'agenda a moins de la fenetre de recence. C'est ok:true, publiees:0.
 const AGENDA_PARTAGEE_MAX_PAR_APPEL = 200;
 async function publierAgendaPartagee(articles) {
-  const client = getSentinelSupabase();
+  const client = getClientDonnees();
   if (!client) return { ok: false, publiees: 0, raison: 'client Supabase indisponible' };
   if (!Array.isArray(articles) || !articles.length) {
     return { ok: true, publiees: 0, raison: 'aucun article a examiner' };
@@ -16366,7 +16402,7 @@ function ligneAgendaPartageeVersEntree(row) {
 }
 
 async function lireAgendaPartagee() {
-  const client = getSentinelSupabase();
+  const client = getClientDonnees();
   if (!client) return null;
   try {
     const seuil = new Date(Date.now() - AGENDA_MAX_AGE).toISOString();
@@ -16417,7 +16453,7 @@ const CONFIG_PARTAGEE_ID = 'global';
 // appliquee), ou si aucune configuration valide (les 3 champs) n'a encore
 // ete enregistree par un administrateur.
 async function lireConfigEmailjsPartagee() {
-  const client = getSentinelSupabase();
+  const client = getClientDonnees();
   if (!client) return null;
   try {
     const { data, error } = await client.from('config_partagee')
@@ -16433,7 +16469,7 @@ async function lireConfigEmailjsPartagee() {
 // Best-effort, jamais bloquant (l'enregistrement local reste effectif meme
 // si Supabase est indisponible).
 async function publierConfigEmailjsPartagee(cfg) {
-  const client = getSentinelSupabase();
+  const client = getClientDonnees();
   if (!client) return;
   try {
     const { error } = await client.from('config_partagee').upsert({
@@ -16840,7 +16876,7 @@ async function _ouvrirSessionDepuisSupabase(authUser) {
     // status sont de toute facon toujours redetermines cote serveur
     // (trigger before insert, voir migration profiles_auth).
     const { data: cree, error: errCreation } = await client.from('profiles')
-      .insert({ id: authUser.id, email: authUser.email, data: { plan: 'gratuit', createdAt: new Date().toISOString() } })
+      .insert({ id: authUser.id, email: authUser.email, data: Object.assign(profilInscriptionEnAttente(authUser.email), { plan: 'gratuit', createdAt: new Date().toISOString() }) })
       .select('*').maybeSingle();
     if (errCreation) {
       if (errEl) { errEl.textContent = 'Erreur de creation du profil : ' + errCreation.message; errEl.classList.add('show'); }
@@ -16873,6 +16909,20 @@ async function _ouvrirSessionDepuisSupabase(authUser) {
   }
   finaliserConnexion(user);
   return true;
+}
+
+// profilInscriptionEnAttente(email) : nom, organisation, zone et forfait
+// souhaite saisis dans la fenetre « Essai gratuit » de l'accueil. Avec
+// Firebase le compte n'existe qu'au retour du lien e-mail, dans CETTE page :
+// l'accueil les laisse donc sur l'appareil (sentiq_profil_inscription) et ils
+// sont repris une seule fois, a la creation du profil, si l'adresse concorde.
+// Le plan et la date d'essai ne viennent jamais de la : ils sont poses ici.
+function profilInscriptionEnAttente(email) {
+  let p = null;
+  try { p = JSON.parse(localStorage.getItem('sentiq_profil_inscription') || 'null'); localStorage.removeItem('sentiq_profil_inscription'); } catch (_) { p = null; }
+  if (!p || !p.profil || String(p.email || '').toLowerCase() !== String(email || '').toLowerCase()) return {};
+  const { name, organisation, zonePrioritaire, planSouhaite } = p.profil;
+  return JSON.parse(JSON.stringify({ name, organisation, zonePrioritaire, planSouhaite }));
 }
 
 function finaliserConnexion(user) {
@@ -17031,6 +17081,8 @@ function normaliserCodeOtp(v) {
 }
 function messageErreurOtp(err, envoi) {
   const m = String((err && (err.message || err.code)) || '');
+  if (/quota/i.test(m)) return t('otp_err_quota');
+  if (/link expired|already used|invalid-action-code|expired-action-code/i.test(m)) return t('otp_err_lien');
   if (/rate|too many|after \d+ seconds|429|over_email_send_rate_limit/i.test(m)) return t('otp_err_rate');
   if (/signups? not allowed|signup_disabled/i.test(m)) return t('otp_err_signup');
   // Envoi impossible cote serveur (SMTP absent ou refuse, modele d'e-mail casse) :
@@ -17049,7 +17101,8 @@ function basculerModeConnexion() {
   document.getElementById('loginPassBloc').style.display = mdp ? 'block' : 'none';
   document.getElementById('loginBtn').style.display = mdp ? 'block' : 'none';
   document.getElementById('otpSendBtn').style.display = mdp ? 'none' : 'block';
-  document.getElementById('modeConnexionLien').textContent = t(mdp ? 'otp_use_code' : 'otp_use_password');
+  const parLien = !!document.querySelector('#otpForm.mode-lien');
+  document.getElementById('modeConnexionLien').textContent = t(mdp ? (parLien ? 'otp_use_lien' : 'otp_use_code') : 'otp_use_password');
   _otpErreur('loginErr', '');
   const champ = document.getElementById(mdp ? 'loginPass' : 'loginEmail'); if (champ) champ.focus();
 }
@@ -17066,6 +17119,36 @@ function otpVersMotDePasse() {
   const e = document.getElementById('loginEmail'); if (e && _otpEmail && !e.value) e.value = _otpEmail;
   afficherModeMotDePasse();
 }
+// connexionGoogle() : sans mot de passe et sans quota d'e-mail (Firebase
+// seulement : le bouton reste masque avec Supabase). La reconnexion du jour
+// est respectee, puisque c'est une saisie faite maintenant.
+async function connexionGoogle() {
+  _otpErreur('loginErr', '');
+  const client = getSentinelSupabase();
+  if (!client || !client.auth.signInWithOAuth) { _otpErreur('loginErr', t('otp_err_send')); return; }
+  const btn = document.getElementById('googleBtn'); if (btn) btn.disabled = true;
+  try {
+    const { data, error } = await client.auth.signInWithOAuth({ provider: 'google' });
+    if (error) { if (!/popup closed/i.test(error.message || '')) _otpErreur('loginErr', t('login_google_err')); return; }
+    if (data && data.user) await _ouvrirSessionDepuisSupabase(data.user);
+  } catch (e) { _otpErreur('loginErr', t('login_google_err')); }
+  finally { if (btn) btn.disabled = false; }
+}
+// appliquerModeLien() : avec Firebase, l'e-mail porte un LIEN, pas un code.
+// Les libelles basculent sur leurs equivalents « lien » (cles i18n dediees,
+// FR/EN) et l'ecran d'attente masque la saisie du code.
+function appliquerModeLien() {
+  const g = document.getElementById('googleBtn'); if (g) g.style.display = 'block';
+  const f = document.getElementById('otpForm'); if (f) f.classList.add('mode-lien');
+  [['otpSendBtn', 'otp_send_lien'], ['loginForm', 'login_sub_lien', '.auth-sub'], ['otpForm', 'otp_title_lien', '.auth-title'],
+   ['otpAide', 'otp_help_lien'], ['otpVersMdp', 'otp_no_lien'], ['otpRenvoi', 'otp_resend_lien']].forEach(([id, cle, sel]) => {
+    const racine = document.getElementById(id); if (!racine) return;
+    const el = sel ? racine.querySelector(sel) : (racine.querySelector('[data-i18n]') || racine);
+    if (el) el.setAttribute('data-i18n', cle);
+  });
+  const env = document.querySelector('#otpForm [data-i18n="otp_sent_to"]'); if (env) env.setAttribute('data-i18n', 'otp_sent_to_lien');
+  if (typeof setLang === 'function') setLang(LANG);
+}
 function validerConnexion() { if (_modeConnexion === 'mdp') doLogin(); else envoyerCodeEmail(); }
 async function envoyerCodeEmail(renvoi) {
   const email = (renvoi && _otpEmail) ? _otpEmail : document.getElementById('loginEmail').value.trim().toLowerCase();
@@ -17076,6 +17159,17 @@ async function envoyerCodeEmail(renvoi) {
   if (!client) { _otpErreur(erreurId, t('otp_err_send')); return; }
   if (renvoi && Date.now() < _otpProchainEnvoi) return;
   const btn = document.getElementById('otpSendBtn'); if (btn) btn.disabled = true;
+  // Lien Firebase ouvert sans l'adresse gardee sur cet appareil : on la
+  // redemande pour conclure, sans renvoyer d'e-mail (quota de 5 par jour).
+  if (!renvoi && client.auth.lienEnAttente && client.auth.lienEnAttente()) {
+    try {
+      const { data, error } = await client.auth.terminerLienEmail(email);
+      if (error || !data || !data.user) { _otpErreur('loginErr', messageErreurOtp(error, false)); return; }
+      await _ouvrirSessionDepuisSupabase(data.user);
+    } catch (e) { _otpErreur('loginErr', t('otp_err_send')); }
+    finally { if (btn) btn.disabled = false; }
+    return;
+  }
   try {
     const { error } = await client.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: location.origin + location.pathname } });
     if (error) {
@@ -17094,7 +17188,7 @@ async function envoyerCodeEmail(renvoi) {
     document.getElementById('otpCode').value = '';
     _otpAfficher('otpForm');
     _otpDecompte();
-    const c = document.getElementById('otpCode'); if (c) c.focus();
+    const c = document.getElementById('otpCode'); if (c && !client.auth.parLien) c.focus();
   } catch (e) { _otpErreur(erreurId, t('otp_err_send')); }
   finally { if (btn) btn.disabled = false; }
 }
@@ -17105,8 +17199,9 @@ function _otpDecompte() {
   const maj = () => {
     const reste = Math.ceil((_otpProchainEnvoi - Date.now()) / 1000);
     if (!lien) return;
-    if (reste > 0) { lien.textContent = t('otp_resend_in').replace('{s}', reste); lien.setAttribute('aria-disabled', 'true'); }
-    else { lien.textContent = t('otp_resend'); lien.removeAttribute('aria-disabled'); clearInterval(_otpMinuteur); }
+    const parLien = !!document.querySelector('#otpForm.mode-lien');
+    if (reste > 0) { lien.textContent = t(parLien ? 'otp_resend_lien_in' : 'otp_resend_in').replace('{s}', reste); lien.setAttribute('aria-disabled', 'true'); }
+    else { lien.textContent = t(parLien ? 'otp_resend_lien' : 'otp_resend'); lien.removeAttribute('aria-disabled'); clearInterval(_otpMinuteur); }
   };
   maj(); _otpMinuteur = setInterval(maj, 1000);
 }
@@ -17360,6 +17455,10 @@ async function checkAuth() {
   else if (location.hash === '#methodologie' && typeof ouvrirMethodologiePublique === 'function') ouvrirMethodologiePublique();
 
   const _hashAvantSdk = (location.hash || '') + (location.search || '');
+  if (_fournisseurFirebase()) {
+    try { await window.SentiqFirebase.charger(); } catch (e) { console.warn('SentiqS — kit Firebase non charge :', e && e.message ? e.message : e); }
+    if (window.SentiqFirebase.client()) appliquerModeLien();
+  }
   const client = getSentinelSupabase();
   if (!client) {
     // Supabase indisponible (SDK non charge, hors ligne au tout premier
@@ -17388,7 +17487,8 @@ async function checkAuth() {
     }
   });
 
-  const { data: { session } } = await client.auth.getSession();
+  if (client.auth.resultatRedirection) await client.auth.resultatRedirection();
+  const { data: { session }, error: erreurSession } = await client.auth.getSession();
   // Reconnexion quotidienne obligatoire (voir _sessionLocaleDuJour) : une
   // session Supabase techniquement valide plus longtemps (rafraichissement
   // automatique du jeton) est neanmoins ignoree si la trace locale de
@@ -17398,8 +17498,10 @@ async function checkAuth() {
   // une connexion TOUTE FRAICHE, confirmee par le serveur (last_sign_in_at),
   // compte comme la saisie du jour. Un simple « #access_token= » ajoute a la
   // main ne suffit pas a contourner la reconnexion quotidienne.
-  const _retourLien = !!(session && session.user && /[#&?](access_token|code)=|#connexion-fraiche/.test(_hashAvantSdk) &&
-    (Date.now() - new Date(session.user.last_sign_in_at || 0).getTime()) < 120000);
+  // Firebase : connexion_fraiche n'est vrai que si l'adaptateur vient lui-meme
+  // de conclure le lien e-mail ou la connexion Google dans cette page.
+  const _retourLien = !!(session && session.user && (session.user.connexion_fraiche || (/[#&?](access_token|code)=|#connexion-fraiche/.test(_hashAvantSdk) &&
+    (Date.now() - new Date(session.user.last_sign_in_at || 0).getTime()) < 120000)));
   if (_retourLien) { try { history.replaceState(null, '', location.pathname); } catch (_) {} }
   if (session && session.user && (_retourLien || _sessionLocaleDuJour())) {
     const ok = await _ouvrirSessionDepuisSupabase(session.user);
@@ -17409,6 +17511,10 @@ async function checkAuth() {
     clearSession();
   }
   afficherEcranConnexion();
+  // Lien Firebase ouvert sur un autre appareil que celui de la demande, ou
+  // perime : on le dit au lieu de laisser croire a un echec silencieux.
+  if (client.auth.lienEnAttente && client.auth.lienEnAttente()) _otpErreur('loginErr', t('otp_lien_confirmer'));
+  else if (erreurSession) _otpErreur('loginErr', messageErreurOtp(erreurSession, false));
 }
 
 
