@@ -1,6 +1,10 @@
 {
- "cle": "SC,SL",
+ "cle": "CV,ER,KM,LS,SC,SL",
  "pays": [
+  "CV",
+  "ER",
+  "KM",
+  "LS",
   "SC",
   "SL"
  ]
