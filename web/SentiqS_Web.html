@@ -2778,6 +2778,17 @@ html.force-mobile .tlbr .tlbr-actu span{display:none}
 html.force-mobile .tlbr .chips{flex:1 1 100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
 html.force-mobile .tlbr .chips::-webkit-scrollbar{display:none}
 
+/* ═══ PAS D'IMAGE, PAS DE CADRE — 23/10/2026 ═══
+   Consigne de YORO : « ne rien afficher si absence de photo ou de vidéo »,
+   dans le Flux et dans tous les modules. Le repli de marque (pays, thème,
+   gravité dans un cadre bleu nuit) occupait la place d'une image absente et
+   chevauchait l'heure de l'actu sur mobile. Sans image ni vidéo, le visuel
+   disparaît entièrement ; une image qui échoue au chargement pose sans-img
+   et disparaît de même ; un aperçu Open Graph arrivé plus tard retire
+   sans-img et le fait apparaître. Une vidéo sans vignette garde son bouton. */
+.vact.sans-img:not(.vact-video){display:none}
+.det-visuel:has(> .vact.sans-img:not(.vact-video)){display:none}
+
 /* ═══ MOBILE : LE CONTENU D'ABORD — 22/10/2026 (voir CLAUDE.md) ═══
    Capture de YORO sur téléphone (texte agrandi par le navigateur) : barre du
    haut, bandeau « Cliquez sur Actualiser », collecte, flash info, filtre pays,
@@ -2790,7 +2801,9 @@ html.force-mobile .tlbr .chips::-webkit-scrollbar{display:none}
    Le bandeau « Cliquez sur Actualiser » redoublait le bouton Actualiser de
    la barre du haut : masqué. La collecte tient sur une ligne fine, la note
    d'aide disparaît (le titre du module dit déjà où l'on est), le pied de
-   page perd ses capitales. Le mode plein écran d'un module garde sa coque. */
+   page perd ses capitales. L'en-tête « TABLEAU DE BORD » redisait l'onglet
+   actif et le bouton Actualiser de la barre du haut : masqué (75 px gagnés).
+   Le mode plein écran d'un module garde sa coque. */
 @media (max-width:760px){
   html:not(.force-web) body:not(.plein-ecran-module){height:auto;min-height:100dvh;overflow:visible}
   html:not(.force-web) body:not(.plein-ecran-module) > .layout,html:not(.force-web) body:not(.plein-ecran-module) > .layout > .main,html:not(.force-web) body:not(.plein-ecran-module) > .layout .view.on{flex:none;min-height:0;overflow:visible}
@@ -2808,6 +2821,7 @@ html.force-mobile .tlbr .chips::-webkit-scrollbar{display:none}
   html:not(.force-web) .cbar .cbar-track{flex:0 0 56px}
   html:not(.force-web) .cbar .cbar-msg{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
   html:not(.force-web) .view-note{display:none}
+  html:not(.force-web) #dashEntete{display:none}
   html:not(.force-web) .stbar{position:static;flex-direction:column;align-items:flex-start;gap:2px;text-transform:none;letter-spacing:0;font-weight:500}
 }
 html.force-mobile body:not(.plein-ecran-module){height:auto;min-height:100dvh;overflow:visible}
@@ -2826,6 +2840,7 @@ html.force-mobile .cbar .cbar-lbl span,html.force-mobile .cbar #cbarArt,html.for
 html.force-mobile .cbar .cbar-track{flex:0 0 56px}
 html.force-mobile .cbar .cbar-msg{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 html.force-mobile .view-note{display:none}
+html.force-mobile #dashEntete{display:none}
 html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-start;gap:2px;text-transform:none;letter-spacing:0;font-weight:500}
 </style>
 
@@ -3787,7 +3802,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
 
     <!-- ═══════════════════ TABLEAU DE BORD ═══════════════════ -->
     <div class="view on" id="v-dashboard">
-      <div style="background:var(--w);padding:8px 16px;flex-shrink:0;border-bottom:1px solid var(--bd);">
+      <div id="dashEntete" style="background:var(--w);padding:8px 16px;flex-shrink:0;border-bottom:1px solid var(--bd);">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <div style="width:24px;height:24px;border-radius:6px;background:var(--bl);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <i class="ti ti-layout-dashboard" style="font-size:13px;color:var(--b)"></i>

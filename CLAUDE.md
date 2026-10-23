@@ -3118,3 +3118,13 @@ Mesuré à 360 px, texte à 135 % : haut du contenu 246 → 169 px, aucun débor
 horizontal (la barre du haut dépassait de 48 px), première carte du Flux
 entière sur le premier écran. `scripts/test/mobile-contenu.test.js` (4, vus
 échouer sur l'ancien code).
+
+**Pas d'image, pas de cadre (23/10/2026).** Consigne de YORO : « ne rien
+afficher si absence de photo ou de vidéo », partout. Le repli de marque de
+`visuelActu` (pays, thème, gravité) reste dans le balisage mais une règle
+globale le masque avec son cadre (`.vact.sans-img:not(.vact-video)`, et
+`.det-visuel` qui le contient) : bureau et mobile, Flux, À la une, faits du
+jour, détail. Une image qui échoue pose `sans-img` et disparaît ; un aperçu
+Open Graph arrivé plus tard l'enlève et fait apparaître l'image. Une vidéo
+sans vignette garde son bouton. Sur mobile, l'en-tête « TABLEAU DE BORD »
+(`#dashEntete`), qui redisait l'onglet actif, est masqué.

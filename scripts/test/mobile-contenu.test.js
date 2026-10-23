@@ -57,3 +57,18 @@ test('les bandeaux redondants sont replies sur mobile, jamais sur le bureau', ()
   assert.match(r, /^\.stbar\{position:static;[^}]*text-transform:none/m, 'le pied de page ne doit plus etre colle ni en capitales');
   assert.match(r, /^\.tb-r\{flex:0 1 auto;min-width:0\}$/m, 'la barre du haut ne doit plus deborder a droite');
 });
+
+test('sans photo ni video, aucun cadre de visuel ne s\'affiche, dans tous les modules', () => {
+  // Consigne du 23/10/2026 : le repli de marque occupait la place d'une image
+  // absente. Une seule regle, hors media query : bureau et mobile, Flux, A la
+  // une, faits du jour et detail d'une actu passent tous par visuelActu().
+  assert.match(HTML, /\n\.vact\.sans-img:not\(\.vact-video\)\{display:none\}/);
+  assert.match(HTML, /\n\.det-visuel:has\(> \.vact\.sans-img:not\(\.vact-video\)\)\{display:none\}/);
+  // L'image qui echoue au chargement doit poser sans-img, sinon un cadre vide reste.
+  assert.match(HTML, /onerror="this\.parentElement\.classList\.add\(\\'sans-img\\'\);this\.remove\(\)"/);
+});
+
+test('sur mobile l\'en-tete du tableau de bord, redondant avec l\'onglet, est masque', () => {
+  assert.match(HTML, /<div id="dashEntete"/);
+  assert.match(regles('html.force-mobile').join('\n'), /^#dashEntete\{display:none\}$/m);
+});
