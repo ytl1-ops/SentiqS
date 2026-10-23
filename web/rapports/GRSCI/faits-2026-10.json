@@ -11,6 +11,14 @@
     "publieMs": 1792746922000
    },
    {
+    "titre": "Danané/Chirurgie humanitaire - 134 patients opérés gratuitement, dont 114 pour une hernie",
+    "url": "https://fr.allafrica.com/stories/202610230529.html",
+    "source": "AllAfrica (CI)",
+    "niveau": "mod",
+    "cat": "humanitaire",
+    "publieMs": 1792775512000
+   },
+   {
     "titre": "L'audience sur l'élection de Tidjane Thiam à la tête du PDCI renvoyée",
     "url": "https://fr.allafrica.com/stories/202610230399.html",
     "source": "AllAfrica (CI)",
@@ -55,12 +63,28 @@
   ],
   "ML": [
    {
+    "titre": "Benson Diakité, ancienne grande voix de RFI, est mort",
+    "url": "https://www.rfi.fr/fr/afrique/20261023-benson-diakit%C3%A9-ancienne-grande-voix-de-rfi-est-mort",
+    "source": "RFI Afrique",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1792777245000
+   },
+   {
     "titre": "Lutte contre le terrorisme à Kayes : La police frappe au cœur des réseaux de soutien logistique des GAT",
     "url": "https://maliactu.net/lutte-contre-le-terrorisme-a-kayes-la-police-frappe-au-coeur-des-reseaux-de-soutien-logistique-des-gat/",
     "source": "Maliactu",
     "niveau": "crit",
     "cat": "securite",
     "publieMs": 1792764409000
+   },
+   {
+    "titre": "Situation sécuritaire : Plus de 4.880 terroristes neutralisés et 162 bases détruites par les FAMa",
+    "url": "https://amap.ml/2026/10/23/situation-securitaire-plus-de-4-880-terroristes-neutralises-et-162-bases-detruites-par-les-fama/",
+    "source": "AMAP — Agence Malienne Presse",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1792776488000
    },
    {
     "titre": "Point de presse: les FAMa annoncent plus de 4 880 combattants terroristes neutralisés",
@@ -113,6 +137,38 @@
   ],
   "NE": [
    {
+    "titre": "Lancement officiel de la caravane de sensibilisation et de formation sur les bonnes pratiques de greffes et parquets et l’établissement des pièces d’exécution",
+    "url": "https://anp.ne/lancement-officiel-de-la-caravane-de-sensibilisation-et-de-formation-sur-les-bonnes-pratiques-de-greffes-et-parquets-et-letablissement-des-pieces-dexecution/",
+    "source": "ANP — Agence Nigérienne Presse",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1792785966000
+   },
+   {
+    "titre": "Carburant : le Niger cherche des leviers pour sortir de la crise",
+    "url": "https://www.jeuneafrique.com/1854691/economie-entreprises/carburant-le-niger-cherche-des-leviers-pour-sortir-de-la-crise/",
+    "source": "Jeune Afrique",
+    "niveau": "high",
+    "cat": "economique",
+    "publieMs": 1792779762000
+   },
+   {
+    "titre": "Tahoua : Les Autorités régionales prennent part à une prière collective pour la paix et la sécurité au Niger",
+    "url": "https://anp.ne/tahoua-les-autorites-regionales-prennent-part-a-une-priere-collective-pour-la-paix-et-la-securite-au-niger/",
+    "source": "ANP — Agence Nigérienne Presse",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1792776840000
+   },
+   {
+    "titre": "Rentrée judiciaire 2026-2027 : le Président Tiani appelle la justice à s’inscrire dans la dynamique de la Refondation…",
+    "url": "https://tamtaminfo.com/rentree-judiciaire-2026-2027-le-president-tiani-appelle-la-justice-a-sinscrire-dans-la-dynamique-de-la-refondation/",
+    "source": "Tamtaminfo",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792789710000
+   },
+   {
     "titre": "Algeria-Niger ‘security pact’: What’s behind Algiers’ military push into the Sahel?",
     "url": "https://www.theafricareport.com/434371/algeria-niger-security-pact-whats-behind-algiers-military-push-into-the-sahel/",
     "source": "The Africa Report",
@@ -122,6 +178,14 @@
    }
   ],
   "GH": [
+   {
+    "titre": "Seven shot dead by gunmen at church funeral in Jordan, officials say",
+    "url": "https://www.myjoyonline.com/seven-shot-dead-by-gunmen-at-church-funeral-in-jordan-officials-say/",
+    "source": "JoyOnline",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1792781348000
+   },
    {
     "titre": "NPP Walewale Constituency condemns personal attacks against MP, urges party discipline",
     "url": "https://www.myjoyonline.com/npp-walewale-constituency-condemns-personal-attacks-against-mp-urges-party-discipline/",
@@ -137,6 +201,14 @@
     "niveau": "high",
     "cat": "securite",
     "publieMs": 1792771569000
+   },
+   {
+    "titre": "Le président ghanéen affirme que le barrage de Megech, au pays, inspire la relance d'un projet d'irrigation abandonné",
+    "url": "https://fr.allafrica.com/stories/202610230589.html",
+    "source": "AllAfrica (ET)",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1792789257000
    },
    {
     "titre": "Richard Kumadoe blames flawed recruitment for problems at BNI",
@@ -164,6 +236,22 @@
    }
   ],
   "TG": [
+   {
+    "titre": "Togo : agriculture, nucléaire… les députés adoptent quatre textes stratégiques",
+    "url": "https://24heureinfo.com/politique/togo-agriculture-nucleaire-les-deputes-adoptent-quatre-textes-strategiques/",
+    "source": "24heureinfo.com",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792777865000
+   },
+   {
+    "titre": "Togo / loi d’orientation agricole : la marche vers la souveraineté alimentaire",
+    "url": "https://lenouveaureporter.com/togo-loi-dorientation-agricole-la-marche-vers-la-souverainete-alimentaire/",
+    "source": "Le Nouveau Reporter",
+    "niveau": "mod",
+    "cat": "humanitaire",
+    "publieMs": 1792775069000
+   },
    {
     "titre": "Kloto : Une délégation de la coopération allemande visite des initiatives de développement",
     "url": "https://atop.tg/kloto-une-delegation-de-la-cooperation-allemande-visite-des-initiatives-de-developpement/",
@@ -207,6 +295,22 @@
   ],
   "BJ": [],
   "GN": [
+   {
+    "titre": "Cellcom Guinée : la FESATEL alerte sur les salaires impayés et réclame l’ouverture urgente de négociations",
+    "url": "https://guineematin.com/2026/10/23/cellcom-guinee-la-fesatel-alerte-sur-les-salaires-impayes-et-reclame-louverture-urgente-de-negociations/?utm_source=rss&utm_medium=rss&utm_campaign=cellcom-guinee-la-fesatel-alerte-sur-les-salaires-impayes-et-reclame-louverture-urgente-de-negociations",
+    "source": "Guineematin.com",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1792783623000
+   },
+   {
+    "titre": "Conakry : traquée par GPS, une moto volée permet le démantèlement d’une cache d’engins suspects à Lambanyi",
+    "url": "https://guineematin.com/2026/10/23/conakry-traquee-par-gps-une-moto-volee-permet-le-demantelement-dune-cache-dengins-suspects-a-lambanyi/?utm_source=rss&utm_medium=rss&utm_campaign=conakry-traquee-par-gps-une-moto-volee-permet-le-demantelement-dune-cache-dengins-suspects-a-lambanyi",
+    "source": "Guineematin.com",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792779976000
+   },
    {
     "titre": "« RIP » sur ses photos : Pathé Moloko réapparaît et livre un message",
     "url": "https://www.guinee7.com/2026/10/23/rip-sur-ses-photos-pathe-moloko-reapparait-et-livre-un-message/",
@@ -268,6 +372,14 @@
   ],
   "SN": [
    {
+    "titre": "Ebola au Nigeria, grève au Sénégal, frappe sur un marché au Soudan : l'hebdo Afrique",
+    "url": "https://www.france24.com/fr/afrique/20261023-ebola-nigeria-gr%C3%A8ve-s%C3%A9n%C3%A9gal-frappe-march%C3%A9-soudan-hebdo-afrique",
+    "source": "France 24",
+    "niveau": "crit",
+    "cat": "humanitaire",
+    "publieMs": 1792747925000
+   },
+   {
     "titre": "Sénégal: 14 morts et 368 cas de diphtérie dans 13 régions",
     "url": "https://www.wakatsera.com/senegal-14-morts-et-368-cas-de-diphterie-dans-13-regions/",
     "source": "Wakat Sera",
@@ -276,12 +388,100 @@
     "publieMs": 1792684500000
    },
    {
+    "titre": "Six morts dans une collision entre un camion et un minicar à Ndande",
+    "url": "https://aps.sn/six-morts-dans-une-collision-entre-un-camion-et-un-minicar-a-ndande/",
+    "source": "APS — Agence Sénégalaise Presse",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792796911000
+   },
+   {
+    "titre": "Crise du logement au Sénégal : 500 000 logements manquants, l’État dévoile sa stratégie",
+    "url": "https://www.senenews.com/actualites/crise-du-logement-au-senegal-500-000-logements-manquants-letat-devoile-sa-strategie_603821.html",
+    "source": "SeneNews",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1792792305000
+   },
+   {
+    "titre": "Grève générale : le FSDT revendique une forte mobilisation au troisième jour du mouvement",
+    "url": "https://www.pressafrik.com/Greve-generale-le-FSDT-revendique-une-forte-mobilisation-au-troisieme-jour-du-mouvement_a313485.html",
+    "source": "Pressafrik",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792791480000
+   },
+   {
+    "titre": "3e jour de grève : Le FSDT se félicite d'une mobilisation massive",
+    "url": "https://www.seneweb.com/fr/news/Societe/3e-jour-de-greve-le-fsdt-se-felicite-dune-mobilisation-massive_n_999001556.html",
+    "source": "Seneweb",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792790227000
+   },
+   {
+    "titre": "🔴EN Direct - \"Kaddu Lamb\" : spécial combat Ama Baldé vs Lac 2 - Eumeu Sène vs Jackson",
+    "url": "https://www.pressafrik.com/🔴EN-Direct-Kaddu-Lamb-special-combat-Ama-Balde-vs-Lac-2-Eumeu-Sene-vs-Jackson_a313484.html",
+    "source": "Pressafrik",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792789560000
+   },
+   {
     "titre": "​Médecin blessé par balle à Guédiawaye : 48 heures de grève et une procédure judiciaire enclenchée",
     "url": "https://www.pressafrik.com/​Medecin-blesse-par-balle-a-Guediawaye-48-heures-de-greve-et-une-procedure-judiciaire-enclenchee_a313465.html",
     "source": "Pressafrik",
     "niveau": "high",
     "cat": "politique",
     "publieMs": 1792765740000
+   },
+   {
+    "titre": "Tivaouane : l’ancien directeur de la sécurité publique Abdoulaye Diop inhumé au cimetière Khalkhouss",
+    "url": "https://aps.sn/tivaouane-lancien-directeur-de-la-securite-publique-abdoulaye-diop-inhume-au-cimetiere-khalkhouss/",
+    "source": "APS — Agence Sénégalaise Presse",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792792294000
+   },
+   {
+    "titre": "Kedougou - Un site d'orpaillage clandestin démantelé, 25 motopompes saisies",
+    "url": "https://fr.allafrica.com/stories/202610230599.html",
+    "source": "AllAfrica (SN)",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792790941000
+   },
+   {
+    "titre": "Lutte contre la Diphtérie - Kédougou renforce la riposte contre l'épidémie",
+    "url": "https://fr.allafrica.com/stories/202610230598.html",
+    "source": "AllAfrica (SN)",
+    "niveau": "mod",
+    "cat": "humanitaire",
+    "publieMs": 1792790940000
+   },
+   {
+    "titre": "Sécurité du TER : la SENTER et la Gendarmerie nationale blindent le dispositif",
+    "url": "https://aps.sn/securite-du-ter-la-senter-et-la-gendarmerie-nationale-blindent-le-dispositif/",
+    "source": "APS — Agence Sénégalaise Presse",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792790839000
+   },
+   {
+    "titre": "Désinformation : un rapport appelle à une réponse coordonnée entre l’Afrique et l’Europe",
+    "url": "https://aps.sn/desinformation-un-rapport-appelle-a-une-reponse-coordonnee-entre-lafrique-et-leurope/",
+    "source": "APS — Agence Sénégalaise Presse",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792789806000
+   },
+   {
+    "titre": "Plus de 2 000 élèves de Dakar bénéficient de l'extension de l'initiative « Safer Journeys to School » du groupe Yango au Sénégal",
+    "url": "https://www.dakaractu.com/Plus-de-2-000-eleves-de-Dakar-beneficient-de-l-extension-de-l-initiative-Safer-Journeys-to-School-du-groupe-Yango-au_a277376.html",
+    "source": "Dakar Actu",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792762680000
    },
    {
     "titre": "Exclusive: Emmanuel Macron cancels planned visits to Nigeria and Senegal",
