@@ -35,6 +35,7 @@ const bulletin = require('./lib/bulletin');
 const rapportGrsci = require('./lib/rapport-grsci');
 const rapportGrsciWord = require('./lib/rapport-grsci-word');
 const faitsGrsci = require('./lib/faits-grsci');
+const photosGrsci = require('./lib/photos-grsci');
 const santeCollecte = require('./lib/sante-collecte');
 
 // Firebase Hosting retire (sentinel-surete.web.app ne recoit plus de
@@ -572,6 +573,34 @@ function ecrireResumeActions(md) {
             for (const cy of rapportGrsci.PAYS_REGIONAUX) { const d = await lire(cy); if (d) regionaux.push(d); }
             if (!ci) { console.warn('  GRSCI : la page ne fournit pas donneesBulletinPays.'); }
             else {
+              // Faits marquants rédigés (demande du 23/10/2026) : leurs
+              // chapôs en français, et la photo de la source. Ce qui est
+              // trouvé est reporté dans le cumul (par adresse d'article) pour
+              // ne pas être cherché de nouveau au passage suivant.
+              const marquants = rapportGrsci.faitsMarquants(ci, regionaux);
+              const parUrl = new Map();
+              Object.values(cumulR.pays || {}).forEach((l) => l.forEach((x) => { if (x.url) parUrl.set(x.url, x); }));
+              let chapos = 0;
+              for (const f of marquants) {
+                for (const e of (f.extraits || [])) {
+                  const entree = e.url ? parUrl.get(e.url) : null;
+                  if (entree && entree.resumeFr) { e.resume = entree.resumeFr; continue; }
+                  try {
+                    const lg = await page.evaluate((t) => (typeof detectLangue === 'function') ? detectLangue(t) : 'fr', e.resume);
+                    if (!['en', 'pt', 'ar'].includes(lg)) continue;
+                    const fr = await page.evaluate(([t, l]) => (typeof trFetch === 'function') ? trFetch(t, l, 'fr') : null, [e.resume, lg]);
+                    if (typeof fr === 'string' && fr.trim() && fr.trim() !== e.resume.trim()) {
+                      e.resume = faitsGrsci.nettoyerTitre(fr);
+                      if (entree) entree.resumeFr = e.resume;
+                      chapos++;
+                    }
+                  } catch (err) { /* chapô gardé dans sa langue : le passage suivant réessaiera */ }
+                }
+              }
+              const illustres = await photosGrsci.illustrer(marquants);
+              marquants.forEach((f) => (f.liens || []).forEach((l) => { const x = parUrl.get(l.url); if (x && f.img && !x.img) x.img = f.img; }));
+              faitsGrsci.ecrireCumul(RACINE_GRSCI, cumulR);
+              console.log('  GRSCI : ' + marquants.length + ' faits marquants rédigés, ' + illustres + ' avec photo, ' + chapos + ' chapôs traduits.');
               const chemin = await rapportGrsci.ecrire(RACINE_GRSCI, PptxGenJS, { jour: fin, ci, regionaux });
               console.log('  GRSCI : rapport ecrit — ' + chemin + ' (' + regionaux.length + ' pays regionaux).');
               // Le même rapport en Word : vrais textes et tableaux modifiables.

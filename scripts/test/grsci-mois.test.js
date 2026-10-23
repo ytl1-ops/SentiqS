@@ -113,7 +113,9 @@ test('« VIII » tient dans la pastille, et dix faits par rubrique au plus', () 
   const viii = p.slides.flatMap((s) => s.t).find(([x]) => x === 'VIII');
   assert.ok(viii && viii[1].fontSize < 24);
   const pagesSecu = p.slides.filter((s) => s.t.some(([x]) => x === '- SÉCURITÉ'));
-  assert.strictEqual(pagesSecu.length, 2, '25 faits → 10 retenus → 2 pages');
+  // 25 faits → 10 retenus ; les 4 plus graves rédigés (une page chacun), les
+  // 6 autres en liste (2 pages) : jamais plus de dix faits pour une rubrique.
+  assert.strictEqual(pagesSecu.length, 4 + 2);
 });
 
 test('le job cumule le mois à chaque passage et la page fournit la matière', () => {

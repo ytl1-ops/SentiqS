@@ -52,7 +52,8 @@ test('une rubrique sans fait ne produit pas de page, et beaucoup de faits se pag
   const p = g.construire(FauxPptx, { jour: '2026-10-25', ci, regionaux: [] });
   const t = tout(p);
   assert.ok(!t.includes('- POLITIQUE'));
-  assert.strictEqual(p.slides.filter((s) => s.textes.some((x) => x.includes('- SÉCURITÉ'))).length, 2);
+  // Quatre faits rédigés (une page chacun), les trois autres en une page de liste.
+  assert.strictEqual(p.slides.filter((s) => s.textes.some((x) => x.includes('- SÉCURITÉ'))).length, 4 + 1);
 });
 
 // Garde de la demande du 21/10/2026 : le rapport suit le modèle du groupe, pas

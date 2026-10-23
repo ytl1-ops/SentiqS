@@ -3139,3 +3139,33 @@ Mesuré dans Chromium : sans rien → `display:none`, hauteur 0.
   score restent absents : le test du vocabulaire les interdit toujours.
 
 `scripts/test/grsci-mois.test.js` (11 tests).
+
+### Faits marquants rédigés, avec la photo de la source — 23/10/2026
+
+Demande de YORO, le même jour : « un rapport avec des textes détaillés pour
+présenter les actu marquantes avec des photos et pas un ensemble de titres ».
+
+- **Quels faits** (`planRapport`) : les quatre plus graves de la Côte d'Ivoire,
+  chacun dans sa rubrique, et le plus grave de chaque pays de la sous-région
+  ont une page rédigée ; le reste reste en liste. Un fait modéré n'a une page
+  que s'il est le plus grave de son pays. Jamais rédigé ET listé.
+- **Le texte** (`scripts/lib/redaction-grsci.js`) n'invente aucun fait :
+  Contexte (date, lieu — la ville seulement si le texte la nomme, jamais la
+  capitale par défaut —, rubrique, nombre de médias), « Ce que rapportent les
+  sources » (le chapô de chaque média, cité et attribué, deux au plus ; sans
+  chapô, il le dit), Enjeux sûreté (un repère par famille d'événement, le titre
+  décidant avant le chapô), sources avec liens, cotation. L'intercalaire dit
+  que les enjeux sont des repères à valider par l'analyste.
+- **La photo** (`scripts/lib/photos-grsci.js`) est téléchargée par le job
+  (Node a le réseau, la page non) : l'image du flux, sinon l'og:image de
+  chaque article du fait ; JPEG ou PNG, 240 × 140 au moins, 1,5 Mo au plus.
+  Crédit « Photo : © domaine » avec le lien. **Sans photo, rien** : le texte
+  prend la largeur. L'adresse trouvée et le chapô traduit sont gardés dans le
+  cumul du mois.
+- Le PowerPoint choisit le plus grand corps (14 à 11 pt) qui tient dans la
+  page, pour ne jamais déborder sur le pied.
+
+Vérifié sur de vrais PowerPoint et Word (LibreOffice → PDF → images) avec des
+photos de test. **Non vérifié d'ici** : de vraies photos de sources et la
+traduction des chapôs (pas de réseau). `scripts/test/grsci-marquants.test.js`
+(8 tests ; ceux qui touchent au rapport vus échouer sur l'ancien code).

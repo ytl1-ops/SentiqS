@@ -6756,7 +6756,23 @@ function faitsMoisPays(cy, depuisMs) {
     // Cotation client (Confirmé / Probable / Non confirmé), même règle que le
     // bulletin : demandée dans le rapport GRSCI par YORO le 23/10/2026.
     cotation: cotationArticle(a, SRCS.find(x => x.id === a.primary), SEUIL_SOURCE_ALERTE).cle,
+    // Matière des « faits marquants » rédigés (demande de YORO du 23/10/2026 :
+    // « des textes détaillés avec des photos, pas un ensemble de titres ») :
+    // le chapô de la source, la ville quand le texte la nomme (jamais la
+    // capitale par défaut, qui serait une localisation inventée), et l'image
+    // ou la vidéo publiées par la source. Rien n'est rédigé ici.
+    resume: resumeFaitMois(a),
+    ville: (() => { const g = detectGeo(cy, (a.title || '') + ' ' + (a.analysis || '')); return g && !g.estime ? g.ville : null; })(),
+    img: mediaActu(a).img || null,
+    video: mediaActu(a).video ? lienVideoActu(a) : null,
   }));
+}
+// Le chapô d'un article pour le rapport : ni le titre redit, ni le texte de
+// remplacement des flux sans description.
+function resumeFaitMois(a) {
+  const t = String(a.analysis || '').replace(/\s+/g, ' ').trim();
+  if (!t || /^Resume non disponible/i.test(t) || t.toLowerCase() === String(a.title || '').trim().toLowerCase()) return null;
+  return resumeCourt(t, 700);
 }
 // TR_CONCURRENCE_MAX : plafond de requetes de traduction simultanees. Un
 // rapport complet peut contenir plusieurs centaines de textes distincts a
@@ -10423,7 +10439,7 @@ function archiverHistorique(rejetes) {
   // Le sport (transferts, matchs...) n'est jamais une reference de securite :
   // exclu de l'archive pour ne jamais alimenter, meme faiblement, le bonus
   // historique de calcAlertScore (voir garde-fou classify()/estContenuSportif).
-  rejetes.filter(a => a.cat !== 'sport' && a.cat !== 'culture').forEach(a => { if (!map[a.id]) map[a.id] = { id:a.id, title:a.title, cy:a.cy, cat:a.cat, level:a.level, pubDate:a.pubDate||0, primary:a.primary, score:a.score||0, url:a.url||null, _dateNonFiable: sourceDateNonFiable(a) || undefined, verified: (a.verified === true || (Array.isArray(a._fusionnes) && a._fusionnes.length > 0)) || undefined }; });
+  rejetes.filter(a => a.cat !== 'sport' && a.cat !== 'culture').forEach(a => { if (!map[a.id]) map[a.id] = { id:a.id, title:a.title, cy:a.cy, cat:a.cat, level:a.level, pubDate:a.pubDate||0, primary:a.primary, score:a.score||0, url:a.url||null, analysis: resumeFaitMois(a) || undefined, _media: (a._media && a._media.img) ? { img: a._media.img } : undefined, _dateNonFiable: sourceDateNonFiable(a) || undefined, verified: (a.verified === true || (Array.isArray(a._fusionnes) && a._fusionnes.length > 0)) || undefined }; });
   const seuil = Date.now() - HISTORIQUE_MAX_AGE_MS;
   let vals = Object.values(map).filter(a => (a.pubDate||0) === 0 || a.pubDate >= seuil || true); // pas de pubDate fiable : on garde quand meme comme reference qualitative
   if (vals.length > HISTORIQUE_MAX) vals = vals.sort((a,b)=>(b.pubDate||0)-(a.pubDate||0)).slice(0, HISTORIQUE_MAX);

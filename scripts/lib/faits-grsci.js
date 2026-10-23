@@ -64,6 +64,8 @@ function cumuler(racine, mois, parPays) {
         titre: nettoyerTitre(f.titre), url: f.url || null, source: f.source || null,
         niveau: f.niveau || null, cat: f.cat || null, publieMs: f.publieMs, langue: f.langue || null,
         cotation: f.cotation || null,
+        resume: f.resume ? nettoyerTitre(f.resume) : null, ville: f.ville || null,
+        img: f.img || null, video: f.video || null,
       };
       const k = cleFait(propre);
       if (index.has(k)) {
@@ -72,6 +74,9 @@ function cumuler(racine, mois, parPays) {
         // Une cotation ne redescend pas : un fait recoupé au passage suivant
         // reste « Confirmé » même si la fusion n'est plus visible ensuite.
         ancien.cotation = meilleureCotation(ancien.cotation, propre.cotation);
+        // Un chapô, une ville ou une image arrivés plus tard (aperçu de la
+        // source chargé après coup) complètent l'entrée ; jamais ne l'effacent.
+        for (const k of ['resume', 'ville', 'img', 'video']) if (!ancien[k] && propre[k]) ancien[k] = propre[k];
       } else {
         index.set(k, liste.length);
         liste.push(propre);
@@ -146,14 +151,25 @@ function regrouper(faits, nomPays) {
     // avaler des faits voisins mais distincts.
     const g = groupes.find((x) => x.membres.some((m) => memeFait(m, r)));
     if (g) {
-      if (f.source && !g.fait.sources.includes(f.source)) g.fait.sources.push(f.source);
+      if (f.source && !g.fait.sources.includes(f.source)) {
+        g.fait.sources.push(f.source);
+        // Ce que chaque autre média en dit : la matière du texte rédigé
+        // d'un fait marquant (redaction-grsci.js).
+        if (f.resume) g.fait.extraits.push({ source: f.source, resume: f.resumeFr || f.resume, url: f.url || null });
+        if (f.url) g.fait.liens.push({ source: f.source, url: f.url });
+      }
+      for (const k of ['ville', 'img', 'video']) if (!g.fait[k] && f[k]) g.fait[k] = f[k];
       g.fait.cotation = meilleureCotation(g.fait.cotation, f.cotation);
       // Deux médias distincts sur le même fait : c'est la définition du
       // recoupement, donc « Confirmé » (même règle que cotationArticle).
       if (g.fait.sources.length > 1) g.fait.cotation = 'confirme';
       g.membres.push(r);
     } else {
-      groupes.push({ membres: [r], fait: Object.assign({}, f, { titre: nettoyerTitre(f.titre), sources: f.source ? [f.source] : [] }) });
+      groupes.push({ membres: [r], fait: Object.assign({}, f, {
+        titre: nettoyerTitre(f.titre), sources: f.source ? [f.source] : [],
+        extraits: f.resume ? [{ source: f.source || null, resume: f.resumeFr || f.resume, url: f.url || null }] : [],
+        liens: f.url ? [{ source: f.source || null, url: f.url }] : [],
+      }) });
     }
   }
   return groupes.map((x) => x.fait);

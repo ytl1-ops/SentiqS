@@ -6,16 +6,17 @@
 //
 // CE RAPPORT NE PARLE PAS LE LANGAGE DE L'APPLI. Demande du 21/10/2026 : il doit
 // respecter la présentation transmise, pas s'adapter à l'outil qui fait ressortir
-// des niveaux d'alerte. Le modèle n'a ni niveau coloré, ni indice de confiance,
-// ni score, ni cotation : le générateur n'en écrit aucun. Il ne lit des
-// données de `donneesBulletinPays` que les faits (titre, source, date, lien).
-// Le « Décryptage » d'analyste du modèle n'est pas inventé : il reste à écrire.
+// des niveaux d'alerte : ni niveau coloré ni score. Depuis le 23/10/2026, à la
+// demande de YORO, il porte la cotation de chaque fait et l'indice de confiance
+// de chaque pays, et ses faits les plus graves sont RÉDIGÉS avec la photo de la
+// source (redaction-grsci.js, photos-grsci.js) au lieu d'être une liste de titres.
 //
 // Le module ne touche ni au réseau ni à la page : il reçoit des données et
 // renvoie un classeur pptxgenjs, ce qui le rend testable sans navigateur.
 const fs = require('node:fs');
 const path = require('node:path');
 const { nettoyerTitre } = require('./faits-grsci');
+const redaction = require('./redaction-grsci');
 
 const ASSETS = path.join(__dirname, '..', 'assets', 'grsci');
 
@@ -134,12 +135,13 @@ function titrePage(s, num, titre, pays) {
 }
 
 
-function intercalaire(pptx, ctx, titre, image) {
+function intercalaire(pptx, ctx, titre, image, note) {
   const s = pptx.addSlide();
   s.background = { color: 'CDCDCD' };
   if (image) s.addImage({ path: path.join(ASSETS, image), x: 5.2, y: 0.7, w: 3.2, h: 3.2 });
   s.addText(titre, { x: 0.5, y: 4.4, w: 12.3, h: 0.9, fontFace: POLICE_TITRE, fontSize: 44, color: '111111', align: 'center' });
   s.addShape('line', { x: 4.6, y: 5.3, w: 4.1, h: 0, line: { color: '000000', width: 4 } });
+  if (note) s.addText(note, { x: 1.5, y: 5.55, w: 10.3, h: 0.7, fontFace: POLICE, fontSize: 11, italic: true, color: '333333', align: 'center' });
   pied(s, ctx, ctx.numero());
 }
 
@@ -235,6 +237,67 @@ function pageFaits(pptx, ctx, titreNum, titre, faits, pays, vide, confiance) {
   pied(s, ctx, ctx.numero());
 }
 
+// Un fait marquant rédigé, une page (demande du 23/10/2026) : le titre en
+// phrase, puis Contexte, Ce que rapportent les sources (chapôs cités), Enjeux
+// sûreté, et la ligne des sources avec la cotation. La photo de la source à
+// droite, avec son crédit et le lien vers l'article ; sans photo, le texte
+// prend toute la largeur — jamais d'image de remplacement.
+function boiteImage(photo, x, y, wMax, hMax) {
+  const r = photo.w / photo.h;
+  let w = wMax, h = wMax / r;
+  if (h > hMax) { h = hMax; w = hMax * r; }
+  return { x: x + (wMax - w) / 2, y, w, h };
+}
+
+function pageMarquant(pptx, ctx, titreNum, titre, f, pays, nomPays, confiance) {
+  const s = pptx.addSlide();
+  titrePage(s, titreNum, titre, pays);
+  let y = 1.12;
+  if (confiance) { s.addText(confiance, { x: 0.7, y, w: 12.0, h: 0.3, fontFace: POLICE, fontSize: 11, italic: true, color: LEGERE }); y += 0.3; }
+  const r = redaction.rediger(f, nomPays);
+  const photo = f.photo && f.photo.data ? f.photo : null;
+  const largeurTexte = photo ? 7.45 : 12.0;
+  s.addText([{ text: r.titre, options: { bold: true, color: VERT, fontSize: 22, fontFace: POLICE_TITRE } }],
+    { x: 0.7, y, w: 12.0, h: 0.75, valign: 'top' });
+  y += 0.8;
+  const t = faitTexte(f);
+  const hauteur = 6.45 - y;
+  // Le plus grand corps qui tient dans la page (14 pt, puis 13, 12, 11) :
+  // le texte est lu en réunion, projeté, et ne doit jamais déborder sur le pied.
+  const blocs = [r.contexte, ...r.extraits.map((e) => e.source + ' : « ' + e.texte + ' »'), r.sansExtrait || '', r.enjeux, t.etiquette + r.sources.join(' · ') + ' — ' + t.quand + ' · Cotation : ' + (t.cotation || '')].filter(Boolean);
+  const taille = [14, 13, 12, 11].find((pt) => {
+    const parLigne = Math.floor(largeurTexte * 72 / (pt * 0.5));
+    const lignes = blocs.reduce((n, b) => n + Math.ceil(b.length / parLigne), 0) + 3;
+    return lignes * pt * 1.25 / 72 + 3 * 0.12 <= hauteur;
+  }) || 10.5;
+  const intertitre = (x) => ({ text: x, options: { bold: true, color: VERT, fontSize: taille + 1, breakLine: true, paraSpaceBefore: 8 } });
+  const corps = [intertitre('Contexte'), { text: r.contexte, options: { breakLine: true } }];
+  corps.push(intertitre('Ce que rapportent les sources'));
+  if (r.extraits.length) {
+    r.extraits.forEach((e) => corps.push(
+      { text: e.source + ' : ', options: { bold: true } },
+      { text: '« ' + e.texte + ' »', options: { italic: true, breakLine: true } }));
+  } else corps.push({ text: r.sansExtrait, options: { italic: true, color: LEGERE, breakLine: true } });
+  corps.push(intertitre('Enjeux sûreté'), { text: r.enjeux, options: { breakLine: true } });
+  corps.push({ text: t.etiquette, options: { bold: true, paraSpaceBefore: 8 } });
+  if (r.liens.length) {
+    r.liens.slice(0, 4).forEach((l, i) => corps.push({ text: (i ? ' · ' : '') + (l.source || 'article'), options: { color: VERT, hyperlink: { url: l.url } } }));
+    const restants = r.sources.filter((x) => !r.liens.slice(0, 4).some((l) => l.source === x));
+    if (restants.length) corps.push({ text: ' · ' + restants.join(' · '), options: {} });
+  } else corps.push({ text: t.source, options: {} });
+  corps.push({ text: (t.quand ? ' — ' + t.quand : '') + (t.cotation ? '   ·   Cotation : ' + t.cotation : ''), options: { bold: !!t.cotation, breakLine: true } });
+  if (r.video) corps.push({ text: 'Voir la vidéo de la source', options: { color: VERT, hyperlink: { url: r.video }, breakLine: true } });
+  s.addText(corps, { x: 0.7, y, w: largeurTexte, h: hauteur, fontFace: POLICE, fontSize: taille, color: TEXTE, valign: 'top', paraSpaceAfter: 3 });
+  if (photo) {
+    const b = boiteImage(photo, 8.35, y + 0.05, 4.5, 4.0);
+    s.addImage({ data: 'image/' + (photo.type === 'png' ? 'png' : 'jpeg') + ';base64,' + photo.data.toString('base64'), x: b.x, y: b.y, w: b.w, h: b.h, hyperlink: photo.lien ? { url: photo.lien } : undefined });
+    s.addText([{ text: 'Photo : © ' + (photo.credit || 'source'), options: photo.lien ? { hyperlink: { url: photo.lien }, color: VERT } : {} }],
+      { x: 8.35, y: b.y + b.h + 0.04, w: 4.5, h: 0.28, fontFace: POLICE, fontSize: 9, color: LEGERE, align: 'right' });
+  }
+  pied(s, ctx, ctx.numero());
+}
+
+
 function pageSommaire(pptx, ctx, ci, regionaux) {
   const s = pptx.addSlide();
   titrePage(s, '0', '- TABLE DES MATIÈRES');
@@ -284,24 +347,51 @@ function construire(PptxGenJS, { jour, ci, regionaux }) {
 
   pageCouverture(pptx, ctx);
   pageSommaire(pptx, ctx, ci, regionaux);
-  intercalaire(pptx, ctx, 'FAITS MARQUANTS EN CÔTE D\'IVOIRE', 'carte-ci.jpg');
-  for (const rub of RUBRIQUES) {
-    const faits = faitsRubrique(ci, rub);
-    if (!faits.length) continue;
-    paginer(faits, FAITS_PAR_PAGE).forEach((p, k) => pageFaits(pptx, ctx, rub.num, '- ' + rub.titre, p, 'CI', null, k === 0 ? ligneConfiance(ci) : null));
+  intercalaire(pptx, ctx, 'FAITS MARQUANTS EN CÔTE D\'IVOIRE', 'carte-ci.jpg', redaction.NOTE_REDACTION);
+  const plan = planRapport(ci, regionaux);
+  for (const { rub, marquants, liste } of plan.ci) {
+    let premiere = true;
+    const conf = () => { const c = premiere ? ligneConfiance(ci) : null; premiere = false; return c; };
+    marquants.forEach((f) => pageMarquant(pptx, ctx, rub.num, '- ' + rub.titre, f, 'CI', ci.nom || 'Côte d\'Ivoire', conf()));
+    paginer(liste, FAITS_PAR_PAGE).forEach((p) => pageFaits(pptx, ctx, rub.num, '- ' + rub.titre, p, 'CI', null, conf()));
   }
   intercalaire(pptx, ctx, 'DYNAMIQUES RÉGIONALES', 'afrique.png');
-  regionaux.forEach((d, i) => {
-    const faits = (d.faits || []).slice(0, MAX_FAITS_PAYS);
-    const pages = paginer(faits, FAITS_PAR_PAGE);
-    if (!pages.length) pages.push([]);
-    pages.forEach((p, k) => {
-      const titre = k > 0 ? d.nom : (i === 0 ? d.nom + ' : situation ' + periode(jour) : d.nom);
-      pageFaits(pptx, ctx, ROMAIN[i + 1], titre, p, d.cy, null, k === 0 ? ligneConfiance(d) : null);
-    });
+  plan.regionaux.forEach(({ d, marquants, liste }, i) => {
+    const titre0 = i === 0 ? d.nom + ' : situation ' + periode(jour) : d.nom;
+    let k = 0;
+    marquants.forEach((f) => { pageMarquant(pptx, ctx, ROMAIN[i + 1], k ? d.nom : titre0, f, d.cy, d.nom, k ? null : ligneConfiance(d)); k++; });
+    const pages = paginer(liste, FAITS_PAR_PAGE);
+    if (!pages.length && !k) pages.push([]);
+    pages.forEach((p) => { pageFaits(pptx, ctx, ROMAIN[i + 1], k ? d.nom : titre0, p, d.cy, null, k ? null : ligneConfiance(d)); k++; });
   });
   pageMerci(pptx, ctx);
   return pptx;
+}
+
+// Ce que le rapport montre, partagé par le PowerPoint et le Word : pour la
+// Côte d'Ivoire, les MARQUANTS_CI faits les plus graves sont rédigés (chacun
+// dans sa rubrique), le reste de chaque rubrique en liste ; pour chaque pays
+// de la sous-région, MARQUANTS_PAYS fait rédigé puis la liste. Un fait n'est
+// jamais à la fois rédigé et listé.
+function planRapport(ci, regionaux) {
+  const choixCi = redaction.choisirMarquants(ci.faits || [], redaction.MARQUANTS_CI).marquants;
+  const planCi = RUBRIQUES.map((rub) => {
+    const faits = faitsRubrique(ci, rub);
+    const tous = (ci.faits || []).filter((f) => rubriqueDe(f) === rub.cle);
+    const marquants = tous.filter((f) => choixCi.includes(f));
+    return { rub, marquants, liste: faits.filter((f) => !marquants.includes(f)) };
+  }).filter((x) => x.marquants.length || x.liste.length);
+  const planReg = (regionaux || []).map((d) => {
+    const faits = (d.faits || []).slice(0, MAX_FAITS_PAYS);
+    const { marquants, autres } = redaction.choisirMarquants(faits, redaction.MARQUANTS_PAYS);
+    return { d, marquants, liste: autres };
+  });
+  return { ci: planCi, regionaux: planReg };
+}
+/** Tous les faits rédigés du rapport : ceux que le job illustre. */
+function faitsMarquants(ci, regionaux) {
+  const p = planRapport(ci, regionaux);
+  return p.ci.flatMap((x) => x.marquants).concat(p.regionaux.flatMap((x) => x.marquants));
 }
 
 function cheminRapport(racine, jour) {
@@ -403,7 +493,7 @@ function majIndex(racine, chemin, jour, maintenant) {
 }
 
 module.exports = {
-  PAYS_REGIONAUX, construire, rapportsAActualiser, dernierJourMois, moisPrecedent, libellePeriode, ecrire, majIndex, reconstruireIndex, cheminRapport, rubriqueDe, RUBRIQUES,
+  PAYS_REGIONAUX, construire, planRapport, faitsMarquants, rapportsAActualiser, dernierJourMois, moisPrecedent, libellePeriode, ecrire, majIndex, reconstruireIndex, cheminRapport, rubriqueDe, RUBRIQUES,
   // partagés avec la version Word (rapport-grsci-word.js)
   ASSETS, VERT, TEXTE, LEGERE, POLICE, POLICE_TITRE, DRAPEAUX, rectsDrapeau,
   dateLongue, dateCourte, paginer, faitTexte, ligneConfiance, COTATION, faitsRubrique, MAX_FAITS_RUBRIQUE, FAITS_PAR_PAGE, ROMAIN, MAX_FAITS_PAYS, periode, titreDeFait,
