@@ -1,0 +1,312 @@
+{
+ "mois": "2026-10",
+ "pays": {
+  "CI": [
+   {
+    "titre": "Crise au sein du PDCI/RDA - « L'Éléphant » se cassera-t-il une deuxième patte ?",
+    "url": "https://fr.allafrica.com/stories/202610230151.html",
+    "source": "AllAfrica (CI)",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792746922000
+   },
+   {
+    "titre": "L'audience sur l'élection de Tidjane Thiam à la tête du PDCI renvoyée",
+    "url": "https://fr.allafrica.com/stories/202610230399.html",
+    "source": "AllAfrica (CI)",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792758037000
+   }
+  ],
+  "BF": [
+   {
+    "titre": "Le pays rétablit la peine de mort",
+    "url": "https://fr.allafrica.com/stories/202610220451.html",
+    "source": "AllAfrica (BF)",
+    "niveau": "crit",
+    "cat": "politique",
+    "publieMs": 1792681647000
+   },
+   {
+    "titre": "Burkina Faso-Turquie : une offensive diplomatique d’envergure pour consolider la coopération bilatérale",
+    "url": "https://www.alwihdainfo.com/burkina-faso-turquie-une-offensive-diplomatique-denvergure-pour-consolider-la-cooperation-bilaterale/",
+    "source": "Alwihda Info (Tchad)",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792747200000
+   },
+   {
+    "titre": "Montée trimestrielle des couleurs des FDS: la Douane Burkinabè au rendez-vous du devoir patriotique",
+    "url": "https://www.wakatsera.com/montee-trimestrielle-des-couleurs-des-fds-la-douane-burkinabe-au-rendez-vous-du-devoir-patriotique/",
+    "source": "Wakat Sera",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792757326000
+   },
+   {
+    "titre": "Justice : Le Président de la République s’entretient avec les ministres en charge de la Justice des Etats de l’AES",
+    "url": "https://anp.ne/justice-le-president-de-la-republique-sentretient-avec-les-ministres-en-charge-de-la-justice-des-etats-de-laes/",
+    "source": "ANP — Agence Nigérienne Presse",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792742110000
+   }
+  ],
+  "ML": [
+   {
+    "titre": "Lutte contre le terrorisme à Kayes : La police frappe au cœur des réseaux de soutien logistique des GAT",
+    "url": "https://maliactu.net/lutte-contre-le-terrorisme-a-kayes-la-police-frappe-au-coeur-des-reseaux-de-soutien-logistique-des-gat/",
+    "source": "Maliactu",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1792764409000
+   },
+   {
+    "titre": "Point de presse: les FAMa annoncent plus de 4 880 combattants terroristes neutralisés",
+    "url": "https://malijet.com/a_la_une_du_mali/312478-point-de-presse-les-fama-annoncent-plus-de-4-880-combattant.html",
+    "source": "Malijet",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1792767584000
+   },
+   {
+    "titre": "MALI-FAO : UN PARTENARIAT STRATÉGIQUE RENOUVELÉ AU SERVICE DE LA SOUVERAINETÉ ALIMENTAIRE",
+    "url": "https://mali24.info/mali-fao-un-partenariat-strategique-renouvele-au-service-de-la-souverainete-alimentaire/",
+    "source": "Mali 24",
+    "niveau": "high",
+    "cat": "humanitaire",
+    "publieMs": 1792756343000
+   },
+   {
+    "titre": "Mali-Qatar : la coopération sécuritaire au centre des échanges",
+    "url": "https://malijet.com/actualite-politique-au-mali/312469-mali-qatar-la-cooperation-securitaire-au-centre-des-echang.html",
+    "source": "Malijet",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1792745923000
+   },
+   {
+    "titre": "Coupe de la CAF (2ᵉ tour retour) : L’ES Zarzis déjà sur le sol bamakois, l’AS Real sous pression à domicile",
+    "url": "https://maliactu.net/coupe-de-la-caf-2%e1%b5%89-tour-retour-les-zarzis-deja-sur-le-sol-bamakois-las-real-sous-pression-a-domicile/",
+    "source": "Maliactu",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1792766404000
+   },
+   {
+    "titre": "Bandiagara : lancement des activités de la 31ᵉ édition du Mois de la Solidarité et de la Lutte contre l’Exclusion",
+    "url": "https://amap.ml/2026/10/23/bandiagara-lancement-des-activites-de-la-31%e1%b5%89-edition-du-mois-de-la-solidarite-et-de-la-lutte-contre-lexclusion/",
+    "source": "AMAP — Agence Malienne Presse",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792752973000
+   },
+   {
+    "titre": "Mali : l’OCLEI remet ses rapports 2021 et 2024 à Assimi Goïta",
+    "url": "https://malijet.com/a_la_une_du_mali/312472-mali-loclei-remet-ses-rapports-2021-et-2024-a-assimi-goit.html",
+    "source": "Malijet",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1792747435000
+   }
+  ],
+  "NE": [
+   {
+    "titre": "Algeria-Niger ‘security pact’: What’s behind Algiers’ military push into the Sahel?",
+    "url": "https://www.theafricareport.com/434371/algeria-niger-security-pact-whats-behind-algiers-military-push-into-the-sahel/",
+    "source": "The Africa Report",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792754614000
+   }
+  ],
+  "GH": [
+   {
+    "titre": "NPP Walewale Constituency condemns personal attacks against MP, urges party discipline",
+    "url": "https://www.myjoyonline.com/npp-walewale-constituency-condemns-personal-attacks-against-mp-urges-party-discipline/",
+    "source": "JoyOnline",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1792768303000
+   },
+   {
+    "titre": "GAF to stage land combat firepower demonstration at Bundase on October 30",
+    "url": "https://www.myjoyonline.com/gaf-to-stage-land-combat-firepower-demonstration-at-bundase-on-october-30/",
+    "source": "JoyOnline",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1792771569000
+   },
+   {
+    "titre": "Richard Kumadoe blames flawed recruitment for problems at BNI",
+    "url": "https://ghanaiantimes.com.gh/richard-kumadoe-blames-flawed-recruitment-for-problems-at-bni/",
+    "source": "Ghanaian Times",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792772268000
+   },
+   {
+    "titre": "Government pays GH¢4.4bn to SSNIT, settles Tier-2 pension obligations – Finance Minister",
+    "url": "https://www.gbcghanaonline.com/general/government-pays-gh%c2%a24-4bn-to-ssnit-settles-tier-2-pension-obligations-finance-minister/2026/",
+    "source": "GBC Ghana Online",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792768667000
+   },
+   {
+    "titre": "Obuasi SHTS headmaster rape case sent to Attorney General’s Office",
+    "url": "https://www.ghanabusinessnews.com/2026/10/23/obuasi-shts-headmaster-rape-case-sent-to-attorney-generals-office/",
+    "source": "Ghana Business News",
+    "niveau": "mod",
+    "cat": "economique",
+    "publieMs": 1792736922000
+   }
+  ],
+  "TG": [
+   {
+    "titre": "Kloto : Une délégation de la coopération allemande visite des initiatives de développement",
+    "url": "https://atop.tg/kloto-une-delegation-de-la-cooperation-allemande-visite-des-initiatives-de-developpement/",
+    "source": "ATOP — Agence Togolaise Presse",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792765600000
+   },
+   {
+    "titre": "Assemblée nationale : La loi d’orientation agricole et trois textes sur le nucléaire adoptés",
+    "url": "https://atop.tg/assemblee-nationale-la-loi-dorientation-agricole-et-trois-textes-sur-le-nucleaire-adoptes/",
+    "source": "ATOP — Agence Togolaise Presse",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792764714000
+   },
+   {
+    "titre": "Togo : quatre consultants recherchés pour le déploiement du système e-GP",
+    "url": "https://togoscoop.tg/togo-quatre-consultants-recherches-pour-le-deploiement-du-systeme-e-gp/",
+    "source": "togoscoop.tg",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1792751336000
+   },
+   {
+    "titre": "Budget 2027 au Togo : 2 684,1 milliards FCFA prévus, les investissements ciblés",
+    "url": "https://24heureinfo.com/finances/budget-2027-au-togo-2-6841-milliards-fcfa-prevus-les-investissements-cibles/",
+    "source": "24heureinfo.com",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792748985000
+   },
+   {
+    "titre": "Lomé traque l'argent sale de la criminalité maritime",
+    "url": "https://fr.allafrica.com/stories/202610230152.html",
+    "source": "AllAfrica (TG)",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792746975000
+   }
+  ],
+  "BJ": [],
+  "GN": [
+   {
+    "titre": "« RIP » sur ses photos : Pathé Moloko réapparaît et livre un message",
+    "url": "https://www.guinee7.com/2026/10/23/rip-sur-ses-photos-pathe-moloko-reapparait-et-livre-un-message/",
+    "source": "Guinee7.com",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792757343000
+   },
+   {
+    "titre": "Marché de Matoto : Mohamed Soumah libéré, les commerçants toujours sous pression",
+    "url": "https://www.guinee7.com/2026/10/23/marche-de-matoto-mohamed-soumah-libere-les-commercants-toujours-sous-pression/",
+    "source": "Guinee7.com",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1792752214000
+   },
+   {
+    "titre": "L’AGRASC annonce des ventes aux enchères publiques de véhicules, des motos et de téléphones le 11 novembre 2026",
+    "url": "https://guineelive.com/2026/10/22/agrasc-annonce-des-ventes-aux-encheres-publiques-de-vehicules-des-motos-et-de-telephones-le-11-novembre-2026/",
+    "source": "Guineelive",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792689922000
+   }
+  ],
+  "LR": [
+   {
+    "titre": "Liberia: Judge Cites Evidence in Finding NSA Staff Peter Bon Jallah Guilty of Statutory Rape, Kidnapping",
+    "url": "https://frontpageafricaonline.com/liberia-judge-cites-evidence-in-finding-nsa-staff-peter-bon-jallah-guilty-of-statutory-rape-kidnapping/",
+    "source": "FrontPageAfrica — Liberia",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1792767719000
+   },
+   {
+    "titre": "Liberia: Court Finds Peter Bon Jallah Guilty Of Statutory Rape, Kidnapping",
+    "url": "https://frontpageafricaonline.com/liberia-court-finds-peter-bon-jallah-guilty-of-statutory-rape-kidnapping/",
+    "source": "FrontPageAfrica — Liberia",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1792756654000
+   },
+   {
+    "titre": "Liberia: War Victims, Survivors Protest at Court Office, Capitol as House Chairman Pledges to Put Court Bill Before Plenary Tuesday",
+    "url": "https://frontpageafricaonline.com/liberia-war-victims-survivors-protest-at-court-office-capitol-as-house-chairman-pledges-to-put-court-bill-before-plenary-tuesday/",
+    "source": "FrontPageAfrica — Liberia",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1792734360000
+   },
+   {
+    "titre": "AFL Fires Two Soldiers Over Assault",
+    "url": "https://gnnliberia.com/afl-fires-two-soldiers-over-assault/",
+    "source": "Global News Network Liberia",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792689768000
+   }
+  ],
+  "SN": [
+   {
+    "titre": "Sénégal: 14 morts et 368 cas de diphtérie dans 13 régions",
+    "url": "https://www.wakatsera.com/senegal-14-morts-et-368-cas-de-diphterie-dans-13-regions/",
+    "source": "Wakat Sera",
+    "niveau": "crit",
+    "cat": "humanitaire",
+    "publieMs": 1792684500000
+   },
+   {
+    "titre": "​Médecin blessé par balle à Guédiawaye : 48 heures de grève et une procédure judiciaire enclenchée",
+    "url": "https://www.pressafrik.com/​Medecin-blesse-par-balle-a-Guediawaye-48-heures-de-greve-et-une-procedure-judiciaire-enclenchee_a313465.html",
+    "source": "Pressafrik",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792765740000
+   },
+   {
+    "titre": "Exclusive: Emmanuel Macron cancels planned visits to Nigeria and Senegal",
+    "url": "https://www.theafricareport.com/434399/exclusive-emmanuel-macron-cancels-planned-visits-to-nigeria-and-senegal/",
+    "source": "The Africa Report",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1792756631000
+   },
+   {
+    "titre": "Une étude montre comment la sécurité foncière conditionne l'efficacité du crédit agricole",
+    "url": "https://fr.allafrica.com/stories/202610230279.html",
+    "source": "AllAfrica (SN)",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792753329000
+   },
+   {
+    "titre": "Décès du Contrôleur général de police Abdoulaye Diop : Macky Sall présente ses condoléances",
+    "url": "https://www.dakaractu.com/Deces-du-Controleur-general-de-police-Abdoulaye-Diop-Macky-Sall-presente-ses-condoleances_a277370.html",
+    "source": "Dakar Actu",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792751760000
+   }
+  ]
+ }
+}
