@@ -57,6 +57,18 @@ test('Ménaka en deux langues se replie, deux attaques à deux semaines non', ()
   assert.strictEqual(f.regrouper(deux, 'Mali').length, 1, 'le lendemain : le même fait');
 });
 
+test('un fait repris par deux médias devient Confirmé, une cotation ne redescend pas', () => {
+  const r = f.regrouper([Object.assign(T('Le Burkina Faso rétablit la peine de mort', 'A'), { cotation: 'probable' }),
+    Object.assign(T('Burkina Faso : la junte rétablit la peine de mort', 'B'), { cotation: 'non_confirme' })], 'Burkina Faso');
+  assert.strictEqual(r[0].cotation, 'confirme');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'grsci-cot-'));
+  f.cumuler(dir, '2026-10', { CI: [Object.assign(T('Fait', 'A'), { cotation: 'confirme' })] });
+  const c = f.cumuler(dir, '2026-10', { CI: [Object.assign(T('Fait', 'A'), { cotation: 'probable' })] });
+  assert.strictEqual(c.pays.CI[0].cotation, 'confirme');
+  const fn = tranche('function faitsMoisPays(cy, depuisMs) {', '// TR_CONCURRENCE_MAX');
+  assert.match(fn, /cotationArticle\(/);
+});
+
 test('les plus graves d’abord, puis les plus récents', () => {
   const r = f.regrouper([T('Grève des enseignants à Bouaké', 'A', 'mod', '22'), T('Attaque contre un poste de gendarmerie', 'B', 'crit', '03'), T('Braquage sur l’axe Abidjan-Yamoussoukro', 'C', 'high', '20')], "Côte d'Ivoire");
   assert.deepStrictEqual(r.map((x) => x.niveau), ['crit', 'high', 'mod']);

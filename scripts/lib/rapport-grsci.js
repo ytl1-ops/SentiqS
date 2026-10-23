@@ -189,6 +189,18 @@ function titreDeFait(f) {
 
 // Ce que le modèle écrit sous chaque titre ❑ : la source et la date. Rien
 // d'autre — ni niveau, ni cotation, ni score : ce sont des notions de l'appli.
+// Cotation client et indice de confiance : ajoutés au rapport à la demande de
+// YORO le 23/10/2026 (« oui, go »), revenant sur le choix du 21/10 de s'en
+// tenir au modèle de 2024. Mêmes règles que le bulletin : Confirmé = recoupé
+// par une seconde source ; Probable = source unique capable d'alerter ; Non
+// confirmé = le reste. La confiance qualifie le niveau du pays, pas un fait.
+const COTATION = { confirme: 'Confirmé', probable: 'Probable', non_confirme: 'Non confirmé' };
+function ligneConfiance(d) {
+  const c = d && d.confiance;
+  if (!c || !c.libelle) return null;
+  return 'Indice de confiance : ' + c.libelle + (c.motif ? ' (' + c.motif + ')' : '');
+}
+
 function faitTexte(f) {
   // Un fait repris par plusieurs médias est un seul fait, recoupé : ses
   // sources sont listées sur la même ligne (faits-grsci.js, regrouper).
@@ -196,7 +208,7 @@ function faitTexte(f) {
   const source = sources.length ? sources.join(' · ') : 'Source non précisée';
   const etiquette = sources.length > 1 ? 'Sources : ' : 'Source : ';
   const quand = dateFait(f.publieMs);
-  return { titre: titreDeFait(f), source, etiquette, quand, url: lienSur(f) };
+  return { titre: titreDeFait(f), source, etiquette, quand, url: lienSur(f), cotation: COTATION[f.cotation] || null };
 }
 
 function corpsFaits(faits) {
@@ -207,17 +219,19 @@ function corpsFaits(faits) {
     const src = t.url ? { text: t.source, options: { hyperlink: { url: t.url }, color: VERT } } : { text: t.source, options: {} };
     corps.push({ text: t.etiquette, options: { bullet: { code: '25AA' }, indentLevel: 1, fontSize: 13 } });
     corps.push(Object.assign({}, src, { options: Object.assign({ fontSize: 13 }, src.options) }));
-    corps.push({ text: t.quand ? ' — ' + t.quand : '', options: { fontSize: 13, breakLine: true } });
+    corps.push({ text: (t.quand ? ' — ' + t.quand : '') + (t.cotation ? '   ·   ' : ''), options: { fontSize: 13, breakLine: !t.cotation } });
+    if (t.cotation) corps.push({ text: 'Cotation : ' + t.cotation, options: { fontSize: 13, bold: true, color: TEXTE, breakLine: true } });
   });
   return corps;
 }
 
-function pageFaits(pptx, ctx, titreNum, titre, faits, pays, vide) {
+function pageFaits(pptx, ctx, titreNum, titre, faits, pays, vide, confiance) {
   const s = pptx.addSlide();
   titrePage(s, titreNum, titre, pays);
+  if (confiance) s.addText(confiance, { x: 0.7, y: 1.1, w: 12.0, h: 0.32, fontFace: POLICE, fontSize: 11, italic: true, color: LEGERE });
   const corps = faits.length ? corpsFaits(faits)
     : [{ text: vide || 'Aucun fait marquant relevé sur la période.', options: { color: LEGERE, italic: true } }];
-  s.addText(corps, { x: 0.7, y: 1.3, w: 12.0, h: 5.1, fontFace: POLICE, fontSize: 13, color: TEXTE, valign: 'top', paraSpaceAfter: 2 });
+  s.addText(corps, { x: 0.7, y: confiance ? 1.45 : 1.3, w: 12.0, h: confiance ? 4.95 : 5.1, fontFace: POLICE, fontSize: 13, color: TEXTE, valign: 'top', paraSpaceAfter: 2 });
   pied(s, ctx, ctx.numero());
 }
 
@@ -274,7 +288,7 @@ function construire(PptxGenJS, { jour, ci, regionaux }) {
   for (const rub of RUBRIQUES) {
     const faits = faitsRubrique(ci, rub);
     if (!faits.length) continue;
-    paginer(faits, FAITS_PAR_PAGE).forEach((p) => pageFaits(pptx, ctx, rub.num, '- ' + rub.titre, p, 'CI'));
+    paginer(faits, FAITS_PAR_PAGE).forEach((p, k) => pageFaits(pptx, ctx, rub.num, '- ' + rub.titre, p, 'CI', null, k === 0 ? ligneConfiance(ci) : null));
   }
   intercalaire(pptx, ctx, 'DYNAMIQUES RÉGIONALES', 'afrique.png');
   regionaux.forEach((d, i) => {
@@ -283,7 +297,7 @@ function construire(PptxGenJS, { jour, ci, regionaux }) {
     if (!pages.length) pages.push([]);
     pages.forEach((p, k) => {
       const titre = k > 0 ? d.nom : (i === 0 ? d.nom + ' : situation ' + periode(jour) : d.nom);
-      pageFaits(pptx, ctx, ROMAIN[i + 1], titre, p, d.cy);
+      pageFaits(pptx, ctx, ROMAIN[i + 1], titre, p, d.cy, null, k === 0 ? ligneConfiance(d) : null);
     });
   });
   pageMerci(pptx, ctx);
@@ -392,5 +406,5 @@ module.exports = {
   PAYS_REGIONAUX, construire, rapportsAActualiser, dernierJourMois, moisPrecedent, libellePeriode, ecrire, majIndex, reconstruireIndex, cheminRapport, rubriqueDe, RUBRIQUES,
   // partagés avec la version Word (rapport-grsci-word.js)
   ASSETS, VERT, TEXTE, LEGERE, POLICE, POLICE_TITRE, DRAPEAUX, rectsDrapeau,
-  dateLongue, dateCourte, paginer, faitTexte, faitsRubrique, MAX_FAITS_RUBRIQUE, FAITS_PAR_PAGE, ROMAIN, MAX_FAITS_PAYS, periode, titreDeFait,
+  dateLongue, dateCourte, paginer, faitTexte, ligneConfiance, COTATION, faitsRubrique, MAX_FAITS_RUBRIQUE, FAITS_PAR_PAGE, ROMAIN, MAX_FAITS_PAYS, periode, titreDeFait,
 };

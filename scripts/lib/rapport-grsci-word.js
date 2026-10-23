@@ -77,9 +77,16 @@ function construireWord(D, { jour, ci, regionaux }) {
       const source = t.url
         ? new ExternalHyperlink({ link: t.url, children: [run(t.source, { color: g.VERT, size: 26, underline: {} })] })
         : run(t.source, { size: 26 });
-      out.push(par([run('\u25AA  ' + t.etiquette, { size: 26 }), source, run(t.quand ? ' \u2014 ' + t.quand : '', { size: 26 })], { indent: { left: 720 } }));
+      out.push(par([run('\u25AA  ' + t.etiquette, { size: 26 }), source, run(t.quand ? ' \u2014 ' + t.quand : '', { size: 26 }),
+        ...(t.cotation ? [run('   \u00B7   Cotation : ' + t.cotation, { size: 26, bold: true })] : [])], { indent: { left: 720 } }));
     });
     return out;
+  }
+
+  // Indice de confiance du pays, sous l'en-tête de sa première page.
+  function ligneConf(d) {
+    const t = g.ligneConfiance(d);
+    return t ? [par(run(t, { italics: true, color: g.LEGERE, size: 22 }), { spacing: { before: 60 } })] : [];
   }
 
   const corps = [];
@@ -146,8 +153,9 @@ function construireWord(D, { jour, ci, regionaux }) {
   for (const rub of g.RUBRIQUES) {
     const faits = g.faitsRubrique(ci, rub);
     if (!faits.length) continue;
-    g.paginer(faits, g.FAITS_PAR_PAGE).forEach((p) => {
+    g.paginer(faits, g.FAITS_PAR_PAGE).forEach((p, k) => {
       corps.push(...entete(rub.num, '- ' + rub.titre, 'CI'));
+      if (k === 0) corps.push(...ligneConf(ci));
       corps.push(...lignesFaits(p));
     });
   }
@@ -159,6 +167,7 @@ function construireWord(D, { jour, ci, regionaux }) {
     if (!pages.length) pages.push([]);
     pages.forEach((p, k) => {
       corps.push(...entete(g.ROMAIN[i + 1], k > 0 ? d.nom : (i === 0 ? d.nom + ' : situation ' + g.periode(jour) : d.nom), d.cy));
+      if (k === 0) corps.push(...ligneConf(d));
       if (p.length) corps.push(...lignesFaits(p));
       else corps.push(par(run('Aucun fait marquant relevé sur la période.', { italics: true, color: g.LEGERE }), { spacing: { before: 160 } }));
     });

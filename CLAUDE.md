@@ -3129,4 +3129,13 @@ Le repli ne reste que sous une vidéo sans vignette. Une image en échec
 disparaît ; un aperçu Open Graph arrivé plus tard fait apparaître le cadre.
 Mesuré dans Chromium : sans rien → `display:none`, hauteur 0.
 
-`scripts/test/grsci-mois.test.js` (10 tests).
+- **Cotation et indice de confiance, revenus dans le rapport** (« oui, go »
+  de YORO, 23/10/2026, qui revient sur le choix du 21/10) : chaque fait porte
+  « Cotation : Confirmé / Probable / Non confirmé » (`cotationArticle`, même
+  règle que le bulletin ; un fait repris par deux médias distincts au
+  regroupement devient Confirmé ; une cotation ne redescend jamais dans le
+  cumul) ; la première page de chaque pays et de chaque rubrique ivoirienne
+  porte « Indice de confiance : … (motif) ». Le niveau d'alerte coloré et le
+  score restent absents : le test du vocabulaire les interdit toujours.
+
+`scripts/test/grsci-mois.test.js` (11 tests).

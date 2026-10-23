@@ -33,6 +33,13 @@ function cleFait(f) {
   return f.url || ('t:' + nettoyerTitre(f.titre).toLowerCase());
 }
 
+const RANG_COTATION = { confirme: 0, probable: 1, non_confirme: 2 };
+function meilleureCotation(a, b) {
+  if (!a) return b || null;
+  if (!b) return a;
+  return RANG_COTATION[b] < RANG_COTATION[a] ? b : a;
+}
+
 function lireCumul(racine, mois) {
   try { return JSON.parse(fs.readFileSync(cheminCumul(racine, mois), 'utf8')); } catch (e) { return { mois, pays: {} }; }
 }
@@ -56,11 +63,15 @@ function cumuler(racine, mois, parPays) {
       const propre = {
         titre: nettoyerTitre(f.titre), url: f.url || null, source: f.source || null,
         niveau: f.niveau || null, cat: f.cat || null, publieMs: f.publieMs, langue: f.langue || null,
+        cotation: f.cotation || null,
       };
       const k = cleFait(propre);
       if (index.has(k)) {
         const ancien = liste[index.get(k)];
         ancien.niveau = propre.niveau; ancien.cat = propre.cat;
+        // Une cotation ne redescend pas : un fait recoupé au passage suivant
+        // reste « Confirmé » même si la fusion n'est plus visible ensuite.
+        ancien.cotation = meilleureCotation(ancien.cotation, propre.cotation);
       } else {
         index.set(k, liste.length);
         liste.push(propre);
@@ -136,6 +147,10 @@ function regrouper(faits, nomPays) {
     const g = groupes.find((x) => x.membres.some((m) => memeFait(m, r)));
     if (g) {
       if (f.source && !g.fait.sources.includes(f.source)) g.fait.sources.push(f.source);
+      g.fait.cotation = meilleureCotation(g.fait.cotation, f.cotation);
+      // Deux médias distincts sur le même fait : c'est la définition du
+      // recoupement, donc « Confirmé » (même règle que cotationArticle).
+      if (g.fait.sources.length > 1) g.fait.cotation = 'confirme';
       g.membres.push(r);
     } else {
       groupes.push({ membres: [r], fait: Object.assign({}, f, { titre: nettoyerTitre(f.titre), sources: f.source ? [f.source] : [] }) });
