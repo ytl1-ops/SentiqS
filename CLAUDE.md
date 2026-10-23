@@ -3088,3 +3088,33 @@ titres déjà traduits dans le cache partagé — décision du propriétaire
 (clé, coût).
 
 `scripts/test/une-langue.test.js` (7 tests, vus échouer sur l'ancien code).
+
+---
+
+## Mobile : la page défile d'un bloc — 22/10/2026
+
+Capture de YORO sur téléphone (texte agrandi par le navigateur) : barre du
+haut coupée à droite, puis « Cliquez sur Actualiser », collecte, flash info,
+filtre pays, onglets, en-tête du module ; en bas la note d'aide et un pied de
+page en capitales sur neuf lignes. Le contenu tenait dans une bande de
+quelques dizaines de pixels. **La cause n'était pas un bandeau de trop mais la
+coque** : `body` à `100dvh` et `overflow:hidden`, seule `.main` défilait, donc
+chaque bandeau se payait sur la zone de lecture — et un texte agrandi par le
+téléphone multipliait la note.
+
+Sur mobile (écran étroit et `html.force-mobile`, règles écrites deux fois,
+bloc « MOBILE : LE CONTENU D'ABORD ») : la page défile d'un bloc, seule la
+barre du haut reste collée (Actualiser, langue, compte) ; le bandeau « Cliquez
+sur Actualiser » est masqué (il redoublait le bouton) ; la collecte tient sur
+une ligne fine ; la note d'aide disparaît ; le pied de page n'est plus collé ni
+en capitales ; la barre du haut ne déborde plus (badge Admin en icône, texte
+« Collecte » masqué). Le mode plein écran d'un module garde sa coque.
+
+**Piège :** un `overflow` sur le `body` en fait un conteneur de défilement, et
+la barre collée cesse de coller (mesuré : `top` à −700 px après défilement).
+`overflow:visible` sur le body, c'est `html` qui défile.
+
+Mesuré à 360 px, texte à 135 % : haut du contenu 246 → 169 px, aucun débordement
+horizontal (la barre du haut dépassait de 48 px), première carte du Flux
+entière sur le premier écran. `scripts/test/mobile-contenu.test.js` (4, vus
+échouer sur l'ancien code).
