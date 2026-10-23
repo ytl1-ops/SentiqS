@@ -75,13 +75,22 @@ test('chaque fait porte sa source et sa date, sans rien ajouter', () => {
   assert.ok(/attaque sur un axe/i.test(t) && /KOACI/.test(t) && /Source/.test(t));
 });
 
-test('un rapport par mois, à partir du jour demandé', () => {
+test('le rapport du mois se réécrit chaque jour sur sa période', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'grsci-'));
-  assert.strictEqual(g.doitEcrire(dir, '2026-10-23', 24), false, 'trop tôt');
-  assert.strictEqual(g.doitEcrire(dir, '2026-10-24', 24), true);
-  fs.writeFileSync(g.cheminRapport(dir, '2026-10-24'), 'x');
-  assert.strictEqual(g.doitEcrire(dir, '2026-10-30', 24), false, 'déjà écrit ce mois-ci');
-  assert.strictEqual(g.doitEcrire(dir, '2026-11-24', 24), true);
+  const index = (r) => fs.writeFileSync(path.join(dir, 'index.json'), JSON.stringify({ rapports: r }));
+  assert.deepStrictEqual(g.rapportsAActualiser(dir, '2026-10-05'), [{ mois: '2026-10', fin: '2026-10-05' }], 'disponible dès le premier passage');
+  fs.writeFileSync(g.cheminRapport(dir, '2026-10-05'), 'x');
+  index([{ mois: '2026-10', jour: '2026-10-05', genere: '2026-10-05T07:00:00Z' }]);
+  assert.deepStrictEqual(g.rapportsAActualiser(dir, '2026-10-05'), [], 'une fois par jour');
+  assert.deepStrictEqual(g.rapportsAActualiser(dir, '2026-10-06'), [{ mois: '2026-10', fin: '2026-10-06' }], 'le lendemain : période prolongée');
+  // Le 1er novembre : octobre est finalisé (1er → 31), novembre commence.
+  index([{ mois: '2026-10', jour: '2026-10-31', genere: '2026-10-31T07:00:00Z' }]);
+  assert.deepStrictEqual(g.rapportsAActualiser(dir, '2026-11-01'), [{ mois: '2026-10', fin: '2026-10-31' }, { mois: '2026-11', fin: '2026-11-01' }]);
+  index([{ mois: '2026-10', jour: '2026-10-31', genere: '2026-11-01T03:00:00Z' }]);
+  assert.ok(!g.rapportsAActualiser(dir, '2026-11-02').some((r) => r.mois === '2026-10'), 'octobre ne bouge plus');
+  assert.strictEqual(g.libellePeriode('2026-10-23'), 'Période du 1er au 23 octobre 2026');
+  assert.strictEqual(g.dernierJourMois('2026-02'), '2026-02-28');
+  assert.strictEqual(g.moisPrecedent('2026-01-01'), '2025-12');
 });
 
 test('les ressources du modèle sont présentes et le job est câblé', async () => {

@@ -3088,3 +3088,45 @@ titres déjà traduits dans le cache partagé — décision du propriétaire
 (clé, coût).
 
 `scripts/test/une-langue.test.js` (7 tests, vus échouer sur l'ancien code).
+
+---
+
+## GRSCI tenu à jour sur sa période, et plus aucun visuel de remplacement — 23/10/2026
+
+Relecture du rapport d'octobre (forcé le 21) : **pas exploitable**. Il lisait
+`donneesBulletinPays`, donc 36 h : deux faits ivoiriens pour « un mois »,
+Bénin et Liberia vides, la peine de mort au Burkina Faso en six puces (une par
+média), Ménaka trois fois, des titres anglais, « VIII » coupé en « VII / I »,
+un espace de largeur nulle qui coupait « GRÈVE ». Et la règle « premier
+passage à partir du 24, refus d'écraser » l'aurait gardé comme rapport du mois.
+
+- **Matière du mois** : `faitsMoisPays(cy, depuisMs)` (page) lit `ALL` ET
+  `HISTORIQUE` (qui garde désormais `url` et `_dateNonFiable`), au-dessus du
+  normal, hors sport, hors source à date non fiable. Le job **cumule** ce relevé
+  à chaque passage dans `web/rapports/GRSCI/faits-AAAA-MM.json`
+  (`scripts/lib/faits-grsci.js`). C'est ce cumul qui fait le mois.
+- **Un fait = une puce** : `regrouper` replie les titres d'un même pays qui
+  partagent ≥ 3 racines (60 % du plus court) ou ≥ 4 (50 %), **à moins de quatre
+  jours d'écart** — la garde contre la fusion de deux attaques distinctes dans
+  la même région. Les médias sont listés sur la ligne « Sources : ». Tri :
+  gravité puis date ; dix faits par rubrique ou par pays.
+- **Une langue** : le job traduit les titres en/pt/ar par `trFetch` (120 par
+  passage), garde `titreFr` dans le cumul ; à défaut le titre porte `(EN)`.
+- **Toujours disponible sur sa période** (demande de YORO) :
+  `rapportsAActualiser` réécrit le rapport du mois au premier passage de chaque
+  jour, période du 1er à aujourd'hui (affichée en couverture et dans la liste
+  du module Rapports) ; le mois écoulé est réécrit une dernière fois le
+  lendemain de sa fin (1er → dernier jour) puis ne bouge plus. `jour` dans
+  `index.json` = fin de la période. Conséquence : LibreOffice s'installe une
+  fois par jour pour le PDF.
+- **Octobre 2026 n'est que partiel** : le cumul ne commence qu'à la fusion ;
+  ce qui précède ne vient que de la profondeur des flux RSS relus à chaque
+  passage. Novembre sera le premier mois complet.
+
+**Visuels** : sans photo ni vidéo de la source, **rien** ne s'affiche (ni
+repli de marque, ni cadre) — `.vact.sans-img:not(.vact-video){display:none}`.
+Le repli ne reste que sous une vidéo sans vignette. Une image en échec
+disparaît ; un aperçu Open Graph arrivé plus tard fait apparaître le cadre.
+Mesuré dans Chromium : sans rien → `display:none`, hauteur 0.
+
+`scripts/test/grsci-mois.test.js` (10 tests).

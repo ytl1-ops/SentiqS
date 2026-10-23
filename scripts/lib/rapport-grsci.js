@@ -15,6 +15,7 @@
 // renvoie un classeur pptxgenjs, ce qui le rend testable sans navigateur.
 const fs = require('node:fs');
 const path = require('node:path');
+const { nettoyerTitre } = require('./faits-grsci');
 
 const ASSETS = path.join(__dirname, '..', 'assets', 'grsci');
 
@@ -64,6 +65,12 @@ function dateLongue(jour) {
   const [a, m, j] = String(jour).split('-').map(Number);
   return j + ' ' + MOIS[m - 1] + ' ' + a;
 }
+// « Période du 1er au 23 octobre 2026 » : l'intervalle couvert, dit sur la
+// couverture, parce que le rapport du mois en cours est réécrit chaque jour.
+function libellePeriode(fin) {
+  const [a, m, j] = String(fin).split('-').map(Number);
+  return 'Période du 1er au ' + (j === 1 ? '1er' : j) + ' ' + MOIS[m - 1] + ' ' + a;
+}
 function dateCourte(jour) {
   const [a, m, j] = String(jour).split('-');
   return j + '/' + m + '/' + a.slice(2);
@@ -80,10 +87,17 @@ const RUBRIQUES = [
   { cle: 'divers', num: 'IV', titre: 'DIVERS', cats: ['economique', 'economie', null] },
 ];
 const FAITS_PAR_PAGE = 5;
+// Un mois de collecte donne des dizaines de faits par rubrique ; le groupe en
+// lit dix, les plus graves d'abord (l'ordre vient de faits-grsci.js).
+const MAX_FAITS_RUBRIQUE = 10;
 
 function rubriqueDe(fait) {
   const cat = fait.cat || null;
   return (RUBRIQUES.find((r) => r.cats.includes(cat)) || RUBRIQUES[3]).cle;
+}
+
+function faitsRubrique(ci, rub) {
+  return ci.faits.filter((f) => rubriqueDe(f) === rub.cle).slice(0, MAX_FAITS_RUBRIQUE);
 }
 
 function paginer(liste, n) {
@@ -107,7 +121,9 @@ function pied(s, ctx, numero) {
 
 function titrePage(s, num, titre, pays) {
   const souligne = /^- /.test(titre);
-  s.addText(num, { x: 0.5, y: 0.3, w: 0.7, h: 0.6, fontFace: POLICE_TITRE, fontSize: 24, color: 'FFFFFF', fill: { color: VERT }, align: 'center', valign: 'middle' });
+  // « VIII » ne tient pas à 24 pt dans la pastille : il passait sur deux
+  // lignes (« VII / I », page Liberia du rapport d'octobre 2026).
+  s.addText(num, { x: 0.5, y: 0.3, w: 0.7, h: 0.6, fontFace: POLICE_TITRE, fontSize: num.length > 2 ? 17 : 24, color: 'FFFFFF', fill: { color: VERT }, align: 'center', valign: 'middle' });
   s.addText(titre, { x: 1.35, y: 0.3, w: 9.8, h: 0.6, fontFace: POLICE_TITRE, fontSize: 28, underline: souligne, color: VERT, valign: 'middle' });
   if (pays && DRAPEAUX[pays]) {
     // Drapeau en coin de page, comme dans le modèle.
@@ -134,7 +150,8 @@ function pageCouverture(pptx, ctx) {
     { text: 'RENCONTRE MENSUELLE', options: { breakLine: true } }, { text: 'G.R.S.CI' },
   ], { x: 2.5, y: 0.25, w: 8.3, h: 1.4, fontFace: POLICE_TITRE, fontSize: 44, color: 'FFFFFF', align: 'center', shadow: { type: 'outer', color: '000000', blur: 6, offset: 2, angle: 45, opacity: 0.6 } });
   s.addShape('line', { x: 3.5, y: 1.75, w: 6.3, h: 0, line: { color: '000000', width: 3 } });
-  s.addText(dateLongue(ctx.jour).toUpperCase(), { x: 8.3, y: 6.0, w: 4.7, h: 0.4, fontFace: POLICE, fontSize: 20, bold: true, color: 'FFFFFF', align: 'right' });
+  s.addText(dateLongue(ctx.jour).toUpperCase(), { x: 8.3, y: 5.55, w: 4.7, h: 0.4, fontFace: POLICE, fontSize: 20, bold: true, color: 'FFFFFF', align: 'right' });
+  s.addText(libellePeriode(ctx.jour), { x: 6.3, y: 6.0, w: 6.7, h: 0.35, fontFace: POLICE, fontSize: 14, color: 'FFFFFF', align: 'right', shadow: { type: 'outer', color: '000000', blur: 4, offset: 1, angle: 45, opacity: 0.7 } });
   s.addImage({ path: path.join(ASSETS, 'afrique.png'), x: 10.1, y: 6.75, w: 0.6, h: 0.6 });
   pied(s, ctx, ctx.numero());
 }
@@ -161,16 +178,25 @@ function periode(jour) {
   return (j > 20 ? 'Fin ' : j > 10 ? 'Mi-' : 'Début ') + mois;
 }
 
+// Le titre traduit en français quand la source écrit dans une autre langue
+// (une seule langue par document) ; à défaut, la langue d'origine est dite.
+const LANGUE_ORIGINE = { en: 'EN', pt: 'PT', ar: 'AR' };
 function titreDeFait(f) {
-  return String(f.titre || '').toUpperCase();
+  const titre = nettoyerTitre(f.titreFr || f.titre).toUpperCase();
+  const marque = !f.titreFr && LANGUE_ORIGINE[f.langue] ? '(' + LANGUE_ORIGINE[f.langue] + ') ' : '';
+  return marque + titre;
 }
 
 // Ce que le modèle écrit sous chaque titre ❑ : la source et la date. Rien
 // d'autre — ni niveau, ni cotation, ni score : ce sont des notions de l'appli.
 function faitTexte(f) {
-  const source = f.source || 'Source non précisée';
+  // Un fait repris par plusieurs médias est un seul fait, recoupé : ses
+  // sources sont listées sur la même ligne (faits-grsci.js, regrouper).
+  const sources = (f.sources && f.sources.length ? f.sources : [f.source]).filter(Boolean);
+  const source = sources.length ? sources.join(' · ') : 'Source non précisée';
+  const etiquette = sources.length > 1 ? 'Sources : ' : 'Source : ';
   const quand = dateFait(f.publieMs);
-  return { titre: titreDeFait(f), source, quand, url: lienSur(f) };
+  return { titre: titreDeFait(f), source, etiquette, quand, url: lienSur(f) };
 }
 
 function corpsFaits(faits) {
@@ -179,7 +205,7 @@ function corpsFaits(faits) {
     const t = faitTexte(f);
     corps.push({ text: t.titre, options: { bold: true, underline: true, color: VERT, fontSize: 14, bullet: { code: '2751' }, breakLine: true, paraSpaceBefore: 8 } });
     const src = t.url ? { text: t.source, options: { hyperlink: { url: t.url }, color: VERT } } : { text: t.source, options: {} };
-    corps.push({ text: 'Source : ', options: { bullet: { code: '25AA' }, indentLevel: 1, fontSize: 13 } });
+    corps.push({ text: t.etiquette, options: { bullet: { code: '25AA' }, indentLevel: 1, fontSize: 13 } });
     corps.push(Object.assign({}, src, { options: Object.assign({ fontSize: 13 }, src.options) }));
     corps.push({ text: t.quand ? ' — ' + t.quand : '', options: { fontSize: 13, breakLine: true } });
   });
@@ -206,7 +232,7 @@ function pageSommaire(pptx, ctx, ci, regionaux) {
   const court = (t) => (t.length > 84 ? t.slice(0, 81) + '…' : t);
   const gauche = [];
   for (const r of RUBRIQUES) {
-    const faits = ci.faits.filter((f) => rubriqueDe(f) === r.cle);
+    const faits = faitsRubrique(ci, r);
     if (!faits.length) continue;
     gauche.push({ text: r.titre, options: { bold: true, color: VERT, breakLine: true, paraSpaceBefore: 6 } });
     faits.slice(0, 6).forEach((f) => gauche.push({ text: court(titreDeFait(f)), options: { bullet: { code: '2751' }, breakLine: true } }));
@@ -246,7 +272,7 @@ function construire(PptxGenJS, { jour, ci, regionaux }) {
   pageSommaire(pptx, ctx, ci, regionaux);
   intercalaire(pptx, ctx, 'FAITS MARQUANTS EN CÔTE D\'IVOIRE', 'carte-ci.jpg');
   for (const rub of RUBRIQUES) {
-    const faits = ci.faits.filter((f) => rubriqueDe(f) === rub.cle);
+    const faits = faitsRubrique(ci, rub);
     if (!faits.length) continue;
     paginer(faits, FAITS_PAR_PAGE).forEach((p) => pageFaits(pptx, ctx, rub.num, '- ' + rub.titre, p, 'CI'));
   }
@@ -268,12 +294,45 @@ function cheminRapport(racine, jour) {
   return path.join(racine, jour.slice(0, 7) + '.pptx');
 }
 
-// Un rapport par mois : le premier passage à partir du jour demandé fait foi,
-// même mécanique que les bulletins et l'archive (le refus d'écraser).
-function doitEcrire(racine, jour, jourMin) {
-  const j = Number(String(jour).slice(8, 10));
-  if (j < (jourMin || 1)) return false;
-  return !fs.existsSync(cheminRapport(racine, jour));
+// Le rapport du mois est TOUJOURS disponible et à jour sur sa période
+// (demande de YORO du 23/10/2026 : « GRSCI doit toujours être disponible
+// selon l'intervalle de la période désignée »). Jusque-là un seul rapport
+// par mois, écrit au premier passage à partir du 24, puis figé : celui
+// d'octobre 2026, forcé le 21, serait resté le rapport officiel.
+//
+// Désormais :
+// - période = du 1er du mois au jour du rapport (`fin`) ;
+// - le rapport du mois en cours est réécrit au premier passage de chaque
+//   jour, sur le cumul du mois (faits-grsci.js) ;
+// - le mois écoulé est réécrit une dernière fois le lendemain de sa fin,
+//   période complète (1er → dernier jour), puis ne bouge plus.
+// `jour` écrit dans l'index est la fin de la période couverte.
+function dernierJourMois(mois) {
+  const [a, m] = String(mois).split('-').map(Number);
+  return mois + '-' + String(new Date(Date.UTC(a, m, 0)).getUTCDate()).padStart(2, '0');
+}
+function moisPrecedent(jour) {
+  const [a, m] = String(jour).split('-').map(Number);
+  return m === 1 ? (a - 1) + '-12' : a + '-' + String(m - 1).padStart(2, '0');
+}
+function entreeIndex(racine, mois) {
+  try {
+    return (JSON.parse(fs.readFileSync(path.join(racine, 'index.json'), 'utf8')).rapports || []).find((r) => r.mois === mois) || null;
+  } catch (e) { return null; }
+}
+/** Les rapports à (ré)écrire aujourd'hui : [{ mois, fin }]. */
+function rapportsAActualiser(racine, aujourdhui) {
+  const out = [];
+  const prec = moisPrecedent(aujourdhui);
+  const finPrec = dernierJourMois(prec);
+  const ep = entreeIndex(racine, prec);
+  const genereP = ep && ep.genere ? String(ep.genere).slice(0, 10) : null;
+  // Le mois écoulé : une dernière fois, s'il n'a pas encore été écrit après sa fin.
+  if (ep && !(ep.jour === finPrec && genereP && genereP > finPrec)) out.push({ mois: prec, fin: finPrec });
+  const mois = String(aujourdhui).slice(0, 7);
+  const e = entreeIndex(racine, mois);
+  if (!e || e.jour !== aujourdhui || !fs.existsSync(cheminRapport(racine, aujourdhui))) out.push({ mois, fin: aujourdhui });
+  return out;
 }
 
 async function ecrire(racine, PptxGenJS, donnees) {
@@ -330,8 +389,8 @@ function majIndex(racine, chemin, jour, maintenant) {
 }
 
 module.exports = {
-  PAYS_REGIONAUX, construire, doitEcrire, ecrire, majIndex, reconstruireIndex, cheminRapport, rubriqueDe, RUBRIQUES,
+  PAYS_REGIONAUX, construire, rapportsAActualiser, dernierJourMois, moisPrecedent, libellePeriode, ecrire, majIndex, reconstruireIndex, cheminRapport, rubriqueDe, RUBRIQUES,
   // partagés avec la version Word (rapport-grsci-word.js)
   ASSETS, VERT, TEXTE, LEGERE, POLICE, POLICE_TITRE, DRAPEAUX, rectsDrapeau,
-  dateLongue, dateCourte, paginer, faitTexte, FAITS_PAR_PAGE, ROMAIN, MAX_FAITS_PAYS, periode, titreDeFait,
+  dateLongue, dateCourte, paginer, faitTexte, faitsRubrique, MAX_FAITS_RUBRIQUE, FAITS_PAR_PAGE, ROMAIN, MAX_FAITS_PAYS, periode, titreDeFait,
 };

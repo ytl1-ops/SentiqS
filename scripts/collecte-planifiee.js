@@ -34,6 +34,7 @@ const alerteCouverture = require('./lib/alerte-couverture');
 const bulletin = require('./lib/bulletin');
 const rapportGrsci = require('./lib/rapport-grsci');
 const rapportGrsciWord = require('./lib/rapport-grsci-word');
+const faitsGrsci = require('./lib/faits-grsci');
 const santeCollecte = require('./lib/sante-collecte');
 
 // Firebase Hosting retire (sentinel-surete.web.app ne recoit plus de
@@ -515,25 +516,68 @@ function ecrireResumeActions(md) {
         // ── RAPPORT MENSUEL GRSCI ───────────────────────────────────────
         // Demande du 20/10/2026 : « Faits marquants en Côte d'Ivoire » et
         // « Dynamiques régionales » dans la forme du modèle d'octobre 2024,
-        // automatisés. Un rapport par mois, le premier passage à partir du 24
-        // (la rencontre a lieu vers le 25) ; GRSCI_FORCER=1 le produit tout
-        // de suite. Voir scripts/lib/rapport-grsci.js.
+        // automatisés. Le rapport du mois en cours est réécrit chaque jour
+        // sur la période du 1er à aujourd'hui (demande du 23/10/2026) ; voir
+        // rapportsAActualiser dans scripts/lib/rapport-grsci.js.
         try {
-          const force = process.env.GRSCI_FORCER === '1';
-          if (force || rapportGrsci.doitEcrire(RACINE_GRSCI, jour, 24)) {
+          // Cumul du mois, à CHAQUE passage : le rapport du 24 lit ce que la
+          // collecte a vu depuis le 1er, pas seulement la fenêtre de 36 h
+          // (relecture du 23/10/2026 : deux faits ivoiriens pour un mois).
+          const mois = jour.slice(0, 7);
+          // Les deux premiers jours du mois, le relevé remonte au 1er du mois
+          // écoulé : les faits de ses dernières heures complètent son cumul
+          // avant sa dernière réécriture (rapportsAActualiser).
+          const depuis = rapportGrsci.moisPrecedent(jour);
+          const debutReleve = Date.parse((Number(jour.slice(8, 10)) <= 2 ? depuis : mois) + '-01T00:00:00Z');
+          const paysGrsci = ['CI'].concat(rapportGrsci.PAYS_REGIONAUX);
+          const releve = {};
+          for (const cy of paysGrsci) {
+            releve[cy] = await page.evaluate(([c, d]) => (typeof faitsMoisPays === 'function') ? faitsMoisPays(c, d) : [], [cy, debutReleve]);
+          }
+          if (Number(jour.slice(8, 10)) <= 2) faitsGrsci.cumuler(RACINE_GRSCI, depuis, releve);
+          const cumul = faitsGrsci.cumuler(RACINE_GRSCI, mois, releve);
+          // Une seule langue dans un document du groupe : les titres en
+          // anglais, portugais ou arabe sont traduits en français par la
+          // chaîne de la page, une fois, et le titre traduit est gardé dans
+          // le cumul. Plafonné par passage : le reste attend le suivant.
+          let aTraduire = 0;
+          for (const cy of paysGrsci) {
+            for (const f of (cumul.pays[cy] || [])) {
+              if (f.titreFr || !['en', 'pt', 'ar'].includes(f.langue) || aTraduire >= 120) continue;
+              aTraduire++;
+              try {
+                const fr = await page.evaluate((t) => (typeof trFetch === 'function') ? trFetch(t, detectLangue(t), 'fr') : null, f.titre);
+                if (typeof fr === 'string' && fr.trim() && fr.trim() !== f.titre.trim()) f.titreFr = faitsGrsci.nettoyerTitre(fr);
+              } catch (e) { /* le passage suivant réessaiera */ }
+            }
+          }
+          if (aTraduire) faitsGrsci.ecrireCumul(RACINE_GRSCI, cumul);
+          const total = paysGrsci.reduce((n, cy) => n + ((cumul.pays[cy] || []).length), 0);
+          console.log('  GRSCI : ' + total + ' faits cumules pour ' + mois + ' (' + aTraduire + ' titres soumis a traduction).');
+
+          // Rapport du mois en cours réécrit au premier passage de chaque jour
+          // (période du 1er à aujourd'hui), mois écoulé finalisé le lendemain
+          // de sa fin. GRSCI_FORCER=1 réécrit le mois en cours tout de suite.
+          const aEcrire = rapportGrsci.rapportsAActualiser(RACINE_GRSCI, jour);
+          if (process.env.GRSCI_FORCER === '1' && !aEcrire.some((r) => r.mois === mois)) aEcrire.push({ mois, fin: jour });
+          for (const { mois: moisR, fin } of aEcrire) {
             const PptxGenJS = require('pptxgenjs');
-            const lire = (cy) => page.evaluate((c) => (typeof donneesBulletinPays === 'function') ? donneesBulletinPays(c) : null, cy);
+            const cumulR = moisR === mois ? cumul : faitsGrsci.lireCumul(RACINE_GRSCI, moisR);
+            const lire = async (cy) => {
+              const d = await page.evaluate((c) => (typeof donneesBulletinPays === 'function') ? donneesBulletinPays(c) : null, cy);
+              return d ? Object.assign(d, { faits: faitsGrsci.faitsDuMois(cumulR, cy, d.nom) }) : null;
+            };
             const ci = await lire('CI');
             const regionaux = [];
             for (const cy of rapportGrsci.PAYS_REGIONAUX) { const d = await lire(cy); if (d) regionaux.push(d); }
             if (!ci) { console.warn('  GRSCI : la page ne fournit pas donneesBulletinPays.'); }
             else {
-              const chemin = await rapportGrsci.ecrire(RACINE_GRSCI, PptxGenJS, { jour, ci, regionaux });
+              const chemin = await rapportGrsci.ecrire(RACINE_GRSCI, PptxGenJS, { jour: fin, ci, regionaux });
               console.log('  GRSCI : rapport ecrit — ' + chemin + ' (' + regionaux.length + ' pays regionaux).');
               // Le même rapport en Word : vrais textes et tableaux modifiables.
               // Son échec ne doit pas faire perdre le PowerPoint déjà écrit.
               try {
-                const cheminWord = await rapportGrsciWord.ecrireWord(RACINE_GRSCI, require('docx'), { jour, ci, regionaux });
+                const cheminWord = await rapportGrsciWord.ecrireWord(RACINE_GRSCI, require('docx'), { jour: fin, ci, regionaux });
                 console.log('  GRSCI : version Word ecrite — ' + cheminWord);
               } catch (e) {
                 console.warn('  GRSCI : version Word non ecrite (' + ((e && e.message) || e) + ')');
