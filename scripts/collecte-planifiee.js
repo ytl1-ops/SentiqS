@@ -34,6 +34,7 @@ const alerteCouverture = require('./lib/alerte-couverture');
 const bulletin = require('./lib/bulletin');
 const rapportGrsci = require('./lib/rapport-grsci');
 const rapportGrsciWord = require('./lib/rapport-grsci-word');
+const grsciFaits = require('./lib/grsci-faits');
 const santeCollecte = require('./lib/sante-collecte');
 
 // Firebase Hosting retire (sentinel-surete.web.app ne recoit plus de
@@ -518,14 +519,21 @@ function ecrireResumeActions(md) {
         // automatisés. Un rapport par mois, le premier passage à partir du 24
         // (la rencontre a lieu vers le 25) ; GRSCI_FORCER=1 le produit tout
         // de suite. Voir scripts/lib/rapport-grsci.js.
+        //
+        // Chaque passage verse ses faits dans le cumul du mois
+        // (scripts/lib/grsci-faits.js) : sans lui, le rapport « mensuel » ne
+        // voyait que les 36 dernières heures (relecture du 23/10/2026).
         try {
           const force = process.env.GRSCI_FORCER === '1';
+          const lire = (cy) => page.evaluate((c) => (typeof donneesBulletinPays === 'function') ? donneesBulletinPays(c) : null, cy);
+          const bruts = [];
+          for (const cy of ['CI'].concat(rapportGrsci.PAYS_REGIONAUX)) { const d = await lire(cy); if (d) bruts.push(d); }
+          const cumules = grsciFaits.cumuler(RACINE_GRSCI, jour, bruts);
+          const ci = cumules.find((d) => d.cy === 'CI') || null;
+          const regionaux = cumules.filter((d) => d.cy !== 'CI');
+          console.log('  GRSCI : cumul du mois — ' + cumules.map((d) => d.cy + ' ' + d.faits.length).join(', '));
           if (force || rapportGrsci.doitEcrire(RACINE_GRSCI, jour, 24)) {
             const PptxGenJS = require('pptxgenjs');
-            const lire = (cy) => page.evaluate((c) => (typeof donneesBulletinPays === 'function') ? donneesBulletinPays(c) : null, cy);
-            const ci = await lire('CI');
-            const regionaux = [];
-            for (const cy of rapportGrsci.PAYS_REGIONAUX) { const d = await lire(cy); if (d) regionaux.push(d); }
             if (!ci) { console.warn('  GRSCI : la page ne fournit pas donneesBulletinPays.'); }
             else {
               const chemin = await rapportGrsci.ecrire(RACINE_GRSCI, PptxGenJS, { jour, ci, regionaux });
