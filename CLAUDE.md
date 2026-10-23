@@ -2527,6 +2527,23 @@ catégorie « humanitaire ». La période du premier pays (« situation Fin
 octobre ») est calculée. Rendus relus avec LibreOffice, pas avec PowerPoint ni
 Word.
 
+**Un mois de faits, pas 36 heures (23/10/2026).** Relu page par page, le
+rapport d'octobre forcé le 23 ne contenait que la fenêtre d'actualité : deux
+faits pour la Côte d'Ivoire, un pour le Bénin, parce que
+`donneesBulletinPays` ne voit que 36 h. Chaque passage du job verse désormais
+ses faits dans `web/rapports/GRSCI/faits-AAAA-MM.json`
+(`scripts/lib/grsci-faits.js`, dédoublonné par lien, borné à 120 par pays) et
+le rapport lit ce cumul : les plus graves puis les plus récents, 25 au plus
+pour la Côte d'Ivoire, 10 par pays régional. Le cumul a commencé le
+23/10/2026 : le rapport d'octobre reste court, celui de novembre couvrira le
+mois. Un rapport forcé **avant** le 24 est une avant-première : le premier
+passage à partir du 24 le réécrit (`doitEcrire` lit le jour dans l'index).
+La pastille « VIII » passait sur deux lignes à 24 pt : taille réduite selon
+la longueur du numéro. **Pas corrigé ici** : des faits hors sujet retenus par
+la classification de l'appli (une citation de fait divers, une cérémonie), des
+titres anglais non traduits, et un fait politique de Côte d'Ivoire classé
+« Sécurité » parce que l'article l'est dans l'appli.
+
 ---
 
 ## Conventions

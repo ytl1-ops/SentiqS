@@ -105,9 +105,16 @@ function pied(s, ctx, numero) {
   s.addText('|  ' + dateCourte(ctx.jour) + '   |   ' + numero, { x: 10.3, y: 6.9, w: 2.7, h: 0.3, fontFace: POLICE, fontSize: 10, color: TEXTE, align: 'right' });
 }
 
+function taillePastille(num) {
+  const n = String(num).length;
+  return n <= 2 ? 24 : n === 3 ? 20 : 16;
+}
+
 function titrePage(s, num, titre, pays) {
   const souligne = /^- /.test(titre);
-  s.addText(num, { x: 0.5, y: 0.3, w: 0.7, h: 0.6, fontFace: POLICE_TITRE, fontSize: 24, color: 'FFFFFF', fill: { color: VERT }, align: 'center', valign: 'middle' });
+  // « VIII » à 24 pt ne tenait pas dans la pastille et passait sur deux lignes
+  // (« VII » puis « I », rapport du 23/10/2026, page Liberia).
+  s.addText(num, { x: 0.5, y: 0.3, w: 0.7, h: 0.6, fontFace: POLICE_TITRE, fontSize: taillePastille(num), fit: 'shrink', color: 'FFFFFF', fill: { color: VERT }, align: 'center', valign: 'middle' });
   s.addText(titre, { x: 1.35, y: 0.3, w: 9.8, h: 0.6, fontFace: POLICE_TITRE, fontSize: 28, underline: souligne, color: VERT, valign: 'middle' });
   if (pays && DRAPEAUX[pays]) {
     // Drapeau en coin de page, comme dans le modèle.
@@ -142,6 +149,9 @@ function pageCouverture(pptx, ctx) {
 // Constantes de gabarit du modèle.
 const ROMAIN = ['0', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 const MAX_FAITS_PAYS = 10;
+// Faits de la Côte d'Ivoire sur un mois de cumul : au-delà, le rapport ne se
+// lit plus en séance. Les plus graves puis les plus récents (ordre du cumul).
+const MAX_FAITS_CI = 25;
 
 function dateFait(ms) {
   if (!ms) return '';
@@ -235,6 +245,7 @@ function pageMerci(pptx, ctx) {
 // n'apparaissent PAS : le modèle du groupe n'en a pas, et le rapport doit
 // respecter sa présentation (demande du 21/10/2026).
 function construire(PptxGenJS, { jour, ci, regionaux }) {
+  ci = Object.assign({}, ci, { faits: (ci.faits || []).slice(0, MAX_FAITS_CI) });
   const pptx = new PptxGenJS();
   pptx.layout = 'LAYOUT_WIDE';
   pptx.title = 'Rencontre mensuelle G.R.S.CI — ' + dateLongue(jour);
@@ -270,10 +281,19 @@ function cheminRapport(racine, jour) {
 
 // Un rapport par mois : le premier passage à partir du jour demandé fait foi,
 // même mécanique que les bulletins et l'archive (le refus d'écraser).
+//
+// Exception : un rapport produit à la demande AVANT ce jour (GRSCI_FORCER) est
+// une avant-première. Le 23/10/2026, un rapport forcé la veille du 24 aurait
+// sinon bloqué le rapport de la rencontre, privé des derniers jours du cumul.
 function doitEcrire(racine, jour, jourMin) {
   const j = Number(String(jour).slice(8, 10));
   if (j < (jourMin || 1)) return false;
-  return !fs.existsSync(cheminRapport(racine, jour));
+  if (!fs.existsSync(cheminRapport(racine, jour))) return true;
+  try {
+    const idx = JSON.parse(fs.readFileSync(path.join(racine, 'index.json'), 'utf8')).rapports || [];
+    const r = idx.find((x) => x.mois === String(jour).slice(0, 7));
+    return !!(r && r.jour && Number(String(r.jour).slice(8, 10)) < (jourMin || 1));
+  } catch (e) { return false; }
 }
 
 async function ecrire(racine, PptxGenJS, donnees) {
@@ -333,5 +353,5 @@ module.exports = {
   PAYS_REGIONAUX, construire, doitEcrire, ecrire, majIndex, reconstruireIndex, cheminRapport, rubriqueDe, RUBRIQUES,
   // partagés avec la version Word (rapport-grsci-word.js)
   ASSETS, VERT, TEXTE, LEGERE, POLICE, POLICE_TITRE, DRAPEAUX, rectsDrapeau,
-  dateLongue, dateCourte, paginer, faitTexte, FAITS_PAR_PAGE, ROMAIN, MAX_FAITS_PAYS, periode, titreDeFait,
+  dateLongue, dateCourte, paginer, faitTexte, FAITS_PAR_PAGE, ROMAIN, MAX_FAITS_PAYS, MAX_FAITS_CI, periode, titreDeFait, taillePastille,
 };
