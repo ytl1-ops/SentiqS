@@ -52,21 +52,29 @@ test('une rubrique sans fait ne produit pas de page, et beaucoup de faits se pag
   const p = g.construire(FauxPptx, { jour: '2026-10-25', ci, regionaux: [] });
   const t = tout(p);
   assert.ok(!t.includes('- POLITIQUE'));
-  assert.strictEqual(p.slides.filter((s) => s.textes.some((x) => x.includes('- SÉCURITÉ'))).length, 2);
+  // Quatre faits rédigés (une page chacun), les trois autres en une page de liste.
+  assert.strictEqual(p.slides.filter((s) => s.textes.some((x) => x.includes('- SÉCURITÉ'))).length, 4 + 1);
 });
 
 // Garde de la demande du 21/10/2026 : le rapport suit le modèle du groupe, pas
 // le vocabulaire de l'appli. Si ce test tombe, quelqu'un a réintroduit un
-// niveau, une confiance, un score ou une cotation dans un document du groupe.
-const VOCABULAIRE_APPLI = /EN BREF|niveau d.alerte|confiance|score|\/100|Confirm|Probable|Non confirm|MARRON|ROUGE|ORANGE|JAUNE|d.cryptage|lecture automatique|ne savons pas|TABLEAU R/i;
+// niveau d'alerte coloré ou un score dans un document du groupe. La cotation
+// et l'indice de confiance, eux, y sont depuis le 23/10/2026 (« oui, go » de
+// YORO) : le test exige leur PRÉSENCE.
+const VOCABULAIRE_APPLI = /EN BREF|niveau d.alerte|score|\/100|MARRON|ROUGE|ORANGE|JAUNE|d.cryptage|lecture automatique|ne savons pas|TABLEAU R/i;
 
-test("aucun vocabulaire de l'appli dans le PowerPoint ni le Word", async () => {
+test("ni niveau ni score, mais cotation et confiance, dans le PowerPoint et le Word", async () => {
   const ci = pays('CI', 'CI', [fait('Attaque', 'securite', 'critical'), fait('Grève', 'humanitaire')]);
-  const reg = [pays('ML', 'Mali', [fait('Embuscade', 'securite')])];
-  assert.doesNotMatch(tout(g.construire(FauxPptx, { jour: '2026-10-25', ci, regionaux: reg })), VOCABULAIRE_APPLI);
+  ci.faits[0].cotation = 'confirme'; ci.faits[1].cotation = 'non_confirme';
+  const reg = [pays('ML', 'Mali', [Object.assign(fait('Embuscade', 'securite'), { cotation: 'probable' })])];
+  const t = tout(g.construire(FauxPptx, { jour: '2026-10-25', ci, regionaux: reg }));
+  assert.doesNotMatch(t, VOCABULAIRE_APPLI);
+  for (const attendu of ['Cotation : Confirmé', 'Cotation : Non confirmé', 'Cotation : Probable', 'Indice de confiance : moyenne']) assert.ok(t.includes(attendu), attendu);
   const { docx, textes } = fauxDocx();
   await require('../lib/rapport-grsci-word.js').ecrireWord(fs.mkdtempSync(path.join(os.tmpdir(), 'grsci-')), docx, { jour: '2026-10-25', ci, regionaux: reg });
-  assert.doesNotMatch(textes.join('\n'), VOCABULAIRE_APPLI);
+  const w = textes.join('\n');
+  assert.doesNotMatch(w, VOCABULAIRE_APPLI);
+  assert.ok(/Cotation : Probable/.test(w) && /Indice de confiance : moyenne/.test(w));
 });
 
 test('chaque fait porte sa source et sa date, sans rien ajouter', () => {
@@ -75,13 +83,22 @@ test('chaque fait porte sa source et sa date, sans rien ajouter', () => {
   assert.ok(/attaque sur un axe/i.test(t) && /KOACI/.test(t) && /Source/.test(t));
 });
 
-test('un rapport par mois, à partir du jour demandé', () => {
+test('le rapport du mois se réécrit chaque jour sur sa période', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'grsci-'));
-  assert.strictEqual(g.doitEcrire(dir, '2026-10-23', 24), false, 'trop tôt');
-  assert.strictEqual(g.doitEcrire(dir, '2026-10-24', 24), true);
-  fs.writeFileSync(g.cheminRapport(dir, '2026-10-24'), 'x');
-  assert.strictEqual(g.doitEcrire(dir, '2026-10-30', 24), false, 'déjà écrit ce mois-ci');
-  assert.strictEqual(g.doitEcrire(dir, '2026-11-24', 24), true);
+  const index = (r) => fs.writeFileSync(path.join(dir, 'index.json'), JSON.stringify({ rapports: r }));
+  assert.deepStrictEqual(g.rapportsAActualiser(dir, '2026-10-05'), [{ mois: '2026-10', fin: '2026-10-05' }], 'disponible dès le premier passage');
+  fs.writeFileSync(g.cheminRapport(dir, '2026-10-05'), 'x');
+  index([{ mois: '2026-10', jour: '2026-10-05', genere: '2026-10-05T07:00:00Z' }]);
+  assert.deepStrictEqual(g.rapportsAActualiser(dir, '2026-10-05'), [], 'une fois par jour');
+  assert.deepStrictEqual(g.rapportsAActualiser(dir, '2026-10-06'), [{ mois: '2026-10', fin: '2026-10-06' }], 'le lendemain : période prolongée');
+  // Le 1er novembre : octobre est finalisé (1er → 31), novembre commence.
+  index([{ mois: '2026-10', jour: '2026-10-31', genere: '2026-10-31T07:00:00Z' }]);
+  assert.deepStrictEqual(g.rapportsAActualiser(dir, '2026-11-01'), [{ mois: '2026-10', fin: '2026-10-31' }, { mois: '2026-11', fin: '2026-11-01' }]);
+  index([{ mois: '2026-10', jour: '2026-10-31', genere: '2026-11-01T03:00:00Z' }]);
+  assert.ok(!g.rapportsAActualiser(dir, '2026-11-02').some((r) => r.mois === '2026-10'), 'octobre ne bouge plus');
+  assert.strictEqual(g.libellePeriode('2026-10-23'), 'Période du 1er au 23 octobre 2026');
+  assert.strictEqual(g.dernierJourMois('2026-02'), '2026-02-28');
+  assert.strictEqual(g.moisPrecedent('2026-01-01'), '2025-12');
 });
 
 test('les ressources du modèle sont présentes et le job est câblé', async () => {

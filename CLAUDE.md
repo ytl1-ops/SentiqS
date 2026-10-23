@@ -3091,6 +3091,87 @@ titres déjà traduits dans le cache partagé — décision du propriétaire
 
 ---
 
+## GRSCI tenu à jour sur sa période, et plus aucun visuel de remplacement — 23/10/2026
+
+Relecture du rapport d'octobre (forcé le 21) : **pas exploitable**. Il lisait
+`donneesBulletinPays`, donc 36 h : deux faits ivoiriens pour « un mois »,
+Bénin et Liberia vides, la peine de mort au Burkina Faso en six puces (une par
+média), Ménaka trois fois, des titres anglais, « VIII » coupé en « VII / I »,
+un espace de largeur nulle qui coupait « GRÈVE ». Et la règle « premier
+passage à partir du 24, refus d'écraser » l'aurait gardé comme rapport du mois.
+
+- **Matière du mois** : `faitsMoisPays(cy, depuisMs)` (page) lit `ALL` ET
+  `HISTORIQUE` (qui garde désormais `url` et `_dateNonFiable`), au-dessus du
+  normal, hors sport, hors source à date non fiable. Le job **cumule** ce relevé
+  à chaque passage dans `web/rapports/GRSCI/faits-AAAA-MM.json`
+  (`scripts/lib/faits-grsci.js`). C'est ce cumul qui fait le mois.
+- **Un fait = une puce** : `regrouper` replie les titres d'un même pays qui
+  partagent ≥ 3 racines (60 % du plus court) ou ≥ 4 (50 %), **à moins de quatre
+  jours d'écart** — la garde contre la fusion de deux attaques distinctes dans
+  la même région. Les médias sont listés sur la ligne « Sources : ». Tri :
+  gravité puis date ; dix faits par rubrique ou par pays.
+- **Une langue** : le job traduit les titres en/pt/ar par `trFetch` (120 par
+  passage), garde `titreFr` dans le cumul ; à défaut le titre porte `(EN)`.
+- **Toujours disponible sur sa période** (demande de YORO) :
+  `rapportsAActualiser` réécrit le rapport du mois au premier passage de chaque
+  jour, période du 1er à aujourd'hui (affichée en couverture et dans la liste
+  du module Rapports) ; le mois écoulé est réécrit une dernière fois le
+  lendemain de sa fin (1er → dernier jour) puis ne bouge plus. `jour` dans
+  `index.json` = fin de la période. Conséquence : LibreOffice s'installe une
+  fois par jour pour le PDF.
+- **Octobre 2026 n'est que partiel** : le cumul ne commence qu'à la fusion ;
+  ce qui précède ne vient que de la profondeur des flux RSS relus à chaque
+  passage. Novembre sera le premier mois complet.
+
+**Visuels** : sans photo ni vidéo de la source, **rien** ne s'affiche (ni
+repli de marque, ni cadre) — `.vact.sans-img:not(.vact-video){display:none}`.
+Le repli ne reste que sous une vidéo sans vignette. Une image en échec
+disparaît ; un aperçu Open Graph arrivé plus tard fait apparaître le cadre.
+Mesuré dans Chromium : sans rien → `display:none`, hauteur 0.
+
+- **Cotation et indice de confiance, revenus dans le rapport** (« oui, go »
+  de YORO, 23/10/2026, qui revient sur le choix du 21/10) : chaque fait porte
+  « Cotation : Confirmé / Probable / Non confirmé » (`cotationArticle`, même
+  règle que le bulletin ; un fait repris par deux médias distincts au
+  regroupement devient Confirmé ; une cotation ne redescend jamais dans le
+  cumul) ; la première page de chaque pays et de chaque rubrique ivoirienne
+  porte « Indice de confiance : … (motif) ». Le niveau d'alerte coloré et le
+  score restent absents : le test du vocabulaire les interdit toujours.
+
+`scripts/test/grsci-mois.test.js` (11 tests).
+
+### Faits marquants rédigés, avec la photo de la source — 23/10/2026
+
+Demande de YORO, le même jour : « un rapport avec des textes détaillés pour
+présenter les actu marquantes avec des photos et pas un ensemble de titres ».
+
+- **Quels faits** (`planRapport`) : les quatre plus graves de la Côte d'Ivoire,
+  chacun dans sa rubrique, et le plus grave de chaque pays de la sous-région
+  ont une page rédigée ; le reste reste en liste. Un fait modéré n'a une page
+  que s'il est le plus grave de son pays. Jamais rédigé ET listé.
+- **Le texte** (`scripts/lib/redaction-grsci.js`) n'invente aucun fait :
+  Contexte (date, lieu — la ville seulement si le texte la nomme, jamais la
+  capitale par défaut —, rubrique, nombre de médias), « Ce que rapportent les
+  sources » (le chapô de chaque média, cité et attribué, deux au plus ; sans
+  chapô, il le dit), Enjeux sûreté (un repère par famille d'événement, le titre
+  décidant avant le chapô), sources avec liens, cotation. L'intercalaire dit
+  que les enjeux sont des repères à valider par l'analyste.
+- **La photo** (`scripts/lib/photos-grsci.js`) est téléchargée par le job
+  (Node a le réseau, la page non) : l'image du flux, sinon l'og:image de
+  chaque article du fait ; JPEG ou PNG, 240 × 140 au moins, 1,5 Mo au plus.
+  Crédit « Photo : © domaine » avec le lien. **Sans photo, rien** : le texte
+  prend la largeur. L'adresse trouvée et le chapô traduit sont gardés dans le
+  cumul du mois.
+- Le PowerPoint choisit le plus grand corps (14 à 11 pt) qui tient dans la
+  page, pour ne jamais déborder sur le pied.
+
+Vérifié sur de vrais PowerPoint et Word (LibreOffice → PDF → images) avec des
+photos de test. **Non vérifié d'ici** : de vraies photos de sources et la
+traduction des chapôs (pas de réseau). `scripts/test/grsci-marquants.test.js`
+(8 tests ; ceux qui touchent au rapport vus échouer sur l'ancien code).
+
+---
+
 ## Mobile : la page défile d'un bloc — 22/10/2026
 
 Capture de YORO sur téléphone (texte agrandi par le navigateur) : barre du
