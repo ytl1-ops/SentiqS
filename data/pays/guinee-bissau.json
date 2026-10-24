@@ -1,0 +1,39 @@
+{
+  "iso2": "GW",
+  "slug": "guinee-bissau",
+  "name": "Guinee-Bissau",
+  "namePrep": "en Guinee-Bissau",
+  "region": "Afrique de l'Ouest",
+  "capital": "Bissau",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire en Guinee-Bissau : transition militaire apres l'interruption electorale de novembre 2025, alertes en temps reel avec SentiqS.",
+  "keywords": "Guinee-Bissau securite, risque pays Guinee-Bissau, veille geopolitique Bissau, surete entreprise Afrique de l'Ouest, SentiqS",
+  "summary": "La Guinee-Bissau a connu une interruption electorale fin novembre 2025 ; un gouvernement de transition, sous le controle des forces armees, dirige le pays jusqu'a de nouvelles elections prevues en decembre 2026, et les rassemblements sont interdits. Aucun incident terroriste n'est documente. A Bissau et sa banlieue, une augmentation des vols a l'arrache est observee en periode de fetes. La frontiere avec le Senegal demeure une zone deconseillee sauf raison imperative, en raison de trafics transfrontaliers et de portions historiquement minees. La circulation de nuit est dangereuse, notamment du fait de coupeurs de route sur les axes secondaires.",
+  "threats": {
+    "terrorism": {
+      "title": "Instabilite Politique et Institutionnelle",
+      "text": "Le pays a connu une interruption electorale fin novembre 2025. Un gouvernement de transition, sous le controle des forces armees, dirige actuellement le pays jusqu'a de nouvelles elections prevues en decembre 2026. Les rassemblements sont interdits. Aucun incident terroriste n'est documente a ce jour."
+    },
+    "crime": {
+      "title": "Criminalite et Zone Frontaliere",
+      "text": "A Bissau et dans sa banlieue, les conditions de securite demandent une vigilance particuliere : une augmentation du nombre de vols a l'arrache est observee en periode de fetes, et des agressions surviennent meme lorsque la victime n'oppose aucune resistance. La frontiere avec le Senegal demeure une zone deconseillee sauf raison imperative : elle accueille des trafics transfrontaliers et certaines portions, mal delimitees, restent historiquement minees."
+    },
+    "infra": {
+      "title": "Risques Routiers",
+      "text": "La circulation de nuit est dangereuse et donc deconseillee, du fait de vehicules mal eclaires et de la presence d'animaux sur la chaussee. Des coupeurs de route peuvent operer la nuit sur les axes secondaires."
+    }
+  },
+  "neighbors": [
+    { "name": "Senegal", "slug": "senegal", "available": true },
+    { "name": "Guinee", "slug": "guinee", "available": true }
+  ],
+  "alertsSample": [
+    { "tag": "SOCIAL", "text": "Rassemblement interdit signale a Bissau.", "time": "Il y a 4h" },
+    { "tag": "SURETE", "text": "Vol a l'arrache signale en centre-ville.", "time": "Il y a 1j" },
+    { "tag": "SURETE", "text": "Vigilance renforcee a la frontiere senegalaise.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/guinee-bissao/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}
