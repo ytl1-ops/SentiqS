@@ -27,6 +27,14 @@
     "publieMs": 1792746922000
    },
    {
+    "titre": "Le frère de Tidjane Thiam inculpé pour 17 chefs d’accusation, dont l’assassinat et des actes terroristes",
+    "url": "https://www.linfodrome.com/politique/126830-le-frere-de-tidjane-thiam-inculpe-pour-17-chefs-d-accusation-dont-l-assassinat-et-des-actes-terroristes",
+    "source": "Linfodrome",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792867020000
+   },
+   {
     "titre": "Lutte contre les AVC - « Vite », une application pour sauver des vies",
     "url": "https://fr.allafrica.com/stories/202610240165.html",
     "source": "AllAfrica (CI)",
@@ -99,6 +107,14 @@
     "niveau": "high",
     "cat": "politique",
     "publieMs": 1792747200000
+   },
+   {
+    "titre": "Burkina: la liste des bénéficiaires retenus dans le cadre de l’Opération «Forage à prix subventionné»",
+    "url": "https://www.wakatsera.com/burkina-la-liste-des-beneficiaires-retenus-dans-le-cadre-de-loperation-forage-a-prix-subventionne/",
+    "source": "Wakat Sera",
+    "niveau": "mod",
+    "cat": "humanitaire",
+    "publieMs": 1792871774000
    },
    {
     "titre": "Montée trimestrielle des couleurs des FDS: la Douane Burkinabè au rendez-vous du devoir patriotique",
@@ -181,6 +197,30 @@
     "niveau": "high",
     "cat": "securite",
     "publieMs": 1792745923000
+   },
+   {
+    "titre": "Mali : Principales mesures et communications du Conseil des ministres du 23 octobre 2026",
+    "url": "https://maliactu.net/mali-principales-mesures-et-communications-du-conseil-des-ministres-du-23-octobre-2026/",
+    "source": "Maliactu",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792869999000
+   },
+   {
+    "titre": "Mali : Le projet de loi de règlement 2025 consacre des recettes au-delà des prévisions",
+    "url": "https://maliactu.net/mali-le-projet-de-loi-de-reglement-2025-consacre-des-recettes-au-dela-des-previsions/",
+    "source": "Maliactu",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1792866575000
+   },
+   {
+    "titre": "Ménaka : 54 corps découverts dans un campement à Tagadayat",
+    "url": "https://malijet.com/actualte_dans_les_regions_du_mali/312492-menaka-54-corps-decouverts-dans-un-campement-a-tagadayat.html",
+    "source": "Malijet",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792866267000
    },
    {
     "titre": "La fabrique de l’info : les dessous de l’enquête sur la guerre des drones au Mali",
@@ -305,6 +345,14 @@
     "niveau": "high",
     "cat": "securite",
     "publieMs": 1792771569000
+   },
+   {
+    "titre": "Mahama links Africa’s conflicts to struggle over natural resources",
+    "url": "https://www.myjoyonline.com/mahama-links-africas-conflicts-to-struggle-over-natural-resources/",
+    "source": "JoyOnline",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792872087000
    },
    {
     "titre": "Forum de Tana - Un espace africain authentique dédié à la réflexion franche et à la prospective stratégique : le président Mahama",
@@ -489,6 +537,14 @@
     "publieMs": 1792783623000
    },
    {
+    "titre": "Journée mondiale des enseignants : le SLECG réclame une revalorisation des salaires et de meilleures conditions de travail",
+    "url": "https://guineematin.com/2026/10/24/journee-mondiale-des-enseignants-le-slecg-reclame-une-revalorisation-des-salaires-et-de-meilleures-conditions-de-travail/?utm_source=rss&utm_medium=rss&utm_campaign=journee-mondiale-des-enseignants-le-slecg-reclame-une-revalorisation-des-salaires-et-de-meilleures-conditions-de-travail",
+    "source": "Guineematin.com",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792874548000
+   },
+   {
     "titre": "Guinée : Mamadi Doumbouya crée un nouveau service pour renforcer la sécurité dans les communes",
     "url": "https://www.guinee7.com/2026/10/24/guinee-mamadi-doumbouya-cree-un-nouveau-service-pour-renforcer-la-securite-dans-les-communes/",
     "source": "Guinee7.com",
@@ -573,6 +629,30 @@
   ],
   "SN": [
    {
+    "titre": "M. G. Ba est finalement mort, il avait découvert avoir le SIDA lors d’un don de sang",
+    "url": "https://www.senenews.com/actualites/m-g-ba-est-finalement-mort-il-avait-decouvert-avoir-le-sida-lors-dun-don-de-sang_603939.html",
+    "source": "SeneNews",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1792873126000
+   },
+   {
+    "titre": "​Drame sur la route de Saint-Louis: le ministère des Transports confirme un bilan provisoire de 9 morts",
+    "url": "https://www.pressafrik.com/​Drame-sur-la-route-de-Saint-Louis-le-ministere-des-Transports-confirme-un-bilan-provisoire-de-9-morts_a313511.html",
+    "source": "Pressafrik",
+    "niveau": "crit",
+    "cat": "politique",
+    "publieMs": 1792861500000
+   },
+   {
+    "titre": "Octobre Rose - Huit ans après la mort de Ndeye Khady Ndiaye, sa soeur jumelle témoigne",
+    "url": "https://fr.allafrica.com/stories/202610240135.html",
+    "source": "AllAfrica (SN)",
+    "niveau": "crit",
+    "cat": "humanitaire",
+    "publieMs": 1792860687000
+   },
+   {
     "titre": "Mort de Mamadou Khabane Guèye : les bijoutiers du Sénégal ferment leurs boutiques",
     "url": "https://www.senenews.com/actualites/mort-de-mamadou-khabane-gueye-les-bijoutiers-du-senegal-ferment-leurs-boutiques_603922.html",
     "source": "SeneNews",
@@ -619,6 +699,30 @@
     "niveau": "crit",
     "cat": "humanitaire",
     "publieMs": 1792684500000
+   },
+   {
+    "titre": "Diodio hospitalisée à la Polyclinique de Dakar : L’alerte de son frère Moussa Thiam",
+    "url": "https://www.seneweb.com/fr/news/Societe/diodio-hospitalisee-a-la-polyclinique-de-dakar-lalerte-de-son-frere-moussa-thiam_n_999001635.html",
+    "source": "Seneweb",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792872476000
+   },
+   {
+    "titre": "Ousmane Sonko piège Bassirou Diomaye Faye, les dessous de l’offensive à l’Assemblée",
+    "url": "https://www.senenews.com/actualites/ousmane-sonko-piege-bassirou-diomaye-faye-les-dessous-de-loffensive-a-lassemblee_603938.html",
+    "source": "SeneNews",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792870864000
+   },
+   {
+    "titre": "Santé mentale au Sénégal : « Nous sommes dans une société de plus en plus anxieuse et dépressive », alerte le Dr Babacar Fall",
+    "url": "https://www.seneweb.com/fr/news/Sante/sante-mentale-au-senegal-nous-sommes-dans-une-societe-de-plus-en-plus-anxieuse-et-depressive-alerte-le-dr-babacar-fall_n_999001630.html",
+    "source": "Seneweb",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792869556000
    },
    {
     "titre": "Louga : neuf morts et cinq blessés graves dans un accident sur l’axe Ndande-Kébémer",
