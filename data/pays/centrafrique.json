@@ -1,0 +1,43 @@
+{
+  "iso2": "CF",
+  "slug": "centrafrique",
+  "name": "Centrafrique",
+  "namePrep": "en Centrafrique",
+  "region": "Afrique centrale",
+  "capital": "Bangui",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire en Centrafrique : groupes armes actifs sur tout le territoire, insecurite elevee, alertes en temps reel avec SentiqS.",
+  "keywords": "Centrafrique securite, risque pays RCA, veille geopolitique Bangui, surete entreprise Afrique centrale, SentiqS",
+  "summary": "L'integralite du territoire centrafricain est formellement deconseillee ou deconseillee sauf raison imperative. En raison de la presence de groupes armes particulierement actifs, la situation sur l'ensemble du pays hors Bangui et Bimbo est difficilement controlable et le niveau d'insecurite eleve. Le taux de criminalite est eleve et des tentatives d'enlevement, bien que rares, ne peuvent etre exclues. Le 3e arrondissement de Bangui (PK5) est a eviter en raison de troubles recurrents et violents, et il est rigoureusement deconseille de se deplacer en dehors de la capitale.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste et Insurrectionnel",
+      "text": "En raison de la presence de groupes armes particulierement actifs, la situation sur l'ensemble du territoire (hors Bangui et Bimbo) est difficilement controlable et le niveau d'insecurite eleve. Les conditions sont tres precaires et peuvent se degrader soudainement. L'integralite du territoire est formellement deconseillee ou deconseillee sauf raison imperative."
+    },
+    "crime": {
+      "title": "Risque Criminel et Volatilite Urbaine",
+      "text": "Le taux de criminalite est eleve. Les tentatives d'enlevement sont rares mais ne peuvent etre exclues. Il est recommande d'eviter les sorties nocturnes en dehors des quartiers securises. A Bangui et Bimbo, les deplacements restent deconseilles sauf raison imperative ; le 3e arrondissement (PK5) est a eviter en raison de troubles recurrents et violents. Il est rigoureusement et formellement deconseille de se deplacer en dehors de la capitale."
+    },
+    "infra": {
+      "title": "Risques Infrastructures et Transport",
+      "text": "La deterioration constante des voies de circulation, la presence de nombreux deux-roues et le comportement imprevisible des conducteurs entrainent une insecurite permanente. Des coupeurs de route operent sur certains axes. L'utilisation des taxis est fortement deconseillee."
+    }
+  },
+  "neighbors": [
+    { "name": "Tchad", "slug": "tchad", "available": false },
+    { "name": "Soudan", "slug": "soudan", "available": false },
+    { "name": "Soudan du Sud", "slug": "soudan-du-sud", "available": false },
+    { "name": "RD Congo", "slug": "rdc", "available": false },
+    { "name": "Congo-Brazzaville", "slug": "congo-brazzaville", "available": false },
+    { "name": "Cameroun", "slug": "cameroun", "available": true }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Affrontement signale entre groupes armes hors de Bangui.", "time": "Il y a 4h" },
+    { "tag": "SURETE", "text": "Trouble signale dans un arrondissement de la capitale.", "time": "Il y a 1j" },
+    { "tag": "INFRA", "text": "Axe routier signale a risque de coupeurs de route.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/republique-centrafricaine/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}
