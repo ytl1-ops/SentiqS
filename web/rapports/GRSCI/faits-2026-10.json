@@ -3,12 +3,36 @@
  "pays": {
   "CI": [
    {
+    "titre": "Projets de sa mandature: le président sortant de la JCI Émeraude dresse un bilan de 95% de taux d’exécution",
+    "url": "https://www.linfodrome.com/societe/126820-projets-de-sa-mandature-le-president-sortant-de-la-jci-emeraude-dresse-un-bilan-de-95-de-taux-d-execution",
+    "source": "Linfodrome",
+    "niveau": "crit",
+    "cat": "politique",
+    "publieMs": 1792823940000
+   },
+   {
+    "titre": "Avant la grande marche du 24 coctobre ; Emmanuel Macron face un attentat",
+    "url": "https://www.linfodrome.com/international/126817-avant-la-grande-marche-du-24-coctobre-emmanuel-macron-face-un-attentat",
+    "source": "Linfodrome",
+    "niveau": "crit",
+    "cat": "economique",
+    "publieMs": 1792793100000
+   },
+   {
     "titre": "Crise au sein du PDCI/RDA - « L'Éléphant » se cassera-t-il une deuxième patte ?",
     "url": "https://fr.allafrica.com/stories/202610230151.html",
     "source": "AllAfrica (CI)",
     "niveau": "high",
     "cat": "politique",
     "publieMs": 1792746922000
+   },
+   {
+    "titre": "Côte d’Ivoire : La Fondation Konrad-Adenauer renforce ses actions en faveur de la démocratie et de la sécurité",
+    "url": "https://www.linfodrome.com/societe/126823-cote-d-ivoire-la-fondation-konrad-adenauer-renforce-ses-actions-en-faveur-de-la-democratie-et-de-la-securite",
+    "source": "Linfodrome",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792835100000
    },
    {
     "titre": "Danané/Chirurgie humanitaire - 134 patients opérés gratuitement, dont 114 pour une hernie",
@@ -64,6 +88,14 @@
   "ML": [
    {
     "titre": "Benson Diakité, ancienne grande voix de RFI, est mort",
+    "url": "https://fr.allafrica.com/stories/202610230641.html",
+    "source": "AllAfrica (ML)",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1792798813000
+   },
+   {
+    "titre": "Benson Diakité, ancienne grande voix de RFI, est mort",
     "url": "https://www.rfi.fr/fr/afrique/20261023-benson-diakit%C3%A9-ancienne-grande-voix-de-rfi-est-mort",
     "source": "RFI Afrique",
     "niveau": "crit",
@@ -95,6 +127,14 @@
     "publieMs": 1792767584000
    },
    {
+    "titre": "Lutte contre la corruption au Mali : Le Général d’Armée Assimi Goïta reçoit les rapports de l’OCLEI et prône une tolérance zéro",
+    "url": "https://maliactu.net/lutte-contre-la-corruption-au-mali-le-general-darmee-assimi-goita-recoit-les-rapports-de-loclei-et-prone-une-tolerance-zero/",
+    "source": "Maliactu",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792765722000
+   },
+   {
     "titre": "MALI-FAO : UN PARTENARIAT STRATÉGIQUE RENOUVELÉ AU SERVICE DE LA SOUVERAINETÉ ALIMENTAIRE",
     "url": "https://mali24.info/mali-fao-un-partenariat-strategique-renouvele-au-service-de-la-souverainete-alimentaire/",
     "source": "Mali 24",
@@ -109,6 +149,14 @@
     "niveau": "high",
     "cat": "securite",
     "publieMs": 1792745923000
+   },
+   {
+    "titre": "La fabrique de l’info : les dessous de l’enquête sur la guerre des drones au Mali",
+    "url": "https://www.jeuneafrique.com/1854823/politique/la-fabrique-de-linfo-les-dessous-de-lenquete-sur-la-guerre-des-drones-au-mali/",
+    "source": "Jeune Afrique",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792842465000
    },
    {
     "titre": "Coupe de la CAF (2ᵉ tour retour) : L’ES Zarzis déjà sur le sol bamakois, l’AS Real sous pression à domicile",
@@ -261,6 +309,14 @@
   ],
   "TG": [
    {
+    "titre": "WhatsApp : la fausse alerte au vote pour pirater votre compte fait son retour",
+    "url": "https://lenouveaureporter.com/whatsapp-la-fausse-alerte-au-vote-pour-pirater-votre-compte-fait-son-retour/",
+    "source": "Le Nouveau Reporter",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1792837790000
+   },
+   {
     "titre": "Togo : agriculture, nucléaire… les députés adoptent quatre textes stratégiques",
     "url": "https://24heureinfo.com/politique/togo-agriculture-nucleaire-les-deputes-adoptent-quatre-textes-strategiques/",
     "source": "24heureinfo.com",
@@ -317,7 +373,16 @@
     "publieMs": 1792746975000
    }
   ],
-  "BJ": [],
+  "BJ": [
+   {
+    "titre": "NUEE threatens nationwide shutdown, demands withdrawal of soldiers from BEDC hqtrs",
+    "url": "https://thesun.ng/nuee-threatens-nationwide-shutdown-demands-withdrawal-of-soldiers-from-bedc-hqtrs/",
+    "source": "The Sun Nigeria",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792828608000
+   }
+  ],
   "GN": [
    {
     "titre": "Cellcom Guinée : la FESATEL alerte sur les salaires impayés et réclame l’ouverture urgente de négociations",
@@ -420,6 +485,30 @@
     "publieMs": 1792684500000
    },
    {
+    "titre": "Kébémer : le bilan de l’accident entre un camion et un minicar passe à huit morts",
+    "url": "https://aps.sn/kebemer-le-bilan-de-laccident-entre-un-camion-et-un-minicar-passe-a-huit-morts/",
+    "source": "APS — Agence Sénégalaise Presse",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1792841740000
+   },
+   {
+    "titre": "Grève générale de 72 heures : Le FSDT satisfait de son bilan",
+    "url": "https://www.seneweb.com/fr/news/Societe/greve-generale-de-72-heures-le-fsdt-satisfait-de-son-bilan_n_999001597.html",
+    "source": "Seneweb",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792841358000
+   },
+   {
+    "titre": "Darou Khoudoss : La tonne de béton passe de 12 000 à 21 000 FCFA, les camionneurs entrent en grève",
+    "url": "https://www.seneweb.com/fr/news/Societe/darou-khoudoss-la-tonne-de-beton-passe-de-12-000-a-21-000-fcfa-les-camionneurs-entrent-en-greve_n_999001588.html",
+    "source": "Seneweb",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792834101000
+   },
+   {
     "titre": "Sénégal: quel bilan après les trois jours de grève générale?",
     "url": "https://www.rfi.fr/fr/afrique/20261024-s%C3%A9n%C3%A9gal-quel-bilan-apr%C3%A8s-les-trois-jours-de-gr%C3%A8ve-g%C3%A9n%C3%A9rale",
     "source": "RFI Afrique",
@@ -474,6 +563,22 @@
     "niveau": "high",
     "cat": "politique",
     "publieMs": 1792765740000
+   },
+   {
+    "titre": "Braquage d’un point Wave à Dahra : une arme et de fausses plaques découvertes dans l’enquête visant M.Dieng",
+    "url": "https://www.dakaractu.com/Braquage-d-un-point-Wave-a-Dahra-une-arme-et-de-fausses-plaques-decouvertes-dans-l-enquete-visant-M-Dieng_a277391.html",
+    "source": "Dakar Actu",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792829220000
+   },
+   {
+    "titre": "Afrique: Désinformation - un rapport appelle à une réponse coordonnée entre l'Afrique et l'Europe",
+    "url": "https://fr.allafrica.com/stories/202610240001.html",
+    "source": "AllAfrica",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792824362000
    },
    {
     "titre": "CAN 2032 : Infrastructures, sécurité, logistique… le Sénégal prépare son dossier face à la CAF",
@@ -538,6 +643,14 @@
     "niveau": "mod",
     "cat": "securite",
     "publieMs": 1792762680000
+   },
+   {
+    "titre": "Emmanuel Macron annule sa visite prévue au Nigeria et au Sénégal",
+    "url": "https://www.jeuneafrique.com/1855142/politique/emmanuel-macron-annule-sa-visite-prevue-au-nigeria-et-au-senegal/",
+    "source": "Jeune Afrique",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1792761368000
    },
    {
     "titre": "Exclusive: Emmanuel Macron cancels planned visits to Nigeria and Senegal",
