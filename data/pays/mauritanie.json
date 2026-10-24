@@ -1,0 +1,40 @@
+{
+  "iso2": "MR",
+  "slug": "mauritanie",
+  "name": "Mauritanie",
+  "namePrep": "en Mauritanie",
+  "region": "Afrique de l'Ouest",
+  "capital": "Nouakchott",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire en Mauritanie : zones nord formellement deconseillees, menace liee au Sahel, criminalite a Nouakchott, alertes en temps reel avec SentiqS.",
+  "keywords": "Mauritanie securite, risque pays Mauritanie, veille geopolitique Nouakchott Sahel, surete entreprise Afrique de l'Ouest, SentiqS",
+  "summary": "La situation au Sahel, en particulier au Mali voisin (activites de groupes terroristes, trafics transfrontaliers), expose le territoire mauritanien a des risques d'enlevement et d'attentat contre les ressortissants francais. L'acces aux regions nord du pays et aux zones frontalieres est formellement deconseille, notamment au nord de Zouerate, a l'est de la ligne Ghallaouia-Akhrejit, et dans la zone militaire du nord-est (definie par le 10e meridien et la latitude 18°40'), ou toute circulation est traitee comme cible militaire selon un communique du 12 juillet 2017. A Nouakchott, une recrudescence des vols avec violence par des individus circulant a deux roues motorisees est constatee, ainsi que des risques d'agression envers les femmes en lieux isoles. L'etat precaire des routes, la divagation d'animaux et le sable recouvrant le bitume causent de nombreux accidents graves, particulierement dangereux la nuit.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste Lie au Sahel",
+      "text": "La situation au Sahel, en particulier au Mali voisin (activites de groupes terroristes, trafics transfrontaliers), expose le territoire mauritanien a des risques d'enlevement et d'attentat contre les ressortissants francais."
+    },
+    "crime": {
+      "title": "Zones Nord Formellement Deconseillees",
+      "text": "L'acces aux regions nord du pays et aux zones frontalieres est formellement deconseille, notamment au nord de Zouerate, a l'est de la ligne Ghallaouia-Akhrejit, et dans la zone militaire du nord-est (definie par le 10e meridien et la latitude 18°40'), ou toute circulation est traitee comme cible militaire selon un communique du 12 juillet 2017. A Nouakchott, une recrudescence des vols avec violence par des individus circulant a deux roues motorisees est constatee, ainsi que des risques d'agression envers les femmes en lieux isoles ; des incidents a caractere criminel surviennent egalement en marge d'evenements sportifs au stade olympique."
+    },
+    "infra": {
+      "title": "Risques Routiers",
+      "text": "L'etat precaire des routes, la divagation d'animaux et le sable recouvrant frequemment le bitume causent de nombreux accidents graves, particulierement dangereux la nuit."
+    }
+  },
+  "neighbors": [
+    { "name": "Mali", "slug": "mali", "available": true },
+    { "name": "Senegal", "slug": "senegal", "available": true },
+    { "name": "Algerie", "slug": "algerie", "available": true }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Vol avec violence signale a Nouakchott.", "time": "Il y a 4h" },
+    { "tag": "SURETE", "text": "Vigilance renforcee rappelee dans le nord du pays.", "time": "Il y a 1j" },
+    { "tag": "INFRA", "text": "Accident routier signale de nuit sur un axe national.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/mauritanie/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}

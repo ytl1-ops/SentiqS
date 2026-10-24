@@ -1,0 +1,36 @@
+{
+  "iso2": "MG",
+  "slug": "madagascar",
+  "name": "Madagascar",
+  "namePrep": "a Madagascar",
+  "region": "Afrique australe",
+  "capital": "Antananarivo",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire a Madagascar : delinquance urbaine a Antananarivo, banditisme rural (dahalo), enlevements a Anjozorobe, alertes en temps reel avec SentiqS.",
+  "keywords": "Madagascar securite, risque pays Madagascar, veille geopolitique Antananarivo, surete entreprise Afrique australe, SentiqS",
+  "summary": "Aucun risque terroriste specifique n'est identifie a Madagascar. Les agressions, vols a la tire et cambriolages sont tres repandus dans les principales agglomerations, Antananarivo concentrant les risques avec des lieux frequentes par les touristes particulierement vises (Rova, avenue de l'Independance, marche d'Analakely). La region d'Anosy/Betroka, dans le sud-est, subit un banditisme rural (dahalo) avec des vols de betail organises a grande echelle. Anjozorobe est deconseillee suite a plusieurs enlevements survenus, et le Pic Saint-Louis presente un risque d'agressions. La saison cyclonique, de janvier a avril, provoque inondations, glissements de terrain et rend le reseau routier tres alaeatoire.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste",
+      "text": "Aucun risque terroriste specifique n'est identifie a Madagascar a ce jour."
+    },
+    "crime": {
+      "title": "Delinquance Urbaine et Banditisme Rural",
+      "text": "Les agressions, vols a la tire et cambriolages sont tres repandus dans les principales agglomerations. Antananarivo concentre les risques, avec des lieux frequentes par les touristes particulierement vises (Rova, avenue de l'Independance, marche d'Analakely) ; le quartier de 67ha requiert une vigilance toute particuliere. La region d'Anosy/Betroka, dans le sud-est, subit un banditisme rural (dahalo) avec des vols de betail organises a grande echelle, generant des confrontations recurrentes entre forces de l'ordre et bandes armees ; les deplacements nocturnes y sont a proscrire. Anjozorobe est formellement deconseillee suite a plusieurs enlevements survenus, et le Pic Saint-Louis presente un risque d'agressions."
+    },
+    "infra": {
+      "title": "Risques Cycloniques et Routiers",
+      "text": "La periode de janvier a avril connait de violents cyclones, provoquant inondations et glissements de terrain. L'etat du reseau routier est tres aleatoire et devient impraticable durant cette meme periode."
+    }
+  },
+  "neighbors": [],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Vol a la tire signale au marche d'Analakely.", "time": "Il y a 4h" },
+    { "tag": "SURETE", "text": "Vol de betail organise signale dans la region d'Anosy.", "time": "Il y a 1j" },
+    { "tag": "INFRA", "text": "Route impraticable signalee en saison des pluies.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/madagascar/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}

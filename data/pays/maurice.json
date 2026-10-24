@@ -1,0 +1,36 @@
+{
+  "iso2": "MU",
+  "slug": "maurice",
+  "name": "Maurice",
+  "namePrep": "a l'ile Maurice",
+  "region": "Afrique australe",
+  "capital": "Port-Louis",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire a l'ile Maurice : augmentation des agressions depuis 2025, risques cycloniques et courants marins, alertes en temps reel avec SentiqS.",
+  "keywords": "Maurice securite, risque pays ile Maurice, veille geopolitique Port-Louis, surete entreprise Afrique australe, SentiqS",
+  "summary": "L'ensemble de l'ile Maurice est classe en zone de vigilance normale et le pays est decrit comme globalement sur, mais avec des evolutions preoccupantes : une augmentation des agressions est observee depuis 2025, avec un phenomene nouveau d'agressions violentes et gratuites affectant tant les residents que les visiteurs, incluant vols, cambriolages de residences et agressions en zones desertees (plages, parcs). Aucun risque terroriste n'est mentionne. La saison cyclonique, de novembre a avril, impose un systeme d'alerte obligatoire, et les courants marins causent regulierement des disparitions et des noyades. Les activites nautiques (plongee, kitesurf) presentent des risques lies a des prestataires parfois peu fiables et depourvus d'assurance.",
+  "threats": {
+    "terrorism": {
+      "title": "Niveau de Vigilance",
+      "text": "L'ensemble du pays est classe en zone de vigilance normale. Maurice est decrite comme globalement sure. Aucun risque terroriste n'est mentionne."
+    },
+    "crime": {
+      "title": "Agressions en Hausse depuis 2025",
+      "text": "Une augmentation des agressions est observee depuis 2025, avec un phenomene nouveau d'agressions violentes et gratuites affectant tant les residents que les visiteurs. Les risques incluent des vols et cambriolages, notamment des lieux de residence, des agressions en zones desertees comme les plages et les parcs, ainsi qu'une delinquance dans les quartiers peripheriques."
+    },
+    "infra": {
+      "title": "Risques Cycloniques et Maritimes",
+      "text": "La saison cyclonique s'etend de novembre a avril, avec un systeme d'alerte obligatoire. Les courants marins causent regulierement des disparitions et des noyades. Les activites nautiques telles que la plongee et le kitesurf presentent des risques lies a des prestataires parfois peu fiables et depourvus d'assurance ; il est recommande de respecter les panneaux d'interdiction de baignade."
+    }
+  },
+  "neighbors": [],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Agression signalee sur une plage isolee.", "time": "Il y a 6h" },
+    { "tag": "INFRA", "text": "Alerte cyclonique en cours sur l'ile.", "time": "Il y a 1j" },
+    { "tag": "SOCIAL", "text": "Cambriolage signale dans une residence.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/maurice/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}

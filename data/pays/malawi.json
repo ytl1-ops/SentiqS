@@ -1,0 +1,40 @@
+{
+  "iso2": "MW",
+  "slug": "malawi",
+  "name": "Malawi",
+  "namePrep": "au Malawi",
+  "region": "Afrique australe",
+  "capital": "Lilongwe",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire au Malawi : vols et car-jacking a Lilongwe et Blantyre, taux d'accidents routiers eleve, alertes en temps reel avec SentiqS.",
+  "keywords": "Malawi securite, risque pays Malawi, veille geopolitique Lilongwe Blantyre, surete entreprise Afrique australe, SentiqS",
+  "summary": "Aucune menace terroriste specifique n'est identifiee au Malawi. La nuit, une prudence particuliere est recommandee dans les villes de Blantyre et Lilongwe en raison de risques de vols, de car-jacking et d'agressions. Des vols ciblent egalement les lieux touristiques comme Nkhata Bay, Zomba, Senga Bay, Cape Maclear et Mzuzu, ainsi que les lieux de forte affluence (gares routieres, marches) ; les vehicules 4x4 font l'objet de vols frequents. Une prudence est recommandee sur les routes frontalieres avec le Mozambique. Le Malawi enregistre l'un des taux d'accidents de la route les plus eleves d'Afrique, du fait du mauvais etat des routes, de l'absence de signalisation et de la presence frequente de camions en panne ou de barrages policiers non signales.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste",
+      "text": "Aucune menace terroriste specifique n'est identifiee au Malawi a ce jour."
+    },
+    "crime": {
+      "title": "Vols et Car-jacking en Zone Urbaine",
+      "text": "La nuit, une prudence particuliere est recommandee dans les villes de Blantyre et Lilongwe en raison de risques de vols, de car-jacking et d'agressions. Des vols ciblent egalement les lieux touristiques comme Nkhata Bay, Zomba, Senga Bay, Cape Maclear et Mzuzu, ainsi que les lieux de forte affluence tels que les gares routieres et les marches. Les vehicules 4x4 font l'objet de vols frequents. Une prudence est par ailleurs recommandee sur les routes frontalieres avec le Mozambique."
+    },
+    "infra": {
+      "title": "Risques Routiers",
+      "text": "Le Malawi enregistre l'un des taux d'accidents de la route les plus eleves d'Afrique. Les causes identifiees incluent le mauvais etat des routes, l'absence de signalisation et la presence frequente de camions en panne ou de barrages policiers non signales."
+    }
+  },
+  "neighbors": [
+    { "name": "Mozambique", "slug": "mozambique", "available": true },
+    { "name": "Tanzanie", "slug": "tanzanie", "available": false },
+    { "name": "Zambie", "slug": "zambie", "available": false }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Car-jacking signale de nuit a Blantyre.", "time": "Il y a 5h" },
+    { "tag": "INFRA", "text": "Accident de la route signale sur un axe national.", "time": "Il y a 1j" },
+    { "tag": "SURETE", "text": "Vol de vehicule 4x4 signale a Lilongwe.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/malawi/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}
