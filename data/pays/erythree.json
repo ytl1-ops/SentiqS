@@ -1,0 +1,40 @@
+{
+  "iso2": "ER",
+  "slug": "erythree",
+  "name": "Erythree",
+  "namePrep": "en Erythree",
+  "region": "Afrique de l'Est",
+  "capital": "Asmara",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire en Erythree : frontieres ethiopienne et soudanaise dangereuses, deplacements soumis a autorisation, alertes en temps reel avec SentiqS.",
+  "keywords": "Erythree securite, risque pays Erythree, veille geopolitique Asmara Corne de l'Afrique, surete entreprise Afrique de l'Est, SentiqS",
+  "summary": "Aucun risque terroriste organise n'est identifie a proprement parler en Erythree, et la delinquance a Asmara et Massaoua demeure tres limitee. Les frontieres avec l'Ethiopie et le Soudan presentent en revanche des dangers majeurs en raison de la presence toujours possible de groupes armes et de mines. Tout deplacement en dehors de la capitale necessite une autorisation prealable (Travel Permits) aupres du ministere du Tourisme erythreen, et certaines zones peuvent devenir interdites sans preavis. La route Asmara-Massaoua est dangereuse en fin de journee et le soir, et les capacites d'assistance consulaire de l'ambassade de France restent limitees.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque aux Frontieres",
+      "text": "Aucun risque terroriste organise n'est identifie a proprement parler en Erythree. Les frontieres avec l'Ethiopie et le Soudan presentent en revanche des dangers majeurs en raison de la presence toujours possible de groupes armes et de mines ; les autorisations de deplacement n'y sont generalement pas accordees."
+    },
+    "crime": {
+      "title": "Restrictions de Deplacement",
+      "text": "La delinquance (vols, brigandage) a Asmara et Massaoua demeure tres limitee. En revanche, tout deplacement en dehors de la capitale necessite une autorisation prealable (Travel Permits) aupres du ministere du Tourisme erythreen. Certaines zones peuvent devenir interdites sans preavis, meme apres l'obtention d'un permis. Au-dela de 25 km d'Asmara, les touristes doivent utiliser un vehicule de location avec chauffeur."
+    },
+    "infra": {
+      "title": "Risques Routiers et Assistance Consulaire",
+      "text": "La route reliant Asmara a Massaoua est dangereuse, particulierement en fin de journee et le soir, en raison de l'absence de parapets et de conditions climatiques difficiles. Des mines representent un danger en dehors des routes principales. L'ambassade de France en Erythree dispose par ailleurs de capacites limitees pour venir en aide aux Francais en cas de crise."
+    }
+  },
+  "neighbors": [
+    { "name": "Ethiopie", "slug": "ethiopie", "available": true },
+    { "name": "Djibouti", "slug": "djibouti", "available": true },
+    { "name": "Soudan", "slug": "soudan", "available": false }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Vigilance renforcee signalee a la frontiere ethiopienne.", "time": "Il y a 6h" },
+    { "tag": "INFRA", "text": "Route Asmara-Massaoua signalee dangereuse de nuit.", "time": "Il y a 1j" },
+    { "tag": "SOCIAL", "text": "Restriction de deplacement signalee hors d'Asmara.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/erythree/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}

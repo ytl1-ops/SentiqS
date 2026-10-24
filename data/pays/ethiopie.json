@@ -1,0 +1,43 @@
+{
+  "iso2": "ET",
+  "slug": "ethiopie",
+  "name": "Ethiopie",
+  "namePrep": "en Ethiopie",
+  "region": "Afrique de l'Est",
+  "capital": "Addis-Abeba",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire en Ethiopie : conflits armes au Tigre et en Amhara, menace Al-Shabaab, alertes en temps reel avec SentiqS.",
+  "keywords": "Ethiopie securite, risque pays Ethiopie, veille geopolitique Addis-Abeba Tigre Amhara, surete entreprise Afrique de l'Est, SentiqS",
+  "summary": "L'Ethiopie connait plusieurs foyers de tension majeurs. Malgre l'accord de novembre 2022, la region du Tigre reste tendue : des affrontements de novembre 2025 et janvier 2026 ont touche le sud du Tigre et la frontiere avec l'Afar. L'ensemble de la region Amhara est formellement deconseille en raison de combats reguliers, et la region Oromia connait des violences intercommunautaires et des incursions rebelles, notamment autour de Fitche. Le groupe Al-Shabaab represente une menace documentee, avec une incursion signalee en juillet 2022 dans la region Somali. A Addis-Abeba, la criminalite urbaine s'intensifie, avec des agressions visant particulierement les etrangers.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste et Conflits Armes",
+      "text": "Le groupe Al-Shabaab represente une menace documentee, avec une incursion signalee en juillet 2022 dans la region Somali ; le risque demeure eleve aux frontieres avec la Somalie et le Kenya. Par ailleurs, la region du Tigre reste tendue malgre l'accord de novembre 2022 : des affrontements de novembre 2025 et janvier 2026 ont touche le sud du Tigre et la frontiere avec l'Afar, justifiant un deconseil formel."
+    },
+    "crime": {
+      "title": "Zones de Conflit et Criminalite Urbaine",
+      "text": "L'ensemble de la region Amhara est formellement deconseille en raison de combats reguliers affectant meme les grandes localites. En Oromia, des violences intercommunautaires et des incursions rebelles menacent plusieurs zones, notamment autour de Fitche (formellement deconseille) et sur l'axe Adama-Mieso. A Addis-Abeba, la delinquance s'intensifie : des agressions, parfois violentes, de jour comme de nuit, visent particulierement les etrangers, notamment dans les quartiers de Yeka, Bole Atlas, Meskel Square et Piassa."
+    },
+    "infra": {
+      "title": "Risques Routiers",
+      "text": "Le taux de mortalite des accidents de la route est accentue par l'absence de moyens de secours adaptes. Il est recommande d'eviter les transports publics ainsi que la conduite de nuit."
+    }
+  },
+  "neighbors": [
+    { "name": "Erythree", "slug": "erythree", "available": true },
+    { "name": "Djibouti", "slug": "djibouti", "available": true },
+    { "name": "Somalie", "slug": "somalie", "available": false },
+    { "name": "Kenya", "slug": "kenya", "available": true },
+    { "name": "Soudan du Sud", "slug": "soudan-du-sud", "available": false },
+    { "name": "Soudan", "slug": "soudan", "available": false }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Affrontements signales dans le sud du Tigre.", "time": "Il y a 3h" },
+    { "tag": "SURETE", "text": "Incursion armee signalee en Oromia pres de Fitche.", "time": "Il y a 1j" },
+    { "tag": "SOCIAL", "text": "Agression signalee a Addis-Abeba.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/ethiopie/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "iso2": "EG",
+  "slug": "egypte",
+  "name": "Egypte",
+  "namePrep": "en Egypte",
+  "region": "Afrique du Nord",
+  "capital": "Le Caire",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire en Egypte : menace terroriste diffuse, Nord Sinai et desert occidental formellement deconseilles, alertes en temps reel avec SentiqS.",
+  "keywords": "Egypte securite, risque pays Egypte, veille geopolitique Sinai Caire, surete entreprise Afrique du Nord, SentiqS",
+  "summary": "La menace terroriste demeure permanente et diffuse en Egypte, meme si elle est aujourd'hui globalement contenue : les derniers attentats majeurs au Caire remontent a 2018-2019 et visaient des sites confessionnels, des lieux touristiques et des forces de securite. Le nord de la peninsule du Sinai reste formellement deconseille, de meme que le desert occidental frontalier avec la Libye, ou une infiltration d'elements terroristes n'est pas exclue et ou une zone est interdite aux civils depuis 2014. La frontiere avec le Soudan est deconseillee en raison des affrontements en cours depuis avril 2023. Le risque routier est par ailleurs tres eleve sur l'ensemble du territoire.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste",
+      "text": "La menace terroriste demeure permanente et diffuse en Egypte. Les derniers attentats majeurs au Caire remontent a 2018-2019, ayant vise des sites confessionnels, des lieux touristiques et des forces de securite. Si le risque est aujourd'hui globalement contenu, un passage a l'acte isole ne peut etre totalement exclu, en particulier dans le nord du Sinai et dans les zones frontalieres avec la Libye et le Soudan."
+    },
+    "crime": {
+      "title": "Zones Frontalieres Formellement Deconseillees",
+      "text": "Le desert occidental frontalier avec la Libye est formellement deconseille : une infiltration d'elements terroristes depuis la Libye n'est pas a exclure, avec un risque d'enlevements ; la zone entre Sihah et Jebel Uweinat est interdite aux civils depuis 2014. La frontiere avec le Soudan est egalement deconseillee en raison des affrontements en cours depuis avril 2023 et de nombreux trafics et activites de milices. L'acces a Gaza est formellement deconseille a toute periode, les points de passage pouvant fermer sans preavis."
+    },
+    "infra": {
+      "title": "Risques Routiers et Naturels",
+      "text": "Le risque routier est majeur : la frequence des accidents mortels est tres elevee, le reseau est en mauvais etat hors des grands axes et la signalisation insuffisante ; la circulation nocturne est formellement deconseillee. Des mines sont presentes dans certaines zones desertiques, ou les deplacements hors des axes routiers sont formellement deconseilles. L'Egypte se trouve par ailleurs en zone d'activite sismique, le dernier seisme significatif au Caire remontant a 1992."
+    }
+  },
+  "neighbors": [
+    { "name": "Libye", "slug": "libye", "available": false },
+    { "name": "Soudan", "slug": "soudan", "available": false }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Vigilance renforcee signalee dans le nord du Sinai.", "time": "Il y a 4h" },
+    { "tag": "SOCIAL", "text": "Tension signalee a la frontiere soudanaise.", "time": "Il y a 1j" },
+    { "tag": "INFRA", "text": "Accident routier signale sur un axe secondaire.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/egypte/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}
