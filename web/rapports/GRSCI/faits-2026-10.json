@@ -161,6 +161,14 @@
     "publieMs": 1792776840000
    },
    {
+    "titre": "L’air du temps : Education à la crise",
+    "url": "https://www.lesahel.org/lair-du-temps-education-a-la-crise/",
+    "source": "Le Sahel",
+    "niveau": "high",
+    "cat": "economique",
+    "publieMs": 1792746095000
+   },
+   {
     "titre": "Rentrée judiciaire 2026-2027 : le Président Tiani appelle la justice à s’inscrire dans la dynamique de la Refondation…",
     "url": "https://tamtaminfo.com/rentree-judiciaire-2026-2027-le-president-tiani-appelle-la-justice-a-sinscrire-dans-la-dynamique-de-la-refondation/",
     "source": "Tamtaminfo",
@@ -372,6 +380,14 @@
   ],
   "SN": [
    {
+    "titre": "Attaque à Trappes et à La Verrière : Qui est Kévin T., le suspect auteur de la fusillade ?",
+    "url": "https://www.seneweb.com/fr/news/International/attaque-a-trappes-et-a-la-verriere-qui-est-kevin-t-le-suspect-auteur-de-la-fusillade_n_999001566.html",
+    "source": "Seneweb",
+    "niveau": "crit",
+    "cat": "politique",
+    "publieMs": 1792801739000
+   },
+   {
     "titre": "Ebola au Nigeria, grève au Sénégal, frappe sur un marché au Soudan : l'hebdo Afrique",
     "url": "https://www.france24.com/fr/afrique/20261023-ebola-nigeria-gr%C3%A8ve-s%C3%A9n%C3%A9gal-frappe-march%C3%A9-soudan-hebdo-afrique",
     "source": "France 24",
@@ -434,6 +450,14 @@
     "niveau": "high",
     "cat": "politique",
     "publieMs": 1792765740000
+   },
+   {
+    "titre": "Un violent accident mortel s'est produit ce vendredi vers 21 heures sur la route Kébémer-Ndande.",
+    "url": "https://www.seneweb.com/fr/news/Societe/un-violent-accident-mortel-sest-produit-ce-vendredi-vers-21-heures-sur-la-route-kebemer-ndande_n_999001567.html",
+    "source": "Seneweb",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1792801963000
    },
    {
     "titre": "Tivaouane : l’ancien directeur de la sécurité publique Abdoulaye Diop inhumé au cimetière Khalkhouss",
