@@ -20,17 +20,17 @@ Le script `scripts/generate-country-fiche.js` refuse de generer une fiche si le 
 3. Le fichier `web/pays/<slug>.html` est genere a partir du gabarit `scripts/templates/fiche-country.template.html`.
 4. Ajouter manuellement l'entree dans `sitemap.xml` et dans `web/pays/index.html`.
 
-## Checklist des 45 pays restants (9/54 deja publies : Burkina Faso, Cote d'Ivoire, Ghana, Guinee, Liberia, Mali, Nigeria, Senegal, Togo)
+## Checklist des pays restants (14/54 deja publies : Burkina Faso, Cote d'Ivoire, Ghana, Guinee, Liberia, Mali, Nigeria, Senegal, Togo, Angola, Benin, Botswana, Burundi, Cap-Vert)
 
 | Pays | Slug prevu | ISO2 | Statut |
 |---|---|---|---|
 | Algerie | `algerie` | DZ | ☐ a faire |
-| Angola | `angola` | AO | ☐ a faire |
-| Benin | `benin` | BJ | ☐ a faire |
-| Botswana | `botswana` | BW | ☐ a faire |
-| Burundi | `burundi` | BI | ☐ a faire |
+| Angola | `angola` | AO | publiee (source France Diplomatie) |
+| Benin | `benin` | BJ | publiee (source France Diplomatie) |
+| Botswana | `botswana` | BW | publiee (source France Diplomatie) |
+| Burundi | `burundi` | BI | publiee (source France Diplomatie) |
 | Cameroun | `cameroun` | CM | ☐ a faire |
-| Cap-Vert | `cap-vert` | CV | ☐ a faire |
+| Cap-Vert | `cap-vert` | CV | publiee (source France Diplomatie) |
 | Centrafrique | `centrafrique` | CF | ☐ a faire |
 | Comores | `comores` | KM | ☐ a faire |
 | Congo-Brazzaville | `congo-brazzaville` | CG | ☐ a faire |

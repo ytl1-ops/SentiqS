@@ -1,0 +1,41 @@
+{
+  "iso2": "BW",
+  "slug": "botswana",
+  "name": "Botswana",
+  "namePrep": "au Botswana",
+  "region": "Afrique australe",
+  "capital": "Gaborone",
+  "datePublished": "2026-09-07",
+  "dateModified": "2026-09-07",
+  "metaDescription": "Situation securitaire au Botswana : delinquance en hausse, risques routiers et faune sauvage, alertes en temps reel avec SentiqS.",
+  "keywords": "Botswana securite, risque pays Botswana, veille geopolitique Gaborone Maun, surete entreprise Afrique australe, SentiqS",
+  "summary": "Le Botswana ne presente pas de menace terroriste identifiee, mais l'ensemble du territoire fait l'objet d'une vigilance renforcee : plusieurs actes de violence, notamment des vols a l'arrache, ont ete recemment signales, en particulier a Gaborone, Francistown et Maun. La capacite d'assistance de l'ambassade de France reste limitee en cas de crise. Le risque routier est significatif, du fait d'une conduite dangereuse et de la presence frequente d'animaux sauvages sur les routes, tandis que les parcs nationaux souffrent d'un encadrement inegal des visiteurs.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste",
+      "text": "Aucune menace terroriste specifique n'est identifiee par les autorites consulaires francaises au Botswana a ce jour."
+    },
+    "crime": {
+      "title": "Risque Criminel et Volatilite Urbaine",
+      "text": "L'ensemble du territoire est classe en vigilance renforcee. Plusieurs actes de violence, notamment des vols a l'arrache, ont ete recemment signales, avec une vigilance particuliere recommandee a Gaborone, Francistown et Maun. Il est conseille d'eviter de porter des objets de valeur et de ne pas transporter de grosses sommes d'argent. La capacite d'assistance de l'ambassade de France en cas de crise ou de situation d'urgence individuelle reste limitee."
+    },
+    "infra": {
+      "title": "Risques Infrastructures et Transport",
+      "text": "Les accidents de la route sont frequents, lies a une conduite imprudente et au relief. La circulation de nuit est deconseillee, la presence d'animaux sur les routes constituant un risque recurrent ; l'assurance vehicule est obligatoire. Pour les trajets hors des axes principaux, il est recommande de voyager a deux vehicules, de disposer d'un GPS, d'un telephone satellite, de reserves d'eau et de verifier le niveau de carburant, tout en informant un tiers de son itineraire. Les parcs nationaux manquent d'un encadrement homogene des guides et les accidents lies a la faune sauvage y sont frequents ; la baignade en lacs et rivieres est deconseillee en raison de bacteries et d'animaux dangereux."
+    }
+  },
+  "neighbors": [
+    { "name": "Afrique du Sud", "slug": "afrique-du-sud", "available": false },
+    { "name": "Namibie", "slug": "namibie", "available": false },
+    { "name": "Zimbabwe", "slug": "zimbabwe", "available": false },
+    { "name": "Zambie", "slug": "zambie", "available": false }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Vol a l'arrache signale dans un centre urbain.", "time": "Il y a 4h" },
+    { "tag": "INFRA", "text": "Accident de la route lie a la presence d'animaux sur la chaussee.", "time": "Il y a 1j" },
+    { "tag": "SOCIAL", "text": "Alerte secheresse relayee dans la region de Gaborone.", "time": "Il y a 3j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/botswana/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 07/09/2026)"
+  ]
+}

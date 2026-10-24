@@ -1,0 +1,41 @@
+{
+  "iso2": "AO",
+  "slug": "angola",
+  "name": "Angola",
+  "namePrep": "en Angola",
+  "region": "Afrique australe",
+  "capital": "Luanda",
+  "datePublished": "2026-09-07",
+  "dateModified": "2026-09-07",
+  "metaDescription": "Situation securitaire en Angola : criminalite en hausse a Luanda, provinces diamantiferes et alertes en temps reel avec SentiqS.",
+  "keywords": "Angola securite, risque pays Angola, veille geopolitique Luanda Cabinda, surete entreprise Afrique australe, SentiqS",
+  "summary": "L'Angola ne presente pas de menace terroriste identifiee par les autorites consulaires francaises, mais la delinquance y est elevee et en augmentation constante, concentree pour l'essentiel en peripherie de Luanda. Les provinces diamantiferes de Lunda Sul et Lunda Norte, exposees a des reseaux de trafiquants, ainsi que l'enclave de Cabinda, restent deconseillees sauf raison imperative. Le reseau routier degrade et une conduite locale dangereuse constituent par ailleurs un risque logistique significatif, aggrave en saison des pluies par des inondations.",
+  "threats": {
+    "terrorism": {
+      "title": "Risque Terroriste",
+      "text": "Aucune menace terroriste specifique n'est identifiee par les autorites consulaires francaises en Angola a ce jour. La vigilance generale reste recommandee compte tenu du contexte regional."
+    },
+    "crime": {
+      "title": "Risque Criminel et Volatilite Urbaine",
+      "text": "La delinquance est elevee et en augmentation constante, avec des actes violents visant principalement le vol d'argent ou d'objets de valeur ; la grande majorite de ces actes a lieu en peripherie de Luanda. Le secteur d'Ilha a Luanda est a eviter en fin de journee, de meme que les municipalites peripheriques de la capitale la nuit. Les provinces diamantiferes de Lunda Sul et Lunda Norte, marquees par la presence de trafiquants, ainsi que l'enclave de Cabinda, exposee a des foyers d'insecurite potentiels, sont deconseillees sauf raison imperative."
+    },
+    "infra": {
+      "title": "Risques Infrastructures et Logistique",
+      "text": "L'etat degrade du reseau routier et une conduite locale dangereuse rendent les deplacements par la route perilleux ; des mines residuelles subsistent dans certains secteurs hors des grands axes. La saison des pluies, d'octobre a mai, provoque des inondations et des degats routiers qui perturbent la circulation."
+    }
+  },
+  "neighbors": [
+    { "name": "Namibie", "slug": "namibie", "available": false },
+    { "name": "RD Congo", "slug": "rdc", "available": false },
+    { "name": "Congo-Brazzaville", "slug": "congo-brazzaville", "available": false },
+    { "name": "Zambie", "slug": "zambie", "available": false }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Vol violent signale en peripherie de Luanda.", "time": "Il y a 6h" },
+    { "tag": "INFRA", "text": "Route endommagee par les pluies dans une province du nord.", "time": "Il y a 1j" },
+    { "tag": "SOCIAL", "text": "Presence de reseaux de trafiquants signalee dans une zone diamantifere.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/conseils-aux-voyageurs/conseils-par-pays-destination/angola/ (France Diplomatie, consulte le 07/09/2026)"
+  ]
+}
