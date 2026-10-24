@@ -27,6 +27,14 @@
     "publieMs": 1792746922000
    },
    {
+    "titre": "Lutte contre les AVC - « Vite », une application pour sauver des vies",
+    "url": "https://fr.allafrica.com/stories/202610240165.html",
+    "source": "AllAfrica (CI)",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792865715000
+   },
+   {
     "titre": "Côte d’Ivoire : La Fondation Konrad-Adenauer renforce ses actions en faveur de la démocratie et de la sécurité",
     "url": "https://www.linfodrome.com/societe/126823-cote-d-ivoire-la-fondation-konrad-adenauer-renforce-ses-actions-en-faveur-de-la-democratie-et-de-la-securite",
     "source": "Linfodrome",
@@ -297,6 +305,30 @@
     "niveau": "high",
     "cat": "securite",
     "publieMs": 1792771569000
+   },
+   {
+    "titre": "Forum de Tana - Un espace africain authentique dédié à la réflexion franche et à la prospective stratégique : le président Mahama",
+    "url": "https://fr.allafrica.com/stories/202610240161.html",
+    "source": "AllAfrica (ET)",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792865320000
+   },
+   {
+    "titre": "Africa must take control of its resources and security future – Mahama",
+    "url": "https://www.myjoyonline.com/africa-must-take-control-of-its-resources-and-security-future-mahama/",
+    "source": "JoyOnline",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792861092000
+   },
+   {
+    "titre": "Mahama urges Africa to finance its own peace operations, curb illicit financial flows",
+    "url": "https://www.myjoyonline.com/mahama-urges-africa-to-finance-its-own-peace-operations-curb-illicit-financial-flows/",
+    "source": "JoyOnline",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792859075000
    },
    {
     "titre": "Road infrastructure encroachment fuels pedestrian knockdowns",
@@ -589,6 +621,30 @@
     "publieMs": 1792684500000
    },
    {
+    "titre": "Louga : neuf morts et cinq blessés graves dans un accident sur l’axe Ndande-Kébémer",
+    "url": "https://aps.sn/louga-neuf-morts-et-cinq-blesses-graves-dans-un-accident-sur-laxe-ndande-kebemer/",
+    "source": "APS — Agence Sénégalaise Presse",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1792863573000
+   },
+   {
+    "titre": "Sapeurs-pompiers : le président Bassirou Diomaye Faye inaugure la 15e compagnie d’incendie et de secours à Diamniadio",
+    "url": "https://aps.sn/sapeurs-pompiers-le-president-bassirou-diomaye-faye-inaugure-la-15e-compagnie-dincendie-et-de-secours-a-diamniadio/",
+    "source": "APS — Agence Sénégalaise Presse",
+    "niveau": "high",
+    "cat": "humanitaire",
+    "publieMs": 1792862529000
+   },
+   {
+    "titre": "Circonstances du choc, alourdissement du bilan à 9 morts…: Les infos du Ministère des Transports sur le grave accident de Ndande",
+    "url": "https://www.seneweb.com/fr/news/Societe/circonstances-du-choc-alourdissement-du-bilan-a-9-morts-les-infos-du-ministere-des-transports-sur-le-grave-accident-de-ndande_n_999001619.html",
+    "source": "Seneweb",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792861634000
+   },
+   {
     "titre": "Alerte! Le Sénégal en danger ( Par Mansour Faye)",
     "url": "https://www.pressafrik.com/Alerte-Le-Senegal-en-danger-Par-Mansour-Faye_a313503.html",
     "source": "Pressafrik",
@@ -691,6 +747,38 @@
     "niveau": "high",
     "cat": "politique",
     "publieMs": 1792765740000
+   },
+   {
+    "titre": "Grand-Dakar sous les eaux usées : le maire crie à l’urgence sanitaire",
+    "url": "https://www.seneweb.com/fr/news/Video/grand-dakar-sous-les-eaux-usees-le-maire-crie-a-lurgence-sanitaire_n_999001623.html",
+    "source": "Seneweb",
+    "niveau": "mod",
+    "cat": "humanitaire",
+    "publieMs": 1792864796000
+   },
+   {
+    "titre": "LFR 2026, Macky Sall, succession à l’APR : Oumar Youm charge le pouvoir et met en garde contre les ambitions solitaires...",
+    "url": "https://www.dakaractu.com/LFR-2026-Macky-Sall-succession-a-l-APR-Oumar-Youm-charge-le-pouvoir-et-met-en-garde-contre-les-ambitions-solitaires_a277407.html",
+    "source": "Dakar Actu",
+    "niveau": "mod",
+    "cat": "humanitaire",
+    "publieMs": 1792864080000
+   },
+   {
+    "titre": "Filière ostréicole dans les îles du Kassa - La FAO décerne un satisfécit aux femmes",
+    "url": "https://fr.allafrica.com/stories/202610240148.html",
+    "source": "AllAfrica (SN)",
+    "niveau": "mod",
+    "cat": "humanitaire",
+    "publieMs": 1792862841000
+   },
+   {
+    "titre": "Lutte contre les cancers du sein et du col de l’utérus : 65 enfants vaccinés et 520 femmes dépistées à l’Hôpital militaire de Ziguinchor",
+    "url": "https://www.seneweb.com/fr/news/Sante/lutte-contre-les-cancers-du-sein-et-du-col-de-luterus-65-enfants-vaccines-et-520-femmes-depistees-a-lhopital-militaire-de-ziguinchor_n_999001614.html",
+    "source": "Seneweb",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792857444000
    },
    {
     "titre": "Sécurisation des emprises du TER - La Senter arme la gendarmerie des transports ferroviaires",
