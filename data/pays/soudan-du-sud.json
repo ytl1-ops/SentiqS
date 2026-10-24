@@ -1,0 +1,43 @@
+{
+  "iso2": "SS",
+  "slug": "soudan-du-sud",
+  "name": "Soudan du Sud",
+  "namePrep": "au Soudan du Sud",
+  "region": "Afrique de l'Est",
+  "capital": "Djouba",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire au Soudan du Sud : ensemble du territoire formellement deconseille sauf Djouba, Wau, Yambio et Aweil, conflit interne depuis 2013, alertes en temps reel avec SentiqS.",
+  "keywords": "Soudan du Sud securite, risque pays Soudan du Sud, veille geopolitique Djouba, surete entreprise Afrique de l'Est, SentiqS",
+  "summary": "L'ensemble du territoire sud-soudanais, a l'exception de sa capitale et des villes de Wau, Yambio et Aweil, est place en zone formellement deconseillee : l'Etat ne peut assurer la securite des personnes ni le fonctionnement des services essentiels sur la majorite du territoire qu'il ne controle pas integralement. Djouba, Wau, Yambio et Aweil presentent une situation globalement calme avec un niveau de criminalite contenu, les deplacements professionnels y etant possibles par voie aerienne uniquement, sous conditions de securite strictes. Le pays est en proie a un conflit interne depuis 2013 ; l'accord de paix de 2018 a reduit les affrontements, mais cette stabilisation reste fragile, les forces belligerantes n'ayant pas ete desarmees et les armes circulant librement. Des agressions sont regulierement rapportees a Djouba (vols a main armee, vols avec effraction, enlevements), et des mines et autres engins explosifs sont presents dans plusieurs regions du pays, y compris aux alentours de Djouba.",
+  "threats": {
+    "terrorism": {
+      "title": "Conflit Interne depuis 2013 et Territoire Formellement Deconseille",
+      "text": "L'ensemble du territoire sud-soudanais, a l'exception de sa capitale et des villes de Wau, Yambio et Aweil, est place en zone formellement deconseillee : l'Etat ne peut assurer la securite des personnes ni le fonctionnement des services essentiels sur la majorite du territoire qu'il ne controle pas integralement. Le pays est en proie a un conflit interne depuis 2013 ; l'accord de paix de 2018 a reduit les affrontements, mais cette stabilisation reste fragile, les forces belligerantes n'ayant pas ete desarmees et les armes circulant librement. De nombreux conflits locaux d'origine ethnique ou lies aux ressources (notamment le betail) generent regulierement des violences. Le risque terroriste demeure limite mais non ecarte compte tenu du contexte regional."
+    },
+    "crime": {
+      "title": "Criminalite a Djouba et Zones Deconseillees Sauf Raison Imperative",
+      "text": "Djouba, Wau, Yambio et Aweil presentent une situation globalement calme avec un niveau de criminalite contenu, les deplacements professionnels y etant possibles par voie aerienne uniquement, sous conditions de securite strictes. Des agressions sont regulierement rapportees a Djouba et dans les zones urbaines (vols a main armee, vols avec effraction, enlevements) ; les etrangers ne sont pas specifiquement cibles mais peuvent en etre victimes, et des enlevements surviennent occasionnellement sur les axes routiers."
+    },
+    "infra": {
+      "title": "Barrages Routiers et Engins Explosifs",
+      "text": "Le reseau routier consiste principalement en pistes en mauvais etat. Plus de 70 barrages et points de controle existent entre Djouba et Bentiu, la plupart exigeant des sommes depassant 1000 USD. De nombreux incidents mortels, tels que des tirs d'armes automatiques non motives sur des vehicules, surviennent, particulierement en Equatoria centrale et orientale. Des mines et autres engins explosifs sont presents dans plusieurs regions du pays, y compris aux alentours de Djouba."
+    }
+  },
+  "neighbors": [
+    { "name": "Soudan", "slug": "soudan", "available": true },
+    { "name": "Ethiopie", "slug": "ethiopie", "available": true },
+    { "name": "Kenya", "slug": "kenya", "available": true },
+    { "name": "Ouganda", "slug": "ouganda", "available": true },
+    { "name": "RD Congo", "slug": "rdc", "available": true },
+    { "name": "Centrafrique", "slug": "centrafrique", "available": true }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Enlevement signale sur un axe routier pres de Djouba.", "time": "Il y a 6h" },
+    { "tag": "SURETE", "text": "Affrontement local signale lie a un conflit de betail.", "time": "Il y a 1j" },
+    { "tag": "SURETE", "text": "Incident signale a un barrage entre Djouba et Bentiu.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/soudan-du-sud/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}
