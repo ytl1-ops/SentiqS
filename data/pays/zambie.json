@@ -1,0 +1,45 @@
+{
+  "iso2": "ZM",
+  "slug": "zambie",
+  "name": "Zambie",
+  "namePrep": "en Zambie",
+  "region": "Afrique australe",
+  "capital": "Lusaka",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire en Zambie : agressions parfois violentes autour de Livingstone, risques routiers nocturnes, alertes en temps reel avec SentiqS.",
+  "keywords": "Zambie securite, risque pays Zambie, veille geopolitique Lusaka Livingstone, surete entreprise Afrique australe, SentiqS",
+  "summary": "Aucune menace terroriste specifique n'est signalee en Zambie. Les incidents criminels sont relativement peu nombreux, mais les agressions (vols a main armee, cambriolages, car-jackings) peuvent etre violentes. Les alentours de Livingstone et les zones periurbaines sont connus pour des agressions particulierement violentes ; il est recommande d'eviter les deplacements a pied et interurbains en voiture ou en bus apres la tombee de la nuit, de fermer son domicile a clef, de verrouiller son vehicule et de ne pas prendre d'auto-stoppeurs. Les taxis en ville sont neanmoins reputes serieux et fiables, permettant les deplacements nocturnes. Une partie du reseau routier zambien demeure en mauvais etat, sans eclairage la nuit, avec des pietons et des animaux pouvant surgir sur la route a tout moment.",
+  "threats": {
+    "terrorism": {
+      "title": "Absence de Menace Terroriste Identifiee",
+      "text": "Aucune menace terroriste specifique n'est signalee en Zambie a ce jour."
+    },
+    "crime": {
+      "title": "Agressions Violentes Autour de Livingstone",
+      "text": "Les incidents criminels sont relativement peu nombreux, mais les agressions (vols a main armee, cambriolages, car-jackings) peuvent etre violentes. Les alentours de Livingstone et les zones periurbaines sont connus pour des agressions particulierement violentes. Il est recommande d'eviter les deplacements a pied et interurbains en voiture ou en bus apres la tombee de la nuit, de fermer son domicile a clef, de verrouiller son vehicule, de ne pas prendre d'auto-stoppeurs et de faire attention aux objets laisses dans les hotels, particulierement a Livingstone. Les taxis en ville sont neanmoins reputes serieux et fiables, permettant les deplacements nocturnes."
+    },
+    "infra": {
+      "title": "Risques Routiers",
+      "text": "Une partie du reseau routier zambien demeure en mauvais etat, sans eclairage la nuit, et des pietons et des animaux peuvent surgir sur la route a tout moment, de jour comme de nuit. L'alcoolisme au volant est signale, et il est recommande de ne pas conduire la nuit."
+    }
+  },
+  "neighbors": [
+    { "name": "RD Congo", "slug": "rdc", "available": true },
+    { "name": "Tanzanie", "slug": "tanzanie", "available": true },
+    { "name": "Malawi", "slug": "malawi", "available": true },
+    { "name": "Mozambique", "slug": "mozambique", "available": true },
+    { "name": "Zimbabwe", "slug": "zimbabwe", "available": true },
+    { "name": "Botswana", "slug": "botswana", "available": true },
+    { "name": "Namibie", "slug": "namibie", "available": true },
+    { "name": "Angola", "slug": "angola", "available": true }
+  ],
+  "alertsSample": [
+    { "tag": "SOCIAL", "text": "Vol a main armee signale pres de Livingstone.", "time": "Il y a 6h" },
+    { "tag": "SOCIAL", "text": "Car-jacking signale a la sortie de Lusaka.", "time": "Il y a 1j" },
+    { "tag": "INFRA", "text": "Accident routier nocturne signale sur un axe secondaire.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/zambie/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}
