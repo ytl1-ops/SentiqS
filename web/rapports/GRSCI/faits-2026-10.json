@@ -61,6 +61,30 @@
     "publieMs": 1792681647000
    },
    {
+    "titre": "Sécurité numérique au Burkina : La BCLCC lance la 2ᵉ Semaine nationale de lutte contre la cybercriminalité",
+    "url": "https://faso7.com/2026/10/24/securite-numerique-au-burkina-la-bclcc-lance-la-2%e1%b5%89-semaine-nationale-de-lutte-contre-la-cybercriminalite/",
+    "source": "Faso7",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1792847241000
+   },
+   {
+    "titre": "Coopération: le ministre de la Sécurité reçoit une délégation de l’UICN",
+    "url": "https://www.wakatsera.com/cooperation-le-ministre-de-la-securite-recoit-une-delegation-de-luicn/",
+    "source": "Wakat Sera",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1792846369000
+   },
+   {
+    "titre": "Construction au Burkina Faso : l’Ordre des ingénieurs alerte sur les risques liés aux faux professionnels",
+    "url": "https://faso7.com/2026/10/23/construction-au-burkina-faso-lordre-des-ingenieurs-alerte-sur-les-risques-lies-aux-faux-professionnels/",
+    "source": "Faso7",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792765587000
+   },
+   {
     "titre": "Burkina Faso-Turquie : une offensive diplomatique d’envergure pour consolider la coopération bilatérale",
     "url": "https://www.alwihdainfo.com/burkina-faso-turquie-une-offensive-diplomatique-denvergure-pour-consolider-la-cooperation-bilaterale/",
     "source": "Alwihda Info (Tchad)",
@@ -159,6 +183,14 @@
     "publieMs": 1792842465000
    },
    {
+    "titre": "Kidal, la ville aux trois drapeaux : Bamako reprend son symbole, pas encore le Nord",
+    "url": "https://pointschauds.info/kidal-la-ville-aux-trois-drapeaux-bamako-reprend-son-symbole-pas-encore-le-nord/",
+    "source": "Points Chauds Online",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792840471000
+   },
+   {
     "titre": "Coupe de la CAF (2ᵉ tour retour) : L’ES Zarzis déjà sur le sol bamakois, l’AS Real sous pression à domicile",
     "url": "https://maliactu.net/coupe-de-la-caf-2%e1%b5%89-tour-retour-les-zarzis-deja-sur-le-sol-bamakois-las-real-sous-pression-a-domicile/",
     "source": "Maliactu",
@@ -191,6 +223,14 @@
     "niveau": "crit",
     "cat": "securite",
     "publieMs": 1792785966000
+   },
+   {
+    "titre": "Le Gouverneur de la région de Zinder préside la réunion du Conseil Régional de Sécurité (CRS)",
+    "url": "https://anp.ne/le-gouverneur-de-la-region-de-zinder-preside-la-reunion-du-conseil-regional-de-securite-crs/",
+    "source": "ANP — Agence Nigérienne Presse",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1792846271000
    },
    {
     "titre": "Carburant : le Niger cherche des leviers pour sortir de la crise",
@@ -257,6 +297,14 @@
     "niveau": "high",
     "cat": "securite",
     "publieMs": 1792771569000
+   },
+   {
+    "titre": "Road infrastructure encroachment fuels pedestrian knockdowns",
+    "url": "https://www.myjoyonline.com/road-infrastructure-encroachment-fuels-pedestrian-knockdowns/",
+    "source": "JoyOnline",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792853311000
    },
    {
     "titre": "Six-year-old’s death at Fofie Yam Festival: Family demands justice",
@@ -385,12 +433,44 @@
   ],
   "GN": [
    {
+    "titre": "Appel à manifestation d’intérêt pour les services de consultants locaux en audit",
+    "url": "https://guineematin.com/2026/10/24/appel-a-manifestation-dinteret-pour-les-services-de-consultants-locaux-en-audit/?utm_source=rss&utm_medium=rss&utm_campaign=appel-a-manifestation-dinteret-pour-les-services-de-consultants-locaux-en-audit",
+    "source": "Guineematin.com",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792848381000
+   },
+   {
+    "titre": "Élection Féguifoot : l’argent des voix menace le football",
+    "url": "https://www.guinee7.com/2026/10/24/election-feguifoot-comex-argent-achat-voix-sponsor-editorial/",
+    "source": "Guinee7.com",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792831637000
+   },
+   {
     "titre": "Cellcom Guinée : la FESATEL alerte sur les salaires impayés et réclame l’ouverture urgente de négociations",
     "url": "https://guineematin.com/2026/10/23/cellcom-guinee-la-fesatel-alerte-sur-les-salaires-impayes-et-reclame-louverture-urgente-de-negociations/?utm_source=rss&utm_medium=rss&utm_campaign=cellcom-guinee-la-fesatel-alerte-sur-les-salaires-impayes-et-reclame-louverture-urgente-de-negociations",
     "source": "Guineematin.com",
     "niveau": "high",
     "cat": "securite",
     "publieMs": 1792783623000
+   },
+   {
+    "titre": "Guinée : Mamadi Doumbouya crée un nouveau service pour renforcer la sécurité dans les communes",
+    "url": "https://www.guinee7.com/2026/10/24/guinee-mamadi-doumbouya-cree-un-nouveau-service-pour-renforcer-la-securite-dans-les-communes/",
+    "source": "Guinee7.com",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792854050000
+   },
+   {
+    "titre": "Kèlèfa Sall: huit ans après, l’histoire présente la facture",
+    "url": "https://guineelive.com/2026/10/24/kelefa-sall-huit-ans-apres-lhistoire-presente-la-facture/",
+    "source": "Guineelive",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792833899000
    },
    {
     "titre": "Conakry : traquée par GPS, une moto volée permet le démantèlement d’une cache d’engins suspects à Lambanyi",
@@ -461,6 +541,30 @@
   ],
   "SN": [
    {
+    "titre": "Mort de Mamadou Khabane Guèye : les bijoutiers du Sénégal ferment leurs boutiques",
+    "url": "https://www.senenews.com/actualites/mort-de-mamadou-khabane-gueye-les-bijoutiers-du-senegal-ferment-leurs-boutiques_603922.html",
+    "source": "SeneNews",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1792855611000
+   },
+   {
+    "titre": "Attaque dans les Yvelines: le suspect et quatre de ses proches entendus par les enquêteurs, son profil en question",
+    "url": "https://www.seneweb.com/fr/news/International/attaque-dans-les-yvelines-le-suspect-et-quatre-de-ses-proches-entendus-par-les-enqueteurs-son-profil-en-question_n_999001609.html",
+    "source": "Seneweb",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1792852829000
+   },
+   {
+    "titre": "Octobre Rose : Huit ans après la mort de Ndeye Khady Ndiaye, sa sœur jumelle témoigne",
+    "url": "https://aps.sn/octobre-rose-huit-ans-apres-la-mort-de-ndeye-khady-ndiaye-sa-soeur-jumelle-temoigne/",
+    "source": "APS — Agence Sénégalaise Presse",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1792849915000
+   },
+   {
     "titre": "Attaque à Trappes et à La Verrière : Qui est Kévin T., le suspect auteur de la fusillade ?",
     "url": "https://www.seneweb.com/fr/news/International/attaque-a-trappes-et-a-la-verriere-qui-est-kevin-t-le-suspect-auteur-de-la-fusillade_n_999001566.html",
     "source": "Seneweb",
@@ -483,6 +587,30 @@
     "niveau": "crit",
     "cat": "humanitaire",
     "publieMs": 1792684500000
+   },
+   {
+    "titre": "Alerte! Le Sénégal en danger ( Par Mansour Faye)",
+    "url": "https://www.pressafrik.com/Alerte-Le-Senegal-en-danger-Par-Mansour-Faye_a313503.html",
+    "source": "Pressafrik",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792848540000
+   },
+   {
+    "titre": "Inondations à la cité Belle-vue : Entre pertes massives et insécurité, des retraités exigent une solution définitive",
+    "url": "https://www.dakaractu.com/Inondations-a-la-cite-Belle-vue-Entre-pertes-massives-et-insecurite-des-retraites-exigent-une-solution-definitive_a277402.html",
+    "source": "Dakar Actu",
+    "niveau": "high",
+    "cat": "humanitaire",
+    "publieMs": 1792848540000
+   },
+   {
+    "titre": "Axe Ndande-Kébémer : le bilan de l’accident s’alourdit à huit morts",
+    "url": "https://www.pressafrik.com/Axe-Ndande-Kebemer-le-bilan-de-l-accident-s-alourdit-a-huit-morts_a313502.html",
+    "source": "Pressafrik",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792847700000
    },
    {
     "titre": "Kébémer : le bilan de l’accident entre un camion et un minicar passe à huit morts",
@@ -563,6 +691,38 @@
     "niveau": "high",
     "cat": "politique",
     "publieMs": 1792765740000
+   },
+   {
+    "titre": "Sécurisation des emprises du TER - La Senter arme la gendarmerie des transports ferroviaires",
+    "url": "https://fr.allafrica.com/stories/202610240100.html",
+    "source": "AllAfrica (SN)",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792855449000
+   },
+   {
+    "titre": "La BNSP prévoit la construction de 187 casernes à l’horizon 2035",
+    "url": "https://aps.sn/la-bnsp-prevoit-la-construction-de-187-casernes-a-lhorizon-2035/",
+    "source": "APS — Agence Sénégalaise Presse",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792853129000
+   },
+   {
+    "titre": "La Cité Belle-vue fait le bilan des récentes pluies dévastatrices : « 67 maisons sinistrées, véhicules, mobilier et électroménager détruits et des pertes estimées à plusieurs centaines de millions »",
+    "url": "https://www.dakaractu.com/La-Cite-Belle-vue-fait-le-bilan-des-recentes-pluies-devastatrices-67-maisons-sinistrees-vehicules-mobilier-et_a277404.html",
+    "source": "Dakar Actu",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792851540000
+   },
+   {
+    "titre": "Lamb : (Officiel) Gaston Productions officialise le choc Petit Lô v Thiatou Daouda Fall !",
+    "url": "https://wiwsport.com/2026/10/24/lamb-officiel-gaston-productions-officialise-le-choc-petit-lo-v-thiatou-daouda-fall/",
+    "source": "wiwsport",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792851513000
    },
    {
     "titre": "Braquage d’un point Wave à Dahra : une arme et de fausses plaques découvertes dans l’enquête visant M.Dieng",
