@@ -20,7 +20,7 @@ Le script `scripts/generate-country-fiche.js` refuse de generer une fiche si le 
 3. Le fichier `web/pays/<slug>.html` est genere a partir du gabarit `scripts/templates/fiche-country.template.html`.
 4. Ajouter manuellement l'entree dans `sitemap.xml` et dans `web/pays/index.html`.
 
-## Checklist des 45 pays restants (9/54 deja publies : Burkina Faso, Cote d'Ivoire, Ghana, Guinee, Liberia, Mali, Nigeria, Senegal, Togo)
+## Checklist des 45 pays restants (14/54 deja publies : Burkina Faso, Cote d'Ivoire, Ghana, Guinee, Liberia, Mali, Nigeria, Senegal, Togo, Namibie, Niger, Ouganda, Rwanda, Sao Tome-et-Principe)
 
 | Pays | Slug prevu | ISO2 | Statut |
 |---|---|---|---|
@@ -53,12 +53,12 @@ Le script `scripts/generate-country-fiche.js` refuse de generer une fiche si le 
 | Maurice | `maurice` | MU | ☐ a faire |
 | Mauritanie | `mauritanie` | MR | ☐ a faire |
 | Mozambique | `mozambique` | MZ | ☐ a faire |
-| Namibie | `namibie` | NA | ☐ a faire |
-| Niger | `niger` | NE | ☐ a faire |
+| Namibie | `namibie` | NA | publiee (source France Diplomatie) |
+| Niger | `niger` | NE | publiee (source France Diplomatie) |
 | Nigeria | `nigeria` | NG | publiee (source France Diplomatie) |
-| Ouganda | `ouganda` | UG | ☐ a faire |
-| Rwanda | `rwanda` | RW | ☐ a faire |
-| Sao Tome-et-Principe | `sao-tome-et-principe` | ST | ☐ a faire |
+| Ouganda | `ouganda` | UG | publiee (source France Diplomatie) |
+| Rwanda | `rwanda` | RW | publiee (source France Diplomatie) |
+| Sao Tome-et-Principe | `sao-tome-et-principe` | ST | publiee (source France Diplomatie) |
 | Senegal | `senegal` | SN | publiee (source France Diplomatie) |
 | Seychelles | `seychelles` | SC | ☐ a faire |
 | Sierra Leone | `sierra-leone` | SL | ☐ a faire |

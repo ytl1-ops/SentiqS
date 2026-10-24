@@ -1,0 +1,44 @@
+{
+  "iso2": "NE",
+  "slug": "niger",
+  "name": "Niger",
+  "namePrep": "au Niger",
+  "region": "Afrique de l'Ouest",
+  "capital": "Niamey",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire au Niger : tout deplacement formellement deconseille, risque terroriste eleve aux frontieres, alertes en temps reel avec SentiqS.",
+  "keywords": "Niger securite, risque pays Niger, veille geopolitique Niamey Sahel, surete entreprise Afrique de l'Ouest, SentiqS",
+  "summary": "Tout deplacement au Niger est formellement deconseille : l'ensemble du territoire est classe en zone rouge selon la carte de vigilance (mise a jour du 11/03/2026). Le risque d'attentat et d'enlevement d'Occidentaux demeure eleve. Des groupes armes terroristes operent le long des frontieres avec le Mali, le Burkina Faso, le Benin, le Nigeria et le Tchad, menant des enlevements, attentats et attaques malgre les efforts des forces de securite nigeriennes ; les lieux frequentes par des etrangers sont particulierement vises. Dans la zone frontaliere avec le Nigeria, des groupes de grand banditisme perpetrent des enlevements contre rancon dans le sud du pays. La circulation routiere reste une cause majeure de mort violente et de blessures graves, et de juin a octobre de violents orages provoquent des inondations, des crues du fleuve Niger et des glissements de terrain, notamment dans le sud.",
+  "threats": {
+    "terrorism": {
+      "title": "Menace Terroriste et Deconseil Formel de Tout Deplacement",
+      "text": "Tout deplacement au Niger est formellement deconseille : l'ensemble du territoire est classe en zone rouge selon la carte de vigilance (mise a jour du 11/03/2026). Le risque d'attentat et d'enlevement d'Occidentaux demeure eleve. Des groupes armes terroristes operent le long des frontieres avec le Mali, le Burkina Faso, le Benin, le Nigeria et le Tchad, menant des enlevements, attentats et attaques malgre les efforts des forces de securite nigeriennes. Les lieux frequentes par des etrangers sont particulierement vises."
+    },
+    "crime": {
+      "title": "Grand Banditisme dans le Sud",
+      "text": "Dans la zone frontaliere avec le Nigeria, des groupes de grand banditisme perpetrent des enlevements contre rancon dans le sud du Niger."
+    },
+    "infra": {
+      "title": "Risques Routiers et Inondations Saisonnieres",
+      "text": "La circulation reste une cause majeure de mort violente et de blessures graves. Les routes secondaires sont en mauvais etat et les services de secours sont defectueux hors de Niamey. Des barrages de police frequents, particulierement la nuit, requierent une approche lente et l'obeissance aux injonctions. De juin a octobre, de violents orages provoquent des inondations, des crues du fleuve Niger et des glissements de terrain, notamment dans le sud du pays."
+    }
+  },
+  "neighbors": [
+    { "name": "Algerie", "slug": "algerie", "available": true },
+    { "name": "Libye", "slug": "libye", "available": true },
+    { "name": "Tchad", "slug": "tchad", "available": false },
+    { "name": "Nigeria", "slug": "nigeria", "available": true },
+    { "name": "Benin", "slug": "benin", "available": true },
+    { "name": "Burkina Faso", "slug": "burkina-faso", "available": true },
+    { "name": "Mali", "slug": "mali", "available": true }
+  ],
+  "alertsSample": [
+    { "tag": "SURETE", "text": "Attaque signalee attribuee a un groupe arme pres de la frontiere avec le Mali.", "time": "Il y a 4h" },
+    { "tag": "SURETE", "text": "Enlevement contre rancon signale dans le sud du pays.", "time": "Il y a 1j" },
+    { "tag": "INFRA", "text": "Inondation signalee dans le sud du Niger.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/niger/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}

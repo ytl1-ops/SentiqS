@@ -1,0 +1,41 @@
+{
+  "iso2": "NA",
+  "slug": "namibie",
+  "name": "Namibie",
+  "namePrep": "en Namibie",
+  "region": "Afrique australe",
+  "capital": "Windhoek",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire en Namibie : delinquance urbaine a Windhoek et Swakopmund, risques routiers nocturnes, zones reglementees, alertes en temps reel avec SentiqS.",
+  "keywords": "Namibie securite, risque pays Namibie, veille geopolitique Windhoek, surete entreprise Afrique australe, SentiqS",
+  "summary": "La Namibie n'est pas exempte de risques specifiques, du fait notamment de la delinquance qui y sevit dans un contexte de fortes inegalites sociales. Les conditions de securite a Windhoek necessitent une vigilance accrue depuis quelques annees, avec des risques similaires a Swakopmund malgre une apparence paisible ; les quartiers ouest et nord de Windhoek sont particulierement dangereux, avec des cas d'agression a l'arme blanche visant particulierement les touristes. Les accidents routiers mortels sont frequents, notamment de nuit en raison des animaux errants sur les routes. La Diamond Restricted Area, dans l'extreme sud-ouest entre Luderitz et Oranjemund, est interdite d'acces, de meme que la frontiere avec l'Angola en dehors des points de passage autorises.",
+  "threats": {
+    "terrorism": {
+      "title": "Absence de Menace Terroriste Identifiee",
+      "text": "Aucune menace terroriste specifique n'est signalee en Namibie a ce jour."
+    },
+    "crime": {
+      "title": "Delinquance Urbaine et Zones Reglementees",
+      "text": "La Namibie n'est pas exempte de risques specifiques, du fait notamment de la delinquance qui y sevit dans un contexte de fortes inegalites sociales. Les conditions de securite a Windhoek necessitent une vigilance accrue depuis quelques annees, avec des risques similaires a Swakopmund. Les quartiers ouest et nord de Windhoek sont particulierement dangereux, avec des cas d'agression a l'arme blanche visant particulierement les touristes. Des vols de jour comme de nuit, souvent commis par des pickpockets, ainsi que des vols parfois accompagnes d'agression physique sont signales dans les grandes villes ; les fraudes a la carte bancaire et les agressions lors de retraits d'argent aux distributeurs sont regulieres, avec un risque accru a l'approche des fetes de fin d'annee. La Diamond Restricted Area, dans l'extreme sud-ouest entre Luderitz et Oranjemund, est interdite d'acces. Le camping sauvage est interdit et dangereux (isolement, animaux sauvages, braconniers), et les townships sont a eviter sans l'accompagnement de personnes de confiance. Dans la bande de Caprivi, des unites anti-braconnage armees sont presentes."
+    },
+    "infra": {
+      "title": "Risques Routiers",
+      "text": "Les accidents mortels sont frequents, dus a l'imprudence et a la vitesse excessive. Il est fortement deconseille de conduire de nuit en raison des animaux errant sur les routes. Les eclatements de pneus et impacts de pare-brise sont tres frequents. Sur les pistes (routes de categorie C et plus), une vitesse limitee a 80 km/h est recommandee. La tolerance envers l'alcool au volant est nulle."
+    }
+  },
+  "neighbors": [
+    { "name": "Angola", "slug": "angola", "available": true },
+    { "name": "Zambie", "slug": "zambie", "available": false },
+    { "name": "Botswana", "slug": "botswana", "available": true },
+    { "name": "Afrique du Sud", "slug": "afrique-du-sud", "available": false }
+  ],
+  "alertsSample": [
+    { "tag": "SOCIAL", "text": "Agression a l'arme blanche signalee dans un quartier ouest de Windhoek.", "time": "Il y a 5h" },
+    { "tag": "INFRA", "text": "Accident routier nocturne signale sur un axe national.", "time": "Il y a 1j" },
+    { "tag": "SOCIAL", "text": "Fraude a la carte bancaire signalee a Swakopmund.", "time": "Il y a 2j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/namibie/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}

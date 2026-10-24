@@ -1,0 +1,36 @@
+{
+  "iso2": "ST",
+  "slug": "sao-tome-et-principe",
+  "name": "Sao Tome-et-Principe",
+  "namePrep": "a Sao Tome-et-Principe",
+  "region": "Afrique centrale",
+  "capital": "Sao Tome",
+  "datePublished": "2026-09-08",
+  "dateModified": "2026-09-08",
+  "metaDescription": "Situation securitaire a Sao Tome-et-Principe : petite delinquance, risque de piraterie maritime dans le Golfe de Guinee, capacites de secours limitees, alertes en temps reel avec SentiqS.",
+  "keywords": "Sao Tome-et-Principe securite, risque pays Sao Tome, veille geopolitique Golfe de Guinee, surete entreprise Afrique centrale, SentiqS",
+  "summary": "L'ensemble de l'archipel de Sao Tome-et-Principe est classe en zone de vigilance renforcee. Les capacites d'intervention en urgence y sont quasiment inexistantes et le systeme sanitaire local est inadequat. Aucune menace terroriste specifique n'est signalee. Des actes de petite delinquance (vols a main armee, vol a la tire) ont ete rapportes, la vigilance etant particulierement recommandee dans les espaces publics frequentes comme les marches. Les risques lies a la piraterie maritime dans le Golfe de Guinee sont eleves, et la navigation de plaisance y est formellement deconseillee.",
+  "threats": {
+    "terrorism": {
+      "title": "Absence de Menace Terroriste Identifiee",
+      "text": "Aucune menace terroriste specifique n'est signalee a Sao Tome-et-Principe a ce jour."
+    },
+    "crime": {
+      "title": "Petite Delinquance dans les Espaces Publics",
+      "text": "Des actes de petite delinquance (vols a main armee, vol a la tire) ont ete rapportes. La vigilance est particulierement recommandee dans les espaces publics frequentes comme les marches. Il est recommande d'eviter de circuler avec des objets de valeur, de maintenir une surveillance sur ses bagages et de garder son passeport en securite."
+    },
+    "infra": {
+      "title": "Piraterie Maritime et Capacites de Secours Limitees",
+      "text": "Les risques lies a la piraterie maritime dans le Golfe de Guinee sont eleves, et la navigation de plaisance y est formellement deconseillee. Les capacites d'intervention en urgence sont quasiment inexistantes sur l'archipel, et le systeme sanitaire local est inadequat."
+    }
+  },
+  "neighbors": [],
+  "alertsSample": [
+    { "tag": "SOCIAL", "text": "Vol a main armee signale pres d'un marche de Sao Tome.", "time": "Il y a 8h" },
+    { "tag": "SURETE", "text": "Activite de piraterie signalee dans le Golfe de Guinee.", "time": "Il y a 2j" },
+    { "tag": "SOCIAL", "text": "Vol a la tire signale dans un lieu public frequente.", "time": "Il y a 3j" }
+  ],
+  "sources": [
+    "https://www.diplomatie.gouv.fr/fr/information-par-pays/sao-tome-et-principe/conseils-aux-voyageurs-securite (France Diplomatie, consulte le 08/09/2026)"
+  ]
+}
