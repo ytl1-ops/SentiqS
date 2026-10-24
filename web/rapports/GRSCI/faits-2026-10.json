@@ -199,6 +199,14 @@
     "publieMs": 1792745923000
    },
    {
+    "titre": "Mali : 54 corps sans vie découverts dans un campement, l’EIGS mis en cause",
+    "url": "https://www.seneweb.com/fr/news/Afrique/mali-54-corps-sans-vie-decouverts-dans-un-campement-leigs-mis-en-cause_n_999001644.html",
+    "source": "Seneweb",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1792880135000
+   },
+   {
     "titre": "Mali : Principales mesures et communications du Conseil des ministres du 23 octobre 2026",
     "url": "https://maliactu.net/mali-principales-mesures-et-communications-du-conseil-des-ministres-du-23-octobre-2026/",
     "source": "Maliactu",
@@ -363,6 +371,22 @@
     "publieMs": 1792865320000
    },
    {
+    "titre": "“Turn peace pledges into action” – Mahama to African leaders",
+    "url": "https://www.gbcghanaonline.com/general-news/mahama-african-leaders/2026/",
+    "source": "GBC Ghana Online",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792864113000
+   },
+   {
+    "titre": "“Africa’s conflicts rooted in resource exploration” – President Mahama",
+    "url": "https://www.gbcghanaonline.com/africa/mahama-atana-state/2026/",
+    "source": "GBC Ghana Online",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792862844000
+   },
+   {
     "titre": "Africa must take control of its resources and security future – Mahama",
     "url": "https://www.myjoyonline.com/africa-must-take-control-of-its-resources-and-security-future-mahama/",
     "source": "JoyOnline",
@@ -513,6 +537,14 @@
   ],
   "GN": [
    {
+    "titre": "Loi de finances rectificative 2026 : entre crise pétrolière et retards des projets, la ministre de l’Économie, Mariama Ciré Sylla, s’explique",
+    "url": "https://guineematin.com/2026/10/24/loi-de-finances-rectificative-2026-entre-crise-petroliere-et-retards-des-projets-la-ministre-de-leconomie-mariama-cire-sylla-sexplique/?utm_source=rss&utm_medium=rss&utm_campaign=loi-de-finances-rectificative-2026-entre-crise-petroliere-et-retards-des-projets-la-ministre-de-leconomie-mariama-cire-sylla-sexplique",
+    "source": "Guineematin.com",
+    "niveau": "high",
+    "cat": "economique",
+    "publieMs": 1792881839000
+   },
+   {
     "titre": "Appel à manifestation d’intérêt pour les services de consultants locaux en audit",
     "url": "https://guineematin.com/2026/10/24/appel-a-manifestation-dinteret-pour-les-services-de-consultants-locaux-en-audit/?utm_source=rss&utm_medium=rss&utm_campaign=appel-a-manifestation-dinteret-pour-les-services-de-consultants-locaux-en-audit",
     "source": "Guineematin.com",
@@ -535,6 +567,30 @@
     "niveau": "high",
     "cat": "securite",
     "publieMs": 1792783623000
+   },
+   {
+    "titre": "Ligue 2 : l’Union FC écrase l’AS Kolombada et sort de la zone rouge",
+    "url": "https://guineematin.com/2026/10/24/ligue-2-lunion-fc-ecrase-las-kolombada-et-sort-de-la-zone-rouge/?utm_source=rss&utm_medium=rss&utm_campaign=ligue-2-lunion-fc-ecrase-las-kolombada-et-sort-de-la-zone-rouge",
+    "source": "Guineematin.com",
+    "niveau": "mod",
+    "cat": "humanitaire",
+    "publieMs": 1792883997000
+   },
+   {
+    "titre": "Kaloum : un champ de cannabis découvert au débarcadère de Boulbinet, des arrestations",
+    "url": "https://www.guinee7.com/2026/10/24/kaloum-un-champ-de-cannabis-decouvert-au-debarcadere-de-boulbinet-des-arrestations/",
+    "source": "Guinee7.com",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792878266000
+   },
+   {
+    "titre": "Conakry : des zones criminogènes démantelées à Kaloum par la DATU, plusieurs personnes interpellées",
+    "url": "https://guineematin.com/2026/10/24/conakry-des-zones-criminogenes-demantelees-a-kaloum-par-la-datu-plusieurs-personnes-interpellees/?utm_source=rss&utm_medium=rss&utm_campaign=conakry-des-zones-criminogenes-demantelees-a-kaloum-par-la-datu-plusieurs-personnes-interpellees",
+    "source": "Guineematin.com",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792876607000
    },
    {
     "titre": "Journée mondiale des enseignants : le SLECG réclame une revalorisation des salaires et de meilleures conditions de travail",
@@ -619,6 +675,14 @@
     "publieMs": 1792734360000
    },
    {
+    "titre": "Liberia Imposes 21-Day Isolation and Monitoring Rules for Travelers Amid Regional Ebola Threat",
+    "url": "https://gnnliberia.com/liberia-imposes-21-day-isolation-and-monitoring-rules-for-travelers-amid-regional-ebola-threat/",
+    "source": "Global News Network Liberia",
+    "niveau": "mod",
+    "cat": "humanitaire",
+    "publieMs": 1792882584000
+   },
+   {
     "titre": "AFL Fires Two Soldiers Over Assault",
     "url": "https://gnnliberia.com/afl-fires-two-soldiers-over-assault/",
     "source": "Global News Network Liberia",
@@ -629,12 +693,28 @@
   ],
   "SN": [
    {
+    "titre": "Bijoutiers en colère : Quatre cambriolages en trois mois, un artisan tué, le secteur en état d’alerte",
+    "url": "https://www.seneweb.com/fr/news/Societe/bijoutiers-en-colere-quatre-cambriolages-en-trois-mois-un-artisan-tue-le-secteur-en-etat-dalerte_n_999001640.html",
+    "source": "Seneweb",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1792875868000
+   },
+   {
     "titre": "M. G. Ba est finalement mort, il avait découvert avoir le SIDA lors d’un don de sang",
     "url": "https://www.senenews.com/actualites/m-g-ba-est-finalement-mort-il-avait-decouvert-avoir-le-sida-lors-dun-don-de-sang_603939.html",
     "source": "SeneNews",
     "niveau": "crit",
     "cat": "securite",
     "publieMs": 1792873126000
+   },
+   {
+    "titre": "Zac Mbao : Les bijoutiers du Sénégal en sit-in pour réclamer justice après le meurtre de Modou Khabane Guèye",
+    "url": "https://www.dakaractu.com/Zac-Mbao-Les-bijoutiers-du-Senegal-en-sit-in-pour-reclamer-justice-apres-le-meurtre-de-Modou-Khabane-Gueye_a277411.html",
+    "source": "Dakar Actu",
+    "niveau": "crit",
+    "cat": "politique",
+    "publieMs": 1792873020000
    },
    {
     "titre": "​Drame sur la route de Saint-Louis: le ministère des Transports confirme un bilan provisoire de 9 morts",
@@ -699,6 +779,14 @@
     "niveau": "crit",
     "cat": "humanitaire",
     "publieMs": 1792684500000
+   },
+   {
+    "titre": "Santé de Diodio Glow Skin : L’alerte de sa famille et l’avis de trois médecins",
+    "url": "https://www.seneweb.com/fr/news/Societe/sante-de-diodio-glow-skin-lalerte-de-sa-famille-et-lavis-de-trois-medecins_n_999001642.html",
+    "source": "Seneweb",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792878900000
    },
    {
     "titre": "Diodio hospitalisée à la Polyclinique de Dakar : L’alerte de son frère Moussa Thiam",
@@ -851,6 +939,22 @@
     "niveau": "high",
     "cat": "politique",
     "publieMs": 1792765740000
+   },
+   {
+    "titre": "Abdou Lahad Ndiaye au chevet des victimes de l’accident de Ndande",
+    "url": "https://aps.sn/__trashed-103/",
+    "source": "APS — Agence Sénégalaise Presse",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1792874885000
+   },
+   {
+    "titre": "WhatsApp en Afrique : piratages et arnaques se multiplient",
+    "url": "https://www.france24.com/fr/vid%C3%A9o/20261024-whatsapp-en-afrique-piratages-et-arnaques-se-multiplient",
+    "source": "France 24",
+    "niveau": "mod",
+    "cat": "economique",
+    "publieMs": 1792873244000
    },
    {
     "titre": "Grand-Dakar sous les eaux usées : le maire crie à l’urgence sanitaire",
