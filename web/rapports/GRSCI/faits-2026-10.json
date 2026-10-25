@@ -183,6 +183,14 @@
     "publieMs": 1792764409000
    },
    {
+    "titre": "Ménaka : 54 corps retrouvés après des attaques terroristes à Tagayat",
+    "url": "https://amap.ml/2026/10/25/menaka-54-morts-corps-retrouves-apres-des-attaques-terroristes-a-tagayat/",
+    "source": "AMAP — Agence Malienne Presse",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1792921052000
+   },
+   {
     "titre": "Situation sécuritaire : Plus de 4.880 terroristes neutralisés et 162 bases détruites par les FAMa",
     "url": "https://amap.ml/2026/10/23/situation-securitaire-plus-de-4-880-terroristes-neutralises-et-162-bases-detruites-par-les-fama/",
     "source": "AMAP — Agence Malienne Presse",
@@ -221,6 +229,14 @@
     "niveau": "high",
     "cat": "securite",
     "publieMs": 1792745923000
+   },
+   {
+    "titre": "Société : Les tresses songhoy créées en fonction de la culture, de l’identité ethnique, des événements, des envies",
+    "url": "https://amap.ml/2026/10/25/societe-les-tresses-songhoy-creees-en-fonction-de-la-culture-de-lidentite-ethnique-des-evenements-des-envies/",
+    "source": "AMAP — Agence Malienne Presse",
+    "niveau": "mod",
+    "cat": "economique",
+    "publieMs": 1792925820000
    },
    {
     "titre": "Mali : 54 corps sans vie découverts dans un campement, l’EIGS mis en cause",
@@ -305,6 +321,14 @@
     "publieMs": 1792785966000
    },
    {
+    "titre": "Niger imposes curfew on petrol sales amid national fuel shortage",
+    "url": "http://www.africanews.com/2026/10/25/niger-imposes-curfew-on-petrol-sales-amid-national-fuel-shortage/",
+    "source": "Africanews",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1792925258000
+   },
+   {
     "titre": "Le Gouverneur de la région de Zinder préside la réunion du Conseil Régional de Sécurité (CRS)",
     "url": "https://anp.ne/le-gouverneur-de-la-region-de-zinder-preside-la-reunion-du-conseil-regional-de-securite-crs/",
     "source": "ANP — Agence Nigérienne Presse",
@@ -335,6 +359,22 @@
     "niveau": "high",
     "cat": "economique",
     "publieMs": 1792746095000
+   },
+   {
+    "titre": "Envoi de troupes algériennes au Niger : le Parlement donne son feu vert",
+    "url": "https://www.algerie360.com/armee-algerienne-niger-sites-petroliers/",
+    "source": "Algerie360",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1792934287000
+   },
+   {
+    "titre": "L’Algérie s’apprête à déployer une unité de l’ANP au Niger après le feu vert du Sénat",
+    "url": "https://just-infodz.com/algerie-deploiement-armee-anp-niger/",
+    "source": "Just-InfoDZ",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792927908000
    },
    {
     "titre": "Rentrée judiciaire 2026-2027 : le Président Tiani appelle la justice à s’inscrire dans la dynamique de la Refondation…",
@@ -499,6 +539,14 @@
     "niveau": "high",
     "cat": "securite",
     "publieMs": 1792837790000
+   },
+   {
+    "titre": "Ebola : Africa CDC convoque les ministres africains de la Santé en urgence",
+    "url": "https://24heureinfo.com/sante/ebola-africa-cdc-convoque-les-ministres-africains-de-la-sante-en-urgence/",
+    "source": "24heureinfo.com",
+    "niveau": "mod",
+    "cat": "humanitaire",
+    "publieMs": 1792924279000
    },
    {
     "titre": "Togo : agriculture, nucléaire… les députés adoptent quatre textes stratégiques",
@@ -733,6 +781,38 @@
   ],
   "SN": [
    {
+    "titre": "Podor : une jeune fille cruellement tuée, son corps retrouvé ligoté dans une maison abandonnée",
+    "url": "https://www.pressafrik.com/Podor-une-jeune-fille-cruellement-tuee-son-corps-retrouve-ligote-dans-une-maison-abandonnee_a313542.html",
+    "source": "Pressafrik",
+    "niveau": "crit",
+    "cat": "politique",
+    "publieMs": 1792930560000
+   },
+   {
+    "titre": "Thiès / Drame à Keur Massamba Guèye : un mari tue sa femme",
+    "url": "https://www.dakaractu.com/Thies-Drame-a-Keur-Massamba-Gueye-un-mari-tue-sa-femme_a277419.html",
+    "source": "Dakar Actu",
+    "niveau": "crit",
+    "cat": "politique",
+    "publieMs": 1792929000000
+   },
+   {
+    "titre": "« C’est aux environs de 1 heure du matin » : Une femme tuée par son mari à Thiès",
+    "url": "https://www.senenews.com/actualites/cest-aux-environs-de-1-heure-du-matin-une-femme-tuee-par-son-mari-a-thies_603973.html",
+    "source": "SeneNews",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1792927811000
+   },
+   {
+    "titre": "Meurtre conjugal à Thiès : Nouvelles révélations sur l'arrestation du mari suspect",
+    "url": "https://www.seneweb.com/fr/news/Societe/meurtre-conjugal-a-thies-nouvelles-revelations-sur-larrestation-du-mari-suspect_n_999001665.html",
+    "source": "Seneweb",
+    "niveau": "crit",
+    "cat": "politique",
+    "publieMs": 1792927050000
+   },
+   {
     "titre": "Bijoutiers en colère : Quatre cambriolages en trois mois, un artisan tué, le secteur en état d’alerte",
     "url": "https://www.seneweb.com/fr/news/Societe/bijoutiers-en-colere-quatre-cambriolages-en-trois-mois-un-artisan-tue-le-secteur-en-etat-dalerte_n_999001640.html",
     "source": "Seneweb",
@@ -819,6 +899,30 @@
     "niveau": "crit",
     "cat": "humanitaire",
     "publieMs": 1792684500000
+   },
+   {
+    "titre": "Notto-Diobass : le bilan de l’accident de Kissane s’alourdit à trois morts",
+    "url": "https://www.seneweb.com/fr/news/Societe/notto-diobass-le-bilan-de-laccident-de-kissane-salourdit-a-trois-morts_n_999001674.html",
+    "source": "Seneweb",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792933128000
+   },
+   {
+    "titre": "Notto Diobasse: Un accident tragique fait 3 morts et 23 blessés",
+    "url": "https://www.dakaractu.com/Notto-Diobasse-Un-accident-tragique-fait-3-morts-et-23-blesses_a277424.html",
+    "source": "Dakar Actu",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792931220000
+   },
+   {
+    "titre": "Thiès : deux morts et 26 blessés dans un accident après la victoire de l’ASC Ngolfaning",
+    "url": "https://www.senenews.com/actualites/thies-deux-morts-et-26-blesses-dans-un-accident-apres-la-victoire-de-lasc-ngolfaning_603967.html",
+    "source": "SeneNews",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1792923292000
    },
    {
     "titre": "Santé de Diodio Glow Skin : L’alerte de sa famille et l’avis de trois médecins",
@@ -979,6 +1083,38 @@
     "niveau": "high",
     "cat": "politique",
     "publieMs": 1792765740000
+   },
+   {
+    "titre": "Podor : une fille en classe de Terminale retrouvée morte",
+    "url": "https://aps.sn/podor-une-fille-en-classe-de-terminale-retrouvee-morte/",
+    "source": "APS — Agence Sénégalaise Presse",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792935633000
+   },
+   {
+    "titre": "Huitre : la FAO cherche un agrément pour faciliter les exportations sénégalaises vers la sous-région (responsable)",
+    "url": "https://aps.sn/huitre-la-fao-cherche-un-agrement-pour-faciliter-les-exportations-senegalaises-vers-la-sous-region-responsable/",
+    "source": "APS — Agence Sénégalaise Presse",
+    "niveau": "mod",
+    "cat": "humanitaire",
+    "publieMs": 1792933737000
+   },
+   {
+    "titre": "Diodio Glow Skin hospitalisée : les trois médecins concluent à l’absence de pathologie",
+    "url": "https://www.senenews.com/actualites/diodio-glow-skin-hospitalisee-les-conclusions-de-trois-medecins-revelees_603969.html",
+    "source": "SeneNews",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792925917000
+   },
+   {
+    "titre": "Thilmakha : un mémorandum sur les besoins de la commune remis au PUDC",
+    "url": "https://aps.sn/thilmakha-un-memorandum-sur-les-besoins-de-la-commune-remis-au-pudc/",
+    "source": "APS — Agence Sénégalaise Presse",
+    "niveau": "mod",
+    "cat": "humanitaire",
+    "publieMs": 1792925773000
    },
    {
     "titre": "Armée-Santé : plus de 480 participantes à une journée de dépistage des cancers du sein et du col de l’utérus",
