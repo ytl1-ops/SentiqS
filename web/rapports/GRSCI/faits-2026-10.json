@@ -321,6 +321,22 @@
     "publieMs": 1792785966000
    },
    {
+    "titre": "CNG protest rocks Niger as motorists storm NNPC mega station with placards",
+    "url": "https://www.vanguardngr.com/2026/10/cng-protest-rocks-niger-as-motorists-storm-nnpc-mega-station-with-placards/",
+    "source": "Vanguard",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792940483000
+   },
+   {
+    "titre": "2027: PDP Pledges to Tackle Insecurity, Unemployment, Poverty in Niger – Dan’azumi",
+    "url": "https://www.channelstv.com/2026/10/25/2027-pdp-pledges-to-tackle-insecurity-unemployment-poverty-in-niger-danazumi/",
+    "source": "Channels TV",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1792939658000
+   },
+   {
     "titre": "Niger imposes curfew on petrol sales amid national fuel shortage",
     "url": "http://www.africanews.com/2026/10/25/niger-imposes-curfew-on-petrol-sales-amid-national-fuel-shortage/",
     "source": "Africanews",
@@ -359,6 +375,14 @@
     "niveau": "high",
     "cat": "economique",
     "publieMs": 1792746095000
+   },
+   {
+    "titre": "Envoi d’un détachement de l’ANP au Niger : un sénateur livre des détails",
+    "url": "https://www.tsa-algerie.com/envoi-dun-detachement-de-lanp-au-niger-un-senateur-livre-des-details/",
+    "source": "tsa-algerie.com",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792937409000
    },
    {
     "titre": "Envoi de troupes algériennes au Niger : le Parlement donne son feu vert",
@@ -781,6 +805,30 @@
   ],
   "SN": [
    {
+    "titre": "« Nos morts n'ont plus de place » : Marée humaine à Rufisque pour exiger l'extension immédiate du cimetière",
+    "url": "https://www.seneweb.com/fr/news/Societe/nos-morts-nont-plus-de-place-maree-humaine-a-rufisque-pour-exiger-lextension-immediate-du-cimetiere_n_999001696.html",
+    "source": "Seneweb",
+    "niveau": "crit",
+    "cat": "politique",
+    "publieMs": 1792947293000
+   },
+   {
+    "titre": "Guinaw Rail : arrestation d’un individu qui aurait tué son propre frère (Police)",
+    "url": "https://aps.sn/guinaw-rail-arrestation-dun-individu-qui-aurait-tue-son-propre-frere-police/",
+    "source": "APS — Agence Sénégalaise Presse",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1792946189000
+   },
+   {
+    "titre": "Guinaw Rails : un homme soupçonné d’avoir tué son frère à la suite d'une altercation liée aux toilettes",
+    "url": "https://www.pressafrik.com/Guinaw-Rails-un-homme-soupconne-d-avoir-tue-son-frere-a-la-suite-d-une-altercation-liee-aux-toilettes_a313547.html",
+    "source": "Pressafrik",
+    "niveau": "crit",
+    "cat": "politique",
+    "publieMs": 1792940940000
+   },
+   {
     "titre": "Podor : une jeune fille cruellement tuée, son corps retrouvé ligoté dans une maison abandonnée",
     "url": "https://www.pressafrik.com/Podor-une-jeune-fille-cruellement-tuee-son-corps-retrouve-ligote-dans-une-maison-abandonnee_a313542.html",
     "source": "Pressafrik",
@@ -915,6 +963,14 @@
     "niveau": "high",
     "cat": "politique",
     "publieMs": 1792931220000
+   },
+   {
+    "titre": "Accident de la circulation à Notto-Diobass : deux morts et 26 blessés après la finale de la Zone 11D",
+    "url": "https://www.pressafrik.com/Accident-de-la-circulation-a-Notto-Diobass-deux-morts-et-26-blesses-apres-la-finale-de-la-Zone-11D_a313540.html",
+    "source": "Pressafrik",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792929600000
    },
    {
     "titre": "Thiès : deux morts et 26 blessés dans un accident après la victoire de l’ASC Ngolfaning",
@@ -1083,6 +1139,38 @@
     "niveau": "high",
     "cat": "politique",
     "publieMs": 1792765740000
+   },
+   {
+    "titre": "Grand Dakar : Un chauffeur interpellé avec du chanvre et du haschich",
+    "url": "https://www.seneweb.com/fr/news/Societe/grand-dakar-un-chauffeur-interpelle-avec-du-chanvre-et-du-haschich_n_999001695.html",
+    "source": "Seneweb",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792947066000
+   },
+   {
+    "titre": "Kaolack : le riz pluvial fait germer les espoirs de souveraineté alimentaire dans le Saloum",
+    "url": "https://aps.sn/kaolack-le-riz-pluvial-fait-germer-les-espoirs-de-souverainete-alimentaire-dans-le-saloum/",
+    "source": "APS — Agence Sénégalaise Presse",
+    "niveau": "mod",
+    "cat": "humanitaire",
+    "publieMs": 1792941929000
+   },
+   {
+    "titre": "LFR rejetée en commission : Mary Teuw Niane accuse Sonko de vouloir prendre la République en otage",
+    "url": "https://www.senenews.com/actualites/lfr-rejetee-en-commission-mary-teuw-niane-accuse-sonko-de-vouloir-prendre-la-republique-en-otage_603990.html",
+    "source": "SeneNews",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1792941799000
+   },
+   {
+    "titre": "Dernière minute – PLFR 2026 : PASTEF change de lieu pour son point de presse de ce dimanche",
+    "url": "https://www.senenews.com/actualites/derniere-minute-plfr-2026-pastef-change-de-lieu-pour-son-point-de-presse-de-ce-dimanche_603985.html",
+    "source": "SeneNews",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792938562000
    },
    {
     "titre": "Podor : une fille en classe de Terminale retrouvée morte",
