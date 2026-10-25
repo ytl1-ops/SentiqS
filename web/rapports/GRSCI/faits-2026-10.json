@@ -27,6 +27,14 @@
     "publieMs": 1792746922000
    },
    {
+    "titre": "Prix du poisson en Côte d'Ivoire - L'Interprofession pêche salue les mesures gouvernementales et promet de nouvelles baisses",
+    "url": "https://fr.allafrica.com/stories/202610250016.html",
+    "source": "AllAfrica (CI)",
+    "niveau": "mod",
+    "cat": "economique",
+    "publieMs": 1792901356000
+   },
+   {
     "titre": "Le frère de Tidjane Thiam inculpé pour 17 chefs d’accusation, dont l’assassinat et des actes terroristes",
     "url": "https://www.linfodrome.com/politique/126830-le-frere-de-tidjane-thiam-inculpe-pour-17-chefs-d-accusation-dont-l-assassinat-et-des-actes-terroristes",
     "source": "Linfodrome",
@@ -142,6 +150,14 @@
    }
   ],
   "ML": [
+   {
+    "titre": "Mali : le bilan de l'attaque meurtrière du weekend dernier monte à 54 morts (armée)",
+    "url": "https://www.dakaractu.com/Mali-le-bilan-de-l-attaque-meurtriere-du-weekend-dernier-monte-a-54-morts-armee_a277413.html",
+    "source": "Dakar Actu",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1792903740000
+   },
    {
     "titre": "Benson Diakité, ancienne grande voix de RFI, est mort",
     "url": "https://fr.allafrica.com/stories/202610230641.html",
@@ -361,6 +377,14 @@
     "niveau": "high",
     "cat": "securite",
     "publieMs": 1792771569000
+   },
+   {
+    "titre": "Youth and Women’s empowerment is a national security priority – President Mahama",
+    "url": "https://www.gbcghanaonline.com/general/youth-and-womens-empowerment-is-a-national-security-priority-president-mahama/2026/",
+    "source": "GBC Ghana Online",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792901606000
    },
    {
     "titre": "Mahama links Africa’s conflicts to struggle over natural resources",
@@ -955,6 +979,14 @@
     "niveau": "high",
     "cat": "politique",
     "publieMs": 1792765740000
+   },
+   {
+    "titre": "Armée-Santé : plus de 480 participantes à une journée de dépistage des cancers du sein et du col de l’utérus",
+    "url": "https://www.dakaractu.com/Armee-Sante-plus-de-480-participantes-a-une-journee-de-depistage-des-cancers-du-sein-et-du-col-de-l-uterus_a277418.html",
+    "source": "Dakar Actu",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792908300000
    },
    {
     "titre": "Abdou Lahad Ndiaye au chevet des victimes de l’accident de Ndande",
