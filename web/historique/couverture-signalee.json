@@ -1,6 +1,7 @@
 {
- "cle": "ER,SL",
+ "cle": "BW,ER,SL",
  "pays": [
+  "BW",
   "ER",
   "SL"
  ]
