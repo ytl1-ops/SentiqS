@@ -27,6 +27,14 @@
     "publieMs": 1792746922000
    },
    {
+    "titre": "Prikro : La relance de la caféiculture et la promotion du maïs engagées dans l’Iffou",
+    "url": "https://www.linfodrome.com/economie/126857-prikro-la-relance-de-la-cafeiculture-et-la-promotion-du-mais-engagees-dans-l-iffou",
+    "source": "Linfodrome",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792964220000
+   },
+   {
     "titre": "Prix du poisson en Côte d'Ivoire - L'Interprofession pêche salue les mesures gouvernementales et promet de nouvelles baisses",
     "url": "https://fr.allafrica.com/stories/202610250016.html",
     "source": "AllAfrica (CI)",
@@ -229,6 +237,14 @@
     "niveau": "high",
     "cat": "securite",
     "publieMs": 1792745923000
+   },
+   {
+    "titre": "Mali : Assimi Goïta s’envole pour la Russie pour le sommet Russie-Afrique",
+    "url": "https://malijet.com/a_la_une_du_mali/312499-mali-assimi-goita-senvole-pour-la-russie-pour-le-sommet-r.html",
+    "source": "Malijet",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1792958536000
    },
    {
     "titre": "Société : Les tresses songhoy créées en fonction de la culture, de l’identité ethnique, des événements, des envies",
@@ -573,6 +589,14 @@
     "publieMs": 1792837790000
    },
    {
+    "titre": "Tsévié : les forces de sécurité déployées sur le site du meeting reporté du CNCC",
+    "url": "https://24heureinfo.com/politique/tsevie-les-forces-de-securite-deployees-sur-le-site-du-meeting-reporte-du-cncc/",
+    "source": "24heureinfo.com",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792960434000
+   },
+   {
     "titre": "Ebola : Africa CDC convoque les ministres africains de la Santé en urgence",
     "url": "https://24heureinfo.com/sante/ebola-africa-cdc-convoque-les-ministres-africains-de-la-sante-en-urgence/",
     "source": "24heureinfo.com",
@@ -648,6 +672,14 @@
    }
   ],
   "GN": [
+   {
+    "titre": "Mort mystérieuse de Souleymane Touré : sa mère et sa sœur veulent toute la vérité",
+    "url": "https://www.guinee7.com/2026/10/25/mort-mysterieuse-de-souleymane-toure-sa-mere-et-sa-soeur-veulent-toute-la-verite/",
+    "source": "Guinee7.com",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1792961277000
+   },
    {
     "titre": "Loi de finances rectificative 2026 : entre crise pétrolière et retards des projets, la ministre de l’Économie, Mariama Ciré Sylla, s’explique",
     "url": "https://guineematin.com/2026/10/24/loi-de-finances-rectificative-2026-entre-crise-petroliere-et-retards-des-projets-la-ministre-de-leconomie-mariama-cire-sylla-sexplique/?utm_source=rss&utm_medium=rss&utm_campaign=loi-de-finances-rectificative-2026-entre-crise-petroliere-et-retards-des-projets-la-ministre-de-leconomie-mariama-cire-sylla-sexplique",
@@ -813,6 +845,14 @@
   ],
   "SN": [
    {
+    "titre": "Meurtre avec actes de barbarie à Podor : Les yeux d'Aminata Sy emportés, son petit ami recherché",
+    "url": "https://www.seneweb.com/fr/news/Societe/meurtre-avec-actes-de-barbarie-a-podor-les-yeux-daminata-sy-emportes-son-petit-ami-recherche_n_999001720.html",
+    "source": "Seneweb",
+    "niveau": "crit",
+    "cat": "politique",
+    "publieMs": 1792961391000
+   },
+   {
     "titre": "« Nos morts n'ont plus de place » : Marée humaine à Rufisque pour exiger l'extension immédiate du cimetière",
     "url": "https://www.seneweb.com/fr/news/Societe/nos-morts-nont-plus-de-place-maree-humaine-a-rufisque-pour-exiger-lextension-immediate-du-cimetiere_n_999001696.html",
     "source": "Seneweb",
@@ -955,6 +995,22 @@
     "niveau": "crit",
     "cat": "humanitaire",
     "publieMs": 1792684500000
+   },
+   {
+    "titre": "Projet de loi de finances : Cheikh Diba alerte sur les conséquences d’un éventuel rejet",
+    "url": "https://aps.sn/projet-de-loi-de-finances-cheikh-diba-alerte-sur-les-consequences-dun-eventuel-rejet/",
+    "source": "APS — Agence Sénégalaise Presse",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792961968000
+   },
+   {
+    "titre": "Crise au sommet : Les vérités du ministre Moustapha Guirassy aux députés de Pastef",
+    "url": "https://www.senenews.com/actualites/crise-au-sommet-les-verites-du-ministre-moustapha-guirassy-aux-deputes-de-pastef_604007.html",
+    "source": "SeneNews",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1792960084000
    },
    {
     "titre": "Menace de chute sur le gouvernement : Al Aminou Lo n’écarte pas l’option lourde face au Pastef",
@@ -1155,6 +1211,14 @@
     "niveau": "high",
     "cat": "politique",
     "publieMs": 1792765740000
+   },
+   {
+    "titre": "​Violations contre les enfants en zone de conflit : le Conseil de sécurité cible l'utilisation des technologies numérique",
+    "url": "https://www.pressafrik.com/​Violations-contre-les-enfants-en-zone-de-conflit-le-Conseil-de-securite-cible-l-utilisation-des-technologies_a313566.html",
+    "source": "Pressafrik",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792965120000
    },
    {
     "titre": "LFR : El Malick Ndiaye défend les bourses de sécurité familiale et exige des mécanismes clairs",
