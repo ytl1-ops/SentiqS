@@ -19,12 +19,36 @@
     "publieMs": 1792793100000
    },
    {
+    "titre": "Guiglo : Etouffées par la flambée des prix, les vendeuses de poissons en grève",
+    "url": "https://www.linfodrome.com/societe/126904-guiglo-etouffees-par-la-flambee-des-prix-les-vendeuses-de-poissons-en-greve",
+    "source": "Linfodrome",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1793039160000
+   },
+   {
+    "titre": "Lutte contre le cancer du sein : Linfodrome combat les rumeurs et sensibilise les populations",
+    "url": "https://www.linfodrome.com/societe/126894-lutte-contre-le-cancer-du-sein-linfodrome-combat-les-rumeurs-et-sensibilise-les-populations",
+    "source": "Linfodrome",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1793033340000
+   },
+   {
     "titre": "Crise au sein du PDCI/RDA - « L'Éléphant » se cassera-t-il une deuxième patte ?",
     "url": "https://fr.allafrica.com/stories/202610230151.html",
     "source": "AllAfrica (CI)",
     "niveau": "high",
     "cat": "politique",
     "publieMs": 1792746922000
+   },
+   {
+    "titre": "Querelles de succession ou profanation d'un héritage ?",
+    "url": "https://fr.allafrica.com/stories/202610260533.html",
+    "source": "AllAfrica (CI)",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793021342000
    },
    {
     "titre": "Côte d'Ivoire : sécurité alimentaire et sécurisation foncière, le gouvernement soutient les femmes productrices",
@@ -133,6 +157,14 @@
     "publieMs": 1792747200000
    },
    {
+    "titre": "Retour sur Actu : Les faits marquants de la semaine du 19 au 25 octobre 2026 au Burkina Faso",
+    "url": "https://burkina24.com/2026/10/26/retour-sur-actu-les-faits-marquants-de-la-semaine-du-19-au-25-octobre-2026-au-burkina-faso/",
+    "source": "Burkina24",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793031142000
+   },
+   {
     "titre": "Burkina Faso : « La chefferie traditionnelle est appelée à contribuer davantage à la paix et à la cohésion sociale » (Emir du Liptako)",
     "url": "https://burkina24.com/2026/10/25/burkina-faso-la-chefferie-traditionnelle-est-appelee-a-contribuer-davantage-a-la-paix-et-a-la-cohesion-sociale-emir-du-liptako/",
     "source": "Burkina24",
@@ -166,6 +198,30 @@
    }
   ],
   "ML": [
+   {
+    "titre": "Mali: treize civils tués par une frappe de drone de l'armée, dans la région de Tombouctou",
+    "url": "https://www.rfi.fr/fr/afrique/20261026-mali-treize-civils-tu%C3%A9s-par-une-frappe-de-drone-de-l-arm%C3%A9e-dans-la-r%C3%A9gion-de-tombouctou",
+    "source": "RFI Afrique",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1793036731000
+   },
+   {
+    "titre": "Enlèvement de quatre enseignants à San : la synergie des syndicats de l’éducation de la région exige leur libération",
+    "url": "https://mali24.info/enlevement-de-quatre-enseignants-a-san-la-synergie-des-syndicats-de-leducation-de-la-region-exige-leur-liberation/",
+    "source": "Mali 24",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1793033603000
+   },
+   {
+    "titre": "MALI : DISPARITIONS INQUIÉTANTES, MORTS SUSPECTES… QUE SE PASSE-T-IL AVEC LA JEUNESSE MALIENNE ?",
+    "url": "https://maliactu.net/mali-disparitions-inquietantes-morts-suspectes-que-se-passe-t-il-avec-la-jeunesse-malienne/",
+    "source": "Maliactu",
+    "niveau": "crit",
+    "cat": "politique",
+    "publieMs": 1793019960000
+   },
    {
     "titre": "Attaque de Trappes et La Verrière : La qualification du mobile raciste au cœur du débat sécuritaire et sociétal",
     "url": "https://maliactu.net/attaque-de-trappes-et-la-verriere-la-qualification-du-mobile-raciste-au-coeur-du-debat-securitaire-et-societal/",
@@ -205,6 +261,30 @@
     "niveau": "crit",
     "cat": "securite",
     "publieMs": 1792764409000
+   },
+   {
+    "titre": "Mali : Le Canada mise sur la jeunesse de Ségou pour dompter l’insécurité routière",
+    "url": "https://maliactu.net/mali-le-canada-mise-sur-la-jeunesse-de-segou-pour-dompter-linsecurite-routiere/",
+    "source": "Maliactu",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1793032785000
+   },
+   {
+    "titre": "Nigéria : plus de cas actif d’Ebola après l’évacuation, 52 contacts restent à surveiller",
+    "url": "https://maliactu.net/nigeria-ebola-evacuation-patiente-52-contacts/",
+    "source": "Maliactu",
+    "niveau": "high",
+    "cat": "humanitaire",
+    "publieMs": 1793027129000
+   },
+   {
+    "titre": "La grande transformation de l’ombre au sein de l’armée",
+    "url": "https://maliactu.net/la-grande-transformation-de-lombre-au-sein-de-larmee/",
+    "source": "Maliactu",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1793018994000
    },
    {
     "titre": "AVIS À MANIFESTATION D’INTÉRÊT N°002/CA/TAFOUK TV/2026 RECRUTEMENT D’UN CABINET POUR LA FOURNITURE, L’INSTALLATION ET LE PARAMÉTRAGE D’UN LOGICIEL INTÉGRÉ DE GESTION FINANCIÈRE ET DE PAIE AU PROFIT DE TAFOUK TV",
@@ -309,6 +389,14 @@
     "niveau": "mod",
     "cat": "politique",
     "publieMs": 1793017026000
+   },
+   {
+    "titre": "Mali : Sommet Russie-Afriqu : Assimi Goïta à Moscou pour participer au 3e Sommet Russie-Afrique",
+    "url": "https://mali24.info/mali-sommet-russie-afriqu-assimi-goita-a-moscou-pour-participer-au-3e-sommet-russie-afrique/",
+    "source": "Mali 24",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1793011287000
    },
    {
     "titre": "Les civils pris en étau, l'État impuissant...",
@@ -425,6 +513,14 @@
     "publieMs": 1792785966000
    },
    {
+    "titre": "ALERTE – La présidence annonce l’envoi d’unités de l’armée nationale au Niger",
+    "url": "https://www.tsa-algerie.com/alerte-la-presidence-annonce-lenvoi-dunites-de-larmee-nationale-au-niger/",
+    "source": "tsa-algerie.com",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1793028462000
+   },
+   {
     "titre": "CNG scarcity sparks protest in Niger as motorists lament 3-month shutdown",
     "url": "https://thesun.ng/cng-scarcity-sparks-protest-in-niger-as-motorists-lament-3-month-shutdown/",
     "source": "The Sun Nigeria",
@@ -487,6 +583,30 @@
     "niveau": "high",
     "cat": "economique",
     "publieMs": 1792746095000
+   },
+   {
+    "titre": "Niger : 120 Véhicules 4×4 et 100 motos réceptionnés au profit de la garde nationale et de la police routière",
+    "url": "https://anp.ne/niger-120-vehicules-4x4-et-100-motos-receptionnes-au-profit-de-la-garde-nationale-et-de-la-police-routiere/",
+    "source": "ANP — Agence Nigérienne Presse",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793033066000
+   },
+   {
+    "titre": "Armée algérienne au Niger : dans la presse maghrébine, chacun voit midi à sa porte",
+    "url": "https://maghrebemergent.news/fr/armee-algerienne-niger-presse-maghrebine/",
+    "source": "Maghreb Émergent",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793032755000
+   },
+   {
+    "titre": "Algérie : Tebboune déploie l’ANP au Niger pour sécuriser les intérêts énergétiques communs",
+    "url": "https://just-infodz.com/algerie-deploiement-anp-niger-protection-interets-energetiques/",
+    "source": "Just-InfoDZ",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793027863000
    },
    {
     "titre": "Envoi d’unités de l’ANP au Niger : les réactions des partis politiques",
@@ -577,6 +697,14 @@
     "niveau": "high",
     "cat": "securite",
     "publieMs": 1792771569000
+   },
+   {
+    "titre": "Sam George Announces New DStv Packages, Anti-Piracy Crackdown before the 2027",
+    "url": "https://www.gbcghanaonline.com/news/sam-george-announces-new-dstv-packages-anti-piracy-crackdown-before-the-2027/2026/",
+    "source": "GBC Ghana Online",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793039631000
    },
    {
     "titre": "Youth and Women’s empowerment is a national security priority – President Mahama",
@@ -701,6 +829,22 @@
     "publieMs": 1792837790000
    },
    {
+    "titre": "Vers une paix des champs ?",
+    "url": "https://fr.allafrica.com/stories/202610260692.html",
+    "source": "AllAfrica (TG)",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1793029653000
+   },
+   {
+    "titre": "Littoral de Lomé : un dispositif sécuritaire renforcé après le démantèlement des installations illégales",
+    "url": "https://togoactualite.com/littoral-de-lome-un-dispositif-securitaire-renforce-apres-le-demantelement-des-installations-illegales/",
+    "source": "Togo Actualite",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793029078000
+   },
+   {
     "titre": "Stocks de sécurité - Record de 31 000 tonnes collectées en 2025",
     "url": "https://fr.allafrica.com/stories/202610260369.html",
     "source": "AllAfrica (TG)",
@@ -817,6 +961,22 @@
     "publieMs": 1792961277000
    },
    {
+    "titre": "Insécurité à Labé : le journaliste Boubacar Garki Diallo victime de cambriolage, ses équipements de travail emporté par les malfaiteurs",
+    "url": "https://guineematin.com/2026/10/26/insecurite-a-labe-le-journaliste-boubacar-garki-diallo-victime-de-cambriolage-ses-equipements-de-travail-emporte-par-les-malfaiteurs/?utm_source=rss&utm_medium=rss&utm_campaign=insecurite-a-labe-le-journaliste-boubacar-garki-diallo-victime-de-cambriolage-ses-equipements-de-travail-emporte-par-les-malfaiteurs",
+    "source": "Guineematin.com",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1793037468000
+   },
+   {
+    "titre": "Mairie de Dixinn : pourquoi les femmes balayeuses ont renoncé à leur manifestation",
+    "url": "https://www.guinee7.com/2026/10/26/mairie-de-dixinn-pourquoi-les-femmes-balayeuses-ont-renonce-a-leur-manifestation/",
+    "source": "Guinee7.com",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1793026223000
+   },
+   {
     "titre": "Appel à manifestation d’intérêt pour les services de consultants locaux en audit",
     "url": "https://guineematin.com/2026/10/26/appel-a-manifestation-dinteret-pour-les-services-de-consultants-locaux-en-audit/?utm_source=rss&utm_medium=rss&utm_campaign=appel-a-manifestation-dinteret-pour-les-services-de-consultants-locaux-en-audit",
     "source": "Guineematin.com",
@@ -865,6 +1025,22 @@
     "publieMs": 1792783623000
    },
    {
+    "titre": "Séné Diallo, l’artiste affable aux frasques calculées, s’en est allé ! (Par Hassane Hilal Sylla)",
+    "url": "https://guineematin.com/2026/10/26/sene-diallo-lartiste-affable-aux-frasques-calculees-sen-est-alle-par-hassane-hilal-sylla/?utm_source=rss&utm_medium=rss&utm_campaign=sene-diallo-lartiste-affable-aux-frasques-calculees-sen-est-alle-par-hassane-hilal-sylla",
+    "source": "Guineematin.com",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793021503000
+   },
+   {
+    "titre": "45 ans après, un avion d’Air Algérie atterrit en Guinée: réouverture de la ligne Alger-Conakry, fruit d’une victoire diplomatique",
+    "url": "https://www.guinee114.com/2026/10/26/45-ans-apres-un-avion-dair-algerie-atterrit-en-guinee-reouverture-de-la-ligne-alger-conakry-fruit-dune-victoire-diplomatique/",
+    "source": "Guinee114.com",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1793020497000
+   },
+   {
     "titre": "Mamou : un chimpanzé arrache un bébé d’un an du dos de son frère et le mord à la tête",
     "url": "https://guineematin.com/2026/10/26/mamou-un-chimpanze-arrache-un-bebe-dun-an-du-dos-de-son-frere-et-le-mord-a-la-tete/?utm_source=rss&utm_medium=rss&utm_campaign=mamou-un-chimpanze-arrache-un-bebe-dun-an-du-dos-de-son-frere-et-le-mord-a-la-tete",
     "source": "Guineematin.com",
@@ -887,6 +1063,14 @@
     "niveau": "mod",
     "cat": "economique",
     "publieMs": 1793008219000
+   },
+   {
+    "titre": "Ibrahima Kalil Condé : “Être militaire, c’est accepter de porter le poids des décisions”",
+    "url": "https://guineelive.com/2026/10/26/ibrahima-kalil-conde-etre-militaire-cest-accepter-de-porter-le-poids-des-decisions/",
+    "source": "Guineelive",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793008014000
    },
    {
     "titre": "Ibrahima Kalil Condé : “Être militaire, c’est accepter de porter le poids des décisions”",
@@ -1052,6 +1236,30 @@
    }
   ],
   "SN": [
+   {
+    "titre": "Ziguinchor : un jeune homme retrouvé mort dans une boutique à Tilène",
+    "url": "https://www.dakaractu.com/Ziguinchor-un-jeune-homme-retrouve-mort-dans-une-boutique-a-Tilene_a277479.html",
+    "source": "Dakar Actu",
+    "niveau": "crit",
+    "cat": "politique",
+    "publieMs": 1793034420000
+   },
+   {
+    "titre": "Féminicides au Sénégal – Aminata Sy et Mame Diarra Sow tuées le même jour : Seydi Gassama lance un cri d’alarme",
+    "url": "https://www.senenews.com/actualites/feminicides-au-senegal-aminata-sy-et-mame-diarra-sow-tuees-le-meme-jour-seydi-gassama-lance-un-cri-dalarme_604071.html",
+    "source": "SeneNews",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1793034275000
+   },
+   {
+    "titre": "Trophée ANPS : Le trophée du meilleur lutteur en lutte avec frappe porte désormais le nom de Manga II",
+    "url": "https://wiwsport.com/2026/10/26/trophee-anps-le-trophee-du-meilleur-lutteur-en-lutte-avec-frappe-porte-desormais-le-nom-de-manga-ii/",
+    "source": "wiwsport",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1793019752000
+   },
    {
     "titre": "​Meurtre de Modou Khabane Guèye : les bijoutiers réclament « des autorisations de port d’armes »",
     "url": "https://www.pressafrik.com/​Meurtre-de-Modou-Khabane-Gueye-les-bijoutiers-reclament-des-autorisations-de-port-d-armes_a313582.html",
@@ -1243,6 +1451,22 @@
     "niveau": "crit",
     "cat": "humanitaire",
     "publieMs": 1792684500000
+   },
+   {
+    "titre": "LFR 2026 : Aminata Touré alerte sur 300 milliards de FCFA menacés pour le secteur privé",
+    "url": "https://www.senenews.com/actualites/lfr-2026-aminata-toure-alerte-sur-300-milliards-de-fcfa-menaces-pour-le-secteur-prive_604078.html",
+    "source": "SeneNews",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1793035529000
+   },
+   {
+    "titre": "La CNDH alerte sur les violences dans les mouvements sportifs",
+    "url": "https://fr.allafrica.com/stories/202610260711.html",
+    "source": "AllAfrica (SN)",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1793030021000
    },
    {
     "titre": "Aminata Touré aussi entre dans la danse, une nouvelle offensive contre Ousmane Sonko",
@@ -1475,6 +1699,22 @@
     "niveau": "high",
     "cat": "politique",
     "publieMs": 1792765740000
+   },
+   {
+    "titre": "Navétanes : les droits humains entrent en jeu",
+    "url": "https://aps.sn/navetanes-les-droits-humains-entrent-en-jeu/",
+    "source": "APS — Agence Sénégalaise Presse",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793035648000
+   },
+   {
+    "titre": "Reflux d'eaux usées à Dakar : l'ONAS explique les contraintes d'intervention et appelle à une synergie des acteurs territoriaux",
+    "url": "https://www.dakaractu.com/Reflux-d-eaux-usees-a-Dakar-l-ONAS-explique-les-contraintes-d-intervention-et-appelle-a-une-synergie-des-acteurs_a277474.html",
+    "source": "Dakar Actu",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1793032620000
    },
    {
     "titre": "« DESINFORMATION, DEMOCRATIE ET ENJEUX DE STABILITE ET DE SECURITE » : Quand l'IA rend la manipulation informationnelle moins chère, du Sahel à l'Europe",
