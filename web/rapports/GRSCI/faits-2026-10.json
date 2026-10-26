@@ -27,6 +27,14 @@
     "publieMs": 1792746922000
    },
    {
+    "titre": "Côte d'Ivoire : sécurité alimentaire et sécurisation foncière, le gouvernement soutient les femmes productrices",
+    "url": "https://www.alwihdainfo.com/cote-divoire-securite-alimentaire-et-securisation-fonciere-le-gouvernement-soutient-les-femmes-productrices/",
+    "source": "Alwihda Info (Tchad)",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793006100000
+   },
+   {
     "titre": "Prikro : La relance de la caféiculture et la promotion du maïs engagées dans l’Iffou",
     "url": "https://www.linfodrome.com/economie/126857-prikro-la-relance-de-la-cafeiculture-et-la-promotion-du-mais-engagees-dans-l-iffou",
     "source": "Linfodrome",
@@ -159,6 +167,14 @@
   ],
   "ML": [
    {
+    "titre": "Attaque de Trappes et La Verrière : La qualification du mobile raciste au cœur du débat sécuritaire et sociétal",
+    "url": "https://maliactu.net/attaque-de-trappes-et-la-verriere-la-qualification-du-mobile-raciste-au-coeur-du-debat-securitaire-et-societal/",
+    "source": "Maliactu",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1793009449000
+   },
+   {
     "titre": "Mali : le bilan de l'attaque meurtrière du weekend dernier monte à 54 morts (armée)",
     "url": "https://www.dakaractu.com/Mali-le-bilan-de-l-attaque-meurtriere-du-weekend-dernier-monte-a-54-morts-armee_a277413.html",
     "source": "Dakar Actu",
@@ -189,6 +205,54 @@
     "niveau": "crit",
     "cat": "securite",
     "publieMs": 1792764409000
+   },
+   {
+    "titre": "AVIS À MANIFESTATION D’INTÉRÊT N°002/CA/TAFOUK TV/2026 RECRUTEMENT D’UN CABINET POUR LA FOURNITURE, L’INSTALLATION ET LE PARAMÉTRAGE D’UN LOGICIEL INTÉGRÉ DE GESTION FINANCIÈRE ET DE PAIE AU PROFIT DE TAFOUK TV",
+    "url": "https://amap.ml/2026/10/26/avis-a-manifestation-dinteret-n002-ca-tafouk-tv-2026-recrutement-dun-cabinet-pour-la-fourniture-linstallation-et-le-parametrage-dun-logiciel-integre-de-gest/",
+    "source": "AMAP — Agence Malienne Presse",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1793014758000
+   },
+   {
+    "titre": "AVIS DE MANIFESTATION D’INTÉRÊT N°001/CA/TAFOUK TV/2026 RECRUTEMENT D’UN CABINET SPÉCIALISÉ POUR L’ÉLABORATION DU MANUEL TECHNIQUE D’UTILISATION ET DE MAINTENANCE DES ÉQUIPEMENTS DE TAFOUK TV",
+    "url": "https://amap.ml/2026/10/26/avis-de-manifestation-dinteret-n001-ca-tafouk-tv-2026-recrutement-dun-cabinet-specialise-pour-lelaboration-du-manuel-technique-dutilisation-et-de-maintenance/",
+    "source": "AMAP — Agence Malienne Presse",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1793014356000
+   },
+   {
+    "titre": "Mali : les FAMa frappent plusieurs positions terroristes à Koulikoro et Mopti",
+    "url": "https://malijet.com/actualte_dans_les_regions_du_mali/312511-mali-les-fama-frappent-plusieurs-positions-terroristes-a-k.html",
+    "source": "Malijet",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1793014180000
+   },
+   {
+    "titre": "Défense nationale : Un projet de loi adopté pour réformer la gestion des ressources humaines de l’Armée",
+    "url": "https://mali24.info/defense-nationale-un-projet-de-loi-adopte-pour-reformer-la-gestion-des-ressources-humaines-de-larmee/",
+    "source": "Mali 24",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1793009488000
+   },
+   {
+    "titre": "Mali : le syndicat du supérieur maintient 120 heures de grève du 26 au 30 octobre 2026",
+    "url": "https://maliactu.net/mali-superieur-greve-120-heures-26-30-octobre-2026/",
+    "source": "Maliactu",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1793007709000
+   },
+   {
+    "titre": "Sécurité et Souveraineté : Clôture du 12e Forum de Tana à Bahir Dar",
+    "url": "https://maliactu.net/securite-et-souverainete-cloture-du-12e-forum-de-tana-a-bahir-dar/",
+    "source": "Maliactu",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1792997807000
    },
    {
     "titre": "Ménaka : 54 corps retrouvés après des attaques terroristes à Tagayat",
@@ -237,6 +301,30 @@
     "niveau": "high",
     "cat": "securite",
     "publieMs": 1792745923000
+   },
+   {
+    "titre": "Mali : Assimi Goïta à Moscou pour le 3ᵉ Sommet Russie-Afrique",
+    "url": "https://www.seneweb.com/fr/news/Afrique/mali-assimi-goita-a-moscou-pour-le-3-sommet-russie-afrique_n_999001771.html",
+    "source": "Seneweb",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1793017026000
+   },
+   {
+    "titre": "Les civils pris en étau, l'État impuissant...",
+    "url": "https://fr.allafrica.com/stories/202610260165.html",
+    "source": "AllAfrica (ML)",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793003559000
+   },
+   {
+    "titre": "Mali : pour Assimi Goïta, le difficile pari de la reconquête",
+    "url": "https://www.jeuneafrique.com/1853158/politique/mali-pour-assimi-goita-le-difficile-pari-de-la-reconquete/",
+    "source": "Jeune Afrique",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793001459000
    },
    {
     "titre": "Mali : Assimi Goïta s’envole pour la Russie pour le sommet Russie-Afrique",
@@ -399,6 +487,22 @@
     "niveau": "high",
     "cat": "economique",
     "publieMs": 1792746095000
+   },
+   {
+    "titre": "Envoi d’unités de l’ANP au Niger : les réactions des partis politiques",
+    "url": "https://www.tsa-algerie.com/envoi-dunites-de-lanp-au-niger-les-partis-entre-soutien-total-et-reserves/",
+    "source": "tsa-algerie.com",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793013653000
+   },
+   {
+    "titre": "Maradi : SIMA Niger et ses partenaires évaluent le marché agricole à Guidan Roumdji et Dan Issa",
+    "url": "https://anp.ne/maradi-sima-niger-et-ses-partenaires-evaluent-le-marche-agricole-a-guidan-roumdji-et-dan-issa/",
+    "source": "ANP — Agence Nigérienne Presse",
+    "niveau": "mod",
+    "cat": "humanitaire",
+    "publieMs": 1793002400000
    },
    {
     "titre": "Déploiement de l’ANP au Niger : Pourquoi le FFS s’abstient",
@@ -597,6 +701,30 @@
     "publieMs": 1792837790000
    },
    {
+    "titre": "Stocks de sécurité - Record de 31 000 tonnes collectées en 2025",
+    "url": "https://fr.allafrica.com/stories/202610260369.html",
+    "source": "AllAfrica (TG)",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793014633000
+   },
+   {
+    "titre": "La plage de Lomé sous surveillance",
+    "url": "https://fr.allafrica.com/stories/202610260367.html",
+    "source": "AllAfrica (TG)",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793014631000
+   },
+   {
+    "titre": "Togo : sécurité renforcée sur le littoral de Lomé",
+    "url": "https://icilome.com/2026/10/togo-securite-renforcee-sur-le-littoral-de-lome/",
+    "source": "Icilome",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793012966000
+   },
+   {
     "titre": "Tsévié : les forces de sécurité déployées sur le site du meeting reporté du CNCC",
     "url": "https://24heureinfo.com/politique/tsevie-les-forces-de-securite-deployees-sur-le-site-du-meeting-reporte-du-cncc/",
     "source": "24heureinfo.com",
@@ -689,6 +817,22 @@
     "publieMs": 1792961277000
    },
    {
+    "titre": "Appel à manifestation d’intérêt pour les services de consultants locaux en audit",
+    "url": "https://guineematin.com/2026/10/26/appel-a-manifestation-dinteret-pour-les-services-de-consultants-locaux-en-audit/?utm_source=rss&utm_medium=rss&utm_campaign=appel-a-manifestation-dinteret-pour-les-services-de-consultants-locaux-en-audit",
+    "source": "Guineematin.com",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1793006781000
+   },
+   {
+    "titre": "Kankan : un incendie cause d’importants dégâts au quartier Bordo",
+    "url": "https://guineematin.com/2026/10/26/kankan-un-incendie-cause-dimportants-degats-au-quartier-bordo/?utm_source=rss&utm_medium=rss&utm_campaign=kankan-un-incendie-cause-dimportants-degats-au-quartier-bordo",
+    "source": "Guineematin.com",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1793005094000
+   },
+   {
     "titre": "Loi de finances rectificative 2026 : entre crise pétrolière et retards des projets, la ministre de l’Économie, Mariama Ciré Sylla, s’explique",
     "url": "https://guineematin.com/2026/10/24/loi-de-finances-rectificative-2026-entre-crise-petroliere-et-retards-des-projets-la-ministre-de-leconomie-mariama-cire-sylla-sexplique/?utm_source=rss&utm_medium=rss&utm_campaign=loi-de-finances-rectificative-2026-entre-crise-petroliere-et-retards-des-projets-la-ministre-de-leconomie-mariama-cire-sylla-sexplique",
     "source": "Guineematin.com",
@@ -719,6 +863,46 @@
     "niveau": "high",
     "cat": "securite",
     "publieMs": 1792783623000
+   },
+   {
+    "titre": "Mamou : un chimpanzé arrache un bébé d’un an du dos de son frère et le mord à la tête",
+    "url": "https://guineematin.com/2026/10/26/mamou-un-chimpanze-arrache-un-bebe-dun-an-du-dos-de-son-frere-et-le-mord-a-la-tete/?utm_source=rss&utm_medium=rss&utm_campaign=mamou-un-chimpanze-arrache-un-bebe-dun-an-du-dos-de-son-frere-et-le-mord-a-la-tete",
+    "source": "Guineematin.com",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793011847000
+   },
+   {
+    "titre": "Sorlumba Border Dispute:…Who Is Really in Control Liberian or Guinea Security?",
+    "url": "https://gnnliberia.com/sorlumba-border-dispute-who-is-really-in-control-liberian-or-guinea-security/",
+    "source": "Global News Network Liberia",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793008529000
+   },
+   {
+    "titre": "UEMOA: Afriland obtient un feu vert du régulateur pour lancer sa société de Bourse",
+    "url": "https://ecomatin.net/uemoa-afriland-obtient-un-feu-vert-du-regulateur-pour-lancer-sa-societe-de-bourse/",
+    "source": "EcoMatin",
+    "niveau": "mod",
+    "cat": "economique",
+    "publieMs": 1793008219000
+   },
+   {
+    "titre": "Ibrahima Kalil Condé : “Être militaire, c’est accepter de porter le poids des décisions”",
+    "url": "https://www.guinee7.com/2026/10/26/ibrahima-kalil-conde-etre-militaire-cest-accepter-de-porter-le-poids-des-decisions/",
+    "source": "Guinee7.com",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793007061000
+   },
+   {
+    "titre": "La presse guinéenne en deuil : Aboubacar Séné Diallo n’est plus",
+    "url": "https://guineelive.com/2026/10/26/la-presse-guineenne-en-deuil-aboubacar-sene-diallo-nest-plus/",
+    "source": "Guineelive",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792997953000
    },
    {
     "titre": "L’armée guinéenne, 68 ans après : lancement de la semaine du soldat sous le sceau du patriotisme",
@@ -843,6 +1027,14 @@
     "publieMs": 1792734360000
    },
    {
+    "titre": "A Former Security Chief’s Vision for Liberia’s Immigration Service Finally Plays",
+    "url": "https://frontpageafricaonline.com/a-former-security-chiefs-vision-for-liberias-immigration-service-finally-plays/",
+    "source": "FrontPageAfrica — Liberia",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1792997596000
+   },
+   {
     "titre": "Liberia Imposes 21-Day Isolation and Monitoring Rules for Travelers Amid Regional Ebola Threat",
     "url": "https://gnnliberia.com/liberia-imposes-21-day-isolation-and-monitoring-rules-for-travelers-amid-regional-ebola-threat/",
     "source": "Global News Network Liberia",
@@ -860,6 +1052,30 @@
    }
   ],
   "SN": [
+   {
+    "titre": "​Meurtre de Modou Khabane Guèye : les bijoutiers réclament « des autorisations de port d’armes »",
+    "url": "https://www.pressafrik.com/​Meurtre-de-Modou-Khabane-Gueye-les-bijoutiers-reclament-des-autorisations-de-port-d-armes_a313582.html",
+    "source": "Pressafrik",
+    "niveau": "crit",
+    "cat": "economique",
+    "publieMs": 1793012340000
+   },
+   {
+    "titre": "​Thiès : une femme de 25 ans tuée à coups de couteau à Keur Massamba Guèye",
+    "url": "https://www.pressafrik.com/​Thies-une-femme-de-25-ans-tuee-a-coups-de-couteau-a-Keur-Massamba-Gueye_a313580.html",
+    "source": "Pressafrik",
+    "niveau": "crit",
+    "cat": "politique",
+    "publieMs": 1793009700000
+   },
+   {
+    "titre": "Elève atrocement tuée à Podor : pourquoi son amant, en fuite, est-il considéré comme le présumé meurtrier ?",
+    "url": "https://www.pressafrik.com/Eleve-atrocement-tuee-a-Podor-pourquoi-son-amant-en-fuite-est-il-considere-comme-le-presume-meurtrier_a313573.html",
+    "source": "Pressafrik",
+    "niveau": "crit",
+    "cat": "politique",
+    "publieMs": 1793006040000
+   },
    {
     "titre": "Coiffeuse tuée à Thiès : une affaire de jalousie évoquée, son copain, auteur du crime, retrouvé avec de la drogue",
     "url": "https://www.seneweb.com/fr/news/Societe/coiffeuse-tuee-a-thies-une-affaire-de-jalousie-evoquee-son-copain-auteur-du-crime-retrouve-avec-de-la-drogue_n_999001737.html",
@@ -1027,6 +1243,22 @@
     "niveau": "crit",
     "cat": "humanitaire",
     "publieMs": 1792684500000
+   },
+   {
+    "titre": "Aminata Touré aussi entre dans la danse, une nouvelle offensive contre Ousmane Sonko",
+    "url": "https://www.senenews.com/actualites/aminata-toure-aussi-entre-dans-la-danse-une-nouvelle-offensive-contre-ousmane-sonko_604024.html",
+    "source": "SeneNews",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1793014467000
+   },
+   {
+    "titre": "🔴Direct : Drame à Louga et Podor, les audios qui enfonce Diodio Glow, LFR Al Aminou Lo menace ...",
+    "url": "https://www.pressafrik.com/🔴Direct-Drame-a-Louga-et-Podor-les-audios-qui-enfonce-Diodio-Glow-LFR-Al-Aminou-Lo-menace_a313581.html",
+    "source": "Pressafrik",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1793010780000
    },
    {
     "titre": "Projet de loi de finances : Cheikh Diba alerte sur les conséquences d’un éventuel rejet",
@@ -1243,6 +1475,30 @@
     "niveau": "high",
     "cat": "politique",
     "publieMs": 1792765740000
+   },
+   {
+    "titre": "« DESINFORMATION, DEMOCRATIE ET ENJEUX DE STABILITE ET DE SECURITE » : Quand l'IA rend la manipulation informationnelle moins chère, du Sahel à l'Europe",
+    "url": "https://www.dakaractu.com/DESINFORMATION-DEMOCRATIE-ET-ENJEUX-DE-STABILITE-ET-DE-SECURITE-Quand-l-IA-rend-la-manipulation-informationnelle-moins_a277461.html",
+    "source": "Dakar Actu",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793007780000
+   },
+   {
+    "titre": "Touba Niang sur le KO impressionnant infligé à Augustin Bazooka Chavèz : “J’étais heureux de la victoire mais en même temps j’étais triste car je lui ai cassé la mâchoire …”",
+    "url": "https://wiwsport.com/2026/10/26/touba-niang-sur-le-ko-impressionnant-inflige-a-augustin-bazooka-chavez-jetais-heureux-de-la-victoire-mais-en-meme-temps-jetais-triste-car-je-lui-ai-casse-la-machoire/",
+    "source": "wiwsport",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793006472000
+   },
+   {
+    "titre": "“Navétanes” : le préfet de Diourbel salue les mesures de sécurité à une semaine de la fin des compétitions",
+    "url": "https://aps.sn/navetanes-le-prefet-de-diourbel-salue-les-mesures-de-securite-a-une-semaine-de-la-fin-des-competitions/",
+    "source": "APS — Agence Sénégalaise Presse",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793002170000
    },
    {
     "titre": "​Violations contre les enfants en zone de conflit : le Conseil de sécurité cible l'utilisation des technologies numérique",
