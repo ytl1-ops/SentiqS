@@ -3211,6 +3211,10 @@ jamais un rapport bloqué. Les noms de fichiers du code (`rapport-grsci.js`,
 `faits-grsci.js`…, variables `GRSCI_*`) sont restés : le lecteur ne les voit
 jamais, et les renommer n'apportait que du risque.
 
+**Avant de lancer une génération à la main** (case `rapport_mensuel`),
+demander d'abord à YORO l'identité d'envoi et le logo à insérer (pièce jointe
+ou copier-coller), consigne du 27/10/2026 ; SentiqS est le nom par défaut.
+
 ---
 
 ## Mobile : la page défile d'un bloc — 22/10/2026
