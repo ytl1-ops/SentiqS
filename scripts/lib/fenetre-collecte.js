@@ -22,4 +22,29 @@ function fenetreCollecteMs(plafondMs, echeanceEpochSec, maintenantMs) {
   return Math.max(COLLECTE_MINIMUM_MS, Math.min(plafondMs, budget));
 }
 
-module.exports = { fenetreCollecteMs, COLLECTE_RESERVE_MS, COLLECTE_MINIMUM_MS };
+// Budget du rapport GRSCI, après la collecte. Le 27/10/2026 (passage
+// n° 1141), la traduction des titres du mois et la recherche des photos ont
+// tourné quinze minutes sans fin après une collecte de cinq : la garde de 20
+// minutes a tué le job AVANT le commit de l'archive et le PDF. Le rapport ne
+// doit jamais coûter le reste du passage : traductions et photos s'arrêtent à
+// l'échéance (ou après GRSCI_BUDGET_MAX_MS sans échéance), le rapport est
+// écrit avec ce qui a été obtenu, et le passage suivant reprend la suite.
+const GRSCI_BUDGET_MAX_MS = 6 * 60 * 1000;
+function limiteGrsciMs(echeanceEpochSec, maintenantMs, maxMs) {
+  const plafond = maintenantMs + (maxMs || GRSCI_BUDGET_MAX_MS);
+  const echeance = Number(echeanceEpochSec || 0) * 1000;
+  return echeance ? Math.min(plafond, echeance) : plafond;
+}
+
+// Une promesse qui ne revient pas (un traducteur qui attend un modèle à
+// télécharger, un relais qui ne répond jamais) ne doit pas suspendre le job :
+// au-delà de `ms`, on continue avec `repli`.
+function avecDelai(promesse, ms, repli) {
+  let t;
+  return Promise.race([
+    Promise.resolve(promesse).finally(() => clearTimeout(t)),
+    new Promise((r) => { t = setTimeout(() => r(repli === undefined ? null : repli), ms); }),
+  ]);
+}
+
+module.exports = { fenetreCollecteMs, COLLECTE_RESERVE_MS, COLLECTE_MINIMUM_MS, limiteGrsciMs, avecDelai, GRSCI_BUDGET_MAX_MS };

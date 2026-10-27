@@ -163,7 +163,7 @@ test('le job fournit chapô, ville et image, et les reporte dans le cumul', () =
   assert.match(fn, /!g\.estime \? g\.ville : null/, 'jamais la capitale par défaut');
   assert.match(fn, /img: mediaActu\(a\)\.img/);
   const job = fs.readFileSync(path.join(__dirname, '..', 'collecte-planifiee.js'), 'utf8');
-  assert.match(job, /photosGrsci\.illustrer\(marquants\)/);
+  assert.match(job, /photosGrsci\.illustrer\(marquants\b/);
   assert.match(job, /entree\.resumeFr = e\.resume/);
   const f = require('../lib/faits-grsci.js');
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'grsci-marq-'));
