@@ -3180,6 +3180,17 @@ photos de test. **Non vérifié d'ici** : de vraies photos de sources et la
 traduction des chapôs (pas de réseau). `scripts/test/grsci-marquants.test.js`
 (8 tests ; ceux qui touchent au rapport vus échouer sur l'ancien code).
 
+**Le rapport a un budget, et il passe après tout le reste (27/10/2026).** Le
+premier passage après la fusion (n° 1141) a fini sa collecte en cinq minutes,
+puis a tourné quinze minutes dans les traductions et les photos sans écrire
+une ligne : la garde de 20 minutes l'a tué **avant** le commit de l'archive et
+le PDF. Traductions et photos s'arrêtent désormais à l'échéance du passage
+(`limiteGrsciMs`, `scripts/lib/fenetre-collecte.js`), chaque traduction est
+bornée à 15 s (`avecDelai` : une promesse qui ne revient jamais ne suspend
+plus le job), et le rapport est écrit avec ce qui a été obtenu ; le journal
+dit combien de titres sont reportés au passage suivant.
+`scripts/test/grsci-budget.test.js` (4, vus échouer sans le correctif).
+
 ---
 
 ## Mobile : la page défile d'un bloc — 22/10/2026

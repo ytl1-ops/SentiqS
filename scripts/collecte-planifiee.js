@@ -64,7 +64,7 @@ const COLLECT_TIMEOUT_MS = 11 * 60 * 1000;
 
 // Fenetre de collecte REELLE : voir scripts/lib/fenetre-collecte.js (le
 // plafond, raccourci si le passage a deja consomme son budget).
-const { fenetreCollecteMs: _fenetre } = require('./lib/fenetre-collecte');
+const { fenetreCollecteMs: _fenetre, limiteGrsciMs, avecDelai } = require('./lib/fenetre-collecte');
 function fenetreCollecteMs() { return _fenetre(COLLECT_TIMEOUT_MS, process.env.COLLECTE_ECHEANCE_EPOCH, Date.now()); }
 
 // L'archive vit sous web/ et non sous data/ : c'est web/ que GitHub Pages
@@ -531,6 +531,13 @@ function ecrireResumeActions(md) {
           const depuis = rapportGrsci.moisPrecedent(jour);
           const debutReleve = Date.parse((Number(jour.slice(8, 10)) <= 2 ? depuis : mois) + '-01T00:00:00Z');
           const paysGrsci = ['CI'].concat(rapportGrsci.PAYS_REGIONAUX);
+          // Budget : traductions et photos s'arrêtent à l'échéance du passage
+          // (passage n° 1141 tué par sa garde, voir limiteGrsciMs). Le rapport,
+          // lui, est toujours écrit avec ce qui a été obtenu.
+          const limiteGrsci = limiteGrsciMs(process.env.COLLECTE_ECHEANCE_EPOCH, Date.now());
+          const dansBudget = () => Date.now() < limiteGrsci;
+          const TRAD_DELAI_MS = 15000;
+          let horsBudget = 0;
           const releve = {};
           for (const cy of paysGrsci) {
             releve[cy] = await page.evaluate(([c, d]) => (typeof faitsMoisPays === 'function') ? faitsMoisPays(c, d) : [], [cy, debutReleve]);
@@ -550,16 +557,18 @@ function ecrireResumeActions(md) {
                 try { f.langue = await page.evaluate((t) => (typeof detectLangue === 'function') ? detectLangue(t) : null, f.titre); } catch (e) { /* passage suivant */ }
               }
               if (f.titreFr || !['en', 'pt', 'ar'].includes(f.langue) || aTraduire >= 120) continue;
+              if (!dansBudget()) { horsBudget++; continue; }
               aTraduire++;
               try {
-                const fr = await page.evaluate((t) => (typeof trFetch === 'function') ? trFetch(t, detectLangue(t), 'fr') : null, f.titre);
+                const fr = await avecDelai(page.evaluate((t) => (typeof trFetch === 'function') ? trFetch(t, detectLangue(t), 'fr') : null, f.titre), TRAD_DELAI_MS);
                 if (typeof fr === 'string' && fr.trim() && fr.trim() !== f.titre.trim()) f.titreFr = faitsGrsci.nettoyerTitre(fr);
               } catch (e) { /* le passage suivant réessaiera */ }
             }
           }
           faitsGrsci.ecrireCumul(RACINE_GRSCI, cumul);
           const total = paysGrsci.reduce((n, cy) => n + ((cumul.pays[cy] || []).length), 0);
-          console.log('  GRSCI : ' + total + ' faits cumules pour ' + mois + ' (' + aTraduire + ' titres soumis a traduction).');
+          console.log('  GRSCI : ' + total + ' faits cumules pour ' + mois + ' (' + aTraduire + ' titres soumis a traduction'
+            + (horsBudget ? ', ' + horsBudget + ' reportes au passage suivant faute de temps' : '') + ').');
 
           // Rapport du mois en cours réécrit au premier passage de chaque jour
           // (période du 1er à aujourd'hui), mois écoulé finalisé le lendemain
@@ -590,10 +599,11 @@ function ecrireResumeActions(md) {
                 for (const e of (f.extraits || [])) {
                   const entree = e.url ? parUrl.get(e.url) : null;
                   if (entree && entree.resumeFr) { e.resume = entree.resumeFr; continue; }
+                  if (!dansBudget()) continue;
                   try {
                     const lg = await page.evaluate((t) => (typeof detectLangue === 'function') ? detectLangue(t) : 'fr', e.resume);
                     if (!['en', 'pt', 'ar'].includes(lg)) continue;
-                    const fr = await page.evaluate(([t, l]) => (typeof trFetch === 'function') ? trFetch(t, l, 'fr') : null, [e.resume, lg]);
+                    const fr = await avecDelai(page.evaluate(([t, l]) => (typeof trFetch === 'function') ? trFetch(t, l, 'fr') : null, [e.resume, lg]), TRAD_DELAI_MS);
                     if (typeof fr === 'string' && fr.trim() && fr.trim() !== e.resume.trim()) {
                       e.resume = faitsGrsci.nettoyerTitre(fr);
                       if (entree) entree.resumeFr = e.resume;
@@ -602,7 +612,7 @@ function ecrireResumeActions(md) {
                   } catch (err) { /* chapô gardé dans sa langue : le passage suivant réessaiera */ }
                 }
               }
-              const illustres = await photosGrsci.illustrer(marquants);
+              const illustres = await photosGrsci.illustrer(marquants, undefined, limiteGrsci);
               marquants.forEach((f) => (f.liens || []).forEach((l) => { const x = parUrl.get(l.url); if (x && f.img && !x.img) x.img = f.img; }));
               faitsGrsci.ecrireCumul(RACINE_GRSCI, cumulR);
               console.log('  GRSCI : ' + marquants.length + ' faits marquants rédigés, ' + illustres + ' avec photo, ' + chapos + ' chapôs traduits.');

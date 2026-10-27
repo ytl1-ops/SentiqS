@@ -109,13 +109,18 @@ function domaine(url) {
  * plusieurs médias a plusieurs chances d'être illustré). L'adresse trouvée
  * est gardée dans `img` pour que le cumul évite de relire la page demain.
  */
-async function illustrer(faits, fetchFn) {
+async function illustrer(faits, fetchFn, limiteMs) {
   let n = 0;
+  const reste = () => !limiteMs || Date.now() < limiteMs;
   for (const f of faits || []) {
+    // Budget du passage (fenetre-collecte.js, limiteGrsciMs) : les faits non
+    // illustrés à l'échéance le seront au passage suivant.
+    if (!reste()) break;
     const candidats = [];
     if (urlSure(f.img)) candidats.push({ img: f.img, lien: (f.liens && f.liens[0] && f.liens[0].url) || f.url });
     for (const l of (f.liens && f.liens.length ? f.liens : (f.url ? [{ url: f.url }] : []))) candidats.push({ page: l.url });
     for (const c of candidats) {
+      if (!reste()) break;
       let img = c.img;
       let lien = c.lien || c.page;
       if (!img && c.page && /^https?:\/\//.test(c.page)) {
