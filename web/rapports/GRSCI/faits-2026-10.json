@@ -3,6 +3,14 @@
  "pays": {
   "CI": [
    {
+    "titre": "Tensions permanentes entre le District Autonome d’Abidjan et les Mairies : le CPC est-il bel et bien mort ?",
+    "url": "https://www.linfodrome.com/societe/126925-tensions-permanentes-entre-le-district-autonome-d-abidjan-et-les-mairies-le-cpc-est-il-bel-et-bien-mort",
+    "source": "Linfodrome",
+    "niveau": "crit",
+    "cat": "politique",
+    "publieMs": 1793108340000
+   },
+   {
     "titre": "Projets de sa mandature: le président sortant de la JCI Émeraude dresse un bilan de 95% de taux d’exécution",
     "url": "https://www.linfodrome.com/societe/126820-projets-de-sa-mandature-le-president-sortant-de-la-jci-emeraude-dresse-un-bilan-de-95-de-taux-d-execution",
     "source": "Linfodrome",
@@ -41,6 +49,22 @@
     "niveau": "high",
     "cat": "politique",
     "publieMs": 1792746922000
+   },
+   {
+    "titre": "Interpol renforce les capacités des enquêteurs ivoiriens pour traquer les avoirs des criminels",
+    "url": "https://www.linfodrome.com/economie/126924-interpol-renforce-les-capacites-des-enqueteurs-ivoiriens-pour-traquer-les-avoirs-des-criminels",
+    "source": "Linfodrome",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793106240000
+   },
+   {
+    "titre": "Hausse des prix du poisson : Assalé Tiémoko révèle une dépendance de la Côte d’Ivoire à 88,8 % aux importations",
+    "url": "https://www.linfodrome.com/politique/126898-hausse-des-prix-du-poisson-assale-tiemoko-revele-une-dependance-de-la-cote-d-ivoire-a-88-8-aux-importations",
+    "source": "Linfodrome",
+    "niveau": "mod",
+    "cat": "humanitaire",
+    "publieMs": 1793093760000
    },
    {
     "titre": "Querelles de succession ou profanation d'un héritage ?",
@@ -157,6 +181,14 @@
     "publieMs": 1792747200000
    },
    {
+    "titre": "Roaming UEMOA : 4 pays unissent leurs réseaux pour alléger la facture des usagers",
+    "url": "https://www.linfodrome.com/economie/126922-roaming-uemoa-4-pays-unissent-leurs-reseaux-pour-alleger-la-facture-des-usagers",
+    "source": "Linfodrome",
+    "niveau": "mod",
+    "cat": "humanitaire",
+    "publieMs": 1793101860000
+   },
+   {
     "titre": "Burkina Faso : Rimtalba Jean Emmanuel Ouédraogo attendu au sommet Russie-Afrique à Moscou",
     "url": "https://malijet.com/a_la_une_du_mali/312518-burkina-faso-rimtalba-jean-emmanuel-ouedraogo-attendu-au-s.html",
     "source": "Malijet",
@@ -206,6 +238,14 @@
    }
   ],
   "ML": [
+   {
+    "titre": "Treize civils tués par une frappe de drone de l'armée, dans la région de Tombouctou",
+    "url": "https://fr.allafrica.com/stories/202610270196.html",
+    "source": "AllAfrica (ML)",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1793092674000
+   },
    {
     "titre": "Mali: treize civils tués par une frappe de drone de l'armée, dans la région de Tombouctou",
     "url": "https://www.rfi.fr/fr/afrique/20261026-mali-treize-civils-tu%C3%A9s-par-une-frappe-de-drone-de-l-arm%C3%A9e-dans-la-r%C3%A9gion-de-tombouctou",
@@ -391,6 +431,22 @@
     "publieMs": 1792745923000
    },
    {
+    "titre": "L’outrage et la mémoire : Quand l’indécence verbale se heurte au socle du Danbe et de l’islam",
+    "url": "https://maliactu.net/loutrage-et-la-memoire-quand-lindecence-verbale-se-heurte-au-socle-du-danbe-et-de-lislam/",
+    "source": "Maliactu",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1793102103000
+   },
+   {
+    "titre": "l’enfant : le danger des séquelles cognitives invisibles",
+    "url": "https://maliactu.net/lenfant-le-danger-des-sequelles-cognitives-invisibles/",
+    "source": "Maliactu",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1793095976000
+   },
+   {
     "titre": "Coopération : Accra et Bamako consolident leur partenariat stratégique et économique",
     "url": "https://amap.ml/2026/10/27/cooperation-accra-et-bamako-consolident-leur-partenariat-strategique-et-economique/",
     "source": "AMAP — Agence Malienne Presse",
@@ -529,6 +585,22 @@
   ],
   "NE": [
    {
+    "titre": "Le Niger affirme qu'une frappe de drone du Tchad a tué deux civils",
+    "url": "http://fr.africanews.com/2026/10/27/le-niger-affirme-quune-frappe-de-drone-du-tchad-a-tue-deux-civils/",
+    "source": "Africanews — Chaine panafricaine",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1793093844000
+   },
+   {
+    "titre": "Niger accuses Chad of deadly drone attack in which two civilians died",
+    "url": "http://www.africanews.com/2026/10/27/niger-accuses-chad-of-deadly-drone-attack-in-which-two-civilians-died/",
+    "source": "Africanews",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1793090958000
+   },
+   {
     "titre": "Le Niger dénonce une attaque de drone du Tchad avec «l’appui de la France»",
     "url": "https://www.rfi.fr/fr/afrique/20261027-le-niger-d%C3%A9nonce-une-attaque-de-drone-du-tchad-avec-l-appui-de-la-france",
     "source": "RFI Afrique",
@@ -551,6 +623,14 @@
     "niveau": "crit",
     "cat": "securite",
     "publieMs": 1792785966000
+   },
+   {
+    "titre": "AGADEZ : le Gouverneur préside une réunion élargie du Conseil Régional de sécurité",
+    "url": "https://anp.ne/agadez-le-gouverneur-preside-une-reunion-elargie-du-conseil-regional-de-securite-3/",
+    "source": "ANP — Agence Nigérienne Presse",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1793107977000
    },
    {
     "titre": "ALERTE – La présidence annonce l’envoi d’unités de l’armée nationale au Niger",
@@ -623,6 +703,14 @@
     "niveau": "high",
     "cat": "economique",
     "publieMs": 1792746095000
+   },
+   {
+    "titre": "Dosso : Ouverture d’un dialogue régional sur la paix et la cohésion sociale",
+    "url": "https://anp.ne/dosso-ouverture-dun-dialogue-regional-sur-la-paix-et-la-cohesion-sociale/",
+    "source": "ANP — Agence Nigérienne Presse",
+    "niveau": "mod",
+    "cat": "humanitaire",
+    "publieMs": 1793110754000
    },
    {
     "titre": "Niger : 120 Véhicules 4×4 et 100 motos réceptionnés au profit de la garde nationale et de la police routière",
@@ -737,6 +825,22 @@
     "niveau": "high",
     "cat": "securite",
     "publieMs": 1792771569000
+   },
+   {
+    "titre": "Galamsey will persist if financiers go untouched — Security Analyst",
+    "url": "https://www.gbcghanaonline.com/news/galamsey-will-persist-if-financiers-go-untouched/2026/",
+    "source": "GBC Ghana Online",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793103998000
+   },
+   {
+    "titre": "Ghana Must Own Digital Infrastructure to Ensure Data Security — Apaak",
+    "url": "https://ghanaiantimes.com.gh/ghana-must-own-digital-infrastructure-to-ensure-data-security-apaak/",
+    "source": "Ghanaian Times",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793091448000
    },
    {
     "titre": "Jamestown fishermen threaten demo over delayed operationalisation of cold store",
@@ -891,6 +995,14 @@
     "niveau": "high",
     "cat": "securite",
     "publieMs": 1792837790000
+   },
+   {
+    "titre": "Soutenu par l’Union africaine, le Togolais Gilbert Houngbo réussira-t-il à conserver la tête de l’OIT ?",
+    "url": "https://www.jeuneafrique.com/1855636/economie-entreprises/soutenu-par-lunion-africaine-le-togolais-gilbert-houngbo-reussira-t-il-a-conserver-la-tete-de-loit/",
+    "source": "Jeune Afrique",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1793106575000
    },
    {
     "titre": "Vers une paix des champs ?",
@@ -1087,6 +1199,14 @@
     "niveau": "high",
     "cat": "securite",
     "publieMs": 1792783623000
+   },
+   {
+    "titre": "Forécariah : Friki Keita reprend ses fonctions à la tête de la DPE ce mardi",
+    "url": "https://guineelive.com/2026/10/27/forecariah-friki-keita-reprend-ses-fonctions-a-la-tete-de-la-dpe-ce-mardi/",
+    "source": "Guineelive",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793108572000
    },
    {
     "titre": "Lutte contre la délinquance : « Si les chefs de quartiers, les conseils communaux n’agissent pas, nous engagerons des poursuites contre eux »",
@@ -1316,6 +1436,22 @@
    }
   ],
   "SN": [
+   {
+    "titre": "Malika : Un locataire interpellé pour avoir poignardé à mort son voisin lors d'une altercation",
+    "url": "https://www.seneweb.com/fr/news/Societe/malika-un-locataire-interpelle-pour-avoir-poignarde-a-mort-son-voisin-lors-dune-altercation_n_999001887.html",
+    "source": "Seneweb",
+    "niveau": "crit",
+    "cat": "politique",
+    "publieMs": 1793107439000
+   },
+   {
+    "titre": "Meurtre présumé d’Aminata Sy à Podor : le suspect retrouvé dans une cachette et arrêté à Mbacké",
+    "url": "https://www.dakaractu.com/Meurtre-presume-d-Aminata-Sy-a-Podor-le-suspect-retrouve-dans-une-cachette-et-arrete-a-Mbacke_a277514.html",
+    "source": "Dakar Actu",
+    "niveau": "crit",
+    "cat": "politique",
+    "publieMs": 1793102100000
+   },
    {
     "titre": "Karamo Cissé Ndiaye arrêté pour le meurtre d’Aminata Sy après une dispute violente",
     "url": "https://www.senenews.com/actualites/karamo-cisse-ndiaye-avoue-pourquoi-jai-tue-aminata-sy-sa-mere-ne-voulait-pas_604186.html",
@@ -1571,6 +1707,30 @@
     "niveau": "crit",
     "cat": "humanitaire",
     "publieMs": 1792684500000
+   },
+   {
+    "titre": "Tafsir Thioye contestant toute demande émanant de la commission des finances : « On ne peut pas prendre l'Assemblée nationale comme le siège d'un parti politique »",
+    "url": "https://www.dakaractu.com/Tafsir-Thioye-contestant-toute-demande-emanant-de-la-commission-des-finances-On-ne-peut-pas-prendre-l-Assemblee_a277519.html",
+    "source": "Dakar Actu",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1793107800000
+   },
+   {
+    "titre": "LFR 2026 : Le gouvernement demande son renvoi en commission des Finances et appelle l’Assemblée au dialogue pour dénouer la crise",
+    "url": "https://www.dakaractu.com/LFR-2026-Le-gouvernement-demande-son-renvoi-en-commission-des-Finances-et-appelle-l-Assemblee-au-dialogue-pour-denouer_a277515.html",
+    "source": "Dakar Actu",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1793103900000
+   },
+   {
+    "titre": "​Cancers du col de l'utérus et du sein à Pikine : «Les indicateurs sont rouges partout», alerte le Dr Oulimata Gaye",
+    "url": "https://www.pressafrik.com/​Cancers-du-col-de-l-uterus-et-du-sein-a-Pikine-Les-indicateurs-sont-rouges-partout--alerte-le-Dr-Oulimata-Gaye_a313643.html",
+    "source": "Pressafrik",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1793094960000
    },
    {
     "titre": "Mbeubeuss : cinq travailleurs tués dans un accident impliquant un tricycle",
@@ -1843,6 +2003,54 @@
     "niveau": "high",
     "cat": "politique",
     "publieMs": 1792765740000
+   },
+   {
+    "titre": "Dissolution de l’Assemblée : « L’heure a sonné », le président Bassirou Diomaye Faye saisi",
+    "url": "https://www.senenews.com/actualites/dissolution-de-lassemblee-lheure-a-sonne-le-president-bassirou-diomaye-faye-saisi_604187.html",
+    "source": "SeneNews",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793109937000
+   },
+   {
+    "titre": "Zone militaire n° 3 : le colonel Abdoulaye Mbengue prône l’anticipation des menaces",
+    "url": "https://aps.sn/zone-militaire-n-3-le-colonel-abdoulaye-mbengue-prone-lanticipation-des-menaces/",
+    "source": "APS — Agence Sénégalaise Presse",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793109461000
+   },
+   {
+    "titre": "Maintien de la paix - Le pays veut renforcer la participation des femmes",
+    "url": "https://fr.allafrica.com/stories/202610270446.html",
+    "source": "AllAfrica (SN)",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793103283000
+   },
+   {
+    "titre": "Importations de denrées alimentaires : le ministre Cheikhou Oumar Ba appelle à «inverser la tendance»",
+    "url": "https://www.pressafrik.com/Importations-de-denrees-alimentaires-le-ministre-Cheikhou-Oumar-Ba-appelle-a-inverser-la-tendance_a313648.html",
+    "source": "Pressafrik",
+    "niveau": "mod",
+    "cat": "humanitaire",
+    "publieMs": 1793099520000
+   },
+   {
+    "titre": "Assemblée nationale : de la fumée perturbe la séance sur la LFR, les députés évacués",
+    "url": "https://www.dakaractu.com/Assemblee-nationale-de-la-fumee-perturbe-la-seance-sur-la-LFR-les-deputes-evacues_a277510.html",
+    "source": "Dakar Actu",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1793098380000
+   },
+   {
+    "titre": "​Diourbel : 3 416 contrats de travail enregistrés en 2025",
+    "url": "https://www.pressafrik.com/​Diourbel-3-416-contrats-de-travail-enregistres-en-2025_a313645.html",
+    "source": "Pressafrik",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793096760000
    },
    {
     "titre": "Blocage de la LFR : les recours institutionnels évoqués pour éviter la paralysie",
@@ -2187,46 +2395,6 @@
     "niveau": "mod",
     "cat": "securite",
     "publieMs": 1792789806000
-   },
-   {
-    "titre": "Plus de 2 000 élèves de Dakar bénéficient de l'extension de l'initiative « Safer Journeys to School » du groupe Yango au Sénégal",
-    "url": "https://www.dakaractu.com/Plus-de-2-000-eleves-de-Dakar-beneficient-de-l-extension-de-l-initiative-Safer-Journeys-to-School-du-groupe-Yango-au_a277376.html",
-    "source": "Dakar Actu",
-    "niveau": "mod",
-    "cat": "securite",
-    "publieMs": 1792762680000
-   },
-   {
-    "titre": "Emmanuel Macron annule sa visite prévue au Nigeria et au Sénégal",
-    "url": "https://www.jeuneafrique.com/1855142/politique/emmanuel-macron-annule-sa-visite-prevue-au-nigeria-et-au-senegal/",
-    "source": "Jeune Afrique",
-    "niveau": "mod",
-    "cat": "politique",
-    "publieMs": 1792761368000
-   },
-   {
-    "titre": "Exclusive: Emmanuel Macron cancels planned visits to Nigeria and Senegal",
-    "url": "https://www.theafricareport.com/434399/exclusive-emmanuel-macron-cancels-planned-visits-to-nigeria-and-senegal/",
-    "source": "The Africa Report",
-    "niveau": "mod",
-    "cat": "politique",
-    "publieMs": 1792756631000
-   },
-   {
-    "titre": "Une étude montre comment la sécurité foncière conditionne l'efficacité du crédit agricole",
-    "url": "https://fr.allafrica.com/stories/202610230279.html",
-    "source": "AllAfrica (SN)",
-    "niveau": "mod",
-    "cat": "securite",
-    "publieMs": 1792753329000
-   },
-   {
-    "titre": "Décès du Contrôleur général de police Abdoulaye Diop : Macky Sall présente ses condoléances",
-    "url": "https://www.dakaractu.com/Deces-du-Controleur-general-de-police-Abdoulaye-Diop-Macky-Sall-presente-ses-condoleances_a277370.html",
-    "source": "Dakar Actu",
-    "niveau": "mod",
-    "cat": "securite",
-    "publieMs": 1792751760000
    }
   ]
  }
