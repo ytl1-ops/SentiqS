@@ -26,8 +26,8 @@ on:
     - cron: '*/30 * * * *'
   workflow_dispatch:
     inputs:
-      grsci:
-        description: "Réécrire tout de suite le rapport GRSCI du mois (sinon : premier passage de chaque jour)"
+      rapport_mensuel:
+        description: "Réécrire tout de suite le rapport mensuel de sûreté du mois (sinon : premier passage de chaque jour)"
         type: boolean
         default: false
 
@@ -119,7 +119,7 @@ jobs:
 
       - name: Lancer la collecte planifiée
         env:
-          GRSCI_FORCER: ${{ inputs.grsci && '1' || '' }}
+          GRSCI_FORCER: ${{ inputs.rapport_mensuel && '1' || '' }}
           # Firebase Hosting retire (voir suppression du workflow
           # firebase-hosting-deploy.yml) — GitHub Pages est desormais
           # l'unique hebergement reellement mis a jour a chaque push.
@@ -166,7 +166,7 @@ jobs:
         # donc l'effet, pas seulement l'absence d'erreur.
         run: node scripts/verifier-fraicheur-cache.js
 
-      - name: PDF du rapport mensuel GRSCI
+      - name: PDF du rapport mensuel de sûreté
         # Le PDF est le PowerPoint du mois converti par LibreOffice : mêmes
         # pages, mêmes couleurs. Seulement quand le PDF manque ou que le PowerPoint
         # vient d'être réécrit (premier passage de chaque jour : le rapport du
@@ -177,7 +177,7 @@ jobs:
         continue-on-error: true
         run: |
           set -euo pipefail
-          cd web/rapports/GRSCI 2>/dev/null || exit 0
+          cd web/rapports/mensuel 2>/dev/null || exit 0
           for f in 20??-??.pptx; do
             [ -f "$f" ] || continue
             if [ ! -f "${f%.pptx}.pdf" ] || [ -n "$(git status --porcelain -- "$f")" ]; then
@@ -214,7 +214,7 @@ jobs:
           git add web/historique
           # Bulletin quotidien des pays pilotes (scripts/lib/bulletin.js).
           [ -d web/bulletins ] && git add web/bulletins
-          # Rapport mensuel GRSCI (scripts/lib/rapport-grsci.js).
+          # Rapport mensuel de sûreté (scripts/lib/rapport-grsci.js).
           [ -d web/rapports ] && git add web/rapports
           jour=$(date -u +%Y-%m-%d)
           git commit -m "Archive des niveaux d'alerte du $jour"
@@ -249,7 +249,7 @@ jobs:
             echo "Push refusé (essai $essai) — rebase puis nouvelle tentative."
             # --autostash : l'installation npm modifie package.json et le verrou
             # dans l'arbre ; sans cela le rebase refusait (run 1098 du 20/10/2026,
-            # le rapport GRSCI était commité mais jamais poussé).
+            # le rapport mensuel était commité mais jamais poussé).
             git pull --rebase --autostash origin main
             sleep $((essai * 4))
           done

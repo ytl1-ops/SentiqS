@@ -3656,7 +3656,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
               <i class="ti ti-calendar-event" style="font-size:16px;color:var(--b)"></i>
               <span style="font-size:12px;font-weight:700;color:var(--t)">Rapports automatiques</span>
             </div>
-            <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Produits par la collecte planifiée, sans action de votre part. Le rapport GRSCI (Côte d'Ivoire et dynamiques régionales) suit le modèle du groupe : PowerPoint et Word modifiables, et PDF. Il est généré une fois par mois, au premier passage à partir du 24 ; il peut aussi être relancé à la demande depuis GitHub Actions (« Collecte planifiée », case grsci).</div>
+            <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Produits par la collecte planifiée, sans action de votre part. Le rapport mensuel de sûreté (Côte d'Ivoire et dynamiques régionales) : PowerPoint et Word modifiables, et PDF. Il est mis à jour chaque jour sur la période du mois en cours, puis finalisé le lendemain de la fin du mois ; il peut aussi être relancé à la demande depuis GitHub Actions (« Collecte planifiée », case rapport_mensuel).</div>
             <div id="rpAutoListe" style="font-size:11px;color:var(--t)">Chargement…</div>
           </div>
 
@@ -6793,7 +6793,7 @@ function donneesBulletinPays(cy) {
     fenetreH: Math.round(FENETRE_ACTUALITE_MS / 3600000),
   };
 }
-// faitsMoisPays(cy, depuisMs) : la matière du rapport mensuel GRSCI. Le
+// faitsMoisPays(cy, depuisMs) : la matière du rapport mensuel de sûreté. Le
 // bulletin ne lit que la fenêtre d'actualité (36 h) ; le premier rapport
 // d'octobre 2026, produit ainsi, couvrait un mois avec deux faits pour la
 // Côte d'Ivoire (relecture du 23/10/2026). Ici : tout ce que la collecte a
@@ -6818,7 +6818,7 @@ function faitsMoisPays(cy, depuisMs) {
     titre: a.title, url: a.url || null, source: srcName(a.primary), niveau: a.level,
     cat: a.cat || null, publieMs: a.pubDate || null, langue: detectLangue(a.title),
     // Cotation client (Confirmé / Probable / Non confirmé), même règle que le
-    // bulletin : demandée dans le rapport GRSCI par YORO le 23/10/2026.
+    // bulletin : demandée dans le rapport mensuel par YORO le 23/10/2026.
     cotation: cotationArticle(a, SRCS.find(x => x.id === a.primary), SEUIL_SOURCE_ALERTE).cle,
     // Matière des « faits marquants » rédigés (demande de YORO du 23/10/2026 :
     // « des textes détaillés avec des photos, pas un ensemble de titres ») :
@@ -22295,17 +22295,17 @@ function lignePaysArticle(a) {
 }
 
 // ── UPDATE COMPTEURS DL ───────────────────────────────────────────
-// Rapports produits par le job planifie (web/rapports/GRSCI/index.json) :
+// Rapports produits par le job planifie (web/rapports/mensuel/index.json) :
 // Pages ne liste pas un dossier, l'index est donc la seule facon de les
 // retrouver depuis l'appli. Un echec de lecture n'est jamais muet.
 function chargerRapportsAuto(){
   var el = document.getElementById('rpAutoListe');
   if (!el) return;
-  fetch('rapports/GRSCI/index.json', { cache: 'no-cache' })
+  fetch('rapports/mensuel/index.json', { cache: 'no-cache' })
     .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(function(d){
       var l = (d && d.rapports) || [];
-      if (!l.length) { el.textContent = "Aucun rapport GRSCI n'a encore été généré. Il le sera au prochain passage de la collecte, puis mis à jour chaque jour."; return; }
+      if (!l.length) { el.textContent = "Aucun rapport mensuel n'a encore été généré. Il le sera au prochain passage de la collecte, puis mis à jour chaque jour."; return; }
       el.innerHTML = '';
       var NOMS = { pptx: 'PowerPoint', docx: 'Word', pdf: 'PDF' };
       l.forEach(function(r, i){
@@ -22320,12 +22320,12 @@ function chargerRapportsAuto(){
         var MOISN = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
         var pj = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(r.jour || ''));
         var per = pj ? ' — période du 1er au ' + (Number(pj[3]) === 1 ? '1er' : Number(pj[3])) + ' ' + MOISN[Number(pj[2]) - 1] + ' ' + pj[1] : '';
-        t.textContent = 'Rapport GRSCI ' + r.mois + (i === 0 ? ' (le plus récent)' : '') + per + quand.replace('généré', 'mis à jour');
+        t.textContent = 'Rapport mensuel de sûreté ' + r.mois + (i === 0 ? ' (le plus récent)' : '') + per + quand.replace('généré', 'mis à jour');
         ligne.appendChild(t);
         (r.formats || []).forEach(function(f){
           if (!NOMS[f] || !/^\d{4}-\d{2}$/.test(String(r.mois))) return;
           var a = document.createElement('a');
-          a.href = 'rapports/GRSCI/' + r.mois + '.' + f;
+          a.href = 'rapports/mensuel/' + r.mois + '.' + f;
           a.download = '';
           a.style.cssText = 'display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border:1px solid var(--bd);border-radius:5px;color:var(--b);font-weight:700;text-decoration:none';
           a.textContent = NOMS[f];
@@ -22603,7 +22603,7 @@ async function exportPPTX(type) {
     };
 
     // Titre de section numéroté (case colorée + chiffre romain), sur le
-    // modèle des en-têtes de section GRSCI — la numérotation ne compte que
+    // modèle des en-têtes de section du rapport mensuel — la numérotation ne compte que
     // les diapositives de contenu effectivement incluses dans ce rapport.
     let secN = 0;
     const sectionHead = (sl, title, sub) => {
@@ -23085,7 +23085,7 @@ function _pdfSafe(text) {
 }
 
 // Numéros de section en chiffres romains (I, II, III...) — badges d'en-tête,
-// inspirés de la mise en page GRSCI (case colorée numérotée + titre souligné).
+// inspirés de la mise en page du rapport mensuel (case colorée numérotée + titre souligné).
 function _toRoman(n) {
   const table = [[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
   let r = '', v = n;
@@ -23096,7 +23096,7 @@ function _toRoman(n) {
 // Petit moteur de mise en page : pagination automatique, retour à la ligne
 // manuel (pdf-lib ne le fait pas nativement), en-tête/pied de page.
 // En-têtes de section numérotées + pied de page systématique (marque +
-// périmètre + date + numéro de page) sur le modèle des rapports GRSCI :
+// périmètre + date + numéro de page) sur le modèle du rapport mensuel :
 // case colorée numérotée, titre souligné, filet fin, bandeau de bas de page.
 function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
   const W = 595.28, H = 841.89, M = 50; // A4 portrait, points
@@ -23392,7 +23392,7 @@ function _pdfBuilder(doc, fontReg, fontBold, fontSerif, rgb) {
       });
       b.y -= 2;
     },
-    // Encadré de mise en avant (façon "CONSTATATIONS" GRSCI) — chiffres clés
+    // Encadré de mise en avant (façon "CONSTATATIONS" du rapport mensuel) — chiffres clés
     // ou synthèse à isoler visuellement du reste du texte courant.
     box(titleText, lines, opts={}) {
       const pad = 10, size = 9;
@@ -24814,7 +24814,7 @@ async function exportWord(type){
       run:{color:color||'0D1B2A',bold:true,size:24,font:FONT_SANS},
     });
 
-    // Encadré de mise en avant (façon "CONSTATATIONS" GRSCI) — synthèse à
+    // Encadré de mise en avant (façon "CONSTATATIONS" du rapport mensuel) — synthèse à
     // isoler visuellement du reste du texte courant.
     const calloutBox=(titleTxt,bodyTxt,color)=>new Table({
       width:{size:100,type:WidthType.PERCENTAGE},
@@ -25267,7 +25267,7 @@ async function exportWord(type){
     }));
 
     // En-tête/pied de page systématiques (marque + périmètre + numéro de
-    // page), sur le modèle du bandeau GRSCI présent sur chaque diapositive.
+    // page), sur le modèle du bandeau du rapport mensuel présent sur chaque diapositive.
     const wordHeader=new Header({children:[new Paragraph({
       alignment:AlignmentType.RIGHT,
       children:[new TextRun({text:emetteurW+' · '+libellePerimetreRapport(),size:16,italics:true,color:'6B7280'})],

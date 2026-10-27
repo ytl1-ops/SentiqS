@@ -36,6 +36,7 @@ const rapportGrsci = require('./lib/rapport-grsci');
 const rapportGrsciWord = require('./lib/rapport-grsci-word');
 const faitsGrsci = require('./lib/faits-grsci');
 const photosGrsci = require('./lib/photos-grsci');
+const { traduire: traduireJob } = require('./lib/traduction-job');
 const santeCollecte = require('./lib/sante-collecte');
 
 // Firebase Hosting retire (sentinel-surete.web.app ne recoit plus de
@@ -76,7 +77,7 @@ const RACINE_HISTORIQUE = process.env.RACINE_HISTORIQUE
 const RACINE_BULLETINS = process.env.RACINE_BULLETINS
   || path.join(__dirname, '..', 'web', 'bulletins');
 const RACINE_GRSCI = process.env.RACINE_RAPPORTS_GRSCI
-  || path.join(__dirname, '..', 'web', 'rapports', 'GRSCI');
+  || path.join(__dirname, '..', 'web', 'rapports', 'mensuel');
 
 // Mémoire inter-runs de SRC_HEALTH / PROXY_HEALTH_PAYS — HORS dépôt
 // (répertoire dans .gitignore), restaurée/sauvegardée par actions/cache
@@ -560,7 +561,9 @@ function ecrireResumeActions(md) {
               if (!dansBudget()) { horsBudget++; continue; }
               aTraduire++;
               try {
-                const fr = await avecDelai(page.evaluate((t) => (typeof trFetch === 'function') ? trFetch(t, detectLangue(t), 'fr') : null, f.titre), TRAD_DELAI_MS);
+                // Traduit par Node, pas par la page : depuis le runner, la chaîne
+                // de la page ne rendait rien (passage n° 1142, voir traduction-job.js).
+                const fr = await avecDelai(traduireJob(f.titre, f.langue), TRAD_DELAI_MS);
                 if (typeof fr === 'string' && fr.trim() && fr.trim() !== f.titre.trim()) f.titreFr = faitsGrsci.nettoyerTitre(fr);
               } catch (e) { /* le passage suivant réessaiera */ }
             }
@@ -603,7 +606,7 @@ function ecrireResumeActions(md) {
                   try {
                     const lg = await page.evaluate((t) => (typeof detectLangue === 'function') ? detectLangue(t) : 'fr', e.resume);
                     if (!['en', 'pt', 'ar'].includes(lg)) continue;
-                    const fr = await avecDelai(page.evaluate(([t, l]) => (typeof trFetch === 'function') ? trFetch(t, l, 'fr') : null, [e.resume, lg]), TRAD_DELAI_MS);
+                    const fr = await avecDelai(traduireJob(e.resume, lg), TRAD_DELAI_MS);
                     if (typeof fr === 'string' && fr.trim() && fr.trim() !== e.resume.trim()) {
                       e.resume = faitsGrsci.nettoyerTitre(fr);
                       if (entree) entree.resumeFr = e.resume;

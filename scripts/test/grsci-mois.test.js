@@ -122,7 +122,7 @@ test('le job cumule le mois à chaque passage et la page fournit la matière', (
   const job = fs.readFileSync(path.join(__dirname, '..', 'collecte-planifiee.js'), 'utf8');
   assert.match(job, /faitsGrsci\.cumuler\(RACINE_GRSCI/);
   assert.match(job, /faitsGrsci\.faitsDuMois\(cumul/);
-  assert.match(job, /trFetch\(t, detectLangue\(t\), 'fr'\)/);
+  assert.match(job, /traduireJob\(f\.titre, f\.langue\)/);
   const fn = tranche('function faitsMoisPays(cy, depuisMs) {', '// TR_CONCURRENCE_MAX');
   assert.match(fn, /concat\(hist\)/, 'l’historique de la collecte fait partie du mois');
   assert.match(fn, /_dateNonFiable/);

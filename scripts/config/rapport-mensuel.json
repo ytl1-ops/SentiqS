@@ -1,0 +1,6 @@
+{
+  "_note": "Émetteur du rapport mensuel de sûreté (couverture, pied de page, propriétés du document). identite : nom de l'organisation ; signature : ligne qui suit le nom dans le pied (vide pour aucune) ; logo : PNG ou JPEG posé dans ce dossier, chemin relatif (vide pour aucun). Sans ce fichier : SentiqS, sans logo.",
+  "identite": "SentiqS",
+  "signature": "veille de sûreté sur l'Afrique",
+  "logo": ""
+}

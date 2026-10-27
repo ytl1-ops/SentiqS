@@ -1,4 +1,4 @@
-// Rapport mensuel GRSCI en Word (.docx) : mêmes pages, mêmes couleurs, même
+// Rapport mensuel de sûreté en Word (.docx) : mêmes pages, mêmes couleurs, même
 // ordre que la version PowerPoint (voir rapport-grsci.js), mais en VRAIS
 // textes, tableaux et images que l'on peut modifier — jamais une page aplatie
 // en image. Une page Word = une diapositive (page 16:9 en paysage).
@@ -19,7 +19,8 @@ const HAUTEUR = 10800;
 const MARGE = 700;
 const UTILE = LARGEUR - 2 * MARGE;
 
-function construireWord(D, { jour, ci, regionaux }) {
+function construireWord(D, { jour, ci, regionaux, emetteur }) {
+  const em = emetteur || g.lireEmetteur();
   const {
     Document, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, ShadingType, AlignmentType,
     BorderStyle, ImageRun, Footer, PageNumber, PageOrientation, HeightRule, VerticalAlign,
@@ -147,9 +148,24 @@ function construireWord(D, { jour, ci, regionaux }) {
       floating: { horizontalPosition: { relative: HorizontalPositionRelativeFrom.PAGE, offset: 0 }, verticalPosition: { relative: VerticalPositionRelativeFrom.PAGE, offset: 0 }, behindDocument: true, wrap: { type: TextWrappingType.NONE } },
     })],
   }));
-  corps.push(par(run('RENCONTRE MENSUELLE', { font: g.POLICE_TITRE, size: 96, color: 'FFFFFF' }), { alignment: AlignmentType.CENTER, spacing: { before: 200 } }));
-  corps.push(par(run('G.R.S.CI', { font: g.POLICE_TITRE, size: 96, color: 'FFFFFF' }), { alignment: AlignmentType.CENTER, border: { bottom: { style: BorderStyle.SINGLE, size: 18, color: '000000', space: 6 } } }));
-  for (let i = 0; i < 12; i++) corps.push(par(run('', { size: 40 })));
+  corps.push(par(run(g.TITRE_COUVERTURE[0], { font: g.POLICE_TITRE, size: 96, color: 'FFFFFF' }), { alignment: AlignmentType.CENTER, spacing: { before: 200 } }));
+  corps.push(par(run(g.TITRE_COUVERTURE[1], { font: g.POLICE_TITRE, size: 96, color: 'FFFFFF' }), { alignment: AlignmentType.CENTER, border: { bottom: { style: BorderStyle.SINGLE, size: 18, color: '000000', space: 6 } } }));
+  corps.push(par(run(em.identite, { font: g.POLICE_TITRE, size: 48, color: 'FFFFFF' }), { alignment: AlignmentType.CENTER, spacing: { before: 120 } }));
+  // Logo de l'émetteur sur une pastille blanche, comme le PowerPoint : un logo
+  // foncé reste lisible sur la photo.
+  const logoPx = (wMax, hMax) => { const w = Math.round(Math.min(wMax, hMax * em.logoRatio)); return { width: w, height: Math.round(w / em.logoRatio) }; };
+  if (em.logo) {
+    const t = logoPx(170, 100);
+    for (let i = 0; i < 6; i++) corps.push(par(run('', { size: 40 })));
+    corps.push(new Table({
+      width: { size: t.width * 15 + 300, type: WidthType.DXA }, columnWidths: [t.width * 15 + 300],
+      rows: [new TableRow({ children: [new TableCell({ borders: SANS_BORDURE, width: { size: t.width * 15 + 300, type: WidthType.DXA }, shading: { type: ShadingType.CLEAR, fill: 'FFFFFF', color: 'auto' }, margins: { top: 100, bottom: 100, left: 150, right: 150 },
+        children: [par(new ImageRun({ data: fs.readFileSync(em.logo), transformation: t }))] })] })],
+    }));
+    for (let i = 0; i < 1; i++) corps.push(par(run('', { size: 40 })));
+  } else {
+    for (let i = 0; i < 10; i++) corps.push(par(run('', { size: 40 })));
+  }
   corps.push(par(run(g.dateLongue(jour).toUpperCase(), { bold: true, size: 40, color: 'FFFFFF' }), { alignment: AlignmentType.RIGHT }));
   corps.push(par(run(g.libellePeriode(jour), { size: 28, color: 'FFFFFF' }), { alignment: AlignmentType.RIGHT }));
 
@@ -244,19 +260,20 @@ function construireWord(D, { jour, ci, regionaux }) {
     })] })],
   }));
 
-  // Pied de page : logo, nom du groupe encadré, date et numéro — comme le modèle.
+  // Pied de page : logo et identité de l'émetteur encadrée, date et numéro —
+  // comme le modèle, sans le nom ni le logo du groupe (27/10/2026).
   const pied = new Footer({ children: [new Table({
     width: { size: UTILE, type: WidthType.DXA }, columnWidths: [1500, UTILE - 1500 - 3000, 3000],
     rows: [new TableRow({ children: [
-      new TableCell({ borders: SANS_BORDURE, width: { size: 1500, type: WidthType.DXA }, children: [par(new ImageRun({ data: img('logo-grsci.png'), transformation: { width: 48, height: 55 } }))] }),
-      new TableCell({ borders: CADRE, verticalAlign: VerticalAlign.CENTER, width: { size: UTILE - 4500, type: WidthType.DXA }, children: [par(run('Groupe des Responsables Sûreté de Côte d\'Ivoire', { size: 22 }), { alignment: AlignmentType.CENTER })] }),
+      new TableCell({ borders: SANS_BORDURE, width: { size: 1500, type: WidthType.DXA }, children: [par(em.logo ? new ImageRun({ data: fs.readFileSync(em.logo), transformation: logoPx(90, 40) }) : run(''))] }),
+      new TableCell({ borders: CADRE, verticalAlign: VerticalAlign.CENTER, width: { size: UTILE - 4500, type: WidthType.DXA }, children: [par(run(g.piedTexte(em), { size: 22 }), { alignment: AlignmentType.CENTER })] }),
       new TableCell({ borders: SANS_BORDURE, verticalAlign: VerticalAlign.CENTER, width: { size: 3000, type: WidthType.DXA }, children: [par([run('|  ' + g.dateCourte(jour) + '   |   ', { size: 20 }), new TextRun({ children: [PageNumber.CURRENT], font: g.POLICE, size: 20, color: g.TEXTE })], { alignment: AlignmentType.RIGHT })] }),
     ] })],
   })] });
 
   return new Document({
-    creator: 'SentiqS',
-    title: 'Rencontre mensuelle G.R.S.CI — ' + g.dateLongue(jour),
+    creator: em.identite,
+    title: g.TITRE_DOCUMENT(jour),
     sections: [{
       properties: { page: { size: { width: HAUTEUR, height: LARGEUR, orientation: PageOrientation.LANDSCAPE }, margin: { top: 500, bottom: 700, left: MARGE, right: MARGE, header: 300, footer: 250 } } },
       footers: { default: pied },

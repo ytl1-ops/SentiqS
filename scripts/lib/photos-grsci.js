@@ -89,12 +89,29 @@ function imageDeclaree(html, base) {
   return null;
 }
 
+// Une image de marque n'est pas une photo du fait. Rapport du 27/10/2026 :
+// la page « peine de mort » du Burkina Faso portait le logo d'AllAfrica, celle
+// du Bénin le blason d'un syndicat — l'aperçu Open Graph d'un site renvoie son
+// logo quand l'article n'a pas d'image. Pas de photo plutôt qu'un logo : on
+// écarte une adresse qui se dit logo ou icône, et un PNG presque carré (les
+// logos le sont ; les photos de presse sont des JPEG en largeur).
+const ADRESSE_LOGO = /(?:^|[\/_.-])(?:logo|logos|favicon|icon|icons|apple-touch|placeholder|default|avatar|blason|brand)(?:[\/_.-]|\d|$)/i;
+function ressembleLogo(url, dim) {
+  let chemin = '';
+  try { chemin = new URL(url).pathname; } catch (e) { chemin = String(url || ''); }
+  if (ADRESSE_LOGO.test(chemin)) return true;
+  if (dim && dim.type === 'png') { const r = dim.w / dim.h; if (r > 0.8 && r < 1.25) return true; }
+  return false;
+}
+
 async function chargerPhoto(url, fetchFn) {
   const u = urlSure(url);
   if (!u) return null;
+  if (ressembleLogo(u)) return null;
   const data = await telecharger(u, PHOTO_MAX_OCTETS, fetchFn);
   const dim = dimensionsImage(data);
   if (!dim || dim.w < LARGEUR_MIN || dim.h < HAUTEUR_MIN) return null;
+  if (ressembleLogo(u, dim)) return null;
   return Object.assign({ data }, dim);
 }
 
@@ -139,4 +156,4 @@ async function illustrer(faits, fetchFn, limiteMs) {
   return n;
 }
 
-module.exports = { dimensionsImage, imageDeclaree, chargerPhoto, illustrer, PHOTO_MAX_OCTETS };
+module.exports = { ressembleLogo, dimensionsImage, imageDeclaree, chargerPhoto, illustrer, PHOTO_MAX_OCTETS };
