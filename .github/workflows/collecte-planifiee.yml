@@ -27,7 +27,7 @@ on:
   workflow_dispatch:
     inputs:
       grsci:
-        description: "Produire tout de suite le rapport mensuel GRSCI (sinon : premier passage à partir du 24)"
+        description: "Réécrire tout de suite le rapport GRSCI du mois (sinon : premier passage de chaque jour)"
         type: boolean
         default: false
 
@@ -169,7 +169,8 @@ jobs:
       - name: PDF du rapport mensuel GRSCI
         # Le PDF est le PowerPoint du mois converti par LibreOffice : mêmes
         # pages, mêmes couleurs. Seulement quand le PDF manque ou que le PowerPoint
-        # vient d'être réécrit (donc une fois par mois), pour ne pas installer
+        # vient d'être réécrit (premier passage de chaque jour : le rapport du
+        # mois est tenu à jour sur sa période), pour ne pas installer
         # LibreOffice à chaque passage. Un échec ne fait pas échouer la
         # collecte : le PowerPoint et le Word sont déjà écrits.
         if: success()

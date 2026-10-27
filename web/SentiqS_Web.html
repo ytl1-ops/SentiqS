@@ -2620,9 +2620,9 @@ html[data-theme="dark"] .btn-dl:hover{background:#132B5C;border-color:var(--b);c
 html[data-theme="dark"] .btn-dl-word i{color:#93B4F5}html[data-theme="dark"] .btn-dl-excel i{color:var(--g)}
 html[data-theme="dark"] .btn-dl-pdf i{color:var(--r)}html[data-theme="dark"] .btn-dl-csv i{color:var(--a)}
 
-/* Visuel d'une actu (visuelActu) : l'image de la source par-dessus un repli
-   qui dit pays, theme et gravite. Le repli est toujours la : une image qui
-   ne charge pas le laisse simplement apparaitre. */
+/* Visuel d'une actu (visuelActu) : l'image de la source, ou la video. Le
+   repli (pays, theme, gravite) n'est plus montre que sous une video sans
+   vignette : voir la regle « sans-img » plus bas. */
 .vact{position:relative;overflow:hidden;border-radius:10px;flex-shrink:0;isolation:isolate;background:#F3ECE1}
 .vact-repli{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;
   padding:6px 8px;border-top:3px solid var(--vact-niv);color:#6E4A12;
@@ -2636,6 +2636,13 @@ html[data-theme="dark"] .vact-repli{background-image:linear-gradient(150deg,rgba
 .vact-credit{position:absolute;right:5px;bottom:5px;z-index:2;font-size:var(--fs-micro);line-height:1.3;color:#fff;
   background:rgba(5,10,25,.78);padding:1px 6px;border-radius:4px;max-width:92%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .vact.sans-img .vact-credit{display:none}
+/* Sans photo ni video de la source, RIEN ne s'affiche (demande du 23/10/2026) :
+   ni repli de marque, ni cadre vide. Le repli ne reste que sous une video
+   sans vignette, pour porter le bouton de lecture. Une image qui echoue
+   (onerror) pose sans-img et fait disparaitre le cadre ; un apercu Open Graph
+   qui arrive plus tard (patchVisuelActu) le retire et le cadre apparait. */
+.vact.sans-img:not(.vact-video),.det-visuel:has(.vact.sans-img:not(.vact-video)){display:none}
+.vact:not(.vact-video) .vact-repli{display:none}
 /* Toute la surface d'un visuel video ouvre la video (lienVideoActu), comme
    le lien d'une source ouvre l'article ; le credit reste lisible au-dessus. */
 .vact-play{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
@@ -6786,6 +6793,51 @@ function donneesBulletinPays(cy) {
     fenetreH: Math.round(FENETRE_ACTUALITE_MS / 3600000),
   };
 }
+// faitsMoisPays(cy, depuisMs) : la matière du rapport mensuel GRSCI. Le
+// bulletin ne lit que la fenêtre d'actualité (36 h) ; le premier rapport
+// d'octobre 2026, produit ainsi, couvrait un mois avec deux faits pour la
+// Côte d'Ivoire (relecture du 23/10/2026). Ici : tout ce que la collecte a
+// vu depuis `depuisMs` — le temps réel (ALL) ET ce qu'elle a écarté pour son
+// âge (HISTORIQUE), au-dessus du normal, hors sport. Une source à date non
+// fiable (requête Google News, contenu absent) est écartée : une date douteuse
+// ferait entrer un fait ancien dans le mois. Le job cumule ce relevé passage
+// après passage (scripts/lib/faits-grsci.js) : c'est ce cumul qui fait le mois.
+function faitsMoisPays(cy, depuisMs) {
+  const rang = { crit: 0, high: 1, mod: 2 };
+  const vus = {};
+  const live = (typeof ALL === 'undefined' ? [] : ALL);
+  const hist = (typeof HISTORIQUE === 'undefined' ? [] : HISTORIQUE);
+  live.concat(hist).forEach(a => {
+    if (!a || a.cy !== cy || !(a.level in rang) || !a.title) return;
+    if (a.cat === 'sport' || a.cat === 'culture') return;
+    if ((a.pubDate || 0) < depuisMs || a.pubDate > Date.now() + 3600000) return;
+    if (a._dateNonFiable || (a.analysis !== undefined && sourceDateNonFiable(a))) return;
+    if (!vus[a.id]) vus[a.id] = a;
+  });
+  return Object.values(vus).map(a => ({
+    titre: a.title, url: a.url || null, source: srcName(a.primary), niveau: a.level,
+    cat: a.cat || null, publieMs: a.pubDate || null, langue: detectLangue(a.title),
+    // Cotation client (Confirmé / Probable / Non confirmé), même règle que le
+    // bulletin : demandée dans le rapport GRSCI par YORO le 23/10/2026.
+    cotation: cotationArticle(a, SRCS.find(x => x.id === a.primary), SEUIL_SOURCE_ALERTE).cle,
+    // Matière des « faits marquants » rédigés (demande de YORO du 23/10/2026 :
+    // « des textes détaillés avec des photos, pas un ensemble de titres ») :
+    // le chapô de la source, la ville quand le texte la nomme (jamais la
+    // capitale par défaut, qui serait une localisation inventée), et l'image
+    // ou la vidéo publiées par la source. Rien n'est rédigé ici.
+    resume: resumeFaitMois(a),
+    ville: (() => { const g = detectGeo(cy, (a.title || '') + ' ' + (a.analysis || '')); return g && !g.estime ? g.ville : null; })(),
+    img: mediaActu(a).img || null,
+    video: mediaActu(a).video ? lienVideoActu(a) : null,
+  }));
+}
+// Le chapô d'un article pour le rapport : ni le titre redit, ni le texte de
+// remplacement des flux sans description.
+function resumeFaitMois(a) {
+  const t = String(a.analysis || '').replace(/\s+/g, ' ').trim();
+  if (!t || /^Resume non disponible/i.test(t) || t.toLowerCase() === String(a.title || '').trim().toLowerCase()) return null;
+  return resumeCourt(t, 700);
+}
 // TR_CONCURRENCE_MAX : plafond de requetes de traduction simultanees. Un
 // rapport complet peut contenir plusieurs centaines de textes distincts a
 // traduire (titres, analyses, evenements agenda...) ; les envoyer tous en
@@ -10451,7 +10503,7 @@ function archiverHistorique(rejetes) {
   // Le sport (transferts, matchs...) n'est jamais une reference de securite :
   // exclu de l'archive pour ne jamais alimenter, meme faiblement, le bonus
   // historique de calcAlertScore (voir garde-fou classify()/estContenuSportif).
-  rejetes.filter(a => a.cat !== 'sport' && a.cat !== 'culture').forEach(a => { if (!map[a.id]) map[a.id] = { id:a.id, title:a.title, cy:a.cy, cat:a.cat, level:a.level, pubDate:a.pubDate||0, primary:a.primary, score:a.score||0 }; });
+  rejetes.filter(a => a.cat !== 'sport' && a.cat !== 'culture').forEach(a => { if (!map[a.id]) map[a.id] = { id:a.id, title:a.title, cy:a.cy, cat:a.cat, level:a.level, pubDate:a.pubDate||0, primary:a.primary, score:a.score||0, url:a.url||null, analysis: resumeFaitMois(a) || undefined, _media: (a._media && a._media.img) ? { img: a._media.img } : undefined, _dateNonFiable: sourceDateNonFiable(a) || undefined, verified: (a.verified === true || (Array.isArray(a._fusionnes) && a._fusionnes.length > 0)) || undefined }; });
   const seuil = Date.now() - HISTORIQUE_MAX_AGE_MS;
   let vals = Object.values(map).filter(a => (a.pubDate||0) === 0 || a.pubDate >= seuil || true); // pas de pubDate fiable : on garde quand meme comme reference qualitative
   if (vals.length > HISTORIQUE_MAX) vals = vals.sort((a,b)=>(b.pubDate||0)-(a.pubDate||0)).slice(0, HISTORIQUE_MAX);
@@ -22253,7 +22305,7 @@ function chargerRapportsAuto(){
     .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(function(d){
       var l = (d && d.rapports) || [];
-      if (!l.length) { el.textContent = "Aucun rapport GRSCI n'a encore été généré. Le prochain le sera au premier passage à partir du 24."; return; }
+      if (!l.length) { el.textContent = "Aucun rapport GRSCI n'a encore été généré. Il le sera au prochain passage de la collecte, puis mis à jour chaque jour."; return; }
       el.innerHTML = '';
       var NOMS = { pptx: 'PowerPoint', docx: 'Word', pdf: 'PDF' };
       l.forEach(function(r, i){
@@ -22263,7 +22315,12 @@ function chargerRapportsAuto(){
         var quand = g && !isNaN(g) ? ' — généré le ' + g.toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '';
         var t = document.createElement('span');
         t.style.fontWeight = '700';
-        t.textContent = 'Rapport GRSCI ' + r.mois + (i === 0 ? ' (le plus récent)' : '') + quand;
+        // La période couverte (du 1er au jour du rapport) : le rapport du mois
+        // en cours est réécrit chaque jour, le lecteur doit savoir jusqu'où il va.
+        var MOISN = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+        var pj = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(r.jour || ''));
+        var per = pj ? ' — période du 1er au ' + (Number(pj[3]) === 1 ? '1er' : Number(pj[3])) + ' ' + MOISN[Number(pj[2]) - 1] + ' ' + pj[1] : '';
+        t.textContent = 'Rapport GRSCI ' + r.mois + (i === 0 ? ' (le plus récent)' : '') + per + quand.replace('généré', 'mis à jour');
         ligne.appendChild(t);
         (r.formats || []).forEach(function(f){
           if (!NOMS[f] || !/^\d{4}-\d{2}$/.test(String(r.mois))) return;
