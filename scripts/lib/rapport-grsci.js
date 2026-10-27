@@ -1,8 +1,15 @@
-// Rapport mensuel du GRSCI (Groupe des Responsables Sûreté de Côte d'Ivoire) :
+// Rapport mensuel de sûreté (né pour la rencontre mensuelle d'un groupe de
+// responsables sûreté ivoiriens, dont il garde la présentation) :
 // « Faits marquants en Côte d'Ivoire » puis « Dynamiques régionales », dans la
 // présentation du modèle d'octobre 2024 (couverture, table des matières,
 // intercalaires, pages thématiques, pays numérotés avec drapeau, MERCI, bandeau
-// de pied avec le logo).
+// de pied).
+//
+// IL NE PORTE PLUS LE NOM NI LE LOGO DU GROUPE. Décision de YORO du 27/10/2026 :
+// « supprime la mention GRSCI mais garde le modèle de présentation ». Le rapport
+// porte l'identité d'envoi et le logo choisis (lireEmetteur, plus bas), à
+// défaut SentiqS ; la mise en page est inchangée. Les noms de fichiers du code (rapport-grsci.js…) sont restés
+// pour ne pas casser l'historique : ils ne sont jamais vus par le lecteur.
 //
 // CE RAPPORT NE PARLE PAS LE LANGAGE DE L'APPLI. Demande du 21/10/2026 : il doit
 // respecter la présentation transmise, pas s'adapter à l'outil qui fait ressortir
@@ -19,6 +26,63 @@ const { nettoyerTitre } = require('./faits-grsci');
 const redaction = require('./redaction-grsci');
 
 const ASSETS = path.join(__dirname, '..', 'assets', 'grsci');
+
+// L'émetteur du rapport : identité d'envoi et logo de l'organisation
+// (demande de YORO du 27/10/2026, après le retrait du nom du groupe). Le job
+// n'a pas accès aux réglages d'un navigateur (Paramètres > Personnalisation de
+// marque vit dans le localStorage de l'utilisateur) : l'émetteur est donc un
+// fichier du dépôt, scripts/config/rapport-mensuel.json, et son logo un
+// fichier à côté. Sans fichier, ou avec un logo illisible, le rapport est
+// signé SentiqS sans logo : jamais un rapport bloqué faute de logo.
+const CONFIG_EMETTEUR = path.join(__dirname, '..', 'config', 'rapport-mensuel.json');
+const EMETTEUR_DEFAUT = { identite: 'SentiqS', signature: 'veille de sûreté sur l\'Afrique', logo: null, logoRatio: null };
+
+// Largeur / hauteur d'un PNG ou d'un JPEG, lue dans l'en-tête : le logo est
+// posé sans être déformé, quelle que soit sa forme.
+function ratioImage(buf) {
+  if (buf.length > 24 && buf.readUInt32BE(0) === 0x89504e47) return buf.readUInt32BE(16) / buf.readUInt32BE(20);
+  if (buf[0] === 0xff && buf[1] === 0xd8) {
+    let i = 2;
+    while (i + 9 < buf.length) {
+      if (buf[i] !== 0xff) { i++; continue; }
+      const m = buf[i + 1];
+      if (m >= 0xc0 && m <= 0xcf && m !== 0xc4 && m !== 0xc8 && m !== 0xcc) return buf.readUInt16BE(i + 7) / buf.readUInt16BE(i + 5);
+      i += 2 + buf.readUInt16BE(i + 2);
+    }
+  }
+  return null;
+}
+
+function lireEmetteur(chemin) {
+  const fichier = chemin || CONFIG_EMETTEUR;
+  let c = {};
+  try { c = JSON.parse(fs.readFileSync(fichier, 'utf8')) || {}; } catch (e) { c = {}; }
+  const texte = (v, d) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, 80) : d);
+  const em = {
+    identite: texte(c.identite, EMETTEUR_DEFAUT.identite),
+    signature: typeof c.signature === 'string' ? c.signature.trim().slice(0, 80) : EMETTEUR_DEFAUT.signature,
+    logo: null, logoRatio: null,
+  };
+  if (typeof c.logo === 'string' && /\.(png|jpe?g)$/i.test(c.logo)) {
+    const p = path.resolve(path.dirname(fichier), c.logo);
+    try {
+      const r = ratioImage(fs.readFileSync(p));
+      if (r && r > 0.1 && r < 10) { em.logo = p; em.logoRatio = r; }
+    } catch (e) { /* logo absent : rapport sans logo */ }
+  }
+  return em;
+}
+
+const piedTexte = (em) => em.identite + (em.signature ? ' — ' + em.signature : '');
+
+// Le logo tient dans une boîte (pouces) sans être déformé.
+function cadreLogo(ratio, wMax, hMax) {
+  const w = Math.min(wMax, hMax * ratio);
+  return { w, h: w / ratio };
+}
+
+const TITRE_COUVERTURE = ['RAPPORT MENSUEL', 'DE SÛRETÉ'];
+const TITRE_DOCUMENT = (jour) => 'Rapport mensuel de sûreté — ' + dateLongue(jour);
 
 // Pays de la section « Dynamiques régionales », dans l'ordre de lecture du
 // modèle (voisins du nord d'abord). Le Sénégal clôt, comme en 2024.
@@ -109,14 +173,12 @@ function paginer(liste, n) {
 
 
 function pied(s, ctx, numero) {
-  s.addImage({ path: path.join(ASSETS, 'logo-grsci.png'), x: 0.45, y: 6.55, w: 0.6, h: 0.69 });
-  s.addText([
-    { text: 'G', options: { bold: true } }, { text: 'roupe des ' },
-    { text: 'R', options: { bold: true } }, { text: 'esponsables ' },
-    { text: 'S', options: { bold: true } }, { text: 'ûreté de ' },
-    { text: 'C', options: { bold: true } }, { text: 'ôte d\'' },
-    { text: 'I', options: { bold: true } }, { text: 'voire' },
-  ], { x: 3.4, y: 6.8, w: 4.6, h: 0.36, fontFace: POLICE, fontSize: 12, color: TEXTE, align: 'center', valign: 'middle', line: { color: VERT, width: 0.75 } });
+  const em = ctx.emetteur;
+  if (em.logo) {
+    const { w, h } = cadreLogo(em.logoRatio, 1.6, 0.6);
+    s.addImage({ path: em.logo, x: 0.45, y: 6.6 + (0.6 - h) / 2, w, h });
+  }
+  s.addText(piedTexte(em), { x: 3.4, y: 6.8, w: 6.0, h: 0.36, fontFace: POLICE, fontSize: 12, fit: 'shrink', color: TEXTE, align: 'center', valign: 'middle', line: { color: VERT, width: 0.75 } });
   s.addText('|  ' + dateCourte(ctx.jour) + '   |   ' + numero, { x: 10.3, y: 6.9, w: 2.7, h: 0.3, fontFace: POLICE, fontSize: 10, color: TEXTE, align: 'right' });
 }
 
@@ -154,9 +216,16 @@ function pageCouverture(pptx, ctx) {
   const s = pptx.addSlide();
   s.addImage({ path: path.join(ASSETS, 'couverture-abidjan.jpg'), x: 0.2, y: 0.1, w: 12.9, h: 6.4 });
   s.addText([
-    { text: 'RENCONTRE MENSUELLE', options: { breakLine: true } }, { text: 'G.R.S.CI' },
+    { text: TITRE_COUVERTURE[0], options: { breakLine: true } }, { text: TITRE_COUVERTURE[1] },
   ], { x: 2.5, y: 0.25, w: 8.3, h: 1.4, fontFace: POLICE_TITRE, fontSize: 44, color: 'FFFFFF', align: 'center', shadow: { type: 'outer', color: '000000', blur: 6, offset: 2, angle: 45, opacity: 0.6 } });
   s.addShape('line', { x: 3.5, y: 1.75, w: 6.3, h: 0, line: { color: '000000', width: 3 } });
+  s.addText(ctx.emetteur.identite, { x: 2.5, y: 1.85, w: 8.3, h: 0.55, fontFace: POLICE_TITRE, fontSize: 24, color: 'FFFFFF', align: 'center', shadow: { type: 'outer', color: '000000', blur: 6, offset: 2, angle: 45, opacity: 0.6 } });
+  if (ctx.emetteur.logo) {
+    // Sur une pastille blanche : un logo foncé reste lisible sur la photo.
+    const { w, h } = cadreLogo(ctx.emetteur.logoRatio, 1.8, 1.1);
+    s.addShape('rect', { x: 0.45, y: 5.15, w: w + 0.3, h: h + 0.3, fill: { color: 'FFFFFF' }, line: { color: 'FFFFFF', width: 0 } });
+    s.addImage({ path: ctx.emetteur.logo, x: 0.6, y: 5.3, w, h });
+  }
   s.addText(dateLongue(ctx.jour).toUpperCase(), { x: 8.3, y: 5.55, w: 4.7, h: 0.4, fontFace: POLICE, fontSize: 20, bold: true, color: 'FFFFFF', align: 'right' });
   s.addText(libellePeriode(ctx.jour), { x: 6.3, y: 6.0, w: 6.7, h: 0.35, fontFace: POLICE, fontSize: 14, color: 'FFFFFF', align: 'right', shadow: { type: 'outer', color: '000000', blur: 4, offset: 1, angle: 45, opacity: 0.7 } });
   s.addImage({ path: path.join(ASSETS, 'afrique.png'), x: 10.1, y: 6.75, w: 0.6, h: 0.6 });
@@ -342,13 +411,14 @@ function pageMerci(pptx, ctx) {
 // lus. Le niveau d'alerte, la confiance, le score et la cotation de l'appli
 // n'apparaissent PAS : le modèle du groupe n'en a pas, et le rapport doit
 // respecter sa présentation (demande du 21/10/2026).
-function construire(PptxGenJS, { jour, ci, regionaux }) {
+function construire(PptxGenJS, { jour, ci, regionaux, emetteur }) {
+  const em = emetteur || lireEmetteur();
   const pptx = new PptxGenJS();
   pptx.layout = 'LAYOUT_WIDE';
-  pptx.title = 'Rencontre mensuelle G.R.S.CI — ' + dateLongue(jour);
-  pptx.author = 'SentiqS';
+  pptx.title = TITRE_DOCUMENT(jour);
+  pptx.author = em.identite;
   let n = 0;
-  const ctx = { jour, numero: () => ++n };
+  const ctx = { jour, emetteur: em, numero: () => ++n };
 
   pageCouverture(pptx, ctx);
   pageSommaire(pptx, ctx, ci, regionaux);
@@ -500,6 +570,6 @@ function majIndex(racine, chemin, jour, maintenant) {
 module.exports = {
   PAYS_REGIONAUX, construire, planRapport, faitsMarquants, rapportsAActualiser, dernierJourMois, moisPrecedent, libellePeriode, ecrire, majIndex, reconstruireIndex, cheminRapport, rubriqueDe, RUBRIQUES,
   // partagés avec la version Word (rapport-grsci-word.js)
-  ASSETS, VERT, TEXTE, LEGERE, POLICE, POLICE_TITRE, DRAPEAUX, rectsDrapeau,
+  ASSETS, EMETTEUR_DEFAUT, CONFIG_EMETTEUR, lireEmetteur, piedTexte, cadreLogo, ratioImage, TITRE_COUVERTURE, TITRE_DOCUMENT, VERT, TEXTE, LEGERE, POLICE, POLICE_TITRE, DRAPEAUX, rectsDrapeau,
   dateLongue, dateCourte, paginer, faitTexte, ligneConfiance, COTATION, faitsRubrique, MAX_FAITS_RUBRIQUE, FAITS_PAR_PAGE, ROMAIN, MAX_FAITS_PAYS, periode, titreDeFait, taillePastille,
 };

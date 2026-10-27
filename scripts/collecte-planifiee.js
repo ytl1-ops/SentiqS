@@ -76,7 +76,7 @@ const RACINE_HISTORIQUE = process.env.RACINE_HISTORIQUE
 const RACINE_BULLETINS = process.env.RACINE_BULLETINS
   || path.join(__dirname, '..', 'web', 'bulletins');
 const RACINE_GRSCI = process.env.RACINE_RAPPORTS_GRSCI
-  || path.join(__dirname, '..', 'web', 'rapports', 'GRSCI');
+  || path.join(__dirname, '..', 'web', 'rapports', 'mensuel');
 
 // Mémoire inter-runs de SRC_HEALTH / PROXY_HEALTH_PAYS — HORS dépôt
 // (répertoire dans .gitignore), restaurée/sauvegardée par actions/cache

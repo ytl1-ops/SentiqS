@@ -12,7 +12,7 @@
 //
 // Le job appelle `cumuler` à chaque passage, pas seulement le jour du
 // rapport : le mois se construit passage après passage, dans
-// web/rapports/GRSCI/faits-AAAA-MM.json. Le module ne touche ni au réseau ni
+// web/rapports/mensuel/faits-AAAA-MM.json. Le module ne touche ni au réseau ni
 // à la page.
 const fs = require('node:fs');
 const path = require('node:path');

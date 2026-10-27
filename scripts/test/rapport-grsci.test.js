@@ -36,7 +36,7 @@ test('le rapport suit le plan du modèle : couverture, sommaire, CI, régional, 
   const reg = g.PAYS_REGIONAUX.map((c) => pays(c, 'Pays ' + c, [fait('Fait ' + c, 'securite')]));
   const p = g.construire(FauxPptx, { jour: '2026-10-25', ci, regionaux: reg });
   const t = tout(p);
-  assert.ok(t.includes('RENCONTRE MENSUELLE'));
+  assert.ok(t.includes('RAPPORT MENSUEL') && t.includes('DE SÛRETÉ'));
   assert.ok(t.includes('TABLE DES MATIÈRES'));
   assert.ok(t.includes("FAITS MARQUANTS EN CÔTE D'IVOIRE"));
   assert.ok(t.includes('DYNAMIQUES RÉGIONALES'));
@@ -44,7 +44,7 @@ test('le rapport suit le plan du modèle : couverture, sommaire, CI, régional, 
   assert.ok(t.includes('MERCI'));
   assert.strictEqual(p.slides.filter((s) => s.textes.some((x) => x.includes('situation Fin octobre'))).length, 1);
   assert.ok(p.slides[0].images.some((i) => i.endsWith('couverture-abidjan.jpg')));
-  for (const s of p.slides) assert.ok(s.images.some((i) => i.endsWith('logo-grsci.png')), 'logo absent du pied');
+  for (const s of p.slides) assert.ok(s.textes.includes(g.piedTexte(g.EMETTEUR_DEFAUT)), 'signature absente du pied');
 });
 
 test('une rubrique sans fait ne produit pas de page, et beaucoup de faits se paginent', () => {
@@ -102,13 +102,13 @@ test('le rapport du mois se réécrit chaque jour sur sa période', () => {
 });
 
 test('les ressources du modèle sont présentes et le job est câblé', async () => {
-  for (const f of ['logo-grsci.png', 'couverture-abidjan.jpg', 'afrique.png']) {
+  for (const f of ['couverture-abidjan.jpg', 'afrique.png']) {
     assert.ok(fs.existsSync(path.join(__dirname, '..', 'assets', 'grsci', f)), f);
   }
   const job = fs.readFileSync(path.join(__dirname, '..', 'collecte-planifiee.js'), 'utf8');
   assert.ok(/rapportGrsci\.ecrire/.test(job) && /GRSCI_FORCER/.test(job));
   const wf = fs.readFileSync(path.join(__dirname, '..', '..', '.github', 'workflows', 'collecte-planifiee.yml'), 'utf8');
-  assert.ok(/pptxgenjs@3\.12\.0/.test(wf) && /git add web\/rapports/.test(wf) && /grsci:/.test(wf));
+  assert.ok(/pptxgenjs@3\.12\.0/.test(wf) && /git add web\/rapports/.test(wf) && /rapport_mensuel:/.test(wf));
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'grsci-'));
   const chemin = await g.ecrire(dir, FauxPptx, { jour: '2026-10-25', ci: pays('CI', 'CI', []), regionaux: [] });
   assert.ok(fs.existsSync(chemin) && chemin.endsWith('2026-10.pptx'));
@@ -140,12 +140,12 @@ test("le rapport est retrouvable : lien stable, index lu par l'appli", async () 
   assert.deepStrictEqual(apres[0].formats, ['pptx', 'pdf'], 'le PDF ajouté après coup est vu par l\u2019index');
   assert.strictEqual(apres[0].genere, idx[0].genere, 'la date de génération déjà écrite est conservée');
   const html = fs.readFileSync(path.join(__dirname, '..', '..', 'web', 'SentiqS_Web.html'), 'utf8');
-  assert.ok(/id="rpAutoListe"/.test(html) && /fetch\('rapports\/GRSCI\/index\.json'/.test(html));
+  assert.ok(/id="rpAutoListe"/.test(html) && /fetch\('rapports\/mensuel\/index\.json'/.test(html));
   assert.ok(/function updateDLCounts\(\)\{\s*chargerRapportsAuto\(\)/.test(html));
 });
 
 test('le rapport et son index publiés sont cohérents', () => {
-  const racine = path.join(__dirname, '..', '..', 'web', 'rapports', 'GRSCI');
+  const racine = path.join(__dirname, '..', '..', 'web', 'rapports', 'mensuel');
   const idx = JSON.parse(fs.readFileSync(path.join(racine, 'index.json'), 'utf8')).rapports;
   assert.ok(idx.length >= 1);
   for (const r of idx) for (const f of r.formats) assert.ok(fs.existsSync(path.join(racine, r.mois + '.' + f)), r.mois + '.' + f);
@@ -184,7 +184,7 @@ test('la version Word reprend les pages du PowerPoint avec de vrais textes', asy
   const chemin = await w.ecrireWord(dir, docx, { jour: '2026-10-25', ci, regionaux: [pays('ML', 'Mali', [])] });
   assert.ok(chemin.endsWith('2026-10.docx') && fs.existsSync(chemin) && fs.existsSync(path.join(dir, 'dernier.docx')));
   const tout = textes.join('\n');
-  for (const attendu of ['RENCONTRE MENSUELLE', 'TABLE DES MATIÈRES', '- POLITIQUE', '- SOCIAL', 'DYNAMIQUES RÉGIONALES', 'MERCI', 'MANIFESTATION ANTI 4E MANDAT']) {
+  for (const attendu of ['RAPPORT MENSUEL', 'DE SÛRETÉ', g.piedTexte(g.EMETTEUR_DEFAUT), 'TABLE DES MATIÈRES', '- POLITIQUE', '- SOCIAL', 'DYNAMIQUES RÉGIONALES', 'MERCI', 'MANIFESTATION ANTI 4E MANDAT']) {
     assert.ok(tout.includes(attendu), attendu);
   }
   assert.ok(fs.existsSync(path.join(dir, 'index.json')) && JSON.parse(fs.readFileSync(path.join(dir, 'index.json'), 'utf8')).rapports[0].formats.includes('docx'));
@@ -204,4 +204,62 @@ test('le workflow installe docx, convertit en PDF et le job écrit le Word', () 
   assert.ok(/docx@8\.5\.0/.test(wf) && /soffice --headless --convert-to pdf/.test(wf) && /indexer-rapports-grsci/.test(wf));
   const job = fs.readFileSync(path.join(__dirname, '..', 'collecte-planifiee.js'), 'utf8');
   assert.ok(/ecrireWord/.test(job));
+});
+
+// Décision de YORO du 27/10/2026 : « supprime la mention GRSCI mais garde le
+// modèle de présentation ». Ni le nom, ni le sigle, ni le logo du groupe ne
+// doivent atteindre le lecteur : PowerPoint, Word, propriétés du document,
+// module Rapports de l'appli et adresses de téléchargement.
+test('aucune mention du groupe GRSCI n\u2019atteint le lecteur', async () => {
+  const interdit = /G\.?R\.?S\.?CI|Groupe des Responsables|RENCONTRE MENSUELLE/i;
+  const ci = pays('CI', "Côte d'Ivoire", [fait('Attaque sur un axe', 'securite')]);
+  const reg = g.PAYS_REGIONAUX.map((c) => pays(c, 'Pays ' + c, [fait('Fait ' + c, 'securite')]));
+  const p = g.construire(FauxPptx, { jour: '2026-10-25', ci, regionaux: reg });
+  assert.doesNotMatch(tout(p), interdit);
+  assert.doesNotMatch(String(p.title || ''), interdit);
+  for (const s of p.slides) assert.ok(!s.images.some((i) => /logo-grsci/.test(i)), 'logo du groupe');
+  assert.ok(!fs.existsSync(path.join(__dirname, '..', 'assets', 'grsci', 'logo-grsci.png')));
+  const w = require('../lib/rapport-grsci-word.js');
+  const { docx, textes } = fauxDocx();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mensuel-'));
+  await w.ecrireWord(dir, docx, { jour: '2026-10-25', ci, regionaux: reg });
+  assert.doesNotMatch(textes.join('\n'), interdit);
+  const html = fs.readFileSync(path.join(__dirname, '..', '..', 'web', 'SentiqS_Web.html'), 'utf8');
+  const debut = html.indexOf('function chargerRapportsAuto');
+  assert.ok(debut > 0);
+  assert.doesNotMatch(html.slice(debut, html.indexOf('\n}', debut)), /GRSCI/);
+  assert.doesNotMatch(html.slice(html.indexOf('Rapports automatiques'), html.indexOf('id="rpAutoListe"')), /GRSCI/);
+  assert.ok(!fs.existsSync(path.join(__dirname, '..', '..', 'web', 'rapports', 'GRSCI')), 'ancien dossier GRSCI encore servi');
+});
+
+// Demande de YORO du 27/10/2026 : le logo et l'identité d'envoi de
+// l'organisation doivent pouvoir être insérés dans le rapport.
+test('le rapport porte l’identité d’envoi et le logo configurés, sinon SentiqS sans logo', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'emetteur-'));
+  fs.copyFileSync(path.join(__dirname, '..', 'assets', 'grsci', 'afrique.png'), path.join(dir, 'logo.png'));
+  fs.writeFileSync(path.join(dir, 'conf.json'), JSON.stringify({ identite: 'Direction Sûreté Exemple', signature: '', logo: 'logo.png' }));
+  const em = g.lireEmetteur(path.join(dir, 'conf.json'));
+  assert.strictEqual(em.identite, 'Direction Sûreté Exemple');
+  assert.ok(em.logo && em.logo.endsWith('logo.png') && em.logoRatio > 0);
+  const ci = pays('CI', "Côte d'Ivoire", [fait('Attaque sur un axe', 'securite')]);
+  const p = g.construire(FauxPptx, { jour: '2026-10-25', ci, regionaux: [], emetteur: em });
+  assert.ok(p.slides[0].textes.includes('Direction Sûreté Exemple'), 'identité en couverture');
+  for (const s of p.slides) {
+    assert.ok(s.textes.includes('Direction Sûreté Exemple'), 'identité au pied');
+    assert.ok(s.images.some((i) => i === em.logo), 'logo au pied');
+  }
+  assert.strictEqual(p.author, 'Direction Sûreté Exemple');
+  const w = require('../lib/rapport-grsci-word.js');
+  const { docx, textes } = fauxDocx();
+  await w.ecrireWord(dir, docx, { jour: '2026-10-25', ci, regionaux: [], emetteur: em });
+  assert.ok(textes.includes('Direction Sûreté Exemple'));
+  // Un logo illisible ou absent ne bloque jamais le rapport.
+  fs.writeFileSync(path.join(dir, 'casse.json'), JSON.stringify({ identite: 'X', logo: 'absent.png' }));
+  assert.strictEqual(g.lireEmetteur(path.join(dir, 'casse.json')).logo, null);
+  const defaut = g.lireEmetteur(path.join(dir, 'inexistant.json'));
+  assert.strictEqual(defaut.identite, 'SentiqS');
+  assert.strictEqual(defaut.logo, null);
+  // Le fichier du dépôt est lisible et son logo, s'il est déclaré, existe.
+  const depot = JSON.parse(fs.readFileSync(g.CONFIG_EMETTEUR, 'utf8'));
+  if (depot.logo) assert.ok(g.lireEmetteur().logo, 'logo déclaré mais illisible : ' + depot.logo);
 });

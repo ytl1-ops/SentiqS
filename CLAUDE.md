@@ -3191,6 +3191,26 @@ plus le job), et le rapport est écrit avec ce qui a été obtenu ; le journal
 dit combien de titres sont reportés au passage suivant.
 `scripts/test/grsci-budget.test.js` (4, vus échouer sans le correctif).
 
+
+### Plus de nom GRSCI ; l'émetteur se configure — 27/10/2026
+
+Décision de YORO : « supprime la mention GRSCI mais garde le modèle de
+présentation », puis « le logo et l'identité d'envoi pourront être insérés ».
+Le rapport garde toute sa mise en page (couverture, sommaire, rubriques,
+pages pays, faits rédigés, MERCI) mais ne porte plus ni le nom, ni le sigle,
+ni le logo du groupe : couverture « RAPPORT MENSUEL / DE SÛRETÉ », dossier
+servi `web/rapports/mensuel/`, case `rapport_mensuel` du lancement manuel,
+libellés du module Rapports. Un test refuse toute mention du groupe dans le
+PowerPoint, le Word, le module Rapports et le dossier servi.
+
+**L'émetteur est un fichier du dépôt**, `scripts/config/rapport-mensuel.json`
+(`identite`, `signature`, `logo` : PNG/JPEG posé à côté). Le job ne voit pas
+Paramètres > Personnalisation de marque, qui vit dans le navigateur de chaque
+utilisateur. Sans fichier ou avec un logo illisible : SentiqS, sans logo —
+jamais un rapport bloqué. Les noms de fichiers du code (`rapport-grsci.js`,
+`faits-grsci.js`…, variables `GRSCI_*`) sont restés : le lecteur ne les voit
+jamais, et les renommer n'apportait que du risque.
+
 ---
 
 ## Mobile : la page défile d'un bloc — 22/10/2026
