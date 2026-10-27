@@ -529,6 +529,14 @@
   ],
   "NE": [
    {
+    "titre": "Le Niger dénonce une attaque de drone du Tchad avec «l’appui de la France»",
+    "url": "https://www.rfi.fr/fr/afrique/20261027-le-niger-d%C3%A9nonce-une-attaque-de-drone-du-tchad-avec-l-appui-de-la-france",
+    "source": "RFI Afrique",
+    "niveau": "crit",
+    "cat": "politique",
+    "publieMs": 1793078531000
+   },
+   {
     "titre": "Niger : Niamey accuse le Tchad d’une frappe de drone meurtrière avec l’appui de la France",
     "url": "https://tchadinfos.com/2026/10/26/niger-niamey-accuse-le-tchad-dune-frappe-de-drone-meurtriere-avec-lappui-de-la-france/",
     "source": "Tchadinfos",
@@ -729,6 +737,22 @@
     "niveau": "high",
     "cat": "securite",
     "publieMs": 1792771569000
+   },
+   {
+    "titre": "Jamestown fishermen threaten demo over delayed operationalisation of cold store",
+    "url": "https://www.myjoyonline.com/jamestown-fishermen-threaten-demo-over-delayed-operationalisation-of-cold-store/",
+    "source": "JoyOnline",
+    "niveau": "mod",
+    "cat": "securite",
+    "publieMs": 1793085246000
+   },
+   {
+    "titre": "Ebola fight: Misinformation is our worst enemy — GHS boss",
+    "url": "https://www.myjoyonline.com/ebola-fight-misinformation-is-our-worst-enemy-ghs-boss/",
+    "source": "JoyOnline",
+    "niveau": "mod",
+    "cat": "humanitaire",
+    "publieMs": 1793079349000
    },
    {
     "titre": "Ghana not adequately prepared for Ebola threat — Dr Kingsley Agyemang",
@@ -1235,6 +1259,14 @@
   ],
   "LR": [
    {
+    "titre": "Liberia: Dolphin Killed, Butchered Before NaFAA Rescue Team Arrived",
+    "url": "https://frontpageafricaonline.com/liberia-dolphin-killed-butchered-before-nafaa-rescue-team-arrived/",
+    "source": "FrontPageAfrica — Liberia",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1793079323000
+   },
+   {
     "titre": "Liberia: Judge Cites Evidence in Finding NSA Staff Peter Bon Jallah Guilty of Statutory Rape, Kidnapping",
     "url": "https://frontpageafricaonline.com/liberia-judge-cites-evidence-in-finding-nsa-staff-peter-bon-jallah-guilty-of-statutory-rape-kidnapping/",
     "source": "FrontPageAfrica — Liberia",
@@ -1284,6 +1316,22 @@
    }
   ],
   "SN": [
+   {
+    "titre": "Karamo Cissé Ndiaye arrêté pour le meurtre d’Aminata Sy après une dispute violente",
+    "url": "https://www.senenews.com/actualites/karamo-cisse-ndiaye-avoue-pourquoi-jai-tue-aminata-sy-sa-mere-ne-voulait-pas_604186.html",
+    "source": "SeneNews",
+    "niveau": "crit",
+    "cat": "securite",
+    "publieMs": 1793088696000
+   },
+   {
+    "titre": "[EXCLUSIF] Meurtre d'Aminata Sy à Podor : arrêté par la police de Mbacké, son petit ami passe aux aveux",
+    "url": "https://www.seneweb.com/fr/news/Societe/exclusif-meurtre-daminata-sy-a-podor-arrete-par-la-police-de-mbacke-son-petit-ami-passe-aux-aveux_n_999001845.html",
+    "source": "Seneweb",
+    "niveau": "crit",
+    "cat": "politique",
+    "publieMs": 1793086136000
+   },
    {
     "titre": "Pacte de stabilité sociale : le taux d’exécution des engagements de l’État attendu à 71 % en décembre (ministre)",
     "url": "https://aps.sn/pacte-de-stabilite-sociale-le-taux-dexecution-des-engagements-de-letat-attendu-a-71-en-decembre-ministre/",
@@ -1523,6 +1571,22 @@
     "niveau": "crit",
     "cat": "humanitaire",
     "publieMs": 1792684500000
+   },
+   {
+    "titre": "Mbeubeuss : cinq travailleurs tués dans un accident impliquant un tricycle",
+    "url": "https://www.dakaractu.com/Mbeubeuss-cinq-travailleurs-tues-dans-un-accident-impliquant-un-tricycle_a277499.html",
+    "source": "Dakar Actu",
+    "niveau": "high",
+    "cat": "politique",
+    "publieMs": 1793088360000
+   },
+   {
+    "titre": "Désinformation au Sahel : Le Timbuktu Institute documente et pose le débat autour d’une menace pour la stabilité et la sécurité",
+    "url": "https://www.dakaractu.com/Desinformation-au-Sahel-Le-Timbuktu-Institute-documente-et-pose-le-debat-autour-d-une-menace-pour-la-stabilite-et-la_a277493.html",
+    "source": "Dakar Actu",
+    "niveau": "high",
+    "cat": "securite",
+    "publieMs": 1793085840000
    },
    {
     "titre": "Mbeubeuss : 4 morts dans un accident impliquant un véhicule du ministère de l'Urbanisme",
@@ -1779,6 +1843,22 @@
     "niveau": "high",
     "cat": "politique",
     "publieMs": 1792765740000
+   },
+   {
+    "titre": "Blocage de la LFR : les recours institutionnels évoqués pour éviter la paralysie",
+    "url": "https://www.dakaractu.com/Blocage-de-la-LFR-les-recours-institutionnels-evoques-pour-eviter-la-paralysie_a277498.html",
+    "source": "Dakar Actu",
+    "niveau": "mod",
+    "cat": "economique",
+    "publieMs": 1793088240000
+   },
+   {
+    "titre": "Projet de loi de finances rectificative au Sénégal: «Pas de réponse satisfaisante sur la hausse du prix de l'énergie»",
+    "url": "https://www.rfi.fr/fr/podcasts/le-grand-invit%C3%A9-afrique/20261027-projet-de-loi-de-finances-rectificative-au-s%C3%A9n%C3%A9gal-pas-de-r%C3%A9ponse-satisfaisante-sur-la-hausse-du-prix-de-l-%C3%A9nergie",
+    "source": "RFI Afrique",
+    "niveau": "mod",
+    "cat": "politique",
+    "publieMs": 1793081571000
    },
    {
     "titre": "Diourbel : 3 416 contrats de travail enregistrés en 2025",
