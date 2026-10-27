@@ -38,9 +38,12 @@ test('le job borne chaque traduction et passe l’échéance aux photos', () => 
   const job = fs.readFileSync(path.join(__dirname, '..', 'collecte-planifiee.js'), 'utf8');
   const debut = job.indexOf('RAPPORT MENSUEL GRSCI');
   const bloc = job.slice(debut, job.indexOf('Archive : non ecrite', debut));
-  const appelsTr = bloc.match(/page\.evaluate\([^\n]*trFetch/g) || [];
+  // Les traductions passent par Node (traduction-job.js), plus par trFetch
+  // dans la page : depuis le runner, celle-ci ne rendait rien (n° 1142).
+  assert.strictEqual((bloc.match(/page\.evaluate\([^\n]*trFetch/g) || []).length, 0, 'plus de traduction par la page');
+  const appelsTr = bloc.match(/traduireJob\(/g) || [];
   assert.ok(appelsTr.length >= 2, 'deux appels de traduction attendus');
-  const bornes = bloc.match(/avecDelai\(page\.evaluate\([^\n]*trFetch/g) || [];
+  const bornes = bloc.match(/avecDelai\(traduireJob\(/g) || [];
   assert.strictEqual(bornes.length, appelsTr.length, 'chaque traduction est bornée dans le temps');
   assert.match(bloc, /illustrer\(marquants, [^)]*limiteGrsci\)/);
   assert.match(bloc, /dansBudget\(\)/);

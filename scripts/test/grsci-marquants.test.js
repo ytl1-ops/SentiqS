@@ -173,3 +173,15 @@ test('le job fournit chapô, ville et image, et les reporte dans le cumul', () =
   assert.strictEqual(c.pays.CI[0].img, 'https://x.ci/a.jpg');
   assert.strictEqual(c.pays.CI[0].ville, 'Bouaké');
 });
+
+// Rapport du 27/10/2026 : logo d'AllAfrica en guise de photo (Burkina Faso),
+// blason d'un syndicat (Bénin). Pas de photo plutôt qu'un logo.
+test('un logo de site n’est jamais pris pour la photo du fait', () => {
+  const { ressembleLogo } = require('../lib/photos-grsci');
+  assert.ok(ressembleLogo('https://allafrica.com/static/images/logo/aa-logo-og.png'));
+  assert.ok(ressembleLogo('https://exemple.com/favicon.png'));
+  assert.ok(ressembleLogo('https://exemple.com/img/union.png', { type: 'png', w: 600, h: 600 }), 'PNG carré');
+  assert.ok(!ressembleLogo('https://exemple.com/uploads/2026/10/IMG_1234.jpg', { type: 'jpg', w: 1200, h: 800 }));
+  assert.ok(!ressembleLogo('https://exemple.com/uploads/2026/10/scene.png', { type: 'png', w: 1200, h: 675 }));
+  assert.ok(!ressembleLogo('https://exemple.com/uploads/catalogue-2026.jpg'), '« logo » au milieu d’un mot ne compte pas');
+});
