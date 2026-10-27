@@ -550,6 +550,7 @@ function ecrireResumeActions(md) {
           // chaîne de la page, une fois, et le titre traduit est gardé dans
           // le cumul. Plafonné par passage : le reste attend le suivant.
           let aTraduire = 0;
+          let titresTraduits = 0;
           for (const cy of paysGrsci) {
             for (const f of (cumul.pays[cy] || [])) {
               // Entrées versées avant le 27/10/2026 (premier cumul, PR #125) :
@@ -564,13 +565,13 @@ function ecrireResumeActions(md) {
                 // Traduit par Node, pas par la page : depuis le runner, la chaîne
                 // de la page ne rendait rien (passage n° 1142, voir traduction-job.js).
                 const fr = await avecDelai(traduireJob(f.titre, f.langue), TRAD_DELAI_MS);
-                if (typeof fr === 'string' && fr.trim() && fr.trim() !== f.titre.trim()) f.titreFr = faitsGrsci.nettoyerTitre(fr);
+                if (typeof fr === 'string' && fr.trim() && fr.trim() !== f.titre.trim()) { f.titreFr = faitsGrsci.nettoyerTitre(fr); titresTraduits++; }
               } catch (e) { /* le passage suivant réessaiera */ }
             }
           }
           faitsGrsci.ecrireCumul(RACINE_GRSCI, cumul);
           const total = paysGrsci.reduce((n, cy) => n + ((cumul.pays[cy] || []).length), 0);
-          console.log('  GRSCI : ' + total + ' faits cumules pour ' + mois + ' (' + aTraduire + ' titres soumis a traduction'
+          console.log('  GRSCI : ' + total + ' faits cumules pour ' + mois + ' (' + aTraduire + ' titres soumis a traduction, ' + titresTraduits + ' traduits'
             + (horsBudget ? ', ' + horsBudget + ' reportes au passage suivant faute de temps' : '') + ').');
 
           // Rapport du mois en cours réécrit au premier passage de chaque jour
