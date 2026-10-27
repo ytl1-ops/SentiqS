@@ -134,3 +134,8 @@ test('sans photo ni vidéo de la source, aucun visuel ne s’affiche', () => {
   assert.match(css, /\.vact\.sans-img:not\(\.vact-video\)[^{]*\{display:none\}/);
   assert.match(css, /\.vact:not\(\.vact-video\) \.vact-repli\{display:none\}/);
 });
+
+test('la pastille de numéro tient sur une ligne jusqu’à « VIII »', () => {
+  assert.strictEqual(g.taillePastille('II'), 24);
+  assert.ok(g.taillePastille('VIII') <= 16, 'à 24 pt « VIII » passait sur deux lignes');
+});

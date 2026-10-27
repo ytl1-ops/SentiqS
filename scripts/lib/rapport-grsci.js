@@ -120,11 +120,16 @@ function pied(s, ctx, numero) {
   s.addText('|  ' + dateCourte(ctx.jour) + '   |   ' + numero, { x: 10.3, y: 6.9, w: 2.7, h: 0.3, fontFace: POLICE, fontSize: 10, color: TEXTE, align: 'right' });
 }
 
+function taillePastille(num) {
+  const n = String(num).length;
+  return n <= 2 ? 24 : n === 3 ? 20 : 16;
+}
+
 function titrePage(s, num, titre, pays) {
   const souligne = /^- /.test(titre);
-  // « VIII » ne tient pas à 24 pt dans la pastille : il passait sur deux
-  // lignes (« VII / I », page Liberia du rapport d'octobre 2026).
-  s.addText(num, { x: 0.5, y: 0.3, w: 0.7, h: 0.6, fontFace: POLICE_TITRE, fontSize: num.length > 2 ? 17 : 24, color: 'FFFFFF', fill: { color: VERT }, align: 'center', valign: 'middle' });
+  // « VIII » à 24 pt ne tenait pas dans la pastille et passait sur deux lignes
+  // (« VII » puis « I », rapport du 23/10/2026, page Liberia).
+  s.addText(num, { x: 0.5, y: 0.3, w: 0.7, h: 0.6, fontFace: POLICE_TITRE, fontSize: taillePastille(num), fit: 'shrink', color: 'FFFFFF', fill: { color: VERT }, align: 'center', valign: 'middle' });
   s.addText(titre, { x: 1.35, y: 0.3, w: 9.8, h: 0.6, fontFace: POLICE_TITRE, fontSize: 28, underline: souligne, color: VERT, valign: 'middle' });
   if (pays && DRAPEAUX[pays]) {
     // Drapeau en coin de page, comme dans le modèle.
@@ -496,5 +501,5 @@ module.exports = {
   PAYS_REGIONAUX, construire, planRapport, faitsMarquants, rapportsAActualiser, dernierJourMois, moisPrecedent, libellePeriode, ecrire, majIndex, reconstruireIndex, cheminRapport, rubriqueDe, RUBRIQUES,
   // partagés avec la version Word (rapport-grsci-word.js)
   ASSETS, VERT, TEXTE, LEGERE, POLICE, POLICE_TITRE, DRAPEAUX, rectsDrapeau,
-  dateLongue, dateCourte, paginer, faitTexte, ligneConfiance, COTATION, faitsRubrique, MAX_FAITS_RUBRIQUE, FAITS_PAR_PAGE, ROMAIN, MAX_FAITS_PAYS, periode, titreDeFait,
+  dateLongue, dateCourte, paginer, faitTexte, ligneConfiance, COTATION, faitsRubrique, MAX_FAITS_RUBRIQUE, FAITS_PAR_PAGE, ROMAIN, MAX_FAITS_PAYS, periode, titreDeFait, taillePastille,
 };

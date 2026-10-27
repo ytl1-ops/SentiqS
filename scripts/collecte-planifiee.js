@@ -544,6 +544,11 @@ function ecrireResumeActions(md) {
           let aTraduire = 0;
           for (const cy of paysGrsci) {
             for (const f of (cumul.pays[cy] || [])) {
+              // Entrées versées avant le 27/10/2026 (premier cumul, PR #125) :
+              // sans langue notée, elles ne seraient jamais traduites.
+              if (!f.langue && !f.titreFr) {
+                try { f.langue = await page.evaluate((t) => (typeof detectLangue === 'function') ? detectLangue(t) : null, f.titre); } catch (e) { /* passage suivant */ }
+              }
               if (f.titreFr || !['en', 'pt', 'ar'].includes(f.langue) || aTraduire >= 120) continue;
               aTraduire++;
               try {
@@ -552,7 +557,7 @@ function ecrireResumeActions(md) {
               } catch (e) { /* le passage suivant réessaiera */ }
             }
           }
-          if (aTraduire) faitsGrsci.ecrireCumul(RACINE_GRSCI, cumul);
+          faitsGrsci.ecrireCumul(RACINE_GRSCI, cumul);
           const total = paysGrsci.reduce((n, cy) => n + ((cumul.pays[cy] || []).length), 0);
           console.log('  GRSCI : ' + total + ' faits cumules pour ' + mois + ' (' + aTraduire + ' titres soumis a traduction).');
 

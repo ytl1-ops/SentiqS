@@ -2527,6 +2527,16 @@ catégorie « humanitaire ». La période du premier pays (« situation Fin
 octobre ») est calculée. Rendus relus avec LibreOffice, pas avec PowerPoint ni
 Word.
 
+**Un mois de faits, pas 36 heures (23/10/2026).** Un premier cumul
+(`grsci-faits.js`, PR #125) a été fusionné le même jour que celui de la
+section « GRSCI tenu à jour sur sa période » plus bas, sur le même fichier
+`web/rapports/GRSCI/faits-AAAA-MM.json` et au même format. Le 27/10/2026 il
+a été remplacé par `faits-grsci.js` (lecture de `HISTORIQUE`, regroupement
+des médias, traduction, réécriture quotidienne), qui reprend tel quel le
+cumul déjà versé depuis le 23 : ses entrées sans langue notée reçoivent la
+leur au passage suivant, puis sont traduites. Gardé de #125 : la taille de la
+pastille de numéro (`taillePastille`, « VIII » sur une ligne).
+
 ---
 
 ## Conventions

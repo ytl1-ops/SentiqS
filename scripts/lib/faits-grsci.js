@@ -76,7 +76,7 @@ function cumuler(racine, mois, parPays) {
         ancien.cotation = meilleureCotation(ancien.cotation, propre.cotation);
         // Un chapô, une ville ou une image arrivés plus tard (aperçu de la
         // source chargé après coup) complètent l'entrée ; jamais ne l'effacent.
-        for (const k of ['resume', 'ville', 'img', 'video']) if (!ancien[k] && propre[k]) ancien[k] = propre[k];
+        for (const k of ['resume', 'ville', 'img', 'video', 'langue']) if (!ancien[k] && propre[k]) ancien[k] = propre[k];
       } else {
         index.set(k, liste.length);
         liste.push(propre);
