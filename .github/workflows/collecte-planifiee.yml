@@ -176,7 +176,14 @@ jobs:
         # mois est tenu à jour sur sa période), pour ne pas installer
         # LibreOffice à chaque passage. Un échec ne fait pas échouer la
         # collecte : le PowerPoint et le Word sont déjà écrits.
-        if: success()
+        # !cancelled() et non success() : le 28/10/2026 la publication du cache
+        # partage a ete refusee par Supabase (402, quota de transfert depasse)
+        # APRES l'ecriture du PowerPoint et du Word. Le job est sorti en erreur,
+        # et success() a fait sauter le PDF, l'index et le commit : le rapport,
+        # qui ne depend pas de Supabase, n'a jamais ete publie. Le job reste
+        # rouge (l'echec de publication doit se voir), mais ce qui est ecrit
+        # localement est archive quand meme.
+        if: ${{ !cancelled() }}
         continue-on-error: true
         timeout-minutes: 8
         run: |
@@ -194,7 +201,8 @@ jobs:
       - name: Index des rapports mensuels
         # Separe du PDF : un PDF en echec ou borne par le delai ne doit pas
         # empecher le PowerPoint et le Word d'apparaitre dans le module Rapports.
-        if: success()
+        # !cancelled() : voir l'etape du PDF (publication Supabase refusee le 28/10).
+        if: ${{ !cancelled() }}
         run: node scripts/indexer-rapports-grsci.js
 
       - name: Archiver l'instantané du jour
@@ -208,7 +216,8 @@ jobs:
         # une fusion serait arrivé pendant les huit minutes de collecte :
         # perdre l'archive du jour pour un conflit de fast-forward serait
         # absurde, et la relancer coûte un cycle entier.
-        if: success()
+        # !cancelled() : voir l'etape du PDF (publication Supabase refusee le 28/10).
+        if: ${{ !cancelled() }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
