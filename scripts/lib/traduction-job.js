@@ -77,4 +77,21 @@ async function traduire(texte, source, opts) {
   return null;
 }
 
-module.exports = { traduire, borne, MAX_CARACTERES };
+// Le detecteur de langue de la page rend « other » pour 37 titres sur 389 le
+// 28/10/2026 (son modele n'est pas disponible sur le runner), dont des titres
+// ghaneens ou nigerians parfaitement anglais qui restaient donc non traduits
+// dans le rapport. Repli volontairement prudent : au moins un mot-outil anglais,
+// aucun mot-outil francais, aucune lettre accentuee francaise. Un titre qui ne
+// passe pas reste « other » et garde son texte.
+const MOTS_EN = new Set('the of and to in for on with as at by from is are was were after over says say new into against amid his her their its that this be has have will not than more us'.split(' '));
+const MOTS_FR = new Set('le la les des du de un une et en pour sur par dans au aux est sont qui que ce se sa son ses il elle ou'.split(' '));
+function ressembleAnglais(titre) {
+  const t = String(titre || '');
+  if (/[éèêàâçùûôîïë]/i.test(t)) return false;
+  const mots = t.toLowerCase().match(/[a-z']+/g) || [];
+  let en = 0, fr = 0;
+  for (const m of mots) { if (MOTS_EN.has(m)) en++; if (MOTS_FR.has(m)) fr++; }
+  return en >= 1 && fr === 0;
+}
+
+module.exports = { traduire, borne, MAX_CARACTERES, ressembleAnglais };
