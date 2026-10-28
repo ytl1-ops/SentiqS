@@ -43,3 +43,13 @@ test('un texte long est coupé avant l’envoi (adresse trop longue sinon)', () 
   const long = 'mot '.repeat(400);
   assert.ok(borne(long).length <= MAX_CARACTERES + 1);
 });
+
+test('un titre anglais que le détecteur de la page ne reconnaît pas est repris', () => {
+  const { ressembleAnglais } = require('../lib/traduction-job');
+  assert.equal(ressembleAnglais('Woman killed by Tema-Afienya train as residents demand footbridge'), true);
+  assert.equal(ressembleAnglais('4 students, one lady killed in Niger governor’s convoy road crash'), true);
+  // le français, accentué ou non, ne doit jamais partir en traduction
+  assert.equal(ressembleAnglais('Togo : agriculture, nucléaire… les députés adoptent quatre textes'), false);
+  assert.equal(ressembleAnglais('Crise institutionnelle : Le message offensif d’Idrissa Seck'), false);
+  assert.equal(ressembleAnglais('AVIS DE MANIFESTATION D’INTÉRÊT N°001/CA/TAFOUK TV/2026'), false);
+});

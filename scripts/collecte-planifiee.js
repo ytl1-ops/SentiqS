@@ -36,7 +36,7 @@ const rapportGrsci = require('./lib/rapport-grsci');
 const rapportGrsciWord = require('./lib/rapport-grsci-word');
 const faitsGrsci = require('./lib/faits-grsci');
 const photosGrsci = require('./lib/photos-grsci');
-const { traduire: traduireJob } = require('./lib/traduction-job');
+const { traduire: traduireJob, ressembleAnglais } = require('./lib/traduction-job');
 const santeCollecte = require('./lib/sante-collecte');
 
 // Firebase Hosting retire (sentinel-surete.web.app ne recoit plus de
@@ -555,8 +555,9 @@ function ecrireResumeActions(md) {
             for (const f of (cumul.pays[cy] || [])) {
               // Entrées versées avant le 27/10/2026 (premier cumul, PR #125) :
               // sans langue notée, elles ne seraient jamais traduites.
-              if (!f.langue && !f.titreFr) {
+              if ((!f.langue || f.langue === 'other') && !f.titreFr) {
                 try { f.langue = await page.evaluate((t) => (typeof detectLangue === 'function') ? detectLangue(t) : null, f.titre); } catch (e) { /* passage suivant */ }
+                if ((!f.langue || f.langue === 'other') && ressembleAnglais(f.titre)) f.langue = 'en';
               }
               if (f.titreFr || !['en', 'pt', 'ar'].includes(f.langue) || aTraduire >= 120) continue;
               if (!dansBudget()) { horsBudget++; continue; }
