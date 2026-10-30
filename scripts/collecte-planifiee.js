@@ -37,6 +37,7 @@ const rapportGrsciWord = require('./lib/rapport-grsci-word');
 const faitsGrsci = require('./lib/faits-grsci');
 const photosGrsci = require('./lib/photos-grsci');
 const { traduire: traduireJob, ressembleAnglais } = require('./lib/traduction-job');
+const cacheFirestore = require('./lib/cache-firestore-ecriture');
 const santeCollecte = require('./lib/sante-collecte');
 
 // Firebase Hosting retire (sentinel-surete.web.app ne recoit plus de
@@ -171,7 +172,20 @@ function ecrireResumeActions(md) {
     // c'est exactement le temps pendant lequel les visiteurs ont vu une
     // donnée périmée. Lecture directe (lireCollectePartagee renvoie null
     // au-delà de la fenêtre de fraîcheur, donc ne peut pas servir ici).
-    const ageCachePrecedent = await page.evaluate(async () => {
+    // Cache partage sur Firestore (etape 2 de FIREBASE.md) des que le secret
+    // FIREBASE_SERVICE_ACCOUNT est pose ; sinon Supabase, comme avant. Illisible
+    // alors que pose : on ne retombe PAS sur Supabase en silence, la publication
+    // echoue bruyamment plus bas.
+    const secretFirebase = process.env.FIREBASE_SERVICE_ACCOUNT || '';
+    const compteFirebase = secretFirebase ? cacheFirestore.lireCompte(secretFirebase) : null;
+    if (secretFirebase && !compteFirebase) console.error('FIREBASE_SERVICE_ACCOUNT est pose mais illisible (JSON de compte de service attendu).');
+    if (compteFirebase) console.log('Cache partage : Firestore (' + compteFirebase.project_id + ').');
+    const ageCachePrecedent = compteFirebase ? await (async () => {
+      try {
+        const a = await cacheFirestore.lireCache(compteFirebase, fetch);
+        return a && a.updated_at ? Date.now() - new Date(a.updated_at).getTime() : null;
+      } catch (_) { return null; }
+    })() : await page.evaluate(async () => {
       try {
         const client = (typeof getClientDonnees === 'function' ? getClientDonnees() : getSentinelSupabase());
         if (!client) return null;
@@ -248,9 +262,33 @@ function ecrireResumeActions(md) {
       // avoir lu/publié l'instantané courant de ALL.
     }
 
-    const resultat = await page.evaluate(async () => {
+    // Publication sur Firestore : le job relit le cache en place, la page le
+    // fusionne avec ALL (fusionnerCachePartage, la meme fonction que la voie
+    // Supabase), puis Node l'ecrit. Lecture impossible (reseau, jeton) : on
+    // n'ecrit PAS — publier ALL seul ecraserait la couverture accumulee des
+    // cycles precedents (voir fusionnerCachePartage).
+    let publicationExterne = null;
+    if (secretFirebase) {
+      try {
+        if (!compteFirebase) throw new Error('FIREBASE_SERVICE_ACCOUNT illisible');
+        const existant = await cacheFirestore.lireCache(compteFirebase, fetch);
+        const fusionnes = await page.evaluate((existants) => {
+          if (!Array.isArray(ALL) || !ALL.length) return null;
+          return fusionnerCachePartage(existants, ALL);
+        }, existant ? existant.articles : []);
+        if (!fusionnes) throw new Error('Aucun article dans ALL');
+        const pubFs = await cacheFirestore.ecrireCache(compteFirebase, fusionnes, fetch);
+        console.log('Cache Firestore publié : ' + pubFs.nbArticles + ' articles, ' + pubFs.parts
+          + ' morceau(x), ' + Math.round(pubFs.octets / 1024) + ' Ko (emplacement ' + pubFs.emplacement + ').');
+        publicationExterne = { ok: true, nbArticles: pubFs.nbArticles };
+      } catch (e) {
+        publicationExterne = { ok: false, raison: 'publication Firestore a echoue : ' + (e && e.message || e) };
+      }
+    }
+
+    const resultat = await page.evaluate(async (pubExterne) => {
       if (!Array.isArray(ALL) || !ALL.length) return { ok: false, raison: 'Aucun article dans ALL' };
-      if (typeof publierCollectePartagee !== 'function') return { ok: false, raison: 'publierCollectePartagee indisponible (Supabase non chargé ?)' };
+      if (!pubExterne && typeof publierCollectePartagee !== 'function') return { ok: false, raison: 'publierCollectePartagee indisponible (Supabase non chargé ?)' };
       // La raison d'etre UNIQUE de ce job est de garder collecte_partagee a
       // jour pour tous les visiteurs (voir en-tete du fichier) — publier ne
       // suffit pas, la publication doit REELLEMENT reussir. Avant ce
@@ -264,7 +302,7 @@ function ecrireResumeActions(md) {
       // presentee comme a jour est un facteur de risque grave ; ce job doit
       // echouer BRUYAMMENT (exit code non nul, run rouge dans GitHub
       // Actions) plutot que de masquer une panne de publication.
-      const pub = await publierCollectePartagee(ALL, true);
+      const pub = pubExterne || await publierCollectePartagee(ALL, true);
       if (!pub || !pub.ok) return { ok: false, raison: 'publierCollectePartagee a echoue : ' + (pub && pub.raison || 'raison inconnue') };
       // Alimente aussi l'index de recherche de l'Assistant IA (RAG) — best-
       // effort, ne doit jamais faire echouer la publication du cache
@@ -302,7 +340,7 @@ function ecrireResumeActions(md) {
         }
       }
       return { ok: true, nbArticles: pub.nbArticles, bestProxy: String(typeof bestProxy !== 'undefined' ? bestProxy : '?') };
-    });
+   }, publicationExterne);
 
     // ── COUVERTURE DE LA COLLECTE ────────────────────────────────────────
     // Un run vert disait seulement « N articles publiés ». Il ne disait pas

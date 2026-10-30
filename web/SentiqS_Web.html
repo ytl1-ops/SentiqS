@@ -32,6 +32,7 @@
      Supabase sinon (voir getSentinelSupabase et FIREBASE.md). -->
 <script src="js/firebase-config.js"></script>
 <script src="js/firebase.js"></script>
+<script src="js/cache-firestore.js"></script>
 <!-- Le kit se télécharge dès l'ouverture, pendant l'animation de garde, au lieu
      d'attendre checkAuth : la connexion ne patiente plus après la vidéo. -->
 <script>try { if (window.SentiqFirebase) window.SentiqFirebase.charger().catch(function () {}); } catch (_) {}</script>
@@ -16424,7 +16425,26 @@ const COLLECTE_PARTAGEE_FRAICHEUR_MS = 40 * 60 * 1000;
 // vieille (perimee) — dans tous ces cas l'appelant retombe sur une
 // collecte reseau locale normale, sans jamais bloquer ni faire echouer le
 // chargement de l'app.
+// _lireCacheFirestore() : cache partage publie par le job sur Firestore (etape
+// 2 de FIREBASE.md, voir web/js/cache-firestore.js). Lecture publique via l'API
+// REST, sans SDK ni compte. Rend {articles, updated_at} ou null (pas encore
+// publie, injoignable, perime) — l'appelant retombe alors sur Supabase.
+async function _lireCacheFirestore() {
+  if (!_fournisseurFirebase() || !window.SentiqCacheFirestore) return null;
+  try {
+    let stockage = null; try { stockage = window.localStorage; } catch (_) {}
+    return await window.SentiqCacheFirestore.lire(window.SENTIQ_FIREBASE_CONFIG, { stockage });
+  } catch (e) { console.warn('SentiqS — lecture du cache Firestore a echoue :', e && e.message ? e.message : e); return null; }
+}
 async function lireCollectePartagee() {
+  // Firestore d'abord : Supabase a depasse son quota de transfert le
+  // 27/10/2026 (402) a force de servir 1,4 Mo a chaque ouverture.
+  const fs = await _lireCacheFirestore();
+  if (fs && fs.articles.length) {
+    const ageFs = Date.now() - new Date(fs.updated_at).getTime();
+    if (ageFs <= COLLECTE_PARTAGEE_LECTURE_MAX_MS) return fs.articles;
+    return null; // perime — mieux vaut collecter soi-meme, comme pour Supabase
+  }
   const client = getClientDonnees();
   if (!client) return null;
   try {
@@ -16504,6 +16524,55 @@ async function _publierViaFonctionEdge(articles, force) {
   }
 }
 
+// fusionnerCachePartage(existants, articles) : fusion + purge + recalcul +
+// dedoublonnage d'un cache partage avec la collecte fraiche. Extraite de
+// publierCollectePartagee pour que le job planifie fasse EXACTEMENT la meme
+// chose quand il publie sur Firestore (etape 2 de FIREBASE.md).
+function fusionnerCachePartage(existants, articles) {
+  // FUSIONNE avec le cache existant au lieu de l'ECRASER — chaque run du
+  // job planifie (.github/workflows/collecte-planifiee.yml, ~30 min) ne
+  // couvre typiquement qu'un sous-ensemble des ~495 sources avant de buter
+  // sur le rate-limiting des proxys CORS partages (voir COLLECT_TIMEOUT_MS
+  // dans scripts/collecte-planifiee.js) — TOUJOURS le meme sous-ensemble,
+  // puisque SRCS est iteree dans le meme ordre a chaque run et que
+  // l'historique de sante des sources (SRC_HEALTH, localStorage) ne
+  // persiste jamais d'un run a l'autre pour ce job (navigateur headless
+  // frais a chaque execution). Un simple UPSERT remplaçant tout le tableau
+  // "articles" a chaque publication faisait donc perdre integralement, a
+  // CHAQUE cycle, la couverture des pays dont les sources arrivent tard
+  // dans SRCS — invisibles en permanence des lors que TOUS les visiteurs
+  // lisent ce cache partage au lieu de collecter eux-memes (bug remonte :
+  // Soudan/Burkina Faso/RD Congo systematiquement "Aucune actu suivie").
+  // La fusion accumule la couverture sur plusieurs cycles successifs (un
+  // pays couvert il y a 20 min reste visible meme si CE run ne l'a pas
+  // re-atteint) ; dedup par id (le run le plus recent l'emporte en cas de
+  // doublon) ; purge des entrees au-dela de la fenetre "recent reel"
+  // (FENETRE_ACTUALITE_MS, voir estRecentReel) — inutile de les garder,
+  // _appliquerArticlesPartages les filtrerait de toute facon cote client,
+  // et ca eviterait juste de faire grossir la ligne indefiniment. Cette
+  // purge portait un 12h en dur, reste de l'ancienne fenetre : chaque
+  // publication du cache partage ecartait silencieusement les articles de
+  // 12 a 36h que le reste de l'appli continuait pourtant de compter comme
+  // actualite (voir CLAUDE.md, passage a 36h du 06/09/2026).
+  const parId = new Map();
+  const existantsRecents = (Array.isArray(existants) ? existants : [])
+    .filter(a => a && a.pubDate && (Date.now() - a.pubDate) < FENETRE_ACTUALITE_MS);
+  existantsRecents.forEach(a => parId.set(a.id, a));
+  articles.forEach(a => parId.set(a.id, a));
+  let fusionnes = [...parId.values()];
+  // Les articles herites du cache precedent portent le verdict de la
+  // version de classify() qui les a collectes, et n'ont jamais ete
+  // dedoublonnes avec les nouveaux. Constate le 03/09/2026 sur le premier
+  // passage apres la refonte du tri : cinq articles gardaient leur ancien
+  // niveau — un enlevement au Kenya restait « normal » — et 31 portaient
+  // un « verifie » d'avant la regle. On recalcule et on fusionne AVANT
+  // d'ecrire, pour que le cache publie soit coherent avec la page qui le
+  // sert, pas avec celle d'il y a douze heures.
+  if (typeof rehydrateArticles === 'function') rehydrateArticles(fusionnes);
+  if (typeof dedupliquerArticles === 'function') fusionnes = dedupliquerArticles(fusionnes);
+  return fusionnes;
+}
+
 async function publierCollectePartagee(articles, force) {
   const viaEdge = await _publierViaFonctionEdge(articles, force);
   if (viaEdge) return viaEdge;
@@ -16514,47 +16583,8 @@ async function publierCollectePartagee(articles, force) {
     const { data: existant, error: erreurLecture } = await client.from('collecte_partagee').select('articles,updated_at').eq('id', COLLECTE_PARTAGEE_ID).maybeSingle();
     if (erreurLecture) { console.warn('SentiqS — publierCollectePartagee a echoue (lecture) :', erreurLecture.message || erreurLecture); return { ok: false, raison: erreurLecture.message || String(erreurLecture) }; }
     if (!force && existant && existant.updated_at && (Date.now() - new Date(existant.updated_at).getTime()) < COLLECTE_PARTAGEE_FRAICHEUR_MS) { const _cvr = new Set((existant.articles||[]).filter(a=>a&&a.pubDate&&(Date.now()-a.pubDate)<COLLECTE_PARTAGEE_FRAICHEUR_MS).map(a=>a.cy)); const _neuf = Array.isArray(articles) && articles.some(a=>a&&a.cy&&a.pubDate&&(Date.now()-a.pubDate)<COLLECTE_PARTAGEE_FRAICHEUR_MS&&!_cvr.has(a.cy)); if (!_neuf) return { ok: true, ignore: true }; }
-    // FUSIONNE avec le cache existant au lieu de l'ECRASER — chaque run du
-    // job planifie (.github/workflows/collecte-planifiee.yml, ~30 min) ne
-    // couvre typiquement qu'un sous-ensemble des ~495 sources avant de buter
-    // sur le rate-limiting des proxys CORS partages (voir COLLECT_TIMEOUT_MS
-    // dans scripts/collecte-planifiee.js) — TOUJOURS le meme sous-ensemble,
-    // puisque SRCS est iteree dans le meme ordre a chaque run et que
-    // l'historique de sante des sources (SRC_HEALTH, localStorage) ne
-    // persiste jamais d'un run a l'autre pour ce job (navigateur headless
-    // frais a chaque execution). Un simple UPSERT remplaçant tout le tableau
-    // "articles" a chaque publication faisait donc perdre integralement, a
-    // CHAQUE cycle, la couverture des pays dont les sources arrivent tard
-    // dans SRCS — invisibles en permanence des lors que TOUS les visiteurs
-    // lisent ce cache partage au lieu de collecter eux-memes (bug remonte :
-    // Soudan/Burkina Faso/RD Congo systematiquement "Aucune actu suivie").
-    // La fusion accumule la couverture sur plusieurs cycles successifs (un
-    // pays couvert il y a 20 min reste visible meme si CE run ne l'a pas
-    // re-atteint) ; dedup par id (le run le plus recent l'emporte en cas de
-    // doublon) ; purge des entrees au-dela de la fenetre "recent reel"
-    // (FENETRE_ACTUALITE_MS, voir estRecentReel) — inutile de les garder,
-    // _appliquerArticlesPartages les filtrerait de toute facon cote client,
-    // et ca eviterait juste de faire grossir la ligne indefiniment. Cette
-    // purge portait un 12h en dur, reste de l'ancienne fenetre : chaque
-    // publication du cache partage ecartait silencieusement les articles de
-    // 12 a 36h que le reste de l'appli continuait pourtant de compter comme
-    // actualite (voir CLAUDE.md, passage a 36h du 06/09/2026).
-    const parId = new Map();
-    const existantsRecents = (existant && Array.isArray(existant.articles) ? existant.articles : [])
-      .filter(a => a && a.pubDate && (Date.now() - a.pubDate) < FENETRE_ACTUALITE_MS);
-    existantsRecents.forEach(a => parId.set(a.id, a));
-    articles.forEach(a => parId.set(a.id, a));
-    let fusionnes = [...parId.values()];
-    // Les articles herites du cache precedent portent le verdict de la
-    // version de classify() qui les a collectes, et n'ont jamais ete
-    // dedoublonnes avec les nouveaux. Constate le 03/09/2026 sur le premier
-    // passage apres la refonte du tri : cinq articles gardaient leur ancien
-    // niveau — un enlevement au Kenya restait « normal » — et 31 portaient
-    // un « verifie » d'avant la regle. On recalcule et on fusionne AVANT
-    // d'ecrire, pour que le cache publie soit coherent avec la page qui le
-    // sert, pas avec celle d'il y a douze heures.
-    if (typeof rehydrateArticles === 'function') rehydrateArticles(fusionnes);
-    if (typeof dedupliquerArticles === 'function') fusionnes = dedupliquerArticles(fusionnes);
+    // Fusion avec le cache existant : voir fusionnerCachePartage().
+    const fusionnes = fusionnerCachePartage(existant && existant.articles, articles);
     const { error } = await client.from('collecte_partagee').upsert({
       id: COLLECTE_PARTAGEE_ID, articles: fusionnes, updated_at: new Date().toISOString(),
     });
@@ -16577,6 +16607,16 @@ async function publierCollectePartagee(articles, force) {
 // projet Supabase depuis sa creation, jamais signalee nulle part).
 const CACHE_PARTAGE_PANNE_SEUIL_MS = 90 * 60 * 1000; // 3x le cycle nominal (~30 min)
 async function diagnostiquerCachePartage() {
+  const fs = await _lireCacheFirestore();
+  if (fs) {
+    const ageMs = Date.now() - new Date(fs.updated_at).getTime();
+    const paysUniques = new Set(fs.articles.map(a => a && a.cy).filter(Boolean));
+    return {
+      disponible: true, ageMs, updatedAt: fs.updated_at, source: 'Firestore',
+      nbArticles: fs.articles.length, nbPays: paysUniques.size,
+      enPanne: ageMs > CACHE_PARTAGE_PANNE_SEUIL_MS,
+    };
+  }
   const client = getClientDonnees();
   if (!client) return { disponible: false, raison: 'Supabase non configure/joignable' };
   try {

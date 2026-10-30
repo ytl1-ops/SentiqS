@@ -55,7 +55,16 @@ service cloud.firestore {
       allow read: if estAdmin();
     }
 
+    // Cache d'actus partagé (web/js/cache-firestore.js) : lisible par tous, y
+    // compris sans compte, puisque la page le lit avant la connexion. Aucune
+    // écriture depuis un navigateur : seul le compte de service du workflow de
+    // collecte écrit (il passe par IAM, pas par ces règles).
+    match /collecte_partagee/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // Tout le reste est fermé tant qu'une PR ne l'ouvre pas explicitement
-    // (cache d'actus, agenda, configuration partagée : étapes suivantes).
+    // (agenda, configuration partagée : étape suivante).
   }
 }
