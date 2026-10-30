@@ -146,6 +146,11 @@ jobs:
           # Actions. Ne jamais l'ecrire dans le depot : une URL de webhook
           # est une capacite d'ecriture sur le canal, pas une simple adresse.
           WEBHOOK_ALERTES: ${{ secrets.WEBHOOK_ALERTES }}
+          # Compte de service Firebase (JSON du projet sentiqs-235ce) : des qu'il
+          # est pose, le cache d'actus partage est publie sur Firestore au lieu
+          # de Supabase (quota de transfert depasse le 27/10/2026). Voir
+          # FIREBASE.md. Jamais ecrit dans le depot.
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: node scripts/collecte-planifiee.js
 
       - name: Sauvegarder la mémoire inter-runs de collecte
@@ -167,6 +172,8 @@ jobs:
       - name: Vérifie la fraîcheur du cache publié
         # La collecte peut "reussir" sans rien publier d'utile. On verifie
         # donc l'effet, pas seulement l'absence d'erreur.
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: node scripts/verifier-fraicheur-cache.js
 
       - name: PDF du rapport mensuel de sûreté

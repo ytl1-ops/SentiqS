@@ -23,9 +23,26 @@ Source : documentation Firebase « Authentication limits », lue le 21/10/2026.
    Google et mot de passe ; profils et journal des connexions dans Firestore.
    Le cache d'actus, l'agenda et la configuration partagée restent sur
    Supabase (`getClientDonnees()`), qui reste gratuit pour eux.
-2. **Cache d'actus partagé** — à faire : écrit par le workflow de collecte avec
-   un compte de service (secret GitHub `FIREBASE_SERVICE_ACCOUNT`), découpé en
-   morceaux de moins de 1 Mo, lu publiquement par la page.
+2. **Cache d'actus partagé** — construit le 30/10/2026 (Supabase avait dépassé
+   son quota de transfert le 27/10, erreur 402). Écrit par le workflow de
+   collecte avec un compte de service (secret GitHub
+   `FIREBASE_SERVICE_ACCOUNT`), lu publiquement par la page. Format : JSON
+   compressé (gzip) puis base64, découpé en morceaux de 700 000 caractères
+   (`collecte_partagee/global_<a|b>_<n>`), annoncé par `collecte_partagee/global`.
+   Deux emplacements alternés : une publication interrompue laisse l'ancien
+   cache intact. La page ne retélécharge les morceaux que si l'annonce a
+   changé (copie dans localStorage). Code : `web/js/cache-firestore.js`
+   (commun), `scripts/lib/cache-firestore-ecriture.js` (job).
+   **Tant que le secret n'est pas posé, rien ne change** : le job publie sur
+   Supabase et la page lit Supabase.
+   À faire par le propriétaire : (a) console Firebase > Paramètres du projet >
+   Comptes de service > Générer une nouvelle clé privée ; (b) GitHub >
+   Settings > Secrets and variables > Actions > secret `FIREBASE_SERVICE_ACCOUNT`
+   = tout le contenu du JSON ; (c) supprimer le fichier téléchargé ; (d) recoller
+   `firebase/firestore.rules` dans Firestore > Règles (lecture publique de
+   `collecte_partagee`) ; (e) relancer la collecte.
+   Quotas Spark à surveiller : 50 000 lectures par jour (un visiteur = 1 lecture
+   si rien n'a changé, 2 à 4 sinon) et 10 Go de transfert par mois.
 3. **Agenda, configuration, corpus** — à faire, même méthode.
 
 ## Réglages faits dans la console (21/10/2026)

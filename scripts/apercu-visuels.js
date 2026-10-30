@@ -34,11 +34,22 @@ const constante = (nom) => {
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css', '.json': 'application/json', '.jpg': 'image/jpeg', '.png': 'image/png', '.mp4': 'video/mp4' };
 
 (async () => {
-  const url = constante('SENTINEL_SUPABASE_URL') + '/rest/v1/collecte_partagee?select=articles,updated_at&id=eq.' + constante('COLLECTE_PARTAGEE_ID');
-  const cle = constante('SENTINEL_SUPABASE_ANON_KEY');
-  const rep = await fetch(url, { headers: { apikey: cle, Authorization: 'Bearer ' + cle } });
-  if (!rep.ok) { console.error('Lecture du cache publie impossible : HTTP ' + rep.status); process.exit(1); }
-  const [ligne] = await rep.json();
+  // Firestore d'abord (le cache y vit depuis la bascule, Supabase a dépassé son
+  // quota le 27/10/2026 : HTTP 402), Supabase en repli tant que le cache n'y est pas.
+  let ligne = null;
+  try {
+    const cfgSrc = fs.readFileSync(path.join(RACINE, 'js', 'firebase-config.js'), 'utf8');
+    const cfg = { projectId: (cfgSrc.match(/projectId:\s*'([^']+)'/) || [])[1], apiKey: (cfgSrc.match(/apiKey:\s*'([^']+)'/) || [])[1] };
+    const r = await require('../web/js/cache-firestore.js').lire(cfg);
+    if (r && r.articles.length) ligne = { articles: r.articles, updated_at: r.updated_at };
+  } catch (e) { console.error('Cache Firestore illisible : ' + e.message); }
+  if (!ligne) {
+    const url = constante('SENTINEL_SUPABASE_URL') + '/rest/v1/collecte_partagee?select=articles,updated_at&id=eq.' + constante('COLLECTE_PARTAGEE_ID');
+    const cle = constante('SENTINEL_SUPABASE_ANON_KEY');
+    const rep = await fetch(url, { headers: { apikey: cle, Authorization: 'Bearer ' + cle } });
+    if (!rep.ok) { console.error('Lecture du cache publie impossible : HTTP ' + rep.status); process.exit(1); }
+    [ligne] = await rep.json();
+  }
   const articles = (ligne && ligne.articles) || [];
   console.log('Cache publie du ' + (ligne && ligne.updated_at) + ' : ' + articles.length + ' articles');
   if (!articles.length) process.exit(1);
