@@ -31,7 +31,7 @@
  "ML": "rouge",
  "MR": "marron",
  "MU": "jaune",
- "MW": "jaune",
+ "MW": "orange",
  "MZ": "marron",
  "NA": "vert",
  "NE": "marron",
@@ -49,7 +49,7 @@
  "TG": "orange",
  "TN": "jaune",
  "TZ": "marron",
- "UG": "rouge",
+ "UG": "marron",
  "ZA": "jaune",
  "ZM": "orange",
  "ZW": "marron"
