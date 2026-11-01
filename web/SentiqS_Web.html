@@ -35,7 +35,15 @@
 <script src="js/cache-firestore.js"></script>
 <!-- Le kit se télécharge dès l'ouverture, pendant l'animation de garde, au lieu
      d'attendre checkAuth : la connexion ne patiente plus après la vidéo. -->
-<script>try { if (window.SentiqFirebase) window.SentiqFirebase.charger().catch(function () {}); } catch (_) {}</script>
+<!-- Et l'écran de connexion passe en mode Firebase (bouton Google, lien
+     e-mail) dès que le kit est prêt, sans attendre checkAuth, qui ne part
+     qu'à l'événement load : 15 s mesurées sur web.app le 01/11/2026, pendant
+     lesquelles l'écran proposait un « code par e-mail » qui n'arrive jamais. -->
+<script>try { if (window.SentiqFirebase) window.SentiqFirebase.charger().then(function (c) {
+  if (!c) return;
+  var mode = function () { if (typeof appliquerModeLien === 'function') appliquerModeLien(); };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mode); else mode();
+}).catch(function () {}); } catch (_) {}</script>
 <script>
 try {
   if (window.top !== window.self) { window.top.location = window.self.location; }
