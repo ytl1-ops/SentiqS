@@ -133,3 +133,18 @@ test('les règles sont publiées par l\'API Rules : jeu de règles puis release 
   assert.match(appels[2][2], /"rulesetName":"projects\/p\/rulesets\/R1"/);
   assert.match(appels[2][2], /releases\/cloud\.firestore/);
 });
+
+// 01/11/2026 : sur web.app, la connexion Google doit passer par le domaine du
+// site, sinon une redirection revient sans session (stockage cloisonné).
+test('authDomain suit le domaine Firebase Hosting, pas GitHub Pages', () => {
+  const vm = require('node:vm');
+  const src = lire('web/js/firebase-config.js');
+  const domaine = (hote) => {
+    const ctx = { window: {}, location: { hostname: hote } };
+    vm.runInNewContext(src, ctx);
+    return ctx.window.SENTIQ_FIREBASE_CONFIG.authDomain;
+  };
+  assert.equal(domaine('sentiqs-235ce.web.app'), 'sentiqs-235ce.web.app');
+  assert.equal(domaine('ytl1-ops.github.io'), 'sentiqs-235ce.firebaseapp.com');
+  assert.equal(domaine('autre-projet.web.app'), 'sentiqs-235ce.firebaseapp.com');
+});
