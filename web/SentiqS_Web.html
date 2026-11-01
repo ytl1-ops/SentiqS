@@ -11161,7 +11161,7 @@ function renderGeo() {
   document.getElementById('geoItems').innerHTML=
     '<div class="gi'+(fGeo==='all'?' on':'')+'" onclick="setGeo(\'all\',\'Tous pays\')"><span class="gf">🌍</span>Tous les pays</div>'+
     CYS.filter(c=>c.code!=='all').map(c=>
-      '<div class="gi'+(fGeo===c.code?' on':'')+'" onclick="setGeo(\''+c.code+'\',\''+c.name+'\')">'+
+      '<div class="gi'+(fGeo===c.code?' on':'')+'" onclick="setGeo(\''+c.code+'\',\''+_seEsc(c.name)+'\')">'+
       '<span class="gf">'+c.flag+'</span>'+c.name+
       (c.level&&lc[c.level]?'<span style="'+lc[c.level]+';padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">'+(lbl[c.level]||c.level.toUpperCase())+'</span>':'')+
       '</div>'
@@ -25453,4 +25453,5 @@ initMobileCollapsibles();
 </script>
 
 
+<script src="js/correctifs.js" defer></script>
 </body></html>
