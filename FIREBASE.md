@@ -43,7 +43,56 @@ Source : documentation Firebase « Authentication limits », lue le 21/10/2026.
    `collecte_partagee`) ; (e) relancer la collecte.
    Quotas Spark à surveiller : 50 000 lectures par jour (un visiteur = 1 lecture
    si rien n'a changé, 2 à 4 sinon) et 10 Go de transfert par mois.
-3. **Agenda, configuration, corpus** — à faire, même méthode.
+   **État au 01/11/2026** : le secret est posé, mais chaque collecte reçoit
+   « Firestore HTTP 403 » à l'écriture, et la lecture publique aussi
+   (« Missing or insufficient permissions »). Deux causes, toutes deux dans la
+   console : les règles publiées ne contiennent pas encore `collecte_partagee`,
+   et le compte de service n'a pas de rôle IAM sur Firestore. Voir
+   « Déployer » ci-dessous ; `scripts/diagnostic-firebase.js` dit laquelle
+   des deux manque.
+3. **Agenda** — fait le 01/11/2026 : même format, clé `agenda`
+   (`collecte_partagee/agenda`), écrit par le job après le cache d'actus
+   (`scripts/lib/agenda-firestore.js` fusionne par id sur 7 jours, 500 au
+   plus), lu par la page avant Supabase. Une fois Firestore utilisé, le job ne
+   sollicite plus Supabase (402) pour l'agenda ni pour le corpus RAG.
+4. **Hébergement** — fait le 01/11/2026 : `firebase.json` sert `web/` sur
+   Firebase Hosting (`https://sentiqs-235ce.web.app`), publié avec les règles
+   Firestore par le job `firebase` de `.github/workflows/gh-pages-deploy.yml`
+   à chaque push sur `main` et après chaque archive de la collecte. GitHub
+   Pages continue d'être publié en parallèle : c'est le repli, et l'adresse que
+   lit le job de collecte.
+5. **Non migré, volontairement** : la configuration EmailJS partagée
+   (`config_partagee` ; Firebase envoie lui-même les e-mails de connexion) et
+   le corpus de l'Assistant IA (`articles_rag`, qui suppose une fonction Edge :
+   pas de Cloud Functions sur Spark). Tous deux échouent sans bloquer la page.
+
+## Déployer (à faire une fois par le propriétaire)
+
+1. **Rôle du compte de service.** Google Cloud console > projet
+   `sentiqs-235ce` > IAM et administration > IAM > la ligne
+   `firebase-adminsdk-…@sentiqs-235ce.iam.gserviceaccount.com` > crayon >
+   Ajouter un autre rôle : **Administrateur Firebase** (`roles/firebase.admin`)
+   et **Consommateur Service Usage** (`roles/serviceusage.serviceUsageConsumer`)
+   > Enregistrer. C'est ce qui manque derrière le 403 de la collecte, et ce qui
+   permet au workflow de publier l'hébergement et les règles.
+2. **Secret GitHub** `FIREBASE_SERVICE_ACCOUNT` : déjà posé. Si le diagnostic
+   dit que la clé vient d'un autre projet, en regénérer une (console Firebase >
+   Paramètres du projet > Comptes de service > Générer une nouvelle clé
+   privée), la recoller dans le secret, supprimer le fichier.
+3. **Relancer** Actions > « Déploiement GitHub Pages » > Run workflow. Le job
+   `firebase` publie les règles (plus de copier-coller) et le site sur
+   `https://sentiqs-235ce.web.app`. Son étape « Diagnostic » dit en clair ce
+   qui reste refusé.
+4. **Relancer la collecte** (Actions > « Collecte planifiée » > Run workflow) :
+   le journal doit dire « Cache Firestore publié » puis « Agenda Firestore
+   publié ».
+5. **Domaine personnalisé** (facultatif) : Hosting > Ajouter un domaine
+   personnalisé, puis les enregistrements DNS chez le registraire ; ajouter
+   ensuite ce domaine dans Authentication > Paramètres > Domaines autorisés.
+   `sentiqs-235ce.web.app` et `.firebaseapp.com` y sont autorisés d'office.
+
+Quotas Hosting du plan Spark : 10 Go stockés, 360 Mo transférés par jour
+(la page fait ~1,8 Mo, ~450 Ko compressée).
 
 ## Réglages faits dans la console (21/10/2026)
 

@@ -2984,6 +2984,15 @@ l'analyse de l'en-tête, pendant l'animation de garde. Deux tests de plus dans
 `firebase.test.js`. **Non mesuré d'ici** (pas de réseau) : le gain réel sur
 la page publiée.
 
+**Agenda et hébergement suivent le 01/11/2026.** L'agenda partagé est écrit
+par le job sous la clé `agenda` du même format que le cache
+(`collecte_partagee/agenda`), lu par la page avant Supabase ; `firebase.json`
+sert `web/` sur Firebase Hosting, publié avec les règles par le job `firebase`
+de `gh-pages-deploy.yml` (Pages reste en parallèle). Le 403 de la collecte du
+01/11 tenait à la console (règles et rôle IAM), pas au code :
+`scripts/diagnostic-firebase.js` sépare les deux causes. Voir « Déployer »
+dans `FIREBASE.md`.
+
 **Deux administrateurs depuis le 21/10/2026**, à la demande explicite de
 YORO : yorot225@gmail.com et a3fyee@gmail.com (le compte de la console
 Firebase), listés dans `emailAdmin()` des règles. Une adresse de plus est un

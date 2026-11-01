@@ -47,12 +47,16 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; ch
     const url = constante('SENTINEL_SUPABASE_URL') + '/rest/v1/collecte_partagee?select=articles,updated_at&id=eq.' + constante('COLLECTE_PARTAGEE_ID');
     const cle = constante('SENTINEL_SUPABASE_ANON_KEY');
     const rep = await fetch(url, { headers: { apikey: cle, Authorization: 'Bearer ' + cle } });
-    if (!rep.ok) { console.error('Lecture du cache publie impossible : HTTP ' + rep.status); process.exit(1); }
+    // Informatif (voir apercu-visuels.yml) : sans cache lisible il n'y a rien
+    // a mesurer, ce n'est pas un defaut de la PR. Le 30/10/2026 ce cas faisait
+    // echouer chaque PR (Firestore 403 tant que les regles ne sont pas
+    // publiees, Supabase 402) et rougissait la CI sans rien dire du code.
+    if (!rep.ok) { console.log('::warning::Lecture du cache publie impossible : HTTP ' + rep.status + ' — aucun apercu produit.'); process.exit(0); }
     [ligne] = await rep.json();
   }
   const articles = (ligne && ligne.articles) || [];
   console.log('Cache publie du ' + (ligne && ligne.updated_at) + ' : ' + articles.length + ' articles');
-  if (!articles.length) process.exit(1);
+  if (!articles.length) { console.log('::warning::Cache publie vide — aucun apercu produit.'); process.exit(0); }
   fs.mkdirSync(OUT, { recursive: true });
 
   let chromium;

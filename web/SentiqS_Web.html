@@ -16705,14 +16705,14 @@ async function publierArticlesRagPartages(articles) {
 // « rien a publier » n'est pas un echec : la plupart des cycles n'ont aucune
 // entree d'agenda a moins de la fenetre de recence. C'est ok:true, publiees:0.
 const AGENDA_PARTAGEE_MAX_PAR_APPEL = 200;
-async function publierAgendaPartagee(articles) {
-  const client = getClientDonnees();
-  if (!client) return { ok: false, publiees: 0, raison: 'client Supabase indisponible' };
-  if (!Array.isArray(articles) || !articles.length) {
-    return { ok: true, publiees: 0, raison: 'aucun article a examiner' };
-  }
-  try {
-    const lignes = articles
+// lignesAgendaPartagee(articles) : les lignes d'agenda a partager, dans la
+// forme de la table agenda_partagee. Sortie de publierAgendaPartagee le
+// 01/11/2026 pour que le job de collecte les ecrive aussi sur Firestore
+// (collecte_partagee/agenda), Supabase etant bloque (402) : une seule
+// definition de ce qui est partage, quelle que soit la destination.
+function lignesAgendaPartagee(articles) {
+  if (!Array.isArray(articles)) return [];
+  return articles
       .filter(a => a && a._estAgenda && typeof estAgendaRecent === 'function' && estAgendaRecent(a))
       .slice()
       .sort((a, b) => (b.pubDate || 0) - (a.pubDate || 0))
@@ -16726,6 +16726,15 @@ async function publierAgendaPartagee(articles) {
         updated_at: new Date().toISOString(),
       }))
       .filter(l => l.id && l.title);
+}
+async function publierAgendaPartagee(articles) {
+  const client = getClientDonnees();
+  if (!client) return { ok: false, publiees: 0, raison: 'client Supabase indisponible' };
+  if (!Array.isArray(articles) || !articles.length) {
+    return { ok: true, publiees: 0, raison: 'aucun article a examiner' };
+  }
+  try {
+    const lignes = lignesAgendaPartagee(articles);
     if (!lignes.length) return { ok: true, publiees: 0, raison: 'aucune entree d\'agenda recente' };
     const { error } = await client.from('agenda_partagee').upsert(lignes);
     if (error) {
@@ -16760,6 +16769,22 @@ function ligneAgendaPartageeVersEntree(row) {
 }
 
 async function lireAgendaPartagee() {
+  // Firestore d'abord (collecte_partagee/agenda, ecrit par le job depuis le
+  // 01/11/2026) : Supabase refuse toute lecture depuis le 27/10 (402). Pas
+  // encore publie : on retombe sur Supabase, comme pour le cache d'actus.
+  if (_fournisseurFirebase() && window.SentiqCacheFirestore) {
+    try {
+      let stockage = null; try { stockage = window.localStorage; } catch (_) {}
+      const r = await window.SentiqCacheFirestore.lire(
+        Object.assign({}, window.SENTIQ_FIREBASE_CONFIG, { cle: 'agenda' }), { stockage });
+      if (r && Array.isArray(r.articles)) {
+        const seuilMs = Date.now() - AGENDA_MAX_AGE;
+        return r.articles
+          .filter(l => l && l.id && l.pub_date && new Date(l.pub_date).getTime() > seuilMs)
+          .map(ligneAgendaPartageeVersEntree);
+      }
+    } catch (e) { console.warn('SentiqS — lecture de l\'agenda Firestore a echoue :', e && e.message ? e.message : e); }
+  }
   const client = getClientDonnees();
   if (!client) return null;
   try {

@@ -32,3 +32,56 @@ jobs:
           path: web
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # ── Firebase Hosting + règles Firestore (01/11/2026) ─────────────────────
+  # Le même dossier web/ est aussi publié sur Firebase Hosting
+  # (https://sentiqs-235ce.web.app), et les règles Firestore du dépôt sont
+  # publiées en même temps : plus de copier-coller dans la console à chaque
+  # changement de firebase/firestore.rules. Job indépendant de Pages : un échec
+  # ici ne bloque jamais la publication GitHub Pages, qui reste le repli.
+  # Sans le secret FIREBASE_SERVICE_ACCOUNT, le job ne fait rien (et le dit).
+  # Le compte de service doit porter le rôle « Administrateur Firebase »
+  # (voir FIREBASE.md, « Déployer »).
+  firebase:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: firebase-hosting
+      cancel-in-progress: false
+    env:
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Secret présent ?
+        id: secret
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "::notice::FIREBASE_SERVICE_ACCOUNT absent : pas de déploiement Firebase (Pages seul)."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Diagnostic du compte de service
+        # Informatif : dit en clair si c'est la règle publique ou le rôle IAM
+        # qui manque. Le déploiement qui suit est la vraie épreuve.
+        if: steps.secret.outputs.present == 'true'
+        continue-on-error: true
+        run: node scripts/diagnostic-firebase.js
+      - name: Déployer Hosting et règles Firestore
+        if: steps.secret.outputs.present == 'true'
+        run: |
+          set -euo pipefail
+          umask 077
+          cle="$RUNNER_TEMP/compte-firebase.json"
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$cle"
+          # Le secret peut avoir été collé en base64 (scripts/lib/cache-firestore-ecriture.js l'accepte aussi).
+          node -e "const fs=require('fs');const t=fs.readFileSync(process.argv[1],'utf8').trim();try{JSON.parse(t)}catch(_){fs.writeFileSync(process.argv[1],Buffer.from(t,'base64').toString('utf8'))}" "$cle"
+          export GOOGLE_APPLICATION_CREDENTIALS="$cle"
+          projet=$(node -e "console.log(JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')).project_id)" "$cle")
+          npx -y firebase-tools@15.34.0 deploy --only hosting,firestore:rules \
+            --project "$projet" --non-interactive --force \
+            --message "commit ${GITHUB_SHA::7}"
+          rm -f "$cle"
+          echo "### Firebase Hosting publié : https://$projet.web.app" >> "$GITHUB_STEP_SUMMARY"
