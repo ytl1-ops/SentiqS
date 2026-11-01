@@ -22,3 +22,15 @@ window.SENTIQ_FIREBASE_CONFIG = {
   projectId: 'sentiqs-235ce',
   appId: '1:281714171549:web:c15bb3211bd6e2d9cdfe74',
 };
+
+// Servie par Firebase Hosting (sentiqs-235ce.web.app), la page fait passer la
+// connexion Google par son PROPRE domaine (/__/auth/handler, fourni par
+// Hosting). Avec firebaseapp.com, Chrome cloisonne le stockage entre les deux
+// domaines : une connexion par redirection (fenêtre surgissante bloquée)
+// revient sans session, et l'écran de connexion réapparaît sans message
+// (01/11/2026, compte administrateur). Sur GitHub Pages, rien ne change.
+(function () {
+  var c = window.SENTIQ_FIREBASE_CONFIG;
+  var h = typeof location !== 'undefined' ? String(location.hostname || '') : '';
+  if (c && (h === c.projectId + '.web.app' || h === c.projectId + '.firebaseapp.com')) c.authDomain = h;
+})();
