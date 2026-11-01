@@ -69,6 +69,12 @@ jobs:
         if: steps.secret.outputs.present == 'true'
         continue-on-error: true
         run: node scripts/diagnostic-firebase.js
+      - name: Publier les règles Firestore
+        # Par l'API Rules (scripts/publier-regles-firestore.js) et non par la
+        # CLI : le 01/11/2026 `firebase deploy --only firestore:rules` a échoué
+        # en 403 sur Service Usage avant même de toucher aux règles.
+        if: steps.secret.outputs.present == 'true'
+        run: node scripts/publier-regles-firestore.js
       - name: Déployer Hosting et règles Firestore
         if: steps.secret.outputs.present == 'true'
         run: |
@@ -89,7 +95,7 @@ jobs:
             echo "::error::La clé FIREBASE_SERVICE_ACCOUNT vient du projet « $projetCle », la page utilise « $projet ». Regénérer la clé depuis la console du projet $projet (Paramètres du projet > Comptes de service)."
             exit 1
           fi
-          npx -y firebase-tools@15.34.0 deploy --only hosting,firestore:rules \
+          npx -y firebase-tools@15.34.0 deploy --only hosting \
             --project "$projet" --non-interactive --force \
             --message "commit ${GITHUB_SHA::7}"
           echo "### Firebase Hosting publié : https://$projet.web.app" >> "$GITHUB_STEP_SUMMARY"

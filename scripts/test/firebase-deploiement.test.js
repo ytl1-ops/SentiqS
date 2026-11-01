@@ -92,7 +92,8 @@ test('Firebase Hosting sert web/, et le workflow publie hébergement et règles'
   assert.equal(cfg.hosting.public, 'web');
   assert.equal(cfg.firestore.rules, 'firebase/firestore.rules');
   const wf = lire('.github/workflows/gh-pages-deploy.yml');
-  assert.match(wf, /firebase-tools@\d+\.\d+\.\d+ deploy --only hosting,firestore:rules/);
+  assert.match(wf, /firebase-tools@\d+\.\d+\.\d+ deploy --only hosting/);
+  assert.match(wf, /node scripts\/publier-regles-firestore\.js/, 'les règles passent par l\'API Rules');
   assert.match(wf, /FIREBASE_SERVICE_ACCOUNT: \$\{\{ secrets\.FIREBASE_SERVICE_ACCOUNT \}\}/);
   assert.match(wf, /rm -f "\$cle"/, 'la clé écrite sur le runner est effacée');
 });
@@ -113,4 +114,22 @@ test('le déploiement et la collecte visent le projet de la page, jamais celui d
   assert.ok(etape.indexOf('"$projet" != "$projetCle"') < etape.indexOf('firebase-tools'), 'la garde passe avant le déploiement');
   const job = lire('scripts/collecte-planifiee.js');
   assert.match(job, /compteLu\.project_id !== projetPage \? null/, 'la collecte refuse une clé d\'un autre projet');
+});
+
+test('les règles sont publiées par l\'API Rules : jeu de règles puis release cloud.firestore', async () => {
+  const { publierRegles } = require('../publier-regles-firestore.js');
+  const appels = [];
+  const fetchFn = async (url, init) => {
+    appels.push([init.method, url, init.body]);
+    if (url === 'https://oauth2.googleapis.com/token') return { ok: true, status: 200, json: async () => ({ access_token: 'J' }) };
+    if (url.endsWith('/rulesets')) return { ok: true, status: 200, json: async () => ({ name: 'projects/p/rulesets/R1' }) };
+    return { ok: true, status: 200, json: async () => ({}) };
+  };
+  const nom = await publierRegles(COMPTE, 'sentiqs-235ce', 'rules_version = "2";', fetchFn);
+  assert.equal(nom, 'projects/p/rulesets/R1');
+  assert.match(appels[1][1], /firebaserules\.googleapis\.com\/v1\/projects\/sentiqs-235ce\/rulesets$/);
+  assert.match(appels[1][2], /rules_version/);
+  assert.equal(appels[2][0], 'PATCH');
+  assert.match(appels[2][2], /"rulesetName":"projects\/p\/rulesets\/R1"/);
+  assert.match(appels[2][2], /releases\/cloud\.firestore/);
 });

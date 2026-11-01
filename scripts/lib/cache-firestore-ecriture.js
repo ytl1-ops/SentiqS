@@ -33,20 +33,20 @@ function lireCompte(brut) {
   return { client_email: j.client_email, private_key: j.private_key, project_id: j.project_id };
 }
 
-function signerJwt(compte, maintenantS) {
+function signerJwt(compte, maintenantS, portee) {
   const iat = maintenantS || Math.floor(Date.now() / 1000);
   const corps = b64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' })) + '.'
-    + b64url(JSON.stringify({ iss: compte.client_email, scope: PORTEE, aud: URL_JETON, iat, exp: iat + 3600 }));
+    + b64url(JSON.stringify({ iss: compte.client_email, scope: portee || PORTEE, aud: URL_JETON, iat, exp: iat + 3600 }));
   const signature = crypto.createSign('RSA-SHA256').update(corps).sign(compte.private_key);
   return corps + '.' + b64url(signature);
 }
 
-async function jetonAcces(compte, fetchFn) {
+async function jetonAcces(compte, fetchFn, portee) {
   const r = await fetchFn(URL_JETON, {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body: 'grant_type=' + encodeURIComponent('urn:ietf:params:oauth:grant-type:jwt-bearer')
-      + '&assertion=' + encodeURIComponent(signerJwt(compte)),
+      + '&assertion=' + encodeURIComponent(signerJwt(compte, null, portee)),
   });
   const d = await r.json().catch(() => null);
   if (!r.ok || !d || !d.access_token) {
