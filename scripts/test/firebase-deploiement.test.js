@@ -148,3 +148,12 @@ test('authDomain suit le domaine Firebase Hosting, pas GitHub Pages', () => {
   assert.equal(domaine('ytl1-ops.github.io'), 'sentiqs-235ce.firebaseapp.com');
   assert.equal(domaine('autre-projet.web.app'), 'sentiqs-235ce.firebaseapp.com');
 });
+
+// 01/11/2026 : le bouton Google n'apparaissait qu'au bout de 15 s (checkAuth
+// attend l'événement load) ; l'écran proposait entre-temps un code e-mail.
+test('le mode Firebase de l\'écran de connexion s\'applique dès que le kit est prêt', () => {
+  const html = lire('web/SentiqS_Web.html');
+  const tete = html.slice(0, html.indexOf('</head>'));
+  assert.match(tete, /SentiqFirebase\.charger\(\)\.then\([\s\S]{0,200}appliquerModeLien\(\)/);
+  assert.match(tete, /DOMContentLoaded/);
+});

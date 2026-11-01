@@ -277,6 +277,6 @@ test('le kit se télécharge en parallèle, exécuté dans l\'ordre', async () =
 
 test('l\'appli lance le chargement du kit dès l\'ouverture', () => {
   const i = HTML.indexOf('<script src="js/firebase.js"></script>');
-  const suite = HTML.slice(i, i + 400);
-  assert.match(suite, /SentiqFirebase\.charger\(\)\.catch\(/);
+  const suite = HTML.slice(i, i + 1200);
+  assert.match(suite, /SentiqFirebase\.charger\(\)\.(then|catch)\(/);
 });
