@@ -25,7 +25,7 @@ const path = require('node:path');
 const { nettoyerTitre } = require('./faits-grsci');
 const redaction = require('./redaction-grsci');
 
-const ASSETS = path.join(__dirname, '..', 'assets', 'grsci');
+const ASSETS = path.join(__dirname, '..', 'assets', 'presentation-1');
 
 // L'émetteur du rapport : identité d'envoi et logo de l'organisation
 // (demande de YORO du 27/10/2026, après le retrait du nom du groupe). Le job
@@ -82,7 +82,9 @@ function cadreLogo(ratio, wMax, hMax) {
 }
 
 const TITRE_COUVERTURE = ['RAPPORT MENSUEL', 'DE SÛRETÉ'];
-const TITRE_DOCUMENT = (jour) => 'Rapport mensuel de sûreté — ' + dateLongue(jour);
+// « Présentation 1 » : nom du modèle de présentation dans l'appli (YORO, 01/11/2026).
+const NOM_MODELE = 'Présentation 1';
+const TITRE_DOCUMENT = (jour) => NOM_MODELE + ' — Rapport mensuel de sûreté — ' + dateLongue(jour);
 
 // Pays de la section « Dynamiques régionales », dans l'ordre de lecture du
 // modèle (voisins du nord d'abord). Le Sénégal clôt, comme en 2024.
@@ -176,7 +178,7 @@ function pied(s, ctx, numero) {
   const em = ctx.emetteur;
   if (em.logo) {
     const { w, h } = cadreLogo(em.logoRatio, 1.6, 0.6);
-    s.addImage({ path: em.logo, x: 0.45, y: 6.6 + (0.6 - h) / 2, w, h });
+    s.addImage({ path: em.logo, altText: 'Logo', x: 0.45, y: 6.6 + (0.6 - h) / 2, w, h });
   }
   s.addText(piedTexte(em), { x: 3.4, y: 6.8, w: 6.0, h: 0.36, fontFace: POLICE, fontSize: 12, fit: 'shrink', color: TEXTE, align: 'center', valign: 'middle', line: { color: VERT, width: 0.75 } });
   s.addText('|  ' + dateCourte(ctx.jour) + '   |   ' + numero, { x: 10.3, y: 6.9, w: 2.7, h: 0.3, fontFace: POLICE, fontSize: 10, color: TEXTE, align: 'right' });
@@ -205,7 +207,7 @@ function titrePage(s, num, titre, pays) {
 function intercalaire(pptx, ctx, titre, image, note) {
   const s = pptx.addSlide();
   s.background = { color: 'CDCDCD' };
-  if (image) s.addImage({ path: path.join(ASSETS, image), x: 5.2, y: 0.7, w: 3.2, h: 3.2 });
+  if (image) s.addImage({ path: path.join(ASSETS, image), altText: titre, x: 5.2, y: 0.7, w: 3.2, h: 3.2 });
   s.addText(titre, { x: 0.5, y: 4.4, w: 12.3, h: 0.9, fontFace: POLICE_TITRE, fontSize: 44, color: '111111', align: 'center' });
   s.addShape('line', { x: 4.6, y: 5.3, w: 4.1, h: 0, line: { color: '000000', width: 4 } });
   if (note) s.addText(note, { x: 1.5, y: 5.55, w: 10.3, h: 0.7, fontFace: POLICE, fontSize: 11, italic: true, color: '333333', align: 'center' });
@@ -214,7 +216,7 @@ function intercalaire(pptx, ctx, titre, image, note) {
 
 function pageCouverture(pptx, ctx) {
   const s = pptx.addSlide();
-  s.addImage({ path: path.join(ASSETS, 'couverture-abidjan.jpg'), x: 0.2, y: 0.1, w: 12.9, h: 6.4 });
+  s.addImage({ path: path.join(ASSETS, 'couverture-abidjan.jpg'), altText: 'Abidjan', x: 0.2, y: 0.1, w: 12.9, h: 6.4 });
   s.addText([
     { text: TITRE_COUVERTURE[0], options: { breakLine: true } }, { text: TITRE_COUVERTURE[1] },
   ], { x: 2.5, y: 0.25, w: 8.3, h: 1.4, fontFace: POLICE_TITRE, fontSize: 44, color: 'FFFFFF', align: 'center', shadow: { type: 'outer', color: '000000', blur: 6, offset: 2, angle: 45, opacity: 0.6 } });
@@ -224,11 +226,11 @@ function pageCouverture(pptx, ctx) {
     // Sur une pastille blanche : un logo foncé reste lisible sur la photo.
     const { w, h } = cadreLogo(ctx.emetteur.logoRatio, 1.8, 1.1);
     s.addShape('rect', { x: 0.45, y: 5.15, w: w + 0.3, h: h + 0.3, fill: { color: 'FFFFFF' }, line: { color: 'FFFFFF', width: 0 } });
-    s.addImage({ path: ctx.emetteur.logo, x: 0.6, y: 5.3, w, h });
+    s.addImage({ path: ctx.emetteur.logo, altText: 'Logo', x: 0.6, y: 5.3, w, h });
   }
   s.addText(dateLongue(ctx.jour).toUpperCase(), { x: 8.3, y: 5.55, w: 4.7, h: 0.4, fontFace: POLICE, fontSize: 20, bold: true, color: 'FFFFFF', align: 'right' });
   s.addText(libellePeriode(ctx.jour), { x: 6.3, y: 6.0, w: 6.7, h: 0.35, fontFace: POLICE, fontSize: 14, color: 'FFFFFF', align: 'right', shadow: { type: 'outer', color: '000000', blur: 4, offset: 1, angle: 45, opacity: 0.7 } });
-  s.addImage({ path: path.join(ASSETS, 'afrique.png'), x: 10.1, y: 6.75, w: 0.6, h: 0.6 });
+  s.addImage({ path: path.join(ASSETS, 'afrique.png'), altText: 'Afrique', x: 10.1, y: 6.75, w: 0.6, h: 0.6 });
   pied(s, ctx, ctx.numero());
 }
 
@@ -364,7 +366,7 @@ function pageMarquant(pptx, ctx, titreNum, titre, f, pays, nomPays, confiance) {
   s.addText(corps, { x: 0.7, y, w: largeurTexte, h: hauteur, fontFace: POLICE, fontSize: taille, color: TEXTE, valign: 'top', paraSpaceAfter: 3 });
   if (photo) {
     const b = boiteImage(photo, 8.35, y + 0.05, 4.5, 4.0);
-    s.addImage({ data: 'image/' + (photo.type === 'png' ? 'png' : 'jpeg') + ';base64,' + photo.data.toString('base64'), x: b.x, y: b.y, w: b.w, h: b.h, hyperlink: photo.lien ? { url: photo.lien } : undefined });
+    s.addImage({ data: 'image/' + (photo.type === 'png' ? 'png' : 'jpeg') + ';base64,' + photo.data.toString('base64'), altText: 'Photo : ' + (photo.credit || 'source'), x: b.x, y: b.y, w: b.w, h: b.h, hyperlink: photo.lien ? { url: photo.lien } : undefined });
     s.addText([{ text: 'Photo : © ' + (photo.credit || 'source'), options: photo.lien ? { hyperlink: { url: photo.lien }, color: VERT } : {} }],
       { x: 8.35, y: b.y + b.h + 0.04, w: 4.5, h: 0.28, fontFace: POLICE, fontSize: 9, color: LEGERE, align: 'right' });
   }
@@ -570,6 +572,6 @@ function majIndex(racine, chemin, jour, maintenant) {
 module.exports = {
   PAYS_REGIONAUX, construire, planRapport, faitsMarquants, rapportsAActualiser, dernierJourMois, moisPrecedent, libellePeriode, ecrire, majIndex, reconstruireIndex, cheminRapport, rubriqueDe, RUBRIQUES,
   // partagés avec la version Word (rapport-grsci-word.js)
-  ASSETS, EMETTEUR_DEFAUT, CONFIG_EMETTEUR, lireEmetteur, piedTexte, cadreLogo, ratioImage, TITRE_COUVERTURE, TITRE_DOCUMENT, VERT, TEXTE, LEGERE, POLICE, POLICE_TITRE, DRAPEAUX, rectsDrapeau,
+  ASSETS, NOM_MODELE, EMETTEUR_DEFAUT, CONFIG_EMETTEUR, lireEmetteur, piedTexte, cadreLogo, ratioImage, TITRE_COUVERTURE, TITRE_DOCUMENT, VERT, TEXTE, LEGERE, POLICE, POLICE_TITRE, DRAPEAUX, rectsDrapeau,
   dateLongue, dateCourte, paginer, faitTexte, ligneConfiance, COTATION, faitsRubrique, MAX_FAITS_RUBRIQUE, FAITS_PAR_PAGE, ROMAIN, MAX_FAITS_PAYS, periode, titreDeFait, taillePastille,
 };

@@ -13,7 +13,7 @@ class FauxPptx {
   addSlide() {
     const s = { textes: [], images: [], tables: [] };
     s.addText = (t) => { s.textes.push(typeof t === 'string' ? t : t.map((x) => x.text).join(' ')); };
-    s.addImage = (o) => { s.images.push(o.path); };
+    s.addImage = (o) => { s.images.push(o.path); s.alts = (s.alts || []).concat([o.altText]); };
     s.addShape = () => {};
     s.addTable = (rows) => { s.tables.push(rows); };
     this.slides.push(s);
@@ -103,7 +103,7 @@ test('le rapport du mois se réécrit chaque jour sur sa période', () => {
 
 test('les ressources du modèle sont présentes et le job est câblé', async () => {
   for (const f of ['couverture-abidjan.jpg', 'afrique.png']) {
-    assert.ok(fs.existsSync(path.join(__dirname, '..', 'assets', 'grsci', f)), f);
+    assert.ok(fs.existsSync(path.join(__dirname, '..', 'assets', 'presentation-1', f)), f);
   }
   const job = fs.readFileSync(path.join(__dirname, '..', 'collecte-planifiee.js'), 'utf8');
   assert.ok(/rapportGrsci\.ecrire/.test(job) && /GRSCI_FORCER/.test(job));
@@ -219,7 +219,7 @@ test('aucune mention du groupe GRSCI n\u2019atteint le lecteur', async () => {
   assert.doesNotMatch(tout(p), interdit);
   assert.doesNotMatch(String(p.title || ''), interdit);
   for (const s of p.slides) assert.ok(!s.images.some((i) => /logo-grsci/.test(i)), 'logo du groupe');
-  assert.ok(!fs.existsSync(path.join(__dirname, '..', 'assets', 'grsci', 'logo-grsci.png')));
+  assert.ok(!fs.existsSync(path.join(__dirname, '..', 'assets', 'presentation-1', 'logo-grsci.png')));
   const w = require('../lib/rapport-grsci-word.js');
   const { docx, textes } = fauxDocx();
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mensuel-'));
@@ -237,7 +237,7 @@ test('aucune mention du groupe GRSCI n\u2019atteint le lecteur', async () => {
 // l'organisation doivent pouvoir être insérés dans le rapport.
 test('le rapport porte l’identité d’envoi et le logo configurés, sinon SentiqS sans logo', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'emetteur-'));
-  fs.copyFileSync(path.join(__dirname, '..', 'assets', 'grsci', 'afrique.png'), path.join(dir, 'logo.png'));
+  fs.copyFileSync(path.join(__dirname, '..', 'assets', 'presentation-1', 'afrique.png'), path.join(dir, 'logo.png'));
   fs.writeFileSync(path.join(dir, 'conf.json'), JSON.stringify({ identite: 'Direction Sûreté Exemple', signature: '', logo: 'logo.png' }));
   const em = g.lireEmetteur(path.join(dir, 'conf.json'));
   assert.strictEqual(em.identite, 'Direction Sûreté Exemple');
@@ -263,4 +263,35 @@ test('le rapport porte l’identité d’envoi et le logo configurés, sinon Sen
   // Le fichier du dépôt est lisible et son logo, s'il est déclaré, existe.
   const depot = JSON.parse(fs.readFileSync(g.CONFIG_EMETTEUR, 'utf8'));
   if (depot.logo) assert.ok(g.lireEmetteur().logo, 'logo déclaré mais illisible : ' + depot.logo);
+});
+
+// Demande de YORO du 01/11/2026 : « Le terme GRSCI ne doit pas figurer dans
+// l'appli. À présenter sous le vocable Présentation 1. » Le premier rapport
+// publié après le 27/10 portait encore le sigle dans le texte alternatif de
+// ses images (chemin scripts/assets/grsci/…), visible au lecteur d'écran et
+// dans « Modifier le texte de remplacement » de PowerPoint.
+test('le modèle s’appelle « Présentation 1 », sans le sigle nulle part', () => {
+  const ci = pays('CI', "Côte d'Ivoire", [fait('Attaque sur un axe', 'securite')]);
+  const reg = g.PAYS_REGIONAUX.map((c) => pays(c, 'Pays ' + c, [fait('Fait ' + c, 'securite')]));
+  const p = g.construire(FauxPptx, { jour: '2026-10-25', ci, regionaux: reg });
+  for (const s of p.slides) {
+    for (const a of s.alts || []) {
+      assert.ok(typeof a === 'string' && a.length > 0, 'image sans texte alternatif');
+      assert.doesNotMatch(a, /grsci|[\\/]/i, 'texte alternatif : ' + a);
+    }
+    for (const i of s.images) assert.doesNotMatch(String(i), /grsci/i, 'image : ' + i);
+  }
+  assert.ok(!fs.existsSync(path.join(__dirname, '..', 'assets', 'grsci')), 'ancien dossier d’images');
+  assert.match(String(p.title), /^Présentation 1 — /);
+  const html = fs.readFileSync(path.join(__dirname, '..', '..', 'web', 'SentiqS_Web.html'), 'utf8');
+  const debut = html.indexOf('function chargerRapportsAuto');
+  const fn = html.slice(debut, html.indexOf('\n}', debut));
+  assert.match(fn, /'Présentation 1 · '/);
+  assert.match(fn, /'Presentation 1 · '/);
+  assert.match(fn, /a\.download = 'Presentation-1-' \+ r\.mois/);
+  assert.doesNotMatch(fn, /Rapport mensuel de sûreté ' \+/);
+  assert.doesNotMatch(html, /GRSCI/i, 'sigle dans la page servie');
+  const dico = fs.readFileSync(path.join(__dirname, '..', '..', 'web', 'js', 'dico-en.js'), 'utf8');
+  assert.doesNotMatch(dico, /GRSCI/i);
+  assert.match(dico, /Presentation 1, the monthly security report/);
 });

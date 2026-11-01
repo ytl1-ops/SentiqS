@@ -27,7 +27,7 @@ on:
   workflow_dispatch:
     inputs:
       rapport_mensuel:
-        description: "Réécrire tout de suite le rapport mensuel de sûreté du mois (sinon : premier passage de chaque jour)"
+        description: "Réécrire tout de suite la Présentation 1 (rapport mensuel de sûreté) du mois (sinon : premier passage de chaque jour)"
         type: boolean
         default: false
 

@@ -3254,3 +3254,17 @@ jour, détail. Une image qui échoue pose `sans-img` et disparaît ; un aperçu
 Open Graph arrivé plus tard l'enlève et fait apparaître l'image. Une vidéo
 sans vignette garde son bouton. Sur mobile, l'en-tête « TABLEAU DE BORD »
 (`#dashEntete`), qui redisait l'onglet actif, est masqué.
+
+### « Présentation 1 » — 01/11/2026
+
+Demande de YORO : « Le terme GRSCI ne doit pas figurer dans l'appli. À
+présenter sous le vocable Présentation 1. » Le modèle s'appelle désormais
+**Présentation 1** dans le module Rapports (FR et EN, ligne écrite
+directement en anglais en mode EN), dans le titre du document (propriétés
+PowerPoint/Word) et dans le nom des fichiers téléchargés
+(`Presentation-1-AAAA-MM.pptx|docx|pdf`). La couverture du document garde
+« RAPPORT MENSUEL DE SÛRETÉ ». Le sigle subsistait dans le **texte
+alternatif** des images du PowerPoint (pptxgenjs y écrit le chemin du fichier
+à défaut d'`altText`) : images déplacées dans `scripts/assets/presentation-1/`
+et chaque `addImage` porte un `altText`. Un test refuse le sigle dans la page,
+la table EN, les images et leurs textes alternatifs.
