@@ -78,10 +78,18 @@ jobs:
           printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$cle"
           # Le secret peut avoir été collé en base64 (scripts/lib/cache-firestore-ecriture.js l'accepte aussi).
           node -e "const fs=require('fs');const t=fs.readFileSync(process.argv[1],'utf8').trim();try{JSON.parse(t)}catch(_){fs.writeFileSync(process.argv[1],Buffer.from(t,'base64').toString('utf8'))}" "$cle"
+          trap 'rm -f "$cle"' EXIT
           export GOOGLE_APPLICATION_CREDENTIALS="$cle"
-          projet=$(node -e "console.log(JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')).project_id)" "$cle")
+          # Le projet cible est celui que la page lit (web/js/firebase-config.js),
+          # jamais celui de la clé : le 01/11/2026 une clé d'un autre projet
+          # (sentinel-surete) a fait tenter le déploiement sur ce mauvais projet.
+          projet=$(node -e "const s=require('fs').readFileSync('web/js/firebase-config.js','utf8');console.log((s.match(/projectId:\s*'([^']+)'/)||[])[1]||'')")
+          projetCle=$(node -e "console.log(JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')).project_id)" "$cle")
+          if [ -z "$projet" ] || [ "$projet" != "$projetCle" ]; then
+            echo "::error::La clé FIREBASE_SERVICE_ACCOUNT vient du projet « $projetCle », la page utilise « $projet ». Regénérer la clé depuis la console du projet $projet (Paramètres du projet > Comptes de service)."
+            exit 1
+          fi
           npx -y firebase-tools@15.34.0 deploy --only hosting,firestore:rules \
             --project "$projet" --non-interactive --force \
             --message "commit ${GITHUB_SHA::7}"
-          rm -f "$cle"
           echo "### Firebase Hosting publié : https://$projet.web.app" >> "$GITHUB_STEP_SUMMARY"

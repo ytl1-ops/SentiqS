@@ -102,3 +102,15 @@ test('l\'aperçu des visuels est informatif : un cache illisible ne fait pas éc
   const bloc = s.slice(s.indexOf('if (!ligne) {'), s.indexOf('fs.mkdirSync(OUT'));
   assert.doesNotMatch(bloc, /process\.exit\(1\)/);
 });
+
+// 01/11/2026 : le secret portait une clé du projet « sentinel-surete » et le
+// déploiement visait le projet de la clé, pas celui de la page.
+test('le déploiement et la collecte visent le projet de la page, jamais celui de la clé', () => {
+  const wf = lire('.github/workflows/gh-pages-deploy.yml');
+  const etape = wf.slice(wf.indexOf('Déployer Hosting et règles Firestore'));
+  assert.match(etape, /firebase-config\.js/, 'le projet cible est lu dans la config de la page');
+  assert.match(etape, /"\$projet" != "\$projetCle"/, 'une clé d\'un autre projet arrête le déploiement');
+  assert.ok(etape.indexOf('"$projet" != "$projetCle"') < etape.indexOf('firebase-tools'), 'la garde passe avant le déploiement');
+  const job = lire('scripts/collecte-planifiee.js');
+  assert.match(job, /compteLu\.project_id !== projetPage \? null/, 'la collecte refuse une clé d\'un autre projet');
+});
