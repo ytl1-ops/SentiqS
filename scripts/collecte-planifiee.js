@@ -178,8 +178,19 @@ function ecrireResumeActions(md) {
     // alors que pose : on ne retombe PAS sur Supabase en silence, la publication
     // echoue bruyamment plus bas.
     const secretFirebase = process.env.FIREBASE_SERVICE_ACCOUNT || '';
-    const compteFirebase = secretFirebase ? cacheFirestore.lireCompte(secretFirebase) : null;
-    if (secretFirebase && !compteFirebase) console.error('FIREBASE_SERVICE_ACCOUNT est pose mais illisible (JSON de compte de service attendu).');
+    const compteLu = secretFirebase ? cacheFirestore.lireCompte(secretFirebase) : null;
+    // La clé doit venir du projet que la page LIT (web/js/firebase-config.js).
+    // Le 01/11/2026 le secret portait une clé du projet « sentinel-surete » :
+    // la collecte aurait publié dans un projet que personne ne lit, en silence.
+    const projetPage = (() => {
+      try {
+        const src = fs.readFileSync(path.join(__dirname, '..', 'web', 'js', 'firebase-config.js'), 'utf8');
+        return (src.match(/projectId:\s*'([^']+)'/) || [])[1] || '';
+      } catch (_) { return ''; }
+    })();
+    const compteFirebase = compteLu && projetPage && compteLu.project_id !== projetPage ? null : compteLu;
+    if (compteLu && !compteFirebase) console.error('FIREBASE_SERVICE_ACCOUNT vient du projet « ' + compteLu.project_id + ' », la page lit « ' + projetPage + ' » : regénérer la clé depuis ce projet.');
+    else if (secretFirebase && !compteFirebase) console.error('FIREBASE_SERVICE_ACCOUNT est pose mais illisible (JSON de compte de service attendu).');
     // Le compte est nommé dans le journal (jamais la clé) : le 01/11/2026 une
     // écriture refusée (403) ne disait pas si la clé venait du bon projet ni
     // de quel compte de service, ce qui décide de la correction côté IAM.
@@ -274,7 +285,7 @@ function ecrireResumeActions(md) {
     let publicationExterne = null;
     if (secretFirebase) {
       try {
-        if (!compteFirebase) throw new Error('FIREBASE_SERVICE_ACCOUNT illisible');
+        if (!compteFirebase) throw new Error('FIREBASE_SERVICE_ACCOUNT illisible ou d\'un autre projet que la page');
         const existant = await cacheFirestore.lireCache(compteFirebase, fetch);
         const fusionnes = await page.evaluate((existants) => {
           if (!Array.isArray(ALL) || !ALL.length) return null;
