@@ -22,3 +22,10 @@ window.SENTIQ_FIREBASE_CONFIG = {
   projectId: 'sentiqs-235ce',
   appId: '1:281714171549:web:c15bb3211bd6e2d9cdfe74',
 };
+
+// Connexion par CODE à six chiffres, pour toute adresse e-mail (01/11/2026).
+// Adresse « …/exec » de l'application Web Google Apps Script déployée depuis
+// firebase/code-connexion/Code.gs (voir FIREBASE.md, « Code de connexion »).
+// Vide : la page garde le lien de connexion Firebase (5 par jour). Ce n'est
+// pas un secret : la clé du compte de service reste dans le script.
+window.SENTIQ_CODE_CONNEXION_URL = '';

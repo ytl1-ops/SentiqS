@@ -14,8 +14,11 @@
 //  Tant que web/js/firebase-config.js vaut null, rien ne change.
 //
 //  Trois différences avec Supabase, à connaître :
-//    · pas de code à six chiffres : Firebase envoie un LIEN de connexion.
-//      verifyOtp() répond donc une erreur explicite (« lien_seulement ») ;
+//    · pas de code à six chiffres chez Firebase : il envoie un LIEN. Depuis
+//      le 01/11/2026, un petit service gratuit (Google Apps Script,
+//      firebase/code-connexion/Code.gs) émet un vrai code et un jeton
+//      personnalisé ; tant que son adresse n'est pas dans
+//      firebase-config.js, verifyOtp() répond « lien_seulement » ;
 //    · le plan gratuit n'envoie que 5 e-mails de lien par jour pour TOUT le
 //      projet (mesuré dans la documentation Firebase, « Authentication
 //      limits », 21/10/2026). D'où la connexion Google (sans mot de passe,
@@ -40,6 +43,27 @@
   // L'adresse saisie avant l'envoi du lien : Firebase l'exige à nouveau au
   // retour, pour qu'un lien intercepté ne suffise pas à ouvrir le compte.
   var CLE_EMAIL_LIEN = 'sentiq_email_lien';
+
+  // Service gratuit du code à six chiffres (Google Apps Script, voir
+  // firebase/code-connexion/Code.gs). Vide : la page garde le lien Firebase.
+  function urlCode(v) {
+    var u = String(v || '').trim();
+    return /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u) ? u : null;
+  }
+  // Réponse du service -> message que la page reconnaît déjà (messageErreurOtp).
+  var ERREURS_CODE = {
+    rate: 'Too many requests (rate limit)',
+    quota: 'Daily e-mail quota exceeded',
+    email: 'Invalid email',
+    code: 'Invalid or expired code',
+    desactive: 'Invalid login credentials',
+    config: 'Error sending email (code service not configured)',
+    serveur: 'Error sending email (code service)',
+    action: 'Error sending email (code service)',
+  };
+  function erreurCode(nom) {
+    return { message: ERREURS_CODE[nom] || 'Error sending email (code service)', code: 'code/' + (nom || 'inconnu') };
+  }
 
   function configuree(cfg) {
     return !!(cfg && typeof cfg === 'object' && cfg.apiKey && cfg.projectId && cfg.authDomain);
@@ -204,6 +228,15 @@
       ? auth.setPersistence(fb.auth.Auth.Persistence.NONE) : Promise.resolve();
 
     var etat = { fraiche: false, lienEnAttente: null, erreurLien: null, lienTraite: false };
+    var serviceCode = urlCode(options.urlCode !== undefined ? options.urlCode : global.SENTIQ_CODE_CONNEXION_URL);
+    var requete = env.fetch || (typeof global.fetch === 'function' ? global.fetch.bind(global) : null);
+    // text/plain : requête « simple », sans pré-vol CORS, la seule forme
+    // qu'une application Web Apps Script accepte depuis un navigateur.
+    function appelCode(corps) {
+      if (!requete) return Promise.reject({ code: 'auth/network-request-failed' });
+      return requete(serviceCode, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(corps), redirect: 'follow' })
+        .then(function (r) { return r.json(); }, function () { throw { code: 'auth/network-request-failed' }; });
+    }
 
     function pret() {
       return persistance.then(function () {
@@ -259,7 +292,8 @@
         });
       },
       auth: {
-        parLien: true,
+        parLien: !serviceCode,
+        parCode: !!serviceCode,
         pret: pret,
         getSession: function () {
           return pret().then(traiterLien).then(function () {
@@ -288,7 +322,14 @@
         },
         // « Code par e-mail » de Supabase = lien de connexion chez Firebase.
         // Le lien crée le compte s'il n'existe pas (shouldCreateUser).
+        // Avec le service de code configuré : un vrai code à six chiffres,
+        // pour n'importe quelle adresse, sans le quota des liens.
         signInWithOtp: function (p) {
+          if (serviceCode) {
+            return appelCode({ action: 'envoyer', email: String((p && p.email) || '').trim().toLowerCase() }).then(function (r) {
+              return r && r.ok ? { data: {}, error: null } : { data: null, error: erreurCode(r && r.erreur) };
+            }, function (e) { return { data: null, error: erreur(e) }; });
+          }
           var o = (p && p.options) || {};
           var url = o.emailRedirectTo || String(adresse()).split('?')[0].split('#')[0];
           return auth.sendSignInLinkToEmail(p.email, { url: url, handleCodeInApp: true }).then(function () {
@@ -296,7 +337,15 @@
             return { data: {}, error: null };
           }, function (e) { return { data: null, error: erreur(e) }; });
         },
-        verifyOtp: function () {
+        verifyOtp: function (p) {
+          if (serviceCode) {
+            return appelCode({ action: 'verifier', email: String((p && p.email) || '').trim().toLowerCase(), code: String((p && p.token) || '') })
+              .then(function (r) {
+                if (!r || !r.ok || !r.jeton) return { data: { user: null, session: null }, error: erreurCode(r && r.erreur) };
+                return persistance.then(function () { return auth.signInWithCustomToken(r.jeton); })
+                  .then(function (c) { return reponseUtilisateur(c, true); }, echec);
+              }, echec);
+          }
           return Promise.resolve({ data: null, error: { code: 'lien_seulement', message: 'Use the link received by e-mail (no code with Firebase)' } });
         },
         // Connexion Google : sans mot de passe et sans quota d'e-mail. Fenêtre
@@ -347,6 +396,10 @@
     chargerSdk: chargerSdk,
     erreur: erreur,
     utilisateur: utilisateur,
+    urlCode: urlCode,
+    // Vrai quand la connexion par code à six chiffres est en service : la
+    // page le sait AVANT le chargement du kit (libellés, saisie du code).
+    parCode: function () { return api.actif() && !!urlCode(global.SENTIQ_CODE_CONNEXION_URL); },
     // Vrai dès que la configuration publique est remplie : la page bascule.
     actif: function () { return configuree(global.SENTIQ_FIREBASE_CONFIG); },
     charger: function () {

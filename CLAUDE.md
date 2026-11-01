@@ -2993,6 +2993,22 @@ de `gh-pages-deploy.yml` (Pages reste en parallèle). Le 403 de la collecte du
 `scripts/diagnostic-firebase.js` sépare les deux causes. Voir « Déployer »
 dans `FIREBASE.md`.
 
+**Le code à six chiffres revient, par Apps Script (01/11/2026).** Demande de
+YORO : toute adresse, par code. Firebase n'a qu'un lien (5/jour, et il casse
+sur les messageries d'entreprise) ; `firebase/code-connexion/Code.gs`, script
+Google Apps Script gratuit déployé par le propriétaire, envoie le code par
+Gmail et rend un jeton personnalisé signé par le compte de service, échangé
+par `signInWithCustomToken`. L'adaptateur bascule seul dès que
+`SENTIQ_CODE_CONNEXION_URL` (dans `firebase-config.js`) est rempli
+(`auth.parCode`) ; vide, le lien reste. La clé du compte de service ne vit
+que dans les propriétés du script, jamais dans `web/`. Étapes dans
+`FIREBASE.md`, « Code de connexion ». `scripts/test/code-connexion.test.js`
+fait tourner le vrai script dans un `vm` avec de faux services Google et
+vérifie la signature du jeton avec une vraie clé RSA. **Non vérifié d'ici** :
+l'envoi Gmail réel, la redirection CORS d'Apps Script dans un vrai navigateur
+et l'échange du jeton par Firebase — à faire sur la page publiée dès le
+déploiement du script.
+
 **Deux administrateurs depuis le 21/10/2026**, à la demande explicite de
 YORO : yorot225@gmail.com et a3fyee@gmail.com (le compte de la console
 Firebase), listés dans `emailAdmin()` des règles. Une adresse de plus est un

@@ -8,7 +8,7 @@ Projet Firebase : **SentiqS** (`sentiqs-235ce`), base Firestore en
 
 | | Spark (gratuit) | Conséquence |
 |---|---|---|
-| E-mails de connexion par lien | **5 par jour** pour tout le projet | d'où Google et le mot de passe en secours |
+| E-mails de connexion par lien | **5 par jour** pour tout le projet | d'où le code par Apps Script (100/jour), Google et le mot de passe |
 | E-mails de réinitialisation | 150 par jour | suffisant |
 | Connexion Google | sans limite | porte principale sans mot de passe |
 | Cloud Functions | **non disponibles** | `publier-collecte`, `autoriser-export`, `rag-ask`, paiements restent sur Supabase ou s'arrêtent |
@@ -93,6 +93,70 @@ Source : documentation Firebase « Authentication limits », lue le 21/10/2026.
 
 Quotas Hosting du plan Spark : 10 Go stockés, 360 Mo transférés par jour
 (la page fait ~1,8 Mo, ~450 Ko compressée).
+
+## Code de connexion pour toute adresse e-mail (01/11/2026)
+
+Demande de YORO : se connecter avec n'importe quelle adresse, par un **code
+de vérification**. Firebase n'a pas de code pour l'e-mail, seulement un lien,
+5 par jour pour tout le projet sur Spark — et ce lien casse sur les
+messageries d'entreprise (scanner de liens qui l'ouvre avant l'utilisateur,
+application de messagerie qui l'ouvre dans son propre navigateur, expéditeur
+`noreply@…firebaseapp.com` en indésirables). Le 01/11/2026, l'API
+d'envoi du lien répondait pourtant « envoyé » (sonde faite vers l'adresse du
+propriétaire) : la panne vue par l'utilisateur est en aval, côté livraison et
+ouverture du lien, ce que le code de la page ne peut pas réparer.
+
+**La voie gratuite retenue : un script Google Apps Script**
+(`firebase/code-connexion/Code.gs`), hébergé gratuitement par Google sous le
+compte du propriétaire. Il tire un code à 6 chiffres, l'envoie par Gmail
+(100 destinataires par jour pour un compte Gmail gratuit), puis, au bon code,
+retrouve ou crée le compte Firebase de l'adresse et renvoie un **jeton
+personnalisé** signé par le compte de service. La page l'échange contre une
+session Firebase ordinaire : profils, règles, rôle admin et essai de 72 h
+inchangés, et une adresse déjà connue (Google, mot de passe) retrouve le même
+compte. Ni Cloud Functions, ni carte bancaire, ni fournisseur d'e-mail tiers.
+Google et le mot de passe restent proposés.
+
+Tant que `window.SENTIQ_CODE_CONNEXION_URL` est vide dans
+`web/js/firebase-config.js`, rien ne change : la page garde le lien Firebase.
+
+### À faire une fois par le propriétaire (10 minutes)
+
+L'e-mail du code partira **de l'adresse Gmail qui déploie le script** : la
+choisir en conséquence (une adresse dédiée, par exemple, ou celle de la
+console).
+
+1. **Clé du compte de service** : console Firebase > projet `sentiqs-235ce` >
+   Paramètres du projet > Comptes de service > « Générer une nouvelle clé
+   privée ». Un fichier JSON se télécharge.
+2. **Créer le script** : https://script.google.com > Nouveau projet > le
+   renommer « SentiqS code de connexion » > remplacer tout le contenu de
+   `Code.gs` par celui de `firebase/code-connexion/Code.gs` > Enregistrer.
+3. **Poser la clé** : roue « Paramètres du projet » (à gauche) > Propriétés
+   du script > Ajouter une propriété : nom `COMPTE_SERVICE`, valeur = **tout**
+   le contenu du fichier JSON. Enregistrer, puis **supprimer le fichier**
+   téléchargé. Facultatif : `NOM_EXPEDITEUR` (défaut « SentiqS »),
+   `QUOTA_JOUR` (défaut 90).
+4. **Déployer** : Déployer > Nouveau déploiement > roue « Type » >
+   Application Web ; « Exécuter en tant que : Moi » ; « Qui a accès : Tout le
+   monde » > Déployer > Autoriser l'accès. Google affiche « Google n'a pas
+   validé cette application » (c'est votre propre script) : Paramètres avancés
+   > Accéder à SentiqS code de connexion > Autoriser (envoi d'e-mails en votre
+   nom, connexion à un service externe).
+5. **Copier l'adresse** de l'application Web (elle finit par `/exec`) et
+   l'ouvrir dans un navigateur : elle doit répondre `"pret":true`. Cette
+   adresse n'est pas un secret : la coller dans
+   `window.SENTIQ_CODE_CONNEXION_URL` de `web/js/firebase-config.js` (ou la
+   transmettre à Claude), puis publier.
+
+Aucun secret GitHub ni réglage de la console Firebase de plus n'est
+nécessaire. Modifier le script plus tard : Déployer > Gérer les déploiements >
+crayon > Version : nouvelle version (l'adresse ne change pas).
+
+Garde-fous du script : 1 envoi par minute et 5 par heure par adresse, plafond
+quotidien global, 5 essais par code, 10 minutes de validité, usage unique,
+seule l'empreinte du code est gardée. Journal d'exécution : éditeur Apps
+Script > Exécutions.
 
 ## Réglages faits dans la console (21/10/2026)
 

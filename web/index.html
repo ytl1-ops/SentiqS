@@ -18,7 +18,7 @@ aucune pub).
      *.supabase.co : le formulaire d'inscription public utilise desormais
      Supabase Auth (authentification reelle, voir submitSignup()) au lieu
      d'un code d'acces local genere cote client. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://apis.google.com; frame-src https://*.firebaseapp.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self' https://*.supabase.co https://*.googleapis.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://apis.google.com; frame-src https://*.firebaseapp.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self' https://*.supabase.co https://*.googleapis.com https://script.google.com https://script.googleusercontent.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self';">
 <title>SentiqS — Renseignement sûreté pour l'Afrique, en temps réel</title>
 <meta name="description" content="SentiqS croise en continu des centaines de sources africaines (médias et réseaux sociaux) pour transformer le bruit médiatique en décisions de sûreté exploitables. 54 pays, filtre anti-hallucination &lt;12h, rapports Word/PDF/PowerPoint.">
 <meta name="keywords" content="SentiqS, veille sûreté Afrique, sécurité Afrique, renseignement sûreté, alertes sécurité temps réel, intelligence risques Afrique">
@@ -971,8 +971,13 @@ async function _clientInscription() {
 }
 // Avec Firebase l'e-mail porte un lien : textes et saisie du code s'adaptent,
 // et la connexion Google (sans quota d'e-mail) est proposee.
+function _inscriptionParLien() { return _fournisseurFirebase() && !(window.SentiqFirebase.parCode && window.SentiqFirebase.parCode()); }
 function appliquerModeLienInscription() {
   if (!_fournisseurFirebase()) return;
+  const g0 = document.getElementById('suGoogleBtn'); if (g0) g0.style.display = 'block';
+  // Service de code configure (01/11/2026) : un vrai code a six chiffres,
+  // les textes « code » d'origine et la saisie restent.
+  if (!_inscriptionParLien()) return;
   const t = (id, txt) => { const e = document.getElementById(id); if (e) e.textContent = txt; };
   t('suModalSub', 'Pas de mot de passe : nous vous envoyons un lien de connexion. Accès immédiat, aucune carte bancaire requise.');
   t('suSubmitBtn', 'Recevoir mon lien');
@@ -1053,14 +1058,14 @@ async function _envoyerCodeInscription(renvoi) {
     if (error) { _suErr(errId, _suMessage(error, true)); return; }
     // Firebase : le compte naitra au retour du lien, dans l'application ; elle
     // reprend ce profil une fois (voir profilInscriptionEnAttente).
-    if (client.fournisseur === 'firebase') { try { localStorage.setItem('sentiq_profil_inscription', JSON.stringify({ email, profil: _suProfil })); } catch (_) {} }
+    if (client.fournisseur === 'firebase' && client.auth.parLien) { try { localStorage.setItem('sentiq_profil_inscription', JSON.stringify({ email, profil: _suProfil })); } catch (_) {} }
     _suEmail = email; _suProchainEnvoi = Date.now() + OTP_RENVOI_MS;
     document.getElementById('suEmailAff').textContent = email;
     document.getElementById('suCode').value = '';
     document.getElementById('signupBody').style.display = 'none';
     document.getElementById('signupCode').style.display = 'block';
     _suDecompte();
-    if (client.fournisseur !== 'firebase') document.getElementById('suCode').focus();
+    if (!client.auth.parLien) document.getElementById('suCode').focus();
   } catch (_) { _suErr(errId, _suMessage(null, true)); }
   finally { if (btn) btn.disabled = false; }
 }
@@ -1069,7 +1074,7 @@ function _suDecompte() {
   const lien = document.getElementById('suRenvoi');
   const maj = () => {
     const reste = Math.ceil((_suProchainEnvoi - Date.now()) / 1000);
-    const mot = _fournisseurFirebase() ? 'le lien' : 'le code';
+    const mot = _inscriptionParLien() ? 'le lien' : 'le code';
     if (reste > 0) { lien.textContent = 'Renvoyer ' + mot + ' dans ' + reste + ' s'; lien.setAttribute('aria-disabled', 'true'); }
     else { lien.textContent = 'Renvoyer ' + mot; lien.removeAttribute('aria-disabled'); clearInterval(_suMinuteur); }
   };
@@ -1085,7 +1090,7 @@ async function verifierCodeInscription() {
   _suErr('suCodeErr', '');
   const code = document.getElementById('suCode').value.replace(/[\s-]/g, '');
   if (!/^\d{6,10}$/.test(code)) { _suErr('suCodeErr', 'Code incorrect ou expiré. Vérifiez-le ou demandez-en un nouveau.'); return; }
-  const client = getSentinelSupabase();
+  const client = await _clientInscription();
   if (!client) { _suErr('suCodeErr', "Service d'inscription indisponible pour le moment. Réessayez dans un instant."); return; }
   _suVerifEnCours = true;
   const btn = document.getElementById('suVerifyBtn'); if (btn) btn.disabled = true;
