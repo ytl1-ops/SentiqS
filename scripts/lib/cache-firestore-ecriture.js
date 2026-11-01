@@ -76,7 +76,7 @@ async function ecrireDocument(cfg, fetchFn, jeton, id, champs) {
 async function lireCache(compte, fetchFn, options) {
   const o = options || {};
   const jeton = o.jeton || await jetonAcces(compte, fetchFn);
-  const cfg = { projectId: compte.project_id, apiKey: '' };
+  const cfg = { projectId: compte.project_id, apiKey: '', cle: o.cle };
   // Avec un jeton, la clé d'API n'est pas requise : on la retire de l'adresse.
   const lire = (url) => fetchFn(url.replace(/\?key=$/, ''), { headers: { Authorization: 'Bearer ' + jeton } });
   const enveloppe = (url, entetes) => lire(url);
@@ -93,10 +93,11 @@ async function lireCache(compte, fetchFn, options) {
 async function ecrireCache(compte, articles, fetchFn, options) {
   const o = options || {};
   const jeton = o.jeton || await jetonAcces(compte, fetchFn);
+  const cle = o.cle || commun.ID_ANNONCE;
   const cfg = { projectId: compte.project_id };
   let courant = null;
   try {
-    const a = await commun.lireAnnonce({ projectId: compte.project_id, apiKey: '' }, (url) =>
+    const a = await commun.lireAnnonce({ projectId: compte.project_id, apiKey: '', cle }, (url) =>
       fetchFn(url.replace(/\?key=$/, ''), { headers: { Authorization: 'Bearer ' + jeton } }));
     courant = a && a.emplacement;
   } catch (_) { courant = null; }
@@ -104,10 +105,10 @@ async function ecrireCache(compte, articles, fetchFn, options) {
   const b64 = encoder(articles);
   const morceaux = commun.decouper(b64);
   for (let n = 0; n < morceaux.length; n++) {
-    await ecrireDocument(cfg, fetchFn, jeton, commun.idPartie(emplacement, n), { d: { stringValue: morceaux[n] } });
+    await ecrireDocument(cfg, fetchFn, jeton, commun.idPartie(emplacement, n, cle), { d: { stringValue: morceaux[n] } });
   }
   const maintenant = (o.maintenant ? new Date(o.maintenant) : new Date()).toISOString();
-  await ecrireDocument(cfg, fetchFn, jeton, commun.ID_ANNONCE, {
+  await ecrireDocument(cfg, fetchFn, jeton, cle, {
     updated_at: { stringValue: maintenant },
     parts: { integerValue: String(morceaux.length) },
     emplacement: { stringValue: emplacement },

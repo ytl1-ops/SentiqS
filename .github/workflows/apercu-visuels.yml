@@ -45,6 +45,8 @@ jobs:
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         run: |
           set -e
+          # Pas de cache lisible = pas de captures (le script le signale) : rien à pousser.
+          [ -d apercu-visuels ] || { echo "Aucune capture produite, rien à pousser."; exit 0; }
           cd apercu-visuels
           git init -q
           git config user.name "apercu-visuels"

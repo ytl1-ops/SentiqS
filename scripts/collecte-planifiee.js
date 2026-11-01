@@ -38,6 +38,7 @@ const faitsGrsci = require('./lib/faits-grsci');
 const photosGrsci = require('./lib/photos-grsci');
 const { traduire: traduireJob, ressembleAnglais } = require('./lib/traduction-job');
 const cacheFirestore = require('./lib/cache-firestore-ecriture');
+const { fusionnerAgenda } = require('./lib/agenda-firestore');
 const santeCollecte = require('./lib/sante-collecte');
 
 // Firebase Hosting retire (sentinel-surete.web.app ne recoit plus de
@@ -179,7 +180,10 @@ function ecrireResumeActions(md) {
     const secretFirebase = process.env.FIREBASE_SERVICE_ACCOUNT || '';
     const compteFirebase = secretFirebase ? cacheFirestore.lireCompte(secretFirebase) : null;
     if (secretFirebase && !compteFirebase) console.error('FIREBASE_SERVICE_ACCOUNT est pose mais illisible (JSON de compte de service attendu).');
-    if (compteFirebase) console.log('Cache partage : Firestore (' + compteFirebase.project_id + ').');
+    // Le compte est nommé dans le journal (jamais la clé) : le 01/11/2026 une
+    // écriture refusée (403) ne disait pas si la clé venait du bon projet ni
+    // de quel compte de service, ce qui décide de la correction côté IAM.
+    if (compteFirebase) console.log('Cache partage : Firestore (' + compteFirebase.project_id + ', compte ' + compteFirebase.client_email + ').');
     const ageCachePrecedent = compteFirebase ? await (async () => {
       try {
         const a = await cacheFirestore.lireCache(compteFirebase, fetch);
@@ -281,6 +285,20 @@ function ecrireResumeActions(md) {
         console.log('Cache Firestore publié : ' + pubFs.nbArticles + ' articles, ' + pubFs.parts
           + ' morceau(x), ' + Math.round(pubFs.octets / 1024) + ' Ko (emplacement ' + pubFs.emplacement + ').');
         publicationExterne = { ok: true, nbArticles: pubFs.nbArticles };
+        // Agenda partagé (collecte_partagee/agenda), best-effort : un échec ici
+        // ne fait pas tomber la publication du cache d'actus, qui a réussi.
+        try {
+          const ag = await page.evaluate(() => ({
+            lignes: typeof lignesAgendaPartagee === 'function' ? lignesAgendaPartagee(ALL) : [],
+            maxAgeMs: typeof AGENDA_MAX_AGE === 'number' ? AGENDA_MAX_AGE : 7 * 24 * 3600 * 1000,
+          }));
+          const agExistant = await cacheFirestore.lireCache(compteFirebase, fetch, { cle: 'agenda' });
+          const agenda = fusionnerAgenda(agExistant ? agExistant.articles : [], ag.lignes, Date.now(), ag.maxAgeMs);
+          const pubAg = await cacheFirestore.ecrireCache(compteFirebase, agenda, fetch, { cle: 'agenda' });
+          console.log('Agenda Firestore publié : ' + pubAg.nbArticles + ' entrée(s) (' + ag.lignes.length + ' de ce passage).');
+        } catch (e) {
+          console.warn('::warning::Agenda Firestore non publié : ' + ((e && e.message) || e));
+        }
       } catch (e) {
         publicationExterne = { ok: false, raison: 'publication Firestore a echoue : ' + (e && e.message || e) };
       }
@@ -308,7 +326,9 @@ function ecrireResumeActions(md) {
       // effort, ne doit jamais faire echouer la publication du cache
       // principal si absent/en echec (voir articles_rag, migration
       // 20260718030000).
-      if (typeof publierArticlesRagPartages === 'function') { try { await publierArticlesRagPartages(ALL); } catch (_) {} }
+      // Publication passee par Firestore : Supabase (402) n'est plus sollicite
+      // pour le RAG ni l'agenda — l'agenda part sur Firestore cote Node.
+      if (!pubExterne && typeof publierArticlesRagPartages === 'function') { try { await publierArticlesRagPartages(ALL); } catch (_) {} }
       // Persiste les evenements Agenda detectes automatiquement (agent
       // AGENDA, voir agenda_partagee/migration 20260719000000) —
       // best-effort, meme raisonnement que le RAG ci-dessus. C'est ce job
@@ -322,7 +342,7 @@ function ecrireResumeActions(md) {
       // ne distinguait rien : elle criait « a echoue : raison inconnue » des
       // que le retour etait falsy, et la fonction ne retournait alors JAMAIS
       // rien. Chaque cycle vert portait donc une fausse alarme.
-      if (typeof publierAgendaPartagee === 'function') {
+      if (!pubExterne && typeof publierAgendaPartagee === 'function') {
         try {
           const pubAgenda = await publierAgendaPartagee(ALL);
           if (!pubAgenda || typeof pubAgenda.ok !== 'boolean') {

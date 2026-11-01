@@ -36,7 +36,10 @@
     return 'https://firestore.googleapis.com/v1/projects/' + encodeURIComponent(cfg.projectId)
       + '/databases/(default)/documents/' + COLLECTION;
   }
-  function idPartie(emplacement, n) { return ID_ANNONCE + '_' + emplacement + '_' + n; }
+  // `cle` désigne le jeu de données : 'global' pour le cache d'actus (défaut),
+  // 'agenda' pour l'agenda partagé (01/11/2026, même format, même collection).
+  function cleDe(cfg) { return (cfg && cfg.cle) || ID_ANNONCE; }
+  function idPartie(emplacement, n, cle) { return (cle || ID_ANNONCE) + '_' + emplacement + '_' + n; }
 
   function decouper(texte, taille) {
     var t = taille || PARTIE_MAX, parts = [];
@@ -76,7 +79,16 @@
   function lireJson(fetchFn, url, entetes) {
     return fetchFn(url, entetes ? { headers: entetes } : undefined).then(function (r) {
       if (r.status === 404) return null;
-      if (!r.ok) throw new Error('Firestore HTTP ' + r.status);
+      // Le message de Firestore dit QUI refuse : « Missing or insufficient
+      // permissions » = règles (lecture publique) ; « Permission denied on
+      // resource project » ou « … has not been used » = IAM ou API du compte de
+      // service. Sans lui, le 403 du 01/11/2026 ne se distinguait pas.
+      if (!r.ok) {
+        return Promise.resolve(typeof r.json === 'function' ? r.json() : null).catch(function () { return null; }).then(function (d) {
+          var m = d && d.error && d.error.message;
+          throw new Error('Firestore HTTP ' + r.status + (m ? ' : ' + m : ''));
+        });
+      }
       return r.json();
     });
   }
@@ -84,7 +96,7 @@
   // Lit l'annonce seule (un document de quelques octets) : suffit à savoir si
   // le cache a changé, et son âge, sans transférer les morceaux.
   function lireAnnonce(cfg, fetchFn, entetes) {
-    return lireJson(fetchFn, racine(cfg) + '/' + ID_ANNONCE + '?key=' + encodeURIComponent(cfg.apiKey), entetes)
+    return lireJson(fetchFn, racine(cfg) + '/' + cleDe(cfg) + '?key=' + encodeURIComponent(cfg.apiKey), entetes)
       .then(function (d) {
         if (!d || !d.fields) return null;
         var f = d.fields;
@@ -99,7 +111,7 @@
   function lireMorceaux(cfg, fetchFn, annonce, entetes) {
     var demandes = [];
     for (var n = 0; n < annonce.parts; n++) {
-      demandes.push(lireJson(fetchFn, racine(cfg) + '/' + idPartie(annonce.emplacement, n)
+      demandes.push(lireJson(fetchFn, racine(cfg) + '/' + idPartie(annonce.emplacement, n, cleDe(cfg))
         + '?key=' + encodeURIComponent(cfg.apiKey), entetes));
     }
     return Promise.all(demandes).then(function (docs) {
@@ -122,8 +134,9 @@
     var fetchFn = options.fetchFn || (typeof fetch === 'function' ? fetch.bind(global) : null);
     if (!cfg || !cfg.projectId || !cfg.apiKey || !fetchFn) return Promise.resolve(null);
     var st = options.stockage || null;
+    var cleLocale = CLE_LOCALE + (cleDe(cfg) === ID_ANNONCE ? '' : '_' + cleDe(cfg));
     var local = null;
-    try { local = st ? JSON.parse(st.getItem(CLE_LOCALE) || 'null') : null; } catch (_) { local = null; }
+    try { local = st ? JSON.parse(st.getItem(cleLocale) || 'null') : null; } catch (_) { local = null; }
     return lireAnnonce(cfg, fetchFn, options.entetes).then(function (annonce) {
       if (!annonce) return null;
       var memeVersion = local && local.updated_at === annonce.updated_at && local.emplacement === annonce.emplacement
@@ -133,7 +146,7 @@
         return decoder(b64).then(function (articles) {
           if (!Array.isArray(articles)) return null;
           if (st && !memeVersion) {
-            try { st.setItem(CLE_LOCALE, JSON.stringify({ updated_at: annonce.updated_at, emplacement: annonce.emplacement, donnees: b64 })); } catch (_) { /* quota local : sans conséquence */ }
+            try { st.setItem(cleLocale, JSON.stringify({ updated_at: annonce.updated_at, emplacement: annonce.emplacement, donnees: b64 })); } catch (_) { /* quota local : sans conséquence */ }
           }
           return { articles: articles, updated_at: annonce.updated_at, inchange: !!memeVersion, annonce: annonce };
         });
@@ -143,7 +156,7 @@
 
   var api = {
     COLLECTION: COLLECTION, ID_ANNONCE: ID_ANNONCE, PARTIE_MAX: PARTIE_MAX, CLE_LOCALE: CLE_LOCALE,
-    racine: racine, idPartie: idPartie, decouper: decouper, valeur: valeur,
+    racine: racine, idPartie: idPartie, cleDe: cleDe, decouper: decouper, valeur: valeur,
     decoder: decoder, lireAnnonce: lireAnnonce, lireMorceaux: lireMorceaux, lire: lire,
   };
   global.SentiqCacheFirestore = api;
