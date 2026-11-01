@@ -610,7 +610,7 @@ function ecrireResumeActions(md) {
           }
           faitsGrsci.ecrireCumul(RACINE_GRSCI, cumul);
           const total = paysGrsci.reduce((n, cy) => n + ((cumul.pays[cy] || []).length), 0);
-          console.log('  GRSCI : ' + total + ' faits cumules pour ' + mois + ' (' + aTraduire + ' titres soumis a traduction, ' + titresTraduits + ' traduits'
+          console.log('  Présentation 1 : ' + total + ' faits cumules pour ' + mois + ' (' + aTraduire + ' titres soumis a traduction, ' + titresTraduits + ' traduits'
             + (horsBudget ? ', ' + horsBudget + ' reportes au passage suivant faute de temps' : '') + ').');
 
           // Rapport du mois en cours réécrit au premier passage de chaque jour
@@ -628,7 +628,7 @@ function ecrireResumeActions(md) {
             const ci = await lire('CI');
             const regionaux = [];
             for (const cy of rapportGrsci.PAYS_REGIONAUX) { const d = await lire(cy); if (d) regionaux.push(d); }
-            if (!ci) { console.warn('  GRSCI : la page ne fournit pas donneesBulletinPays.'); }
+            if (!ci) { console.warn('  Présentation 1 : la page ne fournit pas donneesBulletinPays.'); }
             else {
               // Faits marquants rédigés (demande du 23/10/2026) : leurs
               // chapôs en français, et la photo de la source. Ce qui est
@@ -658,21 +658,21 @@ function ecrireResumeActions(md) {
               const illustres = await photosGrsci.illustrer(marquants, undefined, limiteGrsci);
               marquants.forEach((f) => (f.liens || []).forEach((l) => { const x = parUrl.get(l.url); if (x && f.img && !x.img) x.img = f.img; }));
               faitsGrsci.ecrireCumul(RACINE_GRSCI, cumulR);
-              console.log('  GRSCI : ' + marquants.length + ' faits marquants rédigés, ' + illustres + ' avec photo, ' + chapos + ' chapôs traduits.');
+              console.log('  Présentation 1 : ' + marquants.length + ' faits marquants rédigés, ' + illustres + ' avec photo, ' + chapos + ' chapôs traduits.');
               const chemin = await rapportGrsci.ecrire(RACINE_GRSCI, PptxGenJS, { jour: fin, ci, regionaux });
-              console.log('  GRSCI : rapport ecrit — ' + chemin + ' (' + regionaux.length + ' pays regionaux).');
+              console.log('  Présentation 1 : rapport ecrit — ' + chemin + ' (' + regionaux.length + ' pays regionaux).');
               // Le même rapport en Word : vrais textes et tableaux modifiables.
               // Son échec ne doit pas faire perdre le PowerPoint déjà écrit.
               try {
                 const cheminWord = await rapportGrsciWord.ecrireWord(RACINE_GRSCI, require('docx'), { jour: fin, ci, regionaux });
-                console.log('  GRSCI : version Word ecrite — ' + cheminWord);
+                console.log('  Présentation 1 : version Word ecrite — ' + cheminWord);
               } catch (e) {
-                console.warn('  GRSCI : version Word non ecrite (' + ((e && e.message) || e) + ')');
+                console.warn('  Présentation 1 : version Word non ecrite (' + ((e && e.message) || e) + ')');
               }
             }
           }
         } catch (e) {
-          console.warn('  GRSCI : rapport non ecrit (' + ((e && e.message) || e) + ')');
+          console.warn('  Présentation 1 : rapport non ecrit (' + ((e && e.message) || e) + ')');
         }
       }
     } catch (e) {
