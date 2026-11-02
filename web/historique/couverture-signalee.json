@@ -1,9 +1,9 @@
 {
- "cle": "ER,KM,LR,SC,SL,ST",
+ "cle": "ER,GW,KM,SC,SL,ST",
  "pays": [
   "ER",
+  "GW",
   "KM",
-  "LR",
   "SC",
   "SL",
   "ST"
