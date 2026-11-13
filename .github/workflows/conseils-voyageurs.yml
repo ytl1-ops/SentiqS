@@ -1,0 +1,29 @@
+name: Liens des conseils aux voyageurs
+
+# Les bulletins des 54 pays renvoient aux avis officiels (FCDO, Département
+# d'État, France Diplomatie). Ces adresses ont été écrites hors ligne : ce job
+# les interroge depuis GitHub. Informatif : un site qui refuse les robots ne
+# doit pas bloquer une PR, le journal dit lien par lien ce qui répond.
+
+on:
+  pull_request:
+    paths:
+      - scripts/lib/bulletin.js
+      - scripts/verifier-conseils-voyageurs.js
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  liens:
+    name: Avis officiels joignables
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Sonde les 162 liens
+        run: node scripts/verifier-conseils-voyageurs.js --strict

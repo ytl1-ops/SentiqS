@@ -41,12 +41,14 @@ test('flash : marron et rouge partout, orange seulement pour la Côte d\'Ivoire'
   assert.strictEqual(A.construireMessage(A.filtrerFlash({ montees: [m.montees[0]], descentes: 0 })), null);
 });
 
-test('un bulletin par jour, pour les seuls pays pilotes, à partir de 6 h GMT', () => {
+test('un bulletin par jour et par pays, à partir de 6 h GMT', () => {
   const racine = fs.mkdtempSync(path.join(os.tmpdir(), 'bulletin-'));
   const t5h = Date.UTC(2026, 9, 21, 5, 59), t6h = Date.UTC(2026, 9, 21, 6, 0);
   assert.strictEqual(B.doitEcrire(racine, 'CI', '2026-10-21', t5h), false);
   assert.strictEqual(B.doitEcrire(racine, 'CI', '2026-10-21', t6h), true);
-  assert.strictEqual(B.doitEcrire(racine, 'ML', '2026-10-21', t6h), false);
+  // Depuis le 13/11/2026, chaque pays suivi a son bulletin (demande de YORO).
+  assert.strictEqual(B.doitEcrire(racine, 'ML', '2026-10-21', t6h), true);
+  assert.strictEqual(B.doitEcrire(racine, 'XX', '2026-10-21', t6h), false, 'un code inconnu n\'a pas de bulletin');
   B.ecrire(racine, donnees(), { jour: '2026-10-21', genereMs: t6h, serie: null });
   assert.strictEqual(B.doitEcrire(racine, 'CI', '2026-10-21', t6h + 3600e3), false, 'le premier passage fait foi');
   assert.ok(fs.existsSync(path.join(racine, 'CI', 'dernier.html')));
