@@ -185,6 +185,10 @@
   // ── Client ─────────────────────────────────────────────────────────────
   // env : { stockage (localStorage), adresse () -> location.href,
   //         remplacerAdresse (url) -> history.replaceState, maintenant () }
+  // Firebase exige une connexion de moins de cinq minutes pour supprimer une
+  // identité : on prend la même marge.
+  var DELAI_SUPPRESSION_MS = 5 * 60 * 1000;
+
   function creerClient(fb, cfg, options, env) {
     options = options || {}; env = env || {};
     var nom = options.nom || '[DEFAULT]';
@@ -335,6 +339,33 @@
         jeton: function () {
           return pret().then(function () { return auth.currentUser ? auth.currentUser.getIdToken() : null; })
             .then(null, function () { return null; });
+        },
+        // Suppression du compte par l'utilisateur (13/11/2026, exigence du
+        // Play Store). Firebase refuse de supprimer une identité sans connexion
+        // récente ; on le vérifie AVANT de toucher au profil, pour ne jamais
+        // laisser une identité sans profil. Ordre : profil, puis identité —
+        // une fois l'identité supprimée, plus rien ne peut s'écrire en son nom.
+        // Un administrateur ne se supprime pas lui-même (la plateforme resterait
+        // sans administrateur).
+        supprimerCompte: function () {
+          var u;
+          var refus = function (code, message) { return { data: null, error: { code: code, message: message } }; };
+          return pret().then(function () {
+            u = auth.currentUser;
+            if (!u) return refus('no-session', 'No active session');
+            return u.getIdTokenResult().then(function (t) {
+              var age = Date.now() - new Date(t && t.authTime).getTime();
+              if (!(age >= 0 && age < DELAI_SUPPRESSION_MS)) return refus('reconnexion', 'Recent sign-in required');
+              var ref = db.collection('profiles').doc(u.uid);
+              return ref.get().then(function (d) {
+                if (d && d.exists && (d.data() || {}).role === 'admin') return refus('admin', 'An administrator cannot delete their own account');
+                return ref.delete().then(function () { return u.delete(); })
+                  .then(function () { return { data: {}, error: null }; });
+              });
+            });
+          }).then(null, function (e) {
+            return { data: null, error: String(e && e.code) === 'auth/requires-recent-login' ? { code: 'reconnexion', message: 'Recent sign-in required' } : erreur(e) };
+          });
         },
         signOut: function () {
           return auth.signOut().then(function () { return { error: null }; }, function (e) { return { error: erreur(e) }; });

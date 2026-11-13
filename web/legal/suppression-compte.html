@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Supprimer mon compte SentiqS</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+  :root { color-scheme: light dark; }
+  body { max-width: 46rem; margin: 0 auto; padding: 2.5rem 1.25rem 5rem;
+         font: 16px/1.65 system-ui, -apple-system, sans-serif; }
+  h1 { font-size: 1.8rem; margin-bottom: .25rem; }
+  h2 { font-size: 1.15rem; margin-top: 2.25rem; }
+  .maj { color: var(--maj); font-size: .85rem; }
+  .todo { background: #fef3c7; color: #7c2d12; padding: .1em .4em; border-radius: 3px;
+          font-family: ui-monospace, monospace; font-size: .85em; }
+  .avert { border-left: 4px solid #b42318; background: #fdf1f0; color: #7f1d1d;
+           padding: .9rem 1.1rem; border-radius: 4px; margin: 1.5rem 0; }
+  a { color: var(--lien); }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--bord); font-size: .875rem; }
+
+  /* revue-pages-2026-10-15 — mode sombre : les gris/bleus du mode clair tombaient
+     à 3,6:1 (gris) et 3,4:1 (liens) sur fond sombre. Les zones « À COMPLÉTER »
+     gardent leur propre fond. Tableaux empilés sur mobile (la politique de
+     confidentialité débordait à 509 px pour un écran de 390). */
+  :root { --maj: #475569; --lien: #1d4ed8; --bord: #cbd5e1; }
+  @media (prefers-color-scheme: dark) { :root { --maj: #a8b5c8; --lien: #8ab4f8; --bord: #334155; } }
+  .todo { overflow-wrap: anywhere; }
+  td, th { overflow-wrap: anywhere; }
+  footer a { display: inline-block; padding: .35rem .15rem; margin: -.35rem -.15rem; }
+  a:focus-visible { outline: 2px solid var(--lien); outline-offset: 3px; border-radius: 3px; }
+  @media (max-width: 40rem) {
+    table, thead, tbody, tr, th, td { display: block; }
+    thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    tr { border-bottom: 1px solid var(--bord); padding: .6rem 0; }
+    td { border: 0; padding: .2rem 0; }
+    td[data-l]::before { content: attr(data-l); display: block; font-size: .75rem; text-transform: uppercase;
+                         letter-spacing: .06em; color: var(--maj); }
+  }
+  /* Sélecteur FR/EN (21/10/2026). L'anglais est une traduction d'information :
+     la note qui le dit ne s'affiche qu'en anglais. */
+  .entete-langue { display: flex; justify-content: flex-end; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .lang-switch { display: flex; border: 1px solid var(--bord); border-radius: 6px; overflow: hidden; }
+  .lang-btn { background: transparent; color: inherit; border: 0; font: inherit; font-size: .8rem; font-weight: 700;
+              min-width: 2.5rem; min-height: 2.25rem; cursor: pointer; }
+  .lang-btn.on { background: var(--bord); }
+  .lang-btn:focus-visible { outline: 2px solid var(--lien); outline-offset: -2px; }
+  .foi { margin: 0; font-size: .85rem; color: var(--maj); }
+  html[lang="fr"] .foi { display: none; }
+</style>
+<script src="../js/langue.js"></script>
+<script src="../js/dico-site-en.js"></script>
+<script src="../js/langue-site.js"></script>
+</head>
+<body>
+<header class="entete-langue">
+  <p class="foi">La version française fait foi.</p>
+  <div class="lang-switch" role="group" aria-label="Langue / Language">
+  <button type="button" class="lang-btn" data-lang="fr" lang="fr" translate="no" title="Français" aria-pressed="true">FR</button>
+  <button type="button" class="lang-btn" data-lang="en" lang="en" translate="no" title="English" aria-pressed="false">EN</button>
+</div>
+</header>
+<main>
+<h1>Supprimer mon compte SentiqS</h1>
+<p>Vous pouvez supprimer votre compte à tout moment, sans frais, depuis le site comme depuis l'application Android.</p>
+
+<h2>Depuis l'application ou le site</h2>
+<ol>
+  <li>Connectez-vous à SentiqS.</li>
+  <li>Ouvrez Paramètres, section « Supprimer mon compte ».</li>
+  <li>Tapez SUPPRIMER puis choisissez « Supprimer définitivement ».</li>
+</ol>
+<p>Par sécurité, la suppression demande une connexion de moins de cinq minutes : si l'écran vous le demande, reconnectez-vous puis recommencez.</p>
+
+<h2>Ce qui est supprimé</h2>
+<p>Votre identité de connexion et votre profil (nom, organisation, forfait) sont supprimés immédiatement. Le journal de vos connexions est effacé sous trente jours.</p>
+
+<h2>Ce qui est conservé</h2>
+<p>Les factures sont conservées pendant la durée imposée par la loi. Les validations que vous avez faites en tant qu'analyste restent dans le journal d'audit, qui ne peut être ni modifié ni effacé. Les rapports déjà téléchargés restent sur vos appareils.</p>
+
+<h2>Si vous ne pouvez plus vous connecter</h2>
+<p><span class="todo">[[À COMPLÉTER : adresse de contact pour les demandes de suppression]]</span></p>
+<p>Voir aussi la <a href="confidentialite.html">politique de confidentialité</a>.</p>
+
+</main>
+
+<footer><a href="../index.html">Retour à l'accueil</a></footer>
+</body>
+</html>

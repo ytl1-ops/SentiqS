@@ -1,0 +1,20 @@
+{
+  "id": "SentiqS_Web.html",
+  "name": "SentiqS — Veille de sûreté Afrique",
+  "short_name": "SentiqS",
+  "description": "Veille de sûreté sur les 54 pays d'Afrique : niveaux d'alerte, faits vérifiés, rapports.",
+  "lang": "fr",
+  "dir": "ltr",
+  "start_url": "SentiqS_Web.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#071431",
+  "theme_color": "#071431",
+  "categories": ["business", "news", "productivity"],
+  "icons": [
+    { "src": "icons/icone-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icone-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

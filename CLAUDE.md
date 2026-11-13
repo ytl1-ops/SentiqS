@@ -3370,3 +3370,40 @@ Trois blocages de vente relevés dans l'état des lieux du 13/11/2026.
 
 `scripts/test/verrou-vente.test.js` (6) et `droits-contenus.test.js` (5), vus
 échouer sur l'ancien code.
+
+---
+
+## L'application Android et la suppression du compte — 13/11/2026
+
+**L'application est une « Trusted Web Activity »** (`android/`) : elle ouvre
+`https://sentiqs-235ce.web.app/SentiqS_Web.html` en plein écran, sans aucune
+logique propre. Le site se met à jour sans republier l'app. Elle ne demande
+qu'Internet. L'ancienne app Expo (`app/sentinel-app/`) n'est pas celle-ci.
+
+- Construite **en CI seulement** (`.github/workflows/android.yml`) : le bac à
+  sable n'a ni SDK Android ni accès au dépôt Maven de Google. Une PR qui
+  touche `android/` la compile ; le lancement manuel produit l'AAB, signé si
+  les secrets `ANDROID_KEYSTORE_*` existent.
+- **Barre d'adresse ou plein écran** : Android ne passe en plein écran que si
+  le site publie `/.well-known/assetlinks.json` avec l'empreinte SHA-256 de la
+  clé de signature de la Play Console. `scripts/assetlinks.js` l'écrit avant
+  chaque publication Firebase depuis la variable de dépôt `TWA_SHA256`.
+  `firebase.json` ignorait `**/.*`, donc `.well-known` : corrigé.
+- Icônes et bannière Play Store dessinées par `scripts/icones-app.py`
+  (Pillow, fichiers commités). Manifeste web : `web/manifest.webmanifest`.
+
+**Suppression du compte par l'utilisateur** (exigence du Play Store) :
+Paramètres > « Supprimer mon compte », confirmée en tapant SUPPRIMER/DELETE,
+et la page `web/legal/suppression-compte.html` qui dit comment faire.
+`auth.supprimerCompte()` (adaptateur Firebase) exige une connexion de moins de
+cinq minutes **avant** de toucher à quoi que ce soit, supprime le profil puis
+l'identité, et refuse un compte administrateur. Les règles autorisent un
+utilisateur à supprimer son seul profil, jamais un profil admin.
+
+**Trouvé en passant** : le tableau des utilisateurs de l'administration,
+écrit en dur dans le HTML servi, contenait le nom et l'adresse d'un
+utilisateur réel. Remplacé par une ligne vide (le tableau est reconstruit au
+rendu).
+
+`scripts/test/suppression-compte.test.js` (7) et
+`application-android.test.js` (6).

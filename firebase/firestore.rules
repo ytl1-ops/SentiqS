@@ -71,7 +71,10 @@ service cloud.firestore {
             && request.resource.data.status == resource.data.status
             && request.resource.data.id == resource.data.id
             && commercialInchange()));
-      allow delete: if estAdmin();
+      // Un utilisateur supprime son propre profil (exigence du Play Store,
+      // 13/11/2026) ; jamais celui d'un autre, et jamais un profil admin.
+      allow delete: if estAdmin()
+        || (connecte() && request.auth.uid == uid && resource.data.role != 'admin');
     }
 
     // Journal des connexions : chacun écrit la sienne, seul l'admin lit.
