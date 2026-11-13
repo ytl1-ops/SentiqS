@@ -45,9 +45,6 @@ const EXCEPTIONS = [
   /Date\.now\(\)-a\.pubDate\)<12\*3600000\)/,
   /-12H<\/span>/,
   /−12H<\/span>/,
-  // Descriptif commercial de l'offre gratuite : une promesse de produit, pas
-  // une etiquette de fraicheur. Elle appartient au proprietaire.
-  /Flux 12h, 1 pays suivi/,
 ];
 
 test('aucune etiquette de fraicheur ne recopie une duree en dur', () => {

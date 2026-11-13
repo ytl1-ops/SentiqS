@@ -74,3 +74,18 @@ test("accueil : le nombre de sources et la fenetre d'actualite sont ceux de l'ou
   assert.ok(!/12 dernières heures|&lt;12h/.test(ACC), 'fenetre de 12 h annoncee sur l\'accueil');
   assert.ok(ACC.includes(h + ' dernières heures'), 'la fenetre de ' + h + ' h n\'est pas dite');
 });
+
+// La grille des forfaits promettait au gratuit un « Flux 12h » (aucune limite a
+// 12 h n'est appliquee : la fenetre vaut 36 h pour tous) et des « Publicites
+// affichees » (la publicite a ete retiree). Decision de l'editeur du
+// 13/11/2026 : retirer ces deux mentions, le reste de la grille inchange.
+test('grille des forfaits : aucune promesse fausse sur l\'offre gratuite', () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const ACC = fs.readFileSync(path.join(__dirname, '../../web/index.html'), 'utf8');
+  for (const [nom, src] of [['appli', HTML], ['accueil', ACC]]) {
+    const m = src.match(/\{key:'gratuit',[\s\S]*?feats:\[([^\]]*)\]/);
+    assert.ok(m, 'offre gratuite introuvable : ' + nom);
+    assert.ok(!/Flux 12h|Publicit/.test(m[1]), nom + ' : ' + m[1]);
+    assert.ok(m[1].includes("'1 pays suivi'"), nom + ' : le reste de la ligne doit rester');
+  }
+});

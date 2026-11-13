@@ -3389,10 +3389,12 @@ registre `SRCS` compte 576 entrées et que la fenêtre vaut 36 h depuis le
 fait tomber. 576 compte **toutes** les entrées du registre, requêtes Google
 News comprises (voir « Les quatre arbitrages du 07/09/2026 » : elles ne
 nourrissent que l'historique) — c'est ce que « sources suivies » veut dire,
-pas « sources capables d'alerter ». **Pas touché, décision d'offre** : la
-grille des forfaits dit encore « Flux 12h » et « Publicités affichées » pour
-le plan gratuit (aucune restriction à 12 h n'est appliquée par le code, et la
-publicité a été retirée).
+pas « sources capables d'alerter ». **Grille des forfaits, même soir** :
+l'éditeur a fait retirer de l'offre gratuite « Flux 12h » (aucune limite à
+12 h n'est appliquée) et « Publicités affichées » (la publicité a été
+retirée) ; le reste de la grille ne change pas, un test le garde. La grille
+d'un administrateur qui l'aurait modifiée dans son navigateur
+(`sentinel_pricing_v1`) n'est pas touchée : c'est sa copie locale.
 
 ---
 
