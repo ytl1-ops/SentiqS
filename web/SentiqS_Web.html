@@ -2865,6 +2865,23 @@ html.force-mobile .kpi-grid>.kpi-tile:last-child:nth-child(odd){grid-column:1/-1
       ligne dans la carte, le texte reste entier. */
 @media (max-width:760px){html:not(.force-web) .art-top .survtime{white-space:normal;min-width:0;max-width:100%;overflow-wrap:anywhere}}
 html.force-mobile .art-top .survtime{white-space:normal;min-width:0;max-width:100%;overflow-wrap:anywhere}
+/* 4. Tablette : le bandeau « Cliquez sur Actualiser » tenait sur trois lignes
+      a 820 px (action, detail renvoye a la ligne, pastille de detection
+      dessous), 76 px avant le contenu. L'action et son detail se suivent
+      dans le meme paragraphe, la pastille passe a droite. Rien n'est masque.
+      Ecrit deux fois, comme les autres regles tablette. */
+@media (min-width:761px) and (max-width:1180px){
+  html:not(.force-web):not(.force-mobile) .pb-body{display:flex;align-items:center;flex-wrap:nowrap;gap:12px}
+  html:not(.force-web):not(.force-mobile) .pb-steps{flex:1 1 auto;min-width:0}
+  html:not(.force-web):not(.force-mobile) .pb-step{display:block;line-height:1.45}
+  html:not(.force-web):not(.force-mobile) .pb-pills{margin-top:0;flex-shrink:0}
+}
+@media (min-width:761px){
+  html.force-tablette .pb-body{display:flex;align-items:center;flex-wrap:nowrap;gap:12px}
+  html.force-tablette .pb-steps{flex:1 1 auto;min-width:0}
+  html.force-tablette .pb-step{display:block;line-height:1.45}
+  html.force-tablette .pb-pills{margin-top:0;flex-shrink:0}
+}
 /* ═══ MOBILE : LE CONTENU D'ABORD — 22/10/2026 (voir CLAUDE.md) ═══
    Capture de YORO sur téléphone (texte agrandi par le navigateur) : barre du
    haut, bandeau « Cliquez sur Actualiser », collecte, flash info, filtre pays,

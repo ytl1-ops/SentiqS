@@ -3359,6 +3359,16 @@ gravité flottante ; une date longue (« dim. 7 février à 12:00 UTC (7 févrie
 6 à 360 px. Elle passe à la ligne sur mobile (règle écrite deux fois). Mesure :
 éléments qui dépassent le bord de leur carte, 6 → 0. Exports : 14/14 identiques.
 
+Troisième incrément, la tablette (761 à 1180 px, et le format tablette
+forcé) : le bandeau « Cliquez sur Actualiser » tenait sur trois lignes à
+820 px — l'action, son détail renvoyé à la ligne, la pastille de détection
+dessous. L'action et son détail se suivent dans le même paragraphe et la
+pastille passe à droite, sans rien masquer. **Piège** : `.proxy-bar .pb-body`
+(bloc « Salle de veille ») impose `flex-wrap:wrap` ; sans `nowrap` explicite
+la pastille retombe dessous. Mesure : bandeau 76 → 45 px, première carte du
+Flux 31 px plus haut ; téléphone et bureau inchangés. Exports : 14/14
+identiques.
+
 ---
 
 ## Prêt à vendre : forfait verrouillé, actus réservées aux comptes, droits — 13/11/2026

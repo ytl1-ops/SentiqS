@@ -33,3 +33,16 @@ test('Flux sur telephone : la date de survenance passe a la ligne, ecran etroit 
   assert.ok(HTML.includes('html:not(.force-web) ' + regle), 'regle ecran etroit absente');
   assert.ok(HTML.includes('html.force-mobile ' + regle), 'regle mode mobile force absente');
 });
+
+// Tablette : le bandeau « Cliquez sur Actualiser » tenait sur trois lignes a
+// 820 px (76 px avant le contenu, 45 apres). La pastille passe a droite.
+test('tablette : le bandeau de collecte tient sur une bande, mode automatique ET tablette forcee', () => {
+  for (const regle of [
+    '.pb-body{display:flex;align-items:center;flex-wrap:nowrap;gap:12px}',
+    '.pb-step{display:block;line-height:1.45}',
+    '.pb-pills{margin-top:0;flex-shrink:0}',
+  ]) {
+    assert.ok(HTML.includes('html:not(.force-web):not(.force-mobile) ' + regle), 'automatique : ' + regle);
+    assert.ok(HTML.includes('html.force-tablette ' + regle), 'forcee : ' + regle);
+  }
+});
