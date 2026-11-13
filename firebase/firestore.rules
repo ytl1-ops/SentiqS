@@ -33,20 +33,48 @@ service cloud.firestore {
         || (connecte() && get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == 'admin');
     }
 
+    // Champs commerciaux d'un profil (13/11/2026, bloquant de vente) : le
+    // forfait, le paiement, l'échéance, l'accès et le quota sont posés par
+    // l'administrateur. Avant, un utilisateur ne pouvait pas changer son rôle
+    // mais pouvait se passer lui-même en forfait payant en réécrivant `data`.
+    function champ(d, nom) { return d.get('data', {}).get(nom, null); }
+    function inchange(nom) { return champ(request.resource.data, nom) == champ(resource.data, nom); }
+    function commercialInchange() {
+      return inchange('plan') && inchange('paiement') && inchange('echeance')
+        && inchange('dlQuotaOverride') && inchange('accesJusquau')
+        // La date de création décide de l'essai de 72 h : posée une fois,
+        // jamais réécrite (un profil ancien sans date peut la recevoir).
+        && (inchange('createdAt') || champ(resource.data, 'createdAt') == null);
+    }
+    function profilActif() {
+      return connecte()
+        && get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.status == 'active';
+    }
+
     match /profiles/{uid} {
       allow read: if connecte() && (request.auth.uid == uid || estAdmin());
       allow create: if connecte() && request.auth.uid == uid
         && request.resource.data.id == uid
         && request.resource.data.status == 'active'
         && (request.resource.data.role == 'user'
-            || (request.resource.data.role == 'admin' && emailAdmin()));
+            || (request.resource.data.role == 'admin' && emailAdmin()))
+        // Un compte naît au forfait gratuit, sans paiement ni accès prolongé.
+        && (estAdmin() || (champ(request.resource.data, 'plan') in [null, 'gratuit']
+            && champ(request.resource.data, 'paiement') == null
+            && champ(request.resource.data, 'echeance') == null
+            && champ(request.resource.data, 'dlQuotaOverride') == null
+            && champ(request.resource.data, 'accesJusquau') == null));
       allow update: if connecte() && (
         estAdmin()
         || (request.auth.uid == uid
             && request.resource.data.role == resource.data.role
             && request.resource.data.status == resource.data.status
-            && request.resource.data.id == resource.data.id));
-      allow delete: if estAdmin();
+            && request.resource.data.id == resource.data.id
+            && commercialInchange()));
+      // Un utilisateur supprime son propre profil (exigence du Play Store,
+      // 13/11/2026) ; jamais celui d'un autre, et jamais un profil admin.
+      allow delete: if estAdmin()
+        || (connecte() && request.auth.uid == uid && resource.data.role != 'admin');
     }
 
     // Journal des connexions : chacun écrit la sienne, seul l'admin lit.
@@ -55,12 +83,14 @@ service cloud.firestore {
       allow read: if estAdmin();
     }
 
-    // Cache d'actus partagé (web/js/cache-firestore.js) : lisible par tous, y
-    // compris sans compte, puisque la page le lit avant la connexion. Aucune
-    // écriture depuis un navigateur : seul le compte de service du workflow de
-    // collecte écrit (il passe par IAM, pas par ces règles).
+    // Cache d'actus et agenda partagés (web/js/cache-firestore.js). Lisibles
+    // par les seuls comptes actifs depuis le 13/11/2026 (bloquant de vente :
+    // ils étaient lisibles sans compte par l'API REST). La page envoie le
+    // jeton du compte ; le job de collecte lit et écrit avec son compte de
+    // service (IAM), qui ne passe pas par ces règles. Aucune écriture depuis
+    // un navigateur.
     match /collecte_partagee/{id} {
-      allow read: if true;
+      allow read: if profilActif();
       allow write: if false;
     }
 

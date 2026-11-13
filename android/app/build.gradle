@@ -1,0 +1,60 @@
+plugins { id 'com.android.application' }
+
+// Hôte du site ouvert par l'application. Doit publier
+// /.well-known/assetlinks.json avec l'empreinte de la clé de signature
+// (scripts/assetlinks.js), sinon Chrome affiche une barre d'adresse.
+def hote = 'sentiqs-235ce.web.app'
+def adresse = "https://${hote}/SentiqS_Web.html"
+
+// Signature : clé d'envoi lue dans l'environnement (secrets du workflow).
+// Sans elle, l'AAB de publication reste non signé ; l'APK de débogage sert
+// alors à vérifier l'application.
+def cle = System.getenv('ANDROID_KEYSTORE_PATH')
+
+android {
+    namespace 'com.sentiqs.veille'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'com.sentiqs.veille'
+        minSdk 24
+        targetSdk 36
+        versionCode Integer.parseInt(System.getenv('ANDROID_VERSION_CODE') ?: '1')
+        versionName '1.0.0'
+
+        manifestPlaceholders = [hote: hote]
+        resValue 'string', 'adresse_site', adresse
+        resValue 'string', 'hote_site', hote
+        resValue 'string', 'asset_statements',
+            '[{\\"relation\\": [\\"delegate_permission/common.handle_all_urls\\"], \\"target\\": {\\"namespace\\": \\"web\\", \\"site\\": \\"https://' + hote + '\\"}}]'
+    }
+
+    signingConfigs {
+        if (cle) {
+            envoi {
+                storeFile file(cle)
+                storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_KEY_ALIAS')
+                keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (cle) signingConfig signingConfigs.envoi
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    buildFeatures { resValues true }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.6.2'
+}
