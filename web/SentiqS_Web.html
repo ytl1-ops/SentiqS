@@ -8240,6 +8240,7 @@ const SENS_ADMINISTRATIFS = [
   /\bexecution\s+(?:du|de\s+la|des|de\s+l'|de\s+son|de\s+sa|de\s+ses|de\s+leur|de\s+leurs|d')\s*(?:budget\w*|arrets?|decisions?|engagements?|chantiers?|marches?|reformes?|travaux|programmes?|projets?|plans?|contrats?|jugements?|lois?|accords?|mesures?|politiques?|mandats?|conventions?|depenses?|peines?|recommandations?|directives?|feuilles?\s+de\s+route|investissements?|ordonnances?|taches?|activites?|missions?|operations?\s+budgetaires?)/g,
   /\benlevements?\s+(?:des|de\s+la|du|de|d')\s*(?:marchandises?|ordures?|dechets?|colis|conteneurs?|vehicules?|epaves?|bagages?|cargaisons?|ordures\s+menageres)/g,
   /\b(?:fete|jour|journee)\s+des\s+morts/g,
+  /\bpieces?\s+d'execution/g,
 ];
 
 // neutraliserExpressions(t) : retire les expressions ci-dessus du texte avant
@@ -9156,6 +9157,27 @@ function estBilanRoutier(tTitre) { return !AGRESSION_RE.test(tTitre) && BILAN_RO
 const NON_EVENEMENT_RE = /\b(to be remembered|remembrance|commemorat\w*|memorial service|hommage aux?|ceremonie du souvenir|warns? against|warned against|cautions? against|met(?:tent)? en garde contre|mise en garde contre)\b/;
 function estNonEvenement(tTitre) { return NON_EVENEMENT_RE.test(tTitre); }
 
+// ACTIVITES INSTITUTIONNELLES : une remise de dons, un salon, un anniversaire,
+// une pose de premiere pierre ne sont pas des incidents. Test fondateur du
+// 13/11/2026 sur le cumul du mois (1 552 faits) : « Mme Rose Bouzaïd offre
+// des lampadaires solaires » (SOLIDARITE ET SECURITE dans le titre),
+// « l'armee remet du riz et de l'huile aux personnes agees », « Deuxieme
+// edition du salon international de la defense », « le Barreau celebre 40
+// ans de combat », « la CBAO lance le chantier de son futur siege » sortaient
+// ELEVE. Meme traitement que les non-evenements, en plus prudent : plafond
+// MODERE (le fait reste lisible dans le Flux, il n'ouvre plus la file), et
+// jamais si le titre porte du vocabulaire d'agression — « attaque lors de
+// la remise de dons » reste ce qu'elle est. Le plafond ne fait monter rien.
+const DON_RE = /\b(?:remet(?:tent)?|offre(?:nt)?|distribue(?:nt)?)\s+(?:des|du|de\s+la|de\s+l'|un|une|\d+)\s|\b(?:fai(?:t|tes)|font)\s+(?:un\s+)?dons?\b|\bremises?\s+de\s+dons?\b|\bdon\s+de\s+(?:materiel|vivres|riz|kits?|vehicules?|\d)|\b(?:donates?|donated|hands?\s+over)\b/;
+const CEREMONIE_RE = /\b(?:salon|colloque|seminaire|organise\s+un\s+atelier|celebre(?:nt)?|anniversaire|rentree\s+solennelle|semaine\s+nationale|lancement\s+officiel|lance\s+(?:le|la|les)\s+(?:chantier|travaux|semaine|campagne|caravane)|premiere\s+pierre|ceremonie\s+de\s+(?:signature|remise|lancement|sortie)|graduation|inaugur\w*)\b/;
+// Un sinistre ou un bilan dans le titre l'emporte aussi : « un atelier
+// ravage par un incendie » n'est pas un atelier de formation.
+const SINISTRE_RE = /\b(?:incendie|ravage\w*|explosion|effondrement|noyade|morts?|tues?|blesses?|deces|victimes?|disparus?|fire|killed|dead|injured)\b/;
+function estActiviteInstitutionnelle(tTitre) {
+  return !AGRESSION_RE.test(tTitre) && !SINISTRE_RE.test(tTitre)
+    && (DON_RE.test(tTitre) || CEREMONIE_RE.test(tTitre));
+}
+
 // motsTouches : mots-cles d'un lexique presents dans le texte, comptes par
 // FAMILLE (quatre premieres lettres) pour que « tue » et « tues », « attaque »
 // et « attaques » ne comptent pas deux fois.
@@ -9265,6 +9287,7 @@ function classify(txt, src, titre) {
   if (lvl === 'crit' && estAccident(tTitre)) lvl = 'high';
   if (lvl !== 'ok' && estBilanRoutier(tTitre)) lvl = 'mod';
   if (lvl === 'crit' && estNonEvenement(tTitre)) lvl = 'mod';
+  if ((lvl === 'crit' || lvl === 'high') && estActiviteInstitutionnelle(tTitre)) lvl = 'mod';
 
   return {lvl, cat};
 }
@@ -17405,8 +17428,25 @@ const COLLECTOR_TOKEN = 'JXk1Gy1f8SBkYpS36UpvqqrMy7fyzxW';
 // true) une fois cette session etablie, pour un comportement previsible
 // (pas de dependance sur la logique de decision "cache deja frais ?" de
 // init(), qui doit au contraire toujours etre contournee ici).
+//
+// Navigateur automatise seulement (13/11/2026). Le jeton se lit dans le
+// code source servi : colle dans un navigateur ordinaire, il ouvrait
+// l'interface complete sans compte ni forfait. Le job, l'apercu des visuels
+// et les bancs de mesure pilotent Chromium par Playwright, qui pose
+// navigator.webdriver ; un visiteur, non. Ce n'est pas un secret : quelqu'un
+// qui pilote lui-meme un navigateur passe encore. Il n'obtient pourtant
+// que l'interface et sa propre collecte : le cache partage, lui, exige un
+// compte actif (regles Firestore). Le jeton est retire de l'adresse dans
+// les deux cas, pour qu'il ne reste ni dans l'historique ni dans un partage.
+function sessionCollecteurAutorisee(hash, nav) {
+  return hash === '#collecteur-' + COLLECTOR_TOKEN && !!(nav && nav.webdriver === true);
+}
 function checkCollectorSession() {
   if (location.hash !== '#collecteur-'+COLLECTOR_TOKEN) return false;
+  if (!sessionCollecteurAutorisee(location.hash, navigator)) {
+    history.replaceState(null, '', location.pathname + location.search);
+    return false;
+  }
   _MEM_SESSION = {email:'collecteur@sentinel.interne', name:'Agent de collecte planifiee', role:'reader', loginAt:new Date().toISOString()};
   document.getElementById('authOverlay').classList.add('hidden');
   document.getElementById('userWrap').style.display='none';

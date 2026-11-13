@@ -3571,3 +3571,41 @@ comparaison ne mesure presque rien.
 `scripts/test/paiement-partage.test.js` (8 tests, vus échouer sur l'ancien
 code). **Non vérifié d'ici** : les règles sur la vraie base (pas d'émulateur),
 publiées par le job `firebase` au déploiement.
+
+---
+
+## Suite du test fondateur : jeton collecteur, activités institutionnelles, pages légales — 13/11/2026
+
+- **Le jeton collecteur n'ouvre plus l'appli dans un navigateur ordinaire.**
+  `COLLECTOR_TOKEN` se lit dans le code servi ; collé dans une adresse, il
+  ouvrait l'interface sans compte. `sessionCollecteurAutorisee` exige en plus
+  `navigator.webdriver` (posé par Playwright : job, aperçu des visuels, bancs
+  de mesure). Ce n'est pas un secret : qui pilote lui-même un navigateur passe
+  encore, mais n'obtient que l'interface et sa propre collecte ; le cache
+  partagé exige un compte actif. Le jeton est retiré de l'adresse dans les
+  deux cas. La vraie fermeture (jeton en secret Actions, empreinte dans la
+  page) demande un secret que seul le propriétaire peut créer : sans lui, la
+  collecte s'arrêterait. Vérifié dans Chromium : automatisé → session
+  `reader`, `webdriver` forcé à faux → écran de connexion.
+- **Une remise de dons, un salon, un anniversaire ne dépassent plus modéré**
+  (`estActiviteInstitutionnelle` : `DON_RE`, `CEREMONIE_RE`), sauf vocabulaire
+  d'agression (`AGRESSION_RE`) ou de sinistre (`SINISTRE_RE`) dans le titre.
+  « pièces d'exécution » rejoint `SENS_ADMINISTRATIFS`. Mesure `banc-tri.js`
+  sur le cumul de novembre (1 552 faits) : **12 articles descendent, aucun ne
+  monte** (« offre des lampadaires solaires », « l'armée remet du riz »,
+  « salon international de la défense », « le Barreau célèbre 40 ans de
+  combat », « la CBAO lance le chantier de son futur siège »…). Le premier jet
+  plafonnait « un atelier de menuiserie ravagé par un incendie » : c'est ce
+  qui a imposé `SINISTRE_RE`, et un test le garde.
+- **Pages légales** : comptes, profils, journaux et paiements déclarés sont
+  chez Google (Firebase) ; Supabase n'a plus que la base d'articles et la
+  configuration partagée. Paiement décrit dans les CGV (francs CFA, Orange
+  Money / Wave, vérification par l'éditeur), suppression de compte décrite
+  dans la politique de confidentialité. Restent à compléter par l'éditeur :
+  identité légale, TVA, durées de conservation, région d'hébergement, export
+  des données (41 emplacements).
+- **Contact support** : toujours l'adresse Gmail de `SUPPORT_CONTACT_EMAIL`,
+  faute d'adresse professionnelle fournie. À changer dans cette seule
+  constante (et les deux liens de `web/index.html`) dès qu'elle existe.
+
+Exports : 14/14 identiques avant/après (Word, PDF, PowerPoint, aperçus).
