@@ -3340,3 +3340,33 @@ les identifiants de relation (`rId` + 20 caractères, tirets et soulignés
 compris), et `pdf-lib` réordonne ses objets — les PDF se comparent sur le texte
 (`pdftotext`) et les pages rendues (`pdftoppm`), pas à l'octet. Résultat :
 14/14 identiques.
+
+---
+
+## Prêt à vendre : forfait verrouillé, actus réservées aux comptes, droits — 13/11/2026
+
+Trois blocages de vente relevés dans l'état des lieux du 13/11/2026.
+
+- **Le forfait ne s'attribue plus soi-même.** Les règles Firestore refusent
+  qu'un utilisateur crée son profil avec un forfait payant ou touche à `plan`,
+  `paiement`, `echeance`, `dlQuotaOverride`, `accesJusquau` ; `createdAt` ne
+  s'écrit qu'une fois (`commercialInchange`). Seul l'admin les change.
+  **Reste côté client** : les contrôles de forfait lus dans `localStorage`
+  restent falsifiables dans le navigateur ; ce qui compte (les données) est
+  protégé par les règles. L'essai de 72 h n'est pas imposé par les règles
+  (`createdAt` est une chaîne).
+- **Le cache d'actus et l'agenda ne se lisent plus sans compte.**
+  `collecte_partagee` : lecture si `profilActif()` (était `if true`). La page
+  lit avec le jeton Firebase (`auth.jeton()`, `_entetesFirestore()`) et ne lit
+  rien sans lui ; le job, `verifier-fraicheur-cache.js` et
+  `apercu-visuels.js` lisent avec le compte de service
+  (`FIREBASE_SERVICE_ACCOUNT`). Les règles ne prennent effet qu'au déploiement
+  du job `firebase` de `gh-pages-deploy.yml`.
+- **Droits sur les contenus.** Les images des sources ne vont dans un document
+  exporté que si l'utilisateur le choisit (Paramètres > Affichage, « Images des
+  sources dans les documents exportés », défaut : texte seul). L'extrait d'un
+  rapport passe de 900 à 400 caractères et se dit « extrait cité ». L'écran
+  n'est pas touché : il affiche depuis l'adresse de la source, avec son crédit.
+
+`scripts/test/verrou-vente.test.js` (6) et `droits-contenus.test.js` (5), vus
+échouer sur l'ancien code.

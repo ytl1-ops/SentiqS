@@ -21,7 +21,13 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     console.error('✗ Configuration Firebase introuvable dans web/js/firebase-config.js');
     process.exit(1);
   }
-  require('../web/js/cache-firestore.js').lireAnnonce(cfg, fetch).then((a) => {
+  // Lecture réservée aux comptes depuis le 13/11/2026 (firebase/firestore.rules) :
+  // ce contrôle lit avec le compte de service, comme le job qui publie.
+  const ecriture = require('./lib/cache-firestore-ecriture');
+  const compte = ecriture.lireCompte(process.env.FIREBASE_SERVICE_ACCOUNT);
+  if (!compte) { console.error('✗ FIREBASE_SERVICE_ACCOUNT illisible.'); process.exit(1); }
+  ecriture.jetonAcces(compte, fetch).then((jeton) => require('../web/js/cache-firestore.js').lireAnnonce(cfg,
+    (url) => fetch(url.replace(/\?key=[^&]*$/, ''), { headers: { Authorization: 'Bearer ' + jeton } }))).then((a) => {
     if (!a) {
       console.error("✗ Aucune annonce 'global' dans Firestore — rien n'a jamais ete publie.");
       process.exit(1);

@@ -3981,7 +3981,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
             <div class="aff-groupe" role="group" aria-labelledby="aff_format-l"><div class="aff-leg" id="aff_format-l" data-i18n="aff_format">Format d'écran</div><div class="aff-choix"><button type="button" class="aff-opt" data-aff-format="auto" aria-pressed="false" onclick="changerAffichage(&#39;format&#39;,&#39;auto&#39;)"><i class="ti ti-wand" aria-hidden="true"></i><span data-i18n="aff_auto">Automatique</span></button><button type="button" class="aff-opt" data-aff-format="web" aria-pressed="false" onclick="changerAffichage(&#39;format&#39;,&#39;web&#39;)"><i class="ti ti-device-desktop" aria-hidden="true"></i><span data-i18n="aff_ordinateur">Ordinateur</span></button><button type="button" class="aff-opt" data-aff-format="tablette" aria-pressed="false" onclick="changerAffichage(&#39;format&#39;,&#39;tablette&#39;)"><i class="ti ti-device-tablet" aria-hidden="true"></i><span data-i18n="aff_tablette">Tablette</span></button><button type="button" class="aff-opt" data-aff-format="mobile" aria-pressed="false" onclick="changerAffichage(&#39;format&#39;,&#39;mobile&#39;)"><i class="ti ti-device-mobile" aria-hidden="true"></i><span data-i18n="aff_mobile">Mobile</span></button></div><div class="aff-aide" id="affFormatAide" aria-live="polite"></div></div>
             <div class="aff-groupe" role="group" aria-labelledby="aff_texte-l"><div class="aff-leg" id="aff_texte-l" data-i18n="aff_texte">Taille du texte</div><div class="aff-choix"><button type="button" class="aff-opt" data-aff-texte="normal" aria-pressed="false" onclick="changerAffichage(&#39;texte&#39;,&#39;normal&#39;)"><i class="ti ti-letter-case" aria-hidden="true"></i><span data-i18n="aff_texte_normal">Normale</span></button><button type="button" class="aff-opt" data-aff-texte="grand" aria-pressed="false" onclick="changerAffichage(&#39;texte&#39;,&#39;grand&#39;)"><i class="ti ti-text-increase" aria-hidden="true"></i><span data-i18n="aff_texte_grand">Grande</span></button><button type="button" class="aff-opt" data-aff-texte="tres-grand" aria-pressed="false" onclick="changerAffichage(&#39;texte&#39;,&#39;tres-grand&#39;)"><i class="ti ti-zoom-in" aria-hidden="true"></i><span data-i18n="aff_texte_tres_grand">Très grande</span></button></div></div>
             <div class="aff-groupe" role="group" aria-labelledby="aff_presentation-l"><div class="aff-leg" id="aff_presentation-l" data-i18n="aff_presentation">Présentation des actus</div><div class="aff-choix"><button type="button" class="aff-opt" data-aff-presentation="compacte" aria-pressed="false" onclick="changerAffichage(&#39;presentation&#39;,&#39;compacte&#39;)"><i class="ti ti-layout-list" aria-hidden="true"></i><span data-i18n="aff_compacte">Compacte (vignette à côté)</span></button><button type="button" class="aff-opt" data-aff-presentation="magazine" aria-pressed="false" onclick="changerAffichage(&#39;presentation&#39;,&#39;magazine&#39;)"><i class="ti ti-layout-cards" aria-hidden="true"></i><span data-i18n="aff_magazine">Magazine (grande image au-dessus)</span></button></div></div>
-            <div class="aff-groupe" role="group" aria-labelledby="aff_images-l"><div class="aff-leg" id="aff_images-l" data-i18n="aff_images">Images et vidéos des sources</div><div class="aff-choix"><button type="button" class="aff-opt" data-aff-images="oui" aria-pressed="false" onclick="changerAffichage(&#39;images&#39;,&#39;oui&#39;)"><i class="ti ti-photo" aria-hidden="true"></i><span data-i18n="aff_images_oui">Afficher</span></button><button type="button" class="aff-opt" data-aff-images="non" aria-pressed="false" onclick="changerAffichage(&#39;images&#39;,&#39;non&#39;)"><i class="ti ti-photo-off" aria-hidden="true"></i><span data-i18n="aff_images_non">Économiser les données</span></button></div></div>
+            <div class="aff-groupe" role="group" aria-labelledby="aff_images-l"><div class="aff-leg" id="aff_images-l" data-i18n="aff_images">Images et vidéos des sources</div><div class="aff-choix"><button type="button" class="aff-opt" data-aff-images="oui" aria-pressed="false" onclick="changerAffichage(&#39;images&#39;,&#39;oui&#39;)"><i class="ti ti-photo" aria-hidden="true"></i><span data-i18n="aff_images_oui">Afficher</span></button><button type="button" class="aff-opt" data-aff-images="non" aria-pressed="false" onclick="changerAffichage(&#39;images&#39;,&#39;non&#39;)"><i class="ti ti-photo-off" aria-hidden="true"></i><span data-i18n="aff_images_non">Économiser les données</span></button></div></div><div class="aff-groupe" role="group" aria-labelledby="aff_documents-l"><div class="aff-leg" id="aff_documents-l" data-i18n="aff_documents">Images des sources dans les documents exportés</div><div class="aff-choix"><button type="button" class="aff-opt" data-aff-documents="non" aria-pressed="false" onclick="changerAffichage(&#39;documents&#39;,&#39;non&#39;)"><i class="ti ti-file-text" aria-hidden="true"></i><span data-i18n="aff_documents_non">Texte seul</span></button><button type="button" class="aff-opt" data-aff-documents="oui" aria-pressed="false" onclick="changerAffichage(&#39;documents&#39;,&#39;oui&#39;)"><i class="ti ti-photo" aria-hidden="true"></i><span data-i18n="aff_documents_oui">Inclure (droits à vérifier)</span></button></div></div>
             </div>
           </div>
 
@@ -5868,6 +5868,7 @@ const I18N = {
     aff_texte:'Taille du texte', aff_texte_normal:'Normale', aff_texte_grand:'Grande', aff_texte_tres_grand:'Très grande',
     aff_presentation:'Présentation des actus', aff_compacte:'Compacte (vignette à côté)', aff_magazine:'Magazine (grande image au-dessus)',
     aff_images:'Images et vidéos des sources', aff_images_oui:'Afficher', aff_images_non:'Économiser les données',
+    aff_documents:'Images des sources dans les documents exportés', aff_documents_non:'Texte seul', aff_documents_oui:'Inclure (droits à vérifier)',
     disp_tablette:'TABLETTE',
     lbl_aucun_logo:'Aucun logo', lbl_logo_organisation:'Logo de l\'organisation (PNG ou JPEG, imprimé en tête des rapports)', btn_retirer_le_logo:'Retirer le logo',
     ph_ex_cellule_surete_abc:'Ex. Cellule Sûreté ABC',
@@ -6023,6 +6024,7 @@ const I18N = {
     aff_texte:'Text size', aff_texte_normal:'Normal', aff_texte_grand:'Large', aff_texte_tres_grand:'Extra large',
     aff_presentation:'News layout', aff_compacte:'Compact (thumbnail beside)', aff_magazine:'Magazine (large image above)',
     aff_images:'Source images and videos', aff_images_oui:'Show', aff_images_non:'Save data',
+    aff_documents:'Source images in exported documents', aff_documents_non:'Text only', aff_documents_oui:'Include (check rights)',
     disp_tablette:'TABLET',
     lbl_aucun_logo:'No logo', lbl_logo_organisation:'Organisation logo (PNG or JPEG, printed at the top of reports)', btn_retirer_le_logo:'Remove logo',
     ph_ex_cellule_surete_abc:'e.g. ABC Security Unit',
@@ -6295,6 +6297,11 @@ const REGLAGES_AFFICHAGE = {
   texte:        { cle: 'sentinel_aff_texte',        valeurs: ['normal', 'grand', 'tres-grand'], defaut: 'normal',   classe: v => v === 'normal' ? '' : 'texte-' + v },
   presentation: { cle: 'sentinel_aff_presentation', valeurs: ['compacte', 'magazine'],          defaut: 'compacte', classe: v => v === 'magazine' ? 'actus-magazine' : '' },
   images:       { cle: 'sentinel_aff_images',       valeurs: ['oui', 'non'],                    defaut: 'oui',      classe: v => v === 'non' ? 'sans-images' : '' },
+  // Images des sources DANS LES DOCUMENTS exportes (13/11/2026). Un rapport
+  // vendu et transmis qui recopie la photo d'un journal sort du droit de
+  // courte citation : desactive par defaut, au choix de l'utilisateur. Sans
+  // classe : l'ecran n'embarque rien, il affiche depuis l'adresse de la source.
+  documents:    { cle: 'sentinel_aff_documents',    valeurs: ['non', 'oui'],                    defaut: 'non',      classe: () => '' },
 };
 function lireReglageAffichage(nom) {
   const r = REGLAGES_AFFICHAGE[nom];
@@ -6310,6 +6317,9 @@ function appliquerReglageAffichage(nom, v) {
 }
 function affichageImagesActif() {
   return !document.documentElement.classList.contains('sans-images');
+}
+function imagesDocumentsActives() {
+  return affichageImagesActif() && lireReglageAffichage('documents') === 'oui';
 }
 function changerAffichage(nom, v) {
   if (nom === 'format') { setDisplayMode(v); return; }
@@ -10304,7 +10314,9 @@ function choisirALaUne(arts, n) {
 //   infos   : cotation client, publication, survenance estimee, source(s) ;
 //   liens   : l'article (si les sources sont visibles pour ce compte, meme
 //             regle que partout) et la video, ouverte comme dans l'appli.
-const RESUME_RAPPORT_MAX = 900;
+// 400 caracteres (13/11/2026, 900 auparavant) : un extrait reste une courte
+// citation, attribuee ; au-dela on recopie l'article d'un tiers.
+const RESUME_RAPPORT_MAX = 400;
 function resumeCourt(texte, max) {
   const t = String(texte || '');
   return t.length > max ? t.slice(0, max).replace(/\s+\S*$/, '') + ' …' : t;
@@ -10330,8 +10342,10 @@ function detailRapportActu(a) {
       + (surv.ancien ? (en ? ' — older than ' : ' — plus de ') + libelleFenetreCourt() : ''));
   }
   const nSrc = (a.srcs || []).length;
-  if (voir) infos.push((en ? 'Source: ' : 'Source : ') + srcName(a.primary) + (nSrc > 1 ? ' (+' + (nSrc - 1) + ')' : ''));
-  else if (nSrc > 1) infos.push(en ? nSrc + ' sources' : nSrc + ' sources');
+  if (voir) infos.push((en ? 'Source: ' : 'Source : ') + srcName(a.primary) + (nSrc > 1 ? ' (+' + (nSrc - 1) + ')' : '')
+    + (resume ? (en ? ' — quoted excerpt' : ' — extrait cité') : ''));
+  else if (nSrc > 1) infos.push((en ? nSrc + ' sources' : nSrc + ' sources') + (resume ? (en ? ' — quoted excerpt' : ' — extrait cité') : ''));
+  else if (resume) infos.push(en ? 'Quoted excerpt from a press article' : 'Extrait cité d\'un article de presse');
   const media = mediaActu(a);
   return {
     resume, infos,
@@ -10395,6 +10409,7 @@ function _imageRapport(url) {
 async function chargerImagesRapport(arts, max) {
   const res = new Map();
   if (typeof affichageImagesActif === 'function' && !affichageImagesActif()) return res;
+  if (typeof imagesDocumentsActives === 'function' && !imagesDocumentsActives()) return res;
   const choix = articlesPourImagesRapport(arts, max);
   const lots = await Promise.all(choix.map(a => _imageRapport(mediaActu(a).img).then(v => [a.id, v])));
   lots.forEach(([id, v]) => {
@@ -16514,11 +16529,23 @@ const COLLECTE_PARTAGEE_FRAICHEUR_MS = 40 * 60 * 1000;
 // 2 de FIREBASE.md, voir web/js/cache-firestore.js). Lecture publique via l'API
 // REST, sans SDK ni compte. Rend {articles, updated_at} ou null (pas encore
 // publie, injoignable, perime) — l'appelant retombe alors sur Supabase.
+// Lecture reservee aux comptes connectes depuis le 13/11/2026 (bloquant de
+// vente : le cache etait lisible par n'importe qui, sans compte, par l'API
+// REST). Le jeton d'identite du compte accompagne donc chaque lecture.
+async function _entetesFirestore() {
+  try {
+    const c = window.SentiqFirebase && (await window.SentiqFirebase.charger());
+    const jeton = c && c.auth && typeof c.auth.jeton === 'function' ? await c.auth.jeton() : null;
+    return jeton ? { Authorization: 'Bearer ' + jeton } : null;
+  } catch (_) { return null; }
+}
 async function _lireCacheFirestore() {
   if (!_fournisseurFirebase() || !window.SentiqCacheFirestore) return null;
   try {
     let stockage = null; try { stockage = window.localStorage; } catch (_) {}
-    return await window.SentiqCacheFirestore.lire(window.SENTIQ_FIREBASE_CONFIG, { stockage });
+    const entetes = await _entetesFirestore();
+    if (!entetes) return null;
+    return await window.SentiqCacheFirestore.lire(window.SENTIQ_FIREBASE_CONFIG, { stockage, entetes });
   } catch (e) { console.warn('SentiqS — lecture du cache Firestore a echoue :', e && e.message ? e.message : e); return null; }
 }
 async function lireCollectePartagee() {
@@ -16860,8 +16887,9 @@ async function lireAgendaPartagee() {
   if (_fournisseurFirebase() && window.SentiqCacheFirestore) {
     try {
       let stockage = null; try { stockage = window.localStorage; } catch (_) {}
-      const r = await window.SentiqCacheFirestore.lire(
-        Object.assign({}, window.SENTIQ_FIREBASE_CONFIG, { cle: 'agenda' }), { stockage });
+      const entetes = await _entetesFirestore();
+      const r = entetes ? await window.SentiqCacheFirestore.lire(
+        Object.assign({}, window.SENTIQ_FIREBASE_CONFIG, { cle: 'agenda' }), { stockage, entetes }) : null;
       if (r && Array.isArray(r.articles)) {
         const seuilMs = Date.now() - AGENDA_MAX_AGE;
         return r.articles

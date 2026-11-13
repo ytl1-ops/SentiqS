@@ -40,7 +40,12 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; ch
   try {
     const cfgSrc = fs.readFileSync(path.join(RACINE, 'js', 'firebase-config.js'), 'utf8');
     const cfg = { projectId: (cfgSrc.match(/projectId:\s*'([^']+)'/) || [])[1], apiKey: (cfgSrc.match(/apiKey:\s*'([^']+)'/) || [])[1] };
-    const r = await require('../web/js/cache-firestore.js').lire(cfg);
+    // Lecture réservée aux comptes depuis le 13/11/2026 : avec le compte de
+    // service quand le secret est fourni, sinon la tentative anonyme échoue et
+    // l'aperçu se replie, sans faire échouer la PR.
+    const ecr = require('./lib/cache-firestore-ecriture');
+    const compte = process.env.FIREBASE_SERVICE_ACCOUNT ? ecr.lireCompte(process.env.FIREBASE_SERVICE_ACCOUNT) : null;
+    const r = compte ? await ecr.lireCache(compte, fetch) : await require('../web/js/cache-firestore.js').lire(cfg);
     if (r && r.articles.length) ligne = { articles: r.articles, updated_at: r.updated_at };
   } catch (e) { console.error('Cache Firestore illisible : ' + e.message); }
   if (!ligne) {
