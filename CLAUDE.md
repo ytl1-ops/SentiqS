@@ -3694,3 +3694,40 @@ automatique et fluide.
 
 Exports : 14/14 identiques avant/après. `scripts/test/boutons-pays-13-11.test.js`
 (7 tests, vus échouer sur `main`).
+
+---
+
+## Le panorama du tableau de bord — 13/11/2026
+
+Demande de YORO : s'inspirer d'un outil de gestion de crise pour la
+présentation, et des graphiques de la fiche pays d'un outil de veille pour le
+tableau de bord. Ce qui a été repris, ce sont des **principes**, jamais du
+code, du texte ou une image : un sur-titre au-dessus de chaque titre de
+section (`.sur-titre`), le résumé avant le détail, et chaque graphique qui
+dit sa mesure, son échelle et sa source.
+
+Le panorama (`panoramaDashboard`, sous « Actualités à traiter ») montre quatre
+vues, toutes lues dans ce que la page calcule déjà — aucun chiffre n'est
+recalculé à côté :
+
+| Graphique | Donnée | Clic |
+|---|---|---|
+| Pays par niveau d'alerte | `calcAlertScore` des 54 pays | fiches Alertes de ce niveau |
+| Trajectoire des pays en tension | `HISTORIQUE_SERIE` (archive quotidienne) | Alertes |
+| Actus par thème | articles de la fenêtre, pays choisi en haut | Flux filtré sur le thème |
+| Pays les plus exposés | score 0-100, huit premiers | fiche du pays |
+
+- Un niveau est toujours écrit en toutes lettres à côté de sa couleur ; les
+  barres de thème ne prennent **pas** une couleur de niveau (bleu), pour ne
+  pas se lire comme « critique ».
+- Pas de trajectoire avant deux relevés, comme pour les flèches de tendance.
+  Elle compte les relevés de l'archive : son dernier point peut différer du
+  compteur « Pays en tension » du jour, qui inclut les signaux live.
+- La courbe est dessinée à la largeur réelle de son cadre (un `viewBox` étiré
+  déformait les graduations) ; un seul axe, deux séries de même unité.
+- `allerNiveauAlerte` ouvre d'abord le module Alertes puis attend ses fiches
+  (rendu asynchrone) : sans cela, le clic depuis le tableau de bord ne
+  défilait pas.
+
+Exports : 14/14 identiques avant/après. `scripts/test/panorama-13-11.test.js`
+(6 tests, vus échouer sur `main`).

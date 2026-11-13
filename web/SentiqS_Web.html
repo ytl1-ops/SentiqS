@@ -2936,6 +2936,51 @@ html.force-mobile .kpi-tile .kpi-v{font-size:19px !important}
 html.force-mobile .kpi-tile .kpi-s{display:none}
 html.force-mobile .une-tit{font-size:14px}
 
+/* ═══ PANORAMA DU TABLEAU DE BORD — 13/11/2026 ═══
+   Inspiré des principes (pas du code) de deux outils du marché : un
+   sur-titre au-dessus de chaque titre de section, le résumé avant le détail,
+   et chaque graphique légendé de sa mesure, de son échelle et de sa source.
+   Les couleurs des niveaux restent celles de NIV ; un niveau est toujours
+   écrit en toutes lettres à côté de sa couleur. Écran seulement : aucun
+   document exporté ne lit ces classes. */
+.sur-titre{display:block;font-size:var(--fs-micro,10px);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--sig,var(--b));margin:0 0 4px}
+.pano{margin:0 0 12px}
+.pano-hd{margin:0 0 var(--sp-3,12px)}
+.pano-hd .une-titre{margin:0}
+.pano-grille{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pano-carte{background:var(--w);border:1px solid var(--bd);border-radius:var(--r-md,8px);padding:12px 14px;min-width:0}
+.pano-carte h3{font-size:13px;font-weight:700;color:var(--t);margin:0 0 2px}
+.pano-leg{font-size:var(--fs-micro,10px);color:var(--lg);margin:0 0 10px}
+.pano-src{font-size:var(--fs-micro,10px);color:var(--lg);margin:8px 0 0}
+.pano-seg{display:flex;gap:2px;height:22px;border-radius:4px;overflow:hidden;margin:0 0 8px}
+.pano-seg>span{min-width:6px;cursor:pointer}
+.pano-cle{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;color:var(--t2)}
+.pano-cle span{display:inline-flex;align-items:center;gap:5px;min-height:24px;cursor:pointer}
+.pano-cle i{width:10px;height:10px;border-radius:2px;flex:none}
+.pano-cle b{color:var(--t);font-variant-numeric:tabular-nums}
+.pano-barres{display:flex;flex-direction:column;gap:4px}
+.pano-ligne{display:grid;grid-template-columns:minmax(90px,34%) 1fr 44px;align-items:center;gap:8px;min-height:24px;font-size:11.5px;color:var(--t);cursor:pointer;border-radius:4px}
+.pano-ligne:hover,.pano-ligne:focus-visible{background:var(--sf)}
+.pano-ligne .nom{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pano-ligne .piste{height:10px;background:var(--sf);border-radius:0 4px 4px 0}
+.pano-ligne .barre{display:block;height:100%;border-radius:0 4px 4px 0;background:var(--bleu-txt,#1D4ED8)}
+.pano-ligne .val{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.pano-ligne .niv{display:block;font-size:var(--fs-micro,10px);font-weight:600;color:var(--lg)}
+.pano-ligne.choisi{outline:1px solid var(--sig,var(--b))}
+.pano-courbe{position:relative}
+.pano-courbe svg{display:block;width:100%;height:150px;overflow:visible}
+.pano-courbe .axe{stroke:var(--bd);stroke-width:1}
+.pano-courbe .graduation{fill:var(--lg);font-size:10px}
+.pano-courbe .trait{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.pano-courbe .repere{stroke:var(--t2);stroke-width:1;stroke-dasharray:3 3;opacity:0}
+.pano-courbe.survol .repere{opacity:1}
+.pano-bulle{position:absolute;top:0;pointer-events:none;background:var(--w);border:1px solid var(--bd);border-radius:4px;padding:5px 8px;font-size:11px;color:var(--t);white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.25);display:none;z-index:2}
+.pano-courbe.survol .pano-bulle{display:block}
+.pano-vide{font-size:12px;color:var(--t2);padding:18px 0}
+@media (max-width:760px){html:not(.force-web) .pano-grille{grid-template-columns:1fr}html:not(.force-web) .pano-courbe svg{height:130px}}
+html.force-mobile .pano-grille{grid-template-columns:1fr}
+html.force-mobile .pano-courbe svg{height:130px}
+
 /* ═══ BARRE DU HAUT SUR TÉLÉPHONE ÉTROIT — 13/11/2026 ═══
    Capture de YORO (texte agrandi par le téléphone, écran de 360 px) : le nom
    « SentiqS » coupé en « Sentiq », l'avatar du compte sorti de l'écran.
@@ -13838,7 +13883,7 @@ async function renderFeed() {
   // en dessous n'apporte rien.
   const une = artsTous.length >= 4 ? choisirALaUne(artsTous, 4) : [];
   const uneHtml = une.length >= 3
-    ? '<section class="une-bande" aria-label="'+(LANG==='en'?'Top stories':'À la une')+'"><h2 class="une-titre">'+(LANG==='en'?'Top stories':'À la une')+'</h2><div class="une-grille">'+une.map(carteUneHtml).join('')+'</div></section>'
+    ? '<section class="une-bande" aria-label="'+(LANG==='en'?'Top stories':'À la une')+'"><span class="sur-titre">'+(LANG==='en'?'Most serious first':'Le plus grave d\'abord')+'</span><h2 class="une-titre">'+(LANG==='en'?'Top stories':'À la une')+'</h2><div class="une-grille">'+une.map(carteUneHtml).join('')+'</div></section>'
     : '';
 
   if (_monGen !== _renderFeedGen) return; // un rendu plus recent a deja demarre — abandon
@@ -14235,7 +14280,7 @@ async function renderPanelATraiter(cyFiltre, zoneFiltre) {
   // Synthese montrent les memes faits que le Flux, sous la meme forme.
   const une = choisirALaUne(arts, 4);
   const uneHtml = une.length >= 3
-    ? '<section class="une-bande une-bande-panneau" aria-label="'+(LANG==='en'?'Today\'s key facts':'Les faits du jour')+'"><h2 class="une-titre">'+(LANG==='en'?'Today\'s key facts':'Les faits du jour')+'</h2><div class="une-grille">'+une.map(carteUneHtml).join('')+'</div></section>'
+    ? '<section class="une-bande une-bande-panneau" aria-label="'+(LANG==='en'?'Today\'s key facts':'Les faits du jour')+'"><span class="sur-titre">'+(LANG==='en'?'Situation':'Situation')+'</span><h2 class="une-titre">'+(LANG==='en'?'Today\'s key facts':'Les faits du jour')+'</h2><div class="une-grille">'+une.map(carteUneHtml).join('')+'</div></section>'
     : '';
   return uneHtml + `<div style="background:var(--w);border:1px solid var(--bd);border-left:3px solid var(--b);border-radius:9px;padding:12px;margin-bottom:12px;">
     <div style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
@@ -14414,6 +14459,129 @@ function chipTendance(code) {
   return '<span title="' + titre + '" style="font-family:var(--font-mono,\'Roboto Mono\',monospace);'
     + 'font-size:8.5px;font-weight:700;color:' + col + ';margin-left:4px;white-space:nowrap;">'
     + (monte ? '\u2197' : '\u2198') + Math.abs(t.crans) + '</span>';
+}
+
+// ═══ PANORAMA DU TABLEAU DE BORD — 13/11/2026 ═══
+//
+// Demande de YORO : des graphiques « à la manière » d'une fiche pays d'un
+// outil du marché, et une hiérarchie de page inspirée d'un autre. On en
+// reprend des PRINCIPES, jamais le code ni les textes : le résumé avant le
+// détail, un sur-titre au-dessus de chaque titre, et chaque graphique dit sa
+// mesure, son échelle et sa source. Quatre vues, toutes sur des données déjà
+// calculées par la page (calcAlertScore, la fenêtre d'actualité, l'archive
+// des niveaux) — aucun chiffre n'est inventé ni recalculé à côté :
+//   1. pays par niveau d'alerte (barre segmentée) → clic : fiches Alertes ;
+//   2. trajectoire des pays en tension (archive quotidienne) → clic : Alertes ;
+//   3. actus de la fenêtre par thème → clic : Flux filtré sur le thème ;
+//   4. pays les plus exposés (score 0-100) → clic : fiche du pays.
+// Le niveau est toujours écrit en toutes lettres à côté de sa couleur (jamais
+// la couleur seule), et la trajectoire n'est tracée qu'à partir de deux
+// relevés : une courbe d'un point serait une affirmation sans mesure.
+const PANO_NIVEAUX = ['rouge', 'marron', 'orange', 'jaune', 'vert'];
+const PANO_THEMES = ['securite', 'humanitaire', 'politique', 'economique'];
+function libelleNiveauPano(k) {
+  const fr = { rouge: 'Grave', marron: 'Critique', orange: 'Élevé', jaune: 'Modéré', vert: 'Stable' };
+  const en = { rouge: 'Severe', marron: 'Critical', orange: 'High', jaune: 'Moderate', vert: 'Stable' };
+  return (LANG === 'en' ? en : fr)[k] || k;
+}
+function libelleThemePano(t) {
+  const fr = { securite: 'Sécurité', humanitaire: 'Humanitaire', politique: 'Politique', economique: 'Économique' };
+  const en = { securite: 'Security', humanitaire: 'Humanitarian', politique: 'Political', economique: 'Economic' };
+  return (LANG === 'en' ? en : fr)[t] || t;
+}
+// Série quotidienne : combien de pays à l'orange ou plus, et au marron ou
+// plus, pour chacun des derniers relevés de l'archive.
+function serieTensionPano(serie, nbJours) {
+  if (!serie || !Array.isArray(serie.jours) || !serie.pays) return [];
+  const jours = serie.jours.slice(-(nbJours || 30));
+  const parJour = {};
+  jours.forEach(j => { parJour[j] = { jour: j, orangePlus: 0, marronPlus: 0 }; });
+  Object.values(serie.pays).forEach(liste => (liste || []).forEach(([j, k]) => {
+    const d = parJour[j]; if (!d) return;
+    if (k === 'orange' || k === 'marron' || k === 'rouge') d.orangePlus++;
+    if (k === 'marron' || k === 'rouge') d.marronPlus++;
+  }));
+  return jours.map(j => parJour[j]);
+}
+function panoramaDashboard(scores, artsActifs, couleurNiv) {
+  const en = LANG === 'en';
+  const nb = {}; PANO_NIVEAUX.forEach(k => { nb[k] = scores.filter(s => s.key === k).length; });
+  const total = scores.length || 1;
+  const segs = PANO_NIVEAUX.filter(k => nb[k]).map(k =>
+    '<span style="flex:' + nb[k] + ' 1 0;background:' + couleurNiv(k) + '" data-filtre="alniv:' + k + '" role="button" tabindex="0" title="' + libelleNiveauPano(k) + ' : ' + nb[k] + (en ? ' countries' : ' pays') + '" aria-label="' + libelleNiveauPano(k) + ' : ' + nb[k] + (en ? ' countries' : ' pays') + '"></span>').join('');
+  const cle = PANO_NIVEAUX.map(k => '<span data-filtre="alniv:' + k + '" role="button" tabindex="0"><i style="background:' + couleurNiv(k) + '"></i>' + libelleNiveauPano(k) + ' <b>' + nb[k] + '</b></span>').join('');
+
+  const cyChoisi = (typeof GLOBAL_CY_FILTER !== 'undefined' && GLOBAL_CY_FILTER !== 'all') ? GLOBAL_CY_FILTER : null;
+  const arts = cyChoisi ? artsActifs.filter(a => a.cy === cyChoisi) : artsActifs;
+  const parTheme = PANO_THEMES.map(t => {
+    const l = arts.filter(a => a.cat === t);
+    return { t, n: l.length, graves: l.filter(a => a.level === 'crit' || a.level === 'high').length };
+  });
+  const maxT = Math.max(1, ...parTheme.map(x => x.n));
+  const themes = parTheme.map(x =>
+    '<div class="pano-ligne" data-filtre="cat:' + x.t + '" role="button" tabindex="0" title="' + (en ? 'Open the Feed on this theme' : 'Ouvrir le Flux sur ce thème') + '">' +
+      '<span class="nom">' + libelleThemePano(x.t) + '<span class="niv">' + x.graves + (en ? ' critical or high' : ' critiques ou élevées') + '</span></span>' +
+      '<span class="piste"><span class="barre" style="width:' + Math.round(100 * x.n / maxT) + '%"></span></span>' +
+      '<span class="val">' + x.n + '</span></div>').join('');
+
+  const top = scores.slice(0, 8);
+  const classement = top.map(s =>
+    '<div class="pano-ligne' + (s.cy === cyChoisi ? ' choisi' : '') + '" data-filtre="pays:' + s.cy + '" role="button" tabindex="0" title="' + (en ? 'Open the country sheet' : 'Ouvrir la fiche du pays') + '">' +
+      '<span class="nom">' + ((s.pays || {}).flag || '') + ' ' + escHtml((s.pays || {}).name || s.cy) + '<span class="niv">' + libelleNiveauPano(s.key) + '</span></span>' +
+      '<span class="piste"><span class="barre" style="width:' + Math.max(2, Math.min(100, Math.round(s.score))) + '%;background:' + couleurNiv(s.key) + '"></span></span>' +
+      '<span class="val">' + (Math.round(s.score * 10) / 10) + '</span></div>').join('');
+
+  const serie = serieTensionPano(typeof HISTORIQUE_SERIE !== 'undefined' ? HISTORIQUE_SERIE : null, 30);
+  const courbe = serie.length >= 2
+    ? '<div class="pano-courbe" id="panoCourbe" data-filtre="kpi:tension" role="button" tabindex="0" aria-label="' + (en ? 'Countries under tension per daily reading, open the Alerts' : 'Pays en tension par relevé quotidien, ouvrir les Alertes') + '"></div>' +
+      '<div class="pano-cle" style="margin-top:6px"><span><i style="background:' + couleurNiv('orange') + '"></i>' + (en ? 'High or above' : 'Élevé ou plus') + ' <b>' + serie[serie.length - 1].orangePlus + '</b></span><span><i style="background:' + couleurNiv('rouge') + '"></i>' + (en ? 'Critical or severe' : 'Critique ou grave') + ' <b>' + serie[serie.length - 1].marronPlus + '</b></span></div>'
+    : '<div class="pano-vide">' + (en ? 'The trajectory appears after two daily readings of the archive.' : 'La trajectoire s\'affiche à partir de deux relevés quotidiens de l\'archive.') + '</div>';
+
+  const portee = cyChoisi ? escHtml((PAYS_INFO[cyChoisi] || {}).name || cyChoisi) : (en ? 'all countries' : 'tous les pays');
+  return '<section class="pano" aria-label="' + (en ? 'Overview' : 'Panorama') + '">' +
+    '<div class="pano-hd"><span class="sur-titre">' + (en ? 'Overview' : 'Panorama') + '</span><h2 class="une-titre">' + (en ? 'The situation at a glance' : 'La situation en un coup d\'œil') + '</h2></div>' +
+    '<div class="pano-grille">' +
+      '<div class="pano-carte"><h3>' + (en ? 'Countries by alert level' : 'Pays par niveau d\'alerte') + '</h3><p class="pano-leg">' + (en ? '54 countries, current level · click a level to open its sheets' : '54 pays, niveau du moment · un clic ouvre les fiches de ce niveau') + '</p><div class="pano-seg">' + segs + '</div><div class="pano-cle">' + cle + '</div><p class="pano-src">' + (en ? 'Source: SentiqS alert level (verified incidents, structural factors, live signals).' : 'Source : niveau d\'alerte SentiqS (incidents vérifiés, facteurs structurels, signaux du jour).') + '</p></div>' +
+      '<div class="pano-carte"><h3>' + (en ? 'News by theme' : 'Actus par thème') + '</h3><p class="pano-leg">' + (en ? 'Articles in the last ' : 'Articles des dernières ') + libelleFenetre() + ' · ' + portee + '</p><div class="pano-barres">' + themes + '</div><p class="pano-src">' + (en ? 'Source: SentiqS feed, automatic classification.' : 'Source : Flux SentiqS, classement automatique.') + '</p></div>' +
+      '<div class="pano-carte"><h3>' + (en ? 'Trajectory of countries under tension' : 'Trajectoire des pays en tension') + '</h3><p class="pano-leg">' + (en ? 'Number of countries per daily reading, last ' + serie.length + ' readings' : 'Nombre de pays par relevé quotidien, ' + serie.length + ' derniers relevés') + '</p>' + courbe + '<p class="pano-src">' + (en ? 'Source: daily level archive.' : 'Source : archive quotidienne des niveaux.') + '</p></div>' +
+      '<div class="pano-carte"><h3>' + (en ? 'Most exposed countries' : 'Pays les plus exposés') + '</h3><p class="pano-leg">' + (en ? 'Risk score 0-100, top 8' : 'Score de risque 0-100, huit premiers') + '</p><div class="pano-barres">' + classement + '</div><p class="pano-src">' + (en ? 'Source: SentiqS alert score.' : 'Source : score d\'alerte SentiqS.') + '</p></div>' +
+    '</div></section>';
+}
+// Dessine la trajectoire dans #panoCourbe : deux traits sur un seul axe (même
+// unité : un nombre de pays), un repère et une bulle au survol.
+function dessinerCourbePano(couleurNiv) {
+  const hote = document.getElementById('panoCourbe');
+  if (!hote) return;
+  const serie = serieTensionPano(typeof HISTORIQUE_SERIE !== 'undefined' ? HISTORIQUE_SERIE : null, 30);
+  if (serie.length < 2) return;
+  const en = LANG === 'en';
+  // Largeur réelle du cadre : un viewBox étiré déformerait les graduations.
+  const W = Math.max(220, Math.round(hote.clientWidth || 320)), H = window.matchMedia && matchMedia('(max-width:760px)').matches ? 130 : 150, g = 26, h = 6, b = 18;
+  const maxV = Math.max(4, ...serie.map(d => d.orangePlus));
+  const x = i => g + (W - g - 6) * i / (serie.length - 1);
+  const y = v => h + (H - h - b) * (1 - v / maxV);
+  const trait = (cle, coul) => '<path class="trait" stroke="' + coul + '" d="' + serie.map((d, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(d[cle]).toFixed(1)).join('') + '"/>';
+  const fmt = j => { try { return new Date(j + 'T12:00:00Z').toLocaleDateString(en ? 'en-GB' : 'fr-FR', { day: 'numeric', month: 'short' }); } catch (_) { return j; } };
+  const grad = [0, Math.round(maxV / 2), maxV].map(v => '<line class="axe" x1="' + g + '" x2="' + W + '" y1="' + y(v) + '" y2="' + y(v) + '" opacity=".5"/><text class="graduation" x="' + (g - 5) + '" y="' + (y(v) + 3) + '" text-anchor="end">' + v + '</text>').join('');
+  hote.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="height:' + H + 'px" aria-hidden="true">' + grad +
+    '<text class="graduation" x="' + g + '" y="' + (H - 4) + '">' + fmt(serie[0].jour) + '</text><text class="graduation" x="' + W + '" y="' + (H - 4) + '" text-anchor="end">' + fmt(serie[serie.length - 1].jour) + '</text>' +
+    trait('orangePlus', couleurNiv('orange')) + trait('marronPlus', couleurNiv('rouge')) +
+    '<line class="repere" x1="0" x2="0" y1="' + h + '" y2="' + (H - b) + '"/></svg><div class="pano-bulle"></div>';
+  const svg = hote.querySelector('svg'), rep = hote.querySelector('.repere'), bulle = hote.querySelector('.pano-bulle');
+  const montrer = ev => {
+    const r = svg.getBoundingClientRect(); if (!r.width) return;
+    const vx = (ev.clientX - r.left) * W / r.width;
+    const i = Math.max(0, Math.min(serie.length - 1, Math.round((vx - g) / (W - g - 6) * (serie.length - 1))));
+    const d = serie[i];
+    rep.setAttribute('x1', x(i)); rep.setAttribute('x2', x(i));
+    bulle.textContent = fmt(d.jour) + ' · ' + (en ? 'high or above ' : 'élevé ou plus ') + d.orangePlus + ' · ' + (en ? 'critical or severe ' : 'critique ou grave ') + d.marronPlus;
+    hote.classList.add('survol');
+    const px = x(i) * r.width / W;
+    bulle.style.left = Math.max(0, Math.min(r.width - bulle.offsetWidth, px - bulle.offsetWidth / 2)) + 'px';
+    bulle.style.top = '-30px';
+  };
+  hote.addEventListener('pointermove', montrer);
+  hote.addEventListener('pointerleave', () => hote.classList.remove('survol'));
 }
 
 function setDashCartoMode(m) { window.dashCartoMode = m; if (typeof renderDashboard === 'function') renderDashboard(); } async function renderDashboard() {
@@ -14668,6 +14836,9 @@ const cartogramme = () => {
       <!-- Actualites a traiter (dans la fenetre) -->
       ${panelATraiterHTML}
 
+      <!-- Panorama : niveaux, trajectoire, themes, classement (13/11/2026) -->
+      ${panoramaDashboard(scores, artsActifs, k => scoreColor({key:k}))}
+
       <!-- Cartogramme régional des scores par pays -->
       <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:14px;margin-bottom:12px;">
         <div class="carto-hd" style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:12px;display:flex;align-items:center;gap:7px;">
@@ -14684,6 +14855,7 @@ const cartogramme = () => {
       ${zoneCard('🟡 RISQUE MODÉRÉ — Jaune', jaune, cv('--j-txt','#854D0E'))}
       ${zoneCard('🟢 SITUATION NORMALE — Vert', vert, cv('--g','#0F4F2A'))}
     `;
+    dessinerCourbePano(k => scoreColor({key:k}));
   });
 }
 
@@ -15678,8 +15850,16 @@ function filtrerFluxPar(cat, pastille) {
   if (main) main.scrollTop = 0;
   try { window.scrollTo(0, 0); } catch (_) {}
 }
-function allerNiveauAlerte(k) {
+function allerNiveauAlerte(k, essai) {
+  // Depuis le tableau de bord (panorama), ouvrir d'abord le module Alertes,
+  // puis attendre que ses fiches soient dessinées (rendu asynchrone).
+  if (!essai && typeof moduleAffiche === 'function' && !moduleAffiche('alertes')) {
+    const onglet = document.querySelector('.ntab[data-view="alertes"]');
+    if (onglet) { onglet.click(); setTimeout(() => allerNiveauAlerte(k, 1), 300); return; }
+  }
   const c = document.querySelector('#alerteGrid [data-niv="' + k + '"]');
+  if (!c && essai && essai < 12) { setTimeout(() => allerNiveauAlerte(k, essai + 1), 250); return; }
+  if (c && essai === 1) { setTimeout(() => allerNiveauAlerte(k, 99), 600); }
   if (!c) { annoncerFiltre(LANG === 'en' ? 'No country at this level' : 'Aucun pays à ce niveau'); return; }
   c.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
