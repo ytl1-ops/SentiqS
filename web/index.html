@@ -961,6 +961,14 @@ function openSignup(planKey) {
     : 'Pas de mot de passe : un code vous est envoyé. Vous activerez ce forfait par Mobile Money depuis l\'application — aucune carte bancaire requise.';
   const btn = document.getElementById('suSubmitBtn');
   if (btn) btn.textContent = 'Recevoir mon code';
+  // Le formulaire vient d'etre remis a neuf depuis SIGNUP_FORM_HTML, capture
+  // AVANT le passage en mode lien : sans ce rappel, chaque ouverture annoncait
+  // un « code » alors que Firebase envoie un lien, et MASQUAIT « Continuer avec
+  // Google » — la seule porte quand le quota de 5 liens par jour est atteint
+  // (constate le 13/11/2026).
+  appliquerModeLienInscription();
+  if (sub && plan.key !== 'gratuit' && _fournisseurFirebase())
+    sub.textContent = 'Pas de mot de passe : un lien de connexion vous est envoyé. Vous activerez ce forfait par Mobile Money depuis l\'application — aucune carte bancaire requise.';
   document.getElementById('signupOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }

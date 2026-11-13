@@ -230,6 +230,7 @@
     "Pas de mot de passe : nous vous envoyons un code. Accès immédiat, aucune carte bancaire requise.": "No password: we send you a code. Immediate access, no credit card required.",
     "Recevoir mon code": "Send me my code",
     "Pas de mot de passe : un code vous est envoyé. Vous activerez ce forfait par Mobile Money depuis l'application — aucune carte bancaire requise.": "No password: a code is sent to you. You will activate this plan by Mobile Money from the app — no credit card required.",
+    "Pas de mot de passe : un lien de connexion vous est envoyé. Vous activerez ce forfait par Mobile Money depuis l'application — aucune carte bancaire requise.": "No password: a sign-in link is sent to you. You will activate this plan by Mobile Money from the app — no credit card required.",
     "gratuit 72h": "free for # hours",
     "Merci de confirmer l'usage professionnel de la plateforme.": "Please confirm professional use of the platform.",
     "Service d'inscription indisponible pour le moment. Réessayez dans un instant.": "Sign-up service unavailable right now. Try again in a moment.",
