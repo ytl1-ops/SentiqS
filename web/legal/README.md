@@ -1,6 +1,6 @@
 # Pages légales — à compléter avant toute facturation
 
-Ces trois pages sont des **structures**, pas des textes prêts à publier. Chaque
+Ces quatre pages (mentions légales, CGV, CGU, confidentialité) sont des **structures**, pas des textes prêts à publier. Chaque
 emplacement `[[À COMPLÉTER : …]]` attend une information que seul l'éditeur
 connaît, ou une clause qui engage juridiquement et doit être validée.
 
@@ -35,3 +35,11 @@ est signalé dans les CGV.
    `scripts/verifier-pages-legales.js`).
 2. Vérifier que les liens du pied de page pointent bien vers ces pages.
 3. Les ajouter à `web/sitemap.xml`.
+
+## Conditions générales d'utilisation (13/11/2026)
+
+`cgu.html` est exigée pour l'application Android (fiche Play Store) et pour
+un service réservé aux comptes. Les clauses factuelles sont rédigées (compte
+personnel, usages interdits dont le profilage de personnes, droits sur les
+contenus des sources, nature de l'information) ; restent à compléter l'essai
+gratuit, la suspension d'un compte, la date et le droit applicable.

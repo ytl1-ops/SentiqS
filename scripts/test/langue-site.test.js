@@ -18,6 +18,7 @@ require(path.join(WEB, 'js', 'dico-site-en.js'));
 const PAGES = {
   'index.html': 'js/',
   'legal/cgv.html': '../js/',
+  'legal/cgu.html': '../js/',
   'legal/confidentialite.html': '../js/',
   'legal/mentions-legales.html': '../js/',
 };
@@ -122,4 +123,15 @@ test('le choix mémorisé s\'applique au chargement, et un clic le change et le 
 
   // Sans choix mémorisé : français.
   assert.deepStrictEqual(bac(null).appels, ['fr']);
+});
+
+test('les conditions d\'utilisation (13/11/2026) sont traduites en entier', () => {
+  const h = lire('legal/cgu.html');
+  const main = h.slice(h.indexOf('<main>'), h.indexOf('</main>'));
+  const textes = main.split(/<[^>]+>/).map((t) => t.replace(/\s+/g, ' ').trim()).filter((t) => /[a-zà-ÿ]{3}/i.test(t));
+  assert.ok(textes.length > 20, 'page vide ? ' + textes.length);
+  const manquants = textes.filter((t) => L.traduire(t) === t);
+  assert.deepStrictEqual(manquants, []);
+  assert.match(h, /loi ivoirienne n° 2013-450/);
+  assert.match(h, /profiler/);
 });
