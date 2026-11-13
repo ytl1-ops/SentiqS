@@ -33,6 +33,23 @@ const constante = (nom) => {
 };
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css', '.json': 'application/json', '.jpg': 'image/jpeg', '.png': 'image/png', '.mp4': 'video/mp4' };
 
+// Le cache injecté doit rester en place jusqu'à la capture. Le mode collecteur
+// lance une collecte (réseau refusé) et relit le cache partagé — illisible ici
+// sans compte depuis le 13/11/2026 — et l'un ou l'autre remettait ALL à vide :
+// les captures publiées montraient un Flux vide sur 2 253 articles lus.
+// figerCache() réinjecte et neutralise ces deux chemins le temps de la capture.
+const FIGER = () => {
+  window.figerCache = (arts) => {
+    try { doCollect = async () => {}; } catch (_) {}
+    try { _appliquerArticlesPartages = () => {}; } catch (_) {}
+    // Le Flux attend la traduction de chaque titre étranger avant de
+    // s'afficher ; sans réseau elle n'aboutit pas dans le délai de capture et
+    // l'écran gardait l'état vide précédent. La capture ne traduit pas.
+    try { preTraduireRapport = async () => {}; } catch (_) {}
+    ALL = arts;
+  };
+};
+
 (async () => {
   // Firestore d'abord (le cache y vit depuis la bascule, Supabase a dépassé son
   // quota le 27/10/2026 : HTTP 402), Supabase en repli tant que le cache n'y est pas.
@@ -91,12 +108,13 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; ch
       return r.abort();
     });
     await page.addInitScript(() => { try { sessionStorage.setItem('sentinel_intro_vue', '1'); } catch (_) {} });
+    await page.addInitScript(FIGER);
     // Le jeton collecteur ouvre la page sans connexion ; la collecte qu'il
     // declenche echoue aussitot (reseau refuse) et ne publie rien.
     await page.goto(base + '/SentiqS_Web.html#collecteur-' + constante('COLLECTOR_TOKEN'), { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2500);
     const b = await page.evaluate((arts) => {
-      ALL = arts;
+      figerCache(arts);
       const recents = ALL.filter((a) => estRecentReel(a));
       const parSource = {};
       let img = 0, video = 0;
@@ -111,12 +129,60 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; ch
       return { total: ALL.length, recents: recents.length, img, video, parSource: Object.values(parSource) };
     }, articles);
     bilan = bilan || b;
-    for (const [nom, vue] of [['flux', 'flux'], ['tableau', 'dashboard']]) {
-      await page.evaluate((v) => { switchView(v, document.querySelector('.ntab[data-view="' + v + '"]')); }, vue);
+    // Le cache est réinjecté avant chaque vue : la collecte lancée par le jeton
+    // collecteur échoue (réseau refusé) et vidait ALL entre l'injection et la
+    // capture — les captures publiées jusqu'au 13/11/2026 montraient un Flux
+    // vide (« Aucun article ne correspond »), sur 2 253 articles lus.
+    const montrer = async (v) => {
+      await page.evaluate(({ v, arts }) => {
+        figerCache(arts);
+        switchView(v, document.querySelector('.ntab[data-view="' + v + '"]'));
+        try { renderFeed(); updStats(); if (typeof recalcAlertes === 'function') recalcAlertes(); } catch (_) {}
+      }, { v, arts: articles });
       await page.waitForTimeout(6000); // laisse arriver les images des sources
+      console.log(vp.n + ' ' + v + ' : ' + (await page.evaluate(() => getFiltered().length)) + ' articles affichables au moment de la capture');
+    };
+    for (const [nom, vue] of [['flux', 'flux'], ['tableau', 'dashboard']]) {
+      await montrer(vue);
       await page.screenshot({ path: path.join(OUT, vp.n + '-' + nom + '.jpg'), type: 'jpeg', quality: 80 });
     }
     console.log(vp.n + ' : erreurs JS ' + erreurs.length + (erreurs.length ? ' — ' + erreurs.slice(0, 3).join(' | ') : ''));
+    await ctx.close();
+  }
+  // Captures au format du Play Store (13/11/2026) : téléphone 9:16, 1080 × 1920
+  // (360 × 640 à l'échelle 3). Bureau et page d'accueil ne s'y prêtent pas.
+  {
+    const ctx = await nav.newContext({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+    const page = await ctx.newPage();
+    await page.route('**', (r) => {
+      const q = r.request();
+      if (q.url().startsWith(base) || ['image', 'font', 'stylesheet'].includes(q.resourceType())) return r.continue();
+      return r.abort();
+    });
+    await page.addInitScript(() => { try { sessionStorage.setItem('sentinel_intro_vue', '1'); localStorage.setItem('sentinel_lang', 'fr');
+      // Les photos des sources appartiennent à leurs auteurs : une fiche
+      // commerciale ne les montre pas (réglage « économiser les données »).
+      localStorage.setItem('sentinel_aff_images', 'non'); } catch (_) {} });
+    await page.addInitScript(FIGER);
+    await page.goto(base + '/SentiqS_Web.html#collecteur-' + constante('COLLECTOR_TOKEN'), { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(2500);
+    // La barre de collecte du mode collecteur n'est pas ce que voit un client.
+    await page.addStyleTag({ content: '.proxy-bar,.cbar,#collecteBar{display:none!important}' });
+    const dossier = path.join(OUT, 'play-store');
+    fs.mkdirSync(dossier, { recursive: true });
+    let i = 0;
+    for (const vue of ['flux', 'dashboard', 'alertes', 'analyse']) {
+      await page.evaluate(({ v, arts }) => {
+        // Le Store montre l'appli en français : seulement les actus déjà en
+        // français, la capture ne traduisant pas.
+        figerCache(arts.filter((x) => typeof detectLangue !== 'function' || detectLangue(String(x.title || '')) === 'fr'));
+        switchView(v, document.querySelector('.ntab[data-view="' + v + '"]'));
+        try { renderFeed(); updStats(); if (typeof recalcAlertes === 'function') recalcAlertes(); if (v === 'analyse' && typeof updSynthese === 'function') updSynthese(); } catch (_) {}
+        window.scrollTo(0, 0);
+      }, { v: vue, arts: articles });
+      await page.waitForTimeout(6000);
+      await page.screenshot({ path: path.join(dossier, (++i) + '-' + vue + '.png') });
+    }
     await ctx.close();
   }
   await nav.close(); serveur.close();
