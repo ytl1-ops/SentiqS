@@ -111,12 +111,53 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; ch
       return { total: ALL.length, recents: recents.length, img, video, parSource: Object.values(parSource) };
     }, articles);
     bilan = bilan || b;
-    for (const [nom, vue] of [['flux', 'flux'], ['tableau', 'dashboard']]) {
-      await page.evaluate((v) => { switchView(v, document.querySelector('.ntab[data-view="' + v + '"]')); }, vue);
+    // Le cache est réinjecté avant chaque vue : la collecte lancée par le jeton
+    // collecteur échoue (réseau refusé) et vidait ALL entre l'injection et la
+    // capture — les captures publiées jusqu'au 13/11/2026 montraient un Flux
+    // vide (« Aucun article ne correspond »), sur 2 253 articles lus.
+    const montrer = async (v) => {
+      await page.evaluate(({ v, arts }) => {
+        ALL = arts;
+        switchView(v, document.querySelector('.ntab[data-view="' + v + '"]'));
+        try { renderFeed(); updStats(); if (typeof recalcAlertes === 'function') recalcAlertes(); } catch (_) {}
+      }, { v, arts: articles });
       await page.waitForTimeout(6000); // laisse arriver les images des sources
+    };
+    for (const [nom, vue] of [['flux', 'flux'], ['tableau', 'dashboard']]) {
+      await montrer(vue);
       await page.screenshot({ path: path.join(OUT, vp.n + '-' + nom + '.jpg'), type: 'jpeg', quality: 80 });
     }
     console.log(vp.n + ' : erreurs JS ' + erreurs.length + (erreurs.length ? ' — ' + erreurs.slice(0, 3).join(' | ') : ''));
+    await ctx.close();
+  }
+  // Captures au format du Play Store (13/11/2026) : téléphone 9:16, 1080 × 1920
+  // (360 × 640 à l'échelle 3). Bureau et page d'accueil ne s'y prêtent pas.
+  {
+    const ctx = await nav.newContext({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+    const page = await ctx.newPage();
+    await page.route('**', (r) => {
+      const q = r.request();
+      if (q.url().startsWith(base) || ['image', 'font', 'stylesheet'].includes(q.resourceType())) return r.continue();
+      return r.abort();
+    });
+    await page.addInitScript(() => { try { sessionStorage.setItem('sentinel_intro_vue', '1'); localStorage.setItem('sentinel_lang', 'fr'); } catch (_) {} });
+    await page.goto(base + '/SentiqS_Web.html#collecteur-' + constante('COLLECTOR_TOKEN'), { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(2500);
+    // La barre de collecte du mode collecteur n'est pas ce que voit un client.
+    await page.addStyleTag({ content: '.proxy-bar,.cbar,#collecteBar{display:none!important}' });
+    const dossier = path.join(OUT, 'play-store');
+    fs.mkdirSync(dossier, { recursive: true });
+    let i = 0;
+    for (const vue of ['flux', 'dashboard', 'alertes', 'analyse']) {
+      await page.evaluate(({ v, arts }) => {
+        ALL = arts;
+        switchView(v, document.querySelector('.ntab[data-view="' + v + '"]'));
+        try { renderFeed(); updStats(); if (typeof recalcAlertes === 'function') recalcAlertes(); if (v === 'analyse' && typeof updSynthese === 'function') updSynthese(); } catch (_) {}
+        window.scrollTo(0, 0);
+      }, { v: vue, arts: articles });
+      await page.waitForTimeout(6000);
+      await page.screenshot({ path: path.join(dossier, (++i) + '-' + vue + '.png') });
+    }
     await ctx.close();
   }
   await nav.close(); serveur.close();
