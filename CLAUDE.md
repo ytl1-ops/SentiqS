@@ -3653,3 +3653,44 @@ n'existe ici), mesure des éléments qui sortent de l'écran.
 Reste en l'état, volontairement : le bandeau Flash info est un défilant (un
 texte coupé au bord y est normal), la barre des modules défile avec ses
 flèches.
+
+---
+
+## Boutons, pastilles et choix du pays — 13/11/2026
+
+Demande de YORO : réduire les plus gros boutons ; que tout ce qui a l'air
+d'un bouton mène aux données ou actus qu'il désigne ; un choix de pays
+automatique et fluide.
+
+- **Un seul choix de pays.** Le Flux avait son propre bouton « Tous pays »
+  (`fGeo`), combiné au filtre du haut (`fCy`) : Côte d'Ivoire en haut et
+  Mali dans le Flux donnaient un Flux vide. `applyGlobalCountryFilter` porte
+  maintenant le choix pour tous les modules, Recherche et chronologie des
+  Alertes comprises, et le bouton du Flux l'affiche. Le choix est repris
+  pendant la **session de l'onglet** (`sessionStorage`), jamais au-delà :
+  un filtre oublié d'un jour sur l'autre ferait paraître calme un pays qu'on
+  ne regarde plus. Un test l'exige.
+- **Fluidité.** Changer de pays redessinait les cinq modules, affichés ou
+  non : 400 à 600 ms sur 2 600 articles. Seul le module affiché est
+  redessiné (`moduleAffiche`), les autres le sont à leur ouverture
+  (`switchView` le faisait déjà) : 90 à 230 ms. Le reste du temps est le
+  rendu du tableau de bord et de la synthèse eux-mêmes.
+- **Pastilles cliquables** (`data-filtre`, `actionPastille`, un écouteur en
+  phase de capture qui passe avant le clic de la carte) : niveau critique ou
+  élevé et catégorie → Flux filtré ; balise (Terrorisme, Sahel, Réseaux
+  sociaux…) et ville → Flux filtré sur la balise ou la ville, avec une puce
+  « × » pour retirer le filtre (`fPastille`, dans la clé de rendu du Flux) ;
+  pays d'une carte « à la une » → fiche pays ; compteurs de la Synthèse →
+  Flux ou sources ; type et statut d'un événement d'agenda → filtre de
+  l'agenda ; légende des niveaux des Alertes → premier pays de ce niveau ;
+  signal du jour d'une fiche d'alerte → son actu. Un incident vérifié n'a
+  pas d'actu derrière lui : sa ligne reste inerte. Les niveaux modéré et
+  stable ne sont pas des filtres (aucune puce correspondante).
+- **Tailles** : tuiles d'indicateurs 111 → 82 px sur bureau (sous-titre sur
+  une ligne, entier dans l'info-bulle ; masqué sur téléphone), cartes « Les
+  faits du jour » (titre 17 → 15 px, quatre lignes au plus), bouton
+  Actualiser du Flux sur téléphone 44 × 40 → 32 × 32, boutons de la barre
+  du haut sur téléphone 36 → 32. Tout reste au-dessus du seuil de 24 px.
+
+Exports : 14/14 identiques avant/après. `scripts/test/boutons-pays-13-11.test.js`
+(7 tests, vus échouer sur `main`).

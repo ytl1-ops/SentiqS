@@ -1508,7 +1508,7 @@ html:not(.force-web) .logo-s{display:none}
 html:not(.force-web) .tb-r{gap:4px}
 html:not(.force-web) .live .ltxt,
 html:not(.force-web) .actu-btn span{display:none}
-html:not(.force-web) .actu-btn{padding:5px 8px;min-height:36px;min-width:36px;display:inline-flex;align-items:center;justify-content:center;}
+html:not(.force-web) .actu-btn{padding:5px 8px;min-height:32px;min-width:32px;display:inline-flex;align-items:center;justify-content:center;}
 html:not(.force-web) .badge-r{padding:2px 5px;font-size:var(--fs-micro)}
 html:not(.force-web) .lang-btn{padding:5px 7px;min-height:32px;}
 html:not(.force-web) #diagBtn,
@@ -1619,7 +1619,7 @@ html.force-mobile .logo-s{display:none}
 html.force-mobile .tb-r{gap:4px}
 html.force-mobile .live .ltxt,
 html.force-mobile .actu-btn span{display:none}
-html.force-mobile .actu-btn{padding:5px 8px;min-height:36px;min-width:36px;display:inline-flex;align-items:center;justify-content:center;}
+html.force-mobile .actu-btn{padding:5px 8px;min-height:32px;min-width:32px;display:inline-flex;align-items:center;justify-content:center;}
 html.force-mobile .badge-r{padding:2px 5px;font-size:var(--fs-micro)}
 html.force-mobile .lang-btn{padding:5px 7px;min-height:32px;}
 html.force-mobile #diagBtn,
@@ -2835,7 +2835,7 @@ html.sans-images .art > .vact-vignette:not(.vact-video){display:none}
   html:not(.force-web) .tlbr .srch{flex:1 1 100%}
   html:not(.force-web) .tlbr .geo-w{flex:1 1 auto}
   html:not(.force-web) .tlbr .ssel{flex:1 1 auto}
-  html:not(.force-web) .tlbr .tlbr-actu{flex:0 0 auto;min-width:44px;min-height:40px;padding:0 10px}
+  html:not(.force-web) .tlbr .tlbr-actu{flex:0 0 auto;min-width:32px;min-height:32px;padding:0 8px}
   html:not(.force-web) .tlbr .tlbr-actu span{display:none}
   html:not(.force-web) .tlbr .chips{flex:1 1 100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
   html:not(.force-web) .tlbr .chips::-webkit-scrollbar{display:none}
@@ -2847,7 +2847,7 @@ html.force-mobile .tlbr{gap:6px}
 html.force-mobile .tlbr .srch{flex:1 1 100%}
 html.force-mobile .tlbr .geo-w{flex:1 1 auto}
 html.force-mobile .tlbr .ssel{flex:1 1 auto}
-html.force-mobile .tlbr .tlbr-actu{flex:0 0 auto;min-width:44px;min-height:40px;padding:0 10px}
+html.force-mobile .tlbr .tlbr-actu{flex:0 0 auto;min-width:32px;min-height:32px;padding:0 8px}
 html.force-mobile .tlbr .tlbr-actu span{display:none}
 html.force-mobile .tlbr .chips{flex:1 1 100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
 html.force-mobile .tlbr .chips::-webkit-scrollbar{display:none}
@@ -2901,6 +2901,41 @@ html.force-mobile .art-top .survtime{white-space:normal;min-width:0;max-width:10
   html.force-tablette .pb-step{display:block;line-height:1.45}
   html.force-tablette .pb-pills{margin-top:0;flex-shrink:0}
 }
+/* ═══ BOUTONS COMPACTS ET PASTILLES CLIQUABLES — 13/11/2026 ═══
+   Demande de YORO : « reduit la taille des boutons les plus gros ». Mesure du
+   DOM rendu (390 et 1360 px) : les plus gros elements cliquables etaient les
+   tuiles d'indicateurs (111 px de haut sur bureau, 56 a 69 sur telephone),
+   les cartes « Les faits du jour » (titre serif 17 px) et le bouton
+   Actualiser du Flux sur telephone (44 x 40 px, icone seule). Rien n'est
+   retire : le sous-titre d'une tuile reste dans son info-bulle sur telephone.
+   Les pastilles qui filtrent (data-filtre, voir actionPastille) se signalent
+   au survol et au clavier. */
+.kpi-tile{padding:8px 12px 7px !important}
+.kpi-tile .kpi-v{font-size:22px !important}
+.kpi-tile .kpi-l{margin-top:3px !important}
+.kpi-tile .kpi-s{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi-tile>.ti{top:8px !important;right:10px !important}
+.une-corps{padding:var(--sp-2) var(--sp-3);gap:6px}
+.une-tit{font-size:15px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+[data-filtre]{cursor:pointer}
+[data-filtre]:hover{filter:brightness(1.15);text-decoration:underline;text-underline-offset:2px}
+[data-filtre]:focus-visible{outline:2px solid var(--sig);outline-offset:2px}
+.chip-pastille{display:inline-flex;align-items:center;gap:4px}
+.annonce-filtre{position:fixed;left:50%;bottom:24px;transform:translate(-50%,8px);opacity:0;pointer-events:none;z-index:9500;
+  background:var(--w);color:var(--t);border:1px solid var(--bd);border-radius:6px;padding:8px 14px;font-size:13px;
+  box-shadow:0 6px 18px rgba(0,0,0,.25);transition:opacity .15s,transform .15s}
+.annonce-filtre.on{opacity:1;transform:translate(-50%,0)}
+@media (max-width:760px){
+  html:not(.force-web) .kpi-tile{padding:6px 10px !important}
+  html:not(.force-web) .kpi-tile .kpi-v{font-size:19px !important}
+  html:not(.force-web) .kpi-tile .kpi-s{display:none}
+  html:not(.force-web) .une-tit{font-size:14px}
+}
+html.force-mobile .kpi-tile{padding:6px 10px !important}
+html.force-mobile .kpi-tile .kpi-v{font-size:19px !important}
+html.force-mobile .kpi-tile .kpi-s{display:none}
+html.force-mobile .une-tit{font-size:14px}
+
 /* ═══ BARRE DU HAUT SUR TÉLÉPHONE ÉTROIT — 13/11/2026 ═══
    Capture de YORO (texte agrandi par le téléphone, écran de 360 px) : le nom
    « SentiqS » coupé en « Sentiq », l'avatar du compte sorti de l'écran.
@@ -3489,6 +3524,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
       <div class="tlbr">
         <div class="srch"><i class="ti ti-search"></i><input type="text" id="artQ" data-i18n-ph="ph_rechercher" placeholder="Rechercher..." data-i18n-ph="ph_recherche" oninput="renderFeedDebounced()"></div>
         <div class="chips">
+          <span class="chip on chip-pastille" id="chipPastille" style="display:none" onclick="effacerPastille()" role="button" tabindex="0" title="Retirer ce filtre"><span></span><i class="ti ti-x" aria-hidden="true"></i></span>
           <span class="chip on" onclick="setCat(this,&#39;all&#39;)" data-i18n="chip_tout" role="button" tabindex="0">Tout</span>
           <span class="chip rc" onclick="setCat(this,&#39;crit&#39;)" role="button" tabindex="0"><i class="ti ti-alert-triangle"></i><span data-i18n="chip_critique">Critique</span></span>
           <span class="chip" onclick="setCat(this,&#39;high&#39;)" role="button" tabindex="0"><i class="ti ti-alert-circle"></i><span data-i18n="chip_eleve">Eleve</span></span>
@@ -3642,9 +3678,9 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
               <div class="sy-tt" id="syTitreZone">Synthese securitaire — Toutes zones</div>
               <div class="sy-sb" id="syDate">Actualisez pour generer la synthese automatique depuis les flux RSS</div>
               <div class="sy-bg">
-                <span class="sbg sbg-r" id="syCrit">— critiques</span>
-                <span class="sbg sbg-a" id="syHigh">— elevees</span>
-                <span class="sbg sbg-b" id="sySrc">— sources</span>
+                <span class="sbg sbg-r" id="syCrit" data-filtre="niveau:crit" role="button" tabindex="0" title="Voir les actus critiques">— critiques</span>
+                <span class="sbg sbg-a" id="syHigh" data-filtre="niveau:high" role="button" tabindex="0" title="Voir les actus élevées">— elevees</span>
+                <span class="sbg sbg-b" id="sySrc" data-filtre="kpi:sources" role="button" tabindex="0" title="Voir les sources">— sources</span>
               </div>
             </div>
             <div id="syCont">
@@ -7661,6 +7697,9 @@ function recordSrcFail(srcId, reason) {
 
 // ── État filtres ─────────────────────────────────────────────────────────────
 let fCat='all', fCy='all', fSc='all', fGeo='all', fAg='all';
+// Filtre pose par une pastille de carte (theme, ville) : voir actionPastille().
+let fPastille = null;
+const CATS_FILTRABLES = ['securite', 'humanitaire', 'politique', 'economique'];
 
 // ── DETECTION DU MEILLEUR SERVICE DE COLLECTE ───────────────────────────────
 async function detectProxy() {
@@ -8984,7 +9023,7 @@ function balisesArticleHtml(a, pre) {
   const balises = pre || balisesArticle(a);
   if (!balises.length) return '';
   return '<div class="balises">' + balises.map(b =>
-    '<span class="balise" data-famille="' + b.famille + '"><i class="ti ' + b.icon + '"></i>' + escHtml(b.label) + '</span>'
+    '<span class="balise" data-famille="' + b.famille + '"' + attrFiltre('balise:' + b.label, (LANG === 'en' ? 'Show the news tagged ' : 'Voir les actus marquées ') + b.label) + '><i class="ti ' + b.icon + '"></i>' + escHtml(b.label) + '</span>'
   ).join('') + '</div>';
 }
 
@@ -10435,7 +10474,7 @@ function carteUneHtml(a) {
   return '<article class="une-carte" onclick="showDet(\'' + a.id + '\')">' +
     visuelActu(a, 'une') +
     '<div class="une-corps">' +
-      '<div class="une-kick"><span class="rpill ' + pl[0] + '">' + pl[1] + '</span><span>' + cc.flag + ' ' + escHtml(cc.name) + '</span></div>' +
+      '<div class="une-kick"><span class="rpill ' + pl[0] + '"' + attrFiltreNiveau(a) + '>' + pl[1] + '</span><span' + (a.cy && a.cy !== 'INT' ? attrFiltre('pays:' + a.cy, (LANG === 'en' ? 'Open the country view' : 'Ouvrir la fiche du pays')) : '') + '>' + cc.flag + ' ' + escHtml(cc.name) + '</span></div>' +
       '<div class="une-tit" role="button" tabindex="0">' + escHtml(L(a.title)) + '</div>' +
       '<div class="une-meta"><span>' + fmtAge(a.pubDate) + '</span>' + (cot ? '<span class="une-cot une-cot-' + cot.cle + '">' + cot.libelle + '</span>' : '') + '</div>' +
     '</div>' +
@@ -13161,6 +13200,7 @@ function getFiltered() {
   if(fCy!=='all') a=a.filter(x=>x.cy===fCy);
   if(fGeo!=='all') a=a.filter(x=>x.cy===fGeo);
   if(fSc!=='all') a=a.filter(x=>x.sc===fSc);
+  if(fPastille) a=a.filter(correspondPastille);
   const s=document.getElementById('sortSel').value;
   if(s==='date') a.sort((x,y)=>(y.pubDate||0)-(x.pubDate||0));
   else if(s==='level') a.sort((x,y)=>({'crit':0,'high':1,'mod':2,'ok':3}[x.level]||2)-({'crit':0,'high':1,'mod':2,'ok':3}[y.level]||2));
@@ -13493,7 +13533,7 @@ document.addEventListener('keydown', e => {
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initBarresExport); else initBarresExport();
 function fluxSignatureFiltres() {
   const g = id => { const e = document.getElementById(id); return e ? e.value : ''; };
-  return [fCat, fCy, fGeo, fSc, g('artQ'), g('sortSel')].join('|');
+  return [fCat, fCy, fGeo, fSc, fPastille ? fPastille.k + ':' + fPastille.v : '', g('artQ'), g('sortSel')].join('|');
 }
 async function renderFeed() {
   const _monGen = ++_renderFeedGen;
@@ -13588,7 +13628,7 @@ async function renderFeed() {
     return '<div class="art l'+a.level.charAt(0)+'2'+isnew+'" data-level="'+a.level+'" onclick="showDet(\''+a.id+'\')">'+
       // Visuel de l'actu (image de la source, video, ou repli) — voir visuelActu().
       visuelActu(a, 'vignette')+
-      '<div class="al"><span class="rpill '+pl[0]+'">'+pl[1]+'</span>'+
+      '<div class="al"><span class="rpill '+pl[0]+'"'+attrFiltreNiveau(a)+'>'+pl[1]+'</span>'+
       sico+'</div>'+
       '<div class="ab">'+
         // ── Ligne meta prioritaire : pays + heure de survenance (mono), avant tout le reste ──
@@ -13616,8 +13656,8 @@ async function renderFeed() {
         // ── Meta secondaire : portee, ville, categorie, source RSS, sentiment, viralite ──
         '<div class="meta2">'+
           '<span class="stag">'+(scl[a.sc]||'Regional')+'</span>'+
-          (a._ville ? '<span class="stag" style="display:inline-flex;align-items:center;gap:3px;"><i class="ti ti-map-pin" style="font-size:9px"></i>'+a._ville+(a._villeEstimee?' <b style="font-weight:800;">(estimé)</b>':'')+'</span>' : '')+
-          (catDoublon ? '' : '<span class="stag">'+catFr(a.cat)+'</span>')+
+          (a._ville ? '<span class="stag" style="display:inline-flex;align-items:center;gap:3px;"'+(a.cy && a.cy!=='INT' ? attrFiltre('ville:'+a.cy+':'+a._ville, (LANG==='en'?'Show the news from ':'Voir les actus de ')+a._ville) : '')+'><i class="ti ti-map-pin" style="font-size:9px"></i>'+a._ville+(a._villeEstimee?' <b style="font-weight:800;">(estimé)</b>':'')+'</span>' : '')+
+          (catDoublon ? '' : '<span class="stag"'+(CATS_FILTRABLES.includes(a.cat) ? attrFiltre('cat:'+a.cat, (LANG==='en'?'Show the news in this category':'Voir les actus de cette catégorie')) : '')+'>'+catFr(a.cat)+'</span>')+
           (()=>{
             if (!a.fromRSS) return '';
             const b = a._srcBadge;
@@ -14739,14 +14779,14 @@ async function updSynthese() {
       const analyseTronquee=escHtml(extraitLoyal(L(a.analysis), 280));
       html+='<div class="sy-ar">'+
         '<div class="sy-lvl '+lc+'"><i class="ti '+lic(a.level)+'"></i>'+lt+' — '+cc.flag+' '+cc.name+villeTxt+' — '+catFr(a.cat)+'</div>'+
-        '<div class="sy-tt2" id="sytt-'+a.id+'">'+escHtml(L(a.title))+'</div>'+
+        '<div class="sy-tt2" id="sytt-'+a.id+'" onclick="showDet(\''+a.id+'\')" role="button" tabindex="0">'+escHtml(L(a.title))+'</div>'+
         '<div style="font-size:9px;color:var(--lg);font-weight:600;margin:2px 0 4px;"><i class="ti ti-clock" style="font-size:9px;vertical-align:-1px"></i> Publie le '+fmtFull(a.pubDate)+' ('+fmtAge(a.pubDate)+')'+((a.pubDate&&(Date.now()-a.pubDate)<12*3600000)?' <span style="font-size:8px;font-weight:700;color:#fff;background:#15803D;padding:1px 6px;border-radius:3px;">−12H</span>':'')+'</div>'+
         '<div class="sy-bd" id="sybd-'+a.id+'">'+analyseTronquee+'</div>'+
         '<div class="sy-sr">'+
           (sourcesVisibles() ? '<a href="'+safeUrl(articleLienDirect(a), ps.n+' actualite')+'" target="_blank" class="ssrc">'+
           '<span class="dot" style="background:'+ps.col+'"></span>'+ps.n+'<i class="ti ti-external-link"></i></a>' : '')+
           '<button class="share-trigger" onclick="toggleShareMenu(event,\''+a.id+'\')" title="'+(LANG==='en'?'Share':'Partager')+'"><i class="ti ti-share-2"></i>'+(LANG==='en'?'Share':'Partager')+'</button>'+
-          '<span class="ss-sc '+sc+'">'+a.score+'%</span></div>'+
+          '<span class="ss-sc '+sc+'" onclick="showDet(\''+a.id+'\')" role="button" tabindex="0" title="'+(LANG==='en'?'Open the news':'Ouvrir l\'actu')+'">'+a.score+'%</span></div>'+
       '</div>';
     });
     html+='</div>';
@@ -14807,7 +14847,7 @@ function peuplerFiltresRecherche() {
 }
 
 function setSeScope(v) { fSeScope = v; renderRecherche(); }
-function setSeCy(v)    { fSeCy = v; renderRecherche(); }
+function setSeCy(v)    { if (v === 'all' || PAYS_INFO[v]) applyGlobalCountryFilter(v); else { fSeCy = v; renderRecherche(); } }
 function setSeCat(v)   { fSeCat = v; renderRecherche(); }
 
 // Echappement pour injection sure dans un attribut onclick delimite par
@@ -15093,7 +15133,9 @@ async function renderAgenda() {
 function ligneAgendaHtml(e, i, SL, IC, TYP) {
   const sl = SL[e.status] || SL.planifie;
   const typ = TYP[e.type || 'securite'] || TYP.securite;
-  const typBadge = '<span style="font-size:8px;font-weight:700;padding:1px 6px;border-radius:3px;margin-left:5px;color:' + typ[2] + ';background:' + typ[2] + '1A;border:1px solid ' + typ[2] + '44;">' + typ[0] + ' ' + typ[1] + '</span>';
+  const typBadge = '<span style="font-size:8px;font-weight:700;padding:1px 6px;border-radius:3px;margin-left:5px;color:' + typ[2] + ';background:' + typ[2] + '1A;border:1px solid ' + typ[2] + '44;"' + attrFiltre('agtype:' + (e.type || 'securite'), (LANG === 'en' ? 'Show events of this type' : 'Voir les événements de ce type')) + '>' + typ[0] + ' ' + typ[1] + '</span>';
+  // Un evenement detecte dans le Flux renvoie a son actu (13/11/2026).
+  const artAg = e._detecteAuto && e.id && typeof ALL !== 'undefined' && ALL.some(x => x.id === e.id);
   const ageHFresh = e._detecteAuto ? (Date.now() - _agendaTs(e)) / 3600000 : Infinity;
   const fresh = ageHFresh < 24;
   const freshTag = fresh ? '<span style="font-size:8px;font-weight:700;color:#fff;background:#15803D;padding:1px 6px;border-radius:3px;margin-left:6px;">−' + Math.max(1, Math.round(ageHFresh)) + 'H</span>' : '';
@@ -15103,7 +15145,7 @@ function ligneAgendaHtml(e, i, SL, IC, TYP) {
   return '<div class="ev ' + e.status + '">' +
     '<div class="ev-dt"><div class="ev-d">' + e.day + '</div><div class="ev-m">' + e.month + '</div>' + (e.hour ? '<div class="ev-h" style="font-size:9px;color:var(--lg);font-weight:600;margin-top:2px;">' + e.hour + '</div>' : '') + '</div>' +
     '<div class="ev-bd">' +
-      '<div class="ev-tp"><div class="ev-tt"><span id="' + ttId + '">' + escHtml(L(e.title)) + '</span>' + typBadge + freshTag + autoTag + '</div><span class="ev-bg ' + sl[0] + '">' + sl[1] + '</span></div>' +
+      '<div class="ev-tp"><div class="ev-tt"><span id="' + ttId + '"' + (artAg ? ' onclick="showDet(\'' + e.id + '\')" role="button" tabindex="0" title="' + (LANG === 'en' ? 'Open the news' : 'Ouvrir l\'actu') + '" style="cursor:pointer"' : '') + '>' + escHtml(L(e.title)) + '</span>' + typBadge + freshTag + autoTag + '</div><span class="ev-bg ' + sl[0] + '"' + (e.status ? attrFiltre('agstatut:' + e.status, (LANG === 'en' ? 'Show events with this status' : 'Voir les événements de ce statut')) : '') + '>' + sl[1] + '</span></div>' +
       '<div class="ev-dc" id="' + dcId + '">' + escHtml(L(e.desc)) + '</div>' +
       '<div class="ev-mt">' +
         '<span class="ev-cy"' + (resolveAgendaCy(e.cy) ? ' style="cursor:pointer" onclick="ouvrirVuePays(\'' + resolveAgendaCy(e.cy) + '\')"' : '') + ' role="button" tabindex="0"><i class="ti ti-map-pin" style="font-size:10px"></i>' + e.cy + '</span>' +
@@ -15586,10 +15628,98 @@ function toggleLP(force) {
   if (bg) bg.classList.toggle('on', open);
   if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
 }
-function setCat(el,c){document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));el.classList.add('on');fCat=c;renderFeed();}
+function setCat(el,c){document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));el.classList.add('on');fCat=c;if(c==='all')fPastille=null;majChipPastille();renderFeed();}
+
+// ═══ PASTILLES CLIQUABLES — 13/11/2026 ═══
+// Demande de YORO : « tous les boutons doivent etre cliquables et renvoyer aux
+// donnees ou actus qui les concernent ». Sur une carte, le niveau, le theme,
+// la ville et la categorie avaient l'air de boutons mais ouvraient tous la
+// meme chose (l'actu). Chacun filtre desormais le Flux sur ce qu'il dit ;
+// ailleurs, le compteur ouvre la liste qu'il compte, la legende des niveaux
+// va au premier pays de ce niveau, un signal du jour ouvre son actu.
+// Un seul ecouteur, en phase de capture : il passe avant le clic de la carte.
+function attrFiltre(filtre, titre) {
+  return ' data-filtre="' + escHtml(filtre) + '" role="button" tabindex="0" title="' + escHtml(titre) + '"';
+}
+function attrFiltreNiveau(a) {
+  if (!a || a.flagged || (a.level !== 'crit' && a.level !== 'high')) return '';
+  return attrFiltre('niveau:' + a.level, LANG === 'en' ? 'Show all news at this level' : 'Voir toutes les actus de ce niveau');
+}
+function correspondPastille(x) {
+  if (!fPastille) return true;
+  if (fPastille.k === 'balise') return balisesArticle(x).some(b => b.label === fPastille.v);
+  if (fPastille.k === 'ville') return x._ville === fPastille.v;
+  return true;
+}
+function majChipPastille() {
+  const el = document.getElementById('chipPastille');
+  if (!el) return;
+  if (!fPastille) { el.style.display = 'none'; return; }
+  el.style.display = '';
+  el.classList.add('on');
+  el.firstElementChild.textContent = fPastille.lib;
+}
+function effacerPastille() {
+  fPastille = null;
+  const tout = [...document.querySelectorAll('#v-flux .chip')].find(c => (c.getAttribute('onclick') || '').includes("'all'"));
+  if (tout) setCat(tout, 'all'); else { majChipPastille(); renderFeed(); }
+}
+function filtrerFluxPar(cat, pastille) {
+  if (!moduleAffiche('flux')) { const t = document.querySelector('.ntab[data-view="flux"]'); if (t) t.click(); }
+  fCat = cat; fPastille = pastille || null;
+  document.querySelectorAll('.chip').forEach(x => x.classList.remove('on'));
+  if (!fPastille) {
+    const chip = [...document.querySelectorAll('#v-flux .chip')].find(c => (c.getAttribute('onclick') || '').includes("'" + cat + "'"));
+    if (chip) chip.classList.add('on');
+  }
+  majChipPastille();
+  renderFeed();
+  const main = document.getElementById('contenuPrincipal');
+  if (main) main.scrollTop = 0;
+  try { window.scrollTo(0, 0); } catch (_) {}
+}
+function allerNiveauAlerte(k) {
+  const c = document.querySelector('#alerteGrid [data-niv="' + k + '"]');
+  if (!c) { annoncerFiltre(LANG === 'en' ? 'No country at this level' : 'Aucun pays à ce niveau'); return; }
+  c.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function annoncerFiltre(texte) {
+  let el = document.getElementById('annonceFiltre');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'annonceFiltre'; el.className = 'annonce-filtre';
+    el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite');
+    document.body.appendChild(el);
+  }
+  el.textContent = texte; el.classList.add('on');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 2200);
+}
+function actionPastille(el) {
+  const f = el.getAttribute('data-filtre') || '';
+  const i = f.indexOf(':'); const k = f.slice(0, i), v = f.slice(i + 1);
+  if (k === 'niveau' || k === 'cat') return filtrerFluxPar(v);
+  if (k === 'balise') return filtrerFluxPar('all', { k: 'balise', v, lib: v });
+  if (k === 'ville') {
+    const j = v.indexOf(':'); const cy = v.slice(0, j), ville = v.slice(j + 1);
+    applyGlobalCountryFilter(cy);
+    return filtrerFluxPar('all', { k: 'ville', v: ville, lib: ville });
+  }
+  if (k === 'pays') return ouvrirVuePays(v);
+  if (k === 'agtype') { const s = document.getElementById('agTypeFilter'); if (s) s.value = v; return setAgendaType(v); }
+  if (k === 'agstatut') { const b = [...document.querySelectorAll('.af')].find(x => (x.getAttribute('onclick') || '').includes("'" + v + "'")); if (b) setAgFilt(b, v); return; }
+  if (k === 'alniv') return allerNiveauAlerte(v);
+  if (k === 'kpi' && typeof showKpiDrill === 'function') return showKpiDrill(v);
+}
+document.addEventListener('click', ev => {
+  const el = ev.target && ev.target.closest ? ev.target.closest('[data-filtre]') : null;
+  if (!el) return;
+  ev.stopPropagation(); ev.preventDefault();
+  actionPastille(el);
+}, true);
 function setAgFilt(el,f){document.querySelectorAll('.af').forEach(b=>b.classList.remove('on'));el.classList.add('on');fAg=f;renderAgenda();}
 function toggleGeo(e){e.stopPropagation();document.getElementById('geoDd').classList.toggle('op');}
-function setGeo(code,name){fGeo=code;document.getElementById('geoLbl').textContent=name;document.getElementById('geoDd').classList.remove('op');renderFeed();renderGeo();}
+// Le bouton pays du Flux est le meme choix que celui du haut (13/11/2026).
+function setGeo(code,name){document.getElementById('geoDd').classList.remove('op');applyGlobalCountryFilter(code);renderGeo();}
 document.addEventListener('click',()=>document.getElementById('geoDd').classList.remove('op'));
 
 // majDebordementOnglets : la barre de modules deborde-t-elle VRAIMENT ?
@@ -16331,6 +16461,9 @@ async function init() {
     document.getElementById('liveTxt').textContent='Collecte en cours';
   }
   tick(); renderCyList(); renderGeo(); renderAgenda(); renderSrcLeg();
+  // Le pays choisi plus tot dans cet onglet est repris tout seul (voir
+  // applyGlobalCountryFilter : session de l'onglet seulement).
+  try { const _pc = sessionStorage.getItem(PAYS_CHOISI_KEY); if (_pc && _pc !== 'all' && PAYS_INFO[_pc]) applyGlobalCountryFilter(_pc); } catch (_) {}
   // Tableau de bord (v-dashboard, vue par defaut a l'ouverture) : le rendu
   // n'etait jusqu'ici declenche que par switchView('dashboard') ou apres la
   // fin de la premiere collecte RSS (doCollect) — le conteneur dashContent
@@ -20495,7 +20628,7 @@ function renderLegendeNiveaux() {
   return '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
     Object.keys(NIV).map(k => {
       const n = NIV[k];
-      return '<span style="padding:3px 10px;border-radius:4px;background:' + n.col + ';border:1px solid ' + n.border + ';color:#fff;font-size:9px;font-weight:700;letter-spacing:.05em" title="' + n.descr + '">' + n.label + ' — ' + n.descr + '</span>';
+      return '<span style="padding:3px 10px;border-radius:4px;background:' + n.col + ';border:1px solid ' + n.border + ';color:#fff;font-size:9px;font-weight:700;letter-spacing:.05em" data-filtre="alniv:' + k + '" role="button" tabindex="0" title="' + n.descr + ' — ' + (LANG === 'en' ? 'go to the first country at this level' : 'aller au premier pays de ce niveau') + '">' + n.label + ' — ' + n.descr + '</span>';
     }).join('') +
   '</div>';
 }
@@ -20888,7 +21021,10 @@ async function renderAlertCard(score) {
     const liveTag = e.live
       ? '<span style="font-size:var(--fs-micro);font-weight:700;color:#7A5D00;background:#FEF9C3;border:1px solid #A3890044;padding:2px var(--sp-2);border-radius:var(--r-sm);margin-left:var(--sp-1);" title="Signal RSS non verifie manuellement">Signal RSS</span>'
       : '<span style="font-size:var(--fs-micro);font-weight:700;color:#15803D;background:#DCFCE7;border:1px solid #15803D44;padding:2px var(--sp-2);border-radius:var(--r-sm);margin-left:var(--sp-1);">Verifie</span>';
-    return `<div style="display:flex;gap:7px;padding:4px 0;border-bottom:.5px solid var(--bd);">
+    // Un signal du jour est une actu du Flux : la ligne l'ouvre (13/11/2026).
+    // Un incident verifie n'a pas d'actu derriere lui : sa ligne reste inerte.
+    const ouvreActu = e.live && e.id && (ALL || []).some(x => x.id === e.id);
+    return `<div style="display:flex;gap:7px;padding:4px 0;border-bottom:.5px solid var(--bd);${ouvreActu ? 'cursor:pointer;' : ''}"${ouvreActu ? ` onclick="showDet('${e.id}')" role="button" tabindex="0" title="${LANG === 'en' ? 'Open the news' : 'Ouvrir l\'actu'}"` : ''}>
       <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${d.dot};flex-shrink:0;margin-top:4px;"></span>
       <div style="flex:1;min-width:0;">
         <div style="font-size:9px;color:var(--lg);font-weight:600;">${e.date}${freshTag}${liveTag}</div>
@@ -20975,7 +21111,7 @@ async function renderAlertCard(score) {
   const ligneVerifiee = dateVerifie
     ? `<div style="font-size:8px;color:#6B7280;opacity:.8;">Dernier incident vérifié/corroboré : ${dateVerifie}</div>` : '';
   const ligneCouverture = pastilleCouvertureFaible(derniereActuTs, dateVerifie);
-  return `<div id="alerteCard-${score.cy}" style="background:${n.bg};border:1px solid ${n.border};border-radius:10px;overflow:hidden;box-shadow:${surligne?'0 0 0 3px rgba(138,93,26,.5), 0 4px 12px rgba(0,0,0,.12)':'0 1px 3px rgba(0,0,0,.06)'};scroll-margin-top:12px;">
+  return `<div id="alerteCard-${score.cy}" data-niv="${String(n.label||'').toLowerCase()}" style="background:${n.bg};border:1px solid ${n.border};border-radius:10px;overflow:hidden;box-shadow:${surligne?'0 0 0 3px rgba(138,93,26,.5), 0 4px 12px rgba(0,0,0,.12)':'0 1px 3px rgba(0,0,0,.06)'};scroll-margin-top:12px;">
     ${surligne?'<div style="background:var(--b);color:#fff;font-size:9px;font-weight:700;text-align:center;padding:3px;text-transform:uppercase;letter-spacing:.05em;">Filtre pays actif</div>':''}    <!-- EN-TÊTE PAYS -->
     <div style="padding:10px 12px;background:${n.bgLight};display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid ${n.border};">
       <div style="display:flex;align-items:center;gap:9px;cursor:pointer;" onclick="ouvrirVuePays('${score.cy}')">
@@ -21099,21 +21235,49 @@ function agendaMatchesCy(entry, cy) {
 //  rattachee a un code pays de ce referentiel est donc automatiquement
 //  couverte par ce filtre, sans developpement specifique supplementaire.
 // ═══════════════════════════════════════════════════════════════════════════
+// Un seul choix de pays, pour tous les modules, sans latence (13/11/2026).
+// Mesure sur 2 600 articles : changer de pays prenait 400 a 600 ms, parce que
+// chaque changement redessinait Flux, Synthese, Agenda, Alertes et tableau de
+// bord, visibles ou non. Seul le module affiche est redessine ; les autres le
+// sont a leur ouverture (switchView les redessine deja tous). Le Flux avait en
+// plus son propre bouton « Tous pays » (fGeo), qui se combinait au filtre du
+// haut : CI en haut et Mali dans le Flux donnaient un Flux vide. Les deux
+// suivent desormais le meme choix, comme la Recherche et la chronologie des
+// Alertes. Le choix est retenu pour la session de l'onglet (sessionStorage),
+// pas au-dela : rouvrir l'appli repart sur tous les pays, pour qu'un filtre
+// oublie ne fasse jamais paraitre calme un pays qu'on ne regarde plus.
+const PAYS_CHOISI_KEY = 'sentinel_pays_choisi';
+function moduleAffiche(nom) {
+  const v = document.getElementById('v-' + nom);
+  return !!(v && v.classList.contains('on'));
+}
 function applyGlobalCountryFilter(cy) {
   if (cy !== 'all' && !PAYS_INFO[cy]) return;
   GLOBAL_CY_FILTER = cy;
+  try { sessionStorage.setItem(PAYS_CHOISI_KEY, cy); } catch (_) {}
 
-  // Flux — filtre direct
+  // Flux — filtre direct, et le bouton pays du Flux suit le meme choix
   fCy = cy;
-  if (typeof renderCyList === 'function' && document.getElementById('cySelectTop')) { _rendreOuSignaler('renderCyList', renderCyList); }
-  if (typeof renderFeed === 'function' && document.getElementById('feed')) { _rendreOuSignaler('renderFeed', renderFeed); }
+  if (typeof fGeo !== 'undefined') {
+    fGeo = cy;
+    const lblGeo = document.getElementById('geoLbl');
+    if (lblGeo) lblGeo.textContent = cy === 'all' ? (LANG === 'en' ? 'All countries' : 'Tous pays') : ((PAYS_INFO[cy] || {}).name || cy);
+  }
+  const selTop = document.getElementById('cySelectTop');
+  if (selTop && selTop.options.length < 2 && typeof renderCyList === 'function') _rendreOuSignaler('renderCyList', renderCyList);
+  if (selTop) selTop.value = cy;
+  // Recherche et chronologie des Alertes : meme choix
+  if (typeof fSeCy !== 'undefined') { fSeCy = cy; const s = document.getElementById('seCy'); if (s) s.value = cy; }
+  if (typeof fChronoCy !== 'undefined') { fChronoCy = cy; const s = document.getElementById('chronoCy'); if (s) s.value = cy; }
+  if (typeof renderFeed === 'function' && document.getElementById('feed') && moduleAffiche('flux')) { _rendreOuSignaler('renderFeed', renderFeed); }
+  if (typeof renderRecherche === 'function' && moduleAffiche('recherche')) { _rendreOuSignaler('renderRecherche', renderRecherche); }
 
   // Synthese — filtre direct (exclusif avec le filtre zone)
   if (typeof fSyCy !== 'undefined') {
     fSyCy = cy; fSyZone = 'all';
     const selSyCy = document.getElementById('syCyFilter'); if (selSyCy) selSyCy.value = cy;
     const selSyZo = document.getElementById('syZoneFilter'); if (selSyZo) selSyZo.value = 'all';
-    if (typeof updSynthese === 'function' && document.getElementById('syCont')) { _rendreOuSignaler('updSynthese', updSynthese); }
+    if (typeof updSynthese === 'function' && document.getElementById('syCont') && moduleAffiche('analyse')) { _rendreOuSignaler('updSynthese', updSynthese); }
   }
 
   // Agenda — filtre direct (exclusif avec le filtre zone)
@@ -21121,7 +21285,7 @@ function applyGlobalCountryFilter(cy) {
     fAgCy = cy; fAgZone = 'all';
     const selAgCy = document.getElementById('agCyFilter'); if (selAgCy) selAgCy.value = cy;
     const selAgZo = document.getElementById('agZoneFilter'); if (selAgZo) selAgZo.value = 'all';
-    if (typeof renderAgenda === 'function' && document.getElementById('agTl')) { _rendreOuSignaler('renderAgenda', renderAgenda); }
+    if (typeof renderAgenda === 'function' && document.getElementById('agTl') && moduleAffiche('agenda')) { _rendreOuSignaler('renderAgenda', renderAgenda); }
   }
 
   // Rapports — filtre direct (exclusif avec le filtre zone)
@@ -21133,7 +21297,7 @@ function applyGlobalCountryFilter(cy) {
   }
 
   // Alertes — mise en evidence de la carte pays concernee (classement conserve)
-  if (typeof recalcAlertes === 'function' && document.getElementById('alerteGrid')) { try { recalcAlertes(); } catch(_) {} }
+  if (typeof recalcAlertes === 'function' && document.getElementById('alerteGrid') && moduleAffiche('alertes')) { try { recalcAlertes({ silencieux:true }); } catch(_) {} }
 
   // Dashboard — surbrillance de la carte pays dans le heatmap si la vue est active
   if (typeof renderDashboard === 'function' && document.getElementById('dashContent') && document.getElementById('v-dashboard') && document.getElementById('v-dashboard').classList.contains('on')) {
@@ -21475,7 +21639,7 @@ function setAlerteVue(vue) {
   if (vue === 'chrono') { peuplerFiltresChrono(); renderAlerteChronologie(); }
 }
 
-function setChronoCy(cy) { fChronoCy = cy; renderAlerteChronologie(); }
+function setChronoCy(cy) { if (cy === 'all' || PAYS_INFO[cy]) { applyGlobalCountryFilter(cy); renderAlerteChronologie(); } else { fChronoCy = cy; renderAlerteChronologie(); } }
 
 function peuplerFiltresChrono() {
   const sel = document.getElementById('chronoCy');
