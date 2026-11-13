@@ -3424,6 +3424,11 @@ règle « un par jour à partir de 6 h GMT ».
   diffèrent : `congo` / `republic-of-the-congo`, `cape-verde` / `cabo-verde`).
   Écrite sans réseau : `scripts/verifier-conseils-voyageurs.js` (workflow
   `conseils-voyageurs.yml`, informatif) dit lien par lien ce qui répond.
+  Premier passage (13/11/2026) : FCDO 54/54, France Diplomatie 50/54 (deux
+  404 corrigés : `guinee-bissao`, et la Côte d'Ivoire déplacée sous
+  `/information-par-pays/`, adresse morte depuis le bulletin du 20/10 ; deux
+  échecs réseau non concluants), Département d'État **403 sur les 54** : il
+  refuse les robots, ce qui ne dit rien de ses pages.
 - **Index** : `web/bulletins/index.json` garde le résumé du dernier bulletin
   de chaque pays, `index.html` le tableau des 54 (pilote, puis du plus grave
   au plus calme ; une date en couleur = bulletin pas réécrit ce jour-là).

@@ -61,7 +61,10 @@ const CONSEILS = {
   CD: ['RD Congo', 'democratic-republic-of-the-congo', 'democratic-republic-of-the-congo', 'republique-democratique-du-congo'],
   CF: ['Centrafrique', 'central-african-republic', 'central-african-republic', 'republique-centrafricaine'],
   CG: ['Congo-Brazzaville', 'congo', 'republic-of-the-congo', 'congo'],
-  CI: ['Côte d\'Ivoire', 'cote-d-ivoire', 'cote-d-ivoire', 'cote-d-ivoire'],
+  // France Diplomatie : l'ancienne adresse de la Côte d'Ivoire répond 404
+  // depuis GitHub (vérifié le 13/11/2026) ; le site a déplacé ce pays sous
+  // /information-par-pays/. Une adresse complète remplace alors le nom.
+  CI: ['Côte d\'Ivoire', 'cote-d-ivoire', 'cote-d-ivoire', 'https://www.diplomatie.gouv.fr/fr/information-par-pays/cote-d-ivoire/conseils-aux-voyageurs-securite'],
   CM: ['Cameroun', 'cameroon', 'cameroon', 'cameroun'],
   CV: ['Cap-Vert', 'cape-verde', 'cabo-verde', 'cap-vert'],
   DJ: ['Djibouti', 'djibouti', 'djibouti', 'djibouti'],
@@ -74,7 +77,7 @@ const CONSEILS = {
   GM: ['Gambie', 'the-gambia', 'the-gambia', 'gambie'],
   GN: ['Guinée', 'guinea', 'guinea', 'guinee'],
   GQ: ['Guinée équatoriale', 'equatorial-guinea', 'equatorial-guinea', 'guinee-equatoriale'],
-  GW: ['Guinée-Bissau', 'guinea-bissau', 'guinea-bissau', 'guinee-bissau'],
+  GW: ['Guinée-Bissau', 'guinea-bissau', 'guinea-bissau', 'guinee-bissao'], // « Bissao » chez France Diplomatie
   KE: ['Kenya', 'kenya', 'kenya', 'kenya'],
   KM: ['Comores', 'comoros', 'comoros', 'comores'],
   LR: ['Liberia', 'liberia', 'liberia', 'liberia'],
@@ -124,7 +127,7 @@ Object.keys(CONSEILS).forEach((cy) => {
     conseils: [
       { nom: 'Royaume-Uni — FCDO', url: 'https://www.gov.uk/foreign-travel-advice/' + fcdo },
       { nom: 'États-Unis — Département d\'État', url: 'https://travel.state.gov/content/travel/en/traveladvisories/traveladvisories/' + etat + '-travel-advisory.html' },
-      { nom: 'France — Conseils aux voyageurs', url: 'https://www.diplomatie.gouv.fr/fr/conseils-aux-voyageurs/conseils-par-pays-destination/' + fr + '/' },
+      { nom: 'France — Conseils aux voyageurs', url: /^https:\/\//.test(fr) ? fr : 'https://www.diplomatie.gouv.fr/fr/conseils-aux-voyageurs/conseils-par-pays-destination/' + fr + '/' },
     ],
   };
 });

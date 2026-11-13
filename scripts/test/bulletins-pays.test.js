@@ -39,12 +39,15 @@ test('chaque bulletin porte les trois avis officiels, sur le bon domaine', () =>
     assert.strictEqual(c.length, 3, cy);
     assert.match(c[0].url, /^https:\/\/www\.gov\.uk\/foreign-travel-advice\/[a-z-]+$/, cy);
     assert.match(c[1].url, /^https:\/\/travel\.state\.gov\/.+\/[a-z-]+-travel-advisory\.html$/, cy);
-    assert.match(c[2].url, /^https:\/\/www\.diplomatie\.gouv\.fr\/fr\/conseils-aux-voyageurs\/conseils-par-pays-destination\/[a-z-]+\/$/, cy);
+    assert.match(c[2].url, /^https:\/\/www\.diplomatie\.gouv\.fr\/fr\/(conseils-aux-voyageurs\/conseils-par-pays-destination\/[a-z-]+\/|information-par-pays\/[a-z-]+\/conseils-aux-voyageurs-securite)$/, cy);
   }
   // Les trois administrations n'écrivent pas le même nom : le Congo n'est pas la RD Congo.
   assert.match(B.PAYS_BULLETIN.CG.conseils[1].url, /republic-of-the-congo-/);
   assert.match(B.PAYS_BULLETIN.CD.conseils[0].url, /democratic-republic-of-the-congo$/);
   assert.match(B.PAYS_BULLETIN.CV.conseils[1].url, /cabo-verde/);
+  // Mesuré depuis GitHub le 13/11/2026 : ces deux adresses répondaient 404.
+  assert.match(B.PAYS_BULLETIN.GW.conseils[2].url, /guinee-bissao\/$/);
+  assert.match(B.PAYS_BULLETIN.CI.conseils[2].url, /information-par-pays\/cote-d-ivoire\//);
 });
 
 test('le pays pilote est écrit en premier, les 53 autres suivent', () => {
