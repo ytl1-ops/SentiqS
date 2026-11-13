@@ -3380,6 +3380,20 @@ de vide entre deux sections deviennent 128 (page 11 257 → 10 847 px).
 `verifier-pages-hors-appli.js` a vu la page déborder à 390 px. Le contrôle
 mesure les deux langues : le lancer avant de croire une règle de texte sûre.
 
+**Les chiffres de l'accueil suivent l'outil (13/11/2026).** L'accueil annonçait
+« 484 sources » (hero et couverture) et une fenêtre de « 12 h » / « <12h »
+(étape « Collecte continue », couverture, balise description) alors que le
+registre `SRCS` compte 576 entrées et que la fenêtre vaut 36 h depuis le
+06/09/2026. Corrigé, et un test lit le nombre d'entrées de `SRCS` et
+`FENETRE_ACTUALITE_MS` dans la page : un chiffre de l'accueil qui diverge le
+fait tomber. 576 compte **toutes** les entrées du registre, requêtes Google
+News comprises (voir « Les quatre arbitrages du 07/09/2026 » : elles ne
+nourrissent que l'historique) — c'est ce que « sources suivies » veut dire,
+pas « sources capables d'alerter ». **Pas touché, décision d'offre** : la
+grille des forfaits dit encore « Flux 12h » et « Publicités affichées » pour
+le plan gratuit (aucune restriction à 12 h n'est appliquée par le code, et la
+publicité a été retirée).
+
 ---
 
 ## Prêt à vendre : forfait verrouillé, actus réservées aux comptes, droits — 13/11/2026

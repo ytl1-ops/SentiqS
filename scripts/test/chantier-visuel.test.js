@@ -55,3 +55,22 @@ test("accueil : cartes de correlation, pastilles alignees et respiration mobile"
   assert.match(ACC, /\.mock-pill\{min-width:\d+px;text-align:center\}/);
   assert.match(ACC, /@media \(max-width:760px\)\{section\{padding:64px 0\}\}/);
 });
+
+// L'accueil annoncait « 484 sources » et une fenetre de « 12 h » / « <12h »
+// alors que le registre en compte davantage et que la fenetre vaut 36 h
+// depuis le 06/09/2026 (voir CLAUDE.md, « La fenetre d'actualite »).
+test("accueil : le nombre de sources et la fenetre d'actualite sont ceux de l'outil", () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const ACC = fs.readFileSync(path.join(__dirname, '../../web/index.html'), 'utf8');
+  const i = HTML.indexOf('const SRCS=[');
+  let d = 0, j = i + 11;
+  for (; j < HTML.length; j++) { if (HTML[j] === '[') d++; else if (HTML[j] === ']') { d--; if (!d) break; } }
+  const nb = (HTML.slice(i + 11, j + 1).match(/\bid:\s*'/g) || []).length;
+  assert.ok(nb > 400, 'registre SRCS introuvable ou mal decoupe : ' + nb);
+  const annonces = [...ACC.matchAll(/<b>(\d+)<\/b><span>Sources [^<]*<\/span>/g)].map(m => +m[1]);
+  assert.ok(annonces.length >= 1, 'aucun chiffre de sources sur l\'accueil');
+  for (const n of annonces) assert.strictEqual(n, nb, 'sources annoncees ' + n + ' / registre ' + nb);
+  const h = +HTML.match(/const FENETRE_ACTUALITE_MS = (\d+) \* 60 \* 60 \* 1000/)[1];
+  assert.ok(!/12 dernières heures|&lt;12h/.test(ACC), 'fenetre de 12 h annoncee sur l\'accueil');
+  assert.ok(ACC.includes(h + ' dernières heures'), 'la fenetre de ' + h + ' h n\'est pas dite');
+});
