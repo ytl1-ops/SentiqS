@@ -3527,3 +3527,47 @@ cumul de novembre.
 et les numéros Mobile Money vivent dans le `localStorage` de chaque
 navigateur — le client ne voit aucun numéro et sa déclaration n'atteint
 jamais l'administrateur ; les pages légales portent encore 38 « À COMPLÉTER ».
+
+---
+
+## Le paiement déclaré arrive enfin chez l'administrateur — 13/11/2026
+
+Constaté au test fondateur : la déclaration de paiement du client et les
+numéros Mobile Money ne vivaient que dans le `localStorage` du navigateur qui
+les saisissait. Le client ne voyait aucun numéro (`detail` vide par défaut),
+l'administrateur une file toujours vide. Mesuré dans Chromium : aucune requête
+réseau à la déclaration, zéro déclaration côté admin.
+
+- **Moyens de paiement partagés** : document Firestore `moyens_paiement/courant`
+  (`{methodes:[{id, actif, detail}]}`), lu par tout compte connecté, écrit par
+  l'admin seul. Seuls `actif` et `detail` sont lus du document
+  (`fusionnerMoyensPaiement`) : nom, icône et libellés restent ceux du code.
+  Un numéro vide dans une ancienne copie locale n'efface pas le numéro par
+  défaut ; pour retirer un moyen, on le désactive.
+- **Numéro d'encaissement** : `NUMERO_ENCAISSEMENT` (+225 07 47 70 84 40,
+  donné par YORO le 13/11/2026 pour le Mobile Money et Wave) porté par Orange
+  Money (préfixe 07) et par un moyen **Wave** ajouté. MTN et Moov n'ont pas de
+  numéro : un moyen sans numéro n'est jamais proposé au client.
+- **Déclarations** : collection `paiements_declares`. Le client crée la sienne
+  (uid et adresse de la session Firebase, statut `a_verifier`, champs listés,
+  référence ≤ 80, note ≤ 500), ne lit que les siennes ; l'admin lit tout et ne
+  change que `statut`/`traitePar`/`traiteLe`. Jamais effacées. Une
+  confirmation vérifie d'abord que le compte existe : sinon la déclaration
+  sortirait de la file sans forfait activé.
+- Sans session Firebase, la page dit que la déclaration est impossible au lieu
+  de l'écrire en local. Tout ce que le client saisit est échappé dans la file
+  de l'admin.
+- Le texte promettait « votre code d'accès par email » : aucun e-mail ne part.
+  Remplacé par « actif à votre prochaine connexion ».
+
+**Vérification des exports** : `scratchpad` du fil, 14 documents (Word, PDF,
+PowerPoint × Flux, Synthèse, Alertes, Rapport complet, plus les deux aperçus)
+générés par la vraie page sur 300 faits du cumul de novembre, horloge figée,
+`main` contre la branche : 14/14 identiques (contrôle : deux générations de
+`main` identiques entre elles, et deux documents différents détectés comme
+tels). Articles injectés avec `pubDate`, sinon `getExportData` est vide et la
+comparaison ne mesure presque rien.
+
+`scripts/test/paiement-partage.test.js` (8 tests, vus échouer sur l'ancien
+code). **Non vérifié d'ici** : les règles sur la vraie base (pas d'émulateur),
+publiées par le job `firebase` au déploiement.
