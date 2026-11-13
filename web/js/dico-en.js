@@ -960,6 +960,9 @@
     "Déclarations illisibles (base partagée injoignable ou droits insuffisants).": "Declarations unreadable (shared database unreachable or insufficient rights).",
     "Moyens de paiement enregistrés — visibles par les clients au moment de payer.": "Payment methods saved — visible to customers at payment time.",
     "Déclaration rejetée.": "Declaration rejected.",
+    "Aucun signal diplomatique, militaire ou régional identifié dans le flux sur les 14 derniers jours.": "No diplomatic, military or regional signal identified in the feed over the last # days.",
+    "niveau borne au marron : le passage au rouge demande qu'un incident verifie place deja ce pays au marron": "level capped at brown: moving to red requires a verified incident that already places this country at brown",
+    "niveau borne au marron : le point qui ferait passer au rouge vient d'un article seul, ni recoupe par une seconde source ni critique": "level capped at brown: the point that would move it to red comes from a single article, neither corroborated by a second source nor critical",
   });
   // Phrases dont une partie variable n'est pas un nombre (date mise en forme,
   // nom). Le fragment variable repasse par la table.
@@ -971,6 +974,8 @@
     [/^Partagé par (.+)$/, function (t, reste) { return 'Shared by ' + reste; }],
     [/^Signé par (.+)$/, function (t, reste) { return 'Signed by ' + reste; }],
     [/^Identité active : (.+)$/, function (t, reste) { return 'Active identity: ' + reste; }],
+    [/^Aucun signal diplomatique, militaire ou régional identifié pour (.+) sur les (\d+) derniers jours\.$/,
+      function (t, pays, n) { return 'No diplomatic, military or regional signal identified for ' + T(pays) + ' over the last ' + n + ' days.'; }],
     // Infobulle de tendance (chipTendance) : « aggravation de 1 cran : jaune
     // le 2026-09-12 → orange le 2026-10-21 (30 relevés) ».
     [/^(aggravation|amelioration|amélioration) de (\d+) crans? : (\S+) le (\S+) \u2192 (\S+) le (\S+) \((\d+) relev[ée]s\)$/,
