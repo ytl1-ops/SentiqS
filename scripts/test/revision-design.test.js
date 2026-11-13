@@ -115,7 +115,8 @@ test('la carte ne repete pas « RSS » : une pastille generique en moins, une se
 
 test('la categorie n\'est ecrite qu\'une fois', () => {
   assert.match(carte, /const catDoublon = balArt\.some\(/, 'le doublon categorie/balise doit etre detecte');
-  assert.match(carte, /\(catDoublon \? '' : '<span class="stag">'\+catFr\(a\.cat\)/, 'la puce de categorie doit disparaitre quand une balise la porte');
+  // Depuis le 13/11/2026 la puce porte son filtre (attrFiltre) entre la classe et le libelle.
+  assert.match(carte, /\(catDoublon \? '' : '<span class="stag"'\+[^\n]*\+catFr\(a\.cat\)/, 'la puce de categorie doit disparaitre quand une balise la porte');
   assert.match(carte, /balisesArticleHtml\(a, balArt\)/, 'les balises sont calculees une fois par carte');
 });
 
