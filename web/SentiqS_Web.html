@@ -2858,6 +2858,13 @@ html.force-mobile .kpi-grid>.kpi-tile:last-child:nth-child(odd){grid-column:1/-1
       quatre lignes a cote des trois boutons. Les boutons passent dessous. */
 .carto-hd{flex-wrap:wrap;row-gap:8px}
 .carto-hd>.carto-titre{flex:1 1 240px;min-width:0}
+/* 3. Flux sur telephone : la date de survenance (« dim. 7 fevrier a 12:00 UTC
+      (7 fevrier 2027) ») etait insecable, a cote de la pastille de gravite
+      flottante ; elle sortait de la carte et sa fin etait rognee (3 cartes
+      sur 39 a 390 px, 6 a 360 px, cache reel du 13/11/2026). Elle passe a la
+      ligne dans la carte, le texte reste entier. */
+@media (max-width:760px){html:not(.force-web) .art-top .survtime{white-space:normal;min-width:0;max-width:100%;overflow-wrap:anywhere}}
+html.force-mobile .art-top .survtime{white-space:normal;min-width:0;max-width:100%;overflow-wrap:anywhere}
 /* ═══ MOBILE : LE CONTENU D'ABORD — 22/10/2026 (voir CLAUDE.md) ═══
    Capture de YORO sur téléphone (texte agrandi par le navigateur) : barre du
    haut, bandeau « Cliquez sur Actualiser », collecte, flash info, filtre pays,
