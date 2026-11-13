@@ -34,6 +34,10 @@ jobs:
           npm install playwright@1 --no-save
           npx playwright install --with-deps chromium
       - name: Mesure et captures
+        # Cache lisible par les seuls comptes depuis le 13/11/2026 : lu avec le
+        # compte de service, comme le job de collecte.
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: node scripts/apercu-visuels.js apercu-visuels
       - uses: actions/upload-artifact@v4
         if: always()

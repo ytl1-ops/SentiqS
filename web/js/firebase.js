@@ -329,6 +329,13 @@
           return u.updatePassword(p.password).then(function () { return { data: { user: utilisateur(u, false) }, error: null }; },
             function (e) { return { data: { user: null }, error: erreur(e) }; });
         },
+        // Jeton d'identité du compte connecté, pour lire par l'API REST ce
+        // que les règles réservent aux comptes (cache d'actus, agenda : 13/11/2026).
+        // null sans session : la lecture est alors refusée, jamais forcée.
+        jeton: function () {
+          return pret().then(function () { return auth.currentUser ? auth.currentUser.getIdToken() : null; })
+            .then(null, function () { return null; });
+        },
         signOut: function () {
           return auth.signOut().then(function () { return { error: null }; }, function (e) { return { error: erreur(e) }; });
         },
