@@ -143,7 +143,7 @@ test('pages légales : repère principal, mode sombre lisible, tableaux empilés
 
 test('contenu légal intact : les emplacements « À COMPLÉTER » n\'ont ni bougé ni disparu', () => {
   // La revue touche la structure et le style, jamais le texte juridique.
-  const attendus = { 'cgu.html': null, 'cgv.html': null, 'confidentialite.html': null, 'mentions-legales.html': null };
+  const attendus = { 'cgu.html': null, 'suppression-compte.html': null, 'cgv.html': null, 'confidentialite.html': null, 'mentions-legales.html': null };
   for (const n of legales) assert.ok(n in attendus, 'page légale inattendue : ' + n);
   const t = lire('web', 'legal', 'confidentialite.html');
   assert.ok((t.match(/À COMPLÉTER/g) || []).length >= 8);

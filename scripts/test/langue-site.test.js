@@ -19,6 +19,7 @@ const PAGES = {
   'index.html': 'js/',
   'legal/cgv.html': '../js/',
   'legal/cgu.html': '../js/',
+  'legal/suppression-compte.html': '../js/',
   'legal/confidentialite.html': '../js/',
   'legal/mentions-legales.html': '../js/',
 };

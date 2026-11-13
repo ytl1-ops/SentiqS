@@ -398,6 +398,21 @@
     "authentification, profils, journal des connexions, actualités partagées, validations": "authentication, profiles, sign-in log, shared news, validations",
     "[[À COMPLÉTER : région du projet Firebase]]": "[[TO BE COMPLETED: Firebase project region]]",
     "Pour les personnes situées en Côte d'Ivoire, ces droits découlent de la loi n° 2013-450 relative à la protection des données à caractère personnel ; une réclamation peut être adressée à l'ARTCI.": "For people in Côte d'Ivoire, these rights derive from law no. #-# on the protection of personal data; a complaint can be lodged with ARTCI.",
+    // Page de suppression du compte (13/11/2026, lien demandé par le Play Store).
+    "Supprimer mon compte SentiqS": "Delete my SentiqS account",
+    "Voir aussi la": "See also the",
+    "Vous pouvez supprimer votre compte à tout moment, sans frais, depuis le site comme depuis l'application Android.": "You can delete your account at any time, free of charge, from the website or from the Android app.",
+    "Depuis l'application ou le site": "From the app or the website",
+    "Connectez-vous à SentiqS.": "Sign in to SentiqS.",
+    "Ouvrez Paramètres, section « Supprimer mon compte ».": "Open Settings, section “Delete my account”.",
+    "Tapez SUPPRIMER puis choisissez « Supprimer définitivement ».": "Type DELETE then choose “Delete permanently”.",
+    "Par sécurité, la suppression demande une connexion de moins de cinq minutes : si l'écran vous le demande, reconnectez-vous puis recommencez.": "For security, deletion requires a sign-in less than five minutes old: if the screen asks you to, sign in again and try again.",
+    "Ce qui est supprimé": "What is deleted",
+    "Votre identité de connexion et votre profil (nom, organisation, forfait) sont supprimés immédiatement. Le journal de vos connexions est effacé sous trente jours.": "Your sign-in identity and your profile (name, organisation, plan) are deleted immediately. The log of your sign-ins is erased within thirty days.",
+    "Ce qui est conservé": "What is kept",
+    "Les factures sont conservées pendant la durée imposée par la loi. Les validations que vous avez faites en tant qu'analyste restent dans le journal d'audit, qui ne peut être ni modifié ni effacé. Les rapports déjà téléchargés restent sur vos appareils.": "Invoices are kept for the period required by law. Validations you made as an analyst remain in the audit log, which can be neither changed nor erased. Reports already downloaded stay on your devices.",
+    "Si vous ne pouvez plus vous connecter": "If you can no longer sign in",
+    "[[À COMPLÉTER : adresse de contact pour les demandes de suppression]]": "[[TO BE COMPLETED: contact address for deletion requests]]",
     "La version française fait foi.": "The French version is the legally binding one; this English version is provided for information only.",
   });
 })();

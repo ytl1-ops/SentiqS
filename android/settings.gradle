@@ -1,0 +1,12 @@
+// Application Android de SentiqS : une « Trusted Web Activity » qui ouvre le
+// site (https://sentiqs-235ce.web.app) en plein écran. Aucune logique ici :
+// tout ce que voit l'utilisateur est le site, mis à jour sans republier l'app.
+pluginManagement {
+    repositories { google(); mavenCentral(); gradlePluginPortal() }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories { google(); mavenCentral() }
+}
+rootProject.name = 'SentiqS'
+include ':app'

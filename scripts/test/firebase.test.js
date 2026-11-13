@@ -234,7 +234,9 @@ test('les regles Firestore portent ce que faisaient les declencheurs Supabase', 
   assert.match(REGLES, /request\.auth\.token\.email_verified == true/, 'admin seulement sur adresse verifiee');
   assert.match(REGLES, /request\.resource\.data\.role == resource\.data\.role/, 'pas de changement de son propre role');
   assert.match(REGLES, /request\.resource\.data\.status == resource\.data\.status/, 'ni de son statut');
-  assert.match(REGLES, /allow delete: if estAdmin\(\);/);
+  // Depuis le 13/11/2026 un utilisateur supprime aussi son propre profil
+  // (Play Store), jamais celui d'un autre ni un profil admin : suppression-compte.test.js.
+  assert.match(REGLES, /allow delete: if estAdmin\(\)\n        \|\| \(connecte\(\) && request\.auth\.uid == uid && resource\.data\.role != 'admin'\);/);
   assert.doesNotMatch(REGLES, /allow read, write: if true/);
   // Les adresses des administrateurs vivent dans les regles, jamais dans le
   // code servi. Deux depuis le 21/10/2026, a la demande de YORO.

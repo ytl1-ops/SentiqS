@@ -95,6 +95,9 @@ jobs:
             echo "::error::La clé FIREBASE_SERVICE_ACCOUNT vient du projet « $projetCle », la page utilise « $projet ». Regénérer la clé depuis la console du projet $projet (Paramètres du projet > Comptes de service)."
             exit 1
           fi
+          # Empreinte(s) de la clé de l'application Android, variable du dépôt
+          # TWA_SHA256 (vide tant que l'app n'existe pas dans la Play Console).
+          TWA_SHA256="${{ vars.TWA_SHA256 }}" node scripts/assetlinks.js
           npx -y firebase-tools@15.34.0 deploy --only hosting \
             --project "$projet" --non-interactive --force \
             --message "commit ${GITHUB_SHA::7}"

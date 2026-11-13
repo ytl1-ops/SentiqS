@@ -2,6 +2,12 @@
 <html lang="fr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- Application installable (13/11/2026) : manifeste lu par Chrome et par
+     l'application Android (TWA), qui ouvre ce même site. -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#071431">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icone-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <!-- Content-Security-Policy — audit de securite : limite les scripts/styles/
      connexions/medias aux domaines effectivement utilises par l'app (CDN des
      exports, Google Fonts, Supabase, traduction, proxys CORS de collecte
@@ -3972,6 +3978,26 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
           </div>
 
           <!-- Personnalisation de marque (fonctionnalite payante) -->
+          <!-- Suppression du compte par l'utilisateur (13/11/2026) : exigee par le
+               Play Store pour toute application avec comptes. Confirmee par un
+               mot tape, jamais par une boite de dialogue du navigateur. -->
+          <div class="pm-section" id="pmSuppression">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-user-x"></i>
+                <div><div class="pm-sec-title" data-i18n="suppr_titre">Supprimer mon compte</div>
+                <div class="pm-sec-sub" data-i18n="suppr_sous">Supprime votre identité et votre profil. Les rapports déjà téléchargés restent sur vos appareils.</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <label for="supprConfirm" style="font-size:12px" data-i18n="suppr_label">Tapez SUPPRIMER pour confirmer</label>
+                <input type="text" id="supprConfirm" autocomplete="off" spellcheck="false" style="flex:1;min-width:160px;padding:8px 10px;border:1px solid var(--bd);border-radius:6px;font-size:12px">
+                <button type="button" class="btn-action btn-del" onclick="supprimerMonCompte()"><span data-i18n="suppr_btn">Supprimer définitivement</span></button>
+              </div>
+              <div class="pmu-msg" id="supprMsg" role="status"></div>
+            </div>
+          </div>
+
           <div class="pm-section">
             <div class="pm-sec-hd">
               <div class="pm-sec-hd-l"><i class="ti ti-writing"></i>
@@ -4390,7 +4416,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
                   <th>Email</th><th>Nom</th><th>Role</th>
                   <th>Statut</th><th>Mot de passe</th><th>Derniere connexion</th><th>Actions</th>
                 </tr></thead>
-                <tbody id="pmUsersBody"><tr><td>yo•••••@gmail.com</td><td>Administrateur SentiqS</td><td><span class="badge-role br-admin">Admin</span></td><td><span class="badge-status bs-active">Actif</span></td><td><span style="font-size:11px;color:var(--lg)">Personnel</span></td><td style="color:rgba(0,0,0,.4)">29/06/2026</td><td style="display:flex;gap:5px;flex-wrap:wrap;align-items:center"><span style="font-size:10px;color:var(--lg)">Compte principal</span></td></tr><tr><td>stephanekouame221@gmail.com</td><td>KOUAME YAO STEPHANE</td><td><span class="badge-role br-user">Utilisateur</span></td><td><span class="badge-status bs-active">Actif</span></td><td><span style="font-size:11px;color:var(--lg)">Personnel</span></td><td style="color:rgba(0,0,0,.4)">Jamais</td><td style="display:flex;gap:5px;flex-wrap:wrap;align-items:center"><button class="btn-action btn-rev" onclick="pmToggleStatus(&#39;stephanekouame221@gmail.com&#39;)"><span data-i18n="btn_suspendre">Suspendre</span></button><button class="btn-action btn-del" onclick="pmDeleteUser(&#39;stephanekouame221@gmail.com&#39;)"><span data-i18n="btn_supprimer">Supprimer</span></button></td></tr></tbody>
+                <tbody id="pmUsersBody"><tr><td colspan="7" style="color:var(--lg);text-align:center">—</td></tr></tbody>
               </table>
             </div>
           </div>
@@ -5854,6 +5880,7 @@ const I18N = {
     aff_texte:'Taille du texte', aff_texte_normal:'Normale', aff_texte_grand:'Grande', aff_texte_tres_grand:'Très grande',
     aff_presentation:'Présentation des actus', aff_compacte:'Compacte (vignette à côté)', aff_magazine:'Magazine (grande image au-dessus)',
     aff_images:'Images et vidéos des sources', aff_images_oui:'Afficher', aff_images_non:'Économiser les données',
+    suppr_titre:'Supprimer mon compte', suppr_sous:'Supprime votre identité et votre profil. Les rapports déjà téléchargés restent sur vos appareils.', suppr_label:'Tapez SUPPRIMER pour confirmer', suppr_btn:'Supprimer définitivement',
     aff_documents:'Images des sources dans les documents exportés', aff_documents_non:'Texte seul', aff_documents_oui:'Inclure (droits à vérifier)',
     disp_tablette:'TABLETTE',
     lbl_aucun_logo:'Aucun logo', lbl_logo_organisation:'Logo de l\'organisation (PNG ou JPEG, imprimé en tête des rapports)', btn_retirer_le_logo:'Retirer le logo',
@@ -6010,6 +6037,7 @@ const I18N = {
     aff_texte:'Text size', aff_texte_normal:'Normal', aff_texte_grand:'Large', aff_texte_tres_grand:'Extra large',
     aff_presentation:'News layout', aff_compacte:'Compact (thumbnail beside)', aff_magazine:'Magazine (large image above)',
     aff_images:'Source images and videos', aff_images_oui:'Show', aff_images_non:'Save data',
+    suppr_titre:'Delete my account', suppr_sous:'Deletes your identity and profile. Reports already downloaded stay on your devices.', suppr_label:'Type DELETE to confirm', suppr_btn:'Delete permanently',
     aff_documents:'Source images in exported documents', aff_documents_non:'Text only', aff_documents_oui:'Include (check rights)',
     disp_tablette:'TABLET',
     lbl_aucun_logo:'No logo', lbl_logo_organisation:'Organisation logo (PNG or JPEG, printed at the top of reports)', btn_retirer_le_logo:'Remove logo',
@@ -17512,6 +17540,34 @@ async function soumettreNouveauMotDePasse() {
     if (btn) btn.disabled = false;
     _pendingSetPasswordUser = null; _modeDefinitionMdp = null;
   }
+}
+
+// Suppression du compte par l'utilisateur (13/11/2026, exigence du Play
+// Store). L'adaptateur verifie la connexion recente et refuse un compte
+// administrateur ; ici on confirme par un mot tape et on dit le resultat.
+async function supprimerMonCompte() {
+  const en = LANG === 'en';
+  const champ = document.getElementById('supprConfirm');
+  const mot = String(champ && champ.value || '').trim().toUpperCase();
+  if (mot !== 'SUPPRIMER' && mot !== 'DELETE') {
+    pmMsg(en ? 'Type DELETE to confirm.' : 'Tapez SUPPRIMER pour confirmer.', 'err', 'supprMsg'); return;
+  }
+  const client = getSentinelSupabase();
+  if (!client || !client.auth || typeof client.auth.supprimerCompte !== 'function') {
+    pmMsg((en ? 'Write to ' : 'Écrivez à ') + SUPPORT_CONTACT_EMAIL + (en ? ' to delete your account.' : ' pour supprimer votre compte.'), 'err', 'supprMsg'); return;
+  }
+  const { error } = await client.auth.supprimerCompte();
+  if (error) {
+    const msg = error.code === 'reconnexion'
+      ? (en ? 'For your security, sign out, sign in again, then try again within five minutes.' : 'Par sécurité, déconnectez-vous, reconnectez-vous, puis recommencez dans les cinq minutes.')
+      : error.code === 'admin'
+        ? (en ? 'An administrator account cannot be deleted from here.' : 'Un compte administrateur ne se supprime pas depuis cet écran.')
+        : (en ? 'Deletion failed: ' : 'La suppression a échoué : ') + (error.message || error.code);
+    pmMsg(msg, 'err', 'supprMsg'); return;
+  }
+  try { ['sentinel_marque_perso', STORE_KEY].forEach(k => localStorage.removeItem(k)); } catch (_) {}
+  if (champ) champ.value = '';
+  await doLogout();
 }
 
 async function doLogout() {
