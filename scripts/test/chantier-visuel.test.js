@@ -25,3 +25,11 @@ test("l'en-tete de la carte regionale passe a la ligne au lieu de tasser le titr
   assert.match(HTML, /<span class="carto-titre" style="font-family:var\(--font-serif\)/);
   assert.match(HTML, /\.carto-hd\{flex-wrap:wrap/);
 });
+
+// Flux sur telephone : la date de survenance, insecable, sortait de la carte
+// (3 cartes sur 39 a 390 px, 6 a 360 px, cache reel du 13/11/2026).
+test('Flux sur telephone : la date de survenance passe a la ligne, ecran etroit ET mode mobile force', () => {
+  const regle = '.art-top .survtime{white-space:normal;min-width:0;max-width:100%;overflow-wrap:anywhere}';
+  assert.ok(HTML.includes('html:not(.force-web) ' + regle), 'regle ecran etroit absente');
+  assert.ok(HTML.includes('html.force-mobile ' + regle), 'regle mode mobile force absente');
+});

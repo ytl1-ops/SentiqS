@@ -3352,6 +3352,13 @@ compris), et `pdf-lib` réordonne ses objets — les PDF se comparent sur le tex
 (`pdftotext`) et les pages rendues (`pdftoppm`), pas à l'octet. Résultat :
 14/14 identiques.
 
+Deuxième incrément, le Flux sur téléphone : la date de survenance de l'en-tête
+de carte (`.art-top .survtime`) était insécable à côté de la pastille de
+gravité flottante ; une date longue (« dim. 7 février à 12:00 UTC (7 février
+2027) ») sortait de la carte et sa fin était rognée — 3 cartes sur 39 à 390 px,
+6 à 360 px. Elle passe à la ligne sur mobile (règle écrite deux fois). Mesure :
+éléments qui dépassent le bord de leur carte, 6 → 0. Exports : 14/14 identiques.
+
 ---
 
 ## Prêt à vendre : forfait verrouillé, actus réservées aux comptes, droits — 13/11/2026
