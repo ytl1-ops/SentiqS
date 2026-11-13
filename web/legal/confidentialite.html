@@ -119,6 +119,12 @@
       <td data-l="Base légale">exécution du contrat</td>
     </tr>
     <tr>
+      <td data-l="Donnée">Paiement déclaré : forfait, moyen de paiement, référence de transaction, note, date (<code>paiements_declares</code>)</td>
+      <td data-l="Origine">déclaration de paiement</td>
+      <td data-l="Finalité">vérification du paiement et activation de l'abonnement</td>
+      <td data-l="Base légale">exécution du contrat</td>
+    </tr>
+    <tr>
       <td data-l="Donnée">Décisions de validation d'un analyste : fait, cotation, auteur, date (<code>validations</code>, <code>journal_validations</code>)</td>
       <td data-l="Origine">usage du service par l'analyste</td>
       <td data-l="Finalité">traçabilité des faits validés</td>
@@ -153,10 +159,9 @@
 <table>
   <thead><tr><th>Sous-traitant</th><th>Rôle</th><th>Localisation</th></tr></thead>
   <tbody>
-    <tr><td data-l="Sous-traitant">Supabase, Inc.</td><td data-l="Rôle">base de données, authentification</td><td data-l="Localisation"><span class="todo">[[À COMPLÉTER : région du projet]]</span></td></tr>
-    <tr><td data-l="Sous-traitant">Google LLC (Firebase)</td><td data-l="Rôle">authentification, profils, journal des connexions, actualités partagées, validations</td><td data-l="Localisation"><span class="todo">[[À COMPLÉTER : région du projet Firebase]]</span></td></tr>
+    <tr><td data-l="Sous-traitant">Supabase, Inc.</td><td data-l="Rôle">base d'articles et configuration partagée (aucune donnée de compte)</td><td data-l="Localisation"><span class="todo">[[À COMPLÉTER : région du projet]]</span></td></tr>
+    <tr><td data-l="Sous-traitant">Google LLC (Firebase)</td><td data-l="Rôle">authentification, profils, journal des connexions, actualités partagées, validations, paiements déclarés, hébergement du site</td><td data-l="Localisation"><span class="todo">[[À COMPLÉTER : région du projet Firebase]]</span></td></tr>
     <tr><td data-l="Sous-traitant">GitHub, Inc.</td><td data-l="Rôle">hébergement du site</td><td data-l="Localisation">États-Unis</td></tr>
-    <tr><td data-l="Sous-traitant"><span class="todo">[[À COMPLÉTER : Stripe, si le paiement est activé]]</span></td><td data-l="Rôle">paiement</td><td data-l="Localisation">—</td></tr>
   </tbody>
 </table>
 <p>
@@ -177,9 +182,12 @@
   réclamation peut être adressée à l'ARTCI.
 </p>
 <p>
-  <span class="todo">[[À COMPLÉTER : décrire la procédure concrète d'export et
-  de suppression d'un compte. Une politique qui annonce un droit sans procédure
-  pour l'exercer n'est pas conforme]]</span>
+  Suppression : chaque utilisateur supprime lui-même son compte et son profil
+  depuis Paramètres, « Supprimer mon compte » ; la procédure est décrite sur la
+  page <a href="suppression-compte.html">Supprimer mon compte</a>. Les paiements
+  déclarés sont conservés comme trace de l'encaissement.
+  <span class="todo">[[À COMPLÉTER : procédure d'export des données d'un compte
+  (aucun export automatique n'existe à ce jour)]]</span>
 </p>
 
 <h2>Traceurs</h2>
