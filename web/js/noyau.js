@@ -582,13 +582,142 @@ function peutAlerter(source, seuil) {
 //   - non confirmé : une seule source, sous le seuil.
 // « Confirmé » ne veut PAS dire confirmé par une autorité : le bulletin
 // l'écrit en toutes lettres sous la légende.
-const COTATION_LIBELLES = { confirme: 'Confirmé', probable: 'Probable', non_confirme: 'Non confirmé' };
+const COTATION_LIBELLES = { confirme: 'Confirmé', probable: 'Probable', non_confirme: 'Non confirmé',
+  valide: 'Validé analyste', infirme: 'Infirmé par l\'analyste' };
 
-function cotationArticle(article, source, seuil) {
+// ── Validation d'un fait par un analyste ────────────────────────────────────
+//
+// Recommandation n° 2 du comparatif du 13/11/2026 : ce que vendent Factal,
+// Seerist et Crisis24, c'est la signature humaine sur un fait. SentiqS avait
+// la methode (cotation, confiance) mais aucun fait n'etait jamais valide par
+// une personne. Decision du meme jour : YORO valide seul pendant le pilote,
+// chaque matin avant le bulletin de 7 h GMT.
+//
+// L'analyste note avec la grille de l'Amiraute (lettre = fiabilite de la
+// SOURCE, chiffre = credibilite de l'INFORMATION, les deux independants) ;
+// le client ne lit que « Validé analyste » ou « Infirmé par l'analyste »,
+// avec la grille en info-bulle. Une decision doit etre coherente avec sa
+// note : confirmer exige une information 1 a 3, infirmer une information
+// 4 ou 5. Le 6 (« veracite inconnue ») ne permet ni l'un ni l'autre : on ne
+// valide pas ce qu'on ne sait pas juger, on le laisse a la cotation
+// automatique.
+const GRILLE_SOURCE = {
+  A: 'Totalement fiable', B: 'Habituellement fiable', C: 'Assez fiable',
+  D: 'Pas toujours fiable', E: 'Peu fiable', F: 'Fiabilité inconnue',
+};
+const GRILLE_INFO = {
+  1: 'Confirmée par d\'autres sources', 2: 'Probablement vraie', 3: 'Possiblement vraie',
+  4: 'Douteuse', 5: 'Improbable', 6: 'Véracité inconnue',
+};
+const INFO_PAR_DECISION = { confirme: ['1', '2', '3'], infirme: ['4', '5'] };
+const VALIDATION_NOTE_MAX = 500;
+
+// Cle stable d'un fait : pays + titre normalise. Pas l'identifiant de
+// l'article, qui change quand deux articles fusionnent au dedoublonnage ou
+// quand le cache est reconstruit : une validation doit survivre a ces
+// operations, sinon elle disparait au cycle suivant sans que personne le voie.
+function cleValidation(article) {
   const a = article || {};
+  const texte = String(a.cy || '') + '|' + titreNormalise(a.title || '');
+  let h = 0x811c9dc5;
+  for (let i = 0; i < texte.length; i++) { h ^= texte.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return 'v' + h.toString(36);
+}
+
+function validationValide(v) {
+  if (!v || typeof v !== 'object') return false;
+  if (!INFO_PAR_DECISION[v.decision]) return false;
+  if (!Object.prototype.hasOwnProperty.call(GRILLE_SOURCE, v.source)) return false;
+  if (INFO_PAR_DECISION[v.decision].indexOf(String(v.info)) < 0) return false;
+  if (!v.par || typeof v.par !== 'string') return false;
+  if (!v.le || isNaN(Date.parse(v.le))) return false;
+  if (v.note != null && (typeof v.note !== 'string' || v.note.length > VALIDATION_NOTE_MAX)) return false;
+  return true;
+}
+
+
+function cotationArticle(article, source, seuil, validation) {
+  const a = article || {};
+  // Validation par un analyste (13/11/2026) : quand elle existe et qu'elle est
+  // bien formee, c'est elle qui parle au client, avant toute regle automatique.
+  // Une validation mal formee est ignoree, jamais affichee a moitie.
+  const v = validationValide(validation) ? validation : null;
+  if (v) {
+    const cleV = v.decision === 'confirme' ? 'valide' : 'infirme';
+    return { cle: cleV, libelle: COTATION_LIBELLES[cleV], grille: v.source + v.info };
+  }
   const recoupe = a.verified === true || (Array.isArray(a._fusionnes) && a._fusionnes.length > 0);
   const cle = recoupe ? 'confirme' : (peutAlerter(source, seuil) ? 'probable' : 'non_confirme');
   return { cle, libelle: COTATION_LIBELLES[cle] };
+}
+
+// ── Pré-tri de la validation : ne montrer à l'analyste que ce qui demande
+//    son jugement ─────────────────────────────────────────────────────────────
+//
+// Demande de YORO du 13/11/2026 : « la configuration doit alléger le travail ».
+// Valider un à un tous les faits du jour serait une charge que personne ne
+// tiendrait. Trois groupes, chacun avec sa règle écrite à l'écran :
+//   jugement : tout fait critique, et tout fait élevé rapporté par une seule
+//              source — c'est là qu'une erreur coûte le plus, dans les deux
+//              sens (alerte manquée, alerte de trop) ;
+//   lot      : fait élevé ou modéré déjà recoupé par une seconde source ET
+//              porté par une source capable d'alerter — validable en un clic,
+//              avec une grille proposée que l'analyste peut refuser ;
+//   ecartes  : fait modéré rapporté par une seule source — il garde sa
+//              cotation automatique, l'analyste n'a rien à faire. Le motif est
+//              affiché : rien ne disparaît en silence.
+// Un fait critique n'est JAMAIS validé en lot, même recoupé : un test l'exige.
+const NIVEAUX_A_VALIDER = { crit: 0, high: 1, mod: 2 };
+function trierPourValidation(arts, o) {
+  const opts = o || {};
+  const suivis = opts.paysSuivis || [];
+  const seuil = opts.seuil;
+  const sourceDe = opts.sourceDe || (() => null);
+  const dejaValide = opts.validationDe || (() => null);
+  const recent = opts.estRecent || (() => true);
+  const rangPays = (a) => (suivis.indexOf(a.cy) === 0 ? 0 : 1);
+  const ordre = (x, y) => rangPays(x) - rangPays(y)
+    || NIVEAUX_A_VALIDER[x.level] - NIVEAUX_A_VALIDER[y.level] || (y.pubDate || 0) - (x.pubDate || 0);
+  const r = { jugement: [], lot: [], ecartes: [] };
+  (arts || []).forEach((a) => {
+    if (!a || a.flagged || !(a.level in NIVEAUX_A_VALIDER) || suivis.indexOf(a.cy) < 0) return;
+    if (dejaValide(a) || !recent(a)) return;
+    const recoupe = a.verified === true || (Array.isArray(a._fusionnes) && a._fusionnes.length > 0);
+    const fiable = peutAlerter(sourceDe(a), seuil);
+    if (a.level === 'crit' || (a.level === 'high' && !recoupe)) r.jugement.push(a);
+    else if (recoupe && fiable) r.lot.push(a);
+    else if (recoupe) r.jugement.push(a);
+    else r.ecartes.push({ article: a, motif: 'Modéré, une seule source : cotation automatique conservée' });
+  });
+  r.jugement.sort(ordre); r.lot.sort(ordre);
+  r.ecartes.sort((x, y) => ordre(x.article, y.article));
+  return r;
+}
+
+// ── Profils d'usage : la même base de faits, deux lectures ──────────────────
+//
+// Demande de YORO du 13/11/2026 : les faits vérifiés sont « à exploiter par
+// les experts selon l'activité, sûreté ou financière ». Pas deux bases : un
+// filtre de lecture sur les mêmes faits, avec les mêmes cotations.
+//   surete  : incidents, menaces, humanitaire — ce qui touche aux personnes
+//             et aux sites ;
+//   finance : risque pays et continuité d'activité — économie, politique, et
+//             tout fait qui touche aux flux (grève, blocage, port, douane,
+//             carburant, devise, dette, sanctions), quelle que soit sa
+//             catégorie.
+const MOTS_FINANCE_RE = /\b(gr[eè]ves?|strikes?|blocus|bloqu\w*|blockades?|ports?|douanes?|customs|fiscal\w*|imp[oô]ts?|taxes?|tax|devises?|franc cfa|fcfa|inflation|carburants?|fuel|p[eé]nuries?|shortages?|sanctions?|eurobonds?|dettes?|debt|banques?|banks?|bourse|brvm|notation|investiss\w*|investments?|corridors?|logistique|logistics|fret|freight|cacao|cocoa|orpaill\w*|gold|p[eé]trole|oil|[eé]lections?|coup d.?[eé]tat|budgets?)\b/i;
+const PROFILS_USAGE = {
+  surete: { libelle: 'Sûreté', cats: ['securite', 'humanitaire'] },
+  finance: { libelle: 'Finance', cats: ['economique', 'politique'] },
+};
+function correspondProfil(article, profil) {
+  const p = PROFILS_USAGE[profil];
+  if (!p) return true;
+  const a = article || {};
+  if (p.cats.indexOf(a.cat) >= 0) return true;
+  if (profil === 'finance') return MOTS_FINANCE_RE.test(normaliserAccents(String(a.title || '')).toLowerCase())
+    || MOTS_FINANCE_RE.test(String(a.title || ''));
+  return false;
 }
 
 // ── Exposition ─────────────────────────────────────────────────────────────
@@ -610,6 +739,8 @@ const API = {
   CONFIANCE_SOCLE_RECENT_J, CONFIANCE_SOCLE_ANCIEN_J, CONFIANCE_LIBELLES, indiceConfiance,
   angleMort, estRequeteGoogleNews, peutAlerter,
   COTATION_LIBELLES, cotationArticle,
+  GRILLE_SOURCE, GRILLE_INFO, INFO_PAR_DECISION, VALIDATION_NOTE_MAX, cleValidation, validationValide,
+  NIVEAUX_A_VALIDER, trierPourValidation, MOTS_FINANCE_RE, PROFILS_USAGE, correspondProfil,
   MAX_LIVE_EVENTS_PAR_PAYS,
 };
 

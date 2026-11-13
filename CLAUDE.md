@@ -3277,3 +3277,42 @@ alternatif** des images du PowerPoint (pptxgenjs y écrit le chemin du fichier
 à défaut d'`altText`) : images déplacées dans `scripts/assets/presentation-1/`
 et chaque `addImage` porte un `altText`. Un test refuse le sigle dans la page,
 la table EN, les images et leurs textes alternatifs.
+
+---
+
+## La validation des faits par un analyste — 13/11/2026
+
+Recommandation n° 2 du comparatif avec les plateformes du marché (Factal,
+Seerist et Crisis24 vendent la signature humaine sur un fait). Décisions
+déléguées par YORO le même jour : il valide seul pendant le pilote, chaque
+matin avant le bulletin de 7 h GMT, et **la configuration doit alléger son
+travail**.
+
+- **Grille de l'Amirauté** côté analyste (lettre = source, chiffre =
+  information), trois mots côté client : « Validé analyste », « Infirmé par
+  l'analyste », ou la cotation automatique. Confirmer exige une information
+  1 à 3, infirmer 4 ou 5 ; le 6 ne permet ni l'un ni l'autre
+  (`validationValide`, noyau, et les règles Firestore disent la même chose).
+- **Clé stable** (`cleValidation`) : pays + titre normalisé, pas l'id de
+  l'article, qui change aux fusions du dédoublonnage.
+- **Pré-tri** (`trierPourValidation`, noyau) : *jugement* = tout critique et
+  tout élevé à source unique ; *lot* = élevé ou modéré recoupé par une source
+  capable d'alerter, validable en un clic ; *écartés* = modéré à source unique,
+  qui garde sa cotation automatique, motif affiché. Un critique n'est jamais
+  validé en lot.
+- **Stockage** : Firestore `validations/{cle}` (lu par tout compte connecté,
+  écrit par l'admin en son nom) et `journal_validations` (ni modifiable ni
+  effaçable). Le journal est écrit **avant** l'état : sans trace, pas de
+  validation.
+- **La validation ne touche ni au niveau ni au score**, et un test l'exige : le
+  job qui calcule l'archive ne lit pas ces collections, les deux
+  divergeraient. Les données du job (bulletin, rapport mensuel) gardent leurs
+  deux appels directs à `cotationArticle`, un test les compte.
+- **Profils de lecture** (`correspondProfil`) : le Flux propose « Vue Sûreté »
+  et « Vue Finance » sur la même base de faits, et la puce « Validés
+  analyste ». La vue Finance retient aussi une grève ou une pénurie classée
+  sécurité (`MOTS_FINANCE_RE`, mots entiers : « or » anglais et « portrait »
+  ne passent pas).
+
+`scripts/test/validation-analyste.test.js` (16 tests, vus échouer sur l'ancien
+code).

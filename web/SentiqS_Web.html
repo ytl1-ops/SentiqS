@@ -2688,6 +2688,39 @@ html[data-theme="dark"] .vact-repli{background-image:linear-gradient(150deg,rgba
 .une-meta{margin-top:auto;display:flex;align-items:center;gap:var(--sp-2);font-size:var(--fs-micro);color:var(--lg)}
 .une-cot{font-weight:600;padding:1px 6px;border-radius:4px;border:1px solid var(--bd);color:var(--t2)}
 .une-cot-confirme{border-color:var(--g);color:var(--g)}
+.une-cot-valide{border-color:var(--g);color:var(--g);font-weight:700}
+.une-cot-infirme{border-color:var(--r);color:var(--r)}
+/* Validation des faits par un analyste (13/11/2026) */
+.val-tg{display:inline-flex;align-items:center;gap:3px;font-size:var(--fs-micro);font-weight:700;padding:1px 6px;border-radius:999px;border:1px solid currentColor}
+.val-valide{color:var(--g)}
+.val-infirme{color:var(--r)}
+.val-compte{display:inline-block;min-width:18px;padding:0 5px;border-radius:999px;background:var(--b);color:var(--w);font-size:var(--fs-micro);text-align:center}
+.val-dlg{position:fixed;inset:0;z-index:9000;display:none;align-items:flex-start;justify-content:center;background:rgba(0,0,0,.55);padding:40px 16px;overflow:auto}
+.val-boite{background:var(--w);color:var(--t);border:1px solid var(--bd);border-radius:6px;max-width:860px;width:100%;padding:18px 20px}
+.val-entete{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.val-entete h2{font-family:var(--font-serif);font-size:20px;margin:0;flex:1}
+.val-onglets{display:flex;gap:6px}
+.val-onglets button,.val-fermer,.val-actions button{min-height:28px;padding:3px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--sf);color:var(--t);cursor:pointer;font-size:12px}
+.val-aide{color:var(--t2);font-size:13px;margin:10px 0}
+.val-ligne{border-top:1px solid var(--bd);padding:12px 0;display:flex;flex-direction:column;gap:6px}
+.val-tete{font-size:12px;color:var(--t2)}
+.val-titre{font-weight:700;font-size:14px}
+.val-champs{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--t2)}
+.val-champs label{display:flex;flex-direction:column;gap:2px}
+.val-champs select,.val-champs input{min-height:26px;font-size:12px;background:var(--sf);color:var(--t);border:1px solid var(--bd);border-radius:4px}
+.val-note{flex:1;min-width:200px}
+.val-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.val-actions .val-ok{border-color:var(--g);color:var(--g);font-weight:700}
+.val-actions .val-ko{border-color:var(--r);color:var(--r);font-weight:700}
+.val-msg{font-size:12px;color:var(--t2)}
+.val-groupe{font-size:15px;margin:16px 0 2px;display:flex;align-items:center;gap:6px}
+.val-regle{font-size:12px;color:var(--t2);margin:0 0 6px}
+.val-lot{display:flex;flex-direction:column;gap:4px;margin:6px 0 8px}
+.val-lot-ligne{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px;min-height:26px}
+.val-ecartes summary{cursor:pointer;list-style:none}
+.val-ecartes summary h3,.val-ecartes summary p{display:inline-block}
+.val-journal{width:100%;border-collapse:collapse;font-size:12px}
+.val-journal th,.val-journal td{border-bottom:1px solid var(--bd);padding:5px 6px;text-align:left;vertical-align:top}
 
 @media (max-width:760px){
   html:not(.force-web) .vact-vignette{float:right;width:96px;height:72px;margin:0 0 var(--sp-2) var(--sp-2)}
@@ -3387,6 +3420,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
           <span class="chip" onclick="setCat(this,&#39;politique&#39;)" role="button" tabindex="0">Politique</span>
           <span class="chip" onclick="setCat(this,&#39;economique&#39;)" role="button" tabindex="0">Économique</span>
           <span class="chip chip-social" onclick="setSocialFilter(this)" role="button" tabindex="0"><i class="ti ti-social"></i>Réseaux sociaux</span>
+          <span class="chip" onclick="setCat(this,&#39;valides&#39;)" role="button" tabindex="0"><i class="ti ti-user-check"></i><span data-i18n="chip_valides">Validés analyste</span></span>
         </div>
         <div class="geo-w">
           <button class="geo-btn" onclick="toggleGeo(event)">
@@ -3397,6 +3431,11 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
             <div id="geoItems"><div class="gi on" onclick="setGeo(&#39;all&#39;,&#39;Tous pays&#39;)"><span class="gf">🌍</span>Tous les pays</div><div class="gi" onclick="setGeo(&#39;BF&#39;,&#39;Burkina Faso&#39;)"><span class="gf">🇧🇫</span>Burkina Faso<span style="color:#ff8080;background:rgba(139,26,26,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">CRIT</span></div><div class="gi" onclick="setGeo(&#39;ML&#39;,&#39;Mali&#39;)"><span class="gf">🇲🇱</span>Mali<span style="color:#ff8080;background:rgba(139,26,26,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">CRIT</span></div><div class="gi" onclick="setGeo(&#39;NE&#39;,&#39;Niger&#39;)"><span class="gf">🇳🇪</span>Niger<span style="color:#ffb84d;background:rgba(124,74,0,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">HIGH</span></div><div class="gi" onclick="setGeo(&#39;GN&#39;,&#39;Guinee&#39;)"><span class="gf">🇬🇳</span>Guinee<span style="color:#ffb84d;background:rgba(124,74,0,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">HIGH</span></div><div class="gi" onclick="setGeo(&#39;GW&#39;,&#39;Guinee-Bissau&#39;)"><span class="gf">🇬🇼</span>Guinee-Bissau<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;CI&#39;,&#39;Cote d&#39;Ivoire&#39;)"><span class="gf">🇨🇮</span>Cote d'Ivoire<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;SN&#39;,&#39;Senegal&#39;)"><span class="gf">🇸🇳</span>Senegal<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;NG&#39;,&#39;Nigeria&#39;)"><span class="gf">🇳🇬</span>Nigeria<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;GH&#39;,&#39;Ghana&#39;)"><span class="gf">🇬🇭</span>Ghana<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;BJ&#39;,&#39;Benin&#39;)"><span class="gf">🇧🇯</span>Benin<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;TG&#39;,&#39;Togo&#39;)"><span class="gf">🇹🇬</span>Togo<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;MR&#39;,&#39;Mauritanie&#39;)"><span class="gf">🇲🇷</span>Mauritanie<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;LR&#39;,&#39;Liberia&#39;)"><span class="gf">🇱🇷</span>Liberia<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;DZ&#39;,&#39;Algérie&#39;)"><span class="gf">🇩🇿</span>Algérie<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;AO&#39;,&#39;Angola&#39;)"><span class="gf">🇦🇴</span>Angola<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;BW&#39;,&#39;Botswana&#39;)"><span class="gf">🇧🇼</span>Botswana<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;BI&#39;,&#39;Burundi&#39;)"><span class="gf">🇧🇮</span>Burundi<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;CM&#39;,&#39;Cameroun&#39;)"><span class="gf">🇨🇲</span>Cameroun<span style="color:#ffb84d;background:rgba(124,74,0,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">HIGH</span></div><div class="gi" onclick="setGeo(&#39;CV&#39;,&#39;Cap-Vert&#39;)"><span class="gf">🇨🇻</span>Cap-Vert<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;CF&#39;,&#39;Centrafrique&#39;)"><span class="gf">🇨🇫</span>Centrafrique<span style="color:#ff8080;background:rgba(139,26,26,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">CRIT</span></div><div class="gi" onclick="setGeo(&#39;TD&#39;,&#39;Tchad&#39;)"><span class="gf">🇹🇩</span>Tchad<span style="color:#ffb84d;background:rgba(124,74,0,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">HIGH</span></div><div class="gi" onclick="setGeo(&#39;KM&#39;,&#39;Comores&#39;)"><span class="gf">🇰🇲</span>Comores<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;CG&#39;,&#39;Congo-Brazzaville&#39;)"><span class="gf">🇨🇬</span>Congo-Brazzaville<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;CD&#39;,&#39;RD Congo&#39;)"><span class="gf">🇨🇩</span>RD Congo<span style="color:#ff8080;background:rgba(139,26,26,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">CRIT</span></div><div class="gi" onclick="setGeo(&#39;DJ&#39;,&#39;Djibouti&#39;)"><span class="gf">🇩🇯</span>Djibouti<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;EG&#39;,&#39;Égypte&#39;)"><span class="gf">🇪🇬</span>Égypte<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;GQ&#39;,&#39;Guinée équatoriale&#39;)"><span class="gf">🇬🇶</span>Guinée équatoriale<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;ER&#39;,&#39;Érythrée&#39;)"><span class="gf">🇪🇷</span>Érythrée<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;SZ&#39;,&#39;Eswatini&#39;)"><span class="gf">🇸🇿</span>Eswatini<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;ET&#39;,&#39;Éthiopie&#39;)"><span class="gf">🇪🇹</span>Éthiopie<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;GA&#39;,&#39;Gabon&#39;)"><span class="gf">🇬🇦</span>Gabon<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;GM&#39;,&#39;Gambie&#39;)"><span class="gf">🇬🇲</span>Gambie<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;KE&#39;,&#39;Kenya&#39;)"><span class="gf">🇰🇪</span>Kenya<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;LS&#39;,&#39;Lesotho&#39;)"><span class="gf">🇱🇸</span>Lesotho<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;LY&#39;,&#39;Libye&#39;)"><span class="gf">🇱🇾</span>Libye<span style="color:#ffb84d;background:rgba(124,74,0,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">HIGH</span></div><div class="gi" onclick="setGeo(&#39;MG&#39;,&#39;Madagascar&#39;)"><span class="gf">🇲🇬</span>Madagascar<span style="color:#ffb84d;background:rgba(124,74,0,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">HIGH</span></div><div class="gi" onclick="setGeo(&#39;MW&#39;,&#39;Malawi&#39;)"><span class="gf">🇲🇼</span>Malawi<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;MA&#39;,&#39;Maroc&#39;)"><span class="gf">🇲🇦</span>Maroc<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;MU&#39;,&#39;Maurice&#39;)"><span class="gf">🇲🇺</span>Maurice<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;MZ&#39;,&#39;Mozambique&#39;)"><span class="gf">🇲🇿</span>Mozambique<span style="color:#ff8080;background:rgba(139,26,26,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">CRIT</span></div><div class="gi" onclick="setGeo(&#39;NA&#39;,&#39;Namibie&#39;)"><span class="gf">🇳🇦</span>Namibie<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;RW&#39;,&#39;Rwanda&#39;)"><span class="gf">🇷🇼</span>Rwanda<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;ST&#39;,&#39;São Tomé-et-Príncipe&#39;)"><span class="gf">🇸🇹</span>São Tomé-et-Príncipe<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;SC&#39;,&#39;Seychelles&#39;)"><span class="gf">🇸🇨</span>Seychelles<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;SL&#39;,&#39;Sierra Leone&#39;)"><span class="gf">🇸🇱</span>Sierra Leone<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;SO&#39;,&#39;Somalie&#39;)"><span class="gf">🇸🇴</span>Somalie<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;ZA&#39;,&#39;Afrique du Sud&#39;)"><span class="gf">🇿🇦</span>Afrique du Sud<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;SS&#39;,&#39;Soudan du Sud&#39;)"><span class="gf">🇸🇸</span>Soudan du Sud<span style="color:#ff8080;background:rgba(139,26,26,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">CRIT</span></div><div class="gi" onclick="setGeo(&#39;SD&#39;,&#39;Soudan&#39;)"><span class="gf">🇸🇩</span>Soudan<span style="color:#ff8080;background:rgba(139,26,26,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">CRIT</span></div><div class="gi" onclick="setGeo(&#39;TZ&#39;,&#39;Tanzanie&#39;)"><span class="gf">🇹🇿</span>Tanzanie<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;TN&#39;,&#39;Tunisie&#39;)"><span class="gf">🇹🇳</span>Tunisie<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;UG&#39;,&#39;Ouganda&#39;)"><span class="gf">🇺🇬</span>Ouganda<span style="color:#4ade80;background:rgba(15,79,42,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">OK</span></div><div class="gi" onclick="setGeo(&#39;ZM&#39;,&#39;Zambie&#39;)"><span class="gf">🇿🇲</span>Zambie<span style="color:#9CA3AF;background:rgba(75,85,99,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">MOD</span></div><div class="gi" onclick="setGeo(&#39;ZW&#39;,&#39;Zimbabwe&#39;)"><span class="gf">🇿🇼</span>Zimbabwe<span style="color:#ffb84d;background:rgba(124,74,0,.18);padding:1px 4px;border-radius:3px;font-size:8px;font-weight:700;margin-left:auto">HIGH</span></div></div>
           </div>
         </div>
+        <select class="ssel" id="profilSel" aria-label="Profil de lecture" onchange="renderFeed()">
+          <option value="tous" data-i18n="opt_profil_tous">Tous profils</option>
+          <option value="surete" data-i18n="opt_profil_surete">Vue Sûreté</option>
+          <option value="finance" data-i18n="opt_profil_finance">Vue Finance</option>
+        </select>
         <select class="ssel" id="sortSel" aria-label="Trier les articles" onchange="renderFeed()">
           <option value="date">Plus récent</option>
           <option value="level">Priorité</option>
@@ -3404,6 +3443,10 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
         </select>
         <button class="tlbr-actu" aria-label="Actualiser l'affichage" onclick="renderFeed()" title="Rafraîchir l'affichage du Flux depuis les données déjà collectées" style="padding:3px 12px;background:rgba(138,93,26,.12);border:1px solid rgba(138,93,26,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
           <i class="ti ti-refresh"></i> <span data-i18n="btn_actualiser">Actualiser</span>
+        </button>
+        <!-- Validation des faits (13/11/2026) : visible pour l'analyste seul, voir majBoutonValidation(). -->
+        <button id="btnValidation" class="tlbr-actu val-file-btn" onclick="ouvrirValidation()" style="display:none">
+          <i class="ti ti-user-check"></i> <span data-i18n="btn_a_valider">À valider</span> <span id="btnValidationN" class="val-compte">0</span>
         </button>
       </div>
 
@@ -5746,6 +5789,11 @@ const I18N = {
     ph_ex_service_xxxxxxx:'Ex. service_xxxxxxx',
     ph_ex_template_xxxxxxx:'Ex. template_xxxxxxx',
     btn_tous_pays:'Tous pays',
+    btn_a_valider:'À valider',
+    chip_valides:'Validés analyste',
+    opt_profil_tous:'Tous profils',
+    opt_profil_surete:'Vue Sûreté',
+    opt_profil_finance:'Vue Finance',
     ph_votre_mot_de_passe:'Votre mot de passe',
     ph_prenom_nom:'Prenom Nom',
     ph_ex_dsi_entreprise_xyz:'Ex : DSI - Entreprise XYZ',
@@ -5896,6 +5944,11 @@ const I18N = {
     ph_ex_service_xxxxxxx:'e.g. service_xxxxxxx',
     ph_ex_template_xxxxxxx:'e.g. template_xxxxxxx',
     btn_tous_pays:'All countries',
+    btn_a_valider:'To validate',
+    chip_valides:'Analyst-validated',
+    opt_profil_tous:'All profiles',
+    opt_profil_surete:'Security view',
+    opt_profil_finance:'Finance view',
     ph_votre_mot_de_passe:'Your password',
     ph_prenom_nom:'First name Last name',
     ph_ex_dsi_entreprise_xyz:'e.g. CIO - XYZ Company',
@@ -10203,7 +10256,7 @@ function carteUneHtml(a) {
   const pl = a.flagged ? lp('u') : lp(a.level);
   const cc = (typeof CYS !== 'undefined' && CYS.find(x => x.code === a.cy)) || { flag: '🌍', name: a.cy || '' };
   const src = gs(a.primary);
-  const cot = (typeof cotationArticle === 'function') ? cotationArticle(a, src, SEUIL_SOURCE_ALERTE) : null;
+  const cot = (typeof cotationArticle === 'function') ? cotationActu(a, src) : null;
   return '<article class="une-carte" onclick="showDet(\'' + a.id + '\')">' +
     visuelActu(a, 'une') +
     '<div class="une-corps">' +
@@ -10249,7 +10302,7 @@ function detailRapportActu(a) {
   if (resume.toLowerCase() === titre.toLowerCase()) resume = '';
   resume = resumeCourt(resume, RESUME_RAPPORT_MAX);
   const voir = typeof sourcesVisibles === 'function' && sourcesVisibles();
-  const cot = typeof cotationArticle === 'function' ? cotationArticle(a, gs(a.primary), SEUIL_SOURCE_ALERTE) : null;
+  const cot = typeof cotationArticle === 'function' ? cotationActu(a) : null;
   const surv = typeof fmtSurvenance === 'function' ? fmtSurvenance(a) : null;
   const infos = [];
   if (cot) infos.push((en ? 'Rating: ' : 'Cotation : ') + libelleCotationR(cot));
@@ -12913,7 +12966,12 @@ function getFiltered() {
   if(q) a=a.filter(x=>x.title.toLowerCase().includes(q)||x.analysis.toLowerCase().includes(q));
   if(fCat==='crit') a=a.filter(x=>x.level==='crit');
   else if(fCat==='high') a=a.filter(x=>x.level==='high');
+  else if(fCat==='valides') a=a.filter(x=>{ const v=typeof validationDe==='function'&&validationDe(x); return !!v&&v.decision==='confirme'; });
   else if(fCat!=='all') a=a.filter(x=>x.cat===fCat);
+  // Profil d'usage (13/11/2026) : meme base de faits, lecture Surete ou
+  // Finance (correspondProfil, noyau). Se combine avec les puces ci-dessus.
+  const prof=(document.getElementById('profilSel')||{}).value||'tous';
+  if(prof!=='tous') a=a.filter(x=>correspondProfil(x,prof));
   if(fCy!=='all') a=a.filter(x=>x.cy===fCy);
   if(fGeo!=='all') a=a.filter(x=>x.cy===fGeo);
   if(fSc!=='all') a=a.filter(x=>x.sc===fSc);
@@ -13406,6 +13464,7 @@ async function renderFeed() {
           '<span class="rtg '+rc(a.score)+'">'+a.score+'%</span>'+
           (a.verified?'<span class="vtg" title="'+(LANG==='en'?'Reported by several sources':'Rapporté par plusieurs sources')+'"><i class="ti ti-shield-check"></i>'+(LANG==='en'?'Corroborated · ':'Recoupé · ')+(a.crosses?.length||1)+(LANG==='en'?' sources':' sources')+'</span>':
                       '<span class="utg" title="'+(LANG==='en'?'Reported by one source only':'Rapporté par une seule source')+'">'+(LANG==='en'?'Single source':'Source unique')+'</span>')+
+          (typeof badgeValidation==='function' ? badgeValidation(a) : '')+
           (()=>{
             const diffMin=a.pubDate?Math.floor((Date.now()-a.pubDate)/60000):999;
             const cls=diffMin<30?'fresh':diffMin>600?'crit':'';
@@ -16059,6 +16118,10 @@ function _demarrerAutoRefresh() {
 
 async function init() {
   if (typeof _MEM_SESSION !== 'undefined' && _MEM_SESSION) activerProtectionsSecurite(_MEM_SESSION);
+  // Validations d'analyste (13/11/2026) : relues au demarrage puis toutes les
+  // 15 minutes, comme le cache partage ; sans Firebase, ne fait rien.
+  chargerValidations();
+  setInterval(chargerValidations, 15 * 60 * 1000);
   demanderPermissionNotifWeb();
   // Regle : si l'utilisateur a ferme la banniere de diagnostic recemment
   // (moins de 30 min), ne pas la reafficher — evite l'effet pop-up repetitif.
@@ -17143,6 +17206,7 @@ function applyRoleMenus(role) {
   if (dispSwitch)  dispSwitch.style.display  = isAdmin ? 'flex' : 'none';
   if (tbAdminBadge) tbAdminBadge.style.display = isAdmin ? 'flex' : 'none';
   if (pmAdminOnly) pmAdminOnly.style.display = isAdmin ? '' : 'none';
+  if (typeof majBoutonValidation === 'function') majBoutonValidation();
   // Sources des actus : noms/liens masques dans tous les modules de lecture
   // pour les non-administrateurs (voir sourcesVisibles) — ici, les 2 points
   // d'entree qui necessitent d'etre masques/affiches une fois au niveau du
@@ -22130,10 +22194,278 @@ function fmtQuandRapport(ts) {
 // detectGeo, villes citees dans VILLES_COMMUNES).
 const VILLES_EN = { 'Alger':'Algiers', 'Le Caire':'Cairo', 'Addis-Abeba':'Addis Ababa', 'Mogadiscio':'Mogadishu', 'Djouba':'Juba',
   'Port-Louis':'Port Louis', 'São Tomé':'São Tomé', 'Tombouctou':'Timbuktu', 'Saint-Louis':'Saint-Louis', 'Ménaka':'Menaka' };
-const COTATION_EN = { confirme: 'Confirmed', probable: 'Probable', non_confirme: 'Unconfirmed' };
+const COTATION_EN = { confirme: 'Confirmed', probable: 'Probable', non_confirme: 'Unconfirmed',
+  valide: 'Analyst-validated', infirme: 'Refuted by analyst' };
 function libelleCotationR(cot) {
   if (!cot) return '';
   return LANG === 'en' ? (COTATION_EN[cot.cle] || cot.libelle) : cot.libelle;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  VALIDATION DES FAITS PAR UN ANALYSTE — 13/11/2026
+//
+//  Recommandation n° 2 du comparatif avec les plateformes du marche : la
+//  signature humaine sur un fait. YORO valide seul pendant le pilote, chaque
+//  matin avant le bulletin de 7 h GMT (decision deleguee du 13/11/2026).
+//
+//  Stockage : Firestore, deux collections ouvertes par firebase/firestore.rules
+//    · validations/{cle}           — l'etat courant, lu par tout compte connecte ;
+//    · journal_validations/{auto}  — une ligne par decision, jamais modifiable
+//      ni effacable, lu par l'administrateur seul. C'est la trace « qui a
+//      valide quoi et quand ».
+//  Sans Firebase (repli Supabase), rien n'est charge et rien ne s'affiche :
+//  la cotation automatique reste seule, exactement comme avant.
+//
+//  Ce que la validation NE fait PAS, volontairement : elle ne change ni le
+//  niveau d'alerte ni le score. Le job de collecte, qui calcule les niveaux
+//  archives, ne lit pas ces collections ; une validation qui bougerait le
+//  niveau a l'ecran mais pas dans l'archive ferait diverger les deux. Elle
+//  change ce que le client lit sur le fait (cotation), rien d'autre.
+// ════════════════════════════════════════════════════════════════════════════
+const VALIDATIONS = new Map();
+let _validationsChargees = false;
+// Pays de la file du matin, dans l'ordre (decisions du 20/10/2026 : CI pays
+// pilote n° 1, puis la sous-region suivie).
+const PAYS_FILE_VALIDATION = ['CI', 'ML', 'BF', 'NE', 'NG', 'GH', 'TG', 'BJ', 'SN'];
+const FILE_VALIDATION_MAX = 30;
+
+function validationDe(a) {
+  if (!a || !VALIDATIONS.size) return null;
+  return VALIDATIONS.get(cleValidation(a)) || null;
+}
+function cotationActu(a, src) {
+  return cotationArticle(a, src === undefined ? gs(a.primary) : src, SEUIL_SOURCE_ALERTE, validationDe(a));
+}
+function _clientValidation() {
+  return (typeof _fournisseurFirebase === 'function' && _fournisseurFirebase()) ? getSentinelSupabase() : null;
+}
+async function chargerValidations() {
+  const c = _clientValidation();
+  if (!c) return;
+  try {
+    const { data, error } = await c.from('validations').select();
+    if (error || !Array.isArray(data)) return;
+    VALIDATIONS.clear();
+    data.forEach(v => { if (v && v.cle && validationValide(v)) VALIDATIONS.set(v.cle, v); });
+    _validationsChargees = true;
+    majBoutonValidation();
+    if (typeof redessinerVuesOuvertes === 'function') redessinerVuesOuvertes();
+  } catch (_) { /* lecture refusee ou hors ligne : la cotation automatique reste seule */ }
+}
+
+// Proposition de note, que l'analyste corrige : la lettre suit la note de la
+// source au registre, le chiffre suit le recoupement. Ce n'est qu'un point de
+// depart — rien n'est enregistre sans un clic.
+function proposerGrille(a) {
+  const s = gs(a.primary) || {};
+  const sc = Number(s.score) || 0;
+  const source = sc >= 85 ? 'B' : sc >= 70 ? 'C' : sc >= 60 ? 'D' : 'F';
+  const recoupe = a.verified === true || (Array.isArray(a._fusionnes) && a._fusionnes.length > 0);
+  return { source, info: recoupe ? '2' : '3' };
+}
+
+// Pre-tri (trierPourValidation, noyau) : jugement / lot / ecartes, chacun
+// avec sa regle affichee. Limites de longueur : une file que l'on ne finit
+// pas chaque matin ne sert a rien.
+const FILE_JUGEMENT_MAX = 15;
+function triValidation(arts) {
+  const t = trierPourValidation(arts, {
+    paysSuivis: PAYS_FILE_VALIDATION, seuil: SEUIL_SOURCE_ALERTE,
+    sourceDe: (a) => gs(a.primary), validationDe,
+    estRecent: (a) => typeof estRecentReel !== 'function' || estRecentReel(a),
+  });
+  t.jugement = t.jugement.slice(0, FILE_JUGEMENT_MAX);
+  t.lot = t.lot.slice(0, FILE_VALIDATION_MAX);
+  return t;
+}
+function fileValidation(arts) {
+  const t = triValidation(arts);
+  return t.jugement.concat(t.lot);
+}
+
+function majBoutonValidation() {
+  const b = document.getElementById('btnValidation');
+  if (!b) return;
+  const admin = estAdmin(getSession()) && !!_clientValidation();
+  b.style.display = admin ? 'flex' : 'none';
+  const n = document.getElementById('btnValidationN');
+  if (n && admin) n.textContent = String(fileValidation(typeof ALL !== 'undefined' ? ALL : []).length);
+}
+
+function badgeValidation(a) {
+  const v = validationDe(a);
+  const en = LANG === 'en';
+  let h = '';
+  if (v) {
+    const cot = cotationActu(a);
+    const info = (en ? 'Analyst rating ' : 'Grille de l\'analyste ') + cot.grille + ' — '
+      + GRILLE_SOURCE[v.source] + ' / ' + GRILLE_INFO[v.info] + ' · ' + fmtFull(Date.parse(v.le))
+      + (v.note ? ' · ' + v.note : '');
+    h += '<span class="val-tg val-' + cot.cle + '" title="' + escHtml(info) + '"><i class="ti '
+      + (cot.cle === 'valide' ? 'ti-user-check' : 'ti-user-x') + '"></i>' + escHtml(libelleCotationR(cot)) + ' · ' + cot.grille + '</span>';
+  }
+  if (estAdmin(getSession()) && _clientValidation()) {
+    h += '<button class="share-trigger val-btn" onclick="event.stopPropagation();ouvrirValidation(\'' + a.id + '\')">'
+      + '<i class="ti ti-user-check"></i>' + (v ? (en ? 'Edit' : 'Modifier') : (en ? 'Validate' : 'Valider')) + '</button>';
+  }
+  return h;
+}
+
+function _ligneValidationHtml(a) {
+  const p = validationDe(a) || proposerGrille(a);
+  const cc = (typeof CYS !== 'undefined' && CYS.find(x => x.code === a.cy)) || { flag: '', name: a.cy };
+  const pl = lp(a.level);
+  const id = escHtml(a.id);
+  const opt = (obj, val) => Object.keys(obj).map(k => '<option value="' + k + '"' + (String(val) === k ? ' selected' : '') + '>' + k + ' — ' + escHtml(obj[k]) + '</option>').join('');
+  return '<div class="val-ligne" data-id="' + id + '">'
+    + '<div class="val-tete"><span class="rpill ' + pl[0] + '">' + pl[1] + '</span> ' + cc.flag + ' ' + escHtml(cc.name)
+    + ' · ' + fmtAge(a.pubDate) + ' · ' + escHtml(srcName(a.primary)) + '</div>'
+    + '<div class="val-titre">' + escHtml(a.title) + (a.link ? ' <a href="' + escHtml(a.link) + '" target="_blank" rel="noopener">source</a>' : '') + '</div>'
+    + '<div class="val-champs">'
+    + '<label>Source <select id="valS_' + id + '">' + opt(GRILLE_SOURCE, p.source) + '</select></label>'
+    + '<label>Information <select id="valI_' + id + '">' + opt(GRILLE_INFO, p.info) + '</select></label>'
+    + '<label class="val-note">Note <input id="valN_' + id + '" maxlength="' + VALIDATION_NOTE_MAX + '" value="' + escHtml(p.note || '') + '"></label>'
+    + '</div>'
+    + '<div class="val-actions">'
+    + '<button class="val-ok" onclick="enregistrerValidation(\'' + id + '\',\'confirme\')"><i class="ti ti-check"></i> Confirmer</button>'
+    + '<button class="val-ko" onclick="enregistrerValidation(\'' + id + '\',\'infirme\')"><i class="ti ti-x"></i> Infirmer</button>'
+    + '<span class="val-msg" id="valM_' + id + '" role="status"></span>'
+    + '</div></div>';
+}
+
+function _dialogueValidation() {
+  let d = document.getElementById('valDlg');
+  if (d) return d;
+  d = document.createElement('div');
+  d.id = 'valDlg';
+  d.className = 'val-dlg';
+  d.setAttribute('role', 'dialog');
+  d.setAttribute('aria-modal', 'true');
+  d.setAttribute('aria-labelledby', 'valDlgTitre');
+  d.innerHTML = '<div class="val-boite">'
+    + '<div class="val-entete"><h2 id="valDlgTitre">Validation des faits</h2>'
+    + '<div class="val-onglets"><button id="valTabFile" onclick="afficherFileValidation()">À valider</button>'
+    + '<button id="valTabJournal" onclick="afficherJournalValidation()">Journal</button></div>'
+    + '<button class="val-fermer" aria-label="Fermer" onclick="fermerValidation()"><i class="ti ti-x"></i></button></div>'
+    + '<p class="val-aide">Grille de l\'Amirauté : la lettre juge la <b>source</b>, le chiffre juge l\'<b>information</b>. '
+    + 'Confirmer exige une information 1 à 3, infirmer 4 ou 5. Le client lit « Validé analyste » ou « Infirmé par l\'analyste ». '
+    + 'Le niveau d\'alerte n\'est pas modifié.</p>'
+    + '<div id="valCorps" class="val-corps"></div></div>';
+  d.addEventListener('keydown', e => { if (e.key === 'Escape') fermerValidation(); });
+  document.body.appendChild(d);
+  return d;
+}
+function ouvrirValidation(id) {
+  const d = _dialogueValidation();
+  d.style.display = 'flex';
+  if (id) {
+    const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
+    document.getElementById('valCorps').innerHTML = a ? _ligneValidationHtml(a) : '<p>Article introuvable.</p>';
+  } else afficherFileValidation();
+  const premier = d.querySelector('select, button.val-ok');
+  if (premier) premier.focus();
+}
+function fermerValidation() {
+  const d = document.getElementById('valDlg');
+  if (d) d.style.display = 'none';
+}
+function afficherFileValidation() {
+  const t = triValidation(typeof ALL !== 'undefined' ? ALL : []);
+  const titre = (n, txt, regle) => '<h3 class="val-groupe">' + txt + ' <span class="val-compte">' + n + '</span></h3><p class="val-regle">' + regle + '</p>';
+  let h = titre(t.jugement.length, '1. À votre jugement',
+    'Tout fait critique, et tout fait élevé rapporté par une seule source. Côte d\'Ivoire d\'abord, puis par gravité.');
+  h += t.jugement.length ? t.jugement.map(_ligneValidationHtml).join('') : '<p class="val-aide">Rien qui demande votre jugement.</p>';
+  h += titre(t.lot.length, '2. Validation en lot',
+    'Faits élevés ou modérés déjà recoupés par deux sources, dont une capable d\'alerter. Grille proposée : celle de la source, information 2. Décochez ce que vous voulez examiner à part.');
+  if (t.lot.length) {
+    h += '<div class="val-lot">' + t.lot.map(a => {
+      const g = proposerGrille(a);
+      const cc = (typeof CYS !== 'undefined' && CYS.find(x => x.code === a.cy)) || { flag: '', name: a.cy };
+      return '<label class="val-lot-ligne"><input type="checkbox" class="val-lot-case" value="' + escHtml(a.id) + '" checked> '
+        + '<span class="rpill ' + lp(a.level)[0] + '">' + lp(a.level)[1] + '</span> ' + cc.flag + ' ' + escHtml(a.title)
+        + ' <span class="val-tete">· ' + g.source + '2 · ' + escHtml(srcName(a.primary)) + '</span></label>';
+    }).join('') + '</div><div class="val-actions"><button class="val-ok" onclick="enregistrerLot()"><i class="ti ti-checks"></i> Confirmer la sélection</button>'
+      + '<span class="val-msg" id="valMLot" role="status"></span></div>';
+  } else h += '<p class="val-aide">Aucun fait recoupé en attente.</p>';
+  h += '<details class="val-ecartes"><summary>' + titre(t.ecartes.length, '3. Écartés par règle',
+    'Faits modérés rapportés par une seule source : ils gardent leur cotation automatique, rien à faire.') + '</summary>'
+    + t.ecartes.map(e => '<div class="val-tete">' + escHtml(e.article.cy) + ' · ' + escHtml(e.article.title) + ' — ' + escHtml(e.motif) + '</div>').join('')
+    + '</details>';
+  document.getElementById('valCorps').innerHTML = h;
+}
+async function enregistrerLot() {
+  const msg = document.getElementById('valMLot');
+  const ids = [...document.querySelectorAll('.val-lot-case:checked')].map(c => c.value);
+  let ok = 0;
+  for (const id of ids) {
+    const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
+    if (!a) continue;
+    if (msg) msg.textContent = 'Enregistrement ' + (ok + 1) + ' / ' + ids.length + '…';
+    if (await enregistrerValidation(id, 'confirme', { source: proposerGrille(a).source, info: '2', note: 'Validé en lot : recoupé par deux sources' })) ok++;
+  }
+  afficherFileValidation();
+  const m = document.getElementById('valMLot');
+  if (m) m.textContent = ok + ' fait(s) validé(s)' + (ok < ids.length ? ', ' + (ids.length - ok) + ' refusé(s)' : '') + '.';
+  else _toastRapide && _toastRapide(ok + ' fait(s) validé(s) en lot.', 'ti-checks');
+}
+async function afficherJournalValidation() {
+  const corps = document.getElementById('valCorps');
+  corps.innerHTML = '<p class="val-aide">Chargement du journal…</p>';
+  const c = _clientValidation();
+  try {
+    const { data, error } = await c.from('journal_validations').select().order('le', { ascending: false }).limit(100);
+    if (error) throw error;
+    corps.innerHTML = (data && data.length)
+      ? '<table class="val-journal"><thead><tr><th>Date</th><th>Par</th><th>Décision</th><th>Grille</th><th>Fait</th></tr></thead><tbody>'
+        + data.map(j => '<tr><td>' + escHtml(fmtFull(Date.parse(j.le))) + '</td><td>' + escHtml(_maskEmail(j.par)) + '</td><td>'
+          + escHtml(j.decision === 'confirme' ? 'Confirmé' : 'Infirmé') + (j.action === 'modification' ? ' (modif.)' : '') + '</td><td>'
+          + escHtml(String(j.source) + String(j.info)) + '</td><td>' + escHtml(j.pays || '') + ' — ' + escHtml(j.titre || '') + '</td></tr>').join('')
+        + '</tbody></table>'
+      : '<p class="val-aide">Aucune décision enregistrée.</p>';
+  } catch (e) {
+    corps.innerHTML = '<p class="val-aide">Journal illisible : ' + escHtml((e && e.message) || 'accès refusé') + '. Vérifiez que les règles Firestore du 13/11/2026 sont publiées.</p>';
+  }
+}
+
+async function enregistrerValidation(id, decision, grille) {
+  const msg = document.getElementById('valM_' + id);
+  const dire = t => { if (msg) msg.textContent = t; };
+  const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
+  const c = _clientValidation();
+  if (!a || !c || !estAdmin(getSession())) { dire('Action réservée à l\'analyste connecté.'); return false; }
+  let session = null;
+  try { session = (await c.auth.getSession()).data.session; } catch (_) {}
+  const u = session && session.user;
+  if (!u || !u.email) { dire('Session expirée : reconnectez-vous.'); return false; }
+  const cle = cleValidation(a);
+  const v = {
+    id: cle, cle, pays: a.cy || '', titre: String(a.title || '').slice(0, 300), url: a.link || '',
+    source: grille ? grille.source : document.getElementById('valS_' + id).value,
+    info: grille ? String(grille.info) : document.getElementById('valI_' + id).value,
+    decision, note: String(grille ? (grille.note || '') : document.getElementById('valN_' + id).value).trim().slice(0, VALIDATION_NOTE_MAX),
+    par: u.email, parUid: u.id, le: new Date().toISOString(),
+  };
+  if (!validationValide(v)) {
+    dire(decision === 'confirme'
+      ? 'Pour confirmer, l\'information doit être notée 1, 2 ou 3.'
+      : 'Pour infirmer, l\'information doit être notée 4 ou 5.');
+    return false;
+  }
+  const action = VALIDATIONS.has(cle) ? 'modification' : 'creation';
+  dire('Enregistrement…');
+  // Le journal d'abord : une decision sans trace serait pire qu'une decision
+  // non enregistree. Si le journal refuse, l'etat courant n'est pas touche.
+  const j = Object.assign({}, v, { action });
+  delete j.id;
+  const r1 = await c.from('journal_validations').insert(j);
+  if (r1.error) { dire('Refusé : ' + (r1.error.message || 'droits insuffisants')); return false; }
+  const r2 = await c.from('validations').upsert(v);
+  if (r2.error) { dire('Journal écrit, mais état non enregistré : ' + (r2.error.message || 'erreur')); return false; }
+  VALIDATIONS.set(cle, v);
+  dire(decision === 'confirme' ? 'Validé.' : 'Infirmé.');
+  majBoutonValidation();
+  if (typeof redessinerVuesOuvertes === 'function') redessinerVuesOuvertes();
+  return true;
 }
 // Libelles de survenance produits par extraireDateSurvenance (« hier », « il y a
 // 3 jours »…) : du francais, par construction (le texte source l'est).

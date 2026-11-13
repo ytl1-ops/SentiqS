@@ -64,6 +64,36 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Validation des faits par un analyste (13/11/2026). L'état courant est
+    // lu par tout compte connecté (c'est ce que le client voit sur le fait) ;
+    // seul un administrateur l'écrit, en son propre nom, avec une décision
+    // et une grille de l'Amirauté valides. Jamais supprimé : une validation
+    // se corrige par une nouvelle décision, qui reste dans le journal.
+    function validationBienFormee(d) {
+      return d.decision in ['confirme', 'infirme']
+        && d.source in ['A', 'B', 'C', 'D', 'E', 'F']
+        && ((d.decision == 'confirme' && d.info in ['1', '2', '3'])
+            || (d.decision == 'infirme' && d.info in ['4', '5']))
+        && d.par == request.auth.token.email
+        && d.parUid == request.auth.uid
+        && d.note is string && d.note.size() <= 500;
+    }
+    match /validations/{cle} {
+      allow read: if connecte();
+      allow create, update: if estAdmin()
+        && request.resource.data.cle == cle
+        && validationBienFormee(request.resource.data);
+      allow delete: if false;
+    }
+    // Journal des décisions : une ligne par décision, ni modifiable ni
+    // effaçable, même par l'administrateur. C'est la trace « qui a validé
+    // quoi et quand ».
+    match /journal_validations/{id} {
+      allow create: if estAdmin() && validationBienFormee(request.resource.data);
+      allow read: if estAdmin();
+      allow update, delete: if false;
+    }
+
     // Tout le reste est fermé tant qu'une PR ne l'ouvre pas explicitement
     // (agenda, configuration partagée : étape suivante).
   }
