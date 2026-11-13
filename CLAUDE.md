@@ -183,6 +183,17 @@ deux sources dans `dedupliquerArticles` ; la note de la source est portée par
 `fiable`. Le 03/09/2026, 125 articles portaient le badge, 120 n'avaient qu'une
 source.
 
+**« Frappe » au sens figuré (13/11/2026).** « Outlook, Teams, Copilot :
+comprendre la panne qui frappe Microsoft » (Maurice) sortait CRITIQUE sur le
+seul mot « frappe » et ouvrait « À la une » sur les captures du Play Store.
+`FRAPPE_FIGUREE` retire le verbe quand son sujet est une panne, une crise ou
+un fléau (sécheresse, inflation, pénurie…) ; le sujet garde son poids. Mesuré
+sur les 1 540 faits au-dessus du normal des cumuls mensuels d'octobre et
+novembre : 38 contiennent « frapp », **aucun niveau ne change** (toutes les
+frappes de drone et des FAMa restent critiques). Restent hors de ce correctif,
+vus dans la même liste : « lutte avec frappe » (sport sénégalais), « la police
+frappe fort ».
+
 ---
 
 ## La date de l'événement, pas seulement celle de publication

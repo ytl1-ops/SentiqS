@@ -192,3 +192,27 @@ test("une crise médicale n'est pas une crise de sûreté", () => {
   }
   assert.notStrictEqual(classify('Crise politique : violents affrontements à Abidjan', src('CI')).lvl, 'ok');
 });
+
+test("« frappe » au sens figuré n'est pas une frappe armée", () => {
+  // Cas réel du 13/11/2026, vu sur les captures du Play Store : « Outlook,
+  // Teams, Copilot : comprendre la panne qui frappe Microsoft » (Maurice)
+  // sortait CRITIQUE sur le seul mot « frappe ». Le verbe, quand son sujet
+  // est une panne, une crise ou un fléau, ne décrit aucune attaque.
+  for (const t of [
+    'Outlook, Teams, Copilot : comprendre la panne qui frappe Microsoft',
+    'La sécheresse qui frappe le sud du pays inquiète les éleveurs',
+    "L'inflation qui frappe les ménages : le gouvernement promet des mesures",
+  ]) {
+    const r = classify(t, src('MU'), t);
+    assert.strictEqual(r.lvl, 'ok', `« ${t} » ne doit pas alerter (obtenu ${r.lvl})`);
+  }
+  // Garde : une vraie frappe reste critique, y compris avec le verbe
+  // « frapper » à côté d'une crise.
+  for (const t of [
+    'Une frappe de drone fait 12 morts près de Gao',
+    "Frappe aérienne sur un marché : l'armée dément",
+    'La crise qui frappe le nord : une frappe de drone fait 5 morts',
+  ]) {
+    assert.strictEqual(classify(t, src('ML'), t).lvl, 'crit', `« ${t} » doit rester critique`);
+  }
+});
