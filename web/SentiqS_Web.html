@@ -2838,6 +2838,20 @@ html.force-mobile .tlbr .chips::-webkit-scrollbar{display:none}
 .vact.sans-img:not(.vact-video){display:none}
 .det-visuel:has(> .vact.sans-img:not(.vact-video)){display:none}
 
+/* ═══ CHANTIER VISUEL — 13/11/2026 (voir CLAUDE.md) ═══
+   Ecran seulement : les documents exportes ont leurs propres styles et ne
+   lisent pas cette feuille. Rien n'est retire, aucun chiffre ne change.
+   1. Indicateurs du tableau de bord : auto-fit au lieu d'auto-fill. Les sept
+      tuiles laissaient une colonne vide a droite sur bureau (piste reservee
+      par auto-fill) ; sur telephone la septieme restait seule sur sa ligne,
+      elle prend toute la largeur. */
+.kpi-grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr)) !important}
+@media (max-width:760px){html:not(.force-web) .kpi-grid>.kpi-tile:last-child:nth-child(odd){grid-column:1/-1}}
+html.force-mobile .kpi-grid>.kpi-tile:last-child:nth-child(odd){grid-column:1/-1}
+/* 2. En-tete de la carte regionale : sur telephone le titre se tassait sur
+      quatre lignes a cote des trois boutons. Les boutons passent dessous. */
+.carto-hd{flex-wrap:wrap;row-gap:8px}
+.carto-hd>.carto-titre{flex:1 1 240px;min-width:0}
 /* ═══ MOBILE : LE CONTENU D'ABORD — 22/10/2026 (voir CLAUDE.md) ═══
    Capture de YORO sur téléphone (texte agrandi par le navigateur) : barre du
    haut, bandeau « Cliquez sur Actualiser », collecte, flash info, filtre pays,
@@ -14444,7 +14458,7 @@ const cartogramme = () => {
   requestAnimationFrame(() => {
     el.innerHTML = `
       <!-- KPI globaux -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-bottom:10px;">
+      <div class="kpi-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-bottom:10px;">
         ${kpiCard(artsActifs.length,'Articles actifs','var(--t)','ti-file-text','articles')}
         ${kpiCard(nbPays,'Pays couverts','var(--b)','ti-world','pays','Dernières '+libelleFenetre())}
         ${kpiCard(nbCrit,'Critiques','#8B1A1A','ti-alert-triangle','crit')}
@@ -14459,9 +14473,9 @@ const cartogramme = () => {
 
       <!-- Cartogramme régional des scores par pays -->
       <div style="background:var(--w);border:1px solid var(--bd);border-radius:9px;padding:14px;margin-bottom:12px;">
-        <div style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:12px;display:flex;align-items:center;gap:7px;">
+        <div class="carto-hd" style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:12px;display:flex;align-items:center;gap:7px;">
           <i class="ti ti-map-2" style="color:var(--b)"></i>
-          <span style="font-family:var(--font-serif);font-weight:600;font-size:13.5px;letter-spacing:.005em;">${cartoMode==='profil' ? 'Profil de risque — nature du risque par dimension' : cartoMode==='radar' ? 'Vue radar — pays par zone et niveau de risque' : 'Carte régionale des risques — Score 0-100 par pays, regroupés par zone'}</span><span style="margin-left:auto;display:flex;gap:4px;"><button onclick="setDashCartoMode('grid')" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:5px;border:1px solid var(--bd);cursor:pointer;background:${cartoMode==='grid'?'var(--b)':'var(--sf)'};color:${cartoMode==='grid'?'#fff':'var(--lg)'};">Cartogramme</button><button onclick="setDashCartoMode('radar')" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:5px;border:1px solid var(--bd);cursor:pointer;background:${cartoMode==='radar'?'var(--b)':'var(--sf)'};color:${cartoMode==='radar'?'#fff':'var(--lg)'};">Radar</button><button onclick="setDashCartoMode('profil')" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:5px;border:1px solid var(--bd);cursor:pointer;background:${cartoMode==='profil'?'var(--b)':'var(--sf)'};color:${cartoMode==='profil'?'#fff':'var(--lg)'};">Profil</button></span>
+          <span class="carto-titre" style="font-family:var(--font-serif);font-weight:600;font-size:13.5px;letter-spacing:.005em;">${cartoMode==='profil' ? 'Profil de risque — nature du risque par dimension' : cartoMode==='radar' ? 'Vue radar — pays par zone et niveau de risque' : 'Carte régionale des risques — Score 0-100 par pays, regroupés par zone'}</span><span style="margin-left:auto;display:flex;gap:4px;"><button onclick="setDashCartoMode('grid')" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:5px;border:1px solid var(--bd);cursor:pointer;background:${cartoMode==='grid'?'var(--b)':'var(--sf)'};color:${cartoMode==='grid'?'#fff':'var(--lg)'};">Cartogramme</button><button onclick="setDashCartoMode('radar')" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:5px;border:1px solid var(--bd);cursor:pointer;background:${cartoMode==='radar'?'var(--b)':'var(--sf)'};color:${cartoMode==='radar'?'#fff':'var(--lg)'};">Radar</button><button onclick="setDashCartoMode('profil')" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:5px;border:1px solid var(--bd);cursor:pointer;background:${cartoMode==='profil'?'var(--b)':'var(--sf)'};color:${cartoMode==='profil'?'#fff':'var(--lg)'};">Profil</button></span>
         </div>
         ${cartoMode==='profil' ? profilView() : cartoMode==='radar' ? radarView() : cartogramme()}
       </div>
