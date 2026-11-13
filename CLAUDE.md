@@ -3609,3 +3609,47 @@ publiées par le job `firebase` au déploiement.
   constante (et les deux liens de `web/index.html`) dès qu'elle existe.
 
 Exports : 14/14 identiques avant/après (Word, PDF, PowerPoint, aperçus).
+
+---
+
+## Téléphone à texte agrandi, et une seule langue jusqu'au bout — 13/11/2026
+
+Captures de YORO (Android, 360 px, texte agrandi par le téléphone). Banc :
+Chromium à 360 px, polices × 1,6 (aucune émulation exacte du réglage Android
+n'existe ici), mesure des éléments qui sortent de l'écran.
+
+- **Barre du haut** : l'avatar du compte sortait de 14 px, la page défilait à
+  l'horizontale, le nom « SentiqS » était coupé. Sous 480 px la marque se
+  réduit à son pictogramme et l'heure disparaît (bloc « BARRE DU HAUT SUR
+  TÉLÉPHONE ÉTROIT », placé AVANT « MOBILE : LE CONTENU D'ABORD », dont le test
+  de parité lit tout jusqu'à `</style>`).
+- **Menu « Partager »** : les quatre menus de partage se plaçaient sur une
+  largeur fixe de 210 px ; avec trois identités d'envoi et un texte agrandi il
+  en mesurait 270 et sortait de 52 px (142 → 412 px sur 360). Une seule
+  fonction, `placerMenuPartage`, place le menu d'après sa largeur MESURÉE,
+  borne sa largeur et sa hauteur à l'écran ; les rangées de boutons passent à
+  la ligne.
+- **Écran de connexion** : l'instantané public est celui de la dernière
+  visite sur l'appareil. Au-delà de `FENETRE_ACTUALITE_MS`, « actus /36 h » et
+  « pays en alerte » affichent « — » et l'âge se dit en jours (« il y a
+  12 jours » au lieu de « il y a 291 h »). Les liens « Nouveau ? » et « Mot de
+  passe oublié ? » sont empilés ; la phrase d'aide n'a plus la couleur d'un
+  lien. La ligne d'accroche en anglais sous l'accroche française est
+  retirée : les deux langues s'affichaient ensemble.
+- **Titres français affichés en anglais** : la table d'interface traduit par
+  segments, et « Côte d'Ivoire : sécurité alimentaire… » devenait « Côte
+  d'Ivoire: sécurité alimentaire… », jugé « connu » parce que le nom du pays
+  avait changé. `traductionTable` refuse désormais un résultat encore dans
+  une autre langue. Audit du DOM rendu des neuf modules en anglais : 49 textes
+  français → 0 (restent des noms propres : São Tomé, ISS Africa). Deux noms
+  de source en arabe (`eanlibya_ly`, `sudantribune_sd`) passent en latin ; un
+  test refuse tout nom de source en arabe.
+- **Exports** : en français, 14/14 identiques. En anglais, ils changent, et
+  c'est voulu : un titre français non traduit y était imprimé tel quel ; il
+  porte maintenant « French text — translation unavailable right now »,
+  comme à l'écran. Avec un service de traduction joignable, le titre est
+  traduit.
+
+Reste en l'état, volontairement : le bandeau Flash info est un défilant (un
+texte coupé au bord y est normal), la barre des modules défile avec ses
+flèches.

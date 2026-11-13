@@ -723,8 +723,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px soli
 .share-trigger i{font-size:var(--fs-xs)}
 .share-menu{position:fixed;z-index:200000;min-width:190px;background:var(--w);
   border:1px solid var(--bd);border-radius:8px;box-shadow:0 8px 24px rgba(22,35,58,.18);
-  padding:5px;font-size:12px;}
-.share-fmt-row{display:flex;gap:4px;padding:2px 2px 7px;border-bottom:1px solid var(--bd);margin-bottom:4px;}
+  padding:5px;font-size:12px;overflow-y:auto;box-sizing:border-box;}
+.share-fmt-row{display:flex;flex-wrap:wrap;gap:4px;padding:2px 2px 7px;border-bottom:1px solid var(--bd);margin-bottom:4px;}
 .share-fmt{flex:1;padding:5px 3px;border:1px solid var(--bd);border-radius:5px;background:var(--sf);
   color:var(--gr);font-size:var(--fs-micro);font-weight:700;cursor:pointer;text-align:center;white-space:nowrap;}
 .share-fmt:hover{border-color:var(--b)}
@@ -1116,6 +1116,14 @@ html.force-mobile .ops-label{display:none}
 .auth-link{text-align:center;margin-top:16px;font-size:11px;color:var(--lg)}
 .auth-link span{color:var(--b);cursor:pointer}
 .auth-link span:hover{text-decoration:underline}
+/* Liens sous la carte de connexion (13/11/2026) : côte à côte, « Nouveau ?
+   Votre e-mail suffit. » se coupait mot à mot sur un téléphone à texte
+   agrandi, à côté de « Mot de passe oublié ? ». Empilés et centrés ; la phrase
+   d'aide n'est pas un lien et n'en prend plus la couleur. */
+.auth-links{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:12px}
+.auth-links .auth-link{margin-top:0}
+.auth-link .auth-hint{color:var(--lg);cursor:default}
+.auth-link .auth-hint:hover{text-decoration:none}
 
 /* ── Instantané public (preuve sociale sur l'ecran de connexion) ────────
    Lu depuis un instantane persiste localement a chaque collecte reelle
@@ -2893,6 +2901,19 @@ html.force-mobile .art-top .survtime{white-space:normal;min-width:0;max-width:10
   html.force-tablette .pb-step{display:block;line-height:1.45}
   html.force-tablette .pb-pills{margin-top:0;flex-shrink:0}
 }
+/* ═══ BARRE DU HAUT SUR TÉLÉPHONE ÉTROIT — 13/11/2026 ═══
+   Capture de YORO (texte agrandi par le téléphone, écran de 360 px) : le nom
+   « SentiqS » coupé en « Sentiq », l'avatar du compte sorti de l'écran.
+   Mesuré à 360 px, texte à 160 % : la page défilait de 14 px à l'horizontale.
+   Sous 480 px, la marque se réduit à son pictogramme (le nom reste dans le
+   titre de la page) et l'heure disparaît : langue, Actualiser, « Plus » et
+   le compte restent visibles. */
+@media (max-width:480px){
+  html:not(.force-web) .tb{padding-left:8px;padding-right:8px;gap:6px}
+  html:not(.force-web) .tb .logo-n,html:not(.force-web) .tb .logo-s{display:none}
+  html:not(.force-web) .tb-r{gap:4px}
+  html:not(.force-web) #tbTime{display:none}
+}
 /* ═══ MOBILE : LE CONTENU D'ABORD — 22/10/2026 (voir CLAUDE.md) ═══
    Capture de YORO sur téléphone (texte agrandi par le navigateur) : barre du
    haut, bandeau « Cliquez sur Actualiser », collecte, flash info, filtre pays,
@@ -3052,8 +3073,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
       </div>
     </div>
     <div style="font-size:10px;color:var(--lg);text-align:center;margin:-4px 0 14px;line-height:1.5;">
-      Plateforme d'aide à la décision pour responsables sûreté<br>
-      <span style="opacity:.8">Security intelligence platform for risk & security managers</span>
+      Plateforme d'aide à la décision pour responsables sûreté
     </div>
     <div class="auth-stats" id="authStats">
       <div class="as-item"><div class="as-n" id="asPays">54</div><div class="as-l" data-i18n="auth_stat_pays">Pays sous veille</div></div>
@@ -3093,8 +3113,8 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
       </button>
       <div class="auth-err" id="loginErr"></div>
       <div class="auth-alt"><span onclick="basculerModeConnexion()" id="modeConnexionLien" role="button" tabindex="0" data-i18n="otp_use_password">Utiliser un mot de passe</span></div>
-      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-        <div class="auth-link" style="flex:1"><span data-i18n="login_first_time">Nouveau ? Votre e-mail suffit.</span> <span onclick="showRegisterForm()" data-i18n="login_request_access" role="button" tabindex="0">Créer un compte avec mot de passe</span></div>
+      <div class="auth-links">
+        <div class="auth-link"><span class="auth-hint" data-i18n="login_first_time">Nouveau ? Votre e-mail suffit.</span> <span onclick="showRegisterForm()" data-i18n="login_request_access" role="button" tabindex="0">Créer un compte avec mot de passe</span></div>
         <div class="auth-link"><span onclick="showForgotPasswordForm()" data-i18n="login_reset" role="button" tabindex="0">Mot de passe oublié ?</span></div>
       </div>
     </div>
@@ -5646,7 +5666,7 @@ const SRCS=[
  {id:'comoresinfos_km',n:'Comores Infos',col:'#4B5563',cy:'KM',sc:'national',cat:'securite',score:68,url:'https://comoresinfos.net/',rss:'https://www.comoresinfos.net/feed/',rss_method:'RSS natif'},
  {id:'gnnliberia_lr',n:'Global News Network Liberia',col:'#4B5563',cy:'LR',sc:'national',cat:'securite',score:68,url:'https://gnnliberia.com/',rss:'https://gnnliberia.com/feed/',rss_method:'RSS natif'},
  {id:'ar_ly',n:'ar.libyaobserver.ly',col:'#4B5563',cy:'LY',sc:'national',cat:'securite',score:68,url:'https://ar.libyaobserver.ly/',rss:'https://ar.libyaobserver.ly/rss.xml',rss_method:'RSS natif'},
- {id:'eanlibya_ly',n:'عين ليبيا',col:'#4B5563',cy:'LY',sc:'national',cat:'securite',score:68,url:'https://eanlibya.com/',rss:'https://www.eanlibya.com/feed/',rss_method:'RSS natif'},
+ {id:'eanlibya_ly',n:'Ein Libya',col:'#4B5563',cy:'LY',sc:'national',cat:'securite',score:68,url:'https://eanlibya.com/',rss:'https://www.eanlibya.com/feed/',rss_method:'RSS natif'},
  {id:'fr_ma',n:'Hespress Français - Actualités du Maroc',col:'#4B5563',cy:'MA',sc:'national',cat:'securite',score:68,url:'https://fr.hespress.com/',rss:'https://fr.hespress.com/feed/',rss_method:'RSS natif'},
  {id:'lebrief_ma',n:'Lebrief',col:'#4B5563',cy:'MA',sc:'national',cat:'securite',score:68,url:'https://lebrief.ma/',rss:'https://www.lebrief.ma/feed/',rss_method:'RSS natif'},
  {id:'yabiladi_ma',n:'Yabiladi.com',col:'#4B5563',cy:'MA',sc:'national',cat:'securite',score:68,url:'https://yabiladi.com/',rss:'https://www.yabiladi.com/rss',rss_method:'RSS natif'},
@@ -5663,7 +5683,7 @@ const SRCS=[
  {id:'thefact_ng',n:'thefact.ng',col:'#4B5563',cy:'NG',sc:'national',cat:'securite',score:68,url:'https://thefact.ng/',rss:'https://thefact.ng/feed/',rss_method:'RSS natif'},
  {id:'thesun_ng',n:'The Sun Nigeria',col:'#4B5563',cy:'NG',sc:'national',cat:'securite',score:68,url:'https://thesun.ng/',rss:'https://thesun.ng/feed/',rss_method:'RSS natif'},
  {id:'von_ng',n:'von.gov.ng',col:'#4B5563',cy:'NG',sc:'national',cat:'securite',score:68,url:'https://von.gov.ng/',rss:'https://von.gov.ng/feed/',rss_method:'RSS natif'},
- {id:'sudantribune_sd',n:'سودان تربيون',col:'#4B5563',cy:'SD',sc:'national',cat:'securite',score:68,url:'https://sudantribune.net/',rss:'https://sudantribune.net/feed',rss_method:'RSS natif'},
+ {id:'sudantribune_sd',n:'Sudan Tribune (AR)',col:'#4B5563',cy:'SD',sc:'national',cat:'securite',score:68,url:'https://sudantribune.net/',rss:'https://sudantribune.net/feed',rss_method:'RSS natif'},
  {id:'thesierraleonetele_sl',n:'The Sierra Leone Telegraph',col:'#4B5563',cy:'SL',sc:'national',cat:'securite',score:68,url:'https://thesierraleonetelegraph.com/',rss:'https://www.thesierraleonetelegraph.com/feed/',rss_method:'RSS natif'},
  {id:'senenews_sn',n:'SeneNews',col:'#4B5563',cy:'SN',sc:'national',cat:'securite',score:68,url:'https://senenews.com/',rss:'https://www.senenews.com/feed',rss_method:'RSS natif'},
  {id:'wiwsport_sn',n:'wiwsport',col:'#4B5563',cy:'SN',sc:'national',cat:'securite',score:68,url:'https://wiwsport.com/',rss:'https://wiwsport.com/feed/',rss_method:'RSS natif'},
@@ -6012,7 +6032,7 @@ const I18N = {
     register_code_sent:'Votre code d\'accès a été envoyé à :', register_code_manual:"Envoi automatique indisponible — notez votre code d'accès :",
     register_go_login:'Aller à la connexion',
     auth_sync_none:'Veille pas encore activée sur cet appareil', auth_sync_now:"à l'instant",
-    auth_sync_min:'il y a {n} min', auth_sync_hour:'il y a {n} h', auth_sync_last:'Dernière synchronisation : ',
+    auth_sync_min:'il y a {n} min', auth_sync_hour:'il y a {n} h', auth_sync_day:'il y a {n} jours', auth_sync_last:'Dernière synchronisation : ',
   },
   en: {
     ph_votre_email_com:'your@email.com',
@@ -6169,7 +6189,7 @@ const I18N = {
     register_code_sent:'Your access code has been sent to:', register_code_manual:'Automatic sending unavailable — note your access code:',
     register_go_login:'Go to login',
     auth_sync_none:'Monitoring not yet activated on this device', auth_sync_now:'just now',
-    auth_sync_min:'{n} min ago', auth_sync_hour:'{n} h ago', auth_sync_last:'Last sync: ',
+    auth_sync_min:'{n} min ago', auth_sync_hour:'{n} h ago', auth_sync_day:'{n} days ago', auth_sync_last:'Last sync: ',
   },
 };
 function t(cle) { return (I18N[LANG] && I18N[LANG][cle]) || I18N.fr[cle] || cle; }
@@ -6536,9 +6556,18 @@ function texteNonTraduit(texte, enCours) {
 // La table FR → EN de l'interface (web/js/dico-en.js) couvre les donnees
 // saisies en francais (agenda, incidents, facteurs) : en anglais, elle passe
 // avant le traducteur en ligne et ne depend d'aucun service.
+// Une traduction PARTIELLE ne compte pas (13/11/2026) : la table traduit par
+// segments, et « Côte d'Ivoire : sécurité alimentaire et sécurisation
+// foncière… » ressortait « Côte d'Ivoire: sécurité alimentaire… », jugé
+// « connu » parce que le nom du pays avait changé. Le titre français
+// s'affichait alors tel quel en anglais, dans le Flux, la Recherche, la
+// Synthèse et les faits du jour. Si le résultat est encore dans une autre
+// langue, la table n'a pas traduit : le traducteur prend la main, ou la
+// mention « traduction indisponible ».
 function traductionTable(texte) {
   if (LANG !== 'en' || typeof SentiqLangue === 'undefined' || !SentiqLangue.connu(texte)) return null;
-  return SentiqLangue.traduire(texte);
+  const r = SentiqLangue.traduire(texte);
+  return texteEtranger(r) ? null : r;
 }
 // Traduction echouee pour de bon : tous les moteurs ont ete essayes.
 function _trEchec(texte) {
@@ -12645,6 +12674,24 @@ async function partagerActuNatif(id, format, identiteIdx) {
 //  (repositionne dynamiquement pres du bouton clique), ferme au clic
 //  exterieur, a l'echap, ou apres selection d'un canal.
 // ═══════════════════════════════════════════════════════════════════════════
+// placerMenuPartage(menu, btn) : sous le bouton, ou au-dessus s'il manque
+// la place, sans jamais sortir de l'ecran. La largeur prise est celle du menu
+// MESURE, plus une constante de 210 px : sur un telephone dont le texte est
+// agrandi, le menu des actus du Flux en mesurait plus de 300 et sortait a
+// droite, identites d'envoi coupees (capture de YORO, 13/11/2026).
+function placerMenuPartage(menu, btn) {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  menu.style.maxWidth = (vw - 16) + 'px';
+  menu.style.maxHeight = (vh - 16) + 'px';
+  const rect = (btn && btn.getBoundingClientRect) ? btn.getBoundingClientRect() : { left: 20, bottom: 20, top: 20 };
+  const mw = menu.offsetWidth || 210, mh = menu.offsetHeight || 230;
+  let left = Math.min(rect.left, vw - mw - 8);
+  let top = rect.bottom + 4;
+  if (top + mh > vh) top = rect.top - mh - 4;
+  if (top < 8) top = Math.max(8, vh - mh - 8);
+  menu.style.left = Math.max(8, left) + 'px';
+  menu.style.top = Math.max(8, top) + 'px';
+}
 function toggleShareMenu(ev, id) {
   ev.stopPropagation();
   const menuExistant = document.getElementById('shareMenuGlobal');
@@ -12704,13 +12751,7 @@ function toggleShareMenu(ev, id) {
 
   // Positionnement sous le bouton (position:fixed -> coordonnees viewport,
   // pas besoin d'ajouter le scroll), ajuste pour ne jamais deborder de l'ecran.
-  const rect = btn.getBoundingClientRect();
-  const mw = 210, mh = menu.offsetHeight || 230;
-  let left = Math.min(rect.left, window.innerWidth - mw - 8);
-  let top = rect.bottom + 4;
-  if (top + mh > window.innerHeight) top = rect.top - mh - 4;
-  menu.style.left = Math.max(8, left) + 'px';
-  menu.style.top = Math.max(8, top) + 'px';
+  placerMenuPartage(menu, btn);
 
   btn.classList.add('on');
   setTimeout(() => {
@@ -12942,13 +12983,7 @@ function toggleShareMenuAlerte(ev, cy) {
     '<div class="share-mi" onclick="partagerAlerteNatif(\''+cy+'\');closeShareMenu()"><i class="ti ti-share-2" style="color:var(--gr)"></i>'+(LANG==='en'?'Other apps…':'Autres applications…')+quotaTag('natif')+'</div>';
   document.body.appendChild(menu);
 
-  const rect = btn.getBoundingClientRect();
-  const mw = 210, mh = menu.offsetHeight || 200;
-  let left = Math.min(rect.left, window.innerWidth - mw - 8);
-  let top = rect.bottom + 4;
-  if (top + mh > window.innerHeight) top = rect.top - mh - 4;
-  menu.style.left = Math.max(8, left) + 'px';
-  menu.style.top = Math.max(8, top) + 'px';
+  placerMenuPartage(menu, btn);
 
   btn.classList.add('on');
   setTimeout(() => {
@@ -21623,14 +21658,22 @@ function renderAuthStats() {
         elAl = document.getElementById('asAlertes'), elSync = document.getElementById('authStatsSync');
   if (!elP) return;
   const snap = lireInstantanePublic();
+  // L'instantane est celui de la DERNIERE visite sur cet appareil. Capture de
+  // YORO (13/11/2026) : « 882 actus /36H, 34 pays en alerte, il y a 291 h »,
+  // des chiffres vieux de douze jours presentes comme actuels. Au-dela de la
+  // fenetre d'actualite, les compteurs du moment s'effacent et l'age se dit
+  // en jours.
+  const perime = !!snap && (Date.now() - snap.ts) > FENETRE_ACTUALITE_MS;
   elP.textContent = snap ? snap.pays : (typeof PAYS_INFO !== 'undefined' ? Object.keys(PAYS_INFO).length : 54);
-  if (elA) elA.textContent = snap ? snap.actus24h : '—';
-  if (elAl) elAl.textContent = snap ? snap.paysAlerte : '—';
+  if (elA) elA.textContent = snap && !perime ? snap.actus24h : '—';
+  if (elAl) elAl.textContent = snap && !perime ? snap.paysAlerte : '—';
   if (elSync) {
     if (!snap) { elSync.textContent = t('auth_sync_none'); }
     else {
       const minAgo = Math.round((Date.now() - snap.ts) / 60000);
-      const txt = minAgo < 1 ? t('auth_sync_now') : minAgo < 60 ? t('auth_sync_min').replace('{n}', minAgo) : t('auth_sync_hour').replace('{n}', Math.round(minAgo/60));
+      const txt = minAgo < 1 ? t('auth_sync_now') : minAgo < 60 ? t('auth_sync_min').replace('{n}', minAgo)
+        : minAgo < 48 * 60 ? t('auth_sync_hour').replace('{n}', Math.round(minAgo/60))
+        : t('auth_sync_day').replace('{n}', Math.floor(minAgo / 1440));
       elSync.textContent = t('auth_sync_last') + txt;
     }
   }
@@ -22038,13 +22081,7 @@ function toggleShareMenuDocument(ev) {
     '<div class="share-mi" onclick="_docCopier();closeShareMenu()"><i class="ti ti-copy" style="color:var(--gr)"></i>'+(LANG==='en'?'Copy message':'Copier le message')+'</div>';
   document.body.appendChild(menu);
 
-  const rect = btn.getBoundingClientRect ? btn.getBoundingClientRect() : {left:20, bottom:20, top:20};
-  const mw = 210, mh = menu.offsetHeight || 180;
-  let left = Math.min(rect.left, window.innerWidth - mw - 8);
-  let top = rect.bottom + 4;
-  if (top + mh > window.innerHeight) top = rect.top - mh - 4;
-  menu.style.left = Math.max(8, left) + 'px';
-  menu.style.top = Math.max(8, top) + 'px';
+  placerMenuPartage(menu, btn);
 
   setTimeout(() => {
     document.addEventListener('click', _closeShareMenuOnOutsideClick);
@@ -22281,13 +22318,7 @@ function toggleShareMenuRapport(ev, type) {
     '<div class="share-mi" onclick="envoyerRapportCanal(\''+type+'\',\'natif\',shareFormatCourant(),shareIdentiteCourante());closeShareMenu()"><i class="ti ti-share-2" style="color:var(--gr)"></i>'+(LANG==='en'?'Other apps…':'Autres applications…')+'</div>';
   document.body.appendChild(menu);
 
-  const rect = btn.getBoundingClientRect();
-  const mw = 210, mh = menu.offsetHeight || 260;
-  let left = Math.min(rect.left, window.innerWidth - mw - 8);
-  let top = rect.bottom + 4;
-  if (top + mh > window.innerHeight) top = rect.top - mh - 4;
-  menu.style.left = Math.max(8, left) + 'px';
-  menu.style.top = Math.max(8, top) + 'px';
+  placerMenuPartage(menu, btn);
 
   btn.classList.add('on');
   setTimeout(() => {
