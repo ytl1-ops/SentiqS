@@ -1,0 +1,17 @@
+{
+ "pays": {
+  "CI": {
+   "nom": "Côte d'Ivoire",
+   "niveau": "jaune",
+   "libelle": "JAUNE",
+   "sous": "Modéré",
+   "confiance": "faible",
+   "faitsNotables": 1,
+   "confirmes": 1,
+   "muet": false,
+   "jour": "2026-11-13",
+   "genere": "2026-11-13T06:28:00.000Z"
+  }
+ },
+ "genere": "2026-11-13T06:28:00.000Z"
+}

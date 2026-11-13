@@ -559,28 +559,53 @@ function ecrireResumeActions(md) {
         fs.writeFileSync(cheminEtat,
           JSON.stringify(alerteSortante.etatSuivant(etat, inst), null, 1) + '\n');
 
-        // ── BULLETIN QUOTIDIEN DES PAYS PILOTES ─────────────────────────
+        // ── BULLETIN QUOTIDIEN DES 54 PAYS ──────────────────────────────
         // Decision du 20/10/2026 : un bulletin par jour pour le responsable
-        // surete, Cote d'Ivoire d'abord. Ecrit par le premier passage a
-        // partir de 6 h GMT, sous web/bulletins/ (servi par Pages). Voir
+        // surete, Cote d'Ivoire d'abord. Etendu aux 54 pays le 13/11/2026
+        // (demande de YORO). Ecrit par le premier passage a partir de 6 h
+        // GMT, sous web/bulletins/ (servi par Pages), avec un index des 54.
+        // Le pays pilote est annonce seul ; les autres en une ligne. Voir
         // scripts/lib/bulletin.js.
-        for (const cy of Object.keys(bulletin.PAYS_BULLETIN)) {
-          try {
-            if (!bulletin.doitEcrire(RACINE_BULLETINS, cy, jour, Date.now())) continue;
-            const donnees = await page.evaluate((c) => (typeof donneesBulletinPays === 'function') ? donneesBulletinPays(c) : null, cy);
-            if (!donnees) { console.warn('  Bulletin ' + cy + ' : la page ne fournit pas donneesBulletinPays.'); continue; }
-            const serie = historique.construireSerie(historique.lireSerie(RACINE_HISTORIQUE));
-            bulletin.ecrire(RACINE_BULLETINS, donnees, { jour, genereMs: Date.now(), serie });
-            const annonce = bulletin.messageAnnonce(donnees, jour);
-            if (!process.env.WEBHOOK_ALERTES) {
-              console.log('  Bulletin ' + cy + ' ecrit — aucun canal configure. Message qui serait parti :');
-              annonce.text.split('\n').forEach((l) => console.log('    | ' + l));
-            } else {
-              const envoiB = await alerteSortante.envoyer(process.env.WEBHOOK_ALERTES, annonce);
-              console.log('  Bulletin ' + cy + ' ecrit et ' + (envoiB.ok ? 'annonce.' : 'NON annonce (' + envoiB.raison + ').'));
+        {
+          const serie = historique.construireSerie(historique.lireSerie(RACINE_HISTORIQUE));
+          const resumesAutres = [];
+          let ecrits = 0;
+          for (const cy of bulletin.paysAEcrire()) {
+            try {
+              if (!bulletin.doitEcrire(RACINE_BULLETINS, cy, jour, Date.now())) continue;
+              const donnees = await page.evaluate((c) => (typeof donneesBulletinPays === 'function') ? donneesBulletinPays(c) : null, cy);
+              if (!donnees) { console.warn('  Bulletin ' + cy + ' : la page ne fournit pas donneesBulletinPays.'); continue; }
+              const genereMs = Date.now();
+              bulletin.ecrire(RACINE_BULLETINS, donnees, { jour, genereMs, serie });
+              bulletin.mettreAJourIndex(RACINE_BULLETINS, donnees, jour, genereMs);
+              ecrits++;
+              if (!bulletin.PAYS_PILOTES.includes(cy)) { resumesAutres.push(bulletin.resumeBulletin(donnees, jour, genereMs)); continue; }
+              const annonce = bulletin.messageAnnonce(donnees, jour);
+              if (!process.env.WEBHOOK_ALERTES) {
+                console.log('  Bulletin ' + cy + ' ecrit — aucun canal configure. Message qui serait parti :');
+                annonce.text.split('\n').forEach((l) => console.log('    | ' + l));
+              } else {
+                const envoiB = await alerteSortante.envoyer(process.env.WEBHOOK_ALERTES, annonce);
+                console.log('  Bulletin ' + cy + ' ecrit et ' + (envoiB.ok ? 'annonce.' : 'NON annonce (' + envoiB.raison + ').'));
+              }
+            } catch (e) {
+              console.warn('  Bulletin ' + cy + ' : non ecrit (' + ((e && e.message) || e) + ')');
             }
-          } catch (e) {
-            console.warn('  Bulletin ' + cy + ' : non ecrit (' + ((e && e.message) || e) + ')');
+          }
+          if (ecrits) console.log('  Bulletins : ' + ecrits + ' ecrit(s) ce passage.');
+          const resume = bulletin.messageResume(resumesAutres, jour);
+          if (resume) {
+            try {
+              if (!process.env.WEBHOOK_ALERTES) {
+                console.log('  Bulletins pays — aucun canal configure. Message qui serait parti :');
+                resume.text.split('\n').forEach((l) => console.log('    | ' + l));
+              } else {
+                const envoiR = await alerteSortante.envoyer(process.env.WEBHOOK_ALERTES, resume);
+                console.log('  Bulletins pays ' + (envoiR.ok ? 'annonces.' : 'NON annonces (' + envoiR.raison + ').'));
+              }
+            } catch (e) {
+              console.warn('  Bulletins pays : annonce en echec (' + ((e && e.message) || e) + ')');
+            }
           }
         }
 

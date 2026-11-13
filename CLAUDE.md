@@ -3316,3 +3316,33 @@ travail**.
 
 `scripts/test/validation-analyste.test.js` (16 tests, vus échouer sur l'ancien
 code).
+
+---
+
+## Un bulletin pour chacun des 54 pays — 13/11/2026
+
+Demande de YORO : « que chaque pays autre que la Côte d'Ivoire ait des
+rapports également ». Le bulletin quotidien (`scripts/lib/bulletin.js`) ne
+couvrait que le pays pilote ; il couvre désormais les 54 pays suivis par la
+page, même forme (cinq blocs, cotation, « ce que nous ne savons pas »), même
+règle « un par jour à partir de 6 h GMT ».
+
+- **Avis officiels** : une table `CONSEILS` donne, pour chaque pays, le nom
+  tel que l'écrivent le FCDO, le Département d'État et France Diplomatie (ils
+  diffèrent : `congo` / `republic-of-the-congo`, `cape-verde` / `cabo-verde`).
+  Écrite sans réseau : `scripts/verifier-conseils-voyageurs.js` (workflow
+  `conseils-voyageurs.yml`, informatif) dit lien par lien ce qui répond.
+- **Index** : `web/bulletins/index.json` garde le résumé du dernier bulletin
+  de chaque pays, `index.html` le tableau des 54 (pilote, puis du plus grave
+  au plus calme ; une date en couleur = bulletin pas réécrit ce jour-là).
+  Le module Rapports lit l'index et propose le bulletin de chaque pays.
+  **L'index doit exister dans le dépôt** : sans lui la page fait un 404 et le
+  test de fumée échoue.
+- **Le canal** : le pilote (`PAYS_PILOTES`) garde son annonce ; les 53 autres
+  partent en **une** ligne par jour, qui nomme les pays marron ou rouge. 54
+  messages chaque matin feraient un canal que personne ne lit.
+- **Poids** : ~5 Ko par bulletin, ~270 Ko par jour dans le dépôt.
+- La Présentation 1 (rapport mensuel) n'a pas changé de périmètre :
+  Côte d'Ivoire et neuf pays régionaux.
+
+`scripts/test/bulletins-pays.test.js` (8 tests, vus échouer sur l'ancien code).

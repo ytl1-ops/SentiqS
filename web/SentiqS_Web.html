@@ -3710,6 +3710,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
             </div>
             <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Produits par la collecte planifiée, sans action de votre part. La Présentation 1, rapport mensuel de sûreté (Côte d'Ivoire et dynamiques régionales) : PowerPoint et Word modifiables, et PDF. Elle est mise à jour chaque jour sur la période du mois en cours, puis finalisée le lendemain de la fin du mois ; elle peut aussi être relancée à la demande depuis GitHub Actions (« Collecte planifiée », case rapport_mensuel).</div>
             <div id="rpAutoListe" style="font-size:11px;color:var(--t)">Chargement…</div>
+            <div id="rpBulletins" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--bd);font-size:11px;color:var(--t)">Chargement des bulletins pays…</div>
           </div>
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
@@ -22754,8 +22755,62 @@ function chargerRapportsAuto(){
     })
     .catch(function(e){ el.textContent = 'Liste des rapports indisponible (' + ((e && e.message) || e) + ').'; });
 }
+// Bulletins quotidiens des 54 pays (web/bulletins/index.json, écrit par le
+// job). Jusqu'au 13/11/2026 seule la Côte d'Ivoire avait le sien ; YORO a
+// demandé que chaque pays ait ses rapports. Les éléments sont créés ici (et
+// non dans le HTML statique) parce que la liste vient de l'index : un pays
+// sans bulletin publié n'est pas proposé.
+function chargerBulletinsPays(){
+  var el = document.getElementById('rpBulletins');
+  if (!el) return;
+  fetch('bulletins/index.json', { cache: 'no-cache' })
+    .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function(d){
+      var pays = (d && d.pays) || {};
+      var codes = Object.keys(pays).sort(function(a, b){
+        return (a === 'CI' ? -1 : b === 'CI' ? 1 : 0) || String(pays[a].nom).localeCompare(String(pays[b].nom), 'fr');
+      });
+      if (!codes.length) { el.textContent = "Aucun bulletin pays n'a encore été publié. Ils le seront au prochain passage de la collecte après 6 h GMT."; return; }
+      el.innerHTML = '';
+      var titre = document.createElement('div');
+      titre.style.cssText = 'font-weight:700;margin-bottom:4px';
+      titre.textContent = 'Bulletins quotidiens par pays (' + codes.length + ')';
+      el.appendChild(titre);
+      var note = document.createElement('div');
+      note.style.cssText = 'font-size:10px;color:var(--lg);margin-bottom:8px';
+      note.textContent = 'Un bulletin par pays et par jour : niveau, confiance, faits cotés, ce qui porte le niveau, ce que nous ne savons pas, conseils officiels aux voyageurs. Page imprimable en PDF depuis le navigateur.';
+      el.appendChild(note);
+      var ligne = document.createElement('div');
+      ligne.style.cssText = 'display:flex;flex-wrap:wrap;align-items:center;gap:8px';
+      var sel = document.createElement('select');
+      sel.id = 'rpBulletinPays';
+      sel.className = 'idmod-sel';
+      sel.setAttribute('aria-label', 'Pays du bulletin');
+      codes.forEach(function(cy){
+        var o = document.createElement('option');
+        o.value = cy;
+        var p = pays[cy];
+        o.textContent = p.nom + ' — ' + (p.libelle || '') + (p.jour ? ' — ' + String(p.jour).split('-').reverse().join('/') : '');
+        sel.appendChild(o);
+      });
+      var lien = document.createElement('a');
+      lien.target = '_blank'; lien.rel = 'noopener';
+      lien.style.cssText = 'display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border:1px solid var(--bd);border-radius:5px;color:var(--b);font-weight:700;text-decoration:none;min-height:24px';
+      lien.textContent = 'Ouvrir le bulletin';
+      var maj = function(){ lien.href = 'bulletins/' + encodeURIComponent(sel.value) + '/dernier.html'; };
+      sel.addEventListener('change', maj); maj();
+      var tous = document.createElement('a');
+      tous.href = 'bulletins/index.html'; tous.target = '_blank'; tous.rel = 'noopener';
+      tous.style.cssText = 'color:var(--b);font-weight:700;min-height:24px;display:inline-flex;align-items:center';
+      tous.textContent = 'Tableau des 54 pays';
+      ligne.appendChild(sel); ligne.appendChild(lien); ligne.appendChild(tous);
+      el.appendChild(ligne);
+    })
+    .catch(function(e){ el.textContent = 'Liste des bulletins pays indisponible (' + ((e && e.message) || e) + ').'; });
+}
 function updateDLCounts(){
   chargerRapportsAuto();
+  chargerBulletinsPays();
   const n=getExportData().length;
   const el=document.getElementById('dlFluxCount');
   if(el){
