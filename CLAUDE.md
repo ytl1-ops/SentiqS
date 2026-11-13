@@ -3369,6 +3369,17 @@ la pastille retombe dessous. Mesure : bandeau 76 → 45 px, première carte du
 Flux 31 px plus haut ; téléphone et bureau inchangés. Exports : 14/14
 identiques.
 
+Quatrième incrément, la page d'accueil (`web/index.html`), **hors du héros**
+(texte sur photo, contraste mesuré au pixel : rien n'y bouge). À 390 px, les
+cartes de corrélation collaient le thème et son compte (« #inflation12 pays · »)
+et cassaient le compte au milieu : il passe sous le thème. Les pastilles des
+maquettes ont une largeur fixe, les titres s'alignent. Sur téléphone, 220 px
+de vide entre deux sections deviennent 128 (page 11 257 → 10 847 px).
+**Piège** : un premier jet mettait le compte en `nowrap` ; en anglais
+« 12 countries · 20 art. » est plus large que la carte et
+`verifier-pages-hors-appli.js` a vu la page déborder à 390 px. Le contrôle
+mesure les deux langues : le lancer avant de croire une règle de texte sûre.
+
 ---
 
 ## Prêt à vendre : forfait verrouillé, actus réservées aux comptes, droits — 13/11/2026

@@ -382,6 +382,18 @@ section p a{padding:5px 0}
   .nav-brand{gap:8px}
 }
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+/* ── CHANTIER VISUEL (chantier-visuel-2026-11-13) ─────────────────────────
+   Hors du héros (texte sur photo, contraste mesuré au pixel) : rien n'y bouge.
+   · cartes de corrélation : à 390 px le thème et son compte se collaient
+     (« #inflation12 pays · ») et le compte se cassait au milieu ; il passe
+     sous le thème. Pas de nowrap : en anglais « 12 countries · 20 art. »
+     est plus large que la carte et faisait déborder la page à 390 px ;
+   · pastilles des maquettes à largeur fixe : les titres s'alignent au lieu
+     de commencer à une abscisse différente à chaque ligne ;
+   · sur téléphone, 220 px de vide entre deux sections (110 + 110) : 64 + 64. */
+.mock-card-hd{flex-wrap:wrap;gap:2px 8px}
+.mock-pill{min-width:76px;text-align:center}
+@media (max-width:760px){section{padding:64px 0}}
 /* Sélecteur FR/EN (21/10/2026) : même choix mémorisé que l'appli. */
 .lang-switch{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;flex-shrink:0}
 .lang-btn{background:transparent;border:0;color:var(--ink2);font-size:11px;font-weight:700;letter-spacing:.06em;
