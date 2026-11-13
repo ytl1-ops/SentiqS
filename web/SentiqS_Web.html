@@ -8179,11 +8179,22 @@ function neutraliserTournuresJudiciaires(t) {
   return out;
 }
 
+// FRAPPE_FIGUREE : « frapper » au sens de toucher, affecter. Cas réel du
+// 13/11/2026 : « Outlook, Teams, Copilot : comprendre la panne qui frappe
+// Microsoft » (Maurice) sortait CRITIQUE sur le seul mot « frappe », et
+// s'affichait en tête de « À la une ». Le motif ne retire QUE le verbe, et
+// seulement quand son sujet est une panne, une crise ou un fléau : le sujet
+// garde son propre poids, et « une frappe de drone » n'est jamais touchée.
+const FRAPPE_FIGUREE = /\b(pannes?|crises?|secheresses?|inflation|penuries?|canicules?|greves?|cherte|epidemies?|famines?|coupures?|delestages?|intemperies|inondations?)\s+qui\s+frapp\w*/g;
+function neutraliserFrappeFiguree(t) {
+  return t.replace(FRAPPE_FIGUREE, '$1 qui ');
+}
+
 // neutraliserExpressions(t) : retire les expressions ci-dessus du texte avant
 // tout calcul de mots-cles securitaires. Renvoie le texte nettoye (les mots
 // composant l'expression disparaissent donc du scan, pas seulement leur sens).
 function neutraliserExpressions(t) {
-  let out = neutraliserTournuresJudiciaires(t);
+  let out = neutraliserFrappeFiguree(neutraliserTournuresJudiciaires(t));
   for (const expr of EXPRESSIONS_NON_SECURITAIRES) {
     if (out.includes(expr)) out = out.split(expr).join(' ');
   }
