@@ -3316,3 +3316,27 @@ travail**.
 
 `scripts/test/validation-analyste.test.js` (16 tests, vus échouer sur l'ancien
 code).
+## Chantier visuel du 13/11/2026 — l'écran seulement, les exports à l'identique
+
+Demande de YORO : un rendu digne d'un outil pour experts, sans changer un
+chiffre, et **sans toucher aux synthèses générées à la demande**. Règle de ce
+chantier : les générateurs (Word, PDF, PowerPoint, aperçu imprimable, bulletin,
+rapport mensuel) et leur mise en page validée ne bougent pas.
+
+Premier incrément, mesuré sur le cache publié du jour (2 253 articles) :
+`.kpi-grid` passe d'`auto-fill` à `auto-fit` (les sept indicateurs laissaient
+une colonne vide à droite sur bureau ; la septième tuile, seule sur sa ligne
+sur téléphone, prend toute la largeur) ; l'en-tête de la carte régionale
+(`.carto-hd`) passe à la ligne au lieu de tasser son titre sur quatre lignes.
+Bloc CSS « CHANTIER VISUEL », placé **avant** le bloc « MOBILE : LE CONTENU
+D'ABORD » : le test de parité de ce bloc lit tout jusqu'à `</style>`.
+
+**Preuve que les exports ne bougent pas.** Les 14 documents (Flux, Synthèse,
+Alertes, Rapport complet × Word/PDF/PowerPoint, plus les deux aperçus HTML)
+sont générés par la vraie page sur le même cache, à heure figée
+(`page.clock.setFixedTime`), avant et après, puis comparés. Deux sources de
+bruit à neutraliser, sinon tout paraît « différent » : `docx` tire au hasard
+les identifiants de relation (`rId` + 20 caractères, tirets et soulignés
+compris), et `pdf-lib` réordonne ses objets — les PDF se comparent sur le texte
+(`pdftotext`) et les pages rendues (`pdftoppm`), pas à l'octet. Résultat :
+14/14 identiques.
