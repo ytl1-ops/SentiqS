@@ -1317,6 +1317,17 @@ html.force-mobile .ops-label{display:none}
 .paymethod-card .tgl{margin-top:2px}
 .paymethod-card .pm-detail{width:100%;padding:5px 7px;border:1px solid var(--bd);border-radius:5px;
   font-size:10.5px;font-family:inherit;color:var(--t);background:var(--w);text-align:center}
+/* Numéros affichés au client dans « Déclarer un paiement » (13/11/2026) */
+.pd-montant{font-size:12px;color:var(--t);margin:0 0 6px}
+.pd-moyens{list-style:none;margin:0 0 12px;padding:0;border:1px solid var(--bd);border-radius:8px}
+.pd-moyens li{display:flex;align-items:center;gap:8px;padding:8px 10px;font-size:12px;color:var(--t)}
+.pd-moyens li+li{border-top:1px solid var(--bd)}
+.pd-moyens i{font-size:16px;color:var(--t2)}
+.pd-moyen-nom{flex:1;font-weight:600}
+.pd-moyen-num{font-family:var(--font-mono,monospace);font-weight:700;font-size:13px;user-select:all}
+.pd-moyens-vide{font-size:12px;color:var(--t2);margin:0 0 12px;line-height:1.5}
+.pd-mes-hd{font-size:var(--fs-micro);text-transform:uppercase;letter-spacing:.06em;color:var(--t2);margin:14px 0 6px}
+.pd-mes-ligne{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11.5px;color:var(--t);padding:4px 0}
 /* Reclamations */
 .bs-nouveau{background:rgba(138,93,26,.12);color:var(--b);border:1px solid rgba(138,93,26,.25)}
 .bs-encours{background:rgba(202,138,4,.14);color:var(--j-txt);border:1px solid rgba(202,138,4,.28)}
@@ -3272,18 +3283,20 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
     </div>
     <div class="admin-sec">
       <div style="font-size:11px;color:var(--t2);margin-bottom:10px;line-height:1.6">
-        Transférez d'abord le montant vers l'un des moyens de paiement indiqués dans Paramètres, puis renseignez ici
-        la référence de transaction fournie par l'opérateur (SMS de confirmation). Un administrateur vérifiera le
-        paiement avant d'activer votre abonnement — vous recevrez votre code d'accès par email.
+        Transférez d'abord le montant vers l'un des numéros ci-dessous, puis renseignez ici la référence de
+        transaction fournie par l'opérateur (SMS de confirmation). Un administrateur vérifiera le paiement avant
+        d'activer votre abonnement.
       </div>
+      <div id="pdMoyens" aria-live="polite"></div>
       <div class="user-form" style="flex-direction:column;align-items:stretch">
         <select id="pdForfait" aria-label="Forfait" style="padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--w);color:var(--t);font-size:13px;font-family:inherit"></select>
         <select id="pdMoyen" aria-label="Moyen de paiement" style="padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--w);color:var(--t);font-size:13px;font-family:inherit"></select>
         <input type="text" id="pdReference" data-i18n-ph="ph_reference_de_transaction_sms_de_confirma" placeholder="Référence de transaction (SMS de confirmation)">
         <textarea id="pdNote" data-i18n-ph="ph_note_complementaire_optionnel" placeholder="Note complémentaire (optionnel)" rows="2" style="padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--w);color:var(--t);font-size:13px;font-family:inherit;resize:vertical"></textarea>
-        <button onclick="submitPaiementDeclare()"><i class="ti ti-send"></i> <span data-i18n="btn_declarer_le_paiement">Déclarer le paiement</span></button>
+        <button id="pdEnvoyer" onclick="submitPaiementDeclare()"><i class="ti ti-send"></i> <span data-i18n="btn_declarer_le_paiement">Déclarer le paiement</span></button>
       </div>
       <div class="admin-msg" id="pdMsg"></div>
+      <div id="pdMesPaiements"></div>
     </div>
   </div>
 </div>
@@ -4613,10 +4626,9 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
             </div>
             <div class="pm-sec-body" style="padding:14px 16px">
               <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
-                L'application étant 100% statique (sans serveur), les moyens ci-dessous mènent à une confirmation
-                manuelle par l'administrateur : le client transfère vers le numéro/RIB indiqué ici, puis déclare son
-                paiement depuis son menu profil (référence de transaction à l'appui) — voir la file de vérification
-                ci-dessous.
+                Les numéros et RIB enregistrés ici sont affichés au client au moment de payer (menu profil →
+                « Déclarer un paiement »). Il transfère, puis déclare la référence de transaction ; la confirmation
+                reste manuelle — voir la file de vérification ci-dessous. Un moyen actif sans numéro n'est pas proposé.
               </div>
               <div class="paymethod-grid" id="paymethodGrid"></div>
               <div style="margin-top:12px;display:flex;align-items:center;gap:10px">
@@ -4638,8 +4650,8 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
               <div style="font-size:10px;color:var(--lg);padding:10px 16px 0;line-height:1.6">
                 Le client transfère lui-même le montant vers un moyen de paiement ci-dessus, puis déclare son
                 paiement (menu profil → « Déclarer un paiement »). Vérifiez la référence dans votre propre relevé
-                Mobile Money/bancaire avant de confirmer — l'abonnement s'active et le code d'accès part par email
-                automatiquement dès la confirmation.
+                Mobile Money/bancaire avant de confirmer — le forfait s'active dès la confirmation, et le client le
+                retrouve à sa prochaine connexion.
               </div>
               <table class="pm-users-table">
                 <thead><tr><th>Date</th><th>Client</th><th>Forfait</th><th>Moyen</th><th>Référence</th><th>Note</th><th>Statut</th></tr></thead>
@@ -18612,6 +18624,7 @@ function loadParamsModule() {
   renderPricing();
   renderDLQuotas();
   renderPaymethods();
+  chargerMoyensPaiement().then(renderPaymethods);
   renderClientele();
   renderPaiementsAdmin();
   renderEmailjsCfg();
@@ -18891,11 +18904,18 @@ function pmSaveDLQuotas() {
 // affiche seulement la reference a communiquer au client, la confirmation
 // du reglement restant manuelle (voir "Gestion clientele" ci-dessus).
 const PAYMETHODS_KEY = 'sentinel_paymethods_v1';
+const NUMERO_ENCAISSEMENT = '+225 07 47 70 84 40';
 const PAYMETHODS_DEFAUT = [
   {id:'visa',     nom:'Visa / Mastercard',    icon:'ti-credit-card',    actif:false,
     desc:'Carte bancaire, paiement en ligne sécurisé', detail:'', placeholder:'Passerelle non configurée (CinetPay, PayDunya…)'},
+  // Numéro d'encaissement donné par YORO le 13/11/2026 pour le Mobile Money
+  // et Wave. Le préfixe 07 est celui d'Orange en Côte d'Ivoire : il est donc
+  // porté par Orange Money ; MTN et Moov restent sans numéro (non proposés au
+  // client) tant que l'administrateur n'en a pas saisi un.
   {id:'orange',   nom:'Orange Money',         icon:'ti-device-mobile',  actif:true,
-    desc:'Paiement Mobile Money', detail:'', placeholder:'Numéro Orange Money, ex. 07 XX XX XX XX'},
+    desc:'Paiement Mobile Money', detail:NUMERO_ENCAISSEMENT, placeholder:'Numéro Orange Money, ex. 07 XX XX XX XX'},
+  {id:'wave',     nom:'Wave',                 icon:'ti-device-mobile',  actif:true,
+    desc:'Paiement Wave', detail:NUMERO_ENCAISSEMENT, placeholder:'Numéro Wave, ex. 07 XX XX XX XX'},
   {id:'mtn',      nom:'MTN Mobile Money',     icon:'ti-device-mobile',  actif:true,
     desc:'Paiement Mobile Money', detail:'', placeholder:'Numéro MTN MoMo, ex. 05 XX XX XX XX'},
   {id:'moov',     nom:'Moov Money (Flooz)',   icon:'ti-device-mobile',  actif:true,
@@ -18903,8 +18923,42 @@ const PAYMETHODS_DEFAUT = [
   {id:'virement', nom:'Virement bancaire',    icon:'ti-building-bank',  actif:true,
     desc:'Pour les comptes Entreprise', detail:'', placeholder:'IBAN / RIB à communiquer'},
 ];
-function getPaymethods()  { return _ls(()=>JSON.parse(localStorage.getItem(PAYMETHODS_KEY)||'null'),null) || PAYMETHODS_DEFAUT; }
+function getPaymethods()  { return fusionnerMoyensPaiement(_MOYENS_PARTAGES || _ls(()=>JSON.parse(localStorage.getItem(PAYMETHODS_KEY)||'null'),null)); }
 function savePaymethods(m){ _ls(()=>localStorage.setItem(PAYMETHODS_KEY,JSON.stringify(m))); }
+// Les moyens de paiement sont PARTAGÉS depuis le 13/11/2026 (Firestore,
+// document moyens_paiement/courant) : avant, l'administrateur les saisissait
+// dans le localStorage de SON navigateur, et le client ne voyait jamais le
+// numéro vers lequel payer. Seuls `actif` et `detail` sont lus du document ;
+// nom, icône et libellés restent ceux du code (un document ne peut pas
+// injecter de balisage).
+let _MOYENS_PARTAGES = null;
+function fusionnerMoyensPaiement(stockes) {
+  const parId = {};
+  (Array.isArray(stockes) ? stockes : []).forEach(m => { if (m && typeof m.id === 'string') parId[m.id] = m; });
+  return PAYMETHODS_DEFAUT.map(d => {
+    const m = parId[d.id];
+    if (!m) return {...d};
+    return {...d, actif: typeof m.actif === 'boolean' ? m.actif : d.actif,
+      // Un numéro vide dans une ancienne copie locale ne doit pas effacer le
+      // numéro par défaut : pour retirer un moyen, l'administrateur le désactive.
+      detail: typeof m.detail === 'string' && m.detail.trim() ? m.detail.slice(0, 120) : d.detail};
+  });
+}
+function _clientPaiement() {
+  return (typeof _fournisseurFirebase === 'function' && _fournisseurFirebase()) ? getSentinelSupabase() : null;
+}
+async function chargerMoyensPaiement() {
+  const c = _clientPaiement();
+  if (!c) return getPaymethods();
+  try {
+    const { data, error } = await c.from('moyens_paiement').select().eq('id', 'courant').maybeSingle();
+    if (!error && data && Array.isArray(data.methodes)) {
+      _MOYENS_PARTAGES = data.methodes;
+      savePaymethods(getPaymethods());
+    }
+  } catch (_) { /* hors ligne : dernière copie connue */ }
+  return getPaymethods();
+}
 
 function renderPaymethods() {
   const grid = document.getElementById('paymethodGrid');
@@ -18922,15 +18976,27 @@ function renderPaymethods() {
   }).join('');
 }
 
-function pmSavePaymethods() {
+async function pmSavePaymethods() {
   const methods = getPaymethods().map(m => {
     const cb = document.getElementById('pmactif-'+m.id);
     const inp = document.getElementById('pmdetail-'+m.id);
-    return {...m, actif: cb ? cb.checked : m.actif, detail: inp ? inp.value.trim() : m.detail};
+    return {...m, actif: cb ? cb.checked : m.actif, detail: inp ? inp.value.trim().slice(0, 120) : m.detail};
   });
+  const c = _clientPaiement();
+  if (!c) {
+    pmMsg('Non enregistré : la base partagée est injoignable, les clients ne verraient pas ces moyens.', 'err', 'paymethodMsg');
+    return;
+  }
+  const u = getSession();
+  const { error } = await c.from('moyens_paiement').upsert({
+    id: 'courant', methodes: methods.map(m => ({ id: m.id, actif: m.actif, detail: m.detail })),
+    par: u.email || null, le: new Date().toISOString(),
+  });
+  if (error) { pmMsg('Non enregistré : ' + escHtml(error.message || 'droits insuffisants'), 'err', 'paymethodMsg'); return; }
+  _MOYENS_PARTAGES = methods;
   savePaymethods(methods);
   renderPaymethods();
-  pmMsg('Moyens de paiement enregistrés.', 'ok', 'paymethodMsg');
+  pmMsg('Moyens de paiement enregistrés — visibles par les clients au moment de payer.', 'ok', 'paymethodMsg');
 }
 
 // ── GESTION CLIENTÈLE ────────────────────────────────────────────────────
@@ -19552,10 +19618,45 @@ const PAIEMENTS_KEY = 'sentinel_paiements_declares_v1';
 function getPaiementsDeclares()  { return _ls(()=>JSON.parse(localStorage.getItem(PAIEMENTS_KEY)||'[]'),[]); }
 function savePaiementsDeclares(p){ _ls(()=>localStorage.setItem(PAIEMENTS_KEY,JSON.stringify(p))); }
 
-function openPaiementDeclare() {
+// Les déclarations vivent dans Firestore (paiements_declares) depuis le
+// 13/11/2026 : en localStorage, elles n'atteignaient jamais l'administrateur.
+// Le client ne lit que les siennes (règles), l'administrateur les lit toutes.
+let _PAIEMENTS_PARTAGES = [];
+const PAIEMENT_REFERENCE_MAX = 80;
+const PAIEMENT_NOTE_MAX = 500;
+const LIBELLE_STATUT_PAIEMENT = {a_verifier:['bs-nouveau','À vérifier'], confirme:['bs-active','Confirmé'], rejete:['bs-suspend','Rejeté']};
+
+// Ce que le client voit au moment de payer : chaque moyen actif et le numéro
+// (ou RIB) vers lequel transférer. Un moyen sans numéro n'est pas proposé :
+// on ne peut pas payer vers un champ vide.
+function moyensPayables() { return getPaymethods().filter(m => m.actif && (m.detail || '').trim()); }
+function htmlMoyensPaiementClient(moyens, plan) {
+  if (!moyens.length) {
+    return '<div class="pd-moyens-vide">Les numéros de paiement ne sont pas encore publiés. ' +
+      'Écrivez au support : <a href="mailto:' + escHtml(SUPPORT_CONTACT_EMAIL) + '">' + escHtml(SUPPORT_CONTACT_EMAIL) + '</a>.</div>';
+  }
+  const montant = plan && plan.prix ? '<div class="pd-montant">Montant à transférer : <b>' + plan.prix.toLocaleString('fr-FR') + ' FCFA</b></div>' : '';
+  return montant + '<ul class="pd-moyens">' + moyens.map(m =>
+    '<li><i class="ti ' + escHtml(m.icon) + '" aria-hidden="true"></i><span class="pd-moyen-nom">' + escHtml(m.nom) + '</span>' +
+    '<span class="pd-moyen-num" translate="no">' + escHtml(m.detail) + '</span></li>').join('') + '</ul>';
+}
+function majMoyensPaiementClient() {
+  const box = document.getElementById('pdMoyens');
+  if (!box) return;
+  const sel = document.getElementById('pdForfait');
+  const payants = getPricing().filter(p => p.prix);
+  const plan = (sel && payants.find(p => p.key === sel.value)) || payants[0] || null;
+  const moyens = moyensPayables();
+  box.innerHTML = htmlMoyensPaiementClient(moyens, plan);
+  const moyenSel = document.getElementById('pdMoyen');
+  if (moyenSel) moyenSel.innerHTML = moyens.map(m => '<option value="' + escHtml(m.id) + '">' + escHtml(m.nom) + '</option>').join('');
+  const btn = document.getElementById('pdEnvoyer');
+  if (btn) btn.disabled = !moyens.length;
+}
+async function openPaiementDeclare() {
   const sel = document.getElementById('pdForfait');
   const plans = getPricing().filter(p => p.prix);
-  sel.innerHTML = plans.map(p => '<option value="'+p.key+'">'+p.nom+' — '+p.prix.toLocaleString('fr-FR')+' FCFA'+p.periode+'</option>').join('');
+  sel.innerHTML = plans.map(p => '<option value="'+escHtml(p.key)+'">'+escHtml(p.nom)+' — '+p.prix.toLocaleString('fr-FR')+' FCFA'+escHtml(p.periode||'')+'</option>').join('');
   // Pre-selection du forfait choisi a l'inscription (page publique, voir
   // index.html/planSouhaite) — evite au client de devoir re-identifier le
   // bon forfait dans la liste alors qu'il l'a deja choisi une fois.
@@ -19565,84 +19666,155 @@ function openPaiementDeclare() {
   if (moi && moi.planSouhaite && plans.some(p => p.key === moi.planSouhaite)) {
     sel.value = moi.planSouhaite;
   }
-  const moyenSel = document.getElementById('pdMoyen');
-  const moyens = getPaymethods().filter(m => m.actif);
-  moyenSel.innerHTML = moyens.map(m => '<option value="'+m.id+'">'+m.nom+(m.detail?' — '+m.detail:'')+'</option>').join('');
+  sel.onchange = majMoyensPaiementClient;
   document.getElementById('pdReference').value = '';
   document.getElementById('pdNote').value = '';
   const msgEl = document.getElementById('pdMsg');
   msgEl.innerHTML=''; msgEl.className='admin-msg';
+  majMoyensPaiementClient();
   document.getElementById('paiementPanel').classList.remove('hidden');
+  // Les numéros publiés par l'administrateur, puis l'état des déclarations
+  // déjà faites par ce client.
+  await chargerMoyensPaiement();
+  majMoyensPaiementClient();
+  renderMesPaiements();
 }
 function closePaiementDeclare() { document.getElementById('paiementPanel').classList.add('hidden'); }
 
-function submitPaiementDeclare() {
+// L'identité qui signe une déclaration est celle de la session Firebase
+// (uid + adresse vérifiée par le serveur), jamais un champ de la page : les
+// règles refusent une déclaration au nom d'un autre.
+async function _utilisateurPaiement(c) {
+  try {
+    const { data } = await c.auth.getSession();
+    const u = data && data.session && data.session.user;
+    return u && u.id && u.email ? { id: u.id, email: u.email } : null;
+  } catch (_) { return null; }
+}
+
+async function renderMesPaiements() {
+  const box = document.getElementById('pdMesPaiements');
+  if (!box) return;
+  const c = _clientPaiement();
+  const moi = c ? await _utilisateurPaiement(c) : null;
+  if (!moi) { box.innerHTML = ''; return; }
+  try {
+    const { data, error } = await c.from('paiements_declares').select().eq('uid', moi.id);
+    if (error || !Array.isArray(data) || !data.length) { box.innerHTML = ''; return; }
+    data.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    box.innerHTML = '<div class="pd-mes-hd">Vos déclarations</div>' + data.slice(0, 5).map(p => {
+      const [cls, txt] = LIBELLE_STATUT_PAIEMENT[p.statut] || LIBELLE_STATUT_PAIEMENT.a_verifier;
+      return '<div class="pd-mes-ligne"><span>' + escHtml(new Date(p.date).toLocaleDateString('fr-FR')) + ' · ' + escHtml(p.plan) +
+        ' · <span translate="no">' + escHtml(p.reference) + '</span></span><span class="badge-status ' + cls + '">' + txt + '</span></div>';
+    }).join('');
+  } catch (_) { box.innerHTML = ''; }
+}
+
+async function submitPaiementDeclare() {
   const forfait   = document.getElementById('pdForfait').value;
   const moyen     = document.getElementById('pdMoyen').value;
   const reference = document.getElementById('pdReference').value.trim();
   const note      = document.getElementById('pdNote').value.trim();
   const msgEl = document.getElementById('pdMsg');
-  if (!forfait || !moyen || !reference) { msgEl.textContent = 'Forfait, moyen de paiement et référence de transaction sont requis.'; msgEl.className = 'admin-msg err'; return; }
+  const dire = (html, cls) => { msgEl.innerHTML = html; msgEl.className = 'admin-msg ' + cls; };
+  if (!forfait || !moyen || !reference) { dire('Forfait, moyen de paiement et référence de transaction sont requis.', 'err'); return false; }
+  if (reference.length > PAIEMENT_REFERENCE_MAX) { dire('La référence est trop longue (' + PAIEMENT_REFERENCE_MAX + ' caractères au plus).', 'err'); return false; }
   const session = getSession();
+  const c = _clientPaiement();
+  const moi = c ? await _utilisateurPaiement(c) : null;
+  // Sans base partagée, une déclaration resterait dans ce navigateur et
+  // l'administrateur ne la verrait jamais : on le dit au lieu de faire croire
+  // qu'elle est partie.
+  if (!moi) {
+    dire('Déclaration impossible pour le moment (connexion requise). Réessayez, ou écrivez au support : ' + escHtml(SUPPORT_CONTACT_EMAIL) + '.', 'err');
+    return false;
+  }
   const plan = getPricing().find(p => p.key === forfait);
   const methode = getPaymethods().find(m => m.id === moyen);
-  const list = getPaiementsDeclares();
-  list.unshift({
-    id: 'pd'+Date.now().toString(36), email: session.email, nom: session.name,
+  const declaration = {
+    uid: moi.id, email: moi.email, nom: String(session.name || '').slice(0, 120),
     planKey: forfait, plan: plan ? plan.nom : forfait, montant: plan ? plan.prix : null,
-    moyen: methode ? methode.nom : moyen, reference, note, statut: 'a_verifier',
-    date: new Date().toISOString(),
-  });
-  savePaiementsDeclares(list);
-  msgEl.innerHTML = '<b>Paiement déclaré.</b> Un administrateur va vérifier la référence et activer votre abonnement.';
-  msgEl.className = 'admin-msg ok';
-  renderPaiementsAdmin();
-  setTimeout(closePaiementDeclare, 1500);
+    moyen: methode ? methode.nom : moyen, reference, note: note.slice(0, PAIEMENT_NOTE_MAX),
+    statut: 'a_verifier', date: new Date().toISOString(),
+  };
+  dire('Envoi…', '');
+  const btn = document.getElementById('pdEnvoyer');
+  if (btn) btn.disabled = true;
+  const { error } = await c.from('paiements_declares').insert(declaration);
+  if (btn) btn.disabled = false;
+  if (error) { dire('Déclaration non envoyée : ' + escHtml(error.message || 'erreur') + '. Réessayez.', 'err'); return false; }
+  dire('<b>Paiement déclaré.</b> L\'administrateur vérifie la référence dans son relevé, puis active votre abonnement : il sera actif à votre prochaine connexion.', 'ok');
+  renderMesPaiements();
+  return true;
 }
 
-function renderPaiementsAdmin() {
+async function chargerPaiementsAdmin() {
+  const c = _clientPaiement();
+  if (!c) return null;
+  try {
+    const { data, error } = await c.from('paiements_declares').select().order('date', { ascending: false }).limit(200);
+    if (error || !Array.isArray(data)) return null;
+    _PAIEMENTS_PARTAGES = data;
+    return data;
+  } catch (_) { return null; }
+}
+async function renderPaiementsAdmin() {
   const body = document.getElementById('paiementsBody');
   if (!body) return;
-  const list = getPaiementsDeclares();
+  if (!estAdmin(getSession())) return;
+  const list = await chargerPaiementsAdmin();
+  if (list === null) {
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--lg);padding:16px">Déclarations illisibles (base partagée injoignable ou droits insuffisants).</td></tr>';
+    return;
+  }
   const enAttente = list.filter(p => p.statut === 'a_verifier');
   document.getElementById('paiementsCount').textContent = enAttente.length + ' en attente';
   if (!list.length) {
     body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--lg);padding:16px">Aucun paiement déclaré pour le moment.</td></tr>';
     return;
   }
-  const lbl = {a_verifier:['bs-nouveau','A vérifier'], confirme:['bs-active','Confirmé'], rejete:['bs-suspend','Rejeté']};
+  // Tout ce qu'un client a saisi est échappé : la déclaration est écrite par
+  // lui et lue par l'administrateur.
   body.innerHTML = list.map(p => {
-    const [cls, txt] = lbl[p.statut] || lbl.a_verifier;
+    const [cls, txt] = LIBELLE_STATUT_PAIEMENT[p.statut] || LIBELLE_STATUT_PAIEMENT.a_verifier;
+    const id = escHtml(p.id);
     return '<tr>'+
-      '<td style="white-space:nowrap">'+new Date(p.date).toLocaleString('fr-FR')+'</td>'+
-      '<td>'+(p.nom||p.email)+'</td>'+
-      '<td>'+p.plan+'</td>'+
-      '<td>'+p.moyen+'</td>'+
-      '<td style="font-family:monospace;font-size:10px">'+p.reference+'</td>'+
-      '<td>'+(p.note||'—')+'</td>'+
+      '<td style="white-space:nowrap">'+escHtml(new Date(p.date).toLocaleString('fr-FR'))+'</td>'+
+      '<td>'+escHtml(p.nom||p.email)+'<div style="color:var(--lg)">'+escHtml(p.email)+'</div></td>'+
+      '<td>'+escHtml(p.plan)+(p.montant ? '<div style="color:var(--lg)">'+Number(p.montant).toLocaleString('fr-FR')+' FCFA</div>' : '')+'</td>'+
+      '<td>'+escHtml(p.moyen)+'</td>'+
+      '<td style="font-family:monospace;font-size:10px" translate="no">'+escHtml(p.reference)+'</td>'+
+      '<td>'+(p.note ? escHtml(p.note) : '—')+'</td>'+
       '<td><span class="badge-status '+cls+'">'+txt+'</span>'+
-        (p.statut==='a_verifier' ? ' <button class="btn-action btn-rest" onclick="pmConfirmerPaiement(\''+p.id+'\')" style="margin-left:4px">Confirmer</button>'+
-          '<button class="btn-action btn-del" onclick="pmRejeterPaiement(\''+p.id+'\')">Rejeter</button>' : '')+
+        (p.statut==='a_verifier' ? ' <button class="btn-action btn-rest" onclick="pmConfirmerPaiement(\''+id+'\')" style="margin-left:4px">Confirmer</button>'+
+          '<button class="btn-action btn-del" onclick="pmRejeterPaiement(\''+id+'\')">Rejeter</button>' : '')+
       '</td></tr>';
   }).join('');
 }
-function pmConfirmerPaiement(id) {
-  const list = getPaiementsDeclares();
-  const p = list.find(x => x.id === id);
-  if (!p) return;
-  p.statut = 'confirme';
-  savePaiementsDeclares(list);
-  activerAbonnementEtEnvoyerCode(p.email, p.planKey, 'paiementsMsg');
+async function _trancherPaiement(id, statut) {
+  const c = _clientPaiement();
+  const p = _PAIEMENTS_PARTAGES.find(x => x.id === id);
+  if (!c || !p) { pmMsg('Déclaration introuvable : rechargez la page.', 'err', 'paiementsMsg'); return false; }
+  if (statut === 'confirme') {
+    // Le compte doit exister AVANT de marquer la déclaration confirmée :
+    // sinon elle sortirait de la file sans qu'aucun forfait ne soit activé.
+    await refreshUsersDepuisSupabase();
+    if (!getUsers().some(u => u.email === p.email)) {
+      pmMsg('Aucun compte pour ' + escHtml(p.email) + ' : rien n\'a été confirmé.', 'err', 'paiementsMsg');
+      return false;
+    }
+  }
+  const { error } = await c.from('paiements_declares').update({
+    statut, traitePar: getSession().email || null, traiteLe: new Date().toISOString(),
+  }).eq('id', id);
+  if (error) { pmMsg('Non enregistré : ' + escHtml(error.message || 'droits insuffisants'), 'err', 'paiementsMsg'); return false; }
+  if (statut === 'confirme') activerAbonnementEtEnvoyerCode(p.email, p.planKey, 'paiementsMsg');
+  else pmMsg('Déclaration rejetée.', 'ok', 'paiementsMsg');
   renderPaiementsAdmin();
+  return true;
 }
-function pmRejeterPaiement(id) {
-  const list = getPaiementsDeclares();
-  const p = list.find(x => x.id === id);
-  if (!p) return;
-  p.statut = 'rejete';
-  savePaiementsDeclares(list);
-  renderPaiementsAdmin();
-}
+function pmConfirmerPaiement(id) { return _trancherPaiement(id, 'confirme'); }
+function pmRejeterPaiement(id) { return _trancherPaiement(id, 'rejete'); }
 
 function openReclamation() {
   document.getElementById('reclamSujet').value='';

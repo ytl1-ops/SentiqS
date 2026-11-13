@@ -124,6 +124,43 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Paiement déclaré (13/11/2026, bloquant de vente). Avant, la
+    // déclaration du client et les numéros Mobile Money ne vivaient que dans
+    // le localStorage de chaque navigateur : le client ne voyait aucun numéro
+    // et l'administrateur ne recevait jamais sa déclaration.
+    //
+    // Moyens de paiement : un seul document « courant », lu par tout compte
+    // connecté (le client doit voir le numéro vers lequel payer), écrit par
+    // l'administrateur seul.
+    match /moyens_paiement/{id} {
+      allow read: if connecte();
+      allow write: if estAdmin() && id == 'courant';
+    }
+    // Déclarations : le client crée la sienne, à son nom, « à vérifier » ;
+    // il ne lit que les siennes. Seul l'administrateur lit tout et tranche
+    // (confirmé / rejeté), sans toucher au contenu déclaré. Jamais effacées :
+    // c'est la trace de l'encaissement.
+    function declarationBienFormee(d) {
+      return d.keys().hasOnly(['uid', 'email', 'nom', 'planKey', 'plan', 'montant', 'moyen',
+                               'reference', 'note', 'statut', 'date', 'created_at'])
+        && d.uid == request.auth.uid
+        && d.email == request.auth.token.email
+        && d.statut == 'a_verifier'
+        && d.planKey is string && d.planKey.size() <= 40
+        && d.moyen is string && d.moyen.size() <= 60
+        && d.reference is string && d.reference.size() > 0 && d.reference.size() <= 80
+        && d.note is string && d.note.size() <= 500;
+    }
+    match /paiements_declares/{id} {
+      allow create: if connecte() && declarationBienFormee(request.resource.data);
+      allow read: if connecte() && (resource.data.uid == request.auth.uid || estAdmin());
+      allow update: if estAdmin()
+        && request.resource.data.statut in ['confirme', 'rejete']
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['statut', 'traitePar', 'traiteLe', 'updated_at']);
+      allow delete: if false;
+    }
+
     // Tout le reste est fermé tant qu'une PR ne l'ouvre pas explicitement
     // (agenda, configuration partagée : étape suivante).
   }
