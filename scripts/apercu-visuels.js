@@ -42,6 +42,10 @@ const FIGER = () => {
   window.figerCache = (arts) => {
     try { doCollect = async () => {}; } catch (_) {}
     try { _appliquerArticlesPartages = () => {}; } catch (_) {}
+    // Le Flux attend la traduction de chaque titre étranger avant de
+    // s'afficher ; sans réseau elle n'aboutit pas dans le délai de capture et
+    // l'écran gardait l'état vide précédent. La capture ne traduit pas.
+    try { preTraduireRapport = async () => {}; } catch (_) {}
     ALL = arts;
   };
 };
@@ -166,7 +170,9 @@ const FIGER = () => {
     let i = 0;
     for (const vue of ['flux', 'dashboard', 'alertes', 'analyse']) {
       await page.evaluate(({ v, arts }) => {
-        figerCache(arts);
+        // Le Store montre l'appli en français : seulement les actus déjà en
+        // français, la capture ne traduisant pas.
+        figerCache(arts.filter((x) => typeof detectLangue !== 'function' || detectLangue(String(x.title || '')) === 'fr'));
         switchView(v, document.querySelector('.ntab[data-view="' + v + '"]'));
         try { renderFeed(); updStats(); if (typeof recalcAlertes === 'function') recalcAlertes(); if (v === 'analyse' && typeof updSynthese === 'function') updSynthese(); } catch (_) {}
         window.scrollTo(0, 0);
