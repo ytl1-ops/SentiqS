@@ -46,3 +46,12 @@ test('tablette : le bandeau de collecte tient sur une bande, mode automatique ET
     assert.ok(HTML.includes('html.force-tablette ' + regle), 'forcee : ' + regle);
   }
 });
+
+// Page d'accueil, hors du heros (texte sur photo, contraste mesure au pixel).
+test("accueil : cartes de correlation, pastilles alignees et respiration mobile", () => {
+  const ACC = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../web/index.html'), 'utf8');
+  assert.ok(ACC.includes('.mock-card-hd{flex-wrap:wrap;gap:2px 8px}'), 'le compte doit pouvoir passer sous le theme');
+  assert.ok(!/\.mock-card-hd span\{[^}]*nowrap/.test(ACC), 'nowrap fait deborder la page en anglais a 390 px');
+  assert.match(ACC, /\.mock-pill\{min-width:\d+px;text-align:center\}/);
+  assert.match(ACC, /@media \(max-width:760px\)\{section\{padding:64px 0\}\}/);
+});
