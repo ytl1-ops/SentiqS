@@ -8214,11 +8214,34 @@ function neutraliserFrappeFiguree(t) {
   return t.replace(FRAPPE_FIGUREE, '$1 qui ');
 }
 
+// SENS_ADMINISTRATIFS : « exécution » d'un budget, d'un arrêt ou d'un
+// chantier, « enlèvement » de marchandises, « fête des morts ». Mesure du
+// 13/11/2026 sur le cumul du mois (1 552 faits) : les dix-sept titres
+// critiques portés par « exécution » étaient TOUS administratifs (« Exécution
+// du budget 2025 », « taux d'exécution des réformes », « sursis à exécution
+// d'un arrêt »), et la Côte d'Ivoire, pays pilote, ouvrait le mois sur
+// « Fête de la Toussaint » et « Enlèvement des marchandises au PAA » classés
+// critiques. Le motif ne retire que la locution : « exécution sommaire »,
+// « exécutions ciblées », « enlèvement de quatre enseignants » restent critiques.
+const SENS_ADMINISTRATIFS = [
+  /\b(?:taux|niveau|delais?|retards?|suivi|bilan|mauvaise|bonne|sursis)\s+(?:a\s+l'|a\s+|d'|de\s+l'|de\s+|dans\s+l'|en\s+)?execution/g,
+  /\bexecution\s+(?:du|de\s+la|des|de\s+l'|de\s+son|de\s+sa|de\s+ses|de\s+leur|de\s+leurs|d')\s*(?:budget\w*|arrets?|decisions?|engagements?|chantiers?|marches?|reformes?|travaux|programmes?|projets?|plans?|contrats?|jugements?|lois?|accords?|mesures?|politiques?|mandats?|conventions?|depenses?|peines?|recommandations?|directives?|feuilles?\s+de\s+route|investissements?|ordonnances?|taches?|activites?|missions?|operations?\s+budgetaires?)/g,
+  /\benlevements?\s+(?:des|de\s+la|du|de|d')\s*(?:marchandises?|ordures?|dechets?|colis|conteneurs?|vehicules?|epaves?|bagages?|cargaisons?|ordures\s+menageres)/g,
+  /\b(?:fete|jour|journee)\s+des\s+morts/g,
+];
+
 // neutraliserExpressions(t) : retire les expressions ci-dessus du texte avant
 // tout calcul de mots-cles securitaires. Renvoie le texte nettoye (les mots
 // composant l'expression disparaissent donc du scan, pas seulement leur sens).
+//
+// L'apostrophe typographique (’) est ramenée à l'apostrophe droite AVANT tout
+// le reste : la presse francophone l'emploie presque partout, et les
+// locutions de la liste sont écrites avec «'». Sans cela « Kéniéba : coup
+// d’envoi des travaux du futur hôtel de ville » échappait à « coup d'envoi »,
+// gardait « coup d » et ouvrait « À la une » en CRITIQUE (13/11/2026).
 function neutraliserExpressions(t) {
-  let out = neutraliserFrappeFiguree(neutraliserTournuresJudiciaires(t));
+  let out = neutraliserFrappeFiguree(neutraliserTournuresJudiciaires(t.replace(/[‘’ʼ]/g, "'")));
+  for (const motif of SENS_ADMINISTRATIFS) out = out.replace(motif, ' ');
   for (const expr of EXPRESSIONS_NON_SECURITAIRES) {
     if (out.includes(expr)) out = out.split(expr).join(' ');
   }

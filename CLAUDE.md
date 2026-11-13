@@ -3498,3 +3498,32 @@ règle « un par jour à partir de 6 h GMT ».
   Côte d'Ivoire et neuf pays régionaux.
 
 `scripts/test/bulletins-pays.test.js` (8 tests, vus échouer sur l'ancien code).
+
+---
+
+## Test « fondateur » du 13/11/2026 : deux correctifs
+
+Parcours d'un acheteur, de l'accueil au paiement, sur les données réelles du
+cumul de novembre.
+
+- **L'inscription masquait la connexion Google.** `openSignup()` remet le
+  formulaire à neuf depuis `SIGNUP_FORM_HTML`, capturé avant le passage en
+  mode lien : chaque clic sur « Essai gratuit » ou un forfait annonçait un
+  « code » et cachait « Continuer avec Google », seule porte une fois atteint
+  le quota de cinq liens par jour du plan Spark. `appliquerModeLienInscription()`
+  est rappelée à chaque ouverture (`inscription-lien.test.js`).
+- **« Exécution », « enlèvement », « fête des morts » au sens administratif.**
+  Sur les 1 552 faits du cumul, les dix-sept critiques portés par
+  « exécution » étaient tous administratifs (budget, arrêt de la CEDEAO,
+  taux d'exécution des réformes), et la Côte d'Ivoire ouvrait le mois sur la
+  Toussaint et une tournée d'information portuaire. `SENS_ADMINISTRATIFS`
+  retire la locution ; l'apostrophe typographique (’) est ramenée à « ' »
+  avant les locutions figées, sinon « coup d’envoi » gardait « coup d »
+  (« Kéniéba : coup d'envoi des travaux… » ouvrait « À la une » en
+  critique). Mesure `banc-tri.js` sur le cumul : **36 articles descendent,
+  aucun ne monte**, critiques 280 → 260 (`sens-administratifs.test.js`).
+
+**Constaté, non corrigé ici (voir le livrable du fil) :** le paiement déclaré
+et les numéros Mobile Money vivent dans le `localStorage` de chaque
+navigateur — le client ne voit aucun numéro et sa déclaration n'atteint
+jamais l'administrateur ; les pages légales portent encore 38 « À COMPLÉTER ».
