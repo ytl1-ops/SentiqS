@@ -159,7 +159,10 @@ const FIGER = () => {
       if (q.url().startsWith(base) || ['image', 'font', 'stylesheet'].includes(q.resourceType())) return r.continue();
       return r.abort();
     });
-    await page.addInitScript(() => { try { sessionStorage.setItem('sentinel_intro_vue', '1'); localStorage.setItem('sentinel_lang', 'fr'); } catch (_) {} });
+    await page.addInitScript(() => { try { sessionStorage.setItem('sentinel_intro_vue', '1'); localStorage.setItem('sentinel_lang', 'fr');
+      // Les photos des sources appartiennent à leurs auteurs : une fiche
+      // commerciale ne les montre pas (réglage « économiser les données »).
+      localStorage.setItem('sentinel_aff_images', 'non'); } catch (_) {} });
     await page.addInitScript(FIGER);
     await page.goto(base + '/SentiqS_Web.html#collecteur-' + constante('COLLECTOR_TOKEN'), { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2500);
