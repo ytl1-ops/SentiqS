@@ -66,13 +66,14 @@ function donnees(o) {
   }, o);
 }
 
-test('le bulletin porte ses cinq blocs, échappe les titres et ne se fait pas indexer', () => {
+test('le bulletin porte ses cinq blocs, échappe les titres ; le bulletin daté ne se fait pas indexer', () => {
   const html = B.rendre(donnees(), { jour: '2026-10-21', genereMs: Date.now() });
   for (const h of ['1. En bref', '2. Faits des 36 dernières heures', '3. Ce qui porte le niveau', '4. Ce que nous ne savons pas', '5. Conseils officiels aux voyageurs']) {
     assert.ok(html.includes(h), h);
   }
   assert.ok(html.includes('Braquage &lt;b&gt;armé&lt;/b&gt;'));
-  assert.match(html, /<meta name="robots" content="noindex">/);
+  // Bulletin daté : hors index (le « dernier », lui, est indexable : voir referencement.test.js).
+  assert.match(html, /<meta name="robots" content="noindex, follow">/);
   assert.match(html, /gov\.uk\/foreign-travel-advice\/cote-d-ivoire/);
   assert.match(html, /113 jours/, 'le socle ancien est dit');
   assert.match(html, /pas une confirmation officielle/);

@@ -1,4 +1,10 @@
+# Référencement (14/11/2026). Domaine canonique : https://sentiqs-235ce.web.app
+# Les pages à ne pas indexer (application connectée, rapports, archives,
+# pages légales incomplètes) le disent par la balise ou l'en-tête « noindex » :
+# un robot doit pouvoir les lire pour le voir, elles ne sont donc pas
+# bloquées ici.
 User-agent: *
 Allow: /
+Disallow: /__/
 
-Sitemap: https://ytl1-ops.github.io/SentiqS/sitemap.xml
+Sitemap: https://sentiqs-235ce.web.app/sitemap.xml

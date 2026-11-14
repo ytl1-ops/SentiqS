@@ -38,6 +38,28 @@ const path = require('path');
 const { tendanceNiveaux } = require('../../web/js/noyau.js');
 
 const URL_SITE = 'https://ytl1-ops.github.io/SentiqS/';
+// Adresse canonique des pages publiques pour les moteurs de recherche
+// (14/11/2026, voir web/js/domaine-canonique.js). Les liens des messages
+// gardent URL_SITE : la page y renvoie d'elle-même vers ce domaine.
+const SITE_CANONIQUE = 'https://sentiqs-235ce.web.app/';
+
+/**
+ * Tête de référencement d'un bulletin. Seul « dernier.html » (et l'index des
+ * 54 pays) est indexable : c'est l'adresse stable que l'on cherche
+ * (« sécurité Mali aujourd'hui »). Les bulletins datés restent hors index —
+ * des milliers de pages quasi identiques, périmées le lendemain.
+ */
+function teteSeo({ titre, description, chemin, indexable }) {
+  return '<meta name="robots" content="' + (indexable ? 'index, follow, max-snippet:-1' : 'noindex, follow') + '">'
+    + '<meta name="description" content="' + esc(description) + '">'
+    + (indexable ? '<link rel="canonical" href="' + SITE_CANONIQUE + chemin + '">'
+      + '<meta property="og:type" content="article"><meta property="og:site_name" content="SentiqS">'
+      + '<meta property="og:title" content="' + esc(titre) + '"><meta property="og:description" content="' + esc(description) + '">'
+      + '<meta property="og:url" content="' + SITE_CANONIQUE + chemin + '">'
+      + '<meta property="og:image" content="' + SITE_CANONIQUE + 'assets/partage-fr.png"><meta property="og:locale" content="fr_FR">'
+      + '<meta name="twitter:card" content="summary_large_image">' : '')
+    + '<script src="' + '../'.repeat(chemin.split('/').length - 1) + 'js/domaine-canonique.js"></script>';
+}
 const HEURE_BULLETIN_UTC = 6;
 
 // Conseils officiels aux voyageurs, pour les 54 pays. Des liens, jamais un
@@ -228,7 +250,7 @@ function lignesAngleMort(am, d) {
  * Le bulletin, en HTML autonome (aucune ressource externe, imprimable).
  * `d` : donneesBulletinPays(cy) ; `serie` : web/historique/serie.json.
  */
-function rendre(d, { jour, genereMs, serie } = {}) {
+function rendre(d, { jour, genereMs, serie, dernier = false } = {}) {
   const cfg = PAYS_BULLETIN[d.cy] || { conseils: [] };
   const t = tendanceDuJour(serie, d, jour);
   const col = COULEUR_NIVEAU[d.niveau] || '#1F2937';
@@ -247,8 +269,12 @@ function rendre(d, { jour, genereMs, serie } = {}) {
     + (f.revu ? 'revu en ' + esc(moisRevu(f.revu)) : 'non daté') + '</div></li>').join('');
 
   return '<!doctype html>\n<html lang="fr"><head><meta charset="utf-8">'
-    + '<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">'
-    + '<title>Bulletin sûreté — ' + esc(d.nom) + ' — ' + esc(dateFr(jour)) + '</title><style>'
+    + '<meta name="viewport" content="width=device-width,initial-scale=1">'
+    + teteSeo({ titre: d.nom + ' — bulletin sécurité et sûreté du ' + dateFr(jour) + ' | SentiqS',
+      description: 'Situation sécuritaire : ' + d.nom + ' au ' + dateFr(jour) + '. Niveau d\'alerte ' + d.libelle + ', '
+        + (d.faitsNotables || 0) + ' fait(s) notable(s) sur 36 heures, cotés et sourcés. Bulletin quotidien de veille sûreté SentiqS.',
+      chemin: 'bulletins/' + d.cy + '/' + (dernier ? 'dernier' : jour) + '.html', indexable: dernier })
+    + '<title>' + esc(d.nom) + ' — bulletin sécurité et sûreté du ' + esc(dateFr(jour)) + ' | SentiqS</title><style>'
     + ':root{color-scheme:light}body{margin:0;background:#F7F5F2;color:#1F2937;font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}'
     + 'main{max-width:760px;margin:0 auto;padding:24px 16px 40px;background:#fff}'
     + 'h1{font:700 26px/1.2 Georgia,"Source Serif 4",serif;margin:4px 0 6px}h2{font:700 18px/1.3 Georgia,serif;margin:28px 0 8px;padding-top:12px;border-top:1px solid #E5E0D8}'
@@ -285,11 +311,11 @@ function rendre(d, { jour, genereMs, serie } = {}) {
 
 /** Écrit le bulletin daté et sa copie « dernier.html ». Retourne le chemin daté. */
 function ecrire(racine, d, opts) {
-  const html = rendre(d, opts);
   fs.mkdirSync(path.join(racine, d.cy), { recursive: true });
   const cible = cheminBulletin(racine, d.cy, opts.jour);
-  fs.writeFileSync(cible, html);
-  fs.writeFileSync(path.join(racine, d.cy, 'dernier.html'), html);
+  // Même contenu ; seule la tête de référencement diffère (voir teteSeo).
+  fs.writeFileSync(cible, rendre(d, Object.assign({}, opts, { dernier: false })));
+  fs.writeFileSync(path.join(racine, d.cy, 'dernier.html'), rendre(d, Object.assign({}, opts, { dernier: true })));
   return cible;
 }
 
@@ -347,8 +373,11 @@ function rendreIndex(index) {
       + '<td' + (l.jour !== recent ? ' class="ancien"' : '') + '><span class="lbl">du </span>' + esc(dateFr(l.jour)) + '</td></tr>';
   }).join('');
   return '<!doctype html>\n<html lang="fr"><head><meta charset="utf-8">'
-    + '<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">'
-    + '<title>Bulletins sûreté — 54 pays</title><style>'
+    + '<meta name="viewport" content="width=device-width,initial-scale=1">'
+    + teteSeo({ titre: 'Bulletins sécurité et sûreté des 54 pays d\'Afrique | SentiqS',
+      description: 'Le bulletin quotidien de veille sûreté de chacun des 54 pays d\'Afrique : niveau d\'alerte, faits des 36 dernières heures cotés et sourcés, liens vers les conseils officiels aux voyageurs.',
+      chemin: 'bulletins/index.html', indexable: true })
+    + '<title>Bulletins sécurité et sûreté — 54 pays d\'Afrique</title><style>'
     + ':root{color-scheme:light}body{margin:0;background:#F7F5F2;color:#1F2937;font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}'
     + 'main{max-width:900px;margin:0 auto;padding:24px 16px 40px;background:#fff}'
     + 'h1{font:700 26px/1.2 Georgia,"Source Serif 4",serif;margin:4px 0 6px}.tag{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#4B5563}'
@@ -392,7 +421,7 @@ function messageResume(resumes, jour) {
 }
 
 module.exports = {
-  URL_SITE, HEURE_BULLETIN_UTC, PAYS_BULLETIN, PAYS_PILOTES, paysAEcrire,
+  URL_SITE, SITE_CANONIQUE, teteSeo, HEURE_BULLETIN_UTC, PAYS_BULLETIN, PAYS_PILOTES, paysAEcrire,
   cheminBulletin, doitEcrire, tendanceDuJour, rendre, ecrire, urlPublique, messageAnnonce, phraseEnBref, moisRevu,
   lireIndex, resumeBulletin, rendreIndex, mettreAJourIndex, messageResume,
 };

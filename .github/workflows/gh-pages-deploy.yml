@@ -27,6 +27,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: actions/configure-pages@v5
+      # Sitemap aux dates des bulletins du jour (le job de collecte les
+      # commite sans le régénérer) : voir scripts/generer-seo.js.
+      - name: Sitemap à jour
+        run: node scripts/generer-seo.js
       - uses: actions/upload-pages-artifact@v3
         with:
           path: web
@@ -98,7 +102,13 @@ jobs:
           # Empreinte(s) de la clé de l'application Android, variable du dépôt
           # TWA_SHA256 (vide tant que l'app n'existe pas dans la Play Console).
           TWA_SHA256="${{ vars.TWA_SHA256 }}" node scripts/assetlinks.js
+          node scripts/generer-seo.js
           npx -y firebase-tools@15.34.0 deploy --only hosting \
             --project "$projet" --non-interactive --force \
             --message "commit ${GITHUB_SHA::7}"
           echo "### Firebase Hosting publié : https://$projet.web.app" >> "$GITHUB_STEP_SUMMARY"
+      - name: Prévenir les moteurs (IndexNow)
+        # Bing, Yandex, Seznam, Naver… Informatif : jamais bloquant.
+        if: steps.secret.outputs.present == 'true'
+        continue-on-error: true
+        run: node scripts/indexnow.js
