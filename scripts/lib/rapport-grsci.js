@@ -296,6 +296,18 @@ function lienSur(f) {
   return typeof f.url === 'string' && /^https?:\/\//.test(f.url) ? f.url : null;
 }
 
+// pptxgenjs écrit l'adresse d'un lien telle quelle dans le fichier de
+// relations (.rels), sans échapper « & ». Rapport de novembre, 14/11/2026 :
+// une seule adresse à paramètres de suivi (« ?utm_source=rss&utm_medium=… »,
+// Guinéematin) rendait slide33.xml.rels illisible, et PowerPoint refusait
+// d'ouvrir le fichier ou demandait à le réparer. Toute adresse passe donc par
+// ici avant d'atteindre un `hyperlink`.
+function urlPptx(u) {
+  if (typeof u !== 'string' || !/^https?:\/\//i.test(u)) return null;
+  return u.replace(/&/g, '&amp;').replace(/</g, '%3C').replace(/>/g, '%3E').replace(/"/g, '%22').replace(/'/g, '%27');
+}
+const lienPptx = (u) => { const x = urlPptx(u); return x ? { url: x } : undefined; };
+
 // « Fin octobre » / « Mi-octobre » / « Début octobre » : le modèle date ses
 // pages par période, pas par jour.
 function periode(jour) {
@@ -391,18 +403,18 @@ function ficheSlide(s, f, x0, y, hauteur) {
   } else corps.push({ text: c.sansExtrait, options: { italic: true, color: LEGERE, breakLine: true, paraSpaceBefore: 4 } });
   corps.push({ text: c.t.etiquette, options: { bold: true, fontSize: taille - 1, paraSpaceBefore: 4 } });
   if (c.liens.length) {
-    c.liens.forEach((l, i) => corps.push({ text: (i ? ' · ' : '') + (l.source || 'article'), options: { color: VERT, fontSize: taille - 1, hyperlink: { url: l.url } } }));
+    c.liens.forEach((l, i) => corps.push({ text: (i ? ' · ' : '') + (l.source || 'article'), options: { color: VERT, fontSize: taille - 1, hyperlink: lienPptx(l.url) } }));
     const restants = c.sources.filter((x) => !c.liens.some((l) => l.source === x));
     if (restants.length) corps.push({ text: ' · ' + restants.join(' · '), options: { fontSize: taille - 1 } });
   } else corps.push({ text: c.t.source, options: { fontSize: taille - 1 } });
   corps.push({ text: (c.t.quand ? ' — ' + c.t.quand : '') + (c.t.cotation ? '   ·   Cotation : ' + c.t.cotation : ''), options: { fontSize: taille - 1, bold: !!c.t.cotation, breakLine: !!c.video } });
-  if (c.video) corps.push({ text: 'Voir la vidéo de la source', options: { color: VERT, fontSize: taille - 1, hyperlink: { url: c.video } } });
+  if (c.video) corps.push({ text: 'Voir la vidéo de la source', options: { color: VERT, fontSize: taille - 1, hyperlink: lienPptx(c.video) } });
   s.addText(corps, { x: x0, y, w: largeur, h: hauteur, fontFace: POLICE, fontSize: taille, color: TEXTE, valign: 'top', paraSpaceAfter: 2, margin: 0 });
   if (photo) {
     const xp = x0 + 12.15 - LARGE_PHOTO;
     const b = boiteImage(photo, xp, y, LARGE_PHOTO, hauteur - 0.3);
-    s.addImage({ data: 'image/' + (photo.type === 'png' ? 'png' : 'jpeg') + ';base64,' + photo.data.toString('base64'), altText: 'Photo : ' + (photo.credit || 'source'), x: b.x, y: b.y, w: b.w, h: b.h, hyperlink: photo.lien ? { url: photo.lien } : undefined });
-    s.addText([{ text: 'Photo : © ' + (photo.credit || 'source'), options: photo.lien ? { hyperlink: { url: photo.lien }, color: VERT } : {} }],
+    s.addImage({ data: 'image/' + (photo.type === 'png' ? 'png' : 'jpeg') + ';base64,' + photo.data.toString('base64'), altText: 'Photo : ' + (photo.credit || 'source'), x: b.x, y: b.y, w: b.w, h: b.h, hyperlink: lienPptx(photo.lien) });
+    s.addText([{ text: 'Photo : © ' + (photo.credit || 'source'), options: photo.lien ? { hyperlink: lienPptx(photo.lien), color: VERT } : {} }],
       { x: xp, y: b.y + b.h + 0.02, w: LARGE_PHOTO, h: 0.24, fontFace: POLICE, fontSize: 9, color: LEGERE, align: 'right', margin: 0 });
   }
 }
@@ -470,17 +482,17 @@ function pageMarquant(pptx, ctx, titreNum, titre, f, pays, nomPays, confiance) {
   corps.push(intertitre('Enjeux sûreté'), { text: r.enjeux, options: { breakLine: true } });
   corps.push({ text: t.etiquette, options: { bold: true, paraSpaceBefore: 8 } });
   if (r.liens.length) {
-    r.liens.slice(0, 4).forEach((l, i) => corps.push({ text: (i ? ' · ' : '') + (l.source || 'article'), options: { color: VERT, hyperlink: { url: l.url } } }));
+    r.liens.slice(0, 4).forEach((l, i) => corps.push({ text: (i ? ' · ' : '') + (l.source || 'article'), options: { color: VERT, hyperlink: lienPptx(l.url) } }));
     const restants = r.sources.filter((x) => !r.liens.slice(0, 4).some((l) => l.source === x));
     if (restants.length) corps.push({ text: ' · ' + restants.join(' · '), options: {} });
   } else corps.push({ text: t.source, options: {} });
   corps.push({ text: (t.quand ? ' — ' + t.quand : '') + (t.cotation ? '   ·   Cotation : ' + t.cotation : ''), options: { bold: !!t.cotation, breakLine: true } });
-  if (r.video) corps.push({ text: 'Voir la vidéo de la source', options: { color: VERT, hyperlink: { url: r.video }, breakLine: true } });
+  if (r.video) corps.push({ text: 'Voir la vidéo de la source', options: { color: VERT, hyperlink: lienPptx(r.video), breakLine: true } });
   s.addText(corps, { x: 0.7, y, w: largeurTexte, h: hauteur, fontFace: POLICE, fontSize: taille, color: TEXTE, valign: 'top', paraSpaceAfter: 3 });
   if (photo) {
     const b = boiteImage(photo, 8.35, y + 0.05, 4.5, 4.0);
-    s.addImage({ data: 'image/' + (photo.type === 'png' ? 'png' : 'jpeg') + ';base64,' + photo.data.toString('base64'), altText: 'Photo : ' + (photo.credit || 'source'), x: b.x, y: b.y, w: b.w, h: b.h, hyperlink: photo.lien ? { url: photo.lien } : undefined });
-    s.addText([{ text: 'Photo : © ' + (photo.credit || 'source'), options: photo.lien ? { hyperlink: { url: photo.lien }, color: VERT } : {} }],
+    s.addImage({ data: 'image/' + (photo.type === 'png' ? 'png' : 'jpeg') + ';base64,' + photo.data.toString('base64'), altText: 'Photo : ' + (photo.credit || 'source'), x: b.x, y: b.y, w: b.w, h: b.h, hyperlink: lienPptx(photo.lien) });
+    s.addText([{ text: 'Photo : © ' + (photo.credit || 'source'), options: photo.lien ? { hyperlink: lienPptx(photo.lien), color: VERT } : {} }],
       { x: 8.35, y: b.y + b.h + 0.04, w: 4.5, h: 0.28, fontFace: POLICE, fontSize: 9, color: LEGERE, align: 'right' });
   }
   pied(s, ctx, ctx.numero());
@@ -693,6 +705,7 @@ function majIndex(racine, chemin, jour, maintenant) {
 }
 
 module.exports = {
+  urlPptx,
   PAYS_REGIONAUX, construire, planRapport, faitsMarquants, faitsIllustres, ficheTexte, rapportsAActualiser, dernierJourMois, moisPrecedent, libellePeriode, ecrire, majIndex, reconstruireIndex, cheminRapport, rubriqueDe, RUBRIQUES,
   // partagés avec la version Word (rapport-grsci-word.js)
   ASSETS, NOM_MODELE, EMETTEUR_DEFAUT, CONFIG_EMETTEUR, lireEmetteur, fixerEmetteurMois, emetteurDuMois, cheminEmetteurMois, piedTexte, cadreLogo, ratioImage, TITRE_COUVERTURE, TITRE_DOCUMENT, VERT, TEXTE, LEGERE, POLICE, POLICE_TITRE, DRAPEAUX, rectsDrapeau,
