@@ -4006,3 +4006,53 @@ ni critique. `agenda-rassemblements.test.js` passe à 7 tests.
 
 `hors-surete.test.js` (3) et
 `agenda-rassemblements.test.js` (4), vus échouer sur l'ancien code.
+
+---
+
+## Audit marketing et fluidité du 14/11/2026
+
+Demande de YORO : appliquer les compétences de design et de marketing
+(UI UX Pro Max, marketing de Corey Haines, stop slop) « après audit
+marketing ». Mesure d'abord, sur les 9 modules × bureau / tablette / mobile
+(cumul de novembre injecté dans `ALL`, horloge figée), puis l'accueil.
+
+**Accueil (`web/index.html`).** La promesse était générique et rien ne disait
+ce qui distingue l'outil. Désormais : promesse orientée résultat (« Chaque
+matin, le point sûreté des pays où vous opérez »), l'essai en bouton principal
+(or, `.btn-primary`, 9,8:1) devant un lien vers le **vrai bulletin public de la
+Côte d'Ivoire** (`bulletins/CI/dernier.html`, la seule preuve disponible
+sans client à citer), sections « Fiabilité » (cotation, validation analyste,
+pays muets, avis officiels) et « Diffusion » (bulletin quotidien, bulletins
+programmés, rapport mensuel), et une FAQ (`<details>`). Chaque phrase décrit
+une règle réellement appliquée : ne rien y ajouter qui ne soit pas dans le
+code. Retirés : « Le plus choisi par les professionnels » (aucun client pour
+le dire), « filtre anti-hallucination » (jargon). Le bandeau défilant porte
+« Exemples » : ses faits sont fictifs. Les pages légales ne sont pas liées
+depuis l'accueil (un test l'exige). Toutes les phrases ont leur entrée dans
+`dico-site-en.js`. **Non remesuré au pixel** : le contraste du héros, dont le
+texte a changé de longueur (voile et teinte inchangés) ; à refaire si une
+photo plus claire entre dans la rotation.
+
+**Appli.**
+- Le filtre pays occupait seul une ligne pleine largeur : il rejoint la barre
+  du haut hors téléphone (`placerFiltrePays`, élément **déplacé**, pas copié ;
+  `html.pays-en-tete`). Contenu 29 px plus haut sur chaque module.
+- **Accès rapide** (`ouvrirAccesRapide`, Ctrl+K ou « / », bouton « Aller à… »,
+  entrée du menu « Plus » sur téléphone) : un pays (fiche + filtre global), un
+  module, ou une recherche dans les actus. Inactif sur l'écran de connexion et
+  pendant une saisie.
+- Onglet Alertes : 580 ms de mise en page sur 615 venaient de la réécriture des
+  54 fiches à chaque ouverture, HTML identique. `recalcAlertes` ne réécrit que
+  ce qui change, et les fiches hors écran portent `content-visibility:auto`.
+  Recalcul 615 → 105 ms, changement d'onglet 906 → 346 ms (bureau).
+- Badge « -12H » insécable (il se coupait en deux lignes dans la colonne étroite).
+
+Exports à la demande : 14/14 identiques (contrôle : deux générations de `main`
+identiques entre elles ; les PowerPoint embarquent un classeur Excel horodaté
+à normaliser avant comparaison). `scripts/test/fluidite-14-11.test.js` (9, vus
+échouer sur `main`).
+
+**Constaté, laissé au propriétaire** : l'adresse de contact Gmail et les
+41 « À COMPLÉTER » des pages légales pèsent sur la confiance d'un acheteur.
+**Suite possible** : une barre d'onglets en bas d'écran sur téléphone
+(5 modules au plus), à mesurer d'abord contre le budget vertical du Flux.
