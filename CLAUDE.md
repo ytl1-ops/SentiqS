@@ -3167,6 +3167,10 @@ Mesuré dans Chromium : sans rien → `display:none`, hauteur 0.
   cumul) ; la première page de chaque pays et de chaque rubrique ivoirienne
   porte « Indice de confiance : … (motif) ». Le niveau d'alerte coloré et le
   score restent absents : le test du vocabulaire les interdit toujours.
+  **L'indice de confiance a été retiré du rapport le 14/11/2026** (YORO : « les
+  conf sont incompréhensibles, à supprimer ») ; la cotation reste. Le test du
+  vocabulaire l'interdit désormais. Il reste affiché à l'écran, dans les
+  exports à la demande et dans les bulletins quotidiens.
 
 `scripts/test/grsci-mois.test.js` (11 tests).
 

@@ -60,23 +60,24 @@ test('une rubrique sans fait ne produit pas de page, et beaucoup de faits se pag
 // Garde de la demande du 21/10/2026 : le rapport suit le modèle du groupe, pas
 // le vocabulaire de l'appli. Si ce test tombe, quelqu'un a réintroduit un
 // niveau d'alerte coloré ou un score dans un document du groupe. La cotation
-// et l'indice de confiance, eux, y sont depuis le 23/10/2026 (« oui, go » de
-// YORO) : le test exige leur PRÉSENCE.
-const VOCABULAIRE_APPLI = /EN BREF|niveau d.alerte|score|\/100|MARRON|ROUGE|ORANGE|JAUNE|d.cryptage|lecture automatique|ne savons pas|TABLEAU R/i;
+// y est depuis le 23/10/2026 (« oui, go » de YORO) : le test exige sa
+// PRÉSENCE. L'indice de confiance en a été retiré le 14/11/2026 (YORO : « les
+// conf sont incompréhensibles, à supprimer ») : le test exige son ABSENCE.
+const VOCABULAIRE_APPLI = /EN BREF|indice de confiance|niveau d.alerte|score|\/100|MARRON|ROUGE|ORANGE|JAUNE|d.cryptage|lecture automatique|ne savons pas|TABLEAU R/i;
 
-test("ni niveau ni score, mais cotation et confiance, dans le PowerPoint et le Word", async () => {
+test("ni niveau, ni score, ni indice de confiance, mais la cotation, dans le PowerPoint et le Word", async () => {
   const ci = pays('CI', 'CI', [fait('Attaque', 'securite', 'critical'), fait('Grève', 'humanitaire')]);
   ci.faits[0].cotation = 'confirme'; ci.faits[1].cotation = 'non_confirme';
   const reg = [pays('ML', 'Mali', [Object.assign(fait('Embuscade', 'securite'), { cotation: 'probable' })])];
   // Les espaces de « Cotation : … » sont insécables depuis le 14/11/2026.
   const t = tout(g.construire(FauxPptx, { jour: '2026-10-25', ci, regionaux: reg })).replace(/\u00a0/g, ' ');
   assert.doesNotMatch(t, VOCABULAIRE_APPLI);
-  for (const attendu of ['Cotation : Confirmé', 'Cotation : Non confirmé', 'Cotation : Probable', 'Indice de confiance : moyenne']) assert.ok(t.includes(attendu), attendu);
+  for (const attendu of ['Cotation : Confirmé', 'Cotation : Non confirmé', 'Cotation : Probable']) assert.ok(t.includes(attendu), attendu);
   const { docx, textes } = fauxDocx();
   await require('../lib/rapport-grsci-word.js').ecrireWord(fs.mkdtempSync(path.join(os.tmpdir(), 'grsci-')), docx, { jour: '2026-10-25', ci, regionaux: reg });
   const w = textes.join('\n').replace(/\u00a0/g, ' ');
   assert.doesNotMatch(w, VOCABULAIRE_APPLI);
-  assert.ok(/Cotation : Probable/.test(w) && /Indice de confiance : moyenne/.test(w));
+  assert.ok(/Cotation : Probable/.test(w));
 });
 
 test('chaque fait porte sa source et sa date, sans rien ajouter', () => {
