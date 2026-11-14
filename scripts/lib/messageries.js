@@ -9,11 +9,10 @@
 //
 // WHATSAPP — l'API WhatsApp Cloud de Meta est la seule voie d'envoi
 // automatique autorisée. Elle impose un compte Meta Business, un numéro dédié
-// et un MODÈLE de message approuvé par Meta pour tout premier message, et elle
-// facture les messages de modèle (catégorie « utilitaire ») au-delà des
-// conversations gratuites. Elle n'est donc branchée que si l'éditeur pose les
-// trois secrets WHATSAPP_* ; sinon le job journalise ce qui serait parti, et
-// la page oriente vers les rappels WhatsApp en un clic, déjà gratuits.
+// et un MODÈLE de message approuvé par Meta, et Meta facture les messages de
+// modèle. Décision du 14/11/2026 : aucun compte côté SentiqS ; chaque
+// utilisateur apporte le sien (Paramètres), et ses identifiants, déchiffrés
+// par scripts/lib/identifiants-envoi.js, arrivent ici en `cfg`.
 
 const API_TELEGRAM = 'https://api.telegram.org/bot';
 
@@ -61,34 +60,37 @@ async function telegramMessage(cfg, chatId, texte, fetchFn) {
   return appelTelegram(cfg, 'sendMessage', { chat_id: chatId, text: String(texte).slice(0, 4096), disable_web_page_preview: true }, fetchFn);
 }
 
-function whatsappConfig(env) {
-  const e = env || process.env;
-  const jeton = String(e.WHATSAPP_TOKEN || '').trim();
-  const numeroId = String(e.WHATSAPP_PHONE_NUMBER_ID || '').trim();
-  const modele = String(e.WHATSAPP_TEMPLATE || '').trim();
-  if (!jeton || !/^\d{5,25}$/.test(numeroId) || !/^[a-z0-9_]{1,512}$/.test(modele)) return null;
-  return { jeton, numeroId, modele };
-}
-
 /**
  * Un message de modèle WhatsApp. Le modèle à faire approuver par Meta
  * (catégorie « Utilitaire ») porte quatre variables, dans cet ordre :
  *   {{1}} pays · {{2}} niveau · {{3}} nombre de faits notables · {{4}} lien.
  * Voir docs/bulletins-programmes.md.
  */
-async function whatsappModele(cfg, numero, langue, variables, fetchFn) {
-  const r = await (fetchFn || fetch)('https://graph.facebook.com/v21.0/' + cfg.numeroId + '/messages', {
+async function appelWhatsapp(cfg, numero, template, fetchFn) {
+  const r = await (fetchFn || fetch)('https://graph.facebook.com/v21.0/' + encodeURIComponent(cfg.numeroId) + '/messages', {
     method: 'POST',
     headers: { 'content-type': 'application/json', Authorization: 'Bearer ' + cfg.jeton },
-    body: JSON.stringify({
-      messaging_product: 'whatsapp', to: numero, type: 'template',
-      template: { name: cfg.modele, language: { code: langue === 'en' ? 'en' : 'fr' },
-        components: [{ type: 'body', parameters: variables.map((v) => ({ type: 'text', text: String(v).slice(0, 200) })) }] },
-    }),
+    body: JSON.stringify({ messaging_product: 'whatsapp', to: numero, type: 'template', template }),
   });
   const d = await r.json().catch(() => null);
+  // Le message d'erreur de Meta ne contient pas le jeton ; l'appelant le
+  // nettoie quand même avant de l'écrire où que ce soit.
   if (!r.ok) throw new Error('WhatsApp refusé (' + ((d && d.error && d.error.message) || ('HTTP ' + r.status)) + ')');
   return d;
 }
 
-module.exports = { telegramConfig, appelTelegram, lireCommandes, telegramMessage, whatsappConfig, whatsappModele };
+// La langue du modèle est celle que l'utilisateur a fait approuver
+// (cfg.langue) : Meta refuse un modèle demandé dans une autre langue.
+async function whatsappModele(cfg, numero, langue, variables, fetchFn) {
+  return appelWhatsapp(cfg, numero, { name: cfg.modele, language: { code: cfg.langue || (langue === 'en' ? 'en' : 'fr') },
+    components: [{ type: 'body', parameters: variables.map((v) => ({ type: 'text', text: String(v).slice(0, 200) })) }] }, fetchFn);
+}
+
+// Essai : le modèle « hello_world » que Meta crée sur tout nouveau compte.
+// Il prouve que le jeton, le numéro et le destinataire fonctionnent avant
+// même que le modèle du bulletin soit approuvé.
+async function whatsappEssai(cfg, numero, fetchFn) {
+  return appelWhatsapp(cfg, numero, { name: 'hello_world', language: { code: 'en_US' } }, fetchFn);
+}
+
+module.exports = { telegramConfig, appelTelegram, lireCommandes, telegramMessage, whatsappModele, whatsappEssai };

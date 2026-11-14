@@ -106,7 +106,7 @@ function banc(o) {
   const envois = { email: [], telegram: [], whatsapp: [] };
   const env = {
     firestore: {
-      lister: async () => [{ id: 'uidTest1234567', data: { programmations: o.programmations, email: 'titulaire@exemple.com', telegramCode: o.code || null } }],
+      lister: async (col) => (col === 'bulletins_programmes' ? [{ id: 'uidTest1234567', data: { programmations: o.programmations, email: 'titulaire@exemple.com', telegramCode: o.code || null } }] : []),
       lire: async (c) => (ecrits[c] || docs[c] || null),
       ecrire: async (c, v) => { ecrits[c] = JSON.parse(JSON.stringify(v)); },
     },

@@ -18,6 +18,8 @@
 //     GitHub Actions d'un dépôt public se lisent sans compte.
 const crypto = require('node:crypto');
 const B = require('../../web/js/bulletin-message.js');
+const IE = require('../../web/js/identifiants-envoi.js');
+const { nettoyer: nettoyerTexte } = require('./identifiants-envoi');
 
 const URL_SITE = 'https://ytl1-ops.github.io/SentiqS/';
 const URL_REPONSE = URL_SITE + 'abonnement.html';
@@ -54,8 +56,10 @@ function donneesPays(instantane, codes) {
  * Traite toutes les programmations. `env` :
  *   firestore: { lire(chemin), lister(col), ecrire(chemin, obj) }
  *   maintenantMs, instantane: { genere, pays }, paysValides,
- *   canaux: { email: bool, telegram: bool, whatsapp: bool, telegramRobot },
- *   envoyer: { email(msgs) -> [{ok,raison}], telegram(chatId, texte), whatsapp(num, langue, vars) },
+ *   canaux: { email: bool, telegram: bool, telegramRobot } (canaux de l'éditeur),
+ *   configs: { whatsapp(doc) -> {cfg|erreur}, smtp(doc) -> {cfg|erreur} } (déchiffrement),
+ *   envoyer: { email(msgs, cfgUtilisateur|null) -> [{ok,raison}], telegram(chatId, texte),
+ *              whatsapp(cfg, num, langue, vars), whatsappEssai(cfg, num) },
  *   telegram: { rattachements, arrets } (déjà lus), traduire(texte, source, cible) -> string|null,
  *   journal(ligne), aleatoire() -> hex 40
  */
@@ -64,7 +68,7 @@ async function executer(env) {
   const log = env.journal || (() => {});
   const aleatoire = env.aleatoire || (() => crypto.randomBytes(20).toString('hex'));
   const tg = env.telegram || { rattachements: [], arrets: [] };
-  const bilan = { comptes: 0, creneaux: 0, emails: 0, telegram: 0, whatsapp: 0, demandes: 0, degrade: 0, refus: 0 };
+  const bilan = { comptes: 0, creneaux: 0, emails: 0, telegram: 0, whatsapp: 0, demandes: 0, degrade: 0, refus: 0, essais: 0 };
   const codesUtilises = new Set();
   const traductions = new Map();
 
@@ -80,19 +84,80 @@ async function executer(env) {
     if (t) f[cible === 'en' ? 'titreEn' : 'titreFr'] = t;
   }
 
-  const docs = await env.firestore.lister('bulletins_programmes');
-  for (const doc of docs) {
-    const uid = doc.id;
-    if (!/^[A-Za-z0-9]{10,64}$/.test(uid)) continue;
+  // Essai et état d'un compte apporté (WhatsApp ou SMTP). L'essai part quand
+  // la page en a demandé un plus récent que le dernier traité ; le résultat
+  // (sans aucun secret) est écrit dans bulletins_etat/{uid}.comptes.
+  async function traiterCompte(type, doc, conf, etat, droits, titulaire) {
+    if (!doc) { delete etat.comptes[type]; return; }
+    const prec = etat.comptes[type] || {};
+    const c = { statut: conf.cfg ? (prec.statut === 'ok' || prec.statut === 'erreur' ? prec.statut : 'enregistre') : 'erreur',
+      message: conf.cfg ? (prec.message || null) : (conf.erreur || 'identifiants absents'),
+      testeLe: prec.testeLe || null, essaiTraite: prec.essaiTraite || null,
+      resume: type === 'whatsapp' ? (conf.cfg ? 'numéro ' + IE.masquer(conf.cfg.numeroId) + ', modèle ' + conf.cfg.modele : null)
+        : (conf.cfg ? conf.cfg.expediteur.replace(/^(.).*@/, '$1•••@') + ' via ' + conf.cfg.hote : null),
+      maj: new Date(now).toISOString() };
+    const demande = typeof doc.essaiDemande === 'string' ? doc.essaiDemande : null;
+    if (conf.cfg && demande && demande !== c.essaiTraite) {
+      c.essaiTraite = demande;
+      c.testeLe = new Date(now).toISOString();
+      if (!droits.limite) { c.statut = 'erreur'; c.message = 'essai réservé aux forfaits payants'; }
+      else if (type === 'whatsapp') {
+        const num = B.numeroWhatsapp(doc.essai);
+        if (!/^\d{8,15}$/.test(num)) { c.statut = 'erreur'; c.message = 'numéro d\'essai invalide'; }
+        else {
+          try { await env.envoyer.whatsappEssai(conf.cfg, num); c.statut = 'ok'; c.message = 'message d\'essai accepté par WhatsApp pour ' + masquer(num); bilan.essais++; }
+          catch (er) { c.statut = 'erreur'; c.message = nettoyerTexte(er.message, conf.cfg.jeton); }
+        }
+      } else {
+        const a = conf.cfg.expediteur;
+        const [r] = await env.envoyer.email([{ a, sujet: 'SentiqS : essai de votre serveur d\'envoi',
+          texte: 'Ce message confirme que SentiqS peut envoyer vos bulletins programmés depuis ' + a + ' (' + conf.cfg.hote + ').\n\nAucune action n\'est nécessaire.',
+          html: '<p>Ce message confirme que SentiqS peut envoyer vos bulletins programmés depuis ' + a.replace(/[<>&"]/g, '') + '.</p><p>Aucune action n\'est nécessaire.</p>' }], conf.cfg)
+          .catch((e) => [{ ok: false, raison: e.message }]);
+        if (r && r.ok) { c.statut = 'ok'; c.message = 'e-mail d\'essai envoyé à ' + masquer(a); bilan.essais++; }
+        else { c.statut = 'erreur'; c.message = nettoyerTexte((r && r.raison) || 'échec', conf.cfg.motDePasse); }
+      }
+      log('  Essai ' + type + ' : ' + c.statut + (c.statut === 'erreur' ? ' (' + c.message + ')' : ''));
+    }
+    etat.comptes[type] = c;
+  }
+
+  // Trois collections : les programmations, et les identifiants d'envoi que
+  // chaque utilisateur peut apporter (son compte WhatsApp, sa boîte e-mail).
+  // Un compte qui a enregistré des identifiants sans programmation reçoit
+  // quand même le résultat de son essai.
+  const parUid = new Map();
+  const ajouter = (col, cle) => (env.firestore.lister(col).catch(() => [])).then((l) => (l || []).forEach((d) => {
+    if (!d || !/^[A-Za-z0-9]{10,64}$/.test(String(d.id))) return;
+    const o = parUid.get(d.id) || {};
+    o[cle] = d.data || {};
+    parUid.set(d.id, o);
+  }));
+  await ajouter('bulletins_programmes', 'prog');
+  await ajouter('whatsapp_comptes', 'wa');
+  await ajouter('smtp_comptes', 'smtp');
+  const configs = env.configs || { whatsapp: () => ({}), smtp: () => ({}) };
+  for (const [uid, sources] of parUid) {
     bilan.comptes++;
-    const prog = doc.data || {};
+    const prog = sources.prog || {};
     const profil = await env.firestore.lire('profiles/' + uid).catch(() => null);
     const droits = droitsProfil(profil, now);
     const titulaire = String((profil && (profil.email || (profil.data && profil.data.email))) || prog.email || '').toLowerCase();
     const etat = (await env.firestore.lire('bulletins_etat/' + uid).catch(() => null)) || {};
     etat.destinataires = etat.destinataires || {};
     etat.progs = etat.progs || {};
+    etat.comptes = etat.comptes || {};
     etat.plan = droits.plan; etat.limite = droits.limite; etat.raison = droits.raison;
+
+    // ── Identifiants apportés par l'utilisateur ─────────────────────────
+    // Déchiffrés ici seulement, jamais écrits ni journalisés en clair.
+    const wa = sources.wa ? configs.whatsapp(sources.wa) : {};
+    const sm = sources.smtp ? configs.smtp(sources.smtp) : {};
+    await traiterCompte('whatsapp', sources.wa, wa, etat, droits, titulaire);
+    await traiterCompte('smtp', sources.smtp, sm, etat, droits, titulaire);
+    const smtpUtilisateur = sm.cfg || null;
+    const emailActif = !!smtpUtilisateur || !!env.canaux.email;
+    const envoyerEmail = (m) => env.envoyer.email(m, smtpUtilisateur);
 
     // ── Telegram : rattachement et détachement ──────────────────────────
     const code = typeof prog.telegramCode === 'string' && B.RE_CODE_TELEGRAM.test(prog.telegramCode) ? prog.telegramCode : null;
@@ -138,10 +203,10 @@ async function executer(env) {
           if (rep && rep.decision === 'non') { d.statut = 'desabonne'; d.reponseLe = new Date(now).toISOString(); }
           else if (rep && rep.decision === 'oui' && d.statut === 'en_attente') { d.statut = 'accepte'; d.reponseLe = new Date(now).toISOString(); }
         }
-        if (d.statut === 'non_demande' && env.canaux.email && droits.limite > 0) {
+        if (d.statut === 'non_demande' && emailActif && droits.limite > 0) {
           const dem = B.composerDemandeAccord({ langue: p.langue, signature: p.signature, titulaire, noms: donneesPays(env.instantane, p.pays).map((x) => (p.langue === 'en' ? x.nomEn || x.nom : x.nom)),
             heures: p.heures, lienOui: URL_REPONSE + '#oui=' + d.jeton, lienNon: URL_REPONSE + '#non=' + d.jeton });
-          const [r] = await env.envoyer.email([{ a: d.email, sujet: dem.sujet, texte: dem.texte, html: dem.html, desabonnement: URL_REPONSE + '#non=' + d.jeton }]);
+          const [r] = await envoyerEmail([{ a: d.email, sujet: dem.sujet, texte: dem.texte, html: dem.html, desabonnement: URL_REPONSE + '#non=' + d.jeton }]);
           if (r && r.ok) { d.statut = 'en_attente'; d.demandeLe = new Date(now).toISOString(); bilan.demandes++; log('  Demande d\'accord envoyée à ' + masquer(d.email)); }
           else log('  Demande d\'accord non envoyée à ' + masquer(d.email) + ' (' + ((r && r.raison) || 'échec') + ')');
         }
@@ -165,8 +230,8 @@ async function executer(env) {
           const m = B.composerMessage(pays, Object.assign({ lienDesabonnement: URL_REPONSE + '#non=' + d.jeton }, base));
           return { a: d.email, sujet: m.sujet, texte: m.texte, html: m.html, desabonnement: URL_REPONSE + '#non=' + d.jeton };
         });
-        if (env.canaux.email) {
-          const r = await env.envoyer.email(messages);
+        if (emailActif) {
+          const r = await envoyerEmail(messages);
           const ok = r.filter((x) => x.ok).length;
           bilan.emails += ok;
           res.email = { envoyes: ok, echecs: r.length - ok };
@@ -174,7 +239,7 @@ async function executer(env) {
         } else {
           res.email = { degrade: cibles.length };
           bilan.degrade++;
-          log('  Créneau ' + id + ' : e-mail NON branché — ' + cibles.length + ' message(s) qui seraient partis. Sujet : ' + messages[0].sujet);
+          log('  Créneau ' + id + ' : e-mail sans serveur d\'envoi (ni celui de l\'utilisateur, ni celui de l\'éditeur) — ' + cibles.length + ' message(s) qui seraient partis. Sujet : ' + messages[0].sujet);
         }
       }
       if (attente) res.emailEnAttente = attente;
@@ -189,20 +254,26 @@ async function executer(env) {
         } else { res.telegram = { degrade: 1 }; bilan.degrade++; log('  Créneau ' + id + ' : Telegram NON branché.'); }
       }
 
+      // WhatsApp part du compte Meta de l'utilisateur, jamais d'un compte
+      // SentiqS (décision du 14/11/2026) : sans identifiants valides, rien ne part.
       if (p.canaux.whatsapp.length) {
-        if (env.canaux.whatsapp) {
-          let ok = 0;
+        if (wa.cfg) {
+          let ok = 0, echecs = 0, raison = null;
           for (const num of p.canaux.whatsapp) {
             for (const x of pays) {
               try {
-                await env.envoyer.whatsapp(num, p.langue, [p.langue === 'en' ? (x.nomEn || x.nom) : x.nom, B.libelleNiveau(x.niveau, p.langue), String(x.faitsNotables || 0), x.url || URL_SITE]);
+                await env.envoyer.whatsapp(wa.cfg, num, p.langue, [p.langue === 'en' ? (x.nomEn || x.nom) : x.nom, B.libelleNiveau(x.niveau, p.langue), String(x.faitsNotables || 0), x.url || URL_SITE]);
                 ok++;
-              } catch (er) { log('  WhatsApp ' + masquer(num) + ' : ' + er.message.slice(0, 120)); }
+              } catch (er) { echecs++; raison = nettoyerTexte(er.message, wa.cfg.jeton); log('  WhatsApp ' + masquer(num) + ' : ' + raison); }
             }
           }
           bilan.whatsapp += ok;
-          res.whatsapp = { envoyes: ok };
-        } else { res.whatsapp = { degrade: p.canaux.whatsapp.length }; bilan.degrade++; log('  Créneau ' + id + ' : WhatsApp NON branché (' + p.canaux.whatsapp.length + ' numéro(s)).'); }
+          res.whatsapp = Object.assign({ envoyes: ok }, echecs ? { echecs, raison } : {});
+        } else {
+          res.whatsapp = { degrade: p.canaux.whatsapp.length, sansCompte: true };
+          bilan.degrade++;
+          log('  Créneau ' + id + ' : WhatsApp sans compte valide de l\'utilisateur (' + p.canaux.whatsapp.length + ' numéro(s)).');
+        }
       }
       e.resultat = res;
     }

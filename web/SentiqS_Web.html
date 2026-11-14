@@ -34,6 +34,7 @@
      AVANT lui : le script applicatif s'appuie sur ces noms. -->
 <script src="js/noyau.js"></script>
 <script src="js/bulletin-message.js"></script>
+<script src="js/identifiants-envoi.js"></script>
 <script src="js/intro.js"></script>
 <!-- Fournisseur d'identite : Firebase si js/firebase-config.js est rempli,
      Supabase sinon (voir getSentinelSupabase et FIREBASE.md). -->
@@ -1273,6 +1274,15 @@ html.force-mobile .ops-label{display:none}
 .bp-alerte{font-size:12px;color:var(--t);background:var(--al);border:1px solid var(--ab);border-radius:6px;padding:8px 10px;margin:6px 0}
 .bp-canaux{list-style:none;margin:0 0 12px;padding:8px 10px;border:1px solid var(--bd);border-radius:6px;font-size:11px;color:var(--t2);display:grid;gap:3px}
 .bp-ok{color:var(--g);font-weight:700}.bp-off{color:var(--t2);font-weight:600}
+.bp-alerte-txt{color:var(--r);font-weight:600}
+.bp-comptes{display:grid;gap:8px;margin:0 0 12px}
+.bp-compte{border:1px solid var(--bd);border-radius:6px;padding:8px 12px;display:grid;gap:8px;min-width:0}
+.bp-compte>summary{cursor:pointer;font-weight:700;font-size:12px;color:var(--t);min-height:24px;display:flex;align-items:center}
+.bp-compte[open]>summary{margin-bottom:6px}
+.bp-guide{margin-top:4px}.bp-guide>summary{cursor:pointer;font-weight:600;font-size:11px;color:var(--t2);min-height:24px}
+.bp-guide ol{margin:6px 0 0;padding-left:18px;display:grid;gap:6px;font-size:11px;line-height:1.5;color:var(--t2)}
+.bp-guide code{font-size:10.5px;word-break:break-all}
+.bp-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .bp-vide{font-size:12px;color:var(--lg);padding:10px 0}
 .bp-carte{border:1px solid var(--bd);border-radius:8px;padding:12px;margin:0 0 10px;background:var(--sf)}
 .bp-suspendue{opacity:.8}
@@ -1286,7 +1296,7 @@ html.force-mobile .ops-label{display:none}
 .bp-form-titre{font-size:13px;font-weight:800;color:var(--t)}
 .bp-champ{display:grid;gap:4px;min-width:0}
 .bp-champ label,.bp-leg,.bp-fs label{font-size:11px;color:var(--t2);font-weight:600}
-.bp-champ input[type=text],.bp-fs input[type=text],.bp-champ select{width:100%;padding:7px 9px;border:1px solid var(--bd);border-radius:5px;font-size:13px;background:var(--w);color:var(--t);min-height:32px;box-sizing:border-box}
+.bp-champ input[type=text],.bp-champ input[type=email],.bp-champ input[type=password],.bp-fs input[type=text],.bp-champ select,.bp-compte .bp-rangee input[type=text]{width:100%;padding:7px 9px;border:1px solid var(--bd);border-radius:5px;font-size:13px;background:var(--w);color:var(--t);min-height:32px;box-sizing:border-box}
 .bp-rangee{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .bp-rangee select{flex:1;min-width:160px}
 .bp-puces{display:flex;gap:6px;flex-wrap:wrap}
@@ -19231,6 +19241,13 @@ const BP_ERREURS = {
   limite_forfait: 'Au-delà de ce que permet votre forfait : cette programmation n\'est pas envoyée.',
   forfait: 'Votre forfait ne comprend pas les bulletins programmés : rien n\'est envoyé.',
   acces_expire: 'Votre accès a expiré : rien n\'est envoyé.', compte_inactif: 'Compte suspendu : rien n\'est envoyé.',
+  wa_jeton: 'Le jeton d\'accès WhatsApp n\'a pas le bon format (copiez-le en entier depuis Meta).',
+  wa_numero_id: 'L\'identifiant du numéro WhatsApp est une suite de chiffres (Phone number ID, pas le numéro lui-même).',
+  wa_modele: 'Nom de modèle invalide : minuscules, chiffres et soulignés, comme dans Meta.',
+  wa_langue: 'Langue du modèle invalide.',
+  smtp_hote: 'Serveur SMTP invalide (ex. smtp.gmail.com).', smtp_port: 'Port 465 ou 587 seulement (connexion chiffrée).',
+  smtp_utilisateur: 'Identifiant SMTP manquant.', smtp_mot_de_passe: 'Mot de passe SMTP manquant.',
+  smtp_expediteur: 'Adresse d\'envoi invalide.', smtp_nom: 'Nom affiché trop long (60 caractères au plus).',
 };
 const BP_STATUT_DEST = {
   titulaire: 'votre adresse', non_demande: 'demande d\'accord pas encore envoyée', en_attente: 'en attente de son accord',
@@ -19297,14 +19314,204 @@ async function enregistrerBulletinsProgrammes(liste, code) {
   return { ok: true };
 }
 
+// Une phrase dans la langue de l'interface (le guide et l'état des comptes
+// apportés sont écrits dans les deux langues plutôt que traduits par table).
+function bpT(fr, en) { return LANG === 'en' ? en : fr; }
+function bpIlYa(iso) {
+  const t = Date.parse(iso || ''); if (!isFinite(t)) return null;
+  const m = Math.max(0, Math.round((Date.now() - t) / 60000));
+  if (m < 60) return bpT('il y a ' + m + ' min', m + ' min ago');
+  const h = Math.round(m / 60);
+  return h < 48 ? bpT('il y a ' + h + ' h', h + ' h ago') : bpT('il y a ' + Math.round(h / 24) + ' jours', Math.round(h / 24) + ' days ago');
+}
+
+// État réel de chaque canal, tel que le dernier passage du service d'envoi
+// l'a écrit (bulletins_etat/_canaux et l'état du compte) : on dit ce qui est
+// branché, jamais ce qu'on promet.
 function bpEtatCanaux() {
-  const k = _BP.canaux || {};
-  const lig = (nom, actif, detail) => '<li><b>' + nom + '</b> : ' + (actif ? '<span class="bp-ok">activé</span>' : '<span class="bp-off">pas encore activé par l\'éditeur</span>' + (detail ? ' — ' + detail : '')) + '</li>';
+  const k = _BP.canaux;
+  const comptes = (_BP.etat && _BP.etat.comptes) || {};
+  const lig = (nom, actif, detail, enErreur) => '<li><b>' + nom + '</b> : ' + (actif ? '<span class="bp-ok">' + actif + '</span>' : (enErreur ? '<span class="bp-alerte-txt">' + bpT('erreur', 'error') + '</span>' : '<span class="bp-off">' + bpT('non configuré', 'not configured') + '</span>')) + (detail ? ' — ' + detail : '') + '</li>';
+  if (!k) {
+    return '<ul class="bp-canaux"><li><span class="bp-off">' + bpT('Le service d\'envoi n\'a pas encore tourné : l\'état des canaux s\'affichera après son premier passage (quinze minutes environ).', 'The sending service has not run yet: channel status will appear after its first run (about fifteen minutes).') + '</span></li></ul>';
+  }
+  const passe = bpIlYa(k.maj);
+  const retard = isFinite(Date.parse(k.maj || '')) && (Date.now() - Date.parse(k.maj)) > 3 * 3600000;
+  const sm = comptes.smtp, wa = comptes.whatsapp;
+  const etatCompte = (c) => !c ? null : (c.statut === 'ok' ? bpT('votre compte, essai réussi', 'your account, test passed') : (c.statut === 'erreur' ? null : bpT('votre compte, enregistré', 'your account, saved')));
+  const emailActif = etatCompte(sm) || (k.email ? bpT('serveur de l\'éditeur', 'publisher\'s server') : null);
+  const emailDet = sm && sm.statut === 'erreur' ? '<span class="bp-alerte-txt">' + escHtml(bpMsgJob(sm.message)) + '</span>'
+    : (emailActif ? '' : bpT('désignez votre propre adresse d\'envoi ci-dessous ; les envois prévus sont notés et partiront dès qu\'un serveur est configuré', 'set your own sending address below; scheduled sends are recorded and will go out once a server is set'));
+  const waActif = etatCompte(wa);
+  const waDet = wa && wa.statut === 'erreur' ? '<span class="bp-alerte-txt">' + escHtml(bpMsgJob(wa.message)) + '</span>'
+    : (waActif ? '' : bpT('l\'envoi automatique part de votre propre compte WhatsApp Business (guide ci-dessous) ; les rappels WhatsApp en un clic, plus bas, restent gratuits', 'automatic sending uses your own WhatsApp Business account (guide below); one-click WhatsApp reminders, further down, stay free'));
   return '<ul class="bp-canaux">'
-    + lig('E-mail', !!k.email, 'les envois prévus sont notés et partiront dès l\'activation')
-    + lig('Telegram', !!k.telegram, '')
-    + lig('WhatsApp', !!k.whatsapp, 'l\'envoi automatique exige l\'API WhatsApp Business de Meta, payante ; les rappels WhatsApp en un clic, plus bas, restent gratuits')
+    + lig(bpT('E-mail', 'E-mail'), emailActif, emailDet, !emailActif && sm && sm.statut === 'erreur')
+    + lig('Telegram', k.telegram ? bpT('activé', 'active') : null, k.telegram ? '' : bpT('pas encore activé par l\'éditeur', 'not yet enabled by the publisher'))
+    + lig('WhatsApp', waActif, waDet, wa && wa.statut === 'erreur')
+    + (passe ? '<li class="' + (retard ? 'bp-off' : '') + '">' + bpT('Dernier passage du service d\'envoi : ', 'Last run of the sending service: ') + escHtml(passe) + (retard ? bpT(' (en retard ; GitHub peut différer les passages)', ' (late; GitHub may delay runs)') : '') + '</li>' : '')
     + '</ul>';
+}
+
+// ── Comptes apportés par l'utilisateur (14/11/2026) ────────────────────────
+// Décisions de YORO : chaque utilisateur désigne l'adresse qui envoie ses
+// bulletins et crée, s'il le veut, son propre compte WhatsApp Business. Le
+// secret (mot de passe SMTP, jeton Meta) est chiffré ICI avec la clé publique
+// du service d'envoi (web/js/identifiants-envoi.js) avant d'être écrit ;
+// Firestore refuse ensuite toute relecture depuis un navigateur.
+const _bpComptesLocal = { whatsapp: null, smtp: null };
+// Les messages d'état écrits par le service d'envoi sont en français ; en
+// anglais, les formules connues sont rendues en anglais (une seule langue à
+// l'écran). Un message d'erreur de Meta ou du serveur SMTP reste tel quel.
+function bpMsgJob(t) {
+  t = String(t || '');
+  if (LANG !== 'en') return t;
+  return t.replace(/^e-mail d'essai envoyé à /, 'test e-mail sent to ')
+    .replace(/^message d'essai accepté par WhatsApp pour /, 'test message accepted by WhatsApp for ')
+    .replace(/^numéro (\S+), modèle /, 'number $1, template ')
+    .replace(/^identifiants illisibles : enregistrez-les de nouveau$/, 'credentials unreadable: save them again')
+    .replace(/^identifiants incomplets : enregistrez-les de nouveau$/, 'credentials incomplete: save them again')
+    .replace(/^identifiants invalides /, 'invalid credentials ')
+    .replace(/^essai réservé aux forfaits payants$/, 'tests are for paid plans only')
+    .replace(/^numéro d'essai invalide$/, 'invalid test number')
+    .replace(/^aucun serveur d'envoi$/, 'no sending server');
+}
+function bpStatutCompte(type) {
+  const c = ((_BP.etat && _BP.etat.comptes) || {})[type];
+  const local = _bpComptesLocal[type];
+  if (local === 'supprime') return '<div class="bp-aide">' + bpT('Identifiants supprimés.', 'Credentials deleted.') + '</div>';
+  if (local === 'enregistre') return '<div class="bp-aide">' + bpT('Enregistré et chiffré. Le service d\'envoi les vérifiera à son prochain passage (quinze minutes à une heure).', 'Saved and encrypted. The sending service will check them on its next run (fifteen minutes to an hour).') + '</div>';
+  if (local === 'essai') return '<div class="bp-aide">' + bpT('Essai demandé : résultat ici au prochain passage du service d\'envoi.', 'Test requested: the result will appear here after the next run.') + '</div>';
+  if (!c) return '<div class="bp-aide">' + bpT('Aucun identifiant enregistré.', 'No credentials saved.') + '</div>';
+  const quand = c.testeLe ? ' (' + bpT('essai ', 'test ') + escHtml(bpIlYa(c.testeLe) || '') + ')' : '';
+  const lib = c.statut === 'ok' ? '<span class="bp-ok">' + bpT('Fonctionne', 'Working') + '</span>' + quand
+    : (c.statut === 'erreur' ? '<span class="bp-alerte-txt">' + bpT('Erreur : ', 'Error: ') + escHtml(bpMsgJob(c.message)) + '</span>' + quand
+      : '<span class="bp-off">' + bpT('Enregistré, pas encore essayé', 'Saved, not tested yet') + '</span>');
+  return '<div class="bp-ligne">' + lib + (c.resume ? ' · ' + escHtml(bpMsgJob(c.resume)) : '') + (c.statut === 'ok' && c.message ? ' · ' + escHtml(bpMsgJob(c.message)) : '') + '</div>';
+}
+
+function bpComptesHtml() {
+  const lien = (u, t) => '<a href="' + u + '" target="_blank" rel="noopener">' + t + '</a>';
+  const smtp = '<details class="bp-compte" id="bpCompteSmtp"><summary>' + bpT('Mon adresse d\'envoi e-mail (facultatif)', 'My sending e-mail address (optional)') + '</summary>'
+    + '<p class="bp-aide">' + bpT('Les bulletins partent de l\'adresse que vous désignez, avec son serveur d\'envoi (SMTP). Sans elle, ils partent du serveur de l\'éditeur s\'il en a configuré un. Les adresses qui REÇOIVENT les bulletins se choisissent dans chaque programmation.', 'Bulletins are sent from the address you set, through its sending server (SMTP). Without it, they go through the publisher\'s server if one is set. The addresses that RECEIVE bulletins are chosen in each schedule.') + '</p>'
+    + bpStatutCompte('smtp')
+    + '<div class="bp-grille2">'
+    + '<div class="bp-champ"><label for="bpSmtpExp">' + bpT('Adresse d\'envoi', 'Sending address') + '</label><input type="email" id="bpSmtpExp" autocomplete="email" placeholder="veille@exemple.com"></div>'
+    + '<div class="bp-champ"><label for="bpSmtpNom">' + bpT('Nom affiché', 'Display name') + '</label><input type="text" id="bpSmtpNom" maxlength="60" placeholder="Cellule Sûreté"></div>'
+    + '<div class="bp-champ"><label for="bpSmtpHote">' + bpT('Serveur SMTP', 'SMTP server') + '</label><input type="text" id="bpSmtpHote" autocomplete="off" placeholder="smtp.gmail.com"></div>'
+    + '<div class="bp-champ"><label for="bpSmtpPort">Port</label><select id="bpSmtpPort"><option value="465">465 (TLS)</option><option value="587">587 (STARTTLS)</option></select></div>'
+    + '<div class="bp-champ"><label for="bpSmtpUtil">' + bpT('Identifiant', 'Username') + '</label><input type="text" id="bpSmtpUtil" autocomplete="off"></div>'
+    + '<div class="bp-champ"><label for="bpSmtpMdp">' + bpT('Mot de passe (ou mot de passe d\'application)', 'Password (or app password)') + '</label><input type="password" id="bpSmtpMdp" autocomplete="new-password"></div>'
+    + '</div>'
+    + '<div class="bp-actions"><button type="button" class="btn-action btn-rest" onclick="bpEnregistrerCompte(\'smtp\')"><i class="ti ti-lock" aria-hidden="true"></i> ' + bpT('Chiffrer et enregistrer', 'Encrypt and save') + '</button>'
+    + '<button type="button" class="btn-action" onclick="bpEssaiCompte(\'smtp\')">' + bpT('M\'envoyer un e-mail d\'essai', 'Send me a test e-mail') + '</button>'
+    + '<button type="button" class="btn-action btn-del" onclick="bpSupprimerCompte(\'smtp\')"><i class="ti ti-trash" aria-hidden="true"></i> ' + bpT('Supprimer', 'Delete') + '</button>'
+    + '<span class="pmu-msg" id="bpMsgSmtp" role="status"></span></div>'
+    + '<details class="bp-guide"><summary>' + bpT('Guide : quel serveur indiquer ?', 'Guide: which server to enter?') + '</summary><ol>'
+    + bpT('<li><b>Gmail</b> : activez la validation en deux étapes, puis créez un mot de passe d\'application (' + lien('https://myaccount.google.com/apppasswords', 'myaccount.google.com/apppasswords') + '). Serveur <code>smtp.gmail.com</code>, port 465, identifiant = votre adresse Gmail, mot de passe = les 16 lettres données par Google. Environ 500 envois par jour.</li>'
+      + '<li><b>Brevo</b> (gratuit, 300 envois par jour) : créez un compte sur ' + lien('https://www.brevo.com', 'brevo.com') + ', validez votre adresse d\'expédition, puis « SMTP &amp; API » &gt; « Générer une clé SMTP ». Serveur <code>smtp-relay.brevo.com</code>, port 587, identifiant et mot de passe = ceux affichés par Brevo.</li>'
+      + '<li><b>Messagerie d\'entreprise</b> (Microsoft 365, OVH, Zimbra…) : demandez à votre service informatique le serveur SMTP, le port (465 ou 587) et un compte autorisé à envoyer. Sur Microsoft 365, l\'administrateur doit parfois activer « SMTP authentifié » pour ce compte.</li>'
+      + '<li>Enregistrez, puis « M\'envoyer un e-mail d\'essai » : il arrive dans la boîte d\'envoi elle-même.</li>',
+      '<li><b>Gmail</b>: turn on 2-step verification, then create an app password (' + lien('https://myaccount.google.com/apppasswords', 'myaccount.google.com/apppasswords') + '). Server <code>smtp.gmail.com</code>, port 465, username = your Gmail address, password = the 16 letters Google gives you. About 500 sends a day.</li>'
+      + '<li><b>Brevo</b> (free, 300 sends a day): sign up at ' + lien('https://www.brevo.com', 'brevo.com') + ', verify your sender address, then “SMTP &amp; API” &gt; “Generate an SMTP key”. Server <code>smtp-relay.brevo.com</code>, port 587, username and password = those shown by Brevo.</li>'
+      + '<li><b>Company mail</b> (Microsoft 365, OVH, Zimbra…): ask your IT team for the SMTP server, the port (465 or 587) and an account allowed to send. On Microsoft 365 the administrator may need to enable “Authenticated SMTP” for that account.</li>'
+      + '<li>Save, then “Send me a test e-mail”: it arrives in the sending mailbox itself.</li>')
+    + '</ol></details></details>';
+
+  const wa = '<details class="bp-compte" id="bpCompteWa"><summary>' + bpT('Mon compte WhatsApp Business (facultatif)', 'My WhatsApp Business account (optional)') + '</summary>'
+    + '<p class="bp-aide">' + bpT('L\'envoi automatique par WhatsApp passe par l\'API officielle de Meta, depuis VOTRE numéro professionnel et sur VOTRE compte Meta (Meta facture chaque message à votre compte ; SentiqS ne facture rien). Sans compte, utilisez les rappels WhatsApp en un clic, gratuits, plus bas dans cette page.', 'Automatic WhatsApp sending goes through Meta\'s official API, from YOUR business number and on YOUR Meta account (Meta bills each message to your account; SentiqS charges nothing). Without an account, use the free one-click WhatsApp reminders further down this page.') + '</p>'
+    + bpStatutCompte('whatsapp')
+    + '<div class="bp-grille2">'
+    + '<div class="bp-champ"><label for="bpWaNumId">' + bpT('Identifiant du numéro (Phone number ID)', 'Phone number ID') + '</label><input type="text" id="bpWaNumId" inputmode="numeric" autocomplete="off" placeholder="123456789012345"></div>'
+    + '<div class="bp-champ"><label for="bpWaJeton">' + bpT('Jeton d\'accès permanent', 'Permanent access token') + '</label><input type="password" id="bpWaJeton" autocomplete="new-password"></div>'
+    + '<div class="bp-champ"><label for="bpWaModele">' + bpT('Nom du modèle de message', 'Message template name') + '</label><input type="text" id="bpWaModele" autocomplete="off" value="bulletin_surete"></div>'
+    + '<div class="bp-champ"><label for="bpWaLangue">' + bpT('Langue du modèle', 'Template language') + '</label><select id="bpWaLangue"><option value="fr">' + bpT('Français (fr)', 'French (fr)') + '</option><option value="en">' + bpT('Anglais (en)', 'English (en)') + '</option><option value="en_US">' + bpT('Anglais américain (en_US)', 'English US (en_US)') + '</option><option value="pt_PT">' + bpT('Portugais (pt_PT)', 'Portuguese (pt_PT)') + '</option></select></div>'
+    + '</div>'
+    + '<div class="bp-actions"><button type="button" class="btn-action btn-rest" onclick="bpEnregistrerCompte(\'whatsapp\')"><i class="ti ti-lock" aria-hidden="true"></i> ' + bpT('Chiffrer et enregistrer', 'Encrypt and save') + '</button>'
+    + '<span class="bp-rangee"><label for="bpWaEssaiNum" class="bp-sr">' + bpT('Numéro d\'essai', 'Test number') + '</label><input type="text" id="bpWaEssaiNum" inputmode="tel" placeholder="' + bpT('Numéro d\'essai, ex. 2250700000000', 'Test number, e.g. 2250700000000') + '">'
+    + '<button type="button" class="btn-action" onclick="bpEssaiCompte(\'whatsapp\')">' + bpT('Envoyer un essai', 'Send a test') + '</button></span>'
+    + '<button type="button" class="btn-action btn-del" onclick="bpSupprimerCompte(\'whatsapp\')"><i class="ti ti-trash" aria-hidden="true"></i> ' + bpT('Supprimer', 'Delete') + '</button>'
+    + '<span class="pmu-msg" id="bpMsgWa" role="status"></span></div>'
+    + '<details class="bp-guide"><summary>' + bpT('Guide pas à pas : créer son compte WhatsApp Business (30 à 60 minutes, puis validations Meta)', 'Step-by-step guide: create your WhatsApp Business account (30 to 60 minutes, then Meta reviews)') + '</summary><ol>'
+    + bpT('<li>Créez un portefeuille Meta Business sur ' + lien('https://business.facebook.com', 'business.facebook.com') + ' (nom légal de l\'organisation, adresse, site).</li>'
+      + '<li>Sur ' + lien('https://developers.facebook.com/apps', 'developers.facebook.com/apps') + ' : « Créer une application », type « Entreprise », rattachée à ce portefeuille ; ajoutez le produit <b>WhatsApp</b>.</li>'
+      + '<li>WhatsApp &gt; Configuration de l\'API : ajoutez votre numéro professionnel et validez-le par SMS ou appel. Ce numéro ne doit pas être utilisé dans l\'application WhatsApp. Pour essayer d\'abord, le numéro de test fourni par Meta suffit (cinq destinataires déclarés au plus). Copiez l\'<b>identifiant du numéro</b> (Phone number ID).</li>'
+      + '<li>Jeton permanent : Paramètres de l\'entreprise &gt; Utilisateurs &gt; <b>Utilisateurs système</b> &gt; Ajouter (rôle Administrateur) ; attribuez-lui l\'application et le compte WhatsApp ; « Générer un jeton », expiration <b>Jamais</b>, autorisations <code>whatsapp_business_messaging</code> et <code>whatsapp_business_management</code> seulement. Copiez-le : Meta ne le montre qu\'une fois.</li>'
+      + '<li>Gestionnaire WhatsApp &gt; Modèles de message &gt; Créer : catégorie <b>Utilitaire</b>, nom <code>bulletin_surete</code>, langue Français, texte : <code>Bulletin sûreté {{1}} : niveau {{2}}, {{3}} fait(s) notable(s). Détail : {{4}}</code>. L\'approbation prend de quelques minutes à 24 h. Pour des bulletins en anglais, créez la version anglaise du même modèle.</li>'
+      + '<li>Ajoutez un moyen de paiement dans le Gestionnaire WhatsApp : Meta facture chaque message de modèle, au tarif du pays du destinataire (' + lien('https://developers.facebook.com/docs/whatsapp/pricing', 'grille officielle') + '). Pour un compte d\'entreprise, Meta peut aussi demander la vérification de l\'entreprise (quelques jours).</li>'
+      + '<li>Saisissez ici l\'identifiant du numéro, le jeton et le nom du modèle, « Chiffrer et enregistrer », puis « Envoyer un essai » (modèle <code>hello_world</code>, présent sur tout compte neuf). Ajoutez ensuite les numéros destinataires dans vos programmations.</li>'
+      + '<li>Règle de Meta : n\'écrivez qu\'à des numéros dont le titulaire a accepté de recevoir vos messages. Pour tout arrêter : « Supprimer » ici, ou révoquez le jeton dans Meta (effet immédiat).</li>',
+      '<li>Create a Meta Business portfolio at ' + lien('https://business.facebook.com', 'business.facebook.com') + ' (legal name of the organisation, address, website).</li>'
+      + '<li>At ' + lien('https://developers.facebook.com/apps', 'developers.facebook.com/apps') + ': “Create app”, type “Business”, linked to that portfolio; add the <b>WhatsApp</b> product.</li>'
+      + '<li>WhatsApp &gt; API Setup: add your business number and verify it by SMS or call. That number must not be used in the WhatsApp app. To try first, Meta\'s test number is enough (up to five registered recipients). Copy the <b>Phone number ID</b>.</li>'
+      + '<li>Permanent token: Business Settings &gt; Users &gt; <b>System users</b> &gt; Add (Admin role); assign it the app and the WhatsApp account; “Generate token”, expiry <b>Never</b>, permissions <code>whatsapp_business_messaging</code> and <code>whatsapp_business_management</code> only. Copy it: Meta shows it only once.</li>'
+      + '<li>WhatsApp Manager &gt; Message templates &gt; Create: category <b>Utility</b>, name <code>bulletin_surete</code>, language English, text: <code>Security bulletin {{1}}: level {{2}}, {{3}} notable event(s). Details: {{4}}</code>. Approval takes from a few minutes to 24 h. For French bulletins, add the French version of the same template.</li>'
+      + '<li>Add a payment method in WhatsApp Manager: Meta bills each template message at the rate of the recipient\'s country (' + lien('https://developers.facebook.com/docs/whatsapp/pricing', 'official rates') + '). For a company account, Meta may also require business verification (a few days).</li>'
+      + '<li>Enter the Phone number ID, the token and the template name here, “Encrypt and save”, then “Send a test” (template <code>hello_world</code>, present on every new account). Then add recipient numbers in your schedules.</li>'
+      + '<li>Meta\'s rule: only message numbers whose owners agreed to receive your messages. To stop everything: “Delete” here, or revoke the token in Meta (immediate).</li>')
+    + '</ol></details></details>';
+  return '<div class="bp-comptes">' + smtp + wa + '</div>';
+}
+
+function bpMsgCompte(type) { return type === 'smtp' ? 'bpMsgSmtp' : 'bpMsgWa'; }
+function bpRouvrirCompte(type) { const d = document.getElementById(type === 'smtp' ? 'bpCompteSmtp' : 'bpCompteWa'); if (d) d.open = true; }
+
+async function bpEnregistrerCompte(type) {
+  const v = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  const idMsg = bpMsgCompte(type);
+  const c = _clientPaiement();
+  if (!c || !_BP.uid) { pmMsg(bpT('Connexion requise.', 'Sign-in required.'), 'err', idMsg); return; }
+  const pem = _BP.canaux && _BP.canaux.clePublique;
+  if (!pem) { pmMsg(bpT('Le service d\'envoi n\'a pas encore publié sa clé de chiffrement : réessayez après son premier passage.', 'The sending service has not published its encryption key yet: try again after its first run.'), 'err', idMsg); return; }
+  let ligne, secret, fautes;
+  if (type === 'smtp') {
+    const o = { hote: v('bpSmtpHote').toLowerCase(), port: Number(v('bpSmtpPort')), utilisateur: v('bpSmtpUtil'), motDePasse: (document.getElementById('bpSmtpMdp') || {}).value || '', expediteur: v('bpSmtpExp'), nom: v('bpSmtpNom') };
+    fautes = IdentifiantsEnvoi.verifierSmtp(o);
+    secret = o.motDePasse;
+    ligne = { id: _BP.uid, hote: o.hote, port: o.port, utilisateur: o.utilisateur, expediteur: o.expediteur, nom: o.nom, maj: new Date().toISOString() };
+  } else {
+    const o = { jeton: v('bpWaJeton'), numeroId: v('bpWaNumId'), modele: v('bpWaModele'), langue: v('bpWaLangue') };
+    fautes = IdentifiantsEnvoi.verifierWhatsapp(o);
+    secret = o.jeton;
+    ligne = { id: _BP.uid, numeroId: o.numeroId, modele: o.modele, langue: o.langue, maj: new Date().toISOString() };
+  }
+  if (fautes.length) { pmMsg(fautes.map(k => escHtml(BP_ERREURS[k] || k)).join('<br>'), 'err', idMsg); return; }
+  try { ligne.chiffre = await IdentifiantsEnvoi.chiffrer(secret, pem); }
+  catch (e) { pmMsg(bpT('Chiffrement impossible dans ce navigateur : ', 'Encryption failed in this browser: ') + escHtml(e.message || ''), 'err', idMsg); return; }
+  secret = null;
+  const { error } = await c.from(type === 'smtp' ? 'smtp_comptes' : 'whatsapp_comptes').upsert(ligne);
+  if (error) { pmMsg(bpT('Non enregistré : ', 'Not saved: ') + escHtml(error.message || ''), 'err', idMsg); return; }
+  _bpComptesLocal[type] = 'enregistre';
+  renderBulletinsProgrammes(); bpRouvrirCompte(type);
+}
+
+async function bpEssaiCompte(type) {
+  const idMsg = bpMsgCompte(type);
+  const c = _clientPaiement();
+  if (!c || !_BP.uid) { pmMsg(bpT('Connexion requise.', 'Sign-in required.'), 'err', idMsg); return; }
+  const maj = { essaiDemande: new Date().toISOString() };
+  if (type === 'whatsapp') {
+    const n = BulletinsProgrammes.numeroWhatsapp((document.getElementById('bpWaEssaiNum') || {}).value || '');
+    if (!/^\d{8,15}$/.test(n)) { pmMsg(escHtml(BP_ERREURS.whatsapp_invalide || 'Numéro invalide'), 'err', idMsg); return; }
+    maj.essai = n;
+  }
+  const { error } = await c.from(type === 'smtp' ? 'smtp_comptes' : 'whatsapp_comptes').update(maj).eq('id', _BP.uid);
+  if (error) { pmMsg(bpT('Enregistrez d\'abord vos identifiants.', 'Save your credentials first.'), 'err', idMsg); return; }
+  _bpComptesLocal[type] = 'essai';
+  renderBulletinsProgrammes(); bpRouvrirCompte(type);
+}
+
+let _bpSupprCompteArme = null;
+async function bpSupprimerCompte(type) {
+  const idMsg = bpMsgCompte(type);
+  if (_bpSupprCompteArme !== type) { _bpSupprCompteArme = type; pmMsg(bpT('Cliquez de nouveau sur « Supprimer » pour confirmer.', 'Click “Delete” again to confirm.'), 'err', idMsg); setTimeout(() => { _bpSupprCompteArme = null; }, 6000); return; }
+  _bpSupprCompteArme = null;
+  const c = _clientPaiement();
+  if (!c || !_BP.uid) return;
+  const { error } = await c.from(type === 'smtp' ? 'smtp_comptes' : 'whatsapp_comptes').delete().eq('id', _BP.uid);
+  if (error) { pmMsg(bpT('Non supprimé : ', 'Not deleted: ') + escHtml(error.message || ''), 'err', idMsg); return; }
+  _bpComptesLocal[type] = 'supprime';
+  renderBulletinsProgrammes(); bpRouvrirCompte(type);
 }
 
 function bpResumeResultat(r) {
@@ -19312,9 +19519,10 @@ function bpResumeResultat(r) {
   const p = [];
   const dire = (nom, x) => {
     if (!x) return;
-    if (x.degrade) p.push(nom + ' : non activé, non envoyé');
+    if (x.degrade && x.sansCompte) p.push(nom + ' : votre compte n\'est pas configuré, non envoyé');
+    else if (x.degrade) p.push(nom + ' : aucun serveur d\'envoi, non envoyé');
     else if (x.nonRelie) p.push(nom + ' : conversation non reliée');
-    else if (x.envoyes !== undefined) p.push(nom + ' : ' + x.envoyes + ' envoyé(s)' + (x.echecs ? ', ' + x.echecs + ' échec(s)' : ''));
+    else if (x.envoyes !== undefined) p.push(nom + ' : ' + x.envoyes + ' envoyé(s)' + (x.echecs ? ', ' + x.echecs + ' échec(s)' + (x.raison ? ' (' + x.raison + ')' : '') : ''));
     else if (x.echecs) p.push(nom + ' : échec');
   };
   dire('E-mail', r.email); dire('Telegram', r.telegram); dire('WhatsApp', r.whatsapp);
@@ -19339,6 +19547,7 @@ function renderBulletinsProgrammes() {
     return;
   }
   h += bpEtatCanaux();
+  h += bpComptesHtml();
   if (_BP.erreur === 'lecture') h += '<div class="bp-alerte">Programmations illisibles pour le moment (réseau). Réessayez dans un instant.</div>';
   if (_BP.edition) { box.innerHTML = h + bpFormulaire(_BP.edition); bpApercu(); return; }
   const etatP = (_BP.etat && _BP.etat.progs) || {};
@@ -19436,7 +19645,7 @@ function bpFormulaire(p) {
     // Canaux
     + '<fieldset class="bp-fs"><legend>E-mail</legend>'
     + '<label class="bp-case"><input type="checkbox" id="bpTitulaire"' + (c.titulaire !== false ? ' checked' : '') + ' onchange="_BP.edition.canaux.titulaire=this.checked"> À mon adresse (' + escHtml(_BP.email || '') + ')</label>'
-    + '<label for="bpEmails">Autres destinataires (cinq au plus, séparés par des virgules)</label>'
+    + '<label for="bpEmails">Autres adresses de réception des bulletins (cinq au plus, séparées par des virgules ; chacune reçoit d\'abord une demande d\'accord)</label>'
     + '<input type="text" id="bpEmails" value="' + escHtml((c.emails || []).join(', ')) + '" placeholder="Ex. direction@exemple.com" onchange="_BP.edition.canaux.emails=this.value.split(/[,;\\s]+/).filter(Boolean)">'
     + '<div class="bp-aide">Chaque autre destinataire reçoit d\'abord une seule demande d\'accord, à votre nom ; rien ne lui est envoyé sans son « J\'accepte », et chaque bulletin porte un lien pour se désabonner.</div></fieldset>'
     + '<fieldset class="bp-fs"><legend>Telegram</legend>'
@@ -19450,7 +19659,7 @@ function bpFormulaire(p) {
     + '<label for="bpWhatsapp">Numéros (trois au plus, avec l\'indicatif pays, séparés par des virgules)</label>'
     + '<input type="text" id="bpWhatsapp" inputmode="tel" value="' + escHtml((c.whatsapp || []).join(', ')) + '" placeholder="Ex. 2250700000000" onchange="_BP.edition.canaux.whatsapp=this.value.split(/[,;]+/).map(x=>x.trim()).filter(Boolean)">'
     + '<label class="bp-case"><input type="checkbox" id="bpWaAccord"' + (c.whatsappAccord ? ' checked' : '') + ' onchange="_BP.edition.canaux.whatsappAccord=this.checked"> J\'atteste que les titulaires de ces numéros ont accepté de recevoir ces bulletins</label>'
-    + '<div class="bp-aide">' + (k.whatsapp ? 'Envoi par l\'API WhatsApp Business.' : 'L\'envoi automatique WhatsApp n\'est pas encore activé (il exige l\'API WhatsApp Business de Meta, payante). En attendant, utilisez les rappels WhatsApp en un clic, plus bas dans cette page.') + '</div></fieldset>'
+    + '<div class="bp-aide">' + ((_BP.etat && _BP.etat.comptes && _BP.etat.comptes.whatsapp && _BP.etat.comptes.whatsapp.statut !== 'erreur') ? 'Envoi depuis votre compte WhatsApp Business.' : 'L\'envoi automatique part de votre propre compte WhatsApp Business : configurez-le dans « Mon compte WhatsApp Business », au-dessus des programmations. Sans lui, utilisez les rappels WhatsApp en un clic, gratuits, plus bas dans cette page.') + '</div></fieldset>'
     // Aperçu
     + '<div class="bp-champ"><div class="bp-leg">Aperçu du message, avec les données affichées en ce moment</div><div class="bp-apercu" id="bpApercu" tabindex="0" aria-label="Aperçu du message"></div></div>'
     + '<div class="bp-actions"><button type="button" class="btn-action btn-rest" onclick="bpEnregistrer()"><i class="ti ti-device-floppy" aria-hidden="true"></i> Enregistrer</button>'
