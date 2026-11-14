@@ -3215,6 +3215,16 @@ passe de 42 à 77 pages. Rendu relu avec LibreOffice et des photos de test :
 **non vérifié avec de vraies photos de source** (pas de réseau ici).
 `scripts/test/grsci-fiches.test.js` (4, vus échouer sur l'ancien code).
 
+**Un « & » dans une adresse cassait le PowerPoint (14/11/2026).** pptxgenjs
+écrit l'adresse d'un lien sans l'échapper dans le `.rels` de la diapositive :
+le rapport de novembre portait un lien Guinéematin à paramètres `utm_…&…`,
+`slide33.xml.rels` était du XML invalide, et PowerPoint refusait le fichier
+(LibreOffice, tolérant, le convertissait quand même en PDF : le défaut ne se
+voyait pas au rendu). Toute adresse passe par `urlPptx` / `lienPptx`. Après une
+génération, valider le XML de chaque partie (`lxml` sur `ppt/**/*.xml|rels`)
+plutôt que se fier à la conversion LibreOffice.
+`scripts/test/grsci-liens-xml.test.js` (2, vus échouer sur l'ancien code).
+
 **Le rapport a un budget, et il passe après tout le reste (27/10/2026).** Le
 premier passage après la fusion (n° 1141) a fini sa collecte en cinq minutes,
 puis a tourné quinze minutes dans les traductions et les photos sans écrire
