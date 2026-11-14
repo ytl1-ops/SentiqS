@@ -3807,6 +3807,19 @@ devenu :
 **Piège de banc** : un article injecté sans `analysis` est écarté par
 `sourceDateNonFiable`, donc le profil sort vide. Exports 14/14 identiques.
 
+**Recensement des autres modules (14/11/2026, au soir).** DOM rendu des neuf
+modules : Synthèse (compteurs), Agenda (jours du calendrier), Géopolitique
+(cartes pays), tableau de bord (tuiles, panorama, radar, profil, cartogramme)
+étaient déjà cliquables ; Géopolitique et la fiche pays n'ont pas de
+graphique. Restait la **jauge de score des 54 fiches Alertes** et ses trois
+chiffres : la jauge (`.al-jauge`, zone de clic étendue à 25 px par un
+pseudo-élément, la barre garde ses 5 px) et « Aggravants » / « Total »
+ouvrent la fiche du pays ; « Incidents » ouvre la chronologie filtrée sur
+le pays (`allerIncidentsPays`, pastille `alinc:`), y compris depuis la fiche
+en plein écran. `graphiques-cliquables-alertes.test.js` (5, vus échouer).
+Exports 14/14 identiques (seule la seconde d'horodatage du PDF de Synthèse
+diffère d'une génération à l'autre).
+
 ---
 
 ## Relecture des documents du 14/11/2026 : Présentation 1, bulletins, exports

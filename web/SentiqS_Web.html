@@ -3074,6 +3074,14 @@ html.pays-en-tete .compact-filters{display:none}
 .ar-kbd{font-family:var(--font-mono,monospace);font-size:var(--fs-micro);padding:1px 5px;border:1px solid var(--bd);border-radius:3px;color:var(--lg)}
 @media (max-width:1180px){.acces-rapide-btn .ar-kbd{display:none}}
 @media (max-width:1000px){html.pays-en-tete .logo-s{display:none}.acces-rapide-btn .ar-lib{display:none}}
+/* Jauge et chiffres de score des fiches d'alerte : des boutons. La jauge garde
+   ses 5 px, la zone de clic déborde de 10 px de part et d'autre. */
+.al-jauge{position:relative;height:5px;background:var(--bd);cursor:pointer}
+.al-jauge::after{content:'';position:absolute;inset:-10px 0}
+.al-jauge:hover>div,.al-jauge:focus-visible>div{filter:brightness(1.2)}
+.al-jauge:focus-visible,.al-chiffre:focus-visible{outline:2px solid var(--b);outline-offset:2px}
+.al-chiffre{cursor:pointer;border-bottom:1px dotted transparent}
+.al-chiffre:hover{border-bottom-color:currentColor}
 #tbTime{display:none}
 @media (min-width:1300px){#tbTime{display:inline}}
 .acces-rapide{position:fixed;inset:0;z-index:200000;display:none}
@@ -16429,6 +16437,16 @@ function allerNiveauAlerte(k, essai) {
   if (!c) { annoncerFiltre(LANG === 'en' ? 'No country at this level' : 'Aucun pays à ce niveau'); return; }
   c.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+// Chiffre « Incidents » d'une fiche d'alerte : la chronologie des incidents
+// de ce pays, depuis la grille comme depuis la fiche en plein écran.
+function allerIncidentsPays(cy) {
+  if (typeof fermerAlertePleinEcran === 'function') fermerAlertePleinEcran();
+  if (typeof moduleAffiche === 'function' && !moduleAffiche('alertes')) switchView('alertes', document.querySelector('.ntab[data-view="alertes"]'));
+  setAlerteVue('chrono');
+  setChronoCy(cy);
+  const bloc = document.getElementById('alerteVueChrono');
+  if (bloc) bloc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 function annoncerFiltre(texte) {
   let el = document.getElementById('annonceFiltre');
   if (!el) {
@@ -16456,6 +16474,7 @@ function actionPastille(el) {
   if (k === 'agtype') { const s = document.getElementById('agTypeFilter'); if (s) s.value = v; return setAgendaType(v); }
   if (k === 'agstatut') { const b = [...document.querySelectorAll('.af')].find(x => (x.getAttribute('onclick') || '').includes("'" + v + "'")); if (b) setAgFilt(b, v); return; }
   if (k === 'alniv') return allerNiveauAlerte(v);
+  if (k === 'alinc') return allerIncidentsPays(v);
   if (k === 'kpi' && typeof showKpiDrill === 'function') return showKpiDrill(v);
 }
 document.addEventListener('click', ev => {
@@ -22456,15 +22475,15 @@ async function renderAlertCard(score) {
       </div>
     </div>
     ${ligneCouverture ? `<div style="padding:6px 12px 0 12px;background:${n.bgLight};">${ligneCouverture}</div>` : ''}
-    <!-- BARRE SCORE -->
-    <div style="height:5px;background:var(--bd);">
+    <!-- BARRE SCORE : un bouton vers la fiche du pays (14/11/2026) -->
+    <div class="al-jauge" role="button" tabindex="0" onclick="ouvrirVuePays('${score.cy}')" aria-label="Score ${score.total100}/100 — ${escHtml(pays.name)} — ${LANG==='en'?'open the country sheet':'ouvrir la fiche du pays'}" title="Score ${score.total100}/100 — ${LANG==='en'?'open the country sheet':'ouvrir la fiche du pays'}">
       <div style="height:100%;width:${pct}%;background:${n.col};transition:width .5s;"></div>
     </div>
     <!-- SCORES DÉTAIL -->
     <div style="padding:6px 12px;display:flex;gap:14px;background:var(--sf);border-bottom:1px solid var(--bd);">
-      <div style="font-size:9px;color:var(--lg);">Incidents : <strong style="color:var(--t);">${score.baseScore}</strong></div>
-      <div style="font-size:9px;color:var(--lg);">Aggravants : <strong style="color:${n.col};">${score.specialScore}</strong></div>
-      <div style="font-size:9px;color:var(--lg);">Total : <strong style="color:${n.col};">${score.total100}/100</strong></div>
+      <div class="al-chiffre" data-filtre="alinc:${score.cy}" role="button" tabindex="0" title="${LANG==='en'?'See this country\'s incident timeline':'Voir la chronologie des incidents de ce pays'}" style="font-size:9px;color:var(--lg);">Incidents : <strong style="color:var(--t);">${score.baseScore}</strong></div>
+      <div class="al-chiffre" data-filtre="pays:${score.cy}" role="button" tabindex="0" title="${LANG==='en'?'Open the country sheet':'Ouvrir la fiche du pays'}" style="font-size:9px;color:var(--lg);">Aggravants : <strong style="color:${n.col};">${score.specialScore}</strong></div>
+      <div class="al-chiffre" data-filtre="pays:${score.cy}" role="button" tabindex="0" title="${LANG==='en'?'Open the country sheet':'Ouvrir la fiche du pays'}" style="font-size:9px;color:var(--lg);">Total : <strong style="color:${n.col};">${score.total100}/100</strong></div>
       <div style="font-size:9px;color:var(--lg);">${marqueConfiance(score.confiance, true)}</div>
     </div>
     <!-- CONTENU EN COLONNES -->
