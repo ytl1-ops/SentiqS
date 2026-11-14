@@ -3921,3 +3921,54 @@ mutation : nettoyage retiré, essai rejoué), un banc Chromium qui chiffre avec
 la vraie WebCrypto de la page et déchiffre avec le code du job (bureau,
 mobile, anglais), exports 14/14 identiques à `main`. Non vérifié d'ici : un
 envoi réel par Meta ou par un SMTP (pas de réseau sortant vers eux).
+
+---
+
+## Faits hors sûreté retirés du rapport, rassemblements à l'agenda — 14/11/2026
+
+Deux demandes de YORO : « corrige en retirant les faits hors sûreté », et un
+agenda « très pauvre » en colloques, séminaires, spectacles « de tout genre
+qui, compte tenu du fait qu'ils drainent du monde, peuvent impacter les
+mouvements humains, donc la sûreté pays ».
+
+**Rapport mensuel.** `scripts/lib/hors-surete.js` écarte, **au moment du
+rapport** (`faitsDuMois`), jamais dans le cumul, les faits dont le titre relève
+d'un thème hors sûreté : conseils pratiques (« Voici comment réagir face à un
+arrêt cardiaque »), fêtes, finance de marché et exécution budgétaire,
+chantiers, agriculture et développement, santé chronique, sport, culture et
+vedettes, carrière, revue de presse, et les faits d'un autre pays que le
+titre ne rattache pas au pays du rapport (« patrouilles à Sydney » dans le
+Ghana). Une **garde** garde tout titre qui dit une atteinte (mort, attaque,
+enlèvement, incendie, manifestation, grève, arrestation, militaire…), après
+retrait de locutions neutres (« fête des morts », « gestion de crise »).
+En cas de doute, le fait reste. Mesure sur le cumul de novembre : **76 faits
+sur 944 écartés**, tous relus ; rapport 77 → 75 pages. Restent, assumés :
+quelques faits divers domestiques (noyade, accident de la route), gardés par
+la garde.
+
+**Agenda.** Mesure sur le cache du 13/11/2026 (2 253 articles) : 239
+événements détectés, dont **158 « gouvernementaux »**, 119 d'entre eux par
+un « forum », un « congrès » ou une « assemblée nationale » cités dans le
+CORPS (« 2027: Tinubu can't buy Nigerians with gifts ») ; « concert » lisait
+« concertation », « scrutin » « scrutiny » ; aucun match, culte, cérémonie ou
+meeting n'entrait. Désormais :
+- `typeEvenementDetecte(texte, titre)` : le titre décide, mots entiers ; le
+  corps ne complète qu'en formulation de plusieurs mots, pour colloque,
+  séminaire, foire, gouvernemental (hors « assemblée nationale/générale »),
+  manifestation, travaux ;
+- `EVENT_RASSEMBLEMENT_RE`, titre seul : **sportif, religieux, cérémonie,
+  meeting politique**, et le concert étendu aux spectacles ; conseil
+  d'agenda « affluence attendue — anticiper la saturation des abords » ;
+- rassemblements et manifestations restent **aussi au Flux**
+  (`AGENDA_AUSSI_AU_FLUX`), et **tout fait critique ou élevé** reste au Flux
+  quel que soit son type d'agenda : « Thugs attacks NDC in Lagos » (critique)
+  en était retiré parce que son corps citait un forum ;
+- `rehydrateArticles` recalcule le type d'agenda avec le niveau.
+
+Effet sur le même cache : 162 événements dont ~90 rassemblements (58
+sportifs, 14 cérémonies, 8 festivals, 4 meetings, 4 spectacles, 2 cultes),
+gouvernemental 158 → 36 ; **Flux 2 025 → 2 179 articles** (154 reviennent,
+dont 10 critiques ou élevés), un seul en sort (une tribune titrée
+« spectacle »). Les exports d'agenda et du Flux suivent ce changement :
+c'est la demande, pas un effet de bord. `hors-surete.test.js` (3) et
+`agenda-rassemblements.test.js` (4), vus échouer sur l'ancien code.

@@ -16,6 +16,7 @@
 // à la page.
 const fs = require('node:fs');
 const path = require('node:path');
+const horsSurete = require('./hors-surete');
 
 const RANG = { crit: 0, high: 1, mod: 2 };
 
@@ -175,9 +176,14 @@ function regrouper(faits, nomPays) {
   return groupes.map((x) => x.fait);
 }
 
-/** Les faits du mois pour un pays, prêts pour le rapport. */
+/**
+ * Les faits du mois pour un pays, prêts pour le rapport. Les faits hors
+ * sûreté (hors-surete.js, demande de YORO du 14/11/2026) sont écartés ICI,
+ * pas dans le cumul : une règle corrigée vaut pour tout le mois.
+ */
 function faitsDuMois(cumul, cy, nomPays) {
-  return regrouper((cumul && cumul.pays && cumul.pays[cy]) || [], nomPays);
+  const liste = (cumul && cumul.pays && cumul.pays[cy]) || [];
+  return regrouper(liste.filter((f) => !horsSurete.estHorsSurete(f, cy)), nomPays);
 }
 
 module.exports = { cheminCumul, cumuler, ecrireCumul, lireCumul, nettoyerTitre, regrouper, faitsDuMois, trier };
