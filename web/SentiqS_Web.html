@@ -3060,6 +3060,48 @@ html.force-mobile .pano-courbe svg{height:130px}
   html:not(.force-web) .tb-r{gap:4px}
   html:not(.force-web) #tbTime{display:none}
 }
+/* ═══ FLUIDITÉ — 14/11/2026 (voir CLAUDE.md) ═══
+   Filtre pays dans la barre du haut (ordinateur, tablette), accès rapide
+   (Ctrl+K), fiches d'alerte mises en page à l'approche seulement. */
+html.pays-en-tete .compact-filters{display:none}
+.cy-slot-tb:empty{display:none}
+.cy-slot-tb .cf-item select{min-height:30px;max-width:180px;font-size:12px;padding:4px 8px;background:var(--sf);color:var(--t);border-color:var(--bd)}
+.cy-slot-tb .cf-item i{color:var(--lg)}
+.acces-rapide-btn{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:4px 10px;border-radius:var(--r-md);
+  border:1px solid var(--bd);background:var(--sf);color:var(--t2);font:inherit;font-size:12px;cursor:pointer;white-space:nowrap}
+.acces-rapide-btn:hover{color:var(--t);border-color:var(--b)}
+.acces-rapide-btn:focus-visible{outline:2px solid var(--b);outline-offset:2px}
+.ar-kbd{font-family:var(--font-mono,monospace);font-size:var(--fs-micro);padding:1px 5px;border:1px solid var(--bd);border-radius:3px;color:var(--lg)}
+@media (max-width:1180px){.acces-rapide-btn .ar-kbd{display:none}}
+@media (max-width:1000px){html.pays-en-tete .logo-s{display:none}.acces-rapide-btn .ar-lib{display:none}}
+#tbTime{display:none}
+@media (min-width:1300px){#tbTime{display:inline}}
+.acces-rapide{position:fixed;inset:0;z-index:200000;display:none}
+.acces-rapide.on{display:block}
+.ar-voile{position:absolute;inset:0;background:rgba(4,10,26,.6)}
+.ar-boite{position:relative;margin:10vh auto 0;width:min(560px,calc(100% - 24px));max-height:74vh;display:flex;flex-direction:column;
+  background:var(--w);color:var(--t);border:1px solid var(--bd);border-radius:var(--r-md);box-shadow:0 18px 50px rgba(0,0,0,.45);overflow:hidden}
+.ar-titre{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.ar-champ{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--bd)}
+.ar-champ i{color:var(--lg);font-size:16px}
+.ar-champ input{flex:1;min-width:0;border:0;background:transparent;color:var(--t);font-size:16px;outline:none}
+.ar-champ kbd{font-size:var(--fs-micro);color:var(--lg);border:1px solid var(--bd);border-radius:3px;padding:1px 5px}
+#arListe{list-style:none;margin:0;padding:6px;overflow-y:auto;flex:1}
+.ar-grp{font-size:var(--fs-micro);letter-spacing:.1em;text-transform:uppercase;color:var(--lg);padding:8px 10px 4px}
+.ar-opt{display:flex;align-items:center;gap:10px;min-height:40px;padding:6px 10px;border-radius:var(--r-sm);cursor:pointer;font-size:14px}
+.ar-opt[aria-selected="true"],.ar-opt:hover{background:var(--bl);color:var(--t)}
+.ar-opt i{color:var(--lg)}
+.ar-flag{font-size:16px;width:20px;text-align:center}
+.ar-txt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ar-niv{font-size:var(--fs-micro);font-weight:700;letter-spacing:.06em;color:var(--t2);display:inline-flex;align-items:center;gap:6px}
+.ar-pt{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.ar-vide{padding:16px 10px;color:var(--t2);font-size:13px}
+.ar-aide{margin:0;padding:8px 14px;border-top:1px solid var(--bd);font-size:var(--fs-micro);color:var(--t2)}
+#alerteGrid > [id^="alerteCard-"]{content-visibility:auto;contain-intrinsic-size:auto 900px}
+@media (max-width:760px){html:not(.force-web):not(.force-tablette) .acces-rapide-btn{display:none}}
+html.force-mobile .acces-rapide-btn{display:none}
+@media (max-width:760px){.ar-aide,.ar-champ kbd{display:none}.ar-boite{margin-top:8px}}
+
 /* ═══ MOBILE : LE CONTENU D'ABORD — 22/10/2026 (voir CLAUDE.md) ═══
    Capture de YORO sur téléphone (texte agrandi par le navigateur) : barre du
    haut, bandeau « Cliquez sur Actualiser », collecte, flash info, filtre pays,
@@ -3491,6 +3533,10 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
       <span class="ltxt" id="liveTxt" data-i18n="live_pret">Collecte...</span>
     </div>
     <div id="globalCyBadge" onclick="clearGlobalCountryFilter()" title="Filtre pays actif sur toute la plateforme — cliquer pour reinitialiser" style="display:none;align-items:center;gap:5px;padding:5px 10px;background:rgba(138,93,26,.25);border:1px solid rgba(138,93,26,.5);border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;"></div>
+    <div class="cy-slot-tb" id="cySlotTb"></div>
+    <button type="button" class="acces-rapide-btn" id="accesRapideBtn" onclick="ouvrirAccesRapide()" aria-label="Aller à un pays ou un module" aria-haspopup="dialog" aria-keyshortcuts="Control+K /" title="Aller à un pays ou un module (Ctrl+K ou /)">
+      <i class="ti ti-search" aria-hidden="true"></i><span class="ar-lib" data-i18n="btn_aller_a">Aller à…</span><kbd class="ar-kbd" aria-hidden="true">Ctrl K</kbd>
+    </button>
     <div class="lang-switch lang-switch-tb" role="group" aria-label="Langue / Language">
       <button class="lang-btn" data-lang="fr" onclick="setLang('fr')" lang="fr" translate="no" title="Français">FR</button>
       <button class="lang-btn" data-lang="en" onclick="setLang('en')" lang="en" translate="no" title="English">EN</button>
@@ -3508,6 +3554,9 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
       </div>
       <button class="actu-btn" onclick="toggleTheme()" id="themeBtn" title="Choisir le thème clair ou sombre" style="background:var(--sf)">
         <i class="ti ti-moon" id="themeIco"></i> <span id="themeLabel" data-i18n="btn_theme_sombre">Sombre</span>
+      </button>
+      <button class="actu-btn" onclick="document.getElementById('tbMore').open=false;ouvrirAccesRapide()" id="accesRapideMenu" style="background:var(--sf)">
+        <i class="ti ti-search"></i> <span data-i18n="btn_aller_pays">Aller à un pays</span>
       </button>
       <button class="actu-btn" onclick="runDiagnostic()" id="diagBtn" title="Tester les services de collecte" style="background:var(--sf)">
         <i class="ti ti-stethoscope"></i> <span data-i18n="btn_diagnostic">Diagnostic</span>
@@ -6145,7 +6194,7 @@ const I18N = {
     empty_filtres:"Essayez d'élargir les filtres actifs.",
     empty_actualiser:'Cliquez sur Actualiser pour lancer la collecte des flux.',
     logo_sub:"Veille multi-sources · Médias + Réseaux sociaux · 54 pays d'Afrique",
-    live_pret:'Collecte...', btn_actualiser:'Actualiser', btn_diagnostic:'Diagnostic', btn_theme_sombre:'Sombre',
+    live_pret:'Collecte...', btn_actualiser:'Actualiser', btn_diagnostic:'Diagnostic', btn_aller_a:'Aller à…', btn_aller_pays:'Aller à un pays', btn_theme_sombre:'Sombre',
     menu_params:'Paramètres & Administration', menu_access:'Gestion des accès', menu_logout:'Se déconnecter',
     menu_reclam:'Signaler un problème', menu_paiement:'Déclarer un paiement',
     menu_mode_emploi:"Mode d'emploi (PDF)",
@@ -6302,7 +6351,7 @@ const I18N = {
     empty_filtres:'Try widening the active filters.',
     empty_actualiser:'Click Refresh to start collecting feeds.',
     logo_sub:'Multi-source monitoring · Media + Social networks · 54 African countries',
-    live_pret:'Collecting...', btn_actualiser:'Refresh', btn_diagnostic:'Diagnostic', btn_theme_sombre:'Dark',
+    live_pret:'Collecting...', btn_actualiser:'Refresh', btn_diagnostic:'Diagnostic', btn_aller_a:'Go to…', btn_aller_pays:'Go to a country', btn_theme_sombre:'Dark',
     menu_params:'Settings & Administration', menu_access:'Access management', menu_logout:'Log out',
     menu_reclam:'Report an issue', menu_paiement:'Declare a payment',
     menu_mode_emploi:'User guide (PDF)',
@@ -6540,6 +6589,7 @@ function setDisplayMode(mode) {
   try { localStorage.setItem('sentinel_display_mode', mode); } catch(_) {}
   if (typeof majReglagesAffichage === 'function') majReglagesAffichage();
   if (typeof majDebordementOnglets === 'function') { try { majDebordementOnglets(); } catch(_) {} }
+  if (typeof placerFiltrePays === 'function') { try { placerFiltrePays(); } catch(_) {} }
 }
 
 // Reglages d'affichage (Parametres > Affichage), propres a l'appareil.
@@ -13897,6 +13947,155 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && m && m.open) { m.open = false; const s = m.querySelector('summary'); if (s) s.focus(); }
 });
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initBarresExport); else initBarresExport();
+// ═══ FLUIDITÉ — 14/11/2026 (voir CLAUDE.md) ═══════════════════════════════
+// Audit du 14/11/2026 sur les 9 modules : sur ordinateur et tablette, le
+// filtre pays occupait seul une ligne pleine largeur (30 px pris à chaque
+// module) ; il rejoint la barre du haut. Sur téléphone, la barre du haut n'a
+// pas la place : il reste sur sa ligne, comme avant. Un seul élément, déplacé
+// (pas copié) : son id et ses écouteurs restent ceux qu'on connaît.
+function affichageTelephone() {
+  const h = document.documentElement;
+  if (h.classList.contains('force-mobile')) return true;
+  if (h.classList.contains('force-web') || h.classList.contains('force-tablette')) return false;
+  return window.innerWidth <= 760;
+}
+function placerFiltrePays() {
+  const lbl = document.querySelector('label.cf-item');
+  const slot = document.getElementById('cySlotTb');
+  const ligne = document.querySelector('.compact-filters');
+  if (!lbl || !slot || !ligne) return;
+  const tel = affichageTelephone();
+  const cible = tel ? ligne : slot;
+  if (lbl.parentNode !== cible) cible.appendChild(lbl);
+  document.documentElement.classList.toggle('pays-en-tete', !tel);
+}
+let _placerFiltreRaf = 0;
+window.addEventListener('resize', () => { cancelAnimationFrame(_placerFiltreRaf); _placerFiltreRaf = requestAnimationFrame(placerFiltrePays); });
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', placerFiltrePays); else placerFiltrePays();
+
+// Accès rapide (Ctrl+K, « / ») : un pays, un module ou une recherche en une
+// frappe. Un responsable sûreté ouvre l'outil pour UN pays ; il lui fallait
+// jusqu'ici dérouler une liste de 54 pays ou parcourir 54 fiches d'alerte.
+function _sansAccents(t) { return String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
+function elementsAccesRapide(q) {
+  const en = typeof LANG !== 'undefined' && LANG === 'en';
+  const n = _sansAccents(q).trim();
+  const out = [];
+  const pays = Object.keys(typeof PAYS_INFO !== 'undefined' ? PAYS_INFO : {}).map(cy => {
+    const p = PAYS_INFO[cy] || {};
+    const nomFr = p.name || cy, nomEn = (typeof PAYS_EN !== 'undefined' && PAYS_EN[cy]) || nomFr;
+    return { cy, nom: en ? nomEn : nomFr, flag: p.flag || '', cle: _sansAccents(nomFr + ' ' + nomEn + ' ' + cy) };
+  });
+  const correspond = (cle) => !n || cle.split(/[\s'’-]+/).some(m => m.startsWith(n)) || (n.length > 2 && cle.includes(n));
+  pays.filter(x => correspond(x.cle)).sort((a, b) => a.nom.localeCompare(b.nom, en ? 'en' : 'fr'))
+    .forEach(x => out.push({ type: 'pays', cy: x.cy, lib: x.nom, flag: x.flag }));
+  document.querySelectorAll('.ntab[data-view]').forEach(t => {
+    if (t.style.display === 'none') return;
+    const lib = (t.textContent || '').trim();
+    if (correspond(_sansAccents(lib + ' ' + t.dataset.view))) out.push({ type: 'module', vue: t.dataset.view, lib });
+  });
+  if (n.length >= 2) out.push({ type: 'recherche', q: String(q).trim(), lib: (en ? 'Search the news for “' : 'Chercher « ') + String(q).trim() + (en ? '”' : ' » dans les actus') });
+  return out.slice(0, 60);
+}
+let _arSel = 0, _arElems = [], _arRetour = null;
+function _arEchapper(t) { return String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]); }
+function rendreAccesRapide() {
+  const inp = document.getElementById('arSaisie'), ul = document.getElementById('arListe');
+  if (!inp || !ul) return;
+  const en = typeof LANG !== 'undefined' && LANG === 'en';
+  _arElems = elementsAccesRapide(inp.value);
+  if (_arSel >= _arElems.length) _arSel = 0;
+  let grp = '';
+  ul.innerHTML = _arElems.length ? _arElems.map((e, i) => {
+    let h = '';
+    const g = e.type === 'pays' ? (en ? 'Countries' : 'Pays') : e.type === 'module' ? (en ? 'Modules' : 'Modules') : (en ? 'Search' : 'Recherche');
+    if (g !== grp) { grp = g; h += '<li class="ar-grp" role="presentation">' + g + '</li>'; }
+    let droite = '';
+    if (e.type === 'pays') {
+      const nv = niveauAlertePays(e.cy);
+      droite = '<span class="ar-niv"><span class="ar-pt" style="background:' + nv.col + '"></span>' + _arEchapper(nv.label) + '</span>';
+    }
+    const ico = e.type === 'pays' ? '<span class="ar-flag" aria-hidden="true">' + e.flag + '</span>' : '<i class="ti ' + (e.type === 'module' ? 'ti-layout-grid' : 'ti-search') + '" aria-hidden="true"></i>';
+    return h + '<li role="option" id="ar-o' + i + '" class="ar-opt" aria-selected="' + (i === _arSel) + '" data-i="' + i + '">' + ico + '<span class="ar-txt">' + _arEchapper(e.lib) + '</span>' + droite + '</li>';
+  }).join('') : '<li class="ar-vide" role="presentation">' + (en ? 'Nothing matches.' : 'Aucun résultat.') + '</li>';
+  inp.setAttribute('aria-activedescendant', _arElems.length ? 'ar-o' + _arSel : '');
+  const sel = document.getElementById('ar-o' + _arSel);
+  if (sel && sel.scrollIntoView) sel.scrollIntoView({ block: 'nearest' });
+}
+function executerAccesRapide(e) {
+  if (!e) return;
+  fermerAccesRapide(true);
+  if (e.type === 'pays') return ouvrirVuePays(e.cy);
+  if (e.type === 'module') { const t = document.querySelector('.ntab[data-view="' + e.vue + '"]'); if (t) t.click(); return; }
+  if (e.type === 'recherche') {
+    const t = document.querySelector('.ntab[data-view="recherche"]'); if (t) t.click();
+    const q = document.getElementById('searchQ');
+    if (q) { q.value = e.q; if (typeof renderRecherche === 'function') renderRecherche(); }
+  }
+}
+function ouvrirAccesRapide() {
+  const en = typeof LANG !== 'undefined' && LANG === 'en';
+  let d = document.getElementById('accesRapide');
+  if (!d) {
+    d = document.createElement('div');
+    d.id = 'accesRapide';
+    d.className = 'acces-rapide';
+    d.innerHTML = '<div class="ar-voile" data-ar-fermer></div>'
+      + '<div class="ar-boite" role="dialog" aria-modal="true" aria-labelledby="arTitre">'
+      + '<h2 id="arTitre" class="ar-titre"></h2>'
+      + '<div class="ar-champ"><i class="ti ti-search" aria-hidden="true"></i>'
+      + '<input id="arSaisie" type="text" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="true" aria-controls="arListe" aria-autocomplete="list">'
+      + '<kbd aria-hidden="true">Échap</kbd></div>'
+      + '<ul id="arListe" role="listbox"></ul>'
+      + '<p class="ar-aide"></p></div>';
+    document.body.appendChild(d);
+    const inp = d.querySelector('#arSaisie');
+    inp.addEventListener('input', () => { _arSel = 0; rendreAccesRapide(); });
+    inp.addEventListener('keydown', ev => {
+      if (ev.key === 'ArrowDown') { ev.preventDefault(); _arSel = Math.min(_arElems.length - 1, _arSel + 1); rendreAccesRapide(); }
+      else if (ev.key === 'ArrowUp') { ev.preventDefault(); _arSel = Math.max(0, _arSel - 1); rendreAccesRapide(); }
+      else if (ev.key === 'Enter') { ev.preventDefault(); executerAccesRapide(_arElems[_arSel]); }
+      else if (ev.key === 'Escape') { ev.preventDefault(); fermerAccesRapide(); }
+      else if (ev.key === 'Tab') { ev.preventDefault(); }
+    });
+    d.addEventListener('click', ev => {
+      if (ev.target.closest('[data-ar-fermer]')) return fermerAccesRapide();
+      const o = ev.target.closest('.ar-opt');
+      if (o) executerAccesRapide(_arElems[Number(o.dataset.i)]);
+    });
+  }
+  d.querySelector('#arTitre').textContent = en ? 'Go to a country or a module' : 'Aller à un pays ou un module';
+  const inp = d.querySelector('#arSaisie');
+  inp.placeholder = en ? 'Country, module or keyword…' : 'Pays, module ou mot-clé…';
+  inp.setAttribute('aria-label', en ? 'Country, module or keyword' : 'Pays, module ou mot-clé');
+  d.querySelector('.ar-aide').textContent = en ? '↑ ↓ to move · Enter to open · a country opens its file and filters the app' : '↑ ↓ pour choisir · Entrée pour ouvrir · un pays ouvre sa fiche et filtre l’appli';
+  _arRetour = document.activeElement;
+  inp.value = ''; _arSel = 0;
+  d.classList.add('on');
+  rendreAccesRapide();
+  setTimeout(() => inp.focus(), 0);
+}
+function fermerAccesRapide(sansRetour) {
+  const d = document.getElementById('accesRapide');
+  if (!d || !d.classList.contains('on')) return;
+  d.classList.remove('on');
+  if (!sansRetour && _arRetour && _arRetour.focus) { try { _arRetour.focus(); } catch (_) {} }
+}
+document.addEventListener('keydown', ev => {
+  const cible = ev.target, tag = cible && cible.tagName;
+  const saisie = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (cible && cible.isContentEditable);
+  const ouvert = document.getElementById('accesRapide');
+  // Écran de connexion encore affiché : pas de raccourci (rien à atteindre).
+  const auth = document.getElementById('authOverlay');
+  if (auth && getComputedStyle(auth).display !== 'none' && !(ouvert && ouvert.classList.contains('on'))) return;
+  if ((ev.ctrlKey || ev.metaKey) && !ev.altKey && (ev.key === 'k' || ev.key === 'K')) {
+    ev.preventDefault();
+    if (ouvert && ouvert.classList.contains('on')) fermerAccesRapide(); else ouvrirAccesRapide();
+  } else if (ev.key === '/' && !saisie && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
+    ev.preventDefault(); ouvrirAccesRapide();
+  }
+});
+
 function fluxSignatureFiltres() {
   const g = id => { const e = document.getElementById(id); return e ? e.value : ''; };
   return [fCat, fCy, fGeo, fSc, fPastille ? fPastille.k + ':' + fPastille.v : '', g('artQ'), g('sortSel')].join('|');
@@ -22141,7 +22340,7 @@ async function renderAlertCard(score) {
     // des badges qui disent pourtant si un signal est recoupe ou non.
     // Remontes au plancher --fs-micro comme le reste des pastilles.
     const freshTag = fresh
-      ? '<span style="font-size:var(--fs-micro);font-weight:700;color:#fff;background:#15803D;padding:2px var(--sp-2);border-radius:var(--r-sm);margin-left:var(--sp-1);">-12H</span>'
+      ? '<span style="font-size:var(--fs-micro);font-weight:700;color:#fff;background:#15803D;padding:2px var(--sp-2);border-radius:var(--r-sm);margin-left:var(--sp-1);white-space:nowrap;">-12H</span>'
       : '';
     const liveTag = e.live
       ? '<span style="font-size:var(--fs-micro);font-weight:700;color:#7A5D00;background:#FEF9C3;border:1px solid #A3890044;padding:2px var(--sp-2);border-radius:var(--r-sm);margin-left:var(--sp-1);" title="Signal RSS non verifie manuellement">Signal RSS</span>'
@@ -22892,8 +23091,15 @@ async function recalcAlertes(opts) {
 
   const legendeEl = document.getElementById('alerteLegende');
   if (legendeEl) legendeEl.innerHTML = renderLegendeNiveaux();
-  grid.innerHTML  = (await Promise.all(scores.map(s => renderAlertCard(s)))).join('');
-  table.innerHTML = await renderAlertTable(scores);
+  // Ouvrir l'onglet Alertes reconstruisait les 54 fiches à chaque fois :
+  // 580 ms de mise en page sur 615 (mesure du 14/11/2026), alors que le HTML
+  // produit était identique d'une ouverture à l'autre. On n'écrit dans le DOM
+  // que ce qui a changé ; les fiches hors écran ne sont mises en page qu'en
+  // s'en approchant (content-visibility, bloc « FLUIDITÉ » de la feuille).
+  const htmlGrille = (await Promise.all(scores.map(s => renderAlertCard(s)))).join('');
+  if (grid._htmlRendu !== htmlGrille) { grid.innerHTML = htmlGrille; grid._htmlRendu = htmlGrille; }
+  const htmlTable = await renderAlertTable(scores);
+  if (table._htmlRendu !== htmlTable) { table.innerHTML = htmlTable; table._htmlRendu = htmlTable; }
 
   const now = new Date().toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
   const upd = document.getElementById('alerteLastUpdate');
