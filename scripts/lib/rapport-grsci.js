@@ -153,7 +153,9 @@ const RUBRIQUES = [
   { cle: 'securite', num: 'III', titre: 'SÉCURITÉ', cats: ['securite'] },
   { cle: 'divers', num: 'IV', titre: 'DIVERS', cats: ['economique', 'economie', null] },
 ];
-const FAITS_PAR_PAGE = 5;
+// Deux fiches d'actu (texte + photo) par page depuis le 14/11/2026 (cinq
+// titres auparavant).
+const FAITS_PAR_PAGE = 2;
 // Un mois de collecte donne des dizaines de faits par rubrique ; le groupe en
 // lit dix, les plus graves d'abord (l'ordre vient de faits-grsci.js).
 const MAX_FAITS_RUBRIQUE = 10;
@@ -289,27 +291,92 @@ function faitTexte(f) {
   return { titre: titreDeFait(f), source, etiquette, quand, url: lienSur(f), cotation: COTATION[f.cotation] || null };
 }
 
-function corpsFaits(faits) {
-  const corps = [];
-  faits.forEach((f) => {
-    const t = faitTexte(f);
-    corps.push({ text: t.titre, options: { bold: true, underline: true, color: VERT, fontSize: 14, bullet: { code: '2751' }, breakLine: true, paraSpaceBefore: 8 } });
-    const src = t.url ? { text: t.source, options: { hyperlink: { url: t.url }, color: VERT } } : { text: t.source, options: {} };
-    corps.push({ text: t.etiquette, options: { bullet: { code: '25AA' }, indentLevel: 1, fontSize: 13 } });
-    corps.push(Object.assign({}, src, { options: Object.assign({ fontSize: 13 }, src.options) }));
-    corps.push({ text: (t.quand ? ' — ' + t.quand : '') + (t.cotation ? '   ·   ' : ''), options: { fontSize: 13, breakLine: !t.cotation } });
-    if (t.cotation) corps.push({ text: 'Cotation : ' + t.cotation, options: { fontSize: 13, bold: true, color: TEXTE, breakLine: true } });
-  });
-  return corps;
+// Chaque actu du rapport est une FICHE : son titre, l'extrait cité de sa
+// source, la ligne des sources (lien, date, cotation) et la photo de la source
+// quand elle en publie une. Demande de YORO du 14/11/2026 : « toutes les actu
+// doivent être présentées avec texte et image si disponible » — la liste de
+// titres du modèle de 2024 (❑ titre, ▪ source) ne lui convenait plus. Sans
+// photo, le texte prend la largeur : jamais d'image de remplacement. Deux
+// fiches par page, pour que le texte reste lisible projeté en réunion.
+const FICHE_EXTRAIT_MAX = 360;
+function ficheTexte(f) {
+  const r = redaction.rediger(f, '');
+  const t = faitTexte(f);
+  const marque = !f.titreFr && LANGUE_ORIGINE[f.langue] ? '(' + LANGUE_ORIGINE[f.langue] + ') ' : '';
+  const e = r.extraits[0] || null;
+  // Un extrait que le job n'a pas encore pu traduire garde sa langue, et le
+  // dit, comme le titre : une seule langue par document, sinon on l'annonce.
+  const brut = (f.extraits || []).find((x) => x && x.resume) || null;
+  const marqueExtrait = brut && !brut.fr && LANGUE_ORIGINE[brut.langue] ? '(' + LANGUE_ORIGINE[brut.langue] + ') ' : '';
+  const extrait = e ? { source: e.source, langue: marqueExtrait, texte: e.texte.length > FICHE_EXTRAIT_MAX ? e.texte.slice(0, FICHE_EXTRAIT_MAX).replace(/\s+\S*$/, '') + ' …' : e.texte } : null;
+  return {
+    titre: marque + r.titre,
+    extrait,
+    sansExtrait: extrait ? null : 'La source n\'en publie que le titre dans son flux : le détail est dans l\'article.',
+    liens: r.liens.slice(0, 4),
+    sources: r.sources,
+    t,
+    video: r.video,
+  };
+}
+
+// Taille de corps qui fait tenir une fiche dans sa hauteur (pouces).
+function tailleFiche(blocs, largeur, hauteur) {
+  return [15, 14, 13, 12, 11, 10.5, 10].find((pt) => {
+    const parLigne = Math.floor(largeur * 72 / (pt * 0.5));
+    const lignes = blocs.reduce((n, b) => n + Math.ceil((b.length || 1) / parLigne), 0);
+    return lignes * pt * 1.3 / 72 + 0.15 <= hauteur;
+  }) || 9.5;
+}
+
+function ficheSlide(s, f, x0, y, hauteur) {
+  const c = ficheTexte(f);
+  const photo = f.photo && f.photo.data ? f.photo : null;
+  const LARGE_PHOTO = 3.85;
+  const largeur = photo ? 12.15 - LARGE_PHOTO - 0.25 : 12.15;
+  const ligneSources = c.t.etiquette + c.sources.join(' · ') + (c.t.quand ? ' — ' + c.t.quand : '') + (c.t.cotation ? ' · Cotation : ' + c.t.cotation : '');
+  const extraitTxt = c.extrait ? c.extrait.source + ' : « ' + c.extrait.texte + ' »' : c.sansExtrait;
+  // Le titre est écrit 2 pt plus grand que le corps : compté en conséquence.
+  const taille = tailleFiche([c.titre + ' '.repeat(Math.ceil(c.titre.length / 5)), extraitTxt, ligneSources], largeur, hauteur);
+  const corps = [{ text: c.titre, options: { bold: true, color: VERT, fontSize: taille + 2, breakLine: true } }];
+  if (c.extrait) {
+    corps.push({ text: c.extrait.source + ' : ' + c.extrait.langue, options: { bold: true, paraSpaceBefore: 4 } },
+      { text: '« ' + c.extrait.texte + ' »', options: { italic: true, breakLine: true } });
+  } else corps.push({ text: c.sansExtrait, options: { italic: true, color: LEGERE, breakLine: true, paraSpaceBefore: 4 } });
+  corps.push({ text: c.t.etiquette, options: { bold: true, fontSize: taille - 1, paraSpaceBefore: 4 } });
+  if (c.liens.length) {
+    c.liens.forEach((l, i) => corps.push({ text: (i ? ' · ' : '') + (l.source || 'article'), options: { color: VERT, fontSize: taille - 1, hyperlink: { url: l.url } } }));
+    const restants = c.sources.filter((x) => !c.liens.some((l) => l.source === x));
+    if (restants.length) corps.push({ text: ' · ' + restants.join(' · '), options: { fontSize: taille - 1 } });
+  } else corps.push({ text: c.t.source, options: { fontSize: taille - 1 } });
+  corps.push({ text: (c.t.quand ? ' — ' + c.t.quand : '') + (c.t.cotation ? '   ·   Cotation : ' + c.t.cotation : ''), options: { fontSize: taille - 1, bold: !!c.t.cotation, breakLine: !!c.video } });
+  if (c.video) corps.push({ text: 'Voir la vidéo de la source', options: { color: VERT, fontSize: taille - 1, hyperlink: { url: c.video } } });
+  s.addText(corps, { x: x0, y, w: largeur, h: hauteur, fontFace: POLICE, fontSize: taille, color: TEXTE, valign: 'top', paraSpaceAfter: 2, margin: 0 });
+  if (photo) {
+    const xp = x0 + 12.15 - LARGE_PHOTO;
+    const b = boiteImage(photo, xp, y, LARGE_PHOTO, hauteur - 0.3);
+    s.addImage({ data: 'image/' + (photo.type === 'png' ? 'png' : 'jpeg') + ';base64,' + photo.data.toString('base64'), altText: 'Photo : ' + (photo.credit || 'source'), x: b.x, y: b.y, w: b.w, h: b.h, hyperlink: photo.lien ? { url: photo.lien } : undefined });
+    s.addText([{ text: 'Photo : © ' + (photo.credit || 'source'), options: photo.lien ? { hyperlink: { url: photo.lien }, color: VERT } : {} }],
+      { x: xp, y: b.y + b.h + 0.02, w: LARGE_PHOTO, h: 0.24, fontFace: POLICE, fontSize: 9, color: LEGERE, align: 'right', margin: 0 });
+  }
 }
 
 function pageFaits(pptx, ctx, titreNum, titre, faits, pays, vide, confiance) {
   const s = pptx.addSlide();
   titrePage(s, titreNum, titre, pays);
   if (confiance) s.addText(confiance, { x: 0.7, y: 1.1, w: 12.0, h: 0.32, fontFace: POLICE, fontSize: 11, italic: true, color: LEGERE });
-  const corps = faits.length ? corpsFaits(faits)
-    : [{ text: vide || 'Aucun fait marquant relevé sur la période.', options: { color: LEGERE, italic: true } }];
-  s.addText(corps, { x: 0.7, y: confiance ? 1.45 : 1.3, w: 12.0, h: confiance ? 4.95 : 5.1, fontFace: POLICE, fontSize: 13, color: TEXTE, valign: 'top', paraSpaceAfter: 2 });
+  const y0 = confiance ? 1.5 : 1.3;
+  if (!faits.length) {
+    s.addText(vide || 'Aucun fait marquant relevé sur la période.', { x: 0.7, y: y0, w: 12.0, h: 0.5, fontFace: POLICE, fontSize: 13, italic: true, color: LEGERE });
+  } else {
+    const ecart = 0.25;
+    const h = (6.5 - y0 - ecart * (FAITS_PAR_PAGE - 1)) / FAITS_PAR_PAGE;
+    faits.forEach((f, i) => {
+      const y = y0 + i * (h + ecart);
+      if (i) s.addShape('line', { x: 0.7, y: y - ecart / 2, w: 12.15, h: 0, line: { color: 'D1D5DB', width: 0.75 } });
+      ficheSlide(s, f, 0.7, y, h);
+    });
+  }
   pied(s, ctx, ctx.numero());
 }
 
@@ -465,10 +532,20 @@ function planRapport(ci, regionaux) {
   });
   return { ci: planCi, regionaux: planReg };
 }
-/** Tous les faits rédigés du rapport : ceux que le job illustre. */
+/** Tous les faits rédigés du rapport. */
 function faitsMarquants(ci, regionaux) {
   const p = planRapport(ci, regionaux);
   return p.ci.flatMap((x) => x.marquants).concat(p.regionaux.flatMap((x) => x.marquants));
+}
+/**
+ * Tous les faits que le rapport montre, ceux que le job illustre et dont il
+ * traduit l'extrait : les rédigés d'abord (ils comptent le plus quand le
+ * budget du passage s'épuise), puis les fiches, dans l'ordre des pages.
+ */
+function faitsIllustres(ci, regionaux) {
+  const p = planRapport(ci, regionaux);
+  return faitsMarquants(ci, regionaux)
+    .concat(p.ci.flatMap((x) => x.liste), p.regionaux.flatMap((x) => x.liste));
 }
 
 function cheminRapport(racine, jour) {
@@ -570,7 +647,7 @@ function majIndex(racine, chemin, jour, maintenant) {
 }
 
 module.exports = {
-  PAYS_REGIONAUX, construire, planRapport, faitsMarquants, rapportsAActualiser, dernierJourMois, moisPrecedent, libellePeriode, ecrire, majIndex, reconstruireIndex, cheminRapport, rubriqueDe, RUBRIQUES,
+  PAYS_REGIONAUX, construire, planRapport, faitsMarquants, faitsIllustres, ficheTexte, rapportsAActualiser, dernierJourMois, moisPrecedent, libellePeriode, ecrire, majIndex, reconstruireIndex, cheminRapport, rubriqueDe, RUBRIQUES,
   // partagés avec la version Word (rapport-grsci-word.js)
   ASSETS, NOM_MODELE, EMETTEUR_DEFAUT, CONFIG_EMETTEUR, lireEmetteur, piedTexte, cadreLogo, ratioImage, TITRE_COUVERTURE, TITRE_DOCUMENT, VERT, TEXTE, LEGERE, POLICE, POLICE_TITRE, DRAPEAUX, rectsDrapeau,
   dateLongue, dateCourte, paginer, faitTexte, ligneConfiance, COTATION, faitsRubrique, MAX_FAITS_RUBRIQUE, FAITS_PAR_PAGE, ROMAIN, MAX_FAITS_PAYS, periode, titreDeFait, taillePastille,

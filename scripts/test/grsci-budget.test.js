@@ -45,6 +45,6 @@ test('le job borne chaque traduction et passe l’échéance aux photos', () => 
   assert.ok(appelsTr.length >= 2, 'deux appels de traduction attendus');
   const bornes = bloc.match(/avecDelai\(traduireJob\(/g) || [];
   assert.strictEqual(bornes.length, appelsTr.length, 'chaque traduction est bornée dans le temps');
-  assert.match(bloc, /illustrer\(marquants, [^)]*limiteGrsci\)/);
+  assert.match(bloc, /illustrer\(illustres, [^)]*limiteGrsci\)/);
   assert.match(bloc, /dansBudget\(\)/);
 });

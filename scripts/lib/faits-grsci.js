@@ -155,7 +155,7 @@ function regrouper(faits, nomPays) {
         g.fait.sources.push(f.source);
         // Ce que chaque autre média en dit : la matière du texte rédigé
         // d'un fait marquant (redaction-grsci.js).
-        if (f.resume) g.fait.extraits.push({ source: f.source, resume: f.resumeFr || f.resume, url: f.url || null });
+        if (f.resume) g.fait.extraits.push({ source: f.source, resume: f.resumeFr || f.resume, url: f.url || null, langue: f.langue || null, fr: !!f.resumeFr });
         if (f.url) g.fait.liens.push({ source: f.source, url: f.url });
       }
       for (const k of ['ville', 'img', 'video']) if (!g.fait[k] && f[k]) g.fait[k] = f[k];
@@ -167,7 +167,7 @@ function regrouper(faits, nomPays) {
     } else {
       groupes.push({ membres: [r], fait: Object.assign({}, f, {
         titre: nettoyerTitre(f.titre), sources: f.source ? [f.source] : [],
-        extraits: f.resume ? [{ source: f.source || null, resume: f.resumeFr || f.resume, url: f.url || null }] : [],
+        extraits: f.resume ? [{ source: f.source || null, resume: f.resumeFr || f.resume, url: f.url || null, langue: f.langue || null, fr: !!f.resumeFr }] : [],
         liens: f.url ? [{ source: f.source || null, url: f.url }] : [],
       }) });
     }
