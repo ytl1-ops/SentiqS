@@ -9103,8 +9103,7 @@ const EVENT_PLANIFIE_KW = {
                   'fermeture de la frontière', 'frontière fermée', 'élargissement de la route',
                   'coupure de circulation', 'circulation perturbée', 'circulation interrompue',
                   'route impraticable', 'pont impraticable', 'bac hors service', 'traversier hors service',
-                  'chaussée endommagée', 'pont effondré', 'glissement de terrain', 'route coupée',
-                  'route inondée', 'axe routier bloqué', 'bouchon monstre', 'embouteillage géant',
+                  'axe routier bloqué', 'bouchon monstre', 'embouteillage géant',
                   'travaux de bitumage', 'bitumage de la route', 'pavage de la route',
                   'interdiction de circulation', 'restriction de circulation', 'route en réfection',
                   'pont en réparation', 'passage temporairement fermé', 'itinéraire de déviation',
@@ -9126,12 +9125,31 @@ const EVENT_PLANIFIE_KW = {
 // sinon « promesse » devenait une messe. Lus dans le titre seul parce qu'un
 // corps qui cite « le match d'hier » ne fait pas d'un article un événement.
 const EVENT_RASSEMBLEMENT_RE = {
-  sportif:   /\b(match|matchs|matchday|derby|finale|demi-finale|tournoi|championnat|stade|arene|marathon|semi-marathon|combat (de lutte|royal)|grand combat|eliminatoires|qualifications can|journee des eliminatoires|coupe du monde|joj|jeux de la jeunesse|tournament|stadium|fixtures?|kick-off|jogo|estadio|campeonato)\b/,
+  sportif:   /\b(match|matchs|matchday|derby|finale|demi-finale|tournoi|championnat|stade|arene|marathon|semi-marathon|combat (de lutte|royal)|grand combat|eliminatoires|qualifications can|journee des eliminatoires|coupe du monde|joj|jeux de la jeunesse|tournament|stadium|fixtures?|kick-off|jogo|estadio|campeonato|afcon|can 20\d\d|fight series|gala de boxe|tour (du|de la) (faso|senegal|cote d'ivoire|cameroun|rwanda)|tropicale amissa bongo)\b/,
   religieux: /\b(magal|gamou|maouloud|mawlid|ziarra|ziara|pelerinage|(fete|veille) de (la )?(tabaski|korite|noel|paques)|aid el[- ](kebir|fitr|adha)|toussaint|croisade|veillee de priere|messe|camp biblique|retraite spirituelle|pilgrimage|crusade|prayer (rally|meeting|vigil)|missa|romaria)\b/,
   ceremonie: /\b(ceremonie|commemoration|celebration|celebree?s?|fete (nationale|de l'independance|de la|du|des)|anniversaire de l'independance|defile|parade|carnaval|funerailles|obseques|inhumation|journee nationale|semaine nationale|ceremonie d'investiture|investiture du president|inauguration|ceremony|state funeral|funeral|independence day|cerimonia|desfile)\b/,
-  meeting:   /\b((un|le|du|au|grand|son) meeting|meeting (de|du|des|politique|geant)|rassemblement|caravane|tournee (politique|de mobilisation)|(political|campaign|presidential|mega) rally|campaign event|comicio)\b/,
-  concert:   /\b(spectacle|gala|one man show|jazz|live band|theatre(?! des operations)|showcase|soiree (culturelle|artistique|de gala)|nuit (du|de la|des) (rire|humour|musique|slam|jazz)|live show|espetaculo)\b/,
+  meeting:   /\b((un|le|du|au|grand|son) meeting|meeting (de|du|des|politique|geant)|rassemblement|caravane|tournee (politique|de mobilisation)|(political|campaign|presidential|mega) rally|campaign event|comicio|(launch(es)?|kicks? off|to launch|lance|lancement de) ((sa |his |its |their )(\d{4} )?(re-?election |presidential |electoral )?campa(ign|gne)|(\d{4} |re-?election |presidential |electoral )campaign|la campagne (electorale|presidentielle)))\b/,
+  concert:   /\b(spectacle|gala|one man show|jazz|live band|theatre(?! des operations)|showcase|soiree (culturelle|artistique|de gala)|nuit (du|de la|des) (rire|humour|musique|slam|jazz)|live show|espetaculo|fete de la musique|en concert|tournee (de concerts|musicale)|music festival|concert tour)\b/,
+  // Élargissement du 14/11/2026 (YORO : « collecte le max d'actu à insérer
+  // dans l'agenda, pas celles en lien avec les événements sûreté ») : salons,
+  // expositions, concours, conférences et visites officielles, qui déplacent
+  // du monde ou bouclent un quartier sans être des incidents.
+  festival:  /\b(fespaco|masa|femua|fima|sabar|semaine culturelle|journees culturelles|fashion week|miss (cote d'ivoire|senegal|mali|cameroun|togo|benin|burkina|guinee|niger|ghana|nigeria|afrique)|election (de )?miss|concours de beaute|vernissage|salon du livre|awards|remise des prix|nuit des (awards|trophees|stars)|trophees)\b/,
+  foire:     /\b(exposition|salon (de l'|du|des|international|national|regional)|trade fair|exhibition|expo|expo 20\d\d|(sme|trade|career|job|book|food) fair|farmers market|feira|kermesse|marche de noel|journees? portes ouvertes|braderie)\b/,
+  colloque:  /\b(conference internationale|conference-debat|conference publique|journees scientifiques|rencontre internationale|convention|summit|conference on|international conference|(energy|statistics|innovation|tech|business|investment|fashion|mining) week|semaine (internationale|nationale|africaine) d|hackathon|masterclass|bootcamp)\b/,
+  gouvernemental: /\b(visite (officielle|d'etat|de travail|presidentielle)|state visit|official visit|tournee (presidentielle|economique|du president))\b/,
 };
+// Locutions qui contiennent un mot d'agenda sans désigner un événement :
+// « JSK au sommet », « hisser le CERFER au sommet », une conférence de presse
+// (pas de foule) — mesuré sur le cache du 13/11/2026.
+const EVENT_TITRE_NEUTRES = /\bau sommet(?! (des|de|du|d'))|\b(conferences? de presse|press conference|point de presse)\b/g;
+// Un titre qui dit une atteinte est un fait de sûreté : il va au Flux, jamais
+// à l'agenda (« le meeting de l'opposant Peter Obi attaqué à Lagos »,
+// « Barcelone : des violences éclatent après les cortèges de la grève »).
+// Mots entiers, pour qu'une « cyberattaque » évoquée à propos des JOJ ne
+// retire pas l'événement.
+const AGENDA_INCIDENT_RE = /\b(tue|tues|tuee|tuees|morts?|mortes?|deces|meurtre|assassin\w*|blesses?|blessees?|attaque[es]?|attaques|attaquee?s?|attentat|explosion|fusillade|embuscade|enleve\w*|enlevement|kidnapp\w*|otages?|incendie|affrontements?|heurts|violences?|emeutes?|arrestations?|arretes?|interpelle\w*|braquage|bombardement|frappes?|killed|dead|deaths?|attack(ed|s|ers)?|clash(es)?|gunmen|shooting|riots?|arrested|injured|wounded|abducted|kidnapped|mortos|ataque|feridos)\b/;
+function estIncidentTitre(tt) { return AGENDA_INCIDENT_RE.test(tt); }
 // Familles lues aussi dans le CORPS de l'article, en formulation de plusieurs
 // mots seulement. « gouvernemental » et « élection » n'y sont plus : sur le
 // même cache, 119 des 158 articles « gouvernementaux » ne l'étaient que par
@@ -9274,13 +9292,15 @@ function typeEvenementDetecte(texte, titre) {
     return null;
   }
   const tt = normaliserAccents(String(titre).toLowerCase()).replace(/[\u2019\u2018]/g, "'");
+  if (estIncidentTitre(tt)) return null;
+  const tn = tt.replace(EVENT_TITRE_NEUTRES, ' ');
   // Mot entier dans le titre : « concert » ne doit pas lire « concertation »
   // ni « scrutin » « scrutiny » (mesuré sur le cache du 13/11/2026).
   for (const [type, mots] of Object.entries(EVENT_PLANIFIE_KW)) {
-    if (mots.some(m => _motEntierAgenda(m).test(tt))) return type;
+    if (mots.some(m => _motEntierAgenda(m).test(tn))) return type;
   }
   for (const [type, re] of Object.entries(EVENT_RASSEMBLEMENT_RE)) {
-    if (re.test(tt)) return type;
+    if (re.test(tn)) return type;
   }
   for (const type of EVENT_CORPS_TYPES) {
     if ((EVENT_PLANIFIE_KW[type] || []).some(m => m.includes(' ') && !EVENT_CORPS_EXCLUS.has(m) && t.includes(normaliserAccents(m)))) return type;
@@ -17687,6 +17707,12 @@ async function publierAgendaPartagee(articles) {
 // lecture (via detecterStatutAgenda, sensible a l'age reel), pas fige au
 // moment de l'ecriture — un evenement ecrit "en-cours" bascule bien tout
 // seul en "acheve" 24h plus tard, meme sans nouvelle collecte le concernant.
+// Une ligne écrite avant le 14/11/2026 peut porter un incident (« meeting
+// attaqué ») : la règle s'applique aussi à la lecture, sans attendre que
+// l'agenda partagé ait tourné (sept jours).
+function ligneAgendaEstIncident(row) {
+  return estIncidentTitre(normaliserAccents(String((row && row.title) || '').toLowerCase()));
+}
 function ligneAgendaPartageeVersEntree(row) {
   const pseudoArticle = {
     id: row.id, title: row.title, analysis: row.texte || '',
@@ -17710,7 +17736,7 @@ async function lireAgendaPartagee() {
       if (r && Array.isArray(r.articles)) {
         const seuilMs = Date.now() - AGENDA_MAX_AGE;
         return r.articles
-          .filter(l => l && l.id && l.pub_date && new Date(l.pub_date).getTime() > seuilMs)
+          .filter(l => l && l.id && l.pub_date && new Date(l.pub_date).getTime() > seuilMs && !ligneAgendaEstIncident(l))
           .map(ligneAgendaPartageeVersEntree);
       }
     } catch (e) { console.warn('SentiqS — lecture de l\'agenda Firestore a echoue :', e && e.message ? e.message : e); }
@@ -17724,7 +17750,7 @@ async function lireAgendaPartagee() {
       .gt('pub_date', seuil).order('pub_date', { ascending: false }).limit(500);
     if (error) { console.warn('SentiqS — lireAgendaPartagee a echoue :', error.message || error); return null; }
     if (!Array.isArray(data)) return null;
-    return data.map(ligneAgendaPartageeVersEntree);
+    return data.filter(l => !ligneAgendaEstIncident(l)).map(ligneAgendaPartageeVersEntree);
   } catch (e) { console.warn('SentiqS — lireAgendaPartagee a echoue :', e && e.message ? e.message : e); return null; }
 }
 

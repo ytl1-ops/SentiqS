@@ -3974,5 +3974,24 @@ sportifs, 14 cérémonies, 8 festivals, 4 meetings, 4 spectacles, 2 cultes),
 gouvernemental 158 → 36 ; **Flux 2 025 → 2 179 articles** (154 reviennent,
 dont 10 critiques ou élevés), un seul en sort (une tribune titrée
 « spectacle »). Les exports d'agenda et du Flux suivent ce changement :
-c'est la demande, pas un effet de bord. `hors-surete.test.js` (3) et
+c'est la demande, pas un effet de bord. **Affiné le même soir** (YORO : « collecte le max d'actu à insérer dans
+l'agenda, pas celles en lien avec les événements sûreté ») :
+- un titre qui dit une atteinte (`AGENDA_INCIDENT_RE` : tué, attaque,
+  violences, blessés, arrestation, killed, attack…, mots entiers) n'entre
+  **jamais** à l'agenda : il reste au Flux. Les lignes d'agenda partagé déjà
+  écrites sont filtrées à la lecture (`ligneAgendaEstIncident`) ;
+- les incidents de la famille travaux (pont effondré, glissement de terrain,
+  route coupée ou inondée) en sont retirés ;
+- nouvelles familles lues dans le titre : salons, expositions, foires
+  (`trade fair`, `expo`), sommets et conférences internationales, semaines
+  thématiques, concours et remises de prix, visites officielles, lancements
+  de campagne électorale, CAN et AFCON ;
+- `EVENT_TITRE_NEUTRES` neutralise « au sommet » (classement) et la
+  conférence de presse.
+Mesure sur le même cache : **162 → 204 événements**, 10 sortent (tous des
+incidents ou des faux sens, relus) ; 26 articles de niveau normal ou modéré
+passent du Flux à l'agenda (salons, sommets, remises de prix), aucun élevé
+ni critique. `agenda-rassemblements.test.js` passe à 7 tests.
+
+`hors-surete.test.js` (3) et
 `agenda-rassemblements.test.js` (4), vus échouer sur l'ancien code.
