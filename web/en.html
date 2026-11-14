@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<!-- Version anglaise de l'accueil, écrite par scripts/generer-seo.js à partir de index.html : ne pas modifier à la main. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--
+Balise de verification/proprietaire Google AdSense — DESACTIVEE, voir le
+detail complet dans web/SentiqS_Web.html (banniere publicitaire
+bloquant l'usage sur mobile/web, cause probable "Auto ads"). Remplacee
+par la meta-verification ci-dessous (n'execute aucun script, ne sert
+aucune pub).
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5506503144248267"
+     crossorigin="anonymous"></script>
+-->
+<meta name="google-adsense-account" content="ca-pub-5506503144248267">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- Application installable (13/11/2026) : manifeste lu par Chrome et par
+     l'application Android (TWA), qui ouvre ce même site. -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#071431">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icone-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<!-- Content-Security-Policy — voir SentiqS_Web.html pour le detail
+     du raisonnement. script-src/connect-src etendus a cdn.jsdelivr.net/
+     *.supabase.co : le formulaire d'inscription public utilise desormais
+     Supabase Auth (authentification reelle, voir submitSignup()) au lieu
+     d'un code d'acces local genere cote client. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://apis.google.com; frame-src https://*.firebaseapp.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self' https://*.supabase.co https://*.googleapis.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self';">
+<!-- SEO:debut — bloc écrit par scripts/generer-seo.js, ne pas modifier à la main -->
+<script src="js/domaine-canonique.js"></script>
+<script>window.SENTIQ_LANGUE_PAGE='en';</script>
+<title>SentiqS — Security and country-risk monitoring for all 54 African countries</title>
+<meta name="description" content="Real-time security monitoring across all 54 African countries: alert level per country, rated and cross-checked facts, a daily bulletin and Word, PDF, PowerPoint reports. 576 sources, 72-hour free trial.">
+<meta name="author" content="SentiqS">
+<link rel="preload" as="image" href="assets/capitales/abidjan.jpg" fetchpriority="high">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<link rel="canonical" href="https://sentiqs-235ce.web.app/en.html">
+<link rel="alternate" hreflang="fr" href="https://sentiqs-235ce.web.app/">
+<link rel="alternate" hreflang="en" href="https://sentiqs-235ce.web.app/en.html">
+<link rel="alternate" hreflang="x-default" href="https://sentiqs-235ce.web.app/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SentiqS">
+<meta property="og:url" content="https://sentiqs-235ce.web.app/en.html">
+<meta property="og:title" content="SentiqS — Security and country-risk monitoring for all 54 African countries">
+<meta property="og:description" content="Alert levels, rated and cross-checked facts, a daily bulletin: security monitoring for managers operating in Africa.">
+<meta property="og:image" content="https://sentiqs-235ce.web.app/assets/partage-en.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="SentiqS — security monitoring across all 54 African countries">
+<meta property="og:locale" content="en_GB">
+<meta property="og:locale:alternate" content="fr_FR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SentiqS — Security and country-risk monitoring for all 54 African countries">
+<meta name="twitter:description" content="Alert levels, rated and cross-checked facts, a daily bulletin: security monitoring for managers operating in Africa.">
+<meta name="twitter:image" content="https://sentiqs-235ce.web.app/assets/partage-en.png">
+<meta name="twitter:image:alt" content="SentiqS — security monitoring across all 54 African countries">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://sentiqs-235ce.web.app/#organisation","name":"SentiqS","url":"https://sentiqs-235ce.web.app/","logo":{"@type":"ImageObject","url":"https://sentiqs-235ce.web.app/icons/icone-512.png","width":512,"height":512},"areaServed":{"@type":"Place","name":"Africa"}},{"@type":"WebSite","@id":"https://sentiqs-235ce.web.app/#site","name":"SentiqS","url":"https://sentiqs-235ce.web.app/","inLanguage":["fr","en"],"publisher":{"@id":"https://sentiqs-235ce.web.app/#organisation"}},{"@type":"FAQPage","@id":"https://sentiqs-235ce.web.app/en.html#faq","inLanguage":"en","url":"https://sentiqs-235ce.web.app/en.html","mainEntity":[{"@type":"Question","name":"How is a country's alert level calculated?","acceptedAnswer":{"@type":"Answer","text":"It starts from a base of verified, dated incidents, to which the day's facts are added. A single uncorroborated article cannot turn a country red. Every level comes with its confidence index."}},{"@type":"Question","name":"Where does the information come from?","acceptedAnswer":{"@type":"Answer","text":"From 576 monitored sources: national press, news agencies, institutions and regional organisations. Articles in English, Portuguese or Arabic are translated; the screen shows only French or English, as you choose."}},{"@type":"Question","name":"What happens after the 72-hour trial?","acceptedAnswer":{"@type":"Answer","text":"The free account stops on its own, with no charge: no bank card is asked for. To continue, you choose a plan and pay by Orange Money, Wave or bank transfer; the plan is active at your next sign-in once the payment is checked."}},{"@type":"Question","name":"Can I use it on my phone?","acceptedAnswer":{"@type":"Answer","text":"Yes. The app opens in the browser of a computer, tablet or phone, with a layout suited to each screen."}},{"@type":"Question","name":"What happens to my data?","acceptedAnswer":{"@type":"Answer","text":"Your account is used to sign you in and apply your plan. You can delete it yourself from Settings, at any time and free of charge."}}]}]}</script>
+<!-- SEO:fin -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05080B; --bg2:#070C11; --panel:#101A22; --panel-b:#1C2E3D; --line:#2E4E63; --line2:#1B2A36;
+  --ink:#F5F7FA; --ink2:rgba(245,247,250,.78); --ink3:rgba(245,247,250,.64); --ink4:rgba(245,247,250,.56);
+  --blue:#2C5AAE; --sky:#7FB2CC; --navy:#16212C;
+  --red:#8B1A1A; --amber:#7C4A00; --sblue:#2C5AAE; --green:#0F4F2A;
+  --serif:'Source Serif 4',serif; --sans:'IBM Plex Sans',sans-serif; --mono:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+img,svg{display:block;max-width:100%}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--sky);font-weight:600}
+::selection{background:var(--sblue);color:#fff}
+
+/* ── reveal-on-scroll ─────────────────────────────────────────────── */
+.rv{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
+.rv.in{opacity:1;transform:translateY(0)}
+@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}}
+
+/* ── NAV ──────────────────────────────────────────────────────────── */
+.nav{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;align-items:center;justify-content:space-between;
+  padding:16px 28px;background:rgba(5,8,11,.72);backdrop-filter:blur(14px);border-bottom:1px solid transparent;
+  transition:background .25s,border-color .25s}
+.nav.scrolled{background:rgba(5,8,11,.86);border-color:var(--line2)}
+.nav-brand{display:flex;align-items:center;gap:10px}
+.nav-ico{width:30px;height:30px;border-radius:7px;background:#253746;display:flex;align-items:center;justify-content:center;border:1px solid #2F5D7C;flex-shrink:0}
+.nav-word{font-size:14px;font-weight:700;letter-spacing:.06em;color:#fff}
+.nav-links{display:flex;align-items:center;gap:30px}
+.nav-links a{font-size:13px;color:var(--ink3);font-weight:500;transition:color .15s}
+.nav-links a:hover{color:#fff}
+.nav-cta{display:flex;align-items:center;gap:10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border-radius:7px;
+  font-size:12.5px;font-weight:700;letter-spacing:.03em;border:1px solid transparent;background:transparent;transition:all .15s;white-space:nowrap}
+.btn-ghost{color:#fff;border-color:var(--line)}
+.btn-ghost:hover{background:rgba(255,255,255,.06)}
+.btn-primary{background:var(--navy);color:#fff}
+.btn-primary:hover{background:var(--sky);color:var(--navy)}
+/* Audit marketing du 14/11/2026 : l'action principale (l'essai) était un
+   bouton bleu marine sur fond bleu nuit, moins visible que « En savoir
+   plus ». L'or de l'appli (même valeur que --b en sombre, 9,8:1 avec le
+   texte bleu nuit) porte désormais l'action principale, partout sur la page. */
+.btn-primary{background:#E6BA6E;color:#0A1733;border-color:#E6BA6E}
+.btn-primary:hover{background:#F0CD8C;color:#0A1733}
+.btn-lg{padding:14px 26px;font-size:13.5px}
+@media (max-width:860px){.nav-links{display:none}}
+
+/* ── HERO / animated ops scene (adapted from the app's login screen) ─── */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden}
+.scene{position:absolute;inset:0;overflow:hidden;z-index:0;pointer-events:none;background:#040608}
+/* Diaporama des capitales : chaque image tient 7 s sur un cycle de 42 s,
+   fondu enchaîné et lent mouvement (zoom et glissement). Avant le départ
+   (.en-mouvement) ou en animations réduites, seule la première est visible. */
+.scene{background:#0A1733}
+.diapo{position:absolute;inset:-2%;width:104%;height:104%;object-fit:cover;opacity:0;will-change:opacity,transform}
+.diapo:first-child{opacity:1}
+/* Vues de jour (pont à haubans) : assombries pour tenir le même niveau que les
+   vues de nuit sous le titre — mesuré au pixel, voir CLAUDE.md. */
+.diapo[data-diurne]{filter:brightness(.6) saturate(.85)}
+.scene.en-mouvement .diapo{animation:diapo 63s linear infinite both}
+.scene.en-mouvement .diapo:first-child{opacity:0}
+@keyframes diapo{
+  0%{opacity:0;transform:scale(1.02) translate3d(0,0,0)}
+  2%{opacity:1}
+  11.5%{opacity:1}
+  13.5%{opacity:0;transform:scale(1.12) translate3d(-2%,-1%,0)}
+  100%{opacity:0;transform:scale(1.12) translate3d(-2%,-1%,0)}
+}
+/* Voile bleu nuit : plus dense à gauche, sous le texte ; fondu vers la page en bas. */
+.scene-vignette{position:absolute;inset:0;background:
+  linear-gradient(180deg,rgba(5,8,11,0) 70%,rgba(5,8,11,.9) 100%),
+  linear-gradient(90deg,rgba(12,26,72,.62) 0%,rgba(12,26,72,.38) 50%,rgba(12,26,72,.12) 100%)}
+/* Teinte bleu nuit sur la photo (multiplication) : la ville reste lumineuse,
+   le ciel vire au bleu profond. */
+.scene::after{content:"";position:absolute;inset:0;background:#2A4A9E;mix-blend-mode:multiply;opacity:.55;pointer-events:none}
+.diapo-legendes{position:absolute;right:20px;bottom:18px;z-index:1}
+.diapo-legende{position:absolute;right:0;bottom:0;white-space:nowrap;font-family:var(--mono);font-size:11px;color:rgba(245,247,250,.85);
+  background:rgba(5,8,11,.6);padding:3px 9px;border-radius:3px;opacity:0}
+.diapo-legende:first-child{opacity:1}
+.scene.en-mouvement .diapo-legende{animation:legende 63s linear infinite both}
+.scene.en-mouvement .diapo-legende:first-child{opacity:0}
+@keyframes legende{0%{opacity:0}2%{opacity:1}11.5%{opacity:1}13%{opacity:0}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.scene.en-mouvement .diapo,.scene.en-mouvement .diapo-legende{animation:none}
+  .scene.en-mouvement .diapo:first-child,.scene.en-mouvement .diapo-legende:first-child{opacity:1}}
+
+.hero-inner{position:relative;z-index:2;width:100%;max-width:1180px;margin:0 auto;padding:150px 28px 110px}
+.hero-content{position:relative;isolation:isolate;max-width:860px;text-align:left}
+.hero-content::before{content:"";position:absolute;z-index:-1;inset:-100px -200px -80px;pointer-events:none;
+  background:radial-gradient(ellipse closest-side at 40% 50%,rgba(6,14,38,.5) 0%,rgba(6,14,38,.36) 60%,rgba(6,14,38,0) 100%)}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--navy);color:#fff;
+  padding:7px 16px;border-radius:20px;font-family:var(--mono);font-size:11px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;border:1px solid #2E4E63}
+.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--sky);flex-shrink:0}
+.hero h1{text-shadow:0 2px 18px rgba(0,0,0,.45);font-family:var(--sans);font-weight:800;font-size:clamp(40px,7.2vw,92px);line-height:1;letter-spacing:-.02em;text-transform:uppercase;color:#fff;margin:0 0 18px}
+.hero h1 em{display:block}
+.hero h1 em{font-style:normal;color:var(--sky)}
+.hero-sub{font-size:clamp(19px,2.2vw,26px);font-weight:500;color:#fff;max-width:640px;margin:0 0 12px;line-height:1.35;text-shadow:0 1px 10px rgba(0,0,0,.5)}
+.hero-sub2{font-size:15px;color:var(--ink2);max-width:560px;margin:0 0 32px;line-height:1.6}
+.hero-ctas{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:56px}
+/* « En savoir plus » : bouton à contour blanc, à la manière des grands sites
+   de sûreté ; se remplit au survol. */
+.btn-contour{color:#fff;border:2px solid #fff;background:rgba(8,20,52,.35);text-transform:uppercase;letter-spacing:.08em}
+.btn-contour:hover{background:#fff;color:#0A1733}
+.btn-contour:focus-visible{outline:2px solid var(--sky);outline-offset:3px}
+.hero-stats{display:flex;gap:0;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.14);padding-top:26px;max-width:640px}
+.hstat{flex:1;min-width:120px;text-align:left;padding:0 20px 0 0}
+.hstat b{display:block;font-family:var(--serif);font-weight:700;font-size:28px;color:#fff}
+.hstat span{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin-top:4px}
+
+/* ── TICKER (moving live-feed strip) ─────────────────────────────── */
+.ticker-band{position:relative;z-index:2;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);
+  background:rgba(13,24,38,.5);overflow:hidden;padding:11px 0}
+.ticker-track{display:flex;gap:40px;white-space:nowrap;width:max-content;animation:tickmove 42s linear infinite}
+.ticker-band:hover .ticker-track{animation-play-state:paused}
+@keyframes tickmove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.tick-item{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11.5px;color:var(--ink3)}
+.tick-item b{color:var(--ink2);font-weight:600}
+.tick-pill{font-size:10px;font-weight:700;letter-spacing:.05em;padding:1px 6px;border-radius:3px}
+.tick-mod{color:var(--sky);background:rgba(61,100,134,.16)}
+.tick-crit{color:#ef6a6a;background:rgba(139,26,26,.22)}
+.tick-ok{color:#4ade80;background:rgba(15,79,42,.28)}
+@media (prefers-reduced-motion:reduce){.ticker-track{animation:none;overflow-x:auto}}
+/* Le bandeau défile des faits fictifs : il le dit (audit du 14/11/2026). */
+.ticker-exemple{position:absolute;left:0;top:0;bottom:0;z-index:1;display:flex;align-items:center;padding:0 12px 0 16px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);
+  background:linear-gradient(90deg,#0B1622 75%,rgba(11,22,34,0))}
+
+/* ── SECTIONS generic ─────────────────────────────────────────────── */
+section{position:relative;padding:110px 0}
+.sec-head{max-width:640px;margin:0 0 56px}
+.sec-head.center{margin-left:auto;margin-right:auto;text-align:center}
+.sec-head h2{font-family:var(--serif);font-weight:700;font-size:clamp(26px,3.4vw,40px);line-height:1.15;color:#fff;margin:14px 0 14px}
+.sec-head p{color:var(--ink2);font-size:15px;line-height:1.7}
+
+/* ── FEATURES ─────────────────────────────────────────────────────── */
+.feat-row{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;padding:64px 0;border-top:1px solid var(--line2)}
+.feat-row:first-of-type{border-top:none}
+.feat-row.rev .feat-text{order:2}
+.feat-row.rev .feat-visual{order:1}
+.feat-tag{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;font-weight:600;
+  letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:20px;margin-bottom:16px}
+.feat-text h3{font-family:var(--serif);font-weight:700;font-size:26px;color:#fff;margin-bottom:14px;line-height:1.25}
+.feat-text p{color:var(--ink2);font-size:14.5px;line-height:1.75;margin-bottom:18px}
+.feat-list{list-style:none}
+.feat-list li{display:flex;gap:10px;font-size:13.5px;color:var(--ink2);margin-bottom:9px;line-height:1.5}
+.feat-list li::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--sky);margin-top:7px;flex-shrink:0}
+.feat-visual{background:var(--panel);border:1px solid var(--line2);border-radius:12px;padding:22px;
+  box-shadow:0 30px 70px rgba(0,0,0,.45)}
+@media (max-width:860px){.feat-row,.feat-row.rev{grid-template-columns:1fr;gap:28px}
+  .feat-row.rev .feat-text{order:1}.feat-row.rev .feat-visual{order:2}}
+
+/* mock: article rows with severity pills (mirrors the report design) */
+.mock-art{display:flex;align-items:baseline;gap:8px;padding:9px 0;border-bottom:1px solid var(--line2)}
+.mock-art:last-child{border:none}
+.mock-pill{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.03em;padding:2px 6px;border-radius:3px;flex-shrink:0}
+.mock-art-t{font-size:12.5px;color:#e7ecf2;font-weight:600;line-height:1.4}
+.mock-meta{font-family:var(--mono);font-size:11px;color:var(--ink4);margin-top:2px}
+
+/* mock: correlation card grid */
+.mock-corr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mock-card{border:1px solid var(--line2);border-radius:6px;padding:11px}
+.mock-card-hd{display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px}
+.mock-card-hd b{color:#e7ecf2}
+.mock-card-hd span{font-family:var(--mono);color:var(--sky);font-weight:600}
+.mock-card-sub{font-size:11px;color:var(--ink4);line-height:1.5}
+
+/* mock: alert score radial */
+.mock-score{display:flex;align-items:center;gap:20px}
+.mock-ring{width:88px;height:88px;border-radius:50%;flex-shrink:0;
+  background:conic-gradient(var(--amber) 0% 62%, rgba(255,255,255,.08) 62% 100%);
+  display:flex;align-items:center;justify-content:center;position:relative}
+.mock-ring::after{content:'';position:absolute;inset:9px;border-radius:50%;background:var(--panel)}
+.mock-ring b{position:relative;z-index:1;font-family:var(--serif);font-size:22px;color:#fff}
+.mock-score-txt div{font-size:11.5px;color:var(--ink3);margin-bottom:5px}
+.mock-score-txt b{color:#fff;font-size:13px}
+
+/* mock: export format chips */
+.mock-formats{display:flex;flex-wrap:wrap;gap:10px}
+.mock-fmt{flex:1;min-width:120px;border:1px solid var(--line2);border-radius:8px;padding:14px;text-align:center}
+.mock-fmt b{display:block;font-size:12.5px;color:#e7ecf2;margin-bottom:2px}
+.mock-fmt span{font-family:var(--mono);font-size:10px;color:var(--ink4)}
+
+/* ── HOW IT WORKS ─────────────────────────────────────────────────── */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.step{background:var(--panel);border:1px solid var(--line2);border-radius:12px;padding:26px}
+.step-n{font-family:var(--serif);font-size:34px;font-weight:700;color:var(--sky);opacity:.6;margin-bottom:14px}
+.step h3{font-size:15px;font-weight:700;color:#fff;margin-bottom:8px}
+.step p{font-size:13px;color:var(--ink3);line-height:1.65}
+@media (max-width:860px){.steps{grid-template-columns:1fr}}
+
+/* ── COVERAGE ─────────────────────────────────────────────────────── */
+.cov-wrap{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.zone-cloud{display:flex;flex-wrap:wrap;gap:10px}
+.zone-pill{font-family:var(--mono);font-size:12px;color:var(--ink2);border:1px solid var(--line2);
+  padding:9px 14px;border-radius:20px;background:var(--panel);transition:border-color .2s,color .2s}
+.zone-pill:hover{border-color:var(--blue);color:#fff}
+.cov-stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line2);border:1px solid var(--line2);border-radius:12px;overflow:hidden}
+.cov-stat{background:var(--panel);padding:24px}
+.cov-stat b{display:block;font-family:var(--serif);font-size:30px;color:#fff}
+.cov-stat span{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-top:6px}
+@media (max-width:860px){.cov-wrap{grid-template-columns:1fr}}
+
+/* ── PRICING ──────────────────────────────────────────────────────── */
+.plans{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;max-width:1180px;margin:0 auto}
+.plan{background:var(--panel);border:1px solid var(--line2);border-radius:14px;padding:26px 24px;display:flex;flex-direction:column}
+.plan.hi{border-color:var(--blue);background:linear-gradient(180deg,rgba(58,160,255,.07),var(--panel) 40%);position:relative}
+.plan.inst{border-color:#7FB2CC44}
+.plan-badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--blue);color:#fff;font-family:var(--mono);
+  font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.plan-name{font-family:var(--serif);font-size:18px;font-weight:700;color:#fff;margin-bottom:6px}
+.plan-price{font-family:var(--serif);font-size:28px;font-weight:700;color:#fff;margin:12px 0 2px;line-height:1.15}
+.plan-price span{font-family:var(--sans);font-size:12px;font-weight:500;color:var(--ink3)}
+.plan-price-alt{font-family:var(--mono);font-size:11px;color:var(--ink4);margin-bottom:2px}
+.plan-desc{font-size:11.5px;color:var(--ink3);margin-bottom:18px;line-height:1.55;min-height:32px}
+.plan ul{list-style:none;margin-bottom:20px;flex:1}
+.plan li{display:flex;gap:8px;font-size:12px;color:var(--ink2);margin-bottom:9px;line-height:1.45}
+.plan li::before{content:'✓';color:var(--sky);font-weight:700;flex-shrink:0}
+.plan .btn{margin-top:auto}
+@media (max-width:1000px){.plans{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.plans{grid-template-columns:1fr}}
+
+/* ── FINAL CTA ────────────────────────────────────────────────────── */
+.cta-band{background:linear-gradient(135deg,var(--navy) 0%,#24384A 100%);border-radius:20px;margin:0 28px;
+  padding:70px 40px;text-align:center;position:relative;overflow:hidden}
+.cta-band::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 20%,rgba(58,160,255,.16),transparent 55%)}
+.cta-band-inner{position:relative;z-index:1}
+.cta-band h2{font-family:var(--serif);font-weight:700;font-size:clamp(24px,3.4vw,36px);color:#fff;margin-bottom:14px}
+.cta-band p{color:var(--ink2);margin-bottom:28px;font-size:14.5px}
+
+/* ── FOOTER ───────────────────────────────────────────────────────── */
+footer{padding:60px 0 36px;border-top:1px solid var(--line2);margin-top:60px}
+.foot-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:32px;margin-bottom:36px}
+.foot-brand{display:flex;align-items:center;gap:10px}
+.foot-cols{display:flex;gap:56px;flex-wrap:wrap}
+.foot-col h2{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink4);margin-bottom:12px}
+.foot-col a{display:block;font-size:13px;color:var(--ink2);margin-bottom:9px}
+.foot-col a:hover{color:#fff}
+.foot-credits{padding:18px 0 4px;font-size:11.5px;color:var(--ink3)}
+.foot-credits h2{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);margin:0 0 8px;font-weight:600}
+.foot-credits ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:4px 24px}
+.foot-credits a{color:var(--ink2);text-decoration:underline}
+.foot-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:11px;color:var(--ink4);padding-top:22px;border-top:1px solid var(--line2)}
+@media (max-width:760px){.foot-top{flex-direction:column}}
+
+/* ── SIGNUP MODAL ─────────────────────────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;background:rgba(4,6,8,.86);backdrop-filter:blur(4px);z-index:2000;
+  display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:auto}
+.modal-box{position:relative;background:#1C2E3D;border:1px solid #2E4E63;border-radius:14px;padding:34px 38px;
+  width:100%;max-width:460px;max-height:88vh;overflow-y:auto;box-shadow:0 30px 80px rgba(0,0,0,.6);
+  transform:translateY(14px);transition:transform .2s}
+.modal-overlay.open .modal-box{transform:translateY(0)}
+.modal-close{position:absolute;top:16px;right:18px;color:var(--ink3);font-size:18px;background:none;border:none;padding:4px}
+.modal-close:hover{color:#fff}
+.modal-title{font-family:var(--serif);font-size:21px;font-weight:700;color:#fff;margin-bottom:5px}
+.modal-sub{font-size:12px;color:var(--ink3);margin-bottom:24px;line-height:1.55}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.field input,.field select{width:100%;padding:10px 13px;background:#0F2A1E;border:1px solid #2E4E63;border-radius:7px;
+  color:#fff;font-size:13px;font-family:inherit;outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus{border-color:var(--blue)}
+.field input::placeholder{color:rgba(255,255,255,.22)}
+.plan-chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:600;
+  color:var(--sky);background:rgba(58,160,255,.1);border:1px solid rgba(58,160,255,.25);padding:6px 12px;border-radius:20px;margin-bottom:16px}
+.check-row{display:flex;gap:9px;align-items:flex-start;margin:16px 0;font-size:11.5px;color:var(--ink3);line-height:1.5}
+.check-row input{margin-top:2px}
+.modal-err{font-size:11.5px;color:#ff9090;background:rgba(139,26,26,.2);border:1px solid rgba(220,60,60,.3);
+  border-radius:6px;padding:9px 12px;margin-top:8px;display:none}
+.modal-err.show{display:block}
+.su-options{margin:2px 0 6px}
+.su-options>summary{cursor:pointer;font-size:12px;color:var(--ink3);padding:6px 0;list-style:none}
+.su-options>summary::-webkit-details-marker{display:none}
+.su-options>summary::before{content:'+ ';color:var(--sky)}
+.su-options[open]>summary::before{content:'\2212 '}
+.su-code{font-size:26px !important;letter-spacing:.5em;text-align:center;padding:12px 8px !important}
+.su-alt{text-align:center;margin-top:14px;font-size:12px;color:var(--ink3)}
+.su-alt a{color:var(--sky);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.su-alt a[aria-disabled=true]{color:var(--ink3);text-decoration:none;cursor:default}
+.modal-success{text-align:center;padding:10px 0}
+.modal-success .ico{width:52px;height:52px;border-radius:50%;background:rgba(15,79,42,.3);border:1px solid #1f7a45;
+  display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:24px;color:#4ade80}
+.code-box{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:.14em;color:#fff;
+  background:#0F2A1E;border:1px solid #2E4E63;border-radius:8px;padding:14px;margin:16px 0;text-align:center}
+/* ── PAGE DE GARDE : animation d'ouverture plein écran ───────────────────
+   Joue une fois par onglet avant le contenu (et donc avant le formulaire
+   d'inscription, mot de passe compris). Logique : js/intro.js, partagée avec
+   l'écran de connexion de l'application — l'enchaînement accueil → connexion
+   ne la rejoue pas. Absente pour qui réduit les animations, économise ses
+   données ou arrive par un lien profond. */
+.intro-video-overlay{position:fixed;inset:0;z-index:3000;background:#000;
+  display:flex;align-items:center;justify-content:center;overflow:hidden}
+.intro-video-overlay{transition:opacity .5s ease}
+.intro-video-overlay.intro-sortie{opacity:0;pointer-events:none}
+.intro-video-overlay.hidden{display:none}
+.intro-video-el{width:100%;height:100%;object-fit:cover}
+.intro-progress{position:absolute;left:0;bottom:0;height:3px;width:calc(var(--p,0) * 100%);background:linear-gradient(90deg,#7FB3D3,#E6BA6E);transition:width .3s linear;z-index:1}
+/* Entrée de la page de garde : le titre, la promesse, les boutons puis les
+   chiffres se révèlent l'un après l'autre quand l'animation d'ouverture
+   s'efface (ou tout de suite si elle ne joue pas). Coupée si l'on réduit les
+   animations. */
+@media (prefers-reduced-motion:no-preference){
+  html.garde-entree .hero-content>*{animation:garde-entree .8s cubic-bezier(.2,.7,.2,1) both}
+  html.garde-entree .hero-content>:nth-child(2){animation-delay:.12s}
+  html.garde-entree .hero-content>:nth-child(3){animation-delay:.24s}
+  html.garde-entree .hero-content>:nth-child(4){animation-delay:.36s}
+  html.garde-entree .hero-content>:nth-child(5){animation-delay:.48s}
+  html.garde-entree .hero-content>:nth-child(6){animation-delay:.6s}
+}
+@keyframes garde-entree{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.hero-note{margin:-36px 0 40px;font-size:12px;letter-spacing:.04em;color:var(--ink3)}
+.intro-video-skip{position:absolute;bottom:24px;right:24px;z-index:1;min-height:40px;
+  padding:10px 18px;border-radius:8px;background:rgba(0,0,0,.55);
+  border:1px solid rgba(255,255,255,.35);color:#fff;font-size:12px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;cursor:pointer;backdrop-filter:blur(4px)}
+.intro-video-skip:hover{background:rgba(0,0,0,.75);border-color:var(--sky)}
+.intro-video-skip:focus-visible{outline:2px solid var(--sky);outline-offset:3px}
+html.intro-actif{overflow:hidden}
+/* ── REVUE DE PRÉSENTATION (revue-pages-2026-10-15) ───────────────────────
+   Corrige à la racine, sans rien retirer :
+   · zones tactiles ≥ 24 px (WCAG 2.5.8) par remplissage + marge négative : la
+     mise en page ne bouge pas ;
+   · anneau de focus visible partout (le navigateur le masquait sur les champs) ;
+   · lien d'évitement vers #main ;
+   · défilement doux coupé pour qui réduit les animations ;
+   · bouton fantôme de l'accueil lisible sur la vidéo. */
+.skip-link{position:absolute;left:12px;top:-64px;z-index:4000;background:#fff;color:#05080B;padding:10px 16px;
+  border-radius:8px;font-weight:700;font-size:13px;transition:top .15s}
+.skip-link:focus{top:12px}
+main:focus{outline:none}
+a:focus-visible,button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{
+  outline:2px solid var(--sky);outline-offset:3px;border-radius:4px}
+.field input:focus-visible,.field select:focus-visible{outline:2px solid var(--sky);outline-offset:1px}
+.nav-links a,.foot-col a,.foot-bottom a{padding:6px 3px;margin:-6px -3px}
+.foot-col a{display:block;margin-bottom:3px;margin-top:-6px;padding-top:6px;padding-bottom:6px}
+.modal-close{min-width:36px;min-height:36px;display:flex;align-items:center;justify-content:center;top:12px;right:14px}
+.hero .btn-ghost{background:rgba(5,8,11,.62)}
+.hero .btn-ghost:hover{background:rgba(255,255,255,.14)}
+section p a{padding:5px 0}
+@media (max-width:480px){
+  /* à 390 px la marque touchait le bouton « Se connecter » */
+  .nav{padding:12px 16px}
+  .nav-cta{gap:8px}
+  .nav-cta .btn{padding:10px 13px}
+  .nav-brand{gap:8px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+/* ── CHANTIER VISUEL (chantier-visuel-2026-11-13) ─────────────────────────
+   Hors du héros (texte sur photo, contraste mesuré au pixel) : rien n'y bouge.
+   · cartes de corrélation : à 390 px le thème et son compte se collaient
+     (« #inflation12 pays · ») et le compte se cassait au milieu ; il passe
+     sous le thème. Pas de nowrap : en anglais « 12 countries · 20 art. »
+     est plus large que la carte et faisait déborder la page à 390 px ;
+   · pastilles des maquettes à largeur fixe : les titres s'alignent au lieu
+     de commencer à une abscisse différente à chaque ligne ;
+   · sur téléphone, 220 px de vide entre deux sections (110 + 110) : 64 + 64. */
+.mock-card-hd{flex-wrap:wrap;gap:2px 8px}
+.mock-pill{min-width:76px;text-align:center}
+@media (max-width:760px){section{padding:64px 0}}
+/* Sélecteur FR/EN (21/10/2026) : même choix mémorisé que l'appli. */
+.lang-switch{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;flex-shrink:0}
+.lang-btn{background:transparent;border:0;color:var(--ink2);font-size:11px;font-weight:700;letter-spacing:.06em;
+  min-width:32px;min-height:36px;padding:0 8px;cursor:pointer}
+.lang-btn.on{background:rgba(127,178,204,.2);color:#fff}
+.lang-btn:hover:not(.on){color:#fff}
+@media (max-width:420px){
+  /* à 390 px le sélecteur, « Se connecter » et « Essai gratuit » ne tiennent
+     qu'en laissant le logo seul : le nom reste dans son aria-label */
+  .nav-word{display:none}
+  .nav-cta{gap:6px}
+  .nav-cta .btn{padding:10px 10px}
+}
+/* ── Audit marketing du 14/11/2026 : fiabilité, diffusion, FAQ ───── */
+.steps-2{grid-template-columns:repeat(2,1fr)}
+@media (max-width:860px){.steps-2{grid-template-columns:1fr}}
+.step h3{font-size:16px}
+.step p{color:var(--ink2)}
+.lien-texte{color:var(--sky);text-decoration:underline;text-underline-offset:2px}
+.faq-wrap{max-width:820px}
+.faq details{border-top:1px solid var(--line2)}
+.faq details:last-child{border-bottom:1px solid var(--line2)}
+.faq summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:16px;align-items:center;
+  padding:18px 4px;min-height:44px;font-size:15px;font-weight:600;color:#fff}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:'+';font-family:var(--mono);font-size:18px;color:var(--sky);flex-shrink:0}
+.faq details[open] summary::after{content:'−'}
+.faq summary:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+.faq details p{padding:0 4px 18px;font-size:14px;line-height:1.7;color:var(--ink2);max-width:720px}
+</style>
+<script src="js/langue.js"></script>
+<script src="js/dico-site-en.js"></script>
+<script src="js/langue-site.js"></script>
+</head>
+<body>
+
+<!-- ═══ PAGE DE GARDE — animation d'ouverture (voir js/intro.js) ════════
+     Masquée par défaut : sans JavaScript (ou pour un robot) le contenu reste
+     intact. lancer() la révèle seulement si elle doit jouer. -->
+<div class="intro-video-overlay hidden" id="introVideoOverlay" role="dialog" aria-modal="true"
+     aria-label="SentiqS — Expertise en sûreté et renseignement stratégique en Afrique">
+  <video id="introVideoEl" class="intro-video-el" muted playsinline preload="none" aria-hidden="true"
+         poster="assets/intro-sentiqs-poster.jpg">
+    <source src="assets/intro-sentiqs.mp4" type="video/mp4">
+  </video>
+  <button type="button" id="introVideoSkip" class="intro-video-skip">Passer l'animation</button>
+  <div class="intro-progress" aria-hidden="true"></div>
+</div>
+<script src="js/intro.js"></script>
+<script>
+// Le diaporama des capitales ne démarre (et ses images ne se téléchargent)
+// qu'une fois l'animation d'ouverture terminée ou écartée : télécharger en
+// parallèle, c'est ce qui pèse le plus sur un mobile en réseau moyen.
+(function () {
+  var introFinie = false, domPret = false;
+  function demarrerDecor() {
+    if (!introFinie || !domPret) return;
+    // Animations réduites : la première capitale reste seule, immobile.
+    try { if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; } catch (_) {}
+    var imgs = document.querySelectorAll('.scene img.diapo[data-src]');
+    for (var i = 0; i < imgs.length; i++) { imgs[i].src = imgs[i].getAttribute('data-src'); imgs[i].removeAttribute('data-src'); }
+    var scene = document.querySelector('.hero .scene');
+    if (scene) scene.classList.add('en-mouvement');
+  }
+  document.addEventListener('DOMContentLoaded', function () { domPret = true; demarrerDecor(); });
+  try {
+    SentiqIntro.lancer({
+      overlay: document.getElementById('introVideoOverlay'),
+      video: document.getElementById('introVideoEl'),
+      skip: document.getElementById('introVideoSkip')
+    }, { ignorerNavigationInterne: true, fondu: 500, onFin: function () { introFinie = true; demarrerDecor(); document.documentElement.classList.add('garde-entree'); } });
+  } catch (_) { introFinie = true; document.documentElement.classList.add('garde-entree'); }
+})();
+</script>
+
+<a class="skip-link" href="#main">Aller au contenu</a>
+<!-- ═══ NAV ═══════════════════════════════════════════════════════════ -->
+<nav class="nav" id="nav">
+  <a class="nav-brand" href="#top" aria-label="SentiqS">
+    <div class="nav-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <circle cx="8" cy="8" r="6.5" stroke="#5B8CAD" stroke-width="1.3"/>
+      <circle cx="8" cy="8" r="3" stroke="#5B8CAD" stroke-width="1" stroke-dasharray="2 1.5"/>
+      <circle cx="8" cy="8" r="1.5" fill="#5B8CAD"/>
+    </svg></div>
+    <span class="nav-word">SentiqS</span>
+  </a>
+  <div class="nav-links">
+    <a href="#plateforme">Plateforme</a>
+    <a href="#fiabilite">Fiabilité</a>
+    <a href="#comment">Fonctionnement</a>
+    <a href="#couverture">Couverture</a>
+    <a href="#tarifs">Tarifs</a>
+  </div>
+  <div class="nav-cta">
+    <div class="lang-switch" role="group" aria-label="Langue / Language">
+      <button type="button" class="lang-btn" data-lang="fr" lang="fr" translate="no" title="Français" aria-pressed="true">FR</button>
+      <button type="button" class="lang-btn" data-lang="en" lang="en" translate="no" title="English" aria-pressed="false">EN</button>
+    </div>
+    <a class="btn btn-ghost" href="SentiqS_Web.html">Se connecter</a>
+    <button class="btn btn-primary" onclick="openSignup()">Essai gratuit</button>
+  </div>
+</nav>
+
+<main id="main" tabindex="-1">
+<!-- ═══ HERO ══════════════════════════════════════════════════════════ -->
+<header class="hero" id="top">
+  <!-- Capitales africaines de nuit, en fondu enchaîné et en lent mouvement
+       (demande de l'éditeur du 20/10/2026). Photos Wikimedia Commons sous
+       licence libre, créditées sur l'image et dans « Crédits photo » en pied
+       de page (voir assets/capitales/credits.json). Seule la première se
+       charge avec la page ; les autres attendent la fin de l'animation
+       d'ouverture (data-src, voir demarrerDecor). -->
+  <div class="scene" aria-hidden="true">
+      <img class="diapo" src="assets/capitales/abidjan.jpg" fetchpriority="high" alt="" decoding="async" style="animation-delay:0s">
+      <img class="diapo" data-src="assets/capitales/lagos.jpg" alt="" decoding="async" style="animation-delay:7s">
+      <img class="diapo" data-diurne data-src="assets/capitales/pont-haubans-1.jpg" alt="" decoding="async" style="animation-delay:14s">
+      <img class="diapo" data-src="assets/capitales/nairobi.jpg" alt="" decoding="async" style="animation-delay:21s">
+      <img class="diapo" data-src="assets/capitales/le-caire.jpg" alt="" decoding="async" style="animation-delay:28s">
+      <img class="diapo" data-diurne data-src="assets/capitales/pont-haubans-2.jpg" alt="" decoding="async" style="animation-delay:35s">
+      <img class="diapo" data-src="assets/capitales/johannesburg.jpg" alt="" decoding="async" style="animation-delay:42s">
+      <img class="diapo" data-src="assets/capitales/addis-abeba.jpg" alt="" decoding="async" style="animation-delay:49s">
+      <img class="diapo" data-diurne data-src="assets/capitales/pont-haubans-3.jpg" alt="" decoding="async" style="animation-delay:56s">
+    <div class="scene-vignette"></div>
+    <div class="diapo-legendes">
+      <span class="diapo-legende" style="animation-delay:0s">Abidjan, de nuit · © abdallahh, CC BY 2.0</span>
+      <span class="diapo-legende" style="animation-delay:7s">Lagos, de nuit · © S.aderogba, CC BY-SA 4.0</span>
+      <span class="diapo-legende" style="animation-delay:14s">Abidjan, le pont à haubans · © Jean Yves ESSIGAN, CC BY 4.0</span>
+      <span class="diapo-legende" style="animation-delay:21s">Nairobi, de nuit · © Nbi101, CC BY-SA 4.0</span>
+      <span class="diapo-legende" style="animation-delay:28s">Le Caire, de nuit · © Daniel Nussbaum, CC BY-SA 3.0</span>
+      <span class="diapo-legende" style="animation-delay:35s">Abidjan, le pont à haubans · © Jean Yves ESSIGAN, CC BY 4.0</span>
+      <span class="diapo-legende" style="animation-delay:42s">Johannesburg, de nuit · © Nico Roets, CC BY 2.0</span>
+      <span class="diapo-legende" style="animation-delay:49s">Addis-Abeba, de nuit · © PMO Ethiopia, domaine public</span>
+      <span class="diapo-legende" style="animation-delay:56s">Abidjan, le pont à haubans · © Jean Yves ESSIGAN, CC BY 4.0</span>
+    </div>
+  </div>
+
+  <div class="hero-inner">
+    <div class="hero-content">
+      <h1>SentiqS <em>Sûreté Afrique</em></h1>
+      <p class="hero-sub">Chaque matin, le point sûreté des pays où vous opérez.</p>
+      <p class="hero-sub2">576 sources suivies sur 54 pays. Chaque fait est daté, coté et relié à sa source : vous décidez sans relire toute la presse.</p>
+      <div class="hero-ctas">
+        <button class="btn btn-primary btn-lg" onclick="openSignup()">Essayer 72 h gratuitement</button>
+        <a class="btn btn-contour btn-lg" href="bulletins/CI/dernier.html">Voir le bulletin du jour</a>
+      </div>
+      <p class="hero-note">Votre e-mail suffit, sans mot de passe ni carte bancaire · exemple : le bulletin public de la Côte d'Ivoire, réécrit chaque jour</p>
+      <div class="hero-stats">
+        <div class="hstat"><b>54</b><span>Pays couverts</span></div>
+        <div class="hstat"><b>576</b><span>Sources suivies</span></div>
+        <div class="hstat"><b>36 h</b><span>Fenêtre d'actualité vérifiée</span></div>
+        <div class="hstat"><b>5</b><span>Formats de rapport</span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ TICKER ════════════════════════════════════════════════════════ -->
+<div class="ticker-band" aria-hidden="true">
+  <span class="ticker-exemple">Exemples</span>
+  <div class="ticker-track" id="tickerTrack"></div>
+</div>
+
+<!-- ═══ PLATEFORME / FEATURES ════════════════════════════════════════ -->
+<section id="plateforme">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <span class="eyebrow">La plateforme</span>
+      <h2>Tout ce qu'il faut pour décider vite, avec des faits vérifiés.</h2>
+      <p>De la collecte brute au rapport prêt à diffuser — une seule chaîne, sans feuille de calcul ni copier-coller.</p>
+    </div>
+
+    <div class="feat-row rv">
+      <div class="feat-text">
+        <span class="feat-tag" style="color:#ef6a6a;background:rgba(139,26,26,.16)">Situation sécuritaire</span>
+        <h3>Une synthèse par pays, classée par niveau de risque.</h3>
+        <p>Chaque article collecté est qualifié et rangé en quatre catégories — sécurité, humanitaire, politique, économie — avec un niveau de criticité visible au premier coup d'œil.</p>
+        <ul class="feat-list">
+          <li>Niveaux critique / élevé / modéré / stable, sur toutes les zones suivies</li>
+          <li>Localisation automatique (pays, ville) quand elle est détectable dans la source</li>
+          <li>Horodatage de survenance, pas seulement de publication</li>
+          <li>Traduction automatique des sources anglaises, portugaises et arabes</li>
+        </ul>
+      </div>
+      <div class="feat-visual">
+        <div class="mock-art"><span class="mock-pill" style="color:#ef6a6a;background:rgba(139,26,26,.22)">CRITIQUE</span>
+          <div><div class="mock-art-t">Affrontements signalés près de la frontière nord</div><div class="mock-meta">Mali — Gao · il y a 4 min</div></div></div>
+        <div class="mock-art"><span class="mock-pill" style="color:#e0a030;background:rgba(124,74,0,.28)">ÉLEVÉ</span>
+          <div><div class="mock-art-t">Mouvement social annoncé dans le secteur portuaire</div><div class="mock-meta">Kenya — Mombasa · il y a 11 min</div></div></div>
+        <div class="mock-art"><span class="mock-pill" style="color:#6FA3C2;background:rgba(61,100,134,.22)">MODÉRÉ</span>
+          <div><div class="mock-art-t">Hausse des prix alimentaires constatée sur plusieurs marchés</div><div class="mock-meta">Sénégal — Dakar (estimé) · il y a 22 min</div></div></div>
+        <div class="mock-art"><span class="mock-pill" style="color:#4ade80;background:rgba(15,79,42,.3)">STABLE</span>
+          <div><div class="mock-art-t">Reprise normale du trafic aérien après incident mineur</div><div class="mock-meta">Afrique du Sud — Johannesburg · il y a 38 min</div></div></div>
+      </div>
+    </div>
+
+    <div class="feat-row rev rv">
+      <div class="feat-text">
+        <span class="feat-tag" style="color:#8FE0C0;background:rgba(75,85,99,.22)">Corrélations régionales</span>
+        <h3>Voyez les dynamiques qu'une lecture pays par pays ne révèle jamais.</h3>
+        <p>SentiqS détecte les thèmes qui émergent simultanément dans plusieurs pays sur une même fenêtre temps réel — inflation régionale, épidémie transfrontalière, vague de mobilisation sociale.</p>
+        <ul class="feat-list">
+          <li>Regroupement automatique par signal partagé entre pays</li>
+          <li>Articles concordants cités pour chaque corrélation détectée</li>
+          <li>Alimente directement les rapports Word, PDF et PowerPoint</li>
+        </ul>
+      </div>
+      <div class="feat-visual">
+        <div class="mock-corr">
+          <div class="mock-card"><div class="mock-card-hd"><b>#inflation</b><span>12 pays · 20 art.</span></div><div class="mock-card-sub">Angola, Burkina Faso, Burundi, RD Congo…</div></div>
+          <div class="mock-card"><div class="mock-card-hd"><b>#santé</b><span>11 pays · 11 art.</span></div><div class="mock-card-sub">Centrafrique, Cameroun, Algérie, Éthiopie…</div></div>
+          <div class="mock-card"><div class="mock-card-hd"><b>#corruption</b><span>6 pays · 7 art.</span></div><div class="mock-card-sub">Gabon, Togo, Mali, Malawi, Kenya…</div></div>
+          <div class="mock-card"><div class="mock-card-hd"><b>#gouvernance</b><span>6 pays · 9 art.</span></div><div class="mock-card-sub">RD Congo, Côte d'Ivoire, Gabon…</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feat-row rv">
+      <div class="feat-text">
+        <span class="feat-tag" style="color:#e0a030;background:rgba(124,74,0,.2)">Alertes pays</span>
+        <h3>Un score composite, pas une impression.</h3>
+        <p>Chaque pays reçoit un score sur 100 calculé à partir des incidents vérifiés et des facteurs aggravants — jamais d'un signal isolé et non corroboré.</p>
+        <ul class="feat-list">
+          <li>Cinq niveaux : rouge, marron, orange, jaune, vert</li>
+          <li>Mesures clés associées : expatriés/étrangers, installations</li>
+          <li>Classement comparatif sur tout le périmètre suivi</li>
+        </ul>
+      </div>
+      <div class="feat-visual">
+        <div class="mock-score">
+          <div class="mock-ring"><b>62</b></div>
+          <div class="mock-score-txt">
+            <div>Niveau : <b style="color:#e0a030">ÉLEVÉ</b></div>
+            <div>Incidents vérifiés : <b>7</b></div>
+            <div>Facteurs aggravants : <b>+18</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feat-row rev rv">
+      <div class="feat-text">
+        <span class="feat-tag" style="color:#6FA3C2;background:rgba(61,100,134,.18)">Rapports & exports</span>
+        <h3>Un document diffusable, en un clic.</h3>
+        <p>Synthèse analytique, flux opérationnel, agenda sûreté ou rapport complet — générés directement depuis les données collectées, filtrés par zone ou par pays.</p>
+        <ul class="feat-list">
+          <li>Word, PDF et PowerPoint pour la diffusion et la présentation</li>
+          <li>Excel et CSV pour l'analyse et l'intégration</li>
+          <li>Filtrage par périmètre : pays, zone régionale, ou vue globale</li>
+        </ul>
+      </div>
+      <div class="feat-visual">
+        <div class="mock-formats">
+          <div class="mock-fmt"><b>.docx</b><span>RAPPORT WORD</span></div>
+          <div class="mock-fmt"><b>.pdf</b><span>SYNTHÈSE PDF</span></div>
+          <div class="mock-fmt"><b>.pptx</b><span>PRÉSENTATION</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feat-row rv">
+      <div class="feat-text">
+        <span class="feat-tag" style="color:#4ade80;background:rgba(15,79,42,.24)">Agenda sûreté</span>
+        <h3>Ce qui se passe maintenant, ce qui s'en vient.</h3>
+        <p>SentiqS détecte les événements planifiés — sommets, mobilisations, fermetures d'infrastructure — et suit leur statut en continu, bien au-delà de la fenêtre du flux courant.</p>
+        <ul class="feat-list">
+          <li>Statuts en cours / à venir / achevé, mis à jour automatiquement</li>
+          <li>Catégorie travaux : fermetures de routes, ponts, aéroports, frontières</li>
+          <li>Rétention 72h dédiée, pour ne pas perdre un événement planifié entre deux visites</li>
+        </ul>
+      </div>
+      <div class="feat-visual">
+        <div class="mock-art"><span class="mock-pill" style="color:#ef6a6a;background:rgba(139,26,26,.22)">EN COURS</span>
+          <div><div class="mock-art-t">Concertation régionale — recommandations de la société civile</div><div class="mock-meta">Côte d'Ivoire — Abidjan · débuté il y a 3h</div></div></div>
+        <div class="mock-art"><span class="mock-pill" style="color:#e0a030;background:rgba(124,74,0,.28)">TRAVAUX</span>
+          <div><div class="mock-art-t">Fermeture programmée du pont frontalier pour rénovation</div><div class="mock-meta">Bénin — Frontière Nigeria · à venir</div></div></div>
+        <div class="mock-art"><span class="mock-pill" style="color:#6FA3C2;background:rgba(61,100,134,.22)">À VENIR</span>
+          <div><div class="mock-art-t">Sommet régional sur la sécurité transfrontalière</div><div class="mock-meta">Burkina Faso — Ouagadougou · dans 2 jours</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FIABILITÉ (audit marketing du 14/11/2026) ════════════════════
+     L'accueil ne disait rien de ce qui distingue l'outil d'un agrégateur.
+     Chaque phrase ci-dessous décrit une règle réellement appliquée dans le
+     code (voir CLAUDE.md) : cotation, validation, pays muets, avis officiels. -->
+<section id="fiabilite">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <span class="eyebrow">Fiabilité</span>
+      <h2>Vous savez ce qui est sûr, et ce qui ne l'est pas encore.</h2>
+      <p>Un niveau d'alerte faux coûte cher dans les deux sens. SentiqS montre d'où vient chaque fait et ce qu'il vaut.</p>
+    </div>
+    <div class="steps steps-2 rv">
+      <div class="step">
+        <h3>Chaque fait est coté</h3>
+        <p>Confirmé quand deux sources distinctes le rapportent, Probable quand une source fiable le publie seule, Non confirmé sinon. La cotation s'affiche sur chaque carte et dans chaque rapport.</p>
+      </div>
+      <div class="step">
+        <h3>Un analyste valide les faits graves</h3>
+        <p>Les faits critiques et les faits élevés à source unique sont soumis à un analyste. Sa validation s'affiche en clair : « Validé analyste » ou « Infirmé par l'analyste ».</p>
+      </div>
+      <div class="step">
+        <h3>Le silence n'est pas présenté comme du calme</h3>
+        <p>Un pays sans source récente est signalé comme tel. La rubrique « Ce que nous ne savons pas » liste les pays que l'outil voit mal, au lieu de les afficher en vert.</p>
+      </div>
+      <div class="step">
+        <h3>Les avis officiels à portée de clic</h3>
+        <p>Chaque bulletin pays renvoie aux conseils aux voyageurs du Royaume-Uni (FCDO), des États-Unis et de la France, sans les résumer à leur place.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ DIFFUSION ═════════════════════════════════════════════════════ -->
+<section id="diffusion" style="background:var(--bg2)">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <span class="eyebrow">Diffusion</span>
+      <h2>L'information vient à vous, à l'heure que vous choisissez.</h2>
+    </div>
+    <div class="steps rv">
+      <div class="step">
+        <h3>Un bulletin par pays, chaque jour</h3>
+        <p>Les 54 pays ont leur bulletin quotidien : faits cotés, ce qui porte le niveau, ce que l'on ne sait pas. <a href="bulletins/CI/dernier.html" class="lien-texte">Voir celui de la Côte d'Ivoire</a>.</p>
+      </div>
+      <div class="step">
+        <h3>Vos bulletins programmés</h3>
+        <p>Choisissez vos pays et vos heures : le bulletin part par e-mail, Telegram ou WhatsApp, au besoin depuis votre propre adresse d'envoi. Inclus dans les forfaits payants.</p>
+      </div>
+      <div class="step">
+        <h3>Un rapport mensuel prêt à présenter</h3>
+        <p>Les faits marquants du mois, rédigés et illustrés, en Word, PowerPoint et PDF, à compléter avant votre réunion.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ COMMENT ÇA MARCHE ═════════════════════════════════════════════ -->
+<section id="comment" style="background:var(--bg2)">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <span class="eyebrow">Fonctionnement</span>
+      <h2>Trois étapes, aucune saisie manuelle.</h2>
+    </div>
+    <div class="steps rv">
+      <div class="step">
+        <div class="step-n">01</div>
+        <h3>Collecte continue</h3>
+        <p>SentiqS interroge en continu les flux RSS de centaines de sources médias et réseaux sociaux africaines, en ne retenant que les faits datés des 36 dernières heures.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">02</div>
+        <h3>Qualification & croisement</h3>
+        <p>Chaque article est catégorisé, localisé, noté par niveau de criticité, puis croisé avec les autres pays pour faire émerger les dynamiques régionales.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">03</div>
+        <h3>Décision & diffusion</h3>
+        <p>Synthèses, alertes et corrélations sont consultables dans l'application ou exportées en un clic vers Word, PDF ou PowerPoint pour vos équipes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ COUVERTURE ════════════════════════════════════════════════════ -->
+<section id="couverture">
+  <div class="wrap">
+    <div class="cov-wrap">
+      <div class="rv">
+        <span class="eyebrow">Couverture géographique</span>
+        <h2 style="font-family:var(--serif);font-weight:700;font-size:clamp(24px,3vw,34px);color:#fff;margin:14px 0 18px">54 pays, huit zones régionales.</h2>
+        <p style="color:var(--ink2);font-size:14.5px;line-height:1.7;margin-bottom:24px">Filtrez par pays ou par zone pour ne suivre que votre périmètre — le reste du continent reste disponible à tout moment.</p>
+        <div class="zone-cloud" id="zoneCloud"></div>
+      </div>
+      <div class="cov-stats rv">
+        <div class="cov-stat"><b>54</b><span>Pays suivis</span></div>
+        <div class="cov-stat"><b>576</b><span>Sources suivies</span></div>
+        <div class="cov-stat"><b>8</b><span>Zones régionales</span></div>
+        <div class="cov-stat"><b>36 h</b><span>Fenêtre d'actualité vérifiée</span></div>
+      </div>
+      <p style="color:var(--ink4);font-size:12px;margin-top:14px">Interface optimisée web et mobile — navigation fluide entre modules, en quelques taps.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ TARIFS ════════════════════════════════════════════════════════ -->
+<section id="tarifs" style="background:var(--bg2)">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <span class="eyebrow">Tarifs</span>
+      <h2>Un forfait pour chaque niveau d'engagement.</h2>
+      <p>Paiement Mobile Money ou virement, aucune carte bancaire requise. 72h d'essai gratuit sur tous les modules avant de choisir.</p>
+    </div>
+    <div class="plans rv" id="pricingCards"></div>
+    <div style="text-align:center;margin-top:24px;font-size:12px;color:var(--ink3)">
+      Facturation possible en USD/EUR pour les organismes internationaux — <a href="mailto:yorot225@gmail.com?subject=SentiqS%20S%C3%BBret%C3%A9%20—%20Facturation%20internationale" style="color:var(--sky);text-decoration:underline;padding:5px 0">nous contacter</a>.
+    </div>
+  </div>
+</section>
+
+<!-- ═══ QUESTIONS FRÉQUENTES (audit marketing du 14/11/2026) ════════ -->
+<section id="faq" style="padding-top:0">
+  <div class="wrap faq-wrap">
+    <div class="sec-head center rv">
+      <span class="eyebrow">Questions fréquentes</span>
+      <h2>Avant de commencer</h2>
+    </div>
+    <div class="faq rv">
+      <details><summary>Comment le niveau d'alerte d'un pays est-il calculé ?</summary>
+        <p>Il part d'un socle d'incidents vérifiés et datés, auquel s'ajoutent les faits du jour. Un article isolé et non recoupé ne suffit pas à faire passer un pays au rouge. Chaque niveau est accompagné de son indice de confiance.</p></details>
+      <details><summary>D'où viennent les informations ?</summary>
+        <p>De 576 sources suivies : presse nationale, agences de presse, institutions et organisations régionales. Les articles en anglais, portugais ou arabe sont traduits ; l'écran n'affiche que le français ou l'anglais, selon votre choix.</p></details>
+      <details><summary>Que se passe-t-il après les 72 heures d'essai ?</summary>
+        <p>Le compte gratuit s'arrête de lui-même, sans prélèvement : aucune carte bancaire n'est demandée. Pour continuer, vous choisissez un forfait et payez par Orange Money, Wave ou virement ; le forfait est actif à votre prochaine connexion après vérification du paiement.</p></details>
+      <details><summary>Puis-je l'utiliser sur téléphone ?</summary>
+        <p>Oui. L'application s'ouvre dans le navigateur d'un ordinateur, d'une tablette ou d'un téléphone, avec une présentation adaptée à chaque écran.</p></details>
+      <details><summary>Que deviennent mes données ?</summary>
+        <p>Votre compte sert à vous connecter et à appliquer votre forfait. Vous pouvez le supprimer vous-même depuis Paramètres, à tout moment et sans frais.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CTA FINALE ════════════════════════════════════════════════════ -->
+<section style="padding-top:0">
+  <div class="cta-band rv">
+    <div class="cta-band-inner">
+      <h2>Prêt à voir venir, avant tout le monde ?</h2>
+      <p>Créez votre compte gratuit et accédez à la veille en moins d'une minute.</p>
+      <button class="btn btn-primary btn-lg" onclick="openSignup()">Créer un compte gratuit</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ════════════════════════════════════════════════════════ -->
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <div class="foot-brand">
+        <div class="nav-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="6.5" stroke="#5B8CAD" stroke-width="1.3"/>
+          <circle cx="8" cy="8" r="3" stroke="#5B8CAD" stroke-width="1" stroke-dasharray="2 1.5"/>
+          <circle cx="8" cy="8" r="1.5" fill="#5B8CAD"/>
+        </svg></div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#fff">SentiqS</div>
+          <div style="font-size:11px;color:var(--ink4);margin-top:1px">Veille sûreté · 54 pays d'Afrique</div>
+        </div>
+      </div>
+      <div class="foot-cols">
+        <div class="foot-col">
+          <h2>Plateforme</h2>
+          <a href="#plateforme">Fonctionnalités</a>
+          <a href="#comment">Fonctionnement</a>
+          <a href="#couverture">Couverture</a>
+        </div>
+        <div class="foot-col">
+          <h2>Compte</h2>
+          <a href="SentiqS_Web.html">Se connecter</a>
+          <a href="javascript:void(0)" onclick="openSignup()">Essai gratuit</a>
+          <a href="#tarifs">Tarifs</a>
+        </div>
+        <div class="foot-col">
+          <h2>Contact</h2>
+          <a href="mailto:yorot225@gmail.com">yorot225@gmail.com</a>
+        </div>
+      </div>
+    </div>
+    <div class="foot-credits" id="credits-photos">
+      <h2>Crédits photo</h2>
+      <ul>
+        <li>Abidjan, de nuit — <a href="https://commons.wikimedia.org/wiki/File:Plateau_Abidjan_de_nuit.jpg" target="_blank" rel="noopener">abdallahh</a>, <a href="https://creativecommons.org/licenses/by/2.0" rel="license noopener" target="_blank">CC BY 2.0</a>, image redimensionnée</li>
+        <li>Lagos, de nuit — <a href="https://commons.wikimedia.org/wiki/File:Night-view-of-lekki-link-bridge.jpg" target="_blank" rel="noopener">S.aderogba</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0" rel="license noopener" target="_blank">CC BY-SA 4.0</a>, image redimensionnée</li>
+        <li>Abidjan, le pont à haubans — <a href="https://commons.wikimedia.org/wiki/File:Vue_d%27ensemble_du_pont_Hauban_Abidjan_depuis_la_Cour_de_la_Cath%C3%A9drale_Saint_Paul_du_Plateau.jpg" target="_blank" rel="noopener">Jean Yves ESSIGAN</a>, <a href="https://creativecommons.org/licenses/by/4.0" rel="license noopener" target="_blank">CC BY 4.0</a>, image redimensionnée</li>
+        <li>Nairobi, de nuit — <a href="https://commons.wikimedia.org/wiki/File:Nairobi_night_skyline_at_dusk_.jpg" target="_blank" rel="noopener">Nbi101</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0" rel="license noopener" target="_blank">CC BY-SA 4.0</a>, image redimensionnée</li>
+        <li>Le Caire, de nuit — <a href="https://commons.wikimedia.org/wiki/File:Nile_and_Cairo_Tower_at_night_-_panoramio.jpg" target="_blank" rel="noopener">Daniel Nussbaum</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0" rel="license noopener" target="_blank">CC BY-SA 3.0</a>, image redimensionnée</li>
+        <li>Abidjan, le pont à haubans — <a href="https://commons.wikimedia.org/wiki/File:Vue_d%27ensemble_avec_Circulation_du_Pont_Hauban_Abidjan.jpg" target="_blank" rel="noopener">Jean Yves ESSIGAN</a>, <a href="https://creativecommons.org/licenses/by/4.0" rel="license noopener" target="_blank">CC BY 4.0</a>, image redimensionnée</li>
+        <li>Johannesburg, de nuit — <a href="https://commons.wikimedia.org/wiki/File:Joburg_at_night.jpg" target="_blank" rel="noopener">Nico Roets</a>, <a href="https://creativecommons.org/licenses/by/2.0" rel="license noopener" target="_blank">CC BY 2.0</a>, image redimensionnée</li>
+        <li>Addis-Abeba, de nuit — <a href="https://commons.wikimedia.org/wiki/File:Addis_Ababa_at_the_night_time.jpg" target="_blank" rel="noopener">PMO Ethiopia</a>, domaine public, image redimensionnée</li>
+        <li>Abidjan, le pont à haubans — <a href="https://commons.wikimedia.org/wiki/File:Pont_Hauban_Abidjan.jpg" target="_blank" rel="noopener">Jean Yves ESSIGAN</a>, <a href="https://creativecommons.org/licenses/by/4.0" rel="license noopener" target="_blank">CC BY 4.0</a>, image redimensionnée</li>
+      </ul>
+    </div>
+    <div class="foot-bottom">
+      <span>SentiqS</span>
+      <span>Usage professionnel — responsables sûreté</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══ SIGNUP MODAL ══════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="signupOverlay" onclick="if(event.target===this)closeSignup()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeSignup()">✕</button>
+    <div id="signupBody">
+      <span class="plan-chip"><i>●</i> Plan gratuit</span>
+      <div class="modal-title">Entrez avec votre e-mail</div>
+      <div class="modal-sub" id="suModalSub">Pas de mot de passe : nous vous envoyons un code. Accès immédiat, aucune carte bancaire requise.</div>
+      <div class="field">
+        <label for="suEmail">Adresse e-mail professionnelle</label>
+        <input type="email" id="suEmail" placeholder="votre@organisation.com" autocomplete="email" inputmode="email" onkeydown="if(event.key==='Enter')submitSignup()">
+      </div>
+      <details class="su-options">
+        <summary>Compléter mon profil (facultatif)</summary>
+        <div class="field">
+          <label for="suName">Nom complet</label>
+          <input type="text" id="suName" placeholder="Prénom Nom" autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="suOrg">Organisation / Fonction</label>
+          <input type="text" id="suOrg" placeholder="Ex : Direction Sûreté — Entreprise XYZ" autocomplete="organization">
+        </div>
+        <div class="field">
+          <label for="suZone">Zone de couverture prioritaire</label>
+          <select id="suZone">
+            <option value="all">Toutes zones — Afrique</option>
+          </select>
+        </div>
+      </details>
+      <div class="check-row">
+        <input type="checkbox" id="suTerms">
+        <label for="suTerms">J'utilise SentiqS dans un cadre professionnel de sûreté/gestion des risques et j'accepte l'usage restreint de la plateforme.</label>
+      </div>
+      <button class="btn btn-primary" style="width:100%" id="suSubmitBtn" onclick="submitSignup()">Recevoir mon code</button>
+      <button class="btn btn-ghost" style="width:100%;margin-top:8px;display:none" id="suGoogleBtn" onclick="inscriptionGoogle()">Continuer avec Google</button>
+      <div class="modal-err" id="suErr"></div>
+    </div>
+    <div id="signupCode" style="display:none">
+      <div class="modal-title" id="suCodeTitre">Entrez votre code</div>
+      <div class="modal-sub"><span id="suCodeIntro">Un code vient d'être envoyé à</span> <b id="suEmailAff" style="color:#e7ecf2"></b>. <span id="suCodeAide">Il est valable quelques minutes ; pensez aux courriers indésirables.</span></div>
+      <div class="field" id="suCodeChamp">
+        <label for="suCode">Code reçu par e-mail</label>
+        <input type="text" id="suCode" class="su-code" inputmode="numeric" autocomplete="one-time-code" maxlength="12" placeholder="••••••" onkeydown="if(event.key==='Enter')verifierCodeInscription()" oninput="if(/^\d{6}$/.test(this.value.trim()))verifierCodeInscription()">
+      </div>
+      <button class="btn btn-primary" style="width:100%" id="suVerifyBtn" onclick="verifierCodeInscription()">Valider et entrer</button>
+      <div class="modal-err" id="suCodeErr"></div>
+      <div class="su-alt"><a href="javascript:void(0)" onclick="renvoyerCodeInscription()" id="suRenvoi">Renvoyer le code</a> · <a href="javascript:void(0)" onclick="retourSaisieEmail()">Changer d'adresse</a></div>
+      <div class="su-alt"><a href="SentiqS_Web.html" id="suSecours">Pas de code ? Ouvrir l'application et me connecter avec un mot de passe</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- Supabase JS : authentification reelle (voir submitSignup()) — meme
+     projet que l'application (SentiqS_Web.html). -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
+<!-- Firebase des que js/firebase-config.js est rempli (voir FIREBASE.md). -->
+<script src="js/firebase-config.js"></script>
+<script src="js/firebase.js"></script>
+<script>
+// ── Nav shrink/blur on scroll ────────────────────────────────────────
+const navEl = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  navEl.classList.toggle('scrolled', window.scrollY > 20);
+}, { passive: true });
+
+// ── Scroll-reveal ─────────────────────────────────────────────────────
+const revEls = document.querySelectorAll('.rv');
+if ('IntersectionObserver' in window) {
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  revEls.forEach(el => io.observe(el));
+} else {
+  revEls.forEach(el => el.classList.add('in'));
+}
+
+// ── Live-feed ticker (illustrative — mirrors real article/severity format) ──
+const TICKER_ITEMS = [
+  { lvl:'mod',  lbl:'MODÉRÉ',   txt:'Hausse des prix alimentaires constatée dans plusieurs marchés', meta:'Sénégal — Dakar' },
+  { lvl:'crit', lbl:'CRITIQUE', txt:'Affrontements signalés près de la frontière nord',               meta:'Mali — Gao' },
+  { lvl:'ok',   lbl:'STABLE',   txt:'Reprise normale du trafic portuaire après incident mineur',       meta:'Kenya — Mombasa' },
+  { lvl:'mod',  lbl:'MODÉRÉ',   txt:"Équipes déployées à la frontière pour prévenir une épidémie",     meta:'Éthiopie — Addis-Abeba' },
+  { lvl:'crit', lbl:'CRITIQUE', txt:'Mouvement de contestation annoncé dans le secteur minier',         meta:'RD Congo — Lubumbashi' },
+  { lvl:'ok',   lbl:'STABLE',   txt:'Accord commercial signé, aucune perturbation attendue',            meta:'Maroc — Casablanca' },
+];
+const tickerHTML = TICKER_ITEMS.map(it =>
+  '<span class="tick-item"><span class="tick-pill tick-' + it.lvl + '">' + it.lbl + '</span><b>' + it.meta + '</b> — ' + it.txt + '</span>'
+).join('');
+document.getElementById('tickerTrack').innerHTML = tickerHTML + tickerHTML; // doubled for seamless loop
+
+// ── Zone cloud (from the app's real regional zones) ───────────────────
+const ZONES = [
+  'Sahel', 'Golfe de Guinée', "Afrique de l'Ouest côtière", 'Afrique centrale',
+  "Corne de l'Afrique", 'Grands Lacs', 'Afrique australe', 'Afrique du Nord',
+];
+document.getElementById('zoneCloud').innerHTML = ZONES.map(z => '<span class="zone-pill">' + z + '</span>').join('');
+const zoneSelect = document.getElementById('suZone');
+ZONES.forEach((z, i) => {
+  const opt = document.createElement('option');
+  opt.value = 'zone_' + i;
+  opt.textContent = z;
+  zoneSelect.appendChild(opt);
+});
+
+// ── Tarifs — grille réelle de l'application ────────────────────────────
+// Copie de PRICING_DEFAUT (SentiqS_Web.html) : seule grille de
+// tarification affichée publiquement, plutôt qu'une page "Gratuit /
+// Sur devis" qui ne montrait aucun prix réel. Si l'administrateur a
+// personnalisé la grille depuis l'application (Paramètres → Tarifs), la
+// même clé localStorage (même origine) est relue ici pour rester
+// synchronisé sans duplication manuelle ; PLANS_DEFAUT ne sert que de
+// repli pour un visiteur qui n'a jamais ouvert l'application sur cet
+// appareil.
+const PRICING_KEY = 'sentinel_pricing_v1';
+const PLANS_DEFAUT = [
+  {key:'gratuit',   nom:'Découverte',              prix:0,     periode:'/mois', featured:false,
+    feats:['Compte gratuit valable 72h','1 pays suivi','5 partages par mode (WhatsApp/Telegram/Email/Copier)']},
+  {key:'standard',  nom:'Particulier',              prix:9000,  periode:'/mois', featured:false,
+    feats:['54 pays, tous modules','Sans publicité','Partages illimités (tous modes)','Exports Excel/CSV','1 compte utilisateur']},
+  {key:'pro',       nom:'Professionnel Sûreté',     prix:39000, periode:'/mois', featured:true,
+    feats:['Exports Word/PDF/PowerPoint illimités','Alertes multi-pays','Marque personnalisée (en-têtes, partages)','Captures image dimensionnées WhatsApp/Telegram/Email','5 comptes utilisateurs']},
+  {key:'entreprise',nom:'Institution / International', prix:250000, periode:'/mois', featured:false,
+    feats:['Facturation possible en USD/EUR pour bailleurs','Comptes illimités','API / intégration sur mesure','Accompagnement dédié, SLA prioritaire']},
+];
+function getPlans() {
+  try { const s = JSON.parse(localStorage.getItem(PRICING_KEY) || 'null'); if (Array.isArray(s) && s.length) return s; } catch (e) {}
+  return PLANS_DEFAUT;
+}
+const EUR_RATE = 655.957; // repli par defaut, editable cote admin (voir SentiqS_Web.html)
+function planDesc(p) {
+  if (p.key === 'gratuit') return 'Découvrez la plateforme sans engagement.';
+  if (p.key === 'entreprise') return 'Pour les ONG, bailleurs et organismes multi-pays.';
+  if (p.featured) return "Pour les responsables sûreté et leurs équipes.";
+  return "Pour un usage individuel, tous pays confondus.";
+}
+document.getElementById('pricingCards').innerHTML = getPlans().map(p => {
+  const eur = p.prix ? Math.round(p.prix / EUR_RATE).toLocaleString('fr-FR') : null;
+  return '<div class="plan' + (p.featured ? ' hi' : '') + (p.key === 'entreprise' ? ' inst' : '') + '">'
+    + (p.featured ? '<span class="plan-badge">Recommandé</span>' : '')
+    + '<div class="plan-name">' + p.nom + '</div>'
+    + '<div class="plan-price">' + (p.prix ? p.prix.toLocaleString('fr-FR') + ' FCFA' : 'Gratuit') + '<span>' + (p.prix ? p.periode : ' — 72h') + '</span></div>'
+    + (eur ? '<div class="plan-price-alt">≈ ' + eur + ' € ' + p.periode + '</div>' : '')
+    + '<div class="plan-desc">' + planDesc(p) + '</div>'
+    + '<ul>' + p.feats.map(f => '<li>' + f + '</li>').join('') + '</ul>'
+    + '<button class="btn ' + (p.featured ? 'btn-primary' : 'btn-ghost') + '" style="width:100%" onclick="openSignup(\'' + p.key + '\')">'
+    + (p.key === 'gratuit' ? 'Créer un compte gratuit' : 'Choisir ce forfait') + '</button>'
+    + '</div>';
+}).join('');
+
+// ── Signup modal open/close ────────────────────────────────────────────
+// SIGNUP_FORM_HTML : template du formulaire capture avant toute soumission
+// — submitSignup() remplace #signupBody par un ecran de succes/erreur, donc
+// sans ce reset, rouvrir la modale (ex. depuis une autre carte de tarif)
+// apres une premiere soumission laissait apparaitre l'ancien ecran de
+// succes au lieu du formulaire.
+const SIGNUP_FORM_HTML = document.getElementById('signupBody').innerHTML;
+let signupPlanKey = 'gratuit';
+function openSignup(planKey) {
+  signupPlanKey = planKey || 'gratuit';
+  document.getElementById('signupBody').innerHTML = SIGNUP_FORM_HTML;
+  document.getElementById('signupBody').style.display = '';
+  document.getElementById('signupCode').style.display = 'none';
+  const plan = getPlans().find(p => p.key === signupPlanKey) || PLANS_DEFAUT[0];
+  const chip = document.querySelector('#signupBody .plan-chip');
+  if (chip) chip.innerHTML = '<i>●</i> ' + plan.nom + (plan.prix ? ' — ' + plan.prix.toLocaleString('fr-FR') + ' FCFA' + plan.periode : ' — gratuit 72h');
+  const sub = document.getElementById('suModalSub');
+  if (sub) sub.textContent = plan.key === 'gratuit'
+    ? 'Pas de mot de passe : nous vous envoyons un code. Accès immédiat, aucune carte bancaire requise.'
+    : 'Pas de mot de passe : un code vous est envoyé. Vous activerez ce forfait par Mobile Money depuis l\'application — aucune carte bancaire requise.';
+  const btn = document.getElementById('suSubmitBtn');
+  if (btn) btn.textContent = 'Recevoir mon code';
+  // Le formulaire vient d'etre remis a neuf depuis SIGNUP_FORM_HTML, capture
+  // AVANT le passage en mode lien : sans ce rappel, chaque ouverture annoncait
+  // un « code » alors que Firebase envoie un lien, et MASQUAIT « Continuer avec
+  // Google » — la seule porte quand le quota de 5 liens par jour est atteint
+  // (constate le 13/11/2026).
+  appliquerModeLienInscription();
+  if (sub && plan.key !== 'gratuit' && _fournisseurFirebase())
+    sub.textContent = 'Pas de mot de passe : un lien de connexion vous est envoyé. Vous activerez ce forfait par Mobile Money depuis l\'application — aucune carte bancaire requise.';
+  document.getElementById('signupOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSignup() {
+  document.getElementById('signupOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSignup(); });
+
+// ── Account creation — authentification REELLE via Supabase Auth (meme
+// projet que l'application, voir SentiqS_Web.html), pour qu'un
+// compte cree ici se connecte directement dans SentiqS_Web.html —
+// aucun compte local, aucun code genere cote client. Kept intentionally
+// separate from the app's existing "Demander un accès" flow (which still
+// requires admin validation for users who prefer/need manual review).
+const SENTINEL_SUPABASE_URL      = 'https://zpdwqmliogxbuwirziny.supabase.co';
+const SENTINEL_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwZHdxbWxpb2d4YnV3aXJ6aW55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4NzUyOTYsImV4cCI6MjA5OTQ1MTI5Nn0.fQsTrrV5CIB77l0hxTHHN7oVICVzZdhwa9-d0WsCYI0';
+let _sentinelSupabaseClient = null;
+// Firebase (plan gratuit, sans SMTP) des que js/firebase-config.js est
+// rempli : meme adaptateur que l'application. Le lien envoye ici ouvre
+// SentiqS_Web.html, qui conclut la connexion et cree le profil.
+function _fournisseurFirebase() { return !!(window.SentiqFirebase && window.SentiqFirebase.actif()); }
+async function _clientInscription() {
+  if (_fournisseurFirebase()) { try { await window.SentiqFirebase.charger(); } catch (_) {} return window.SentiqFirebase.client(); }
+  return getSentinelSupabase();
+}
+// Avec Firebase l'e-mail porte un lien : textes et saisie du code s'adaptent,
+// et la connexion Google (sans quota d'e-mail) est proposee.
+function appliquerModeLienInscription() {
+  if (!_fournisseurFirebase()) return;
+  const t = (id, txt) => { const e = document.getElementById(id); if (e) e.textContent = txt; };
+  t('suModalSub', 'Pas de mot de passe : nous vous envoyons un lien de connexion. Accès immédiat, aucune carte bancaire requise.');
+  t('suSubmitBtn', 'Recevoir mon lien');
+  t('suCodeTitre', 'Ouvrez le lien reçu');
+  t('suCodeIntro', 'Un lien de connexion vient d\'être envoyé à');
+  t('suCodeAide', 'Ouvrez cet e-mail sur cet appareil et cliquez le lien : l\'application s\'ouvrira, connectée. Pensez aux courriers indésirables.');
+  t('suRenvoi', 'Renvoyer le lien');
+  t('suSecours', "Pas de lien ? Ouvrir l'application et me connecter avec Google ou un mot de passe");
+  ['suCodeChamp', 'suVerifyBtn'].forEach(id => { const e = document.getElementById(id); if (e) e.style.display = 'none'; });
+  const g = document.getElementById('suGoogleBtn'); if (g) g.style.display = 'block';
+}
+document.addEventListener('DOMContentLoaded', appliquerModeLienInscription);
+function _suLireProfil() {
+  const zone = document.getElementById('suZone').value;
+  return { name: document.getElementById('suName').value.trim(), organisation: document.getElementById('suOrg').value.trim(),
+           zonePrioritaire: zone === 'all' ? '' : zone, plan: 'gratuit', planSouhaite: signupPlanKey };
+}
+async function inscriptionGoogle() {
+  _suErr('suErr', '');
+  if (!document.getElementById('suTerms').checked) { _suErr('suErr', "Merci de confirmer l'usage professionnel de la plateforme."); return; }
+  const client = await _clientInscription();
+  if (!client || !client.auth.signInWithOAuth) { _suErr('suErr', "Service d'inscription indisponible pour le moment. Réessayez dans un instant."); return; }
+  const { data, error } = await client.auth.signInWithOAuth({ provider: 'google' });
+  if (error) { if (!/popup closed/i.test(error.message || '')) _suErr('suErr', 'La connexion Google a échoué. Réessayez, ou recevez un lien par e-mail.'); return; }
+  if (!data || !data.user) return;
+  await _suCreerProfilSiAbsent(client, data.user.id, data.user.email, _suLireProfil());
+  location.href = 'SentiqS_Web.html#connexion-fraiche';
+}
+async function _suCreerProfilSiAbsent(client, id, email, profil) {
+  try {
+    const { data: existant } = await client.from('profiles').select('id').eq('id', id).maybeSingle();
+    if (!existant) {
+      const { error: errProfil } = await client.from('profiles').insert({ id, email, data: Object.assign({}, profil, { plan: 'gratuit', createdAt: new Date().toISOString() }) });
+      if (errProfil) console.warn("SentiqS — creation du profil a l'inscription a echoue :", errProfil.message);
+    }
+  } catch (_) {}
+}
+function getSentinelSupabase() {
+  if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') return null;
+  if (!_sentinelSupabaseClient) {
+    try { _sentinelSupabaseClient = window.supabase.createClient(SENTINEL_SUPABASE_URL, SENTINEL_SUPABASE_ANON_KEY); }
+    catch (_) { return null; }
+  }
+  return _sentinelSupabaseClient;
+}
+const OTP_RENVOI_MS = 60000;
+let _suEmail = '', _suProfil = {}, _suProchainEnvoi = 0, _suMinuteur = null, _suVerifEnCours = false;
+function _suErr(id, msg) { const e = document.getElementById(id); if (!e) return; e.textContent = msg || ''; e.classList.toggle('show', !!msg); }
+function _suMessage(err, envoi) {
+  const m = String((err && (err.message || err.code)) || '');
+  if (/quota/i.test(m)) return "Limite quotidienne d'e-mails de connexion atteinte. Utilisez « Continuer avec Google », ou un mot de passe depuis l'application.";
+  if (/rate|too many|after \d+ seconds|429/i.test(m)) return 'Trop de demandes pour cette adresse. Patientez une minute puis réessayez.';
+  if (/signups? not allowed/i.test(m)) return 'Les inscriptions par e-mail ne sont pas ouvertes pour le moment.';
+  if (envoi && /error sending|sending .*email|smtp|unexpected_failure|hook|not authorized|50[0-9]/i.test(m)) return "Le service d'envoi d'e-mails du serveur ne répond pas : le code ne peut pas partir pour l'instant. Vous pouvez aussi vous connecter avec un mot de passe depuis l'application.";
+  if (envoi && /fetch|network|failed to load|timeout/i.test(m)) return 'Connexion au serveur impossible. Vérifiez votre réseau.';
+  return envoi ? "L'envoi du code a échoué. Réessayez dans un instant." : 'Code incorrect ou expiré. Vérifiez-le ou demandez-en un nouveau.';
+}
+// Inscription ET connexion par un seul geste : signInWithOtp cree le compte
+// s'il n'existe pas. Le profil (nom, organisation, zone, forfait souhaite) est
+// ecrit apres la verification du code, seulement s'il n'existe pas deja.
+async function submitSignup() { await _envoyerCodeInscription(false); }
+function renvoyerCodeInscription() { if (Date.now() >= _suProchainEnvoi) _envoyerCodeInscription(true); }
+async function _envoyerCodeInscription(renvoi) {
+  const errId = renvoi ? 'suCodeErr' : 'suErr';
+  _suErr(errId, '');
+  let email = _suEmail;
+  if (!renvoi) {
+    email = document.getElementById('suEmail').value.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { _suErr(errId, 'Adresse e-mail invalide.'); return; }
+    if (!document.getElementById('suTerms').checked) { _suErr(errId, "Merci de confirmer l'usage professionnel de la plateforme."); return; }
+    _suProfil = _suLireProfil();
+  }
+  const client = await _clientInscription();
+  if (!client) { _suErr(errId, "Service d'inscription indisponible pour le moment. Réessayez dans un instant."); return; }
+  const btn = document.getElementById('suSubmitBtn'); if (btn) btn.disabled = true;
+  try {
+    const { error } = await client.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: location.origin + location.pathname.replace(/[^/]*$/, '') + 'SentiqS_Web.html' } });
+    if (error) { _suErr(errId, _suMessage(error, true)); return; }
+    // Firebase : le compte naitra au retour du lien, dans l'application ; elle
+    // reprend ce profil une fois (voir profilInscriptionEnAttente).
+    if (client.fournisseur === 'firebase') { try { localStorage.setItem('sentiq_profil_inscription', JSON.stringify({ email, profil: _suProfil })); } catch (_) {} }
+    _suEmail = email; _suProchainEnvoi = Date.now() + OTP_RENVOI_MS;
+    document.getElementById('suEmailAff').textContent = email;
+    document.getElementById('suCode').value = '';
+    document.getElementById('signupBody').style.display = 'none';
+    document.getElementById('signupCode').style.display = 'block';
+    _suDecompte();
+    if (client.fournisseur !== 'firebase') document.getElementById('suCode').focus();
+  } catch (_) { _suErr(errId, _suMessage(null, true)); }
+  finally { if (btn) btn.disabled = false; }
+}
+function _suDecompte() {
+  clearInterval(_suMinuteur);
+  const lien = document.getElementById('suRenvoi');
+  const maj = () => {
+    const reste = Math.ceil((_suProchainEnvoi - Date.now()) / 1000);
+    const mot = _fournisseurFirebase() ? 'le lien' : 'le code';
+    if (reste > 0) { lien.textContent = 'Renvoyer ' + mot + ' dans ' + reste + ' s'; lien.setAttribute('aria-disabled', 'true'); }
+    else { lien.textContent = 'Renvoyer ' + mot; lien.removeAttribute('aria-disabled'); clearInterval(_suMinuteur); }
+  };
+  maj(); _suMinuteur = setInterval(maj, 1000);
+}
+function retourSaisieEmail() {
+  clearInterval(_suMinuteur); _suErr('suCodeErr', '');
+  document.getElementById('signupCode').style.display = 'none';
+  document.getElementById('signupBody').style.display = '';
+}
+async function verifierCodeInscription() {
+  if (_suVerifEnCours) return;
+  _suErr('suCodeErr', '');
+  const code = document.getElementById('suCode').value.replace(/[\s-]/g, '');
+  if (!/^\d{6,10}$/.test(code)) { _suErr('suCodeErr', 'Code incorrect ou expiré. Vérifiez-le ou demandez-en un nouveau.'); return; }
+  const client = getSentinelSupabase();
+  if (!client) { _suErr('suCodeErr', "Service d'inscription indisponible pour le moment. Réessayez dans un instant."); return; }
+  _suVerifEnCours = true;
+  const btn = document.getElementById('suVerifyBtn'); if (btn) btn.disabled = true;
+  try {
+    const { data, error } = await client.auth.verifyOtp({ email: _suEmail, token: code, type: 'email' });
+    if (error || !data || !data.user) { _suErr('suCodeErr', _suMessage(error, false)); return; }
+    clearInterval(_suMinuteur);
+    // Profil : cree seulement s'il n'existe pas (un compte existant qui se
+    // reconnecte ici ne doit jamais voir son plan ou sa date d'essai reecrits).
+    await _suCreerProfilSiAbsent(client, data.user.id, _suEmail, _suProfil);
+    // L'application accepte cette arrivee comme une connexion du jour (elle
+    // verifie cote serveur que la connexion date de moins de deux minutes).
+    location.href = 'SentiqS_Web.html#connexion-fraiche';
+  } catch (_) { _suErr('suCodeErr', _suMessage(null, true)); }
+  finally { _suVerifEnCours = false; if (btn) btn.disabled = false; }
+}
+</script>
+</body>
+</html>

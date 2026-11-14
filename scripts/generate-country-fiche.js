@@ -99,7 +99,7 @@ function validate(data, slugArg) {
   // boucle sans rien verifier. Le fichier de donnees du Ghana citait la fiche
   // Ghana deja publiee comme sa propre source — la regle etait satisfaite
   // formellement, et le lecteur n'avait toujours rien pour verifier.
-  const AUTO = /(ytl1-ops\.github\.io|sentiqs\.com)/i;
+  const AUTO = /(ytl1-ops\.github\.io|sentiqs\.com|sentiqs-235ce\.(web\.app|firebaseapp\.com))/i;
   const externes = data.sources.filter(function (s) { return !AUTO.test(String(s)); });
   if (externes.length === 0) {
     fail('toutes les sources declarees pointent sur SentiqS lui-meme. Une fiche pays\n'
@@ -180,7 +180,7 @@ function main() {
 
   console.log('\n✓ Fiche generee : web/pays/' + data.slug + '.html');
   console.log('  Prochaines etapes manuelles :');
-  console.log('  1) Ajouter l\'entree dans sitemap.xml');
+  console.log('  1) Lancer node scripts/generer-seo.js (le sitemap liste web/pays/ tout seul)');
   console.log('  2) Ajouter le lien dans web/pays/index.html (hub des fiches pays)');
   console.log('  3) Mettre a jour les fiches voisines existantes si ce pays devient disponible pour elles');
 }
