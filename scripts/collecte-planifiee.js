@@ -686,35 +686,44 @@ function ecrireResumeActions(md) {
             for (const cy of rapportGrsci.PAYS_REGIONAUX) { const d = await lire(cy); if (d) regionaux.push(d); }
             if (!ci) { console.warn('  Présentation 1 : la page ne fournit pas donneesBulletinPays.'); }
             else {
-              // Faits marquants rédigés (demande du 23/10/2026) : leurs
-              // chapôs en français, et la photo de la source. Ce qui est
-              // trouvé est reporté dans le cumul (par adresse d'article) pour
-              // ne pas être cherché de nouveau au passage suivant.
+              // Faits marquants rédigés (demande du 23/10/2026) et, depuis le
+              // 14/11/2026, TOUTES les actus du rapport (une fiche chacune) :
+              // leurs chapôs en français, et la photo de la source. Les rédigés
+              // passent d'abord : si le budget s'épuise, ce sont les fiches qui
+              // attendent le passage suivant. Ce qui est trouvé est reporté
+              // dans le cumul (par adresse d'article) pour ne pas être cherché
+              // de nouveau au passage suivant.
               const marquants = rapportGrsci.faitsMarquants(ci, regionaux);
+              const illustres = rapportGrsci.faitsIllustres(ci, regionaux);
               const parUrl = new Map();
               Object.values(cumulR.pays || {}).forEach((l) => l.forEach((x) => { if (x.url) parUrl.set(x.url, x); }));
               let chapos = 0;
-              for (const f of marquants) {
-                for (const e of (f.extraits || [])) {
+              for (const f of illustres) {
+                // Une fiche ne montre que le premier extrait : inutile de
+                // traduire les autres.
+                const extraits = (f.extraits || []).filter((e) => e && e.resume);
+                for (const e of (marquants.includes(f) ? extraits : extraits.slice(0, 1))) {
                   const entree = e.url ? parUrl.get(e.url) : null;
-                  if (entree && entree.resumeFr) { e.resume = entree.resumeFr; continue; }
+                  if (entree && entree.resumeFr) { e.resume = entree.resumeFr; e.fr = true; continue; }
                   if (!dansBudget()) continue;
                   try {
                     const lg = await page.evaluate((t) => (typeof detectLangue === 'function') ? detectLangue(t) : 'fr', e.resume);
+                    if (lg === 'fr') { e.fr = true; continue; }
                     if (!['en', 'pt', 'ar'].includes(lg)) continue;
                     const fr = await avecDelai(traduireJob(e.resume, lg), TRAD_DELAI_MS);
                     if (typeof fr === 'string' && fr.trim() && fr.trim() !== e.resume.trim()) {
                       e.resume = faitsGrsci.nettoyerTitre(fr);
+                      e.fr = true;
                       if (entree) entree.resumeFr = e.resume;
                       chapos++;
                     }
                   } catch (err) { /* chapô gardé dans sa langue : le passage suivant réessaiera */ }
                 }
               }
-              const illustres = await photosGrsci.illustrer(marquants, undefined, limiteGrsci);
-              marquants.forEach((f) => (f.liens || []).forEach((l) => { const x = parUrl.get(l.url); if (x && f.img && !x.img) x.img = f.img; }));
+              const avecPhoto = await photosGrsci.illustrer(illustres, undefined, limiteGrsci);
+              illustres.forEach((f) => (f.liens || []).forEach((l) => { const x = parUrl.get(l.url); if (x && f.img && !x.img) x.img = f.img; }));
               faitsGrsci.ecrireCumul(RACINE_GRSCI, cumulR);
-              console.log('  Présentation 1 : ' + marquants.length + ' faits marquants rédigés, ' + illustres + ' avec photo, ' + chapos + ' chapôs traduits.');
+              console.log('  Présentation 1 : ' + illustres.length + ' actus (' + marquants.length + ' rédigées), ' + avecPhoto + ' avec photo, ' + chapos + ' chapôs traduits.');
               const chemin = await rapportGrsci.ecrire(RACINE_GRSCI, PptxGenJS, { jour: fin, ci, regionaux });
               console.log('  Présentation 1 : rapport ecrit — ' + chemin + ' (' + regionaux.length + ' pays regionaux).');
               // Le même rapport en Word : vrais textes et tableaux modifiables.

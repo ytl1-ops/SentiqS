@@ -3200,6 +3200,21 @@ photos de test. **Non vérifié d'ici** : de vraies photos de sources et la
 traduction des chapôs (pas de réseau). `scripts/test/grsci-marquants.test.js`
 (8 tests ; ceux qui touchent au rapport vus échouer sur l'ancien code).
 
+**Chaque actu est une fiche, avec texte et photo (14/11/2026).** YORO a
+refusé la liste de titres (« toutes les actu doivent être présentées avec
+texte et image si disponible ») : les faits non rédigés ne sont plus « ❑ titre
+/ ▪ source » mais des fiches, deux par page (`FAITS_PAR_PAGE = 2`) — titre en
+phrase, extrait cité du chapô (360 caractères, `ficheTexte`), sources avec
+lien, date et cotation, photo de la source à droite avec « Photo : © site ».
+Sans photo, rien. Même contenu dans le Word (`ficheWord`). Le job illustre et
+traduit désormais `faitsIllustres` (rédigés d'abord, puis les fiches : quand
+le budget s'épuise, ce sont les fiches qui attendent) ; une fiche ne traduit
+que son premier extrait, et un extrait non traduit porte « (EN) » comme le
+titre (`fr`/`langue` sur les extraits de `regrouper`). Le rapport de novembre
+passe de 42 à 77 pages. Rendu relu avec LibreOffice et des photos de test :
+**non vérifié avec de vraies photos de source** (pas de réseau ici).
+`scripts/test/grsci-fiches.test.js` (4, vus échouer sur l'ancien code).
+
 **Le rapport a un budget, et il passe après tout le reste (27/10/2026).** Le
 premier passage après la fusion (n° 1141) a fini sa collecte en cinq minutes,
 puis a tourné quinze minutes dans les traductions et les photos sans écrire

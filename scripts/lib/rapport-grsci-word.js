@@ -70,19 +70,45 @@ function construireWord(D, { jour, ci, regionaux, emetteur }) {
     return [new Paragraph({ children: [], pageBreakBefore: debutPage(), spacing: { after: 0, before: 0 }, run: { size: 2 } }), tableau, par(run('', { size: 12 }), { border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: 'A3A3A3', space: 1 } } })];
   }
 
-  // Le modèle : titre ❑ en majuscules vertes soulignées, puis la source et la date.
+  // Une fiche par actu (demande de YORO du 14/11/2026), même contenu que le
+  // PowerPoint (g.ficheTexte) : titre, extrait cité, sources, photo de la
+  // source à droite avec son crédit ; sans photo, le texte prend la largeur.
+  function ficheWord(f, derniere) {
+    const c = g.ficheTexte(f);
+    const texte = [par(run(c.titre, { bold: true, color: g.VERT, size: 28 }), { spacing: { before: 120, after: 60 } })];
+    texte.push(c.extrait
+      ? par([run(c.extrait.source + ' : ' + c.extrait.langue, { bold: true, size: 23 }), run('« ' + c.extrait.texte + ' »', { italics: true, size: 23 })], { spacing: { after: 60 } })
+      : par(run(c.sansExtrait, { italics: true, color: g.LEGERE, size: 23 }), { spacing: { after: 60 } }));
+    const restants = c.sources.filter((x) => !c.liens.some((l) => l.source === x));
+    texte.push(par([
+      run(c.t.etiquette, { bold: true, size: 21 }),
+      ...c.liens.flatMap((l, i) => [run(i ? ' · ' : '', { size: 21 }), new ExternalHyperlink({ link: l.url, children: [run(l.source || 'article', { color: g.VERT, size: 21, underline: {} })] })]),
+      ...(c.liens.length ? [] : [run(c.t.source, { size: 21 })]),
+      run((restants.length && c.liens.length ? ' · ' + restants.join(' · ') : '') + (c.t.quand ? ' \u2014 ' + c.t.quand : ''), { size: 21 }),
+      ...(c.t.cotation ? [run('   \u00B7   Cotation : ' + c.t.cotation, { size: 21, bold: true })] : []),
+    ]));
+    if (c.video) texte.push(par(new ExternalHyperlink({ link: c.video, children: [run('Voir la vidéo de la source', { color: g.VERT, size: 21, underline: {} })] })));
+    const photo = f.photo && f.photo.data ? f.photo : null;
+    const bas = derniere ? AUCUNE : { style: BorderStyle.SINGLE, size: 4, color: 'D1D5DB' };
+    const bordures = { top: AUCUNE, left: AUCUNE, right: AUCUNE, bottom: bas };
+    const LARGE_PHOTO = 5200;
+    const cellules = [new TableCell({ borders: bordures, width: { size: photo ? UTILE - LARGE_PHOTO : UTILE, type: WidthType.DXA }, margins: { right: 200, bottom: 120 }, children: texte })];
+    if (photo) {
+      // Pixels à 96 ppp : 330 px de large au plus, 190 de haut.
+      let w = 330, h = Math.round(330 * photo.h / photo.w);
+      if (h > 190) { h = 190; w = Math.round(190 * photo.w / photo.h); }
+      const credit = photo.lien
+        ? new ExternalHyperlink({ link: photo.lien, children: [run('Photo : \u00A9 ' + (photo.credit || 'source'), { size: 16, color: g.VERT, underline: {} })] })
+        : run('Photo : \u00A9 ' + (photo.credit || 'source'), { size: 16, color: g.LEGERE });
+      cellules.push(new TableCell({ borders: bordures, width: { size: LARGE_PHOTO, type: WidthType.DXA }, margins: { bottom: 120 }, children: [
+        par(new ImageRun({ data: photo.data, transformation: { width: w, height: h } }), { alignment: AlignmentType.CENTER, spacing: { before: 120 } }),
+        par(credit, { alignment: AlignmentType.RIGHT }),
+      ] }));
+    }
+    return new Table({ width: { size: UTILE, type: WidthType.DXA }, columnWidths: photo ? [UTILE - LARGE_PHOTO, LARGE_PHOTO] : [UTILE], rows: [new TableRow({ cantSplit: true, children: cellules })] });
+  }
   function lignesFaits(faits) {
-    const out = [];
-    faits.forEach((f) => {
-      const t = g.faitTexte(f);
-      out.push(par([run('\u2751  ', { color: g.VERT, size: 28 }), run(t.titre, { bold: true, underline: {}, color: g.VERT, size: 28 })], { indent: { left: 360 }, spacing: { before: 160 } }));
-      const source = t.url
-        ? new ExternalHyperlink({ link: t.url, children: [run(t.source, { color: g.VERT, size: 26, underline: {} })] })
-        : run(t.source, { size: 26 });
-      out.push(par([run('\u25AA  ' + t.etiquette, { size: 26 }), source, run(t.quand ? ' \u2014 ' + t.quand : '', { size: 26 }),
-        ...(t.cotation ? [run('   \u00B7   Cotation : ' + t.cotation, { size: 26, bold: true })] : [])], { indent: { left: 720 } }));
-    });
-    return out;
+    return faits.map((f, i) => ficheWord(f, i === faits.length - 1));
   }
 
   // Indice de confiance du pays, sous l'en-tête de sa première page.
