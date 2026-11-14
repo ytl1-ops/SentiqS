@@ -3791,3 +3791,57 @@ devenu :
 
 **Piège de banc** : un article injecté sans `analysis` est écarté par
 `sourceDateNonFiable`, donc le profil sort vide. Exports 14/14 identiques.
+
+---
+
+## Les bulletins programmés — 14/11/2026
+
+Demande de YORO : programmer des bulletins sur des pays choisis, envoyés
+automatiquement par e-mail, Telegram ou WhatsApp à des heures choisies.
+Fonctionnement, forfaits, consentement et secrets à poser : `docs/bulletins-programmes.md`.
+
+- **Une seule source pour les règles et le texte** : `web/js/bulletin-message.js`
+  (double export), lu par Paramètres ET par `scripts/envoi-bulletins.js`.
+  L'aperçu de Paramètres est le message qui partira.
+- **Le job n'ouvre pas de navigateur** : il lit l'instantané des 54 pays écrit
+  par la collecte (`bulletins_instantanes/courant`, construit par
+  `resumeBulletinProgramme` dans la page) ; rien n'est recalculé.
+- **Seul le dernier créneau échu part**, abandonné au-delà de trois heures de
+  retard : un run GitHub retardé ne déverse pas une rafale.
+- **Consentement** : l'adresse du compte reçoit ; toute autre adresse reçoit une
+  seule demande d'accord (`web/abonnement.html`), refus et désabonnement
+  définitifs. Telegram par `/start <code>`, WhatsApp sur attestation.
+- **Journaux publics** : ni adresse ni numéro en clair (`masquer`). Un test l'exige.
+- **Sans secret, l'état avance quand même** (même règle que `WEBHOOK_ALERTES`).
+- Forfait relu dans le profil par les règles Firestore et par le job :
+  0 / 1 / 5 / 20 programmations.
+
+Paramètres a été réordonné au passage (sommaire ; Lecture, Diffusion, Canaux de
+partage, Abonnement et compte ; suppression du compte en dernier), accents
+rétablis. `scripts/test/bulletins-programmes.test.js` (17).
+
+### Partage d'une actu en image : l'émetteur en tête — 14/11/2026
+
+Demande de YORO : revoir le rendu des actus partagées en image, toujours avec
+le choix de l'identité d'envoi. Mesuré sur des images générées par la vraie
+page : la tête portait la marque, l'identité n'était qu'une mention en pied, le
+logo de l'organisation manquait ; en anglais, niveau en français (« MODÉRÉ »),
+pays sans accent, et une actu pas encore traduite sortait avec « Translating… »
+comme titre, figé dans l'image.
+
+- `genererImageActuBlob` : logo (pastille blanche) et identité choisie en tête,
+  en or ; « Veille : <marque> » en pied seulement si elle diffère. Même règle
+  que `emetteurRapport` pour les rapports.
+- Une seule langue : `_traduireAvantImage` attend la traduction 2,5 s au plus
+  (le partage natif exige un geste récent), puis `_texteImage` dessine la
+  traduction ou « traduction indisponible », jamais « en cours ». Un corps non
+  traduit n'est pas dessiné.
+- `libelleNiveauPartage` / `paysPartage` : niveau et pays dans la langue de
+  l'interface, pour l'image ET le texte partagé.
+- « Signer en tant que » est toujours proposé au partage d'une actu (il
+  n'apparaissait qu'à partir de deux identités), comme pour les rapports ; une
+  identité seule se lit en entier sur son bouton.
+
+Le partage d'une fiche pays (Alertes) reste en texte seul, sans choix
+d'identité : hors de cette demande. Exports à la demande : 14/14 identiques.
+`scripts/test/partage-image-identite.test.js` (5, vus échouer sur l'ancien code).

@@ -1,0 +1,49 @@
+name: Envoi des bulletins programmés
+
+# Bulletins programmés par les utilisateurs (Paramètres > Bulletins
+# programmés, 14/11/2026) : pays, heures, jours, fuseau et canaux choisis
+# dans la page, exécutés ici. Léger : ni navigateur, ni dépendance npm.
+#
+# Cadence : le cron demande un passage toutes les 15 minutes ; GitHub retarde
+# souvent les déclenchements planifiés (10 à 60 min observés sur la collecte).
+# Un créneau part donc au premier passage qui suit l'heure choisie, et il est
+# abandonné s'il a plus de trois heures de retard (voir RETARD_MAX_MS dans
+# web/js/bulletin-message.js) plutôt que d'arriver périmé.
+#
+# Tous les canaux sont facultatifs : sans leur secret, le job journalise ce
+# qui serait parti (sans adresse ni numéro en clair) et l'état avance quand
+# même. Liste et procédure : docs/bulletins-programmes.md.
+on:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: envoi-bulletins
+  cancel-in-progress: false
+
+jobs:
+  envoi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+      - name: Envoyer les bulletins dus
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          SMTP_HOTE: ${{ secrets.SMTP_HOTE }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_UTILISATEUR: ${{ secrets.SMTP_UTILISATEUR }}
+          SMTP_MOT_DE_PASSE: ${{ secrets.SMTP_MOT_DE_PASSE }}
+          SMTP_EXPEDITEUR: ${{ secrets.SMTP_EXPEDITEUR }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          WHATSAPP_TOKEN: ${{ secrets.WHATSAPP_TOKEN }}
+          WHATSAPP_PHONE_NUMBER_ID: ${{ secrets.WHATSAPP_PHONE_NUMBER_ID }}
+          WHATSAPP_TEMPLATE: ${{ secrets.WHATSAPP_TEMPLATE }}
+        run: node scripts/envoi-bulletins.js

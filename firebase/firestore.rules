@@ -161,6 +161,54 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Bulletins programmés (14/11/2026). La programmation d'un compte tient
+    // en UN document (sa liste), pour que la règle puisse compter : le nombre
+    // de programmations ne dépasse jamais ce que permet le forfait LU DANS LE
+    // PROFIL (1 Particulier, 5 Professionnel, 20 Institution, 0 Découverte),
+    // mêmes nombres que LIMITES_FORFAIT dans web/js/bulletin-message.js. Le
+    // job revérifie tout (forfait, accès, contenu) avant chaque envoi.
+    function limiteBulletins() {
+      let plan = get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.get('data', {}).get('plan', 'gratuit');
+      return emailAdmin() ? 20 : (plan == 'entreprise' ? 20 : (plan == 'pro' ? 5 : (plan == 'standard' ? 1 : 0)));
+    }
+    function programmationBienFormee(d, uid) {
+      return d.keys().hasOnly(['id', 'uid', 'email', 'programmations', 'telegramCode', 'maj', 'updated_at', 'created_at'])
+        && d.id == uid && d.uid == uid
+        && d.email == request.auth.token.email
+        && d.programmations is list
+        && (d.programmations.size() == 0 || d.programmations.size() <= limiteBulletins())
+        && (!('telegramCode' in d) || d.telegramCode == null || (d.telegramCode is string && d.telegramCode.matches('^[a-f0-9]{16}$')));
+    }
+    match /bulletins_programmes/{uid} {
+      allow read: if connecte() && (request.auth.uid == uid || estAdmin());
+      allow create, update: if connecte() && request.auth.uid == uid && profilActif()
+        && programmationBienFormee(request.resource.data, uid);
+      allow delete: if connecte() && (request.auth.uid == uid || estAdmin());
+    }
+    // État des envois (créneaux passés, destinataires et leur accord, chat
+    // Telegram relié) : écrit par le job seul (compte de service), lu par son
+    // titulaire. « _canaux » dit à tous les comptes connectés quels canaux
+    // l'éditeur a réellement branchés.
+    match /bulletins_etat/{id} {
+      allow read: if connecte() && (request.auth.uid == id || id == '_canaux' || estAdmin());
+      allow write: if false;
+    }
+    match /bulletins_instantanes/{id} {
+      allow read, write: if false;
+    }
+    // Réponse d'un destinataire e-mail tiers (« J'accepte » / « Je refuse »,
+    // lien reçu par e-mail, page web/abonnement.html, sans compte). Le jeton
+    // de 40 caractères n'existe que dans la boîte du destinataire : le
+    // connaître prouve qu'on la lit. Écriture seule, une décision et sa date ;
+    // personne ne relit ces documents hors du job.
+    match /reponses_destinataires/{jeton} {
+      allow create, update: if jeton.matches('^[a-f0-9]{40}$')
+        && request.resource.data.keys().hasOnly(['decision', 'le'])
+        && request.resource.data.decision in ['oui', 'non']
+        && request.resource.data.le is string && request.resource.data.le.size() <= 40;
+      allow read, delete: if false;
+    }
+
     // Tout le reste est fermé tant qu'une PR ne l'ouvre pas explicitement
     // (agenda, configuration partagée : étape suivante).
   }

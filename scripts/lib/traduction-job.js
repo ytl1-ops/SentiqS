@@ -36,8 +36,8 @@ async function lireJson(fetchFn, url, delaiMs) {
   }
 }
 
-async function viaGoogle(texte, source, fetchFn, delaiMs) {
-  const url = 'https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&tl=fr&sl='
+async function viaGoogle(texte, source, fetchFn, delaiMs, cible) {
+  const url = 'https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&tl=' + (cible || 'fr') + '&sl='
     + encodeURIComponent(source || 'auto') + '&q=' + encodeURIComponent(texte);
   const j = await lireJson(fetchFn, url, delaiMs);
   if (!Array.isArray(j) || !Array.isArray(j[0])) return null;
@@ -45,9 +45,9 @@ async function viaGoogle(texte, source, fetchFn, delaiMs) {
   return out || null;
 }
 
-async function viaMyMemory(texte, source, fetchFn, delaiMs) {
+async function viaMyMemory(texte, source, fetchFn, delaiMs, cible) {
   if (!source || source === 'auto' || source === 'other') return null; // MyMemory exige la langue source
-  const url = 'https://api.mymemory.translated.net/get?langpair=' + encodeURIComponent(source + '|fr')
+  const url = 'https://api.mymemory.translated.net/get?langpair=' + encodeURIComponent(source + '|' + (cible || 'fr'))
     + '&q=' + encodeURIComponent(texte);
   const j = await lireJson(fetchFn, url, delaiMs);
   const out = j && j.responseData && typeof j.responseData.translatedText === 'string' ? j.responseData.translatedText.trim() : '';
@@ -59,7 +59,8 @@ async function viaMyMemory(texte, source, fetchFn, delaiMs) {
 const decoder = (s) => s.replace(/&#39;|&#039;/g, '\'').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 
 /**
- * Traduit `texte` (langue `source` : en, pt, ar…) en français.
+ * Traduit `texte` (langue `source` : en, pt, ar…) en français, ou dans
+ * `opts.cible` ('en' pour les bulletins programmés en anglais, 14/11/2026).
  * Rend la traduction, ou null si aucun moteur n'a répondu, ou si le moteur a
  * rendu le texte inchangé (il le jugeait déjà en français).
  */
@@ -71,7 +72,7 @@ async function traduire(texte, source, opts) {
   if (!t) return null;
   const delaiMs = o.delaiMs || DELAI_MS;
   for (const moteur of [viaGoogle, viaMyMemory]) {
-    const out = await moteur(t, source, fetchFn, delaiMs);
+    const out = await moteur(t, source, fetchFn, delaiMs, o.cible === 'en' ? 'en' : 'fr');
     if (out) return out.trim() === t ? null : decoder(out);
   }
   return null;
