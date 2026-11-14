@@ -609,6 +609,35 @@ function ecrireResumeActions(md) {
           }
         }
 
+        // ── INSTANTANÉ POUR LES BULLETINS PROGRAMMÉS (14/11/2026) ────────
+        // Les bulletins programmés partent à l'heure choisie par chaque
+        // utilisateur, par un autre job (envoi-bulletins.yml, sans
+        // navigateur). Il lui faut ce que la page sait de chaque pays : on
+        // l'écrit à chaque passage, en UN document Firestore (aucun commit :
+        // l'archive n'en a pas besoin). Un échec ne touche à rien d'autre ;
+        // l'envoi retombe alors sur le dernier bulletin quotidien.
+        if (compteFirebase) {
+          try {
+            const codes = bulletin.paysAEcrire();
+            const pays = await page.evaluate((cs) => {
+              if (typeof resumeBulletinProgramme !== 'function') return null;
+              const o = {};
+              cs.forEach((c) => { try { o[c] = resumeBulletinProgramme(c); } catch (e) { /* pays ignoré */ } });
+              return o;
+            }, codes);
+            if (pays) {
+              const corps = { genere: new Date().toISOString(), pays };
+              const b64 = require('node:zlib').gzipSync(Buffer.from(JSON.stringify(corps), 'utf8'), { level: 9 }).toString('base64');
+              const jetonI = await cacheFirestore.jetonAcces(compteFirebase, fetch);
+              await require('./lib/firestore-rest').client(compteFirebase.project_id, jetonI, fetch)
+                .ecrire('bulletins_instantanes/courant', { d: b64, genere: corps.genere, nb: Object.keys(pays).length });
+              console.log('  Instantané des bulletins programmés : ' + Object.keys(pays).length + ' pays (' + b64.length + ' car.).');
+            }
+          } catch (e) {
+            console.warn('  Instantané des bulletins programmés non écrit (' + ((e && e.message) || e) + ')');
+          }
+        }
+
         // ── RAPPORT MENSUEL GRSCI ───────────────────────────────────────
         // Demande du 20/10/2026 : « Faits marquants en Côte d'Ivoire » et
         // « Dynamiques régionales » dans la forme du modèle d'octobre 2024,

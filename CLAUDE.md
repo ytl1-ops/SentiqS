@@ -3838,3 +3838,86 @@ s'affichent en pavés noirs sous LibreOffice (PowerPoint les rend).
 
 `grsci-mise-en-page.test.js` (4) et `relecture-rapports.test.js` (4), vus
 échouer sur l'ancien code.
+
+---
+
+## Les bulletins programmés — 14/11/2026
+
+Demande de YORO : programmer des bulletins sur des pays choisis, envoyés
+automatiquement par e-mail, Telegram ou WhatsApp à des heures choisies.
+Fonctionnement, forfaits, consentement et secrets à poser : `docs/bulletins-programmes.md`.
+
+- **Une seule source pour les règles et le texte** : `web/js/bulletin-message.js`
+  (double export), lu par Paramètres ET par `scripts/envoi-bulletins.js`.
+  L'aperçu de Paramètres est le message qui partira.
+- **Le job n'ouvre pas de navigateur** : il lit l'instantané des 54 pays écrit
+  par la collecte (`bulletins_instantanes/courant`, construit par
+  `resumeBulletinProgramme` dans la page) ; rien n'est recalculé.
+- **Seul le dernier créneau échu part**, abandonné au-delà de trois heures de
+  retard : un run GitHub retardé ne déverse pas une rafale.
+- **Consentement** : l'adresse du compte reçoit ; toute autre adresse reçoit une
+  seule demande d'accord (`web/abonnement.html`), refus et désabonnement
+  définitifs. Telegram par `/start <code>`, WhatsApp sur attestation.
+- **Journaux publics** : ni adresse ni numéro en clair (`masquer`). Un test l'exige.
+- **Sans secret, l'état avance quand même** (même règle que `WEBHOOK_ALERTES`).
+- Forfait relu dans le profil par les règles Firestore et par le job :
+  0 / 1 / 5 / 20 programmations.
+
+Paramètres a été réordonné au passage (sommaire ; Lecture, Diffusion, Canaux de
+partage, Abonnement et compte ; suppression du compte en dernier), accents
+rétablis. `scripts/test/bulletins-programmes.test.js` (17).
+
+### Partage d'une actu en image : l'émetteur en tête — 14/11/2026
+
+Demande de YORO : revoir le rendu des actus partagées en image, toujours avec
+le choix de l'identité d'envoi. Mesuré sur des images générées par la vraie
+page : la tête portait la marque, l'identité n'était qu'une mention en pied, le
+logo de l'organisation manquait ; en anglais, niveau en français (« MODÉRÉ »),
+pays sans accent, et une actu pas encore traduite sortait avec « Translating… »
+comme titre, figé dans l'image.
+
+- `genererImageActuBlob` : logo (pastille blanche) et identité choisie en tête,
+  en or ; « Veille : <marque> » en pied seulement si elle diffère. Même règle
+  que `emetteurRapport` pour les rapports.
+- Une seule langue : `_traduireAvantImage` attend la traduction 2,5 s au plus
+  (le partage natif exige un geste récent), puis `_texteImage` dessine la
+  traduction ou « traduction indisponible », jamais « en cours ». Un corps non
+  traduit n'est pas dessiné.
+- `libelleNiveauPartage` / `paysPartage` : niveau et pays dans la langue de
+  l'interface, pour l'image ET le texte partagé.
+- « Signer en tant que » est toujours proposé au partage d'une actu (il
+  n'apparaissait qu'à partir de deux identités), comme pour les rapports ; une
+  identité seule se lit en entier sur son bouton.
+
+Le partage d'une fiche pays (Alertes) reste en texte seul, sans choix
+d'identité : hors de cette demande. Exports à la demande : 14/14 identiques.
+`scripts/test/partage-image-identite.test.js` (5, vus échouer sur l'ancien code).
+
+### Chacun apporte son compte : WhatsApp et adresse d'envoi — 14/11/2026
+
+Décisions de YORO : aucun compte WhatsApp Business côté SentiqS (« les comptes
+business seront créés par chaque utilisateur qui le désire ») et
+l'utilisateur désigne l'adresse e-mail d'envoi. Paramètres > Bulletins
+programmés porte deux blocs, « Mon adresse d'envoi e-mail » et « Mon compte
+WhatsApp Business », avec essai, suppression et guide pas à pas FR/EN.
+
+- **Le secret est chiffré dans le navigateur** (`web/js/identifiants-envoi.js`,
+  AES-GCM + RSA-OAEP) avec la clé publique du compte de service, que le job
+  publie dans `bulletins_etat/_canaux.clePublique`. Seul le job relit
+  (`scripts/lib/identifiants-envoi.js`). Aucune clé de plus à créer.
+- `whatsapp_comptes/{uid}` et `smtp_comptes/{uid}` : **lecture refusée à tout
+  navigateur**, auteur compris ; écriture par le titulaire, actif, chiffré
+  bien formé ; suppression par le titulaire.
+- Les secrets WHATSAPP_* de l'éditeur sont **retirés** du workflow. L'e-mail
+  passe par le serveur de l'utilisateur, à défaut par celui de l'éditeur.
+- Un essai part une fois par demande (`essaiDemande` ≠ `essaiTraite`), réservé
+  aux forfaits payants ; son résultat, sans secret, est dans
+  `bulletins_etat/{uid}.comptes`. `nettoyer` retire le secret de toute erreur.
+- Le job liste aussi les comptes qui n'ont que des identifiants (pour rendre
+  le résultat de l'essai avant toute programmation).
+
+Vérifié : `scripts/test/comptes-envoi.test.js` (10, dont deux vus tomber par
+mutation : nettoyage retiré, essai rejoué), un banc Chromium qui chiffre avec
+la vraie WebCrypto de la page et déchiffre avec le code du job (bureau,
+mobile, anglais), exports 14/14 identiques à `main`. Non vérifié d'ici : un
+envoi réel par Meta ou par un SMTP (pas de réseau sortant vers eux).
