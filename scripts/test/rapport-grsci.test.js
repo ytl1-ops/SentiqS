@@ -68,12 +68,13 @@ test("ni niveau ni score, mais cotation et confiance, dans le PowerPoint et le W
   const ci = pays('CI', 'CI', [fait('Attaque', 'securite', 'critical'), fait('Grève', 'humanitaire')]);
   ci.faits[0].cotation = 'confirme'; ci.faits[1].cotation = 'non_confirme';
   const reg = [pays('ML', 'Mali', [Object.assign(fait('Embuscade', 'securite'), { cotation: 'probable' })])];
-  const t = tout(g.construire(FauxPptx, { jour: '2026-10-25', ci, regionaux: reg }));
+  // Les espaces de « Cotation : … » sont insécables depuis le 14/11/2026.
+  const t = tout(g.construire(FauxPptx, { jour: '2026-10-25', ci, regionaux: reg })).replace(/\u00a0/g, ' ');
   assert.doesNotMatch(t, VOCABULAIRE_APPLI);
   for (const attendu of ['Cotation : Confirmé', 'Cotation : Non confirmé', 'Cotation : Probable', 'Indice de confiance : moyenne']) assert.ok(t.includes(attendu), attendu);
   const { docx, textes } = fauxDocx();
   await require('../lib/rapport-grsci-word.js').ecrireWord(fs.mkdtempSync(path.join(os.tmpdir(), 'grsci-')), docx, { jour: '2026-10-25', ci, regionaux: reg });
-  const w = textes.join('\n');
+  const w = textes.join('\n').replace(/\u00a0/g, ' ');
   assert.doesNotMatch(w, VOCABULAIRE_APPLI);
   assert.ok(/Cotation : Probable/.test(w) && /Indice de confiance : moyenne/.test(w));
 });
@@ -178,6 +179,8 @@ function fauxDocx() {
   };
 }
 
+// Le sommaire est en casse de phrase depuis le 14/11/2026 (les capitales coupées
+// à 84 caractères faisaient déborder le cadre) : le titre y est lu tel quel.
 test('la version Word reprend les pages du PowerPoint avec de vrais textes', async () => {
   const w = require('../lib/rapport-grsci-word.js');
   const { docx, textes } = fauxDocx();
@@ -186,7 +189,7 @@ test('la version Word reprend les pages du PowerPoint avec de vrais textes', asy
   const chemin = await w.ecrireWord(dir, docx, { jour: '2026-10-25', ci, regionaux: [pays('ML', 'Mali', [])] });
   assert.ok(chemin.endsWith('2026-10.docx') && fs.existsSync(chemin) && fs.existsSync(path.join(dir, 'dernier.docx')));
   const tout = textes.join('\n');
-  for (const attendu of ['RAPPORT MENSUEL', 'DE SÛRETÉ', g.piedTexte(g.EMETTEUR_DEFAUT), 'TABLE DES MATIÈRES', '- POLITIQUE', '- SOCIAL', 'DYNAMIQUES RÉGIONALES', 'MERCI', 'MANIFESTATION ANTI 4E MANDAT']) {
+  for (const attendu of ['RAPPORT MENSUEL', 'DE SÛRETÉ', g.piedTexte(g.EMETTEUR_DEFAUT), 'TABLE DES MATIÈRES', '- POLITIQUE', '- SOCIAL', 'DYNAMIQUES RÉGIONALES', 'MERCI', 'Manifestation anti 4e mandat']) {
     assert.ok(tout.includes(attendu), attendu);
   }
   assert.ok(fs.existsSync(path.join(dir, 'index.json')) && JSON.parse(fs.readFileSync(path.join(dir, 'index.json'), 'utf8')).rapports[0].formats.includes('docx'));
