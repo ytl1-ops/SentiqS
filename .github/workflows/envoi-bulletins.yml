@@ -12,7 +12,10 @@ name: Envoi des bulletins programmés
 #
 # Tous les canaux sont facultatifs : sans leur secret, le job journalise ce
 # qui serait parti (sans adresse ni numéro en clair) et l'état avance quand
-# même. Liste et procédure : docs/bulletins-programmes.md.
+# même. WhatsApp part du compte Meta de chaque utilisateur et l'e-mail peut
+# partir de la boîte qu'il désigne : leurs identifiants, chiffrés par la page,
+# vivent dans Firestore et ne sont relus qu'ici. Aucun secret WhatsApp côté
+# éditeur. Procédure : docs/bulletins-programmes.md.
 on:
   schedule:
     - cron: '7,22,37,52 * * * *'
@@ -43,7 +46,4 @@ jobs:
           SMTP_MOT_DE_PASSE: ${{ secrets.SMTP_MOT_DE_PASSE }}
           SMTP_EXPEDITEUR: ${{ secrets.SMTP_EXPEDITEUR }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          WHATSAPP_TOKEN: ${{ secrets.WHATSAPP_TOKEN }}
-          WHATSAPP_PHONE_NUMBER_ID: ${{ secrets.WHATSAPP_PHONE_NUMBER_ID }}
-          WHATSAPP_TEMPLATE: ${{ secrets.WHATSAPP_TEMPLATE }}
         run: node scripts/envoi-bulletins.js

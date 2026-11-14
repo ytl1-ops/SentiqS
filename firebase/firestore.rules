@@ -193,6 +193,46 @@ service cloud.firestore {
       allow read: if connecte() && (request.auth.uid == id || id == '_canaux' || estAdmin());
       allow write: if false;
     }
+    // Identifiants d'envoi apportés par l'utilisateur (14/11/2026) : son
+    // compte WhatsApp Business (jeton Meta) et/ou le serveur d'envoi de sa
+    // boîte e-mail (SMTP). Le secret arrive DÉJÀ CHIFFRÉ par la page avec la
+    // clé publique du job (web/js/identifiants-envoi.js) ; seul le job peut le
+    // relire. Aucune lecture depuis un navigateur, y compris par son auteur :
+    // on remplace ou on efface ses identifiants, on ne les relit jamais.
+    function chiffreBienForme(c) {
+      return c is map && c.keys().hasOnly(['v', 'cle', 'iv', 'donnees'])
+        && c.v == 1 && c.cle is string && c.cle.size() <= 1200
+        && c.iv is string && c.iv.size() <= 40 && c.donnees is string && c.donnees.size() <= 1600;
+    }
+    match /whatsapp_comptes/{uid} {
+      allow read: if false;
+      allow create, update: if connecte() && request.auth.uid == uid && profilActif()
+        && request.resource.data.keys().hasOnly(['id', 'chiffre', 'numeroId', 'modele', 'langue', 'essai', 'essaiDemande', 'maj', 'updated_at', 'created_at'])
+        && chiffreBienForme(request.resource.data.chiffre)
+        && request.resource.data.numeroId is string && request.resource.data.numeroId.matches('^[0-9]{8,25}$')
+        && request.resource.data.modele is string && request.resource.data.modele.matches('^[a-z0-9_]{1,512}$')
+        && request.resource.data.langue is string && request.resource.data.langue.matches('^[a-z]{2,3}(_[A-Z]{2})?$')
+        && (!('essai' in request.resource.data) || request.resource.data.essai == null
+            || (request.resource.data.essai is string && request.resource.data.essai.matches('^[0-9]{8,15}$')))
+        && (!('essaiDemande' in request.resource.data) || request.resource.data.essaiDemande == null
+            || (request.resource.data.essaiDemande is string && request.resource.data.essaiDemande.size() <= 40));
+      allow delete: if connecte() && request.auth.uid == uid;
+    }
+    match /smtp_comptes/{uid} {
+      allow read: if false;
+      allow create, update: if connecte() && request.auth.uid == uid && profilActif()
+        && request.resource.data.keys().hasOnly(['id', 'chiffre', 'hote', 'port', 'utilisateur', 'expediteur', 'nom', 'essaiDemande', 'maj', 'updated_at', 'created_at'])
+        && chiffreBienForme(request.resource.data.chiffre)
+        && request.resource.data.hote is string && request.resource.data.hote.size() <= 253
+        && request.resource.data.hote.matches('^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?[.])+[a-z]{2,24}$')
+        && request.resource.data.port in [465, 587]
+        && request.resource.data.utilisateur is string && request.resource.data.utilisateur.size() <= 200
+        && request.resource.data.expediteur is string && request.resource.data.expediteur.size() <= 254
+        && (!('nom' in request.resource.data) || (request.resource.data.nom is string && request.resource.data.nom.size() <= 60))
+        && (!('essaiDemande' in request.resource.data) || request.resource.data.essaiDemande == null
+            || (request.resource.data.essaiDemande is string && request.resource.data.essaiDemande.size() <= 40));
+      allow delete: if connecte() && request.auth.uid == uid;
+    }
     match /bulletins_instantanes/{id} {
       allow read, write: if false;
     }

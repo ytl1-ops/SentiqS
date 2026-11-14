@@ -3845,3 +3845,32 @@ comme titre, figé dans l'image.
 Le partage d'une fiche pays (Alertes) reste en texte seul, sans choix
 d'identité : hors de cette demande. Exports à la demande : 14/14 identiques.
 `scripts/test/partage-image-identite.test.js` (5, vus échouer sur l'ancien code).
+
+### Chacun apporte son compte : WhatsApp et adresse d'envoi — 14/11/2026
+
+Décisions de YORO : aucun compte WhatsApp Business côté SentiqS (« les comptes
+business seront créés par chaque utilisateur qui le désire ») et
+l'utilisateur désigne l'adresse e-mail d'envoi. Paramètres > Bulletins
+programmés porte deux blocs, « Mon adresse d'envoi e-mail » et « Mon compte
+WhatsApp Business », avec essai, suppression et guide pas à pas FR/EN.
+
+- **Le secret est chiffré dans le navigateur** (`web/js/identifiants-envoi.js`,
+  AES-GCM + RSA-OAEP) avec la clé publique du compte de service, que le job
+  publie dans `bulletins_etat/_canaux.clePublique`. Seul le job relit
+  (`scripts/lib/identifiants-envoi.js`). Aucune clé de plus à créer.
+- `whatsapp_comptes/{uid}` et `smtp_comptes/{uid}` : **lecture refusée à tout
+  navigateur**, auteur compris ; écriture par le titulaire, actif, chiffré
+  bien formé ; suppression par le titulaire.
+- Les secrets WHATSAPP_* de l'éditeur sont **retirés** du workflow. L'e-mail
+  passe par le serveur de l'utilisateur, à défaut par celui de l'éditeur.
+- Un essai part une fois par demande (`essaiDemande` ≠ `essaiTraite`), réservé
+  aux forfaits payants ; son résultat, sans secret, est dans
+  `bulletins_etat/{uid}.comptes`. `nettoyer` retire le secret de toute erreur.
+- Le job liste aussi les comptes qui n'ont que des identifiants (pour rendre
+  le résultat de l'essai avant toute programmation).
+
+Vérifié : `scripts/test/comptes-envoi.test.js` (10, dont deux vus tomber par
+mutation : nettoyage retiré, essai rejoué), un banc Chromium qui chiffre avec
+la vraie WebCrypto de la page et déchiffre avec le code du job (bureau,
+mobile, anglais), exports 14/14 identiques à `main`. Non vérifié d'ici : un
+envoi réel par Meta ou par un SMTP (pas de réseau sortant vers eux).

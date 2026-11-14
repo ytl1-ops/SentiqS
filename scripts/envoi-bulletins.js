@@ -9,9 +9,13 @@
 // de la page.
 //
 // Canaux, tous facultatifs (sans eux, le job journalise ce qui serait parti) :
-//   SMTP_HOTE, SMTP_PORT, SMTP_UTILISATEUR, SMTP_MOT_DE_PASSE, SMTP_EXPEDITEUR
-//   TELEGRAM_BOT_TOKEN
-//   WHATSAPP_TOKEN, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_TEMPLATE
+//   · e-mail : le serveur d'envoi que CHAQUE UTILISATEUR désigne dans
+//     Paramètres (smtp_comptes/{uid}, chiffré) ; à défaut, celui de l'éditeur
+//     s'il en a posé un (SMTP_HOTE, SMTP_PORT, SMTP_UTILISATEUR,
+//     SMTP_MOT_DE_PASSE, SMTP_EXPEDITEUR) ;
+//   · WhatsApp : le compte Meta de CHAQUE UTILISATEUR (whatsapp_comptes/{uid},
+//     chiffré), jamais un compte SentiqS (décision du 14/11/2026) ;
+//   · Telegram : le robot de l'éditeur (TELEGRAM_BOT_TOKEN).
 // Indispensable : FIREBASE_SERVICE_ACCOUNT (sans lui, aucune programmation
 // n'est lisible et le job s'arrête sans erreur).
 const fs = require('node:fs');
@@ -24,6 +28,7 @@ const msg = require('./lib/messageries');
 const coeur = require('./lib/envoi-bulletins');
 const bulletin = require('./lib/bulletin');
 const traduction = require('./lib/traduction-job');
+const ident = require('./lib/identifiants-envoi');
 
 const MAX_TRADUCTIONS = 40;
 
@@ -61,9 +66,11 @@ async function principal() {
   const fsc = firestoreRest.client(compte.project_id, jeton, fetch);
   const cfgSmtp = smtp.lireConfig(process.env);
   const cfgTg = msg.telegramConfig(process.env);
-  const cfgWa = msg.whatsappConfig(process.env);
-  const canaux = { email: !!cfgSmtp, telegram: !!cfgTg, whatsapp: !!cfgWa, telegramRobot: null };
-  console.log('Canaux : e-mail ' + (canaux.email ? 'oui' : 'non') + ', Telegram ' + (canaux.telegram ? 'oui' : 'non') + ', WhatsApp ' + (canaux.whatsapp ? 'oui' : 'non') + '.');
+  const canaux = { email: !!cfgSmtp, telegram: !!cfgTg, telegramRobot: null };
+  console.log('Canaux de l\'éditeur : e-mail ' + (canaux.email ? 'oui' : 'non') + ', Telegram ' + (canaux.telegram ? 'oui' : 'non')
+    + '. WhatsApp et e-mail peuvent aussi partir des comptes que chaque utilisateur apporte.');
+  // Clé publique avec laquelle la page chiffre les identifiants apportés.
+  const clePub = ident.clePublique(compte.private_key);
 
   const general = (await fsc.lire('bulletins_etat/_canaux').catch(() => null)) || {};
   let tg = { rattachements: [], arrets: [], offset: general.telegramOffset || 0 };
@@ -87,6 +94,7 @@ async function principal() {
     paysValides: bulletin.paysAEcrire(),
     canaux,
     telegram: tg,
+    configs: { whatsapp: (d) => ident.configWhatsapp(d, compte.private_key), smtp: (d) => ident.configSmtp(d, compte.private_key) },
     journal: (l) => console.log(l),
     traduire: async (texte, source, cible) => {
       if (traduites >= MAX_TRADUCTIONS) return null;
@@ -94,15 +102,23 @@ async function principal() {
       return traduction.traduire(texte, source, { cible, delaiMs: 8000 });
     },
     envoyer: {
-      email: (messages) => smtp.envoyer(cfgSmtp, messages).catch((e) => messages.map(() => ({ ok: false, raison: e.message }))),
+      // Le serveur de l'utilisateur d'abord, sinon celui de l'éditeur. Les
+      // erreurs remontent sans le mot de passe.
+      email: (messages, cfgU) => {
+        const cfg = cfgU || cfgSmtp;
+        if (!cfg) return Promise.resolve(messages.map(() => ({ ok: false, raison: 'aucun serveur d\'envoi' })));
+        return smtp.envoyer(cfg, messages).catch((e) => messages.map(() => ({ ok: false, raison: ident.nettoyer(e.message, cfg.motDePasse) })));
+      },
       telegram: (chatId, texte) => msg.telegramMessage(cfgTg, chatId, texte),
-      whatsapp: (num, langue, vars) => msg.whatsappModele(cfgWa, num, langue, vars),
+      whatsapp: (cfg, num, langue, vars) => msg.whatsappModele(cfg, num, langue, vars),
+      whatsappEssai: (cfg, num) => msg.whatsappEssai(cfg, num),
     },
   });
   // L'état des canaux est lu par la page (Paramètres) : elle dit à
   // l'utilisateur ce qui est réellement branché au lieu de le lui promettre.
   await fsc.ecrire('bulletins_etat/_canaux', {
-    email: canaux.email, telegram: canaux.telegram, whatsapp: canaux.whatsapp,
+    email: canaux.email, telegram: canaux.telegram, whatsapp: 'compte_utilisateur', smtpUtilisateur: true,
+    clePublique: clePub, clePubliqueEmpreinte: ident.empreinte(clePub),
     telegramRobot: canaux.telegramRobot, telegramOffset: tg.offset || 0,
     donnees: instantane ? instantane.genere || null : null, maj: new Date().toISOString(),
   });
