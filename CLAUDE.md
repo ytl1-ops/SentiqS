@@ -3794,6 +3794,53 @@ devenu :
 
 ---
 
+## Relecture des documents du 14/11/2026 : Présentation 1, bulletins, exports
+
+Demande de YORO : « les rendus doivent être agencés comme après un traitement
+de texte par un expert », puis « vérifie également les autres types de
+rapport ». Tous les documents ont été générés et lus en images (LibreOffice →
+`pdftoppm`, Chromium pour le HTML), pas jugés à leur code.
+
+**Présentation 1.** Sommaire en casse de phrase, coupé au mot à 72 caractères,
+borné à `LIGNES_SOMMAIRE` (la colonne de droite débordait du cadre sur le
+pied) ; cadre du titre d'un fait rédigé dimensionné à sa longueur (un titre
+de trois lignes chevauchait « Contexte ») ; « Cotation : Non confirmé » en
+espaces insécables ; la hauteur d'une fiche compte le lien vidéo ; un titre
+tout en capitales (Mali 24) est ramené en casse de phrase par `phraseDe`
+(`redaction-grsci.js`), les noms propres repris du chapô et les sigles gardés ;
+corps des fiches du Word relevé (titre 14 → 16 pt, extrait 11,5 → 13,5 pt) et sommaire du Word
+identique à celui du PowerPoint.
+
+**Bulletins.** « dont 0 recoupé » devient « aucun recoupé » ; « revu 2026-10 »
+devient « revu en octobre 2026 » (`moisRevu`) ; à l'impression, un titre de
+section ne reste plus seul en bas de page (`h2{break-after:avoid}`).
+Les bulletins déjà écrits ne sont pas retouchés.
+
+**Exports de l'appli (Word, PDF, PowerPoint, Excel, CSV, aperçus, image).**
+- *« [CRITIQUE] Traduction en cours… »* : la mention d'écran remplaçait le
+  titre du fait dans le document, figé. Les points d'entrée d'un document sont
+  enveloppés par `enDocument()` (`_docEnCours`) ; dans ce contexte, `L()` garde
+  un texte anglais ou portugais non traduit avec sa langue (« (EN) … »), comme
+  la Présentation 1, et l'arabe est signalé « non traduit, voir la source ».
+  **L'écran ne change pas** (une seule langue, ou la mention : consigne du
+  21/10/2026). C'est une lecture de cette consigne pour les documents, à
+  revoir avec YORO s'il préfère la mention partout.
+- *« PAYS VERT » sous « Soudan — ROUGE »* : `niveauAlertePays` retombait sur
+  vert quand le niveau n'était pas encore calculé ; il le calcule désormais.
+  Un vert par défaut est le faux négatif que l'outil ne doit pas produire.
+- Méthode : `exports.js` (bac à sable) génère les 14 documents à heure figée ;
+  le diff de texte avant/après ne montre que ces deux changements.
+
+**Restent, constatés et non corrigés ici** : des faits hors sûreté dans les
+rapports (sport « Qualifs CAN 2027 », rumeur sur une célébrité, revue de
+presse) relèvent de la classification ; les drapeaux emoji du PowerPoint
+s'affichent en pavés noirs sous LibreOffice (PowerPoint les rend).
+
+`grsci-mise-en-page.test.js` (4) et `relecture-rapports.test.js` (4), vus
+échouer sur l'ancien code.
+
+---
+
 ## Les bulletins programmés — 14/11/2026
 
 Demande de YORO : programmer des bulletins sur des pays choisis, envoyés

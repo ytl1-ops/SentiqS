@@ -75,19 +75,19 @@ function construireWord(D, { jour, ci, regionaux, emetteur }) {
   // source à droite avec son crédit ; sans photo, le texte prend la largeur.
   function ficheWord(f, derniere) {
     const c = g.ficheTexte(f);
-    const texte = [par(run(c.titre, { bold: true, color: g.VERT, size: 28 }), { spacing: { before: 120, after: 60 } })];
+    const texte = [par(run(c.titre, { bold: true, color: g.VERT, size: 32 }), { spacing: { before: 120, after: 60 } })];
     texte.push(c.extrait
-      ? par([run(c.extrait.source + ' : ' + c.extrait.langue, { bold: true, size: 23 }), run('« ' + c.extrait.texte + ' »', { italics: true, size: 23 })], { spacing: { after: 60 } })
-      : par(run(c.sansExtrait, { italics: true, color: g.LEGERE, size: 23 }), { spacing: { after: 60 } }));
+      ? par([run(c.extrait.source + ' : ' + c.extrait.langue, { bold: true, size: 27 }), run('« ' + c.extrait.texte + ' »', { italics: true, size: 27 })], { spacing: { after: 60 } })
+      : par(run(c.sansExtrait, { italics: true, color: g.LEGERE, size: 27 }), { spacing: { after: 60 } }));
     const restants = c.sources.filter((x) => !c.liens.some((l) => l.source === x));
     texte.push(par([
-      run(c.t.etiquette, { bold: true, size: 21 }),
-      ...c.liens.flatMap((l, i) => [run(i ? ' · ' : '', { size: 21 }), new ExternalHyperlink({ link: l.url, children: [run(l.source || 'article', { color: g.VERT, size: 21, underline: {} })] })]),
-      ...(c.liens.length ? [] : [run(c.t.source, { size: 21 })]),
-      run((restants.length && c.liens.length ? ' · ' + restants.join(' · ') : '') + (c.t.quand ? ' \u2014 ' + c.t.quand : ''), { size: 21 }),
-      ...(c.t.cotation ? [run('   \u00B7   Cotation : ' + c.t.cotation, { size: 21, bold: true })] : []),
+      run(c.t.etiquette, { bold: true, size: 24 }),
+      ...c.liens.flatMap((l, i) => [run(i ? ' · ' : '', { size: 24 }), new ExternalHyperlink({ link: l.url, children: [run(l.source || 'article', { color: g.VERT, size: 24, underline: {} })] })]),
+      ...(c.liens.length ? [] : [run(c.t.source, { size: 24 })]),
+      run((restants.length && c.liens.length ? ' · ' + restants.join(' · ') : '') + (c.t.quand ? ' \u2014 ' + c.t.quand : ''), { size: 24 }),
+      ...(c.t.cotation ? [run('   \u00B7   Cotation\u00A0:\u00A0' + c.t.cotation, { size: 24, bold: true })] : []),
     ]));
-    if (c.video) texte.push(par(new ExternalHyperlink({ link: c.video, children: [run('Voir la vidéo de la source', { color: g.VERT, size: 21, underline: {} })] })));
+    if (c.video) texte.push(par(new ExternalHyperlink({ link: c.video, children: [run('Voir la vidéo de la source', { color: g.VERT, size: 24, underline: {} })] })));
     const photo = f.photo && f.photo.data ? f.photo : null;
     const bas = derniere ? AUCUNE : { style: BorderStyle.SINGLE, size: 4, color: 'D1D5DB' };
     const bordures = { top: AUCUNE, left: AUCUNE, right: AUCUNE, bottom: bas };
@@ -140,7 +140,7 @@ function construireWord(D, { jour, ci, regionaux, emetteur }) {
       ...liens.flatMap((l, i) => [run(i ? ' · ' : '', { size: 26 }), new ExternalHyperlink({ link: l.url, children: [run(l.source || 'article', { color: g.VERT, size: 26, underline: {} })] })]),
       ...(liens.length ? [] : [run(t.source, { size: 26 })]),
       run((restants.length && liens.length ? ' · ' + restants.join(' · ') : '') + (t.quand ? ' \u2014 ' + t.quand : ''), { size: 26 }),
-      ...(t.cotation ? [run('   \u00B7   Cotation : ' + t.cotation, { size: 26, bold: true })] : []),
+      ...(t.cotation ? [run('   \u00B7   Cotation\u00A0:\u00A0' + t.cotation, { size: 26, bold: true })] : []),
     ], { spacing: { before: 120 } }));
     if (r.video) texte.push(par(new ExternalHyperlink({ link: r.video, children: [run('Voir la vidéo de la source', { color: g.VERT, size: 26, underline: {} })] })));
     const photo = f.photo && f.photo.data ? f.photo : null;
@@ -198,19 +198,24 @@ function construireWord(D, { jour, ci, regionaux, emetteur }) {
   // — Table des matières : deux cadres, comme le modèle.
   corps.push(...entete('0', '- TABLE DES MATIÈRES'));
   {
-    const court = (t) => (t.length > 84 ? t.slice(0, 81) + '…' : t);
+    // Même entrée que le sommaire du PowerPoint : casse de phrase, coupe au mot.
+    const court = (f) => {
+      const marque = !f.titreFr && g.LANGUE_ORIGINE[f.langue] ? '(' + g.LANGUE_ORIGINE[f.langue] + ') ' : '';
+      const t = marque + redaction.phraseDe(f);
+      return t.length > 72 ? t.slice(0, 71).replace(/\s+\S*$/, '') + ' …' : t;
+    };
     const gauche = [];
     for (const r of g.RUBRIQUES) {
       const faits = g.faitsRubrique(ci, r);
       if (!faits.length) continue;
       gauche.push(par(run(r.titre, { bold: true, color: g.VERT, size: 20 }), { spacing: { before: 100 } }));
-      faits.slice(0, 6).forEach((f) => gauche.push(par([run('\u2751  ', { size: 18 }), run(court(g.titreDeFait(f)), { size: 18 })], { indent: { left: 240 } })));
+      faits.slice(0, 6).forEach((f) => gauche.push(par([run('\u2751  ', { size: 18 }), run(court(f), { size: 18 })], { indent: { left: 240 } })));
     }
     if (!gauche.length) gauche.push(par(run('Aucun fait marquant relevé sur la période.', { italics: true })));
     const droite = [];
     regionaux.forEach((d) => {
       droite.push(par(run(d.nom.toUpperCase(), { bold: true, color: g.VERT, size: 20 }), { spacing: { before: 100 } }));
-      (d.faits || []).slice(0, 1).forEach((f) => droite.push(par([run('\u2751  ', { size: 18 }), run(court(g.titreDeFait(f)), { size: 18 })], { indent: { left: 240 } })));
+      (d.faits || []).slice(0, 1).forEach((f) => droite.push(par([run('\u2751  ', { size: 18 }), run(court(f), { size: 18 })], { indent: { left: 240 } })));
     });
     const bloc = (titre, enfants) => new TableCell({
       borders: CADRE, width: { size: Math.floor(UTILE / 2) - 100, type: WidthType.DXA }, margins: { top: 100, left: 150, right: 150 },

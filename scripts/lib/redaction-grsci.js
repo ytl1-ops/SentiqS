@@ -95,8 +95,35 @@ function dateRedigee(ms) {
 }
 
 // Une phrase de titre, pas des majuscules : « Le Burkina Faso rétablit… ».
+// Un titre tout en capitales (« MALI : LE BILAN HUMAIN S'ALOURDIT… », Mali 24)
+// crie au milieu de titres en casse de phrase : il y est ramené. Les noms
+// propres sont ceux que le chapô écrit avec une capitale (« Guinée », « Kayes ») ;
+// un sigle court (FAMa, ONU, AES) garde ses capitales.
+function enCapitales(t) {
+  const lettres = t.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g, '');
+  if (lettres.length < 12) return false;
+  return lettres.replace(/[^A-ZÀ-ÖØ-Þ]/g, '').length / lettres.length > 0.8;
+}
+function casseDePhrase(t, f) {
+  const propres = new Map();
+  const texte = [f.resumeFr, f.resume].concat((f.extraits || []).map((e) => e && e.resume)).filter(Boolean).join(' ');
+  for (const m of texte.matchAll(/(?<![.!?»]\s)(?<![A-Za-zÀ-ÿ])([A-ZÀ-ÖØ-Þ][a-zà-öø-ÿ-]+)/g)) propres.set(m[1].toLowerCase(), m[1]);
+  const sortie = t.replace(/[A-Za-zÀ-ÖØ-öø-ÿ-]+/g, (mot, pos) => {
+    const bas = mot.toLowerCase();
+    let r;
+    if (propres.has(bas) && !MOTS_COURTS.has(bas)) r = propres.get(bas);
+    else if (/^[A-ZÀ-ÖØ-Þ]{2,4}$/.test(mot) && !MOTS_COURTS.has(bas)) r = mot;
+    else r = bas;
+    return pos === 0 ? r.charAt(0).toUpperCase() + r.slice(1) : r;
+  });
+  // Après « : » le titre reprend souvent une phrase : « Mali : Le bilan… » non,
+  // « Mali : le bilan… » oui (usage de la presse française).
+  return sortie;
+}
+const MOTS_COURTS = new Set(['le', 'la', 'les', 'de', 'des', 'du', 'un', 'une', 'et', 'en', 'au', 'aux', 'par', 'pour', 'sur', 'dans', 'son', 'sa', 'ses', 'est', 'ont', 'qui', 'que', 'plus', 'mort', 'tue', 'tués', 'deux', 'onze', 'neuf', 'huit', 'sept', 'six', 'cinq', 'dix', 'the', 'and', 'of', 'in', 'to', 'for', 'on', 'at', 'by', 'with', 'from', 'two', 'dead', 'kill', 'lui', 'eux', 'nos', 'vos', 'leur', 'avec', 'sans', 'sous', 'vers', 'chez', 'face', 'mais', 'ou', 'où', 'ni', 'car', 'il', 'ils', 'elle', 'elles', 'on', 'se', 'ce', 'ces', 'cet', 'à', 'fin', 'an', 'ans', 'jour', 'mois', 'nord', 'sud', 'est', 'zone', 'camp', 'vie', 'loi', 'chef', 'roi', 'état', 'etat', 'pays', 'ville', 'bus', 'feu', 'armé', 'arme', 'bilan', 'aide', 'fête', 'fete', 'rue', 'port', 'or', 'riz', 'eau', 'pain', 'gaz', 'prix', 'taux', 'dette', 'vote', 'élu', 'elu', 'élus', 'elus', 'peur', 'deuil', 'drame', 'choc', 'raid', 'coup', 'tir', 'tirs', 'cas', 'mine', 'mines', 'crue', 'pont', 'voie', 'axe', 'poste', 'case', 'salon', 'match', 'club']);
 function phraseDe(f) {
-  const t = nettoyerTitre(f.titreFr || f.titre).replace(/\s*[.!?…]+\s*$/, '');
+  let t = nettoyerTitre(f.titreFr || f.titre).replace(/\s*[.!?…]+\s*$/, '');
+  if (enCapitales(t)) t = casseDePhrase(t, f);
   return t.charAt(0).toUpperCase() + t.slice(1);
 }
 
@@ -152,4 +179,4 @@ function rediger(f, nomPays) {
 const NOTE_REDACTION = 'Faits marquants : textes établis à partir des médias cités, dont les chapôs sont reproduits entre guillemets. '
   + 'Les « enjeux sûreté » sont des repères par type d\'événement, à valider et compléter par l\'analyste.';
 
-module.exports = { choisirMarquants, rediger, enjeuxSurete, MARQUANTS_CI, MARQUANTS_PAYS, NOTE_REDACTION, dateRedigee };
+module.exports = { phraseDe, choisirMarquants, rediger, enjeuxSurete, MARQUANTS_CI, MARQUANTS_PAYS, NOTE_REDACTION, dateRedigee };

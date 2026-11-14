@@ -133,6 +133,13 @@ Object.keys(CONSEILS).forEach((cy) => {
 });
 
 /** Ordre d'écriture : le pays pilote d'abord, puis l'alphabet des codes. */
+// « 2026-10 » se lit « octobre 2026 » dans un document client.
+const MOIS_REVU = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+function moisRevu(r) {
+  const m = /^(\d{4})-(\d{2})/.exec(String(r));
+  return m && MOIS_REVU[+m[2] - 1] ? MOIS_REVU[+m[2] - 1] + ' ' + m[1] : String(r);
+}
+
 function paysAEcrire() {
   return PAYS_PILOTES.concat(Object.keys(PAYS_BULLETIN).filter((cy) => !PAYS_PILOTES.includes(cy)).sort());
 }
@@ -193,8 +200,10 @@ function phraseEnBref(d, t) {
       + ' : cela ne veut pas dire qu\'il ne s\'est rien passé, voir « Ce que nous ne savons pas ».');
   } else {
     parts.push(d.faitsNotables + ' fait' + (d.faitsNotables > 1 ? 's' : '') + ' notable' + (d.faitsNotables > 1 ? 's' : '')
-      + ' sur les ' + d.fenetreH + ' dernières heures, dont ' + confirmes + ' recoupé' + (confirmes > 1 ? 's' : '')
-      + ' par une seconde source.');
+      + ' sur les ' + d.fenetreH + ' dernières heures, '
+      // « dont 0 recoupé » ne s'écrit pas (relecture du 14/11/2026).
+      + (confirmes ? 'dont ' + confirmes + ' recoupé' + (confirmes > 1 ? 's' : '') + ' par une seconde source.'
+        : (d.faitsNotables > 1 ? 'aucun' : 'non') + ' recoupé par une seconde source.'));
   }
   if (t && t.crans) parts.push('Cette évolution est celle du niveau affiché : elle peut tenir à une revue du socle autant qu\'à la situation.');
   if (d.confiance) parts.push('Confiance dans ce niveau : ' + d.confiance.libelle + '.');
@@ -235,7 +244,7 @@ function rendre(d, { jour, genereMs, serie } = {}) {
   const socle = d.socle.slice(0, 5).map((e) => '<li>' + esc(e.titre) + '<div class="meta">' + esc(e.date)
     + (e.ageJ != null ? ' (il y a ' + e.ageJ + ' j)' : '') + (e.src ? ' · ' + esc(e.src) : '') + '</div></li>').join('');
   const facteurs = d.facteurs.map((f) => '<li>' + esc(f.label) + '<div class="meta">'
-    + (f.revu ? 'revu ' + esc(f.revu) : 'non daté') + '</div></li>').join('');
+    + (f.revu ? 'revu en ' + esc(moisRevu(f.revu)) : 'non daté') + '</div></li>').join('');
 
   return '<!doctype html>\n<html lang="fr"><head><meta charset="utf-8">'
     + '<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">'
@@ -249,7 +258,7 @@ function rendre(d, { jour, genereMs, serie } = {}) {
     + 'ol,ul{padding-left:20px}li{margin:0 0 10px}a{color:#7A4A12}a:focus-visible{outline:2px solid #7A4A12;outline-offset:2px}'
     + '.cot{display:inline-block;font-size:12px;font-weight:700;padding:1px 7px;border-radius:3px;border:1px solid}'
     + '.cot-confirme{color:#065F46;border-color:#065F46}.cot-probable{color:#854D0E;border-color:#854D0E}.cot-non_confirme{color:#4B5563;border-color:#4B5563}'
-    + '@media print{body{background:#fff}main{padding:0}a{color:#1F2937}}'
+    + '@media print{body{background:#fff}main{padding:0}a{color:#1F2937}h2{break-after:avoid}li,.bref{break-inside:avoid}}'
     + '</style></head><body><main>'
     + '<div class="tag">SentiqS · Bulletin quotidien · Responsable sûreté</div>'
     + '<h1>' + esc(d.nom) + ' — ' + esc(dateFr(jour)) + '</h1>'
@@ -387,6 +396,6 @@ function messageResume(resumes, jour) {
 
 module.exports = {
   URL_SITE, HEURE_BULLETIN_UTC, PAYS_BULLETIN, PAYS_PILOTES, paysAEcrire,
-  cheminBulletin, doitEcrire, tendanceDuJour, rendre, ecrire, urlPublique, messageAnnonce, phraseEnBref,
+  cheminBulletin, doitEcrire, tendanceDuJour, rendre, ecrire, urlPublique, messageAnnonce, phraseEnBref, moisRevu,
   lireIndex, resumeBulletin, rendreIndex, mettreAJourIndex, messageResume,
 };

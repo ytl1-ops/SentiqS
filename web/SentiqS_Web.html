@@ -7241,8 +7241,8 @@ let _rapportNonTraduits = 0;
 function noteTraductionRapport() {
   if (!_rapportNonTraduits) return '';
   return LANG === 'en'
-    ? 'Note: ' + _rapportNonTraduits + ' source text(s) could not be translated (translation service unavailable when this document was produced); they are marked as such rather than shown in another language.'
-    : 'Note : ' + _rapportNonTraduits + ' texte(s) de source n\'ont pas pu être traduits (service de traduction indisponible à la production de ce document) ; ils sont signalés comme tels plutôt qu\'affichés dans une autre langue.';
+    ? 'Note: ' + _rapportNonTraduits + ' source text(s) could not be translated (translation service unavailable when this document was produced); they are shown in their original language, marked (EN) or (PT), or flagged when in Arabic.'
+    : 'Note : ' + _rapportNonTraduits + ' texte(s) de source n\'ont pas pu être traduits (service de traduction indisponible à la production de ce document) ; ils figurent dans leur langue d\'origine, signalée (EN) ou (PT), ou sont signalés comme tels s\'ils sont en arabe.';
 }
 // traduireAvantPartage(texte) : traduction ACTIVE (appel reel a l'agent de
 // traduction via trFetch, pas une simple consultation de cache) tentee a
@@ -7281,9 +7281,11 @@ function L(texte) {
   // « Traduction en cours », et la traduction part en arriere-plan ; echec
   // de tous les moteurs : la mention, jamais le texte source.
   if (texteEtranger(texte)) {
+    if (cached !== undefined && cached !== texte) return _trTexteAffichable(cached);
+    if (cached === texte && TR_DEJA_BON.has(cacheKey)) return texteAff;
+    if (_docEnCours > 0) return texteDocumentNonTraduit(texteAff);
     if (cached === undefined) { _trPlanifier(texte); return texteNonTraduit(texte, true); }
-    if (cached === texte) return TR_DEJA_BON.has(cacheKey) ? texteAff : texteNonTraduit(texte);
-    return _trTexteAffichable(cached);
+    return texteNonTraduit(texte);
   }
   // Un document exporte est un instantane statique (jamais mis a jour apres
   // generation) : un texte-relais "traduction en cours"/"indisponible" y
@@ -7295,6 +7297,31 @@ function L(texte) {
   return _trTexteAffichable(cached);
 }
 
+// Un document exporté est figé (relecture du 14/11/2026, « agencé comme
+// après un traitement de texte par un expert ») : « Traduction en cours… » ou
+// « traduction indisponible pour le moment » y remplaçaient le titre même du
+// fait — « [CRITIQUE] Traduction en cours… », le lecteur ne savait plus de
+// quoi il s'agissait. Pendant la construction d'un document, un texte en
+// anglais ou en portugais non traduit garde son texte, précédé de sa langue
+// (« (EN) Thugs attack NDC in Lagos »), comme dans la Présentation 1 ; la
+// note de fin de document les compte. L'arabe, illisible pour le lecteur
+// francophone ou anglophone, reste signalé sans être imprimé. L'écran ne
+// change pas : une seule langue, ou la mention.
+let _docEnCours = 0;
+function texteDocumentNonTraduit(texteAff) {
+  const l = langueSure(texteAff);
+  if (l === 'en' || l === 'pt') return '(' + l.toUpperCase() + ') ' + texteAff;
+  const nom = (NOMS_LANGUE[LANG] || NOMS_LANGUE.fr)[l] || '';
+  return LANG === 'en'
+    ? (nom ? nom + ' text' : 'Text') + ' — not translated, see the source'
+    : (nom ? 'Texte en ' + nom : 'Texte') + ' — non traduit, voir la source';
+}
+function enDocument(fn) {
+  return async function () {
+    _docEnCours++;
+    try { return await fn.apply(this, arguments); } finally { _docEnCours--; }
+  };
+}
 // ── PAYS = CLÉ DE CORRÉLATION GLOBALE ──────────────────────────────────────
 // Etat partage par toute la plateforme. PAYS_INFO (54 pays) est le referentiel
 // geographique unique. GLOBAL_CY_FILTER porte la selection active et est
@@ -21619,8 +21646,16 @@ function renderLegendeNiveaux() {
 // pays au niveau critique n'est pas forcement elle-meme critique. Lit le
 // dernier niveau connu (LAST_NIV_PAR_PAYS, mis a jour par recalcAlertes) pour
 // eviter de recalculer calcAlertScore() a chaque rendu d'actu.
+// Pas encore de niveau connu (amorçage sauté, document exporté avant tout
+// calcul) : on le calcule, au lieu d'imprimer « PAYS VERT » sous l'en-tête
+// « Soudan — ROUGE » (relu dans un export le 14/11/2026). Un vert par défaut
+// est exactement le faux négatif que cet outil ne doit pas produire.
 function niveauAlertePays(cy) {
-  const key = (typeof LAST_NIV_PAR_PAYS !== 'undefined' && LAST_NIV_PAR_PAYS[cy]) || 'vert';
+  let key = typeof LAST_NIV_PAR_PAYS !== 'undefined' && LAST_NIV_PAR_PAYS[cy];
+  if (!key && typeof calcAlertScore === 'function' && typeof PAYS_INFO !== 'undefined' && PAYS_INFO[cy]) {
+    try { key = calcAlertScore(cy).key; if (typeof LAST_NIV_PAR_PAYS !== 'undefined') LAST_NIV_PAR_PAYS[cy] = key; } catch (_) {}
+  }
+  key = key || 'vert';
   return NIV[key] || NIV.vert;
 }
 // _cyNivTexteEtCouleur(cy) : version texte brut + couleur hexa (sans '#') du
@@ -27324,6 +27359,17 @@ async function exportWord(type){
     setTimeout(()=>btnReset(btn),1000);
   }
 }
+// Tout document exporté se construit en « contexte document » (voir L()).
+exportWord = enDocument(exportWord);
+exportPDF = enDocument(exportPDF);
+exportPPTX = enDocument(exportPPTX);
+exportExcel = enDocument(exportExcel);
+exportCSV = enDocument(exportCSV);
+apercuRapport = enDocument(apercuRapport);
+apercuSynthese = enDocument(apercuSynthese);
+genererImageRapportBlob = enDocument(genererImageRapportBlob);
+_envoyerRapportCanalInterne = enDocument(_envoyerRapportCanalInterne);
+
 
 // ── Hook dans init() pour mettre à jour les compteurs ─────────────
 const _origUpdStats=updStats;

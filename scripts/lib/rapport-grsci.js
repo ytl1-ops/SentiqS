@@ -332,7 +332,11 @@ function titreDeFait(f) {
 // tenir au modèle de 2024. Mêmes règles que le bulletin : Confirmé = recoupé
 // par une seconde source ; Probable = source unique capable d'alerter ; Non
 // confirmé = le reste. La confiance qualifie le niveau du pays, pas un fait.
-const COTATION = { confirme: 'Confirmé', probable: 'Probable', non_confirme: 'Non confirmé' };
+// Espaces insécables : « Cotation : Non confirmé » ne se coupe jamais en fin
+// de ligne (relecture du rapport de novembre, 14/11/2026 : « Cotation : » seul,
+// « Probable » à la ligne suivante, sur une page sur trois).
+const COTATION = { confirme: 'Confirmé', probable: 'Probable', non_confirme: 'Non\u00a0confirmé' };
+const COTATION_LIB = 'Cotation\u00a0:\u00a0';
 function ligneConfiance(d) {
   const c = d && d.confiance;
   if (!c || !c.libelle) return null;
@@ -381,9 +385,12 @@ function ficheTexte(f) {
 // Taille de corps qui fait tenir une fiche dans sa hauteur (pouces).
 function tailleFiche(blocs, largeur, hauteur) {
   return [15, 14, 13, 12, 11, 10.5, 10].find((pt) => {
-    const parLigne = Math.floor(largeur * 72 / (pt * 0.5));
+    // 0,55 em par caractère : l'italique et les capitales de la police sont
+    // plus larges que la moyenne, et une estimation à 0,5 laissait le lien
+    // « Voir la vidéo » chevaucher le pied de page (rapport de novembre, p. 73).
+    const parLigne = Math.floor(largeur * 72 / (pt * 0.55));
     const lignes = blocs.reduce((n, b) => n + Math.ceil((b.length || 1) / parLigne), 0);
-    return lignes * pt * 1.3 / 72 + 0.15 <= hauteur;
+    return lignes * pt * 1.3 / 72 + 0.2 <= hauteur;
   }) || 9.5;
 }
 
@@ -395,7 +402,7 @@ function ficheSlide(s, f, x0, y, hauteur) {
   const ligneSources = c.t.etiquette + c.sources.join(' · ') + (c.t.quand ? ' — ' + c.t.quand : '') + (c.t.cotation ? ' · Cotation : ' + c.t.cotation : '');
   const extraitTxt = c.extrait ? c.extrait.source + ' : « ' + c.extrait.texte + ' »' : c.sansExtrait;
   // Le titre est écrit 2 pt plus grand que le corps : compté en conséquence.
-  const taille = tailleFiche([c.titre + ' '.repeat(Math.ceil(c.titre.length / 5)), extraitTxt, ligneSources], largeur, hauteur);
+  const taille = tailleFiche([c.titre + ' '.repeat(Math.ceil(c.titre.length / 5)), extraitTxt, ligneSources].concat(c.video ? ['Voir la vidéo de la source'] : []), largeur, hauteur);
   const corps = [{ text: c.titre, options: { bold: true, color: VERT, fontSize: taille + 2, breakLine: true } }];
   if (c.extrait) {
     corps.push({ text: c.extrait.source + ' : ' + c.extrait.langue, options: { bold: true, paraSpaceBefore: 4 } },
@@ -407,7 +414,7 @@ function ficheSlide(s, f, x0, y, hauteur) {
     const restants = c.sources.filter((x) => !c.liens.some((l) => l.source === x));
     if (restants.length) corps.push({ text: ' · ' + restants.join(' · '), options: { fontSize: taille - 1 } });
   } else corps.push({ text: c.t.source, options: { fontSize: taille - 1 } });
-  corps.push({ text: (c.t.quand ? ' — ' + c.t.quand : '') + (c.t.cotation ? '   ·   Cotation : ' + c.t.cotation : ''), options: { fontSize: taille - 1, bold: !!c.t.cotation, breakLine: !!c.video } });
+  corps.push({ text: (c.t.quand ? ' — ' + c.t.quand : '') + (c.t.cotation ? '   ·   ' + COTATION_LIB + c.t.cotation : ''), options: { fontSize: taille - 1, bold: !!c.t.cotation, breakLine: !!c.video } });
   if (c.video) corps.push({ text: 'Voir la vidéo de la source', options: { color: VERT, fontSize: taille - 1, hyperlink: lienPptx(c.video) } });
   s.addText(corps, { x: x0, y, w: largeur, h: hauteur, fontFace: POLICE, fontSize: taille, color: TEXTE, valign: 'top', paraSpaceAfter: 2, margin: 0 });
   if (photo) {
@@ -458,9 +465,15 @@ function pageMarquant(pptx, ctx, titreNum, titre, f, pays, nomPays, confiance) {
   const r = redaction.rediger(f, nomPays);
   const photo = f.photo && f.photo.data ? f.photo : null;
   const largeurTexte = photo ? 7.45 : 12.0;
-  s.addText([{ text: r.titre, options: { bold: true, color: VERT, fontSize: 22, fontFace: POLICE_TITRE } }],
-    { x: 0.7, y, w: 12.0, h: 0.75, valign: 'top' });
-  y += 0.8;
+  // Un titre de trois lignes chevauchait « Contexte » dans une boîte de 0,75 po
+  // (rapport de novembre, Liberia, p. 65) : la boîte suit le nombre de lignes,
+  // et le corps descend à 18 pt au-delà de deux lignes.
+  const tailleTitre = r.titre.length > 2 * Math.floor(12.0 * 72 / (22 * 0.55)) ? 18 : 22;
+  const lignesTitre = Math.ceil(r.titre.length / Math.floor(12.0 * 72 / (tailleTitre * 0.55)));
+  const hTitre = lignesTitre * tailleTitre * 1.2 / 72 + 0.1;
+  s.addText([{ text: r.titre, options: { bold: true, color: VERT, fontSize: tailleTitre, fontFace: POLICE_TITRE } }],
+    { x: 0.7, y, w: 12.0, h: hTitre, valign: 'top', margin: 0 });
+  y += hTitre + 0.08;
   const t = faitTexte(f);
   const hauteur = 6.45 - y;
   // Le plus grand corps qui tient dans la page (14 pt, puis 13, 12, 11) :
@@ -486,7 +499,7 @@ function pageMarquant(pptx, ctx, titreNum, titre, f, pays, nomPays, confiance) {
     const restants = r.sources.filter((x) => !r.liens.slice(0, 4).some((l) => l.source === x));
     if (restants.length) corps.push({ text: ' · ' + restants.join(' · '), options: {} });
   } else corps.push({ text: t.source, options: {} });
-  corps.push({ text: (t.quand ? ' — ' + t.quand : '') + (t.cotation ? '   ·   Cotation : ' + t.cotation : ''), options: { bold: !!t.cotation, breakLine: true } });
+  corps.push({ text: (t.quand ? ' — ' + t.quand : '') + (t.cotation ? '   ·   ' + COTATION_LIB + t.cotation : ''), options: { bold: !!t.cotation, breakLine: true } });
   if (r.video) corps.push({ text: 'Voir la vidéo de la source', options: { color: VERT, hyperlink: lienPptx(r.video), breakLine: true } });
   s.addText(corps, { x: 0.7, y, w: largeurTexte, h: hauteur, fontFace: POLICE, fontSize: taille, color: TEXTE, valign: 'top', paraSpaceAfter: 3 });
   if (photo) {
@@ -499,27 +512,38 @@ function pageMarquant(pptx, ctx, titreNum, titre, f, pays, nomPays, confiance) {
 }
 
 
+const LIGNES_SOMMAIRE = 24;
 function pageSommaire(pptx, ctx, ci, regionaux) {
   const s = pptx.addSlide();
   titrePage(s, '0', '- TABLE DES MATIÈRES');
   const bloc = (x, titre, lignes) => {
     s.addShape('rect', { x, y: 1.25, w: 6.05, h: 5.2, fill: { color: 'FFFFFF' }, line: { color: TEXTE, width: 0.75 } });
     s.addText(titre, { x, y: 1.3, w: 6.05, h: 0.4, fontFace: POLICE_TITRE, fontSize: 15, color: VERT, align: 'center' });
-    s.addText(lignes, { x: x + 0.2, y: 1.8, w: 5.65, h: 4.6, fontFace: POLICE, fontSize: 9, color: TEXTE, valign: 'top', paraSpaceAfter: 2 });
+    s.addText(lignes, { x: x + 0.2, y: 1.8, w: 5.65, h: 4.55, fontFace: POLICE, fontSize: 10, color: TEXTE, valign: 'top', paraSpaceAfter: 2, fit: 'shrink' });
   };
-  const court = (t) => (t.length > 84 ? t.slice(0, 81) + '…' : t);
+  // Une entrée = une ligne. En capitales et coupées à 84 caractères, elles
+  // prenaient deux lignes et la colonne de droite débordait du cadre sur le
+  // pied de page (rapport de novembre, 14/11/2026). Casse de phrase, coupe au
+  // mot à 72 caractères, et au plus LIGNES_SOMMAIRE lignes par cadre.
+  const court = (f) => {
+    const marque = !f.titreFr && LANGUE_ORIGINE[f.langue] ? '(' + LANGUE_ORIGINE[f.langue] + ') ' : '';
+    const t = marque + redaction.phraseDe(f);
+    return t.length > 72 ? t.slice(0, 71).replace(/\s+\S*$/, '') + ' …' : t;
+  };
   const gauche = [];
+  const rubriquesPleines = RUBRIQUES.filter((r) => faitsRubrique(ci, r).length).length || 1;
+  const parRubrique = Math.max(2, Math.min(6, Math.floor((LIGNES_SOMMAIRE - 1.5 * rubriquesPleines) / rubriquesPleines)));
   for (const r of RUBRIQUES) {
     const faits = faitsRubrique(ci, r);
     if (!faits.length) continue;
     gauche.push({ text: r.titre, options: { bold: true, color: VERT, breakLine: true, paraSpaceBefore: 6 } });
-    faits.slice(0, 6).forEach((f) => gauche.push({ text: court(titreDeFait(f)), options: { bullet: { code: '2751' }, breakLine: true } }));
+    faits.slice(0, parRubrique).forEach((f) => gauche.push({ text: court(f), options: { bullet: { code: '2751' }, breakLine: true } }));
   }
   if (!gauche.length) gauche.push({ text: 'Aucun fait marquant relevé sur la période.', options: { italic: true } });
   const droite = [];
   regionaux.forEach((d) => {
     droite.push({ text: d.nom.toUpperCase(), options: { bold: true, color: VERT, breakLine: true, paraSpaceBefore: 6 } });
-    (d.faits || []).slice(0, 1).forEach((f) => droite.push({ text: court(titreDeFait(f)), options: { bullet: { code: '2751' }, breakLine: true } }));
+    (d.faits || []).slice(0, 1).forEach((f) => droite.push({ text: court(f), options: { bullet: { code: '2751' }, breakLine: true } }));
   });
   bloc(0.5, 'FAITS MARQUANTS EN CÔTE D\'IVOIRE', gauche);
   bloc(6.8, 'DYNAMIQUES SOUS-RÉGIONALES', droite);
@@ -709,5 +733,5 @@ module.exports = {
   PAYS_REGIONAUX, construire, planRapport, faitsMarquants, faitsIllustres, ficheTexte, rapportsAActualiser, dernierJourMois, moisPrecedent, libellePeriode, ecrire, majIndex, reconstruireIndex, cheminRapport, rubriqueDe, RUBRIQUES,
   // partagés avec la version Word (rapport-grsci-word.js)
   ASSETS, NOM_MODELE, EMETTEUR_DEFAUT, CONFIG_EMETTEUR, lireEmetteur, fixerEmetteurMois, emetteurDuMois, cheminEmetteurMois, piedTexte, cadreLogo, ratioImage, TITRE_COUVERTURE, TITRE_DOCUMENT, VERT, TEXTE, LEGERE, POLICE, POLICE_TITRE, DRAPEAUX, rectsDrapeau,
-  dateLongue, dateCourte, paginer, faitTexte, ligneConfiance, COTATION, faitsRubrique, MAX_FAITS_RUBRIQUE, FAITS_PAR_PAGE, ROMAIN, MAX_FAITS_PAYS, periode, titreDeFait, taillePastille,
+  dateLongue, dateCourte, paginer, faitTexte, ligneConfiance, COTATION, LANGUE_ORIGINE, faitsRubrique, MAX_FAITS_RUBRIQUE, FAITS_PAR_PAGE, ROMAIN, MAX_FAITS_PAYS, periode, titreDeFait, taillePastille,
 };

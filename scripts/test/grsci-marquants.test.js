@@ -126,7 +126,9 @@ test('PowerPoint : une page rédigée par fait marquant, la photo seulement si e
   const sans = F('Braquage sur un axe', 'high');
   const ci = { cy: 'CI', nom: "Côte d'Ivoire", confiance: { libelle: 'moyenne' }, faits: [avec, sans] };
   const p = g.construire(FauxPptx, { jour: '2026-10-23', ci, regionaux: [] });
-  const page = (t) => p.slides.find((s) => s.textes.some((x) => x.includes(t)));
+  // Le sommaire écrit les titres en casse de phrase depuis le 14/11/2026 : on
+  // cherche la page du fait, pas sa ligne de sommaire.
+  const page = (t) => p.slides.find((s) => s.textes.some((x) => x.includes(t)) && !s.textes.some((x) => x.includes('TABLE DES MATIÈRES')));
   const pa = page('Attaque contre un poste de gendarmerie');
   assert.ok(pa.textes.some((x) => x.includes('Ce que rapportent les sources') && x.includes('« Des hommes armés ont ouvert le feu. »') && x.includes('Enjeux sûreté')));
   const photo = pa.images.find((i) => i.data);
