@@ -332,6 +332,9 @@ function titreDeFait(f) {
 // tenir au modèle de 2024. Mêmes règles que le bulletin : Confirmé = recoupé
 // par une seconde source ; Probable = source unique capable d'alerter ; Non
 // confirmé = le reste. La confiance qualifie le niveau du pays, pas un fait.
+// L'indice de confiance a été RETIRÉ du rapport le 14/11/2026 (YORO : « les
+// conf sont incompréhensibles, à supprimer »). `ligneConfiance` reste exportée
+// pour qui voudrait la réafficher ; aucune page ne l'appelle plus.
 // Espaces insécables : « Cotation : Non confirmé » ne se coupe jamais en fin
 // de ligne (relecture du rapport de novembre, 14/11/2026 : « Cotation : » seul,
 // « Probable » à la ligne suivante, sur une page sur trois).
@@ -576,19 +579,17 @@ function construire(PptxGenJS, { jour, ci, regionaux, emetteur }) {
   intercalaire(pptx, ctx, 'FAITS MARQUANTS EN CÔTE D\'IVOIRE', 'carte-ci.jpg', redaction.NOTE_REDACTION);
   const plan = planRapport(ci, regionaux);
   for (const { rub, marquants, liste } of plan.ci) {
-    let premiere = true;
-    const conf = () => { const c = premiere ? ligneConfiance(ci) : null; premiere = false; return c; };
-    marquants.forEach((f) => pageMarquant(pptx, ctx, rub.num, '- ' + rub.titre, f, 'CI', ci.nom || 'Côte d\'Ivoire', conf()));
-    paginer(liste, FAITS_PAR_PAGE).forEach((p) => pageFaits(pptx, ctx, rub.num, '- ' + rub.titre, p, 'CI', null, conf()));
+    marquants.forEach((f) => pageMarquant(pptx, ctx, rub.num, '- ' + rub.titre, f, 'CI', ci.nom || 'Côte d\'Ivoire'));
+    paginer(liste, FAITS_PAR_PAGE).forEach((p) => pageFaits(pptx, ctx, rub.num, '- ' + rub.titre, p, 'CI', null));
   }
   intercalaire(pptx, ctx, 'DYNAMIQUES RÉGIONALES', 'afrique.png');
   plan.regionaux.forEach(({ d, marquants, liste }, i) => {
     const titre0 = i === 0 ? d.nom + ' : situation ' + periode(jour) : d.nom;
     let k = 0;
-    marquants.forEach((f) => { pageMarquant(pptx, ctx, ROMAIN[i + 1], k ? d.nom : titre0, f, d.cy, d.nom, k ? null : ligneConfiance(d)); k++; });
+    marquants.forEach((f) => { pageMarquant(pptx, ctx, ROMAIN[i + 1], k ? d.nom : titre0, f, d.cy, d.nom); k++; });
     const pages = paginer(liste, FAITS_PAR_PAGE);
     if (!pages.length && !k) pages.push([]);
-    pages.forEach((p) => { pageFaits(pptx, ctx, ROMAIN[i + 1], k ? d.nom : titre0, p, d.cy, null, k ? null : ligneConfiance(d)); k++; });
+    pages.forEach((p) => { pageFaits(pptx, ctx, ROMAIN[i + 1], k ? d.nom : titre0, p, d.cy, null); k++; });
   });
   pageMerci(pptx, ctx);
   return pptx;

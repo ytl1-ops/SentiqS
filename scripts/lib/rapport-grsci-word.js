@@ -12,6 +12,8 @@ const redaction = require('./redaction-grsci');
 
 // Comme le PowerPoint, il respecte la présentation du modèle du groupe : pas de
 // niveau d'alerte, de confiance, de score ni de cotation (notions de l'appli).
+// L'indice de confiance, ajouté le 23/10/2026, a été retiré le 14/11/2026 à la
+// demande de YORO (« incompréhensible ») ; la cotation reste.
 //
 // Page 16:9 du modèle (954 × 540 pt), en vingtièmes de point.
 const LARGEUR = 19080;
@@ -109,12 +111,6 @@ function construireWord(D, { jour, ci, regionaux, emetteur }) {
   }
   function lignesFaits(faits) {
     return faits.map((f, i) => ficheWord(f, i === faits.length - 1));
-  }
-
-  // Indice de confiance du pays, sous l'en-tête de sa première page.
-  function ligneConf(d) {
-    const t = g.ligneConfiance(d);
-    return t ? [par(run(t, { italics: true, color: g.LEGERE, size: 22 }), { spacing: { before: 60 } })] : [];
   }
 
   // Un fait marquant rédigé (demande du 23/10/2026) : même texte que la page
@@ -248,15 +244,12 @@ function construireWord(D, { jour, ci, regionaux, emetteur }) {
 
   // — Rubriques de la Côte d'Ivoire : faits rédigés d'abord, puis la liste.
   for (const { rub, marquants, liste } of plan.ci) {
-    let k = 0;
     marquants.forEach((f) => {
       corps.push(...entete(rub.num, '- ' + rub.titre, 'CI'));
-      if (k++ === 0) corps.push(...ligneConf(ci));
       corps.push(...faitMarquant(f, ci.nom || 'Côte d\'Ivoire'));
     });
     g.paginer(liste, g.FAITS_PAR_PAGE).forEach((p) => {
       corps.push(...entete(rub.num, '- ' + rub.titre, 'CI'));
-      if (k++ === 0) corps.push(...ligneConf(ci));
       corps.push(...lignesFaits(p));
     });
   }
@@ -268,14 +261,14 @@ function construireWord(D, { jour, ci, regionaux, emetteur }) {
     let k = 0;
     marquants.forEach((f) => {
       corps.push(...entete(g.ROMAIN[i + 1], k ? d.nom : titre0, d.cy));
-      if (k++ === 0) corps.push(...ligneConf(d));
+      k++;
       corps.push(...faitMarquant(f, d.nom));
     });
     const pages = g.paginer(liste, g.FAITS_PAR_PAGE);
     if (!pages.length && !k) pages.push([]);
     pages.forEach((p) => {
       corps.push(...entete(g.ROMAIN[i + 1], k ? d.nom : titre0, d.cy));
-      if (k++ === 0) corps.push(...ligneConf(d));
+      k++;
       if (p.length) corps.push(...lignesFaits(p));
       else corps.push(par(run('Aucun fait marquant relevé sur la période.', { italics: true, color: g.LEGERE }), { spacing: { before: 160 } }));
     });

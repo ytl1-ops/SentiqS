@@ -18,7 +18,7 @@ test('les rassemblements de foule entrent à l’agenda, par leur titre', () => 
   assert.strictEqual(type('ÉLIMINATOIRES CAN 2027 : les Aigles du Mali jouent le leadership à Bamako'), 'sportif');
   assert.strictEqual(type('Magal de Touba 2026 : plus de quatre millions de pèlerins attendus'), 'religieux');
   assert.strictEqual(type('Mopti : Célébration de la journée nationale des autorités traditionnelles'), 'ceremonie');
-  assert.strictEqual(type("Nigeria : le meeting de l'opposant Peter Obi attaqué à Lagos"), 'meeting');
+  assert.strictEqual(type("Nigeria : le meeting de l'opposant Peter Obi à Lagos"), 'meeting');
   assert.strictEqual(type('Musique : Jazz à Ouaga signe son grand retour du 27 au 29 novembre'), 'concert');
   assert.strictEqual(type('Unima Theatre Festival returns Nov 27 to 29'), 'festival');
 });
@@ -48,4 +48,38 @@ test('le type d’agenda est recalculé à la réhydratation, et la collecte lit
   assert.match(corps, /typeEvenementDetecte\(texteClass, a\.title \|\| ''\)/);
   assert.strictEqual((HTML.match(/typeEvenementDetecte\(title ?\+ ?' ' ?\+ ?desc, title\)/g) || []).length, 2);
   for (const v of ['religieux', 'ceremonie', 'meeting']) assert.ok(HTML.includes('<option value="' + v + '">'), v);
+});
+
+// Demande de YORO du 14/11/2026 : « collecte le max d'actu à insérer dans
+// l'agenda, pas celles en lien avec les événements sûreté ».
+test('un incident ne va jamais à l’agenda, même s’il nomme un rassemblement', () => {
+  const { type } = monter();
+  for (const t of [
+    "Nigeria : le meeting de l'opposant Peter Obi attaqué à Lagos",
+    'Barcelone : des violences éclatent après les cortèges de la grève',
+    'Stade de Bouaké : deux blessés dans un mouvement de foule',
+    'Festival attacked by gunmen in Kaduna',
+  ]) assert.strictEqual(type(t), null, t);
+  // Une cyberattaque évoquée à propos d'un événement ne retire pas l'événement.
+  assert.strictEqual(type('JOJ 2026 : quels dispositifs face aux cyberattaques ?'), 'sportif');
+});
+
+test('l’agenda reçoit aussi salons, expositions, sommets, visites et campagnes', () => {
+  const { type } = monter();
+  assert.strictEqual(type('Ecobank JoyBusiness SME Fair 2026 opens today at Ghud Park, Accra Mall'), 'foire');
+  assert.strictEqual(type('Niamey : la ministre du Tourisme visite l’exposition « Niamey, des origines à 2050 »'), 'foire');
+  assert.strictEqual(type('Kagame, First Lady in Cambodia for State Visit'), 'gouvernemental');
+  assert.strictEqual(type('Simandou Mining Summit : l’ambition de l’ACGP'), 'colloque');
+  assert.strictEqual(type('Gambie : Almameh Gibba lance sa campagne pour la présidentielle de décembre'), 'meeting');
+  assert.strictEqual(type('Elim CAN 2027 : les Lions indomptables sans pitié pour la Namibie'), 'sportif');
+  assert.strictEqual(type('COP31 : Faure Gnassingbé participe au sommet des dirigeants à Antalya'), 'gouvernemental');
+  // Ce qui n'est pas un événement reste dehors.
+  assert.strictEqual(type('JSK : Bilel Messaoudi au sommet en octobre'), null);
+  assert.strictEqual(type('Le Sénégal marche sur le Soudan, suivez la conférence de presse'), null);
+  assert.strictEqual(type('Brakna : le ministre lance la campagne nationale de vaccination du bétail'), null);
+});
+
+test('une ligne d’agenda partagé qui porte un incident est écartée à la lecture', () => {
+  const corps = tranche('async function lireAgendaPartagee', 'catch (e) { console.warn(\'SentiqS — lireAgendaPartagee a echoue');
+  assert.strictEqual((corps.match(/ligneAgendaEstIncident\(l\)/g) || []).length, 2);
 });
