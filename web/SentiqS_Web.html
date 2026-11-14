@@ -2977,6 +2977,15 @@ html.force-mobile .une-tit{font-size:14px}
 .pano-bulle{position:absolute;top:0;pointer-events:none;background:var(--w);border:1px solid var(--bd);border-radius:4px;padding:5px 8px;font-size:11px;color:var(--t);white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.25);display:none;z-index:2}
 .pano-courbe.survol .pano-bulle{display:block}
 .pano-vide{font-size:12px;color:var(--t2);padding:18px 0}
+.pano-courbe{cursor:pointer}
+.pano-jour:empty{display:none}
+.pano-jour{margin-top:8px;padding-top:8px;border-top:1px solid var(--bd)}
+.pano-jour-tt{font-size:11px;font-weight:700;color:var(--t);margin:0 0 6px}
+.pano-jour-liste{display:flex;flex-wrap:wrap;gap:4px 6px}
+.pano-jour-liste span{display:inline-flex;align-items:center;gap:5px;min-height:24px;padding:2px 8px;border:1px solid var(--bd);border-radius:4px;font-size:11px;color:var(--t);cursor:pointer}
+.pano-jour-liste span:hover,.pano-jour-liste span:focus-visible{background:var(--sf)}
+.pano-jour-liste i{width:8px;height:8px;border-radius:2px;flex:none}
+.pano-jour-liste em{font-style:normal;color:var(--lg);font-size:var(--fs-micro,10px)}
 @media (max-width:760px){html:not(.force-web) .pano-grille{grid-template-columns:1fr}html:not(.force-web) .pano-courbe svg{height:130px}}
 html.force-mobile .pano-grille{grid-template-columns:1fr}
 html.force-mobile .pano-courbe svg{height:130px}
@@ -14503,6 +14512,17 @@ function serieTensionPano(serie, nbJours) {
   }));
   return jours.map(j => parJour[j]);
 }
+// Les pays à l'orange ou plus pour un relevé donné, du plus grave au moins grave.
+function paysEnTensionJour(serie, jour) {
+  if (!serie || !serie.pays) return [];
+  const rang = { rouge: 0, marron: 1, orange: 2 };
+  const out = [];
+  Object.keys(serie.pays).forEach(cy => {
+    const e = (serie.pays[cy] || []).find(x => x[0] === jour);
+    if (e && rang[e[1]] !== undefined) out.push({ cy, key: e[1] });
+  });
+  return out.sort((a, b) => rang[a.key] - rang[b.key] || a.cy.localeCompare(b.cy));
+}
 function panoramaDashboard(scores, artsActifs, couleurNiv) {
   const en = LANG === 'en';
   const nb = {}; PANO_NIVEAUX.forEach(k => { nb[k] = scores.filter(s => s.key === k).length; });
@@ -14533,8 +14553,8 @@ function panoramaDashboard(scores, artsActifs, couleurNiv) {
 
   const serie = serieTensionPano(typeof HISTORIQUE_SERIE !== 'undefined' ? HISTORIQUE_SERIE : null, 30);
   const courbe = serie.length >= 2
-    ? '<div class="pano-courbe" id="panoCourbe" data-filtre="kpi:tension" role="button" tabindex="0" aria-label="' + (en ? 'Countries under tension per daily reading, open the Alerts' : 'Pays en tension par relevé quotidien, ouvrir les Alertes') + '"></div>' +
-      '<div class="pano-cle" style="margin-top:6px"><span><i style="background:' + couleurNiv('orange') + '"></i>' + (en ? 'High or above' : 'Élevé ou plus') + ' <b>' + serie[serie.length - 1].orangePlus + '</b></span><span><i style="background:' + couleurNiv('rouge') + '"></i>' + (en ? 'Critical or severe' : 'Critique ou grave') + ' <b>' + serie[serie.length - 1].marronPlus + '</b></span></div>'
+    ? '<div class="pano-courbe" id="panoCourbe" role="button" tabindex="0" aria-controls="panoJour" aria-label="' + (en ? 'Countries under tension per daily reading: click a day to list its countries (arrow keys to move)' : 'Pays en tension par relevé quotidien : un clic sur un jour liste ses pays (flèches pour changer de jour)') + '"></div>' +
+      '<div class="pano-cle" style="margin-top:6px"><span data-filtre="alniv:orange" role="button" tabindex="0"><i style="background:' + couleurNiv('orange') + '"></i>' + (en ? 'High or above' : 'Élevé ou plus') + ' <b>' + serie[serie.length - 1].orangePlus + '</b></span><span data-filtre="alniv:marron" role="button" tabindex="0"><i style="background:' + couleurNiv('rouge') + '"></i>' + (en ? 'Critical or severe' : 'Critique ou grave') + ' <b>' + serie[serie.length - 1].marronPlus + '</b></span></div><div class="pano-jour" id="panoJour" aria-live="polite"></div>'
     : '<div class="pano-vide">' + (en ? 'The trajectory appears after two daily readings of the archive.' : 'La trajectoire s\'affiche à partir de deux relevés quotidiens de l\'archive.') + '</div>';
 
   const portee = cyChoisi ? escHtml((PAYS_INFO[cyChoisi] || {}).name || cyChoisi) : (en ? 'all countries' : 'tous les pays');
@@ -14582,6 +14602,33 @@ function dessinerCourbePano(couleurNiv) {
   };
   hote.addEventListener('pointermove', montrer);
   hote.addEventListener('pointerleave', () => hote.classList.remove('survol'));
+  // Un clic (ou Entrée, ou les flèches) sur un jour liste ses pays en tension,
+  // chacun menant à sa fiche : la courbe renvoie aux données qu'elle trace.
+  const jourIndex = ev => {
+    const r = svg.getBoundingClientRect(); if (!r.width) return serie.length - 1;
+    const vx = (ev.clientX - r.left) * W / r.width;
+    return Math.max(0, Math.min(serie.length - 1, Math.round((vx - g) / (W - g - 6) * (serie.length - 1))));
+  };
+  let choisi = serie.length - 1;
+  const lister = i => {
+    choisi = i;
+    const d = serie[i], liste = paysEnTensionJour(HISTORIQUE_SERIE, d.jour);
+    const boite = document.getElementById('panoJour'); if (!boite) return;
+    rep.setAttribute('x1', x(i)); rep.setAttribute('x2', x(i)); hote.classList.add('survol');
+    boite.innerHTML = '<div class="pano-jour-tt">' + fmt(d.jour) + ' · ' + liste.length + (en ? ' countries at high or above' : ' pays à élevé ou plus') + '</div>' +
+      (liste.length ? '<div class="pano-jour-liste">' + liste.map(p => {
+        const info = (typeof PAYS_INFO !== 'undefined' && PAYS_INFO[p.cy]) || {};
+        return '<span data-filtre="pays:' + p.cy + '" role="button" tabindex="0" title="' + (en ? 'Open the country sheet' : 'Ouvrir la fiche du pays') + '"><i style="background:' + couleurNiv(p.key) + '"></i>' + (info.flag || '') + ' ' + escHtml(info.name || p.cy) + ' <em>' + libelleNiveauPano(p.key) + '</em></span>';
+      }).join('') + '</div>' : '');
+  };
+  // Un clic venu du clavier (detail 0, relayé par clavierRolesBouton) garde le
+  // jour choisi : sa position serait celle du coin de l'écran.
+  hote.addEventListener('click', ev => lister(ev.detail === 0 ? choisi : jourIndex(ev)));
+  hote.addEventListener('keydown', ev => {
+    if (ev.key === 'ArrowLeft') { ev.preventDefault(); lister(Math.max(0, choisi - 1)); }
+    else if (ev.key === 'ArrowLeft') { ev.preventDefault(); lister(Math.max(0, choisi - 1)); }
+    else if (ev.key === 'ArrowRight') { ev.preventDefault(); lister(Math.min(serie.length - 1, choisi + 1)); }
+  });
 }
 
 function setDashCartoMode(m) { window.dashCartoMode = m; if (typeof renderDashboard === 'function') renderDashboard(); } async function renderDashboard() {
@@ -14729,7 +14776,7 @@ const profilView = () => {
     const [x,y] = toXY(i, 1);
     const [lx,ly] = toXY(i, 1.22);
     return `<line x1="${cx}" y1="${cy0}" x2="${x}" y2="${y}" stroke="var(--bd)" stroke-width="1"/>`
-      + `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="8.5" font-weight="700" fill="var(--lg)">${ax.lb}</text>`;
+      + `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="8.5" font-weight="700" fill="var(--lg)" style="cursor:pointer" data-filtre="cat:${ax.k}" role="button" tabindex="0">${ax.lb}</text>`;
   }).join('');
   const COUL = ['#8B1A1A', '#2C5AAE', '#0F4F2A'];
   const formes = profils.map((x, k) => {
@@ -14737,10 +14784,14 @@ const profilView = () => {
     const pts = PROFIL_AXES.map((ax,i) => toXY(i, x.p.parCat[ax.k]/maxVal).join(',')).join(' ');
     const points = PROFIL_AXES.map((ax,i) => {
       const [px,py] = toXY(i, x.p.parCat[ax.k]/maxVal);
-      return `<circle cx="${px}" cy="${py}" r="2.6" fill="${col}"><title>${x.s.pays.name} — ${ax.lb} : ${x.p.parCat[ax.k]} article(s)</title></circle>`;
+      // Point cliquable (13/11/2026) : ouvre le Flux de ce pays sur cette dimension.
+      return `<circle cx="${px}" cy="${py}" r="2.6" fill="${col}"/><circle cx="${px}" cy="${py}" r="9" fill="transparent" style="cursor:pointer" data-filtre="payscat:${x.s.cy}:${ax.k}" role="button" tabindex="0" aria-label="${escHtml(x.s.pays.name)} — ${ax.lb} : ${x.p.parCat[ax.k]} article(s)"><title>${x.s.pays.name} — ${ax.lb} : ${x.p.parCat[ax.k]} article(s)</title></circle>`;
     }).join('');
-    return `<polygon points="${pts}" fill="${col}" fill-opacity="0.13" stroke="${col}" stroke-width="1.6"/>${points}`;
-  }).join('');
+    return { forme: `<polygon points="${pts}" fill="${col}" fill-opacity="0.13" stroke="${col}" stroke-width="1.6"/>`, points };
+  });
+  // Points dessines APRES toutes les formes : sinon le polygone du pays
+  // suivant recouvre les points du precedent et absorbe le clic.
+  const formesSvg = formes.map(f => f.forme).join('') + formes.map(f => f.points).join('');
   const legende = profils.map((x,k) => {
     const col = COUL[k % COUL.length];
     return `<span onclick="applyGlobalCountryFilter('${x.s.cy}')" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--t);" role="button" tabindex="0">
@@ -14749,7 +14800,7 @@ const profilView = () => {
       <span style="color:var(--lg);font-family:var(--font-mono,'Roboto Mono',monospace);">${Math.round(x.s.score)} · ${x.p.total} art.</span></span>`;
   }).join('');
   return `<div style="max-width:520px;margin:0 auto;">
-      <svg viewBox="0 0 440 400" style="width:100%;height:auto;display:block;">${toile}${rayons}${formes}</svg>
+      <svg viewBox="0 0 440 400" style="width:100%;height:auto;display:block;">${toile}${rayons}${formesSvg}</svg>
     </div>
     <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:8px;">${legende}</div>
     <div style="text-align:center;font-size:9px;color:var(--lg);margin-top:8px;opacity:.8;">
@@ -14809,13 +14860,14 @@ const cartogramme = () => {
     <style>@media (max-width:760px){#dashContent .ops-carto-grid{grid-template-columns:1fr!important;grid-template-areas:'nord' 'sahel' 'corne' 'cotiere' 'golfe' 'centrale' 'lacs' 'austral'!important;}}</style>`;
   };
 
-  const zoneCard = (titre, liste, couleur) => !liste.length ? '' :
+  const zoneCard = (titre, liste, couleur, cle) => !liste.length ? '' :
     `<div style="background:var(--w);border:1px solid var(--bd);border-left:3px solid ${couleur};border-radius:9px;padding:12px;margin-bottom:8px;">
-       <div style="font-size:10px;font-weight:700;color:${couleur};text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">${titre} (${liste.length} pays)</div>
+       <div style="font-size:10px;font-weight:700;color:${couleur};text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;cursor:pointer;"${cle?` data-filtre="alniv:${cle}" role="button" tabindex="0" title="${LANG==='en'?'Open the sheets of this level':'Ouvrir les fiches de ce niveau'}"`:''}>${titre} (${liste.length} pays)</div>
        <div style="display:flex;flex-wrap:wrap;gap:6px;">
-         ${liste.slice(0,12).map(s=>`<span onclick="applyGlobalCountryFilter('${s.cy}')" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:4px 9px;background:${couleur}12;border:1px solid ${couleur}44;border-radius:5px;font-size:11px;font-weight:600;color:${couleur};" role="button" tabindex="0">
+         ${liste.slice(0,12).map(s=>`<span data-filtre="pays:${s.cy}" title="${LANG==='en'?'Open the country sheet':'Ouvrir la fiche du pays'}" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:4px 9px;background:${couleur}12;border:1px solid ${couleur}44;border-radius:5px;font-size:11px;font-weight:600;color:${couleur};" role="button" tabindex="0">
            ${s.pays.flag} ${s.pays.name} <span style="font-family:var(--font-mono,'Roboto Mono',monospace);font-size:9px;opacity:.8;">${s.score}</span>
          </span>`).join('')}
+         ${liste.length > 12 && cle ? `<span data-filtre="alniv:${cle}" role="button" tabindex="0" style="cursor:pointer;display:inline-flex;align-items:center;padding:4px 9px;border:1px dashed ${couleur}66;border-radius:5px;font-size:11px;font-weight:600;color:var(--t2);">+${liste.length - 12} ${LANG==='en'?'more':'autres'}</span>` : ''}
        </div>
      </div>`;
 
@@ -14849,11 +14901,11 @@ const cartogramme = () => {
       </div>
 
       <!-- Zones de risque -->
-      ${zoneCard('🔴 RISQUE GRAVE — Rouge', rouge, cv('--r','#8B1A1A'))}
-      ${zoneCard('🟤 RISQUE CRITIQUE — Marron', marron, cv('--m','#78350F'))}
-      ${zoneCard('🟠 RISQUE TENDU — Orange', orange, cv('--a','#7C4A00'))}
-      ${zoneCard('🟡 RISQUE MODÉRÉ — Jaune', jaune, cv('--j-txt','#854D0E'))}
-      ${zoneCard('🟢 SITUATION NORMALE — Vert', vert, cv('--g','#0F4F2A'))}
+      ${zoneCard('🔴 RISQUE GRAVE — Rouge', rouge, cv('--r','#8B1A1A'), 'rouge')}
+      ${zoneCard('🟤 RISQUE CRITIQUE — Marron', marron, cv('--m','#78350F'), 'marron')}
+      ${zoneCard('🟠 RISQUE TENDU — Orange', orange, cv('--a','#7C4A00'), 'orange')}
+      ${zoneCard('🟡 RISQUE MODÉRÉ — Jaune', jaune, cv('--j-txt','#854D0E'), 'jaune')}
+      ${zoneCard('🟢 SITUATION NORMALE — Vert', vert, cv('--g','#0F4F2A'), 'vert')}
     `;
     dessinerCourbePano(k => scoreColor({key:k}));
   });
@@ -15885,6 +15937,8 @@ function actionPastille(el) {
     return filtrerFluxPar('all', { k: 'ville', v: ville, lib: ville });
   }
   if (k === 'pays') return ouvrirVuePays(v);
+  // Point du profil de risque : le Flux de ce pays sur cette dimension.
+  if (k === 'payscat') { const j = v.indexOf(':'); applyGlobalCountryFilter(v.slice(0, j)); return filtrerFluxPar(v.slice(j + 1)); }
   if (k === 'agtype') { const s = document.getElementById('agTypeFilter'); if (s) s.value = v; return setAgendaType(v); }
   if (k === 'agstatut') { const b = [...document.querySelectorAll('.af')].find(x => (x.getAttribute('onclick') || '').includes("'" + v + "'")); if (b) setAgFilt(b, v); return; }
   if (k === 'alniv') return allerNiveauAlerte(v);

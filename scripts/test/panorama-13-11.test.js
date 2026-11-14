@@ -43,7 +43,21 @@ test('chaque élément du panorama mène aux données qu\'il montre', () => {
   assert.match(h, /data-filtre="alniv:rouge"/);
   assert.match(h, /data-filtre="cat:securite"/);
   assert.match(h, /data-filtre="pays:ML"/);
-  assert.match(h, /id="panoCourbe" data-filtre="kpi:tension"/);
+  // 14/11/2026 : la courbe n'ouvre plus un compteur global, un clic sur un
+  // jour liste les pays de ce jour (zone panoJour) ; la légende mène aux niveaux.
+  assert.match(h, /id="panoCourbe" role="button" tabindex="0" aria-controls="panoJour"/);
+  assert.doesNotMatch(h, /data-filtre="kpi:tension"/);
+  assert.match(h, /id="panoJour" aria-live="polite"/);
+  assert.match(h, /data-filtre="alniv:orange"/);
+  assert.match(h, /data-filtre="alniv:marron"/);
+});
+
+test('un jour de la trajectoire liste ses pays, du plus grave au moins grave', () => {
+  const c = contexte(serie);
+  const j = JSON.parse(JSON.stringify(c.paysEnTensionJour(serie, '2026-11-11')));
+  assert.deepStrictEqual(j, [{ cy: 'ML', key: 'marron' }, { cy: 'CI', key: 'orange' }]);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(c.paysEnTensionJour(serie, '2026-11-13'))), [{ cy: 'ML', key: 'rouge' }]);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(c.paysEnTensionJour(serie, '2026-01-01'))), []);
 });
 
 test('un niveau est écrit en toutes lettres à côté de sa couleur', () => {
@@ -72,4 +86,18 @@ test('le panorama est câblé dans le tableau de bord, et les sections portent u
   assert.match(HTML, /\.sur-titre\{display:block/);
   // Le clic sur un niveau ouvre d'abord le module Alertes.
   assert.match(HTML, /function allerNiveauAlerte\(k, essai\)[\s\S]{0,300}\.ntab\[data-view="alertes"\]/);
+});
+
+test('les autres graphiques du tableau de bord mènent à leurs données (14/11/2026)', () => {
+  // Profil de risque : chaque point ouvre le Flux du pays sur cette dimension,
+  // chaque axe le Flux de la dimension ; les points sont dessinés après toutes
+  // les formes, sinon le polygone suivant absorbe le clic.
+  assert.match(HTML, /data-filtre="payscat:\$\{x\.s\.cy\}:\$\{ax\.k\}" role="button" tabindex="0"/);
+  assert.match(HTML, /data-filtre="cat:\$\{ax\.k\}" role="button" tabindex="0"/);
+  assert.match(HTML, /formes\.map\(f => f\.forme\)\.join\(''\) \+ formes\.map\(f => f\.points\)\.join\(''\)/);
+  assert.match(HTML, /if \(k === 'payscat'\) \{[^}]*applyGlobalCountryFilter\(v\.slice\(0, j\)\); return filtrerFluxPar\(v\.slice\(j \+ 1\)\)/);
+  // Listes par niveau : le titre ouvre les fiches de ce niveau, un pays sa fiche.
+  assert.match(HTML, /const zoneCard = \(titre, liste, couleur, cle\)/);
+  assert.match(HTML, /data-filtre="alniv:\$\{cle\}"/);
+  assert.match(HTML, /'#854D0E'\), 'jaune'\)\}/);
 });

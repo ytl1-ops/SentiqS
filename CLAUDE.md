@@ -3731,3 +3731,25 @@ recalculé à côté :
 
 Exports : 14/14 identiques avant/après. `scripts/test/panorama-13-11.test.js`
 (6 tests, vus échouer sur `main`).
+
+### Chaque graphique est un bouton — 14/11/2026
+
+Demande de YORO : « les graphiques doivent être des boutons cliquables pour
+renvoyer aux données qu'ils représentent ». Ce qui n'en était pas un l'est
+devenu :
+
+- **Trajectoire** : un clic sur un jour (ou Entrée, puis ← →) liste sous la
+  courbe les pays à élevé ou plus de ce relevé (`paysEnTensionJour`, lu dans
+  l'archive), chacun ouvrant sa fiche. Le clavier arrive avec `detail === 0`
+  et `clientX` à 0 : il garde le jour choisi au lieu de retomber au premier.
+  La légende ouvre les fiches Alertes du niveau.
+- **Profil de risque** : chaque point ouvre le Flux du pays sur cette
+  dimension (`payscat:CY:cat`), chaque axe le Flux de la dimension. Les points
+  sont dessinés **après** toutes les formes : sinon le polygone du pays
+  suivant les recouvre et absorbe le clic (mesuré par `elementFromPoint`).
+- **Listes par niveau** (sous le cartogramme) : le titre ouvre les fiches du
+  niveau, un pays sa fiche (il changeait le filtre global sans rien montrer).
+- Le radar et les tuiles étaient déjà cliquables.
+
+**Piège de banc** : un article injecté sans `analysis` est écarté par
+`sourceDateNonFiable`, donc le profil sort vide. Exports 14/14 identiques.
