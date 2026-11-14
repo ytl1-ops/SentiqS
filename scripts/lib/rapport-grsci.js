@@ -73,6 +73,52 @@ function lireEmetteur(chemin) {
   return em;
 }
 
+// L'identité d'envoi se précise À CHAQUE génération demandée (consigne de
+// YORO du 14/11/2026 : « si aucune précision, le rapport sort sous le nom de
+// SentiqS par défaut. Toujours demander la précision de l'identité d'envoi »).
+// Le lancement manuel du workflow (collecte-planifiee.yml) porte trois champs,
+// identite_envoi, signature_envoi, logo_envoi. Ce qu'on y saisit est retenu
+// POUR LE MOIS dans web/rapports/mensuel/emetteur-AAAA-MM.json : le rapport du
+// mois est réécrit chaque jour par le job, et sans cette trace la réécriture du
+// lendemain le ramènerait sous le nom par défaut. Rien de saisi : le fichier de
+// configuration, à défaut SentiqS.
+const cheminEmetteurMois = (racine, mois) => path.join(racine, 'emetteur-' + mois + '.json');
+
+/** Retient l'émetteur saisi pour un mois ; ne fait rien sans identité. */
+function fixerEmetteurMois(racine, mois, saisie) {
+  const t = (v) => (typeof v === 'string' ? v.trim().slice(0, 80) : '');
+  const identite = t(saisie && saisie.identite);
+  if (!identite) return null;
+  const e = { identite, signature: t(saisie.signature), logo: t(saisie.logo), saisiLe: new Date().toISOString() };
+  fs.mkdirSync(racine, { recursive: true });
+  fs.writeFileSync(cheminEmetteurMois(racine, mois), JSON.stringify(e, null, 2) + '\n');
+  return e;
+}
+
+/**
+ * L'émetteur d'un mois : celui saisi pour ce mois s'il existe, sinon le
+ * fichier de configuration, sinon SentiqS. `precise` dit si une identité a été
+ * donnée pour ce mois (le journal du job le dit, pour qu'aucun rapport ne sorte
+ * sous le nom par défaut sans que cela se voie).
+ */
+function emetteurDuMois(racine, mois, cheminConfig) {
+  const base = lireEmetteur(cheminConfig);
+  let m = null;
+  try { m = JSON.parse(fs.readFileSync(cheminEmetteurMois(racine, mois), 'utf8')); } catch (e) { m = null; }
+  if (!m || typeof m.identite !== 'string' || !m.identite.trim()) return Object.assign(base, { precise: false });
+  const em = { identite: m.identite.trim().slice(0, 80), signature: typeof m.signature === 'string' ? m.signature.trim().slice(0, 80) : '', logo: null, logoRatio: null, precise: true };
+  // Le logo est un fichier posé dans scripts/config (un champ de formulaire ne
+  // transporte pas d'image) : on donne son nom, jamais un chemin hors du dossier.
+  if (typeof m.logo === 'string' && /^[\w.-]+\.(png|jpe?g)$/i.test(m.logo)) {
+    const p = path.join(path.dirname(cheminConfig || CONFIG_EMETTEUR), m.logo);
+    try {
+      const r = ratioImage(fs.readFileSync(p));
+      if (r && r > 0.1 && r < 10) { em.logo = p; em.logoRatio = r; }
+    } catch (e) { /* logo introuvable : rapport sans logo */ }
+  }
+  return em;
+}
+
 const piedTexte = (em) => em.identite + (em.signature ? ' — ' + em.signature : '');
 
 // Le logo tient dans une boîte (pouces) sans être déformé.
@@ -649,6 +695,6 @@ function majIndex(racine, chemin, jour, maintenant) {
 module.exports = {
   PAYS_REGIONAUX, construire, planRapport, faitsMarquants, faitsIllustres, ficheTexte, rapportsAActualiser, dernierJourMois, moisPrecedent, libellePeriode, ecrire, majIndex, reconstruireIndex, cheminRapport, rubriqueDe, RUBRIQUES,
   // partagés avec la version Word (rapport-grsci-word.js)
-  ASSETS, NOM_MODELE, EMETTEUR_DEFAUT, CONFIG_EMETTEUR, lireEmetteur, piedTexte, cadreLogo, ratioImage, TITRE_COUVERTURE, TITRE_DOCUMENT, VERT, TEXTE, LEGERE, POLICE, POLICE_TITRE, DRAPEAUX, rectsDrapeau,
+  ASSETS, NOM_MODELE, EMETTEUR_DEFAUT, CONFIG_EMETTEUR, lireEmetteur, fixerEmetteurMois, emetteurDuMois, cheminEmetteurMois, piedTexte, cadreLogo, ratioImage, TITRE_COUVERTURE, TITRE_DOCUMENT, VERT, TEXTE, LEGERE, POLICE, POLICE_TITRE, DRAPEAUX, rectsDrapeau,
   dateLongue, dateCourte, paginer, faitTexte, ligneConfiance, COTATION, faitsRubrique, MAX_FAITS_RUBRIQUE, FAITS_PAR_PAGE, ROMAIN, MAX_FAITS_PAYS, periode, titreDeFait, taillePastille,
 };

@@ -30,6 +30,18 @@ on:
         description: "Réécrire tout de suite la Présentation 1 (rapport mensuel de sûreté) du mois (sinon : premier passage de chaque jour)"
         type: boolean
         default: false
+      identite_envoi:
+        description: "Identité d'envoi du rapport (nom de l'organisation). Vide : SentiqS par défaut. Retenue pour le mois."
+        type: string
+        default: ''
+      signature_envoi:
+        description: "Ligne qui suit le nom dans le pied de page (facultatif)"
+        type: string
+        default: ''
+      logo_envoi:
+        description: "Nom du fichier logo (PNG ou JPEG) déjà posé dans scripts/config (facultatif)"
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -123,6 +135,9 @@ jobs:
       - name: Lancer la collecte planifiée
         env:
           GRSCI_FORCER: ${{ inputs.rapport_mensuel && '1' || '' }}
+          RAPPORT_IDENTITE: ${{ inputs.identite_envoi }}
+          RAPPORT_SIGNATURE: ${{ inputs.signature_envoi }}
+          RAPPORT_LOGO: ${{ inputs.logo_envoi }}
           # Firebase Hosting retire (voir suppression du workflow
           # firebase-hosting-deploy.yml) — GitHub Pages est desormais
           # l'unique hebergement reellement mis a jour a chaque push.
