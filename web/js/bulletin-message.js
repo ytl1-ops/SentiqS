@@ -274,7 +274,8 @@
   function blocPays(d, langue) {
     var T = TXT[langue];
     var niv = (langue === 'en' ? NIVEAU_EN : NIVEAU_FR)[d.niveau] || [String(d.libelle || ''), String(d.sous || '')];
-    var conf = d.confiance ? (langue === 'en' ? (CONFIANCE_EN[d.confiance] || d.confiance) : d.confiance) : null;
+    // L'indice de confiance n'est plus envoyé (YORO, 14/11/2026) : il reste à l'écran.
+    var conf = null;
     var nom = langue === 'en' ? (d.nomEn || d.nom) : d.nom;
     var faits = (Array.isArray(d.faits) ? d.faits : []).slice(0, MAX_FAITS).map(function (f) {
       var cot = f.cotation ? ((langue === 'en' ? COTATION_EN : COTATION_FR)[f.cotation] || '') : '';

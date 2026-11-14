@@ -206,7 +206,7 @@ function phraseEnBref(d, t) {
         : (d.faitsNotables > 1 ? 'aucun' : 'non') + ' recoupé par une seconde source.'));
   }
   if (t && t.crans) parts.push('Cette évolution est celle du niveau affiché : elle peut tenir à une revue du socle autant qu\'à la situation.');
-  if (d.confiance) parts.push('Confiance dans ce niveau : ' + d.confiance.libelle + '.');
+  // L'indice de confiance n'est plus imprimé (YORO, 14/11/2026) : il reste à l'écran.
   return parts.join(' ');
 }
 
@@ -264,8 +264,7 @@ function rendre(d, { jour, genereMs, serie } = {}) {
     + '<h1>' + esc(d.nom) + ' — ' + esc(dateFr(jour)) + '</h1>'
     + '<p class="meta">Établi le ' + esc(heureUTC(genereMs)) + ' GMT à partir de la collecte la plus récente. '
     + 'Diffusion visée : 7 h GMT ; le passage réel de la collecte peut la décaler jusqu\'à la mi-journée.</p>'
-    + '<h2>1. En bref</h2><p><span class="niv">' + esc(d.libelle) + '</span> '
-    + (d.confiance ? '<span class="meta">Confiance : ' + esc(d.confiance.libelle) + ' — ' + esc(d.confiance.motif) + '</span>' : '') + '</p>'
+    + '<h2>1. En bref</h2><p><span class="niv">' + esc(d.libelle) + '</span></p>'
     + '<p class="bref">' + esc(phraseEnBref(d, t)) + '</p>'
     + (d.motifPlafond ? '<p class="meta">' + esc(d.motifPlafond) + '.</p>' : '')
     + '<h2>2. Faits des ' + esc(d.fenetreH) + ' dernières heures</h2>' + faits
@@ -301,7 +300,7 @@ function urlPublique(cy, jour) {
 /** Le message court qui annonce le bulletin sur le canal (un par jour). */
 function messageAnnonce(d, jour) {
   return { text: 'SentiqS — Bulletin ' + d.nom + ' du ' + dateFr(jour) + ' : niveau ' + d.libelle
-    + (d.confiance ? ', confiance ' + d.confiance.libelle : '') + ', '
+    + ', '
     + d.faitsNotables + ' fait(s) notable(s).\n' + urlPublique(d.cy, jour) };
 }
 
@@ -326,7 +325,6 @@ function lireIndex(racine) {
 function resumeBulletin(d, jour, genereMs) {
   return {
     nom: d.nom, niveau: d.niveau, libelle: d.libelle, sous: d.sous,
-    confiance: d.confiance ? d.confiance.libelle : null,
     faitsNotables: d.faitsNotables || 0,
     confirmes: (d.faits || []).filter((f) => f.cotation && f.cotation.cle === 'confirme').length,
     muet: !!(d.angleMort && d.angleMort.muet),
@@ -345,7 +343,6 @@ function rendreIndex(index) {
     return '<tr><td><a href="' + esc(l.cy) + '/dernier.html">' + esc(l.nom) + '</a>'
       + (PAYS_PILOTES.includes(l.cy) ? ' <span class="meta">(pays pilote)</span>' : '') + '</td>'
       + '<td><span class="niv" style="background:' + col + ';color:' + (TEXTE_SUR_NIVEAU[l.niveau] || '#fff') + '">' + esc(l.libelle) + '</span></td>'
-      + '<td><span class="lbl">Confiance </span>' + esc(l.confiance || '—') + '</td>'
       + '<td><span class="lbl">Faits notables : </span>' + (l.muet ? '<span class="meta">aucune actualité</span>' : esc(l.faitsNotables) + (l.confirmes ? ' <span class="meta">(' + esc(l.confirmes) + ' recoupé' + (l.confirmes > 1 ? 's' : '') + ')</span>' : '')) + '</td>'
       + '<td' + (l.jour !== recent ? ' class="ancien"' : '') + '><span class="lbl">du </span>' + esc(dateFr(l.jour)) + '</td></tr>';
   }).join('');
@@ -367,7 +364,7 @@ function rendreIndex(index) {
     + '<p class="meta">Un bulletin par pays et par jour, établi à partir de la collecte la plus récente. '
     + 'Le pays pilote d\'abord, puis du niveau le plus grave au plus calme. Une date en couleur signale un bulletin qui n\'a pas été réécrit ce jour-là.</p>'
     + '<p class="meta">« Aucune actualité » ne veut pas dire « calme » : c\'est un pays sur lequel l\'outil ne voit rien dans la fenêtre. Chaque bulletin le précise dans « Ce que nous ne savons pas ».</p>'
-    + '<table><thead><tr><th>Pays</th><th>Niveau</th><th>Confiance</th><th>Faits notables</th><th>Bulletin du</th></tr></thead><tbody>'
+    + '<table><thead><tr><th>Pays</th><th>Niveau</th><th>Faits notables</th><th>Bulletin du</th></tr></thead><tbody>'
     + corps + '</tbody></table>'
     + '<p class="meta"><a href="' + URL_SITE + 'SentiqS_Web.html">Ouvrir SentiqS</a> · Outil d\'aide à la décision : '
     + 'il ne remplace pas l\'appréciation de situation du responsable sûreté.</p>'

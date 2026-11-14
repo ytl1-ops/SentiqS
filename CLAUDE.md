@@ -2595,6 +2595,17 @@ faux depuis que la décroissance a été retirée. Remplacé.
 sont muets, donc tous à confiance faible. C'est juste, pas un défaut.
 Mesuré dans Chromium : 54 marques sur les tuiles, 54 sur les fiches, 0 erreur.
 
+**Retirée de tous les documents le 14/11/2026** (YORO : « les conf sont
+incompréhensibles »). Ni le PDF, ni le Word, ni le PowerPoint, ni l'aperçu
+imprimable, ni le bulletin quotidien (bloc « En bref », index des 54 pays,
+annonce sur le canal), ni les bulletins programmés ne l'impriment ; la
+cotation des faits reste partout, la confiance reste à l'écran
+(`marqueConfiance`). `confiance-hors-documents.test.js` refuse tout appel de
+`texteConfianceRapport` dans un générateur. Mesuré sur 14 exports générés
+avant/après : 12 identiques, Alertes en Word et PDF ne perdent que les 54
+lignes de confiance. Les bulletins du 14/11 ont été nettoyés ; les plus
+anciens, archivés, la portent encore.
+
 ### Première revue du socle : la Côte d'Ivoire, pays pilote (20/10/2026)
 
 Arbitrage de l'éditeur : « cadrer avec la réalité sans être alarmiste ». La

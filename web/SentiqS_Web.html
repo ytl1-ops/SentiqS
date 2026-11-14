@@ -7056,10 +7056,12 @@ function rl(cle) {
   const dict = RAPPORT_LBL[LANG] || RAPPORT_LBL.fr;
   return dict[cle] !== undefined ? dict[cle] : (RAPPORT_LBL.fr[cle] !== undefined ? RAPPORT_LBL.fr[cle] : cle);
 }
-// Ligne de confiance d'un pays dans les rapports exportes (PDF, Word,
-// PowerPoint, apercu imprimable). Arbitrage du 20/10/2026 : la confiance
-// accompagne le niveau jusque dans ce qui est envoye aux clients — un rouge
-// dont le socle a quatre mois ne doit pas partir sans le dire.
+// Ligne de confiance d'un pays. Arbitrage du 20/10/2026 : elle accompagnait
+// le niveau dans les rapports exportes. Retiree de TOUS les documents le
+// 14/11/2026 (YORO : « les conf sont incomprehensibles ») — PDF, Word,
+// PowerPoint, apercu imprimable, bulletins. Elle reste a l'ecran
+// (marqueConfiance) ; la cotation des faits reste partout. Un test interdit
+// de la rappeler dans un generateur de document.
 function texteConfianceRapport(c) {
   if (!c || !c.cle) return '';
   const socle = c.ageSocleJ === null || c.ageSocleJ === undefined ? rl('conf_sans_socle') : rl('conf_socle')(c.ageSocleJ);
@@ -19675,7 +19677,7 @@ function renderBulletinsProgrammes() {
   const limite = bpLimite();
   const badge = document.getElementById('bpPlanBadge');
   if (badge) { badge.textContent = limite ? (_BP.programmations.length + ' / ' + limite) : 'Forfaits payants'; badge.className = 'bp-badge' + (limite ? '' : ' bp-badge-lock'); }
-  let h = '<p class="bp-aide">Choisissez des pays, des heures et des canaux : SentiqS envoie le bulletin de chaque pays (niveau d\'alerte, confiance, faits notables cotés, lien vers le bulletin complet) à l\'heure dite, dans votre fuseau. '
+  let h = '<p class="bp-aide">Choisissez des pays, des heures et des canaux : SentiqS envoie le bulletin de chaque pays (niveau d\'alerte, faits notables cotés, lien vers le bulletin complet) à l\'heure dite, dans votre fuseau. '
     + 'Envoi au premier passage qui suit l\'heure choisie, en général dans le quart d\'heure ; un créneau qui aurait plus de trois heures de retard n\'est pas envoyé, pour ne jamais vous remettre un bulletin périmé.</p>';
   if (_BP.erreur === 'connexion') { box.innerHTML = h + '<div class="bp-alerte">Connexion requise : reconnectez-vous pour programmer des bulletins.</div>'; return; }
   if (!limite) {
@@ -24466,7 +24468,7 @@ function chargerBulletinsPays(){
       el.appendChild(titre);
       var note = document.createElement('div');
       note.style.cssText = 'font-size:10px;color:var(--lg);margin-bottom:8px';
-      note.textContent = 'Un bulletin par pays et par jour : niveau, confiance, faits cotés, ce qui porte le niveau, ce que nous ne savons pas, conseils officiels aux voyageurs. Page imprimable en PDF depuis le navigateur.';
+      note.textContent = 'Un bulletin par pays et par jour : niveau, faits cotés, ce qui porte le niveau, ce que nous ne savons pas, conseils officiels aux voyageurs. Page imprimable en PDF depuis le navigateur.';
       el.appendChild(note);
       var ligne = document.createElement('div');
       ligne.style.cssText = 'display:flex;flex-wrap:wrap;align-items:center;gap:8px';
@@ -24972,7 +24974,6 @@ async function exportPPTX(type) {
         circle(s, 0.8, 1.9, 2.0, col);
         s.addText(String(sc.total100), {x:0.8,y:2.5,w:2.0,h:0.8,fontSize:34,bold:true,color:'FFFFFF',align:'center',fontFace:'IBM Plex Sans'});
         s.addText((NIV[sc.key]||{label:'—'}).label, {x:0.2,y:4.0,w:3.2,h:0.4,fontSize:13,bold:true,color:col.length===6?'#'+col:'#4B5563',align:'center',fontFace:'IBM Plex Sans'});
-        if (sc.confiance) s.addText(texteConfianceRapport(sc.confiance), {x:0.2,y:4.45,w:3.2,h:0.9,fontSize:10,bold:sc.confiance.cle==='faible',color:'#374151',align:'center',valign:'top',fontFace:'IBM Plex Sans'});
         const facteurs = (sc.specials||[]).slice(0,5);
         s.addText('Facteurs aggravants', {x:3.6,y:1.85,w:9,h:0.4,fontSize:14,bold:true,color:INK,fontFace:'IBM Plex Sans'});
         if (facteurs.length) {
@@ -26249,7 +26250,6 @@ async function exportPDF(type) {
           const nivLabel = rl('niv')[s.sc.key] || '—';
           b.sub(s.pays.flag+' '+L(s.pays.name)+'  —  '+nivLabel+'  ('+rl('score')+' '+s.sc.total100+'/100)', rgb(0.114,0.373,0.659));
           b.para(rl('incidents')+' : '+s.sc.baseScore+' '+rl('verifies')+' · '+rl('facteurs')+' : '+s.sc.specialScore, {size:8.5, color:rgb(0.42,0.46,0.5)});
-          if (s.sc.confiance) b.para(texteConfianceRapport(s.sc.confiance), {size:8.5, bold:s.sc.confiance.cle==='faible', color:rgb(0.2,0.24,0.29)});
           const mes = MESURES[s.sc.key];
           if (mes && mes.expatries && mes.expatries[0]) b.bullet(rl('expatries')+' : '+L(mes.expatries[0]));
           if (mes && mes.installations && mes.installations[0]) b.bullet(rl('installations')+' : '+L(mes.installations[0]));
@@ -26627,7 +26627,6 @@ function _apAlerteItem(score) {
     + '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;font-weight:700;color:'+n.col+';">'+_apEsc(n.label)+' — '+score.total100+'/100</span>'
     + '</div>'
     + '<div style="font-size:12px;color:#6B7280;">Incidents : '+score.baseScore+' &nbsp;·&nbsp; Aggravants : '+score.specialScore+'</div>'
-    + (score.confiance ? '<div style="font-size:12px;color:#374151;margin-top:2px;'+(score.confiance.cle==='faible'?'font-weight:700;':'')+'">'+_apEsc(texteConfianceRapport(score.confiance))+'</div>' : '')
     + '</div>';
 }
 async function _buildRapportFluxHTML(arts) {
@@ -27381,7 +27380,6 @@ async function exportWord(type){
           const nivLabel = rl('niv')[s.sc.key] || '—';
           children.push(heading((s.pays.flag||'')+' '+L(s.pays.name)+'  —  '+nivLabel+'  ('+rl('score')+' '+s.sc.total100+'/100)', 2, '1B5FA8'));
           children.push(para(rl('incidents')+' : '+s.sc.baseScore+' '+rl('verifies')+' · '+rl('facteurs')+' : '+s.sc.specialScore, {color:'6B7280'}));
-          if (s.sc.confiance) children.push(para(texteConfianceRapport(s.sc.confiance), {bold:s.sc.confiance.cle==='faible', color:'374151'}));
           const mesW = MESURES[s.sc.key];
           if (mesW && mesW.expatries && mesW.expatries[0]) children.push(para('▶ '+rl('expatries')+' : '+L(mesW.expatries[0])));
           if (mesW && mesW.installations && mesW.installations[0]) children.push(para('▶ '+rl('installations')+' : '+L(mesW.installations[0])));

@@ -11,7 +11,8 @@ envoyés automatiquement par e-mail, Telegram ou WhatsApp à des horaires choisi
    (`bulletins_programmes/<uid>`).
 2. **La collecte** (`collecte-planifiee.yml`) écrit à chaque passage un
    instantané des 54 pays (`bulletins_instantanes/courant`) : niveau,
-   confiance, faits notables cotés, lien vers le bulletin complet.
+   confiance, faits notables cotés, lien vers le bulletin complet. La
+   confiance n'est plus imprimée dans le message (décision du 14/11/2026).
 3. **L'envoi** (`envoi-bulletins.yml`, toutes les 15 minutes, sans
    navigateur) envoie chaque créneau échu et écrit ce qu'il a fait
    (`bulletins_etat/<uid>`), que Paramètres affiche.
