@@ -3859,7 +3859,10 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
               <option value="colloque">Colloque</option>
               <option value="foire">Foire / Salon</option>
               <option value="sportif">Sportif</option>
-              <option value="concert">Concert</option>
+              <option value="religieux">Rassemblement religieux</option>
+              <option value="ceremonie">Cérémonie</option>
+              <option value="meeting">Meeting politique</option>
+              <option value="concert">Concert / Spectacle</option>
               <option value="festival">Festival</option>
               <option value="humanitaire">Humanitaire</option>
               <option value="politique">Politique</option>
@@ -8184,6 +8187,13 @@ function rehydrateArticles(arts, opts) {
         const texteClass = (a.title || '') + ' ' + ((a.analysis && !/^voir sur /i.test(a.analysis.trim())) ? a.analysis : '');
         const r = classify(texteClass, src, a.title || '');
         if (r && r.lvl) { a.level = r.lvl; a.cat = r.cat; }
+        // Le type d'agenda suit la même règle : sans ce recalcul, un
+        // correctif de détection (rassemblements du 14/11/2026) ne
+        // s'appliquerait qu'aux articles collectés après lui.
+        if (typeof typeEvenementDetecte === 'function') {
+          const typeAg = typeEvenementDetecte(texteClass, a.title || '');
+          a._estAgenda = typeAg !== null; a._agendaType = typeAg;
+        }
         if (_sig) a._rv = _sig;
       }
       // « verifie » = recoupe par une seconde source, jamais un heritage :
@@ -8333,7 +8343,7 @@ function parseJSON(d, src) {
     if (!pubTs || isNaN(pubTs)) pubTs = 0;
 
     const { lvl, cat } = classify(title + ' ' + desc, src, title);
-    const agendaType = typeEvenementDetecte(title + ' ' + desc);
+    const agendaType = typeEvenementDetecte(title + ' ' + desc, title);
     const id = 'r_' + src.id + '_' + btoa(unescape(encodeURIComponent(title.slice(0,28)))).replace(/[+/=]/g,'').slice(0,18);
     // Pays reel dont parle l'article, independant du pays de la source.
     // Applique a TOUTES les sources (plus seulement regionales/INT) : un
@@ -9105,6 +9115,37 @@ const EVENT_PLANIFIE_KW = {
                   'flyover construction', 'highway construction', 'road project launch'],
 };
 
+// EVENT_RASSEMBLEMENT_RE : les rassemblements de foule, lus dans le TITRE
+// seulement. Demande de YORO du 14/11/2026 : l'agenda était « très pauvre en
+// colloques, séminaires, spectacles de tout genre » alors que ces événements
+// « drainent du monde » et pèsent sur les mouvements de population, donc sur
+// la sûreté du pays (circulation, foules, cibles). Mesure sur le cache du
+// 13/11/2026 (2 253 articles) : aucun match, aucun culte, aucune cérémonie,
+// aucun meeting politique n'entrait à l'agenda — aucune famille ne les
+// nommait. Mots courts (« match », « messe », « show ») : bornés au mot entier,
+// sinon « promesse » devenait une messe. Lus dans le titre seul parce qu'un
+// corps qui cite « le match d'hier » ne fait pas d'un article un événement.
+const EVENT_RASSEMBLEMENT_RE = {
+  sportif:   /\b(match|matchs|matchday|derby|finale|demi-finale|tournoi|championnat|stade|arene|marathon|semi-marathon|combat (de lutte|royal)|grand combat|eliminatoires|qualifications can|journee des eliminatoires|coupe du monde|joj|jeux de la jeunesse|tournament|stadium|fixtures?|kick-off|jogo|estadio|campeonato)\b/,
+  religieux: /\b(magal|gamou|maouloud|mawlid|ziarra|ziara|pelerinage|(fete|veille) de (la )?(tabaski|korite|noel|paques)|aid el[- ](kebir|fitr|adha)|toussaint|croisade|veillee de priere|messe|camp biblique|retraite spirituelle|pilgrimage|crusade|prayer (rally|meeting|vigil)|missa|romaria)\b/,
+  ceremonie: /\b(ceremonie|commemoration|celebration|celebree?s?|fete (nationale|de l'independance|de la|du|des)|anniversaire de l'independance|defile|parade|carnaval|funerailles|obseques|inhumation|journee nationale|semaine nationale|ceremonie d'investiture|investiture du president|inauguration|ceremony|state funeral|funeral|independence day|cerimonia|desfile)\b/,
+  meeting:   /\b((un|le|du|au|grand|son) meeting|meeting (de|du|des|politique|geant)|rassemblement|caravane|tournee (politique|de mobilisation)|(political|campaign|presidential|mega) rally|campaign event|comicio)\b/,
+  concert:   /\b(spectacle|gala|one man show|jazz|live band|theatre(?! des operations)|showcase|soiree (culturelle|artistique|de gala)|nuit (du|de la|des) (rire|humour|musique|slam|jazz)|live show|espetaculo)\b/,
+};
+// Familles lues aussi dans le CORPS de l'article, en formulation de plusieurs
+// mots seulement. « gouvernemental » et « élection » n'y sont plus : sur le
+// même cache, 119 des 158 articles « gouvernementaux » ne l'étaient que par
+// un « forum », un « congrès » ou une « assemblée nationale » cités dans le
+// corps (« 2027: Tinubu can't buy Nigerians with gifts »).
+const EVENT_CORPS_TYPES = ['colloque', 'seminaire', 'foire', 'gouvernemental', 'manifestation', 'travaux'];
+// Formulations trop courantes dans un corps d'article pour désigner une
+// réunion : un député cité « à l'Assemblée nationale » n'annonce rien.
+const EVENT_CORPS_EXCLUS = new Set(['assemblée nationale', 'assemblée générale']);
+// Les rassemblements restent AUSSI au Flux, comme les manifestations : un
+// match, un culte ou un meeting n'était pas retiré du Flux avant le
+// 14/11/2026, les verser à l'agenda ne doit rien enlever au Flux.
+const AGENDA_AUSSI_AU_FLUX = new Set(['manifestation', 'sportif', 'religieux', 'ceremonie', 'meeting']);
+
 // ═══════════════════════════════════════════════════════════════════════════
 //  BALISES (TAGS) DU FLUX — enrichissement visuel automatique des actus.
 //  Reutilise au maximum l'infrastructure de classification deja en place
@@ -9210,10 +9251,39 @@ function balisesArticleHtml(a, pre) {
 // des deux cotes (texte ET mots-cles) : un texte source sans accents (RSS
 // mal encode, apostrophe typographique...) doit quand meme matcher un
 // mot-cle ecrit avec ses accents normaux.
-function typeEvenementDetecte(texte) {
+// `titre` (facultatif) : le titre seul. Quand il est donné, le titre décide
+// (toutes les familles, rassemblements compris) et le corps ne complète que
+// pour les familles de EVENT_CORPS_TYPES, en formulation de plusieurs mots —
+// même règle que classify() : « le titre décide, le corps nuance ».
+const _MOTS_AGENDA_RE = new Map();
+function _motEntierAgenda(m) {
+  let re = _MOTS_AGENDA_RE.get(m);
+  if (!re) {
+    const n = normaliserAccents(m.toLowerCase()).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    re = new RegExp('(^|[^a-z0-9])' + n + '($|[^a-z0-9])');
+    _MOTS_AGENDA_RE.set(m, re);
+  }
+  return re;
+}
+function typeEvenementDetecte(texte, titre) {
   const t = normaliserAccents((texte||'').toLowerCase());
+  if (titre == null) {
+    for (const [type, mots] of Object.entries(EVENT_PLANIFIE_KW)) {
+      if (mots.some(m => t.includes(normaliserAccents(m)))) return type;
+    }
+    return null;
+  }
+  const tt = normaliserAccents(String(titre).toLowerCase()).replace(/[\u2019\u2018]/g, "'");
+  // Mot entier dans le titre : « concert » ne doit pas lire « concertation »
+  // ni « scrutin » « scrutiny » (mesuré sur le cache du 13/11/2026).
   for (const [type, mots] of Object.entries(EVENT_PLANIFIE_KW)) {
-    if (mots.some(m => t.includes(normaliserAccents(m)))) return type;
+    if (mots.some(m => _motEntierAgenda(m).test(tt))) return type;
+  }
+  for (const [type, re] of Object.entries(EVENT_RASSEMBLEMENT_RE)) {
+    if (re.test(tt)) return type;
+  }
+  for (const type of EVENT_CORPS_TYPES) {
+    if ((EVENT_PLANIFIE_KW[type] || []).some(m => m.includes(' ') && !EVENT_CORPS_EXCLUS.has(m) && t.includes(normaliserAccents(m)))) return type;
   }
   return null;
 }
@@ -9284,6 +9354,14 @@ function recoAgendaAuto(agendaType) {
     return LANG === 'en'
       ? 'Avoid the announced gathering point and axis — monitor for escalation before any movement in the area.'
       : "Éviter le point de rassemblement et l'axe annoncé — surveiller une éventuelle escalade avant tout déplacement dans la zone.";
+  }
+  // Rassemblements de foule (14/11/2026) : la sûreté qu'ils engagent est
+  // celle des abords — circulation saturée, mouvements de foule, cible
+  // facile — pas l'événement lui-même. Le conseil le dit, sans alarmer.
+  if (['sportif', 'religieux', 'ceremonie', 'meeting', 'concert', 'festival'].includes(agendaType)) {
+    return LANG === 'en'
+      ? 'Large crowd expected — anticipate congestion around the venue and allow for delays on nearby routes.'
+      : "Affluence attendue — anticiper la saturation des abords du lieu et les délais sur les axes voisins.";
   }
   return '';
 }
@@ -10842,7 +10920,7 @@ function parseRSS(xml, src) {
     if (!pubTs || isNaN(pubTs)) pubTs = 0;
 
     const {lvl, cat} = classify(title+' '+desc, src, title);
-    const agendaType = typeEvenementDetecte(title+' '+desc);
+    const agendaType = typeEvenementDetecte(title+' '+desc, title);
     const id = 'r_'+src.id+'_'+btoa(unescape(encodeURIComponent(title.slice(0,30)))).replace(/[+/=]/g,'').slice(0,18);
     // Pays reel dont parle l'article, independant du pays de la source.
     // Applique a TOUTES les sources (plus seulement regionales/INT) : un
@@ -13449,7 +13527,12 @@ function getFiltered() {
   // Flux (contrairement aux autres types, purement calendaires, ce sont de
   // vraies actualites securitaires, deja prises en compte dans le score
   // d'alerte du pays).
-  a = a.filter(x => !x._estAgenda || x._agendaType === 'manifestation');
+  // Un fait CRITIQUE ou ÉLEVÉ reste aussi au Flux, quel que soit son type
+  // d'agenda : le 13/11/2026, « Thugs attacks NDC in Lagos » et « Nigerian
+  // opposition leader vows after campaign event attack » (critiques) étaient
+  // retirés du Flux parce que leur corps citait un « forum » — un faux
+  // négatif. Un meeting attaqué est d'abord une attaque.
+  a = a.filter(x => !x._estAgenda || AGENDA_AUSSI_AU_FLUX.has(x._agendaType) || x.level === 'crit' || x.level === 'high');
   const q=document.getElementById('artQ').value.toLowerCase();
   if(q) a=a.filter(x=>x.title.toLowerCase().includes(q)||x.analysis.toLowerCase().includes(q));
   if(fCat==='crit') a=a.filter(x=>x.level==='crit');
@@ -15532,10 +15615,11 @@ async function renderAgenda() {
   const SL={'en-cours':['bc','EN COURS'],'urgent':['bu','URGENT'],'planifie':['bp','PLANIFIE'],'surveillance':['bs','SURVEILLANCE'],'acheve':['ba','ACHEVE']};
   const IC={'haut':'ih','moyen':'im','faible':'if'};
   const TYP={gouvernemental:['🏛️','Gouvernemental','#2C5AAE'],seminaire:['📋','Seminaire','#4B5563'],
-    colloque:['🎓','Colloque','#4B5563'],sportif:['🏅','Sportif','#0F766E'],concert:['🎵','Concert','#7C3AED'],
+    colloque:['🎓','Colloque','#4B5563'],sportif:['🏅','Sportif','#0F766E'],concert:['🎵','Concert / Spectacle','#7C3AED'],
     festival:['🎭','Festival','#7C3AED'],foire:['🎪','Foire / Salon','#7C3AED'],securite:['🛡️','Securite','#8B1A1A'],humanitaire:['🤝','Humanitaire','#7C4A00'],
     politique:['🗳️','Politique','#2C5AAE'],election:['🗳️','Election','#8B1A1A'],economique:['📊','Economique','#0F4F2A'],sanitaire:['⚕️','Sanitaire','#0E7490'],
-    travaux:['🚧','Travaux','#B45309'],manifestation:['📢','Manifestation','#8B1A1A']};
+    travaux:['🚧','Travaux','#B45309'],manifestation:['📢','Manifestation','#8B1A1A'],
+    religieux:['🕌','Rassemblement religieux','#7C4A00'],ceremonie:['🎖️','Cérémonie','#4B5563'],meeting:['📣','Meeting politique','#8B1A1A']};
   const agEl = document.getElementById('agTl');
   const calEl = document.getElementById('agCal');
   if (!filt.length && !agendaVueCalendrier) {
