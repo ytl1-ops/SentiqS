@@ -33,6 +33,7 @@
      inline pour etre testables directement (voir web/js/noyau.js). Charge
      AVANT lui : le script applicatif s'appuie sur ces noms. -->
 <script src="js/noyau.js"></script>
+<script src="js/bulletin-message.js"></script>
 <script src="js/intro.js"></script>
 <!-- Fournisseur d'identite : Firebase si js/firebase-config.js est rempli,
      Supabase sinon (voir getSentinelSupabase et FIREBASE.md). -->
@@ -1258,6 +1259,52 @@ html.force-mobile .ops-label{display:none}
 .pm-body{padding:18px 22px;display:flex;flex-direction:column;gap:18px;max-width:900px;margin:0 auto;width:100%}
 .pm-section{background:var(--w);border:1px solid var(--bd);border-radius:9px;overflow:hidden}
 .pm-group-hd{display:flex;align-items:center;gap:9px;padding:10px 4px 2px;margin-top:6px}
+/* ── PARAMÈTRES : sous-groupes, sommaire, bulletins programmés (14/11/2026) ── */
+.pm-sommaire{display:flex;gap:6px;flex-wrap:wrap;margin:-6px 0 0}
+.pm-somm-btn{font:inherit;font-size:11px;font-weight:600;padding:5px 10px;min-height:28px;border-radius:999px;border:1px solid var(--bd);background:var(--w);color:var(--t);cursor:pointer}
+.pm-somm-btn:hover,.pm-somm-btn:focus-visible{border-color:var(--b);color:var(--b)}
+.pm-sous-hd{padding:4px 2px 0;margin:4px 0 -8px;scroll-margin-top:72px}
+.pm-sous-titre{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--t2)}
+.pm-sous-sub{font-size:var(--fs-micro,10px);color:var(--lg)}
+.pm-section{scroll-margin-top:72px}
+.bp-badge{font-size:var(--fs-micro,10px);font-weight:700;letter-spacing:.04em;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:2px;background:var(--bl);color:var(--b);border:1px solid var(--bb);text-transform:none}
+.bp-badge-lock{background:var(--al);color:var(--a);border-color:var(--ab)}
+.bp-aide{font-size:11px;color:var(--lg);line-height:1.6;margin:0 0 10px}
+.bp-alerte{font-size:12px;color:var(--t);background:var(--al);border:1px solid var(--ab);border-radius:6px;padding:8px 10px;margin:6px 0}
+.bp-canaux{list-style:none;margin:0 0 12px;padding:8px 10px;border:1px solid var(--bd);border-radius:6px;font-size:11px;color:var(--t2);display:grid;gap:3px}
+.bp-ok{color:var(--g);font-weight:700}.bp-off{color:var(--t2);font-weight:600}
+.bp-vide{font-size:12px;color:var(--lg);padding:10px 0}
+.bp-carte{border:1px solid var(--bd);border-radius:8px;padding:12px;margin:0 0 10px;background:var(--sf)}
+.bp-suspendue{opacity:.8}
+.bp-carte-hd{display:flex;justify-content:space-between;gap:8px;align-items:baseline;margin-bottom:4px}
+.bp-carte-pays{font-size:14px;font-weight:700;color:var(--t)}
+.bp-etat{font-size:var(--fs-micro,10px);font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t2)}
+.bp-ligne{font-size:12px;color:var(--t2);margin:2px 0;overflow-wrap:anywhere}
+.bp-statut{color:var(--lg)}
+.bp-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.bp-form{border:1px solid var(--bb);border-radius:8px;padding:14px;background:var(--w);display:grid;gap:12px}
+.bp-form-titre{font-size:13px;font-weight:800;color:var(--t)}
+.bp-champ{display:grid;gap:4px;min-width:0}
+.bp-champ label,.bp-leg,.bp-fs label{font-size:11px;color:var(--t2);font-weight:600}
+.bp-champ input[type=text],.bp-fs input[type=text],.bp-champ select{width:100%;padding:7px 9px;border:1px solid var(--bd);border-radius:5px;font-size:13px;background:var(--w);color:var(--t);min-height:32px;box-sizing:border-box}
+.bp-rangee{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.bp-rangee select{flex:1;min-width:160px}
+.bp-puces{display:flex;gap:6px;flex-wrap:wrap}
+.bp-puce{display:inline-flex;align-items:center;gap:4px;padding:3px 4px 3px 10px;border-radius:999px;background:var(--bl);border:1px solid var(--bb);font-size:12px;color:var(--t)}
+.bp-puce button,.bp-x{border:0;background:transparent;color:var(--t2);font-size:16px;line-height:1;min-width:24px;min-height:24px;cursor:pointer;border-radius:50%}
+.bp-heure{display:inline-flex;align-items:center;gap:2px}
+.bp-heure input{padding:5px 6px;border:1px solid var(--bd);border-radius:5px;font-size:13px;min-height:32px;background:var(--w);color:var(--t)}
+.bp-jour{min-width:32px;min-height:32px;border-radius:50%;border:1px solid var(--bd);background:var(--w);color:var(--t);font-weight:700;font-size:12px;cursor:pointer}
+.bp-jour[aria-pressed="true"]{background:var(--b);border-color:var(--b);color:var(--on-b,#fff)}
+.bp-lien{border:0;background:transparent;color:var(--b);font:inherit;font-size:11px;font-weight:600;text-decoration:underline;cursor:pointer;min-height:24px;padding:0 4px}
+.bp-grille2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bp-fs{border:1px solid var(--bd);border-radius:6px;padding:10px 12px;margin:0;display:grid;gap:6px;min-width:0}
+.bp-fs legend{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--t);padding:0 4px}
+.bp-case{display:flex;gap:8px;align-items:flex-start;font-weight:500!important;color:var(--t)!important;cursor:pointer;line-height:1.4}
+.bp-case input{width:16px;height:16px;margin-top:1px;flex-shrink:0}
+.bp-apercu{white-space:pre-wrap;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:10px;max-height:280px;overflow:auto;color:var(--t);overflow-wrap:anywhere}
+@media (max-width:760px){html:not(.force-web) .bp-grille2{grid-template-columns:1fr}}
+html.force-mobile .bp-grille2{grid-template-columns:1fr}
 .pm-group-hd:first-child{margin-top:0}
 .pm-group-hd i{font-size:15px;color:var(--b)}
 .pm-group-hd-txt{display:flex;flex-direction:column}
@@ -4098,13 +4145,13 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
         <!-- Hero -->
         <div class="pm-hero">
           <div class="pm-hero-top">
-            <div class="pm-hero-title" id="pmHeroTitle"><i class="ti ti-settings"></i>Parametres &amp; Administration</div>
+            <div class="pm-hero-title" id="pmHeroTitle"><i class="ti ti-settings"></i>Paramètres &amp; Administration</div>
             <button onclick="genererModeEmploiPDF()" title="Ouvrir le mode d'emploi dans un nouvel onglet" style="display:flex;align-items:center;gap:5px;padding:5px 11px;background:var(--bl);border:1px solid var(--bb);border-radius:6px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;">
               <i class="ti ti-book-2"></i><span data-i18n="menu_mode_emploi">Mode d'emploi (PDF)</span>
             </button>
             <div class="pm-hero-badge" id="pmHeroBadge"><i class="ti ti-shield-check"></i>Administrateur</div>
           </div>
-          <div class="pm-hero-sub" id="pmHeroSub">Gestion des acces, droits de telechargement et configuration de la plateforme</div>
+          <div class="pm-hero-sub" id="pmHeroSub">Gestion des accès, droits de téléchargement et configuration de la plateforme</div>
         </div>
 
         <div class="pm-body" id="pmClientArea">
@@ -4114,10 +4161,14 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
             <i class="ti ti-user-cog"></i>
             <div class="pm-group-hd-txt">
               <div class="pm-group-hd-title">Mon espace</div>
-              <div class="pm-group-hd-sub">Marque, canaux d’envoi, abonnement et statistiques personnelles</div>
+              <div class="pm-group-hd-sub">Affichage, bulletins programmés, marque, canaux d’envoi et abonnement</div>
             </div>
             <div class="pm-group-hd-line"></div>
           </div>
+          <!-- Sommaire (revue des paramètres du 14/11/2026) : rempli par
+               renderSommaireParams(), un bouton par groupe ci-dessous. -->
+          <nav class="pm-sommaire" id="pmSommaire" aria-label="Sommaire des paramètres"></nav>
+          <div class="pm-sous-hd"><div class="pm-sous-titre">Lecture</div><div class="pm-sous-sub">Ce que vous voyez sur cet appareil</div></div>
 
           <!-- Affichage : format d'ecran (ordinateur, tablette, mobile), taille du
                texte, presentation des actus, images. Demande de l'editeur du
@@ -4139,28 +4190,23 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
             </div>
           </div>
 
-          <!-- Personnalisation de marque (fonctionnalite payante) -->
-          <!-- Suppression du compte par l'utilisateur (13/11/2026) : exigee par le
-               Play Store pour toute application avec comptes. Confirmee par un
-               mot tape, jamais par une boite de dialogue du navigateur. -->
-          <div class="pm-section" id="pmSuppression">
+
+          <div class="pm-sous-hd" id="pmDiffusion"><div class="pm-sous-titre">Diffusion</div><div class="pm-sous-sub">Ce que SentiqS envoie, et sous quel nom</div></div>
+
+          <!-- Bulletins programmés (14/11/2026) : pays, heures, jours, fuseau,
+               canaux. Contenu rendu par renderBulletinsProgrammes() ; envoi par
+               .github/workflows/envoi-bulletins.yml. -->
+          <div class="pm-section" id="pmBulletins">
             <div class="pm-sec-hd">
-              <div class="pm-sec-hd-l"><i class="ti ti-user-x"></i>
-                <div><div class="pm-sec-title" data-i18n="suppr_titre">Supprimer mon compte</div>
-                <div class="pm-sec-sub" data-i18n="suppr_sous">Supprime votre identité et votre profil. Les rapports déjà téléchargés restent sur vos appareils.</div></div>
+              <div class="pm-sec-hd-l"><i class="ti ti-calendar-time"></i>
+                <div><div class="pm-sec-title">Bulletins programmés <span id="bpPlanBadge" class="bp-badge"></span></div>
+                <div class="pm-sec-sub">Des pays précis, à vos horaires, par e-mail, Telegram ou WhatsApp</div></div>
               </div>
             </div>
-            <div class="pm-sec-body">
-              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-                <label for="supprConfirm" style="font-size:12px" data-i18n="suppr_label">Tapez SUPPRIMER pour confirmer</label>
-                <input type="text" id="supprConfirm" autocomplete="off" spellcheck="false" style="flex:1;min-width:160px;padding:8px 10px;border:1px solid var(--bd);border-radius:6px;font-size:12px">
-                <button type="button" class="btn-action btn-del" onclick="supprimerMonCompte()"><span data-i18n="suppr_btn">Supprimer définitivement</span></button>
-              </div>
-              <div class="pmu-msg" id="supprMsg" role="status"></div>
-            </div>
+            <div class="pm-sec-body" id="bpCorps"></div>
           </div>
 
-          <div class="pm-section">
+          <div class="pm-section" id="pmMarque">
             <div class="pm-sec-hd">
               <div class="pm-sec-hd-l"><i class="ti ti-writing"></i>
                 <div><div class="pm-sec-title">Personnalisation de marque
@@ -4243,6 +4289,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
           </div>
 
 
+          <div class="pm-sous-hd" id="pmCanaux"><div class="pm-sous-titre">Canaux de partage</div><div class="pm-sous-sub">Envois en un clic depuis une actu ou un rapport</div></div>
           <!-- Rappels d'envoi WhatsApp programmes : puisque WhatsApp n'offre
                aucun moyen, pour un site web, d'envoyer un message/fichier a
                une heure precise sans un clic humain reel (protection anti-spam
@@ -4256,31 +4303,29 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
           <div class="pm-section">
             <div class="pm-sec-hd">
               <div class="pm-sec-hd-l"><i class="ti ti-brand-whatsapp"></i>
-                <div><div class="pm-sec-title">Rappels d'envoi WhatsApp programmes</div>
-                <div class="pm-sec-sub">Notification + bouton d'envoi pret aux heures choisies (onglet SentiqS ouvert requis)</div></div>
+                <div><div class="pm-sec-title">Rappels WhatsApp en un clic</div>
+                <div class="pm-sec-sub">Notification et bouton d'envoi prêt aux heures choisies (onglet SentiqS ouvert requis)</div></div>
               </div>
             </div>
             <div class="pm-sec-body" style="padding:14px 16px">
               <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
-                A chaque heure programmee, une notification s'affiche avec un bouton "Envoyer maintenant" :
-                un tap genere le rapport de Synthese analytique (PDF) puis l'envoie — sur mobile, via le
-                partage natif du systeme, le PDF est directement joint au message WhatsApp du numero
-                indique (identite de marque active) ; sur ordinateur (partage de fichier indisponible),
-                WhatsApp Web s'ouvre avec un message pret et le PDF deja telecharge, a joindre manuellement.
-                Aucun envoi n'a lieu sans ce clic — WhatsApp ne permet pas a un site web d'envoyer un
-                message automatiquement.
+                À chaque heure choisie, une notification s'affiche avec un bouton « Envoyer maintenant » :
+                un appui génère la Synthèse (PDF) puis l'envoie — sur mobile, par le partage du système,
+                le PDF est joint au message WhatsApp du numéro indiqué ; sur ordinateur, WhatsApp Web
+                s'ouvre avec un message prêt et le PDF déjà téléchargé, à joindre. Aucun envoi sans ce
+                clic. Pour un envoi entièrement automatique, voir « Bulletins programmés » plus haut.
               </div>
               <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
                 <input type="checkbox" id="rappelWaActif" style="width:16px;height:16px;cursor:pointer">
-                <label for="rappelWaActif" style="font-size:12px;font-weight:600;color:var(--t);cursor:pointer">Activer les rappels programmes</label>
+                <label for="rappelWaActif" style="font-size:12px;font-weight:600;color:var(--t);cursor:pointer">Activer les rappels</label>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
                 <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="rappelWaNumero">Numero WhatsApp (avec indicatif pays)</label>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="rappelWaNumero">Numéro WhatsApp (avec indicatif pays)</label>
                   <input type="text" id="rappelWaNumero" data-i18n-ph="ph_ex_2250747974398" placeholder="Ex. 2250747974398" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
                 <div>
-                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="rappelWaHeures">Heures (HH:MM, separees par virgule)</label>
+                  <label style="font-size:10px;color:var(--lg);display:block;margin-bottom:3px" for="rappelWaHeures">Heures (HH:MM, séparées par des virgules)</label>
                   <input type="text" id="rappelWaHeures" data-i18n-ph="ph_ex_06_00_16_30_20_30" placeholder="Ex. 06:00, 16:30, 20:30" style="width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:5px;font-size:12px">
                 </div>
               </div>
@@ -4406,12 +4451,13 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
           </div>
 
 
+          <div class="pm-sous-hd" id="pmCompte"><div class="pm-sous-titre">Abonnement et compte</div><div class="pm-sous-sub">Votre forfait, votre historique, votre compte</div></div>
           <!-- Mon abonnement -->
           <div class="pm-section">
             <div class="pm-sec-hd">
               <div class="pm-sec-hd-l"><i class="ti ti-crown"></i>
                 <div><div class="pm-sec-title">Mon abonnement</div>
-                <div class="pm-sec-sub">Forfait actif et validite de vos droits d'acces</div></div>
+                <div class="pm-sec-sub">Forfait actif et validité de vos droits d'accès</div></div>
               </div>
             </div>
             <div class="pm-sec-body" style="padding:14px 16px" id="monAbonnementBody">Chargement…</div>
@@ -4421,7 +4467,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
           <div class="pm-section">
             <div class="pm-sec-hd">
               <div class="pm-sec-hd-l"><i class="ti ti-download"></i>
-                <div><div class="pm-sec-title">Mes telechargements</div>
+                <div><div class="pm-sec-title">Mes téléchargements</div>
                 <div class="pm-sec-sub">Quota de rapports exportables selon votre forfait</div></div>
               </div>
             </div>
@@ -4433,10 +4479,30 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
             <div class="pm-sec-hd">
               <div class="pm-sec-hd-l"><i class="ti ti-history"></i>
                 <div><div class="pm-sec-title">Mes connexions</div>
-                <div class="pm-sec-sub">Historique recent de vos connexions</div></div>
+                <div class="pm-sec-sub">Historique récent de vos connexions</div></div>
               </div>
             </div>
             <div class="pm-sec-body" style="padding:14px 16px" id="mesConnexionsBody">Chargement…</div>
+          </div>
+
+          <!-- Suppression du compte par l'utilisateur (13/11/2026) : exigee par le
+               Play Store pour toute application avec comptes. Confirmee par un
+               mot tape, jamais par une boite de dialogue du navigateur. -->
+          <div class="pm-section" id="pmSuppression">
+            <div class="pm-sec-hd">
+              <div class="pm-sec-hd-l"><i class="ti ti-user-x"></i>
+                <div><div class="pm-sec-title" data-i18n="suppr_titre">Supprimer mon compte</div>
+                <div class="pm-sec-sub" data-i18n="suppr_sous">Supprime votre identité et votre profil. Les rapports déjà téléchargés restent sur vos appareils.</div></div>
+              </div>
+            </div>
+            <div class="pm-sec-body">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <label for="supprConfirm" style="font-size:12px" data-i18n="suppr_label">Tapez SUPPRIMER pour confirmer</label>
+                <input type="text" id="supprConfirm" autocomplete="off" spellcheck="false" style="flex:1;min-width:160px;padding:8px 10px;border:1px solid var(--bd);border-radius:6px;font-size:12px">
+                <button type="button" class="btn-action btn-del" onclick="supprimerMonCompte()"><span data-i18n="suppr_btn">Supprimer définitivement</span></button>
+              </div>
+              <div class="pmu-msg" id="supprMsg" role="status"></div>
+            </div>
           </div>
 
         </div>
@@ -4507,7 +4573,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
           <div class="pm-section">
             <div class="pm-sec-hd">
               <div class="pm-sec-hd-l"><i class="ti ti-database-export"></i>
-                <div><div class="pm-sec-title">Sauvegarde &amp; restauration des donnees</div>
+                <div><div class="pm-sec-title">Sauvegarde &amp; restauration des données</div>
                 <div class="pm-sec-sub">Utilisateurs, tarifs et paiements declares — stockes uniquement dans ce navigateur</div></div>
               </div>
             </div>
@@ -4529,7 +4595,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
           <div class="pm-section">
             <div class="pm-sec-hd">
               <div class="pm-sec-hd-l"><i class="ti ti-download"></i>
-                <div><div class="pm-sec-title">Droits de telechargement</div>
+                <div><div class="pm-sec-title">Droits de téléchargement</div>
                 <div class="pm-sec-sub">Controlez quels rapports sont accessibles selon le role</div></div>
               </div>
             </div>
@@ -4542,7 +4608,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
           <div class="pm-section">
             <div class="pm-sec-hd">
               <div class="pm-sec-hd-l"><i class="ti ti-lock-access"></i>
-                <div><div class="pm-sec-title">Droits d'acces par fonctionnalite</div>
+                <div><div class="pm-sec-title">Droits d'accès par fonctionnalité</div>
                 <div class="pm-sec-sub">Definir ce que chaque role peut voir et faire</div></div>
               </div>
             </div>
@@ -4776,16 +4842,15 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
             <div class="pm-sec-hd">
               <div class="pm-sec-hd-l"><i class="ti ti-mail"></i>
                 <div><div class="pm-sec-title">Envoi d'e-mail (EmailJS)</div>
-                <div class="pm-sec-sub">Utilitaire générique — l'inscription et la réinitialisation de mot de passe utilisent désormais les e-mails réels envoyés par Supabase Auth</div></div>
+                <div class="pm-sec-sub">Utilitaire générique, non utilisé par la connexion (gérée par Firebase) ni par les bulletins programmés (envoyés par le job)</div></div>
               </div>
             </div>
             <div class="pm-sec-body" style="padding:14px 16px">
               <div style="font-size:10px;color:var(--lg);margin-bottom:12px;line-height:1.6">
                 Configuration conservée pour d'éventuelles notifications futures (ex. confirmation de paiement) via
                 <a href="https://www.emailjs.com/" target="_blank" rel="noopener">EmailJS</a> — un service gratuit conçu
-                pour l'envoi d'emails depuis une page statique, sans serveur. L'inscription, l'activation de compte et
-                la réinitialisation de mot de passe n'en dépendent plus : ces e-mails sont désormais envoyés
-                directement par Supabase Auth (Authentication &gt; Email Templates sur le projet Supabase).
+                pour l'envoi d'e-mails depuis une page statique, sans serveur. La connexion n'en dépend pas (Firebase
+                Authentication), ni les bulletins programmés, envoyés par le job planifié avec son propre compte SMTP.
                 <b>Cette configuration est partagée</b> (enregistrée une seule fois ici, elle vaut pour tous les
                 visiteurs de l'application, pas seulement ce poste).
               </div>
@@ -4921,7 +4986,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
           <div class="pm-section">
             <div class="pm-sec-hd">
               <div class="pm-sec-hd-l"><i class="ti ti-adjustments"></i>
-                <div><div class="pm-sec-title">Parametres de la plateforme</div>
+                <div><div class="pm-sec-title">Paramètres de la plateforme</div>
                 <div class="pm-sec-sub">Configuration generale de SentiqS</div></div>
               </div>
             </div>
@@ -7061,6 +7126,27 @@ function donneesBulletinPays(cy) {
     angleMort: { muet: dans(am.muets), horsAlerte: dans(am.horsAlerte), sourceUnique: dans(am.sourceUnique), socleAncien: dans(am.socleAncien),
                  sourcesAlerte: SRCS.filter(src => src.cy === cy && peutAlerter(src, SEUIL_SOURCE_ALERTE)).length },
     fenetreH: Math.round(FENETRE_ACTUALITE_MS / 3600000),
+  };
+}
+// resumeBulletinProgramme(cy) : ce qu'un bulletin programme (Parametres >
+// Bulletins programmes, 14/11/2026) dit d'un pays, tire de
+// donneesBulletinPays sans rien recalculer. Lu par le job de collecte, qui
+// l'ecrit a chaque passage pour l'envoi (bulletins_instantanes), et par
+// l'apercu de Parametres : le message montre est celui qui partira.
+function resumeBulletinProgramme(cy) {
+  const d = donneesBulletinPays(cy);
+  return {
+    cy, nom: d.nom, nomEn: (typeof PAYS_EN !== 'undefined' && PAYS_EN[cy]) || d.nom,
+    niveau: d.niveau, libelle: d.libelle, sous: d.sous,
+    confiance: d.confiance ? d.confiance.libelle : null,
+    faitsNotables: d.faitsNotables,
+    confirmes: d.faits.filter(f => f.cotation && f.cotation.cle === 'confirme').length,
+    muet: !!(d.angleMort && d.angleMort.muet), fenetreH: d.fenetreH,
+    url: 'https://ytl1-ops.github.io/SentiqS/bulletins/' + cy + '/dernier.html',
+    faits: d.faits.slice(0, 5).map(f => ({
+      titre: f.titre, langue: (typeof detectLangue === 'function') ? detectLangue(f.titre) : 'fr',
+      url: f.url, source: f.source, cotation: f.cotation ? f.cotation.cle : null, niveau: f.niveau,
+    })),
   };
 }
 // faitsMoisPays(cy, depuisMs) : la matière du rapport mensuel de sûreté. Le
@@ -19027,6 +19113,368 @@ function pmMsg(txt, type, elId) {
   setTimeout(() => { el.className = 'pmu-msg'; }, 5000);
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  BULLETINS PROGRAMMÉS (14/11/2026) — Paramètres > Mon espace > Diffusion
+//
+//  Demande de YORO : « programmer des bulletins sur des pays précis, à
+//  transmettre automatiquement par mail, WhatsApp ou Telegram, à des horaires
+//  précisés ». La page écrit la programmation dans Firestore
+//  (bulletins_programmes/<uid>) ; le job envoi-bulletins.yml l'exécute toutes
+//  les quinze minutes et écrit ce qu'il a fait (bulletins_etat/<uid>), que
+//  cette section relit. Règles, créneaux et texte du message :
+//  web/js/bulletin-message.js, partagé avec le job — l'aperçu affiché ici est
+//  le message qui partira.
+//
+//  Consentement : l'adresse du compte reçoit directement ; toute autre
+//  adresse reçoit d'abord UNE demande d'accord et rien d'autre sans son
+//  « J'accepte » ; un numéro WhatsApp exige l'attestation de l'accord du
+//  titulaire ; Telegram ne peut écrire qu'à qui a ouvert le robot.
+// ═══════════════════════════════════════════════════════════════════════════
+const _BP = { charge: false, uid: null, email: null, programmations: [], telegramCode: null, etat: null, canaux: null, edition: null, erreur: null };
+const BP_JOURS_COURTS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+const BP_JOURS_LONGS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
+const BP_ERREURS = {
+  pays_requis: 'Choisissez au moins un pays.', trop_de_pays: 'Cinq pays au plus par programmation.',
+  heure_requise: 'Indiquez au moins une heure d\'envoi.', trop_d_heures: 'Quatre heures d\'envoi au plus.',
+  jour_requis: 'Choisissez au moins un jour.', fuseau_invalide: 'Fuseau horaire non reconnu.',
+  email_invalide: 'Une adresse e-mail n\'est pas valide.', trop_d_emails: 'Cinq adresses e-mail au plus.',
+  whatsapp_invalide: 'Un numéro WhatsApp n\'est pas valide (indicatif pays compris, chiffres seulement).',
+  trop_de_whatsapp: 'Trois numéros WhatsApp au plus.',
+  whatsapp_accord_requis: 'Cochez l\'attestation d\'accord des titulaires des numéros WhatsApp.',
+  canal_requis: 'Choisissez au moins un canal d\'envoi.', id_invalide: 'Programmation illisible : supprimez-la et recréez-la.',
+  limite_forfait: 'Au-delà de ce que permet votre forfait : cette programmation n\'est pas envoyée.',
+  forfait: 'Votre forfait ne comprend pas les bulletins programmés : rien n\'est envoyé.',
+  acces_expire: 'Votre accès a expiré : rien n\'est envoyé.', compte_inactif: 'Compte suspendu : rien n\'est envoyé.',
+};
+const BP_STATUT_DEST = {
+  titulaire: 'votre adresse', non_demande: 'demande d\'accord pas encore envoyée', en_attente: 'en attente de son accord',
+  accepte: 'accord donné', refuse: 'a refusé', desabonne: 'désabonné',
+};
+
+function bpLimite() {
+  const s = (typeof getSession === 'function') ? getSession() : {};
+  return BulletinsProgrammes.limiteForfait(planUtilisateurActuel(), estAdmin(s));
+}
+function bpNomPays(cy) { return (PAYS_INFO[cy] || {}).name || cy; }
+function bpFuseauDefaut() {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (BulletinsProgrammes.FUSEAUX.indexOf(tz) >= 0) return tz;
+  } catch (_) { /* navigateur sans Intl complet */ }
+  return 'Africa/Abidjan';
+}
+function bpNomFuseau(tz) { return String(tz || '').replace(/^.*\//, '').replace(/_/g, ' '); }
+function bpQuand(ms, tz) {
+  if (!ms) return '—';
+  try {
+    return new Intl.DateTimeFormat(LANG === 'en' ? 'en-GB' : 'fr-FR', { timeZone: tz, weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(ms)) + ' (' + bpNomFuseau(tz) + ')';
+  } catch (_) { return new Date(ms).toLocaleString(); }
+}
+function bpNouvelId() {
+  const t = new Uint8Array(6); crypto.getRandomValues(t);
+  return 'p' + Array.from(t, b => b.toString(16).padStart(2, '0')).join('');
+}
+function bpNouveauCode() {
+  const t = new Uint8Array(8); crypto.getRandomValues(t);
+  return Array.from(t, b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function chargerBulletinsProgrammes() {
+  const c = _clientPaiement();
+  const moi = c ? await _utilisateurPaiement(c) : null;
+  _BP.charge = true;
+  if (!moi) { _BP.uid = null; _BP.erreur = 'connexion'; return; }
+  _BP.uid = moi.id; _BP.email = moi.email; _BP.erreur = null;
+  try {
+    const [doc, etat, canaux] = await Promise.all([
+      c.from('bulletins_programmes').select().eq('id', moi.id).maybeSingle(),
+      c.from('bulletins_etat').select().eq('id', moi.id).maybeSingle(),
+      c.from('bulletins_etat').select().eq('id', '_canaux').maybeSingle(),
+    ]);
+    const d = doc && doc.data;
+    _BP.programmations = (d && Array.isArray(d.programmations)) ? d.programmations : [];
+    _BP.telegramCode = (d && typeof d.telegramCode === 'string') ? d.telegramCode : null;
+    _BP.etat = (etat && etat.data) || null;
+    _BP.canaux = (canaux && canaux.data) || null;
+  } catch (_) { _BP.erreur = 'lecture'; }
+}
+
+async function enregistrerBulletinsProgrammes(liste, code) {
+  const c = _clientPaiement();
+  if (!c || !_BP.uid) return { ok: false, message: 'Connexion requise.' };
+  const { error } = await c.from('bulletins_programmes').upsert({
+    id: _BP.uid, uid: _BP.uid, email: _BP.email, programmations: liste,
+    telegramCode: code || null, maj: new Date().toISOString(),
+  });
+  if (error) return { ok: false, message: error.message || 'droits insuffisants' };
+  _BP.programmations = liste; _BP.telegramCode = code || null;
+  return { ok: true };
+}
+
+function bpEtatCanaux() {
+  const k = _BP.canaux || {};
+  const lig = (nom, actif, detail) => '<li><b>' + nom + '</b> : ' + (actif ? '<span class="bp-ok">activé</span>' : '<span class="bp-off">pas encore activé par l\'éditeur</span>' + (detail ? ' — ' + detail : '')) + '</li>';
+  return '<ul class="bp-canaux">'
+    + lig('E-mail', !!k.email, 'les envois prévus sont notés et partiront dès l\'activation')
+    + lig('Telegram', !!k.telegram, '')
+    + lig('WhatsApp', !!k.whatsapp, 'l\'envoi automatique exige l\'API WhatsApp Business de Meta, payante ; les rappels WhatsApp en un clic, plus bas, restent gratuits')
+    + '</ul>';
+}
+
+function bpResumeResultat(r) {
+  if (!r) return '';
+  const p = [];
+  const dire = (nom, x) => {
+    if (!x) return;
+    if (x.degrade) p.push(nom + ' : non activé, non envoyé');
+    else if (x.nonRelie) p.push(nom + ' : conversation non reliée');
+    else if (x.envoyes !== undefined) p.push(nom + ' : ' + x.envoyes + ' envoyé(s)' + (x.echecs ? ', ' + x.echecs + ' échec(s)' : ''));
+    else if (x.echecs) p.push(nom + ' : échec');
+  };
+  dire('E-mail', r.email); dire('Telegram', r.telegram); dire('WhatsApp', r.whatsapp);
+  if (r.emailEnAttente) p.push(r.emailEnAttente + ' destinataire(s) en attente d\'accord');
+  if (r.sansDonnees) p.push('aucune donnée pour ces pays');
+  return p.join(' · ');
+}
+
+function renderBulletinsProgrammes() {
+  const box = document.getElementById('bpCorps');
+  if (!box) return;
+  if (!_BP.charge) { box.innerHTML = '<div class="bp-aide">Chargement…</div>'; chargerBulletinsProgrammes().then(renderBulletinsProgrammes); return; }
+  const limite = bpLimite();
+  const badge = document.getElementById('bpPlanBadge');
+  if (badge) { badge.textContent = limite ? (_BP.programmations.length + ' / ' + limite) : 'Forfaits payants'; badge.className = 'bp-badge' + (limite ? '' : ' bp-badge-lock'); }
+  let h = '<p class="bp-aide">Choisissez des pays, des heures et des canaux : SentiqS envoie le bulletin de chaque pays (niveau d\'alerte, confiance, faits notables cotés, lien vers le bulletin complet) à l\'heure dite, dans votre fuseau. '
+    + 'Envoi au premier passage qui suit l\'heure choisie, en général dans le quart d\'heure ; un créneau qui aurait plus de trois heures de retard n\'est pas envoyé, pour ne jamais vous remettre un bulletin périmé.</p>';
+  if (_BP.erreur === 'connexion') { box.innerHTML = h + '<div class="bp-alerte">Connexion requise : reconnectez-vous pour programmer des bulletins.</div>'; return; }
+  if (!limite) {
+    box.innerHTML = h + '<div class="bp-alerte"><i class="ti ti-lock" aria-hidden="true"></i> Réservé aux forfaits Particulier (1 programmation), Professionnel Sûreté (5) et Institution / International (20). '
+      + '<button type="button" class="bp-lien" onclick="document.getElementById(\'pricingGrid\')?.scrollIntoView({behavior:\'smooth\'})">Voir les tarifs</button></div>';
+    return;
+  }
+  h += bpEtatCanaux();
+  if (_BP.erreur === 'lecture') h += '<div class="bp-alerte">Programmations illisibles pour le moment (réseau). Réessayez dans un instant.</div>';
+  if (_BP.edition) { box.innerHTML = h + bpFormulaire(_BP.edition); bpApercu(); return; }
+  const etatP = (_BP.etat && _BP.etat.progs) || {};
+  if (!_BP.programmations.length) h += '<div class="bp-vide">Aucune programmation pour l\'instant.</div>';
+  _BP.programmations.forEach((p, i) => {
+    const e = etatP[p.id] || {};
+    const n = BulletinsProgrammes.normaliserProgrammation(p, Object.keys(PAYS_INFO));
+    const prochain = n.prog ? BulletinsProgrammes.prochainCreneau(n.prog, Date.now()) : null;
+    const jl = (p.jours || []).join(',');
+    const jours = jl === '1,2,3,4,5,6,7' ? 'tous les jours' : (jl === '1,2,3,4,5' ? 'jours ouvrés' : (p.jours || []).map(j => BP_JOURS_LONGS[j - 1]).join(', '));
+    const canaux = [];
+    const c = p.canaux || {};
+    if (c.titulaire !== false) canaux.push('mon e-mail');
+    if ((c.emails || []).length) canaux.push((c.emails || []).length + ' autre(s) e-mail');
+    if (c.telegram) canaux.push('Telegram');
+    if ((c.whatsapp || []).length) canaux.push((c.whatsapp || []).length + ' WhatsApp');
+    const erreurs = (e.erreurs && e.erreurs.length) ? e.erreurs : (i >= limite ? ['limite_forfait'] : (n.erreurs || []));
+    h += '<div class="bp-carte' + (p.actif === false ? ' bp-suspendue' : '') + '">'
+      + '<div class="bp-carte-hd"><div class="bp-carte-pays">' + (p.pays || []).map(cy => escHtml(bpNomPays(cy))).join(' · ') + '</div>'
+      + '<span class="bp-etat">' + (p.actif === false ? 'Suspendue' : 'Active') + '</span></div>'
+      + '<div class="bp-ligne">' + escHtml((p.heures || []).join(', ')) + ' · ' + escHtml(jours) + ' · ' + escHtml(bpNomFuseau(p.fuseau)) + ' · ' + (p.langue === 'en' ? 'anglais' : 'français') + '</div>'
+      + '<div class="bp-ligne">Canaux : ' + escHtml(canaux.join(', ') || '—') + '</div>'
+      + (p.actif !== false && prochain && !erreurs.length ? '<div class="bp-ligne">Prochain envoi : <b>' + escHtml(bpQuand(prochain, p.fuseau)) + '</b></div>' : '')
+      + (e.dernierMs ? '<div class="bp-ligne">Dernier créneau : ' + escHtml(bpQuand(e.dernierMs, p.fuseau)) + (e.resultat ? ' — ' + escHtml(bpResumeResultat(e.resultat)) : '') + '</div>' : '')
+      + bpDestinatairesHtml(c)
+      + erreurs.map(k => '<div class="bp-alerte">' + escHtml(BP_ERREURS[k] || k) + '</div>').join('')
+      + '<div class="bp-actions">'
+      + '<button type="button" class="btn-action" onclick="bpModifier(' + i + ')"><i class="ti ti-pencil" aria-hidden="true"></i> Modifier</button>'
+      + '<button type="button" class="btn-action" onclick="bpBasculer(' + i + ')">' + (p.actif === false ? '<i class="ti ti-player-play" aria-hidden="true"></i> Reprendre' : '<i class="ti ti-player-pause" aria-hidden="true"></i> Suspendre') + '</button>'
+      + '<button type="button" class="btn-action btn-del" onclick="bpSupprimer(' + i + ')"><i class="ti ti-trash" aria-hidden="true"></i> Supprimer</button>'
+      + '</div></div>';
+  });
+  h += '<div class="bp-actions">'
+    + (_BP.programmations.length < limite
+      ? '<button type="button" class="btn-action btn-rest" onclick="bpModifier(-1)"><i class="ti ti-plus" aria-hidden="true"></i> Nouvelle programmation</button>'
+      : '<span class="bp-aide">Limite de votre forfait atteinte (' + limite + ').</span>')
+    + '<span class="pmu-msg" id="bpMsg" role="status"></span></div>';
+  box.innerHTML = h;
+}
+
+function bpDestinatairesHtml(c) {
+  const dest = (_BP.etat && _BP.etat.destinataires) || {};
+  const parEmail = {};
+  Object.keys(dest).forEach(k => { if (dest[k] && dest[k].email) parEmail[dest[k].email] = dest[k].statut; });
+  const autres = (c.emails || []);
+  if (!autres.length) return '';
+  return '<div class="bp-ligne">Destinataires : ' + autres.map(m => escHtml(m) + ' <span class="bp-statut">(' + escHtml(BP_STATUT_DEST[parEmail[m] || 'non_demande']) + ')</span>').join(', ') + '</div>';
+}
+
+function bpModifier(i) {
+  const p = i >= 0 ? _BP.programmations[i] : null;
+  _BP.edition = p ? JSON.parse(JSON.stringify(p)) : {
+    id: bpNouvelId(), actif: true, pays: [], heures: ['07:00'], jours: [1, 2, 3, 4, 5, 6, 7], fuseau: bpFuseauDefaut(),
+    langue: LANG === 'en' ? 'en' : 'fr', signature: '', canaux: { titulaire: true, emails: [], telegram: false, whatsapp: [], whatsappAccord: false },
+  };
+  _BP.edition._index = i;
+  renderBulletinsProgrammes();
+  setTimeout(() => { const el = document.getElementById('bpPaysAjout'); if (el) el.focus(); }, 0);
+}
+function bpAnnuler() { _BP.edition = null; renderBulletinsProgrammes(); }
+
+function bpFormulaire(p) {
+  const opts = Object.keys(PAYS_INFO).sort((a, b) => bpNomPays(a).localeCompare(bpNomPays(b), 'fr'))
+    .filter(cy => p.pays.indexOf(cy) < 0)
+    .map(cy => '<option value="' + cy + '">' + escHtml(bpNomPays(cy)) + '</option>').join('');
+  const c = p.canaux || {};
+  const k = _BP.canaux || {};
+  const robot = k.telegramRobot && /^[A-Za-z0-9_]{5,32}$/.test(k.telegramRobot) ? k.telegramRobot : null;
+  const tgRelie = _BP.etat && _BP.etat.telegram && _BP.etat.telegram.chatId;
+  return '<div class="bp-form" role="group" aria-labelledby="bpFormTitre">'
+    + '<div class="bp-form-titre" id="bpFormTitre">' + (p._index >= 0 ? 'Modifier la programmation' : 'Nouvelle programmation') + '</div>'
+    // Pays
+    + '<div class="bp-champ"><label for="bpPaysAjout">Pays (cinq au plus)</label>'
+    + '<div class="bp-rangee"><select id="bpPaysAjout"' + (p.pays.length >= BulletinsProgrammes.MAX_PAYS ? ' disabled' : '') + '><option value="">Ajouter un pays…</option>' + opts + '</select>'
+    + '<button type="button" class="btn-action" onclick="bpAjouterPays()"' + (p.pays.length >= BulletinsProgrammes.MAX_PAYS ? ' disabled' : '') + '>Ajouter</button></div>'
+    + '<div class="bp-puces">' + p.pays.map((cy, j) => '<span class="bp-puce">' + escHtml(bpNomPays(cy)) + '<button type="button" aria-label="Retirer ' + escHtml(bpNomPays(cy)) + '" onclick="bpRetirerPays(' + j + ')">×</button></span>').join('') + '</div></div>'
+    // Heures
+    + '<div class="bp-champ"><div class="bp-leg" id="bpHeuresLeg">Heures d\'envoi (quatre au plus)</div><div class="bp-rangee" role="group" aria-labelledby="bpHeuresLeg">'
+    + p.heures.map((hh, j) => '<span class="bp-heure"><input type="time" id="bpHeure' + j + '" value="' + escHtml(hh) + '" aria-label="Heure d\'envoi ' + (j + 1) + '" onchange="bpMajHeure(' + j + ',this.value)">'
+      + (p.heures.length > 1 ? '<button type="button" class="bp-x" aria-label="Retirer l\'heure ' + (j + 1) + '" onclick="bpRetirerHeure(' + j + ')">×</button>' : '') + '</span>').join('')
+    + (p.heures.length < BulletinsProgrammes.MAX_HEURES ? '<button type="button" class="btn-action" onclick="bpAjouterHeure()"><i class="ti ti-plus" aria-hidden="true"></i> Heure</button>' : '')
+    + '</div></div>'
+    // Jours
+    + '<div class="bp-champ"><div class="bp-leg" id="bpJoursLeg">Jours</div><div class="bp-rangee" role="group" aria-labelledby="bpJoursLeg">'
+    + BP_JOURS_COURTS.map((l, j) => '<button type="button" class="bp-jour" aria-pressed="' + (p.jours.indexOf(j + 1) >= 0) + '" aria-label="' + BP_JOURS_LONGS[j] + '" onclick="bpBasculerJour(' + (j + 1) + ')">' + l + '</button>').join('')
+    + '<button type="button" class="bp-lien" onclick="bpJours([1,2,3,4,5,6,7])">Tous les jours</button>'
+    + '<button type="button" class="bp-lien" onclick="bpJours([1,2,3,4,5])">Jours ouvrés</button></div></div>'
+    // Fuseau et langue
+    + '<div class="bp-grille2"><div class="bp-champ"><label for="bpFuseau">Fuseau horaire</label><select id="bpFuseau" onchange="_BP.edition.fuseau=this.value;bpApercu()">'
+    + BulletinsProgrammes.FUSEAUX.map(tz => '<option value="' + tz + '"' + (tz === p.fuseau ? ' selected' : '') + '>' + escHtml(bpNomFuseau(tz)) + '</option>').join('') + '</select></div>'
+    + '<div class="bp-champ"><label for="bpLangue">Langue du bulletin</label><select id="bpLangue" onchange="_BP.edition.langue=this.value;bpApercu()">'
+    + '<option value="fr"' + (p.langue !== 'en' ? ' selected' : '') + '>Français</option><option value="en"' + (p.langue === 'en' ? ' selected' : '') + '>Anglais</option></select></div></div>'
+    + '<div class="bp-champ"><label for="bpSignature">Nom affiché aux destinataires (facultatif)</label>'
+    + '<input type="text" id="bpSignature" maxlength="60" value="' + escHtml(p.signature || '') + '" placeholder="Ex. Cellule Sûreté ABC" oninput="_BP.edition.signature=this.value;bpApercu()"></div>'
+    // Canaux
+    + '<fieldset class="bp-fs"><legend>E-mail</legend>'
+    + '<label class="bp-case"><input type="checkbox" id="bpTitulaire"' + (c.titulaire !== false ? ' checked' : '') + ' onchange="_BP.edition.canaux.titulaire=this.checked"> À mon adresse (' + escHtml(_BP.email || '') + ')</label>'
+    + '<label for="bpEmails">Autres destinataires (cinq au plus, séparés par des virgules)</label>'
+    + '<input type="text" id="bpEmails" value="' + escHtml((c.emails || []).join(', ')) + '" placeholder="Ex. direction@exemple.com" onchange="_BP.edition.canaux.emails=this.value.split(/[,;\\s]+/).filter(Boolean)">'
+    + '<div class="bp-aide">Chaque autre destinataire reçoit d\'abord une seule demande d\'accord, à votre nom ; rien ne lui est envoyé sans son « J\'accepte », et chaque bulletin porte un lien pour se désabonner.</div></fieldset>'
+    + '<fieldset class="bp-fs"><legend>Telegram</legend>'
+    + '<label class="bp-case"><input type="checkbox" id="bpTelegram"' + (c.telegram ? ' checked' : '') + ' onchange="_BP.edition.canaux.telegram=this.checked"> Envoyer sur Telegram</label>'
+    + (tgRelie ? '<div class="bp-aide">Conversation reliée : ' + escHtml(_BP.etat.telegram.titre || 'Telegram') + '. Envoyez /stop au robot pour la détacher.</div>'
+      : (robot ? '<button type="button" class="btn-action" onclick="bpRelierTelegram()"><i class="ti ti-brand-telegram" aria-hidden="true"></i> Relier ma conversation Telegram</button>'
+        + '<div class="bp-aide">Ouvre le robot SentiqS dans Telegram ; appuyez sur « Démarrer ». La liaison apparaît ici au passage suivant (quinze minutes environ). Pour un groupe, ajoutez le robot au groupe et envoyez-y le même message « /start ».</div>'
+        : '<div class="bp-aide">Telegram n\'est pas encore activé par l\'éditeur : la case est gardée et prendra effet à l\'activation.</div>'))
+    + '</fieldset>'
+    + '<fieldset class="bp-fs"><legend>WhatsApp</legend>'
+    + '<label for="bpWhatsapp">Numéros (trois au plus, avec l\'indicatif pays, séparés par des virgules)</label>'
+    + '<input type="text" id="bpWhatsapp" inputmode="tel" value="' + escHtml((c.whatsapp || []).join(', ')) + '" placeholder="Ex. 2250700000000" onchange="_BP.edition.canaux.whatsapp=this.value.split(/[,;]+/).map(x=>x.trim()).filter(Boolean)">'
+    + '<label class="bp-case"><input type="checkbox" id="bpWaAccord"' + (c.whatsappAccord ? ' checked' : '') + ' onchange="_BP.edition.canaux.whatsappAccord=this.checked"> J\'atteste que les titulaires de ces numéros ont accepté de recevoir ces bulletins</label>'
+    + '<div class="bp-aide">' + (k.whatsapp ? 'Envoi par l\'API WhatsApp Business.' : 'L\'envoi automatique WhatsApp n\'est pas encore activé (il exige l\'API WhatsApp Business de Meta, payante). En attendant, utilisez les rappels WhatsApp en un clic, plus bas dans cette page.') + '</div></fieldset>'
+    // Aperçu
+    + '<div class="bp-champ"><div class="bp-leg">Aperçu du message, avec les données affichées en ce moment</div><div class="bp-apercu" id="bpApercu" tabindex="0" aria-label="Aperçu du message"></div></div>'
+    + '<div class="bp-actions"><button type="button" class="btn-action btn-rest" onclick="bpEnregistrer()"><i class="ti ti-device-floppy" aria-hidden="true"></i> Enregistrer</button>'
+    + '<button type="button" class="btn-action" onclick="bpAnnuler()">Annuler</button><span class="pmu-msg" id="bpMsg" role="status"></span></div>'
+    + '</div>';
+}
+
+function bpApercu() {
+  const el = document.getElementById('bpApercu');
+  if (!el || !_BP.edition) return;
+  const p = _BP.edition;
+  if (!p.pays.length) { el.textContent = 'Ajoutez un pays pour voir le message.'; return; }
+  let pays = [];
+  try { pays = p.pays.map(cy => resumeBulletinProgramme(cy)); } catch (_) { pays = []; }
+  const m = BulletinsProgrammes.composerMessage(pays, { langue: p.langue, fuseau: p.fuseau, creneauMs: BulletinsProgrammes.prochainCreneau(Object.assign({}, p, { actif: true }), Date.now()) || Date.now(), signature: p.signature });
+  // L'aperçu est le texte du message : il garde sa langue, l'interface ne
+  // le retraduit pas (translate="no").
+  el.setAttribute('translate', 'no');
+  el.textContent = m.texte;
+}
+
+function bpAjouterPays() {
+  const sel = document.getElementById('bpPaysAjout');
+  if (!sel || !sel.value || _BP.edition.pays.length >= BulletinsProgrammes.MAX_PAYS) return;
+  _BP.edition.pays.push(sel.value);
+  bpRelire(); renderBulletinsProgrammes();
+  const s2 = document.getElementById('bpPaysAjout'); if (s2) s2.focus();
+}
+function bpRetirerPays(j) { bpRelire(); _BP.edition.pays.splice(j, 1); renderBulletinsProgrammes(); }
+function bpMajHeure(j, v) { _BP.edition.heures[j] = v; bpApercu(); }
+function bpAjouterHeure() { bpRelire(); if (_BP.edition.heures.length < BulletinsProgrammes.MAX_HEURES) _BP.edition.heures.push('18:00'); renderBulletinsProgrammes(); }
+function bpRetirerHeure(j) { bpRelire(); _BP.edition.heures.splice(j, 1); renderBulletinsProgrammes(); }
+function bpBasculerJour(j) {
+  bpRelire();
+  const t = _BP.edition.jours, k = t.indexOf(j);
+  if (k >= 0) t.splice(k, 1); else { t.push(j); t.sort(); }
+  renderBulletinsProgrammes();
+}
+function bpJours(l) { bpRelire(); _BP.edition.jours = l.slice(); renderBulletinsProgrammes(); }
+// Les champs texte ne remontent qu'à leur « change » : avant tout nouveau
+// rendu, on relit ce qui est saisi pour ne rien perdre.
+function bpRelire() {
+  const p = _BP.edition; if (!p) return;
+  const v = id => { const el = document.getElementById(id); return el ? el.value : null; };
+  const k = id => { const el = document.getElementById(id); return el ? el.checked : null; };
+  if (v('bpEmails') !== null) p.canaux.emails = v('bpEmails').split(/[,;\s]+/).filter(Boolean);
+  if (v('bpWhatsapp') !== null) p.canaux.whatsapp = v('bpWhatsapp').split(/[,;]+/).map(x => x.trim()).filter(Boolean);
+  if (k('bpTitulaire') !== null) p.canaux.titulaire = k('bpTitulaire');
+  if (k('bpTelegram') !== null) p.canaux.telegram = k('bpTelegram');
+  if (k('bpWaAccord') !== null) p.canaux.whatsappAccord = k('bpWaAccord');
+  if (v('bpSignature') !== null) p.signature = v('bpSignature');
+  p.heures = p.heures.map((hh, j) => v('bpHeure' + j) || hh);
+}
+
+async function bpEnregistrer() {
+  bpRelire();
+  const p = Object.assign({}, _BP.edition); const i = p._index; delete p._index;
+  const n = BulletinsProgrammes.normaliserProgrammation(p, Object.keys(PAYS_INFO));
+  if (!n.prog) { pmMsg(n.erreurs.map(k => escHtml(BP_ERREURS[k] || k)).join('<br>'), 'err', 'bpMsg'); return; }
+  const liste = _BP.programmations.slice();
+  if (i >= 0) liste[i] = n.prog; else liste.push(n.prog);
+  if (liste.length > bpLimite()) { pmMsg(escHtml(BP_ERREURS.limite_forfait), 'err', 'bpMsg'); return; }
+  const code = (n.prog.canaux.telegram && !_BP.telegramCode) ? bpNouveauCode() : _BP.telegramCode;
+  const r = await enregistrerBulletinsProgrammes(liste, code);
+  if (!r.ok) { pmMsg('Non enregistré : ' + escHtml(r.message), 'err', 'bpMsg'); return; }
+  _BP.edition = null;
+  renderBulletinsProgrammes();
+  pmMsg('Programmation enregistrée. Prochain envoi : ' + escHtml(bpQuand(BulletinsProgrammes.prochainCreneau(n.prog, Date.now()), n.prog.fuseau)) + '.', 'ok', 'bpMsg');
+}
+async function bpBasculer(i) {
+  const liste = _BP.programmations.map(x => Object.assign({}, x));
+  liste[i].actif = liste[i].actif === false;
+  const r = await enregistrerBulletinsProgrammes(liste, _BP.telegramCode);
+  renderBulletinsProgrammes();
+  if (!r.ok) pmMsg('Non enregistré : ' + escHtml(r.message), 'err', 'bpMsg');
+}
+// Pas de boîte de dialogue du navigateur (elle bloque les outils de test et
+// se lit mal sur mobile) : un second clic confirme.
+let _bpSupprArme = null;
+async function bpSupprimer(i) {
+  if (_bpSupprArme !== i) { _bpSupprArme = i; pmMsg('Cliquez de nouveau sur « Supprimer » pour confirmer.', 'err', 'bpMsg'); setTimeout(() => { _bpSupprArme = null; }, 6000); return; }
+  _bpSupprArme = null;
+  const liste = _BP.programmations.filter((_, j) => j !== i);
+  const r = await enregistrerBulletinsProgrammes(liste, _BP.telegramCode);
+  renderBulletinsProgrammes();
+  pmMsg(r.ok ? 'Programmation supprimée.' : 'Non supprimée : ' + escHtml(r.message), r.ok ? 'ok' : 'err', 'bpMsg');
+}
+async function bpRelierTelegram() {
+  const robot = _BP.canaux && _BP.canaux.telegramRobot;
+  if (!robot) return;
+  let code = _BP.telegramCode;
+  if (!code) {
+    code = bpNouveauCode();
+    const r = await enregistrerBulletinsProgrammes(_BP.programmations, code);
+    if (!r.ok) { pmMsg('Non relié : ' + escHtml(r.message), 'err', 'bpMsg'); return; }
+  }
+  window.open('https://t.me/' + encodeURIComponent(robot) + '?start=' + code, '_blank', 'noopener');
+}
+
+// Sommaire de Paramètres (14/11/2026, revue des réglages) : la page est
+// longue, surtout sur téléphone ; un sommaire en tête mène à chaque groupe.
+function renderSommaireParams() {
+  const nav = document.getElementById('pmSommaire');
+  if (!nav) return;
+  const cibles = [['pmAffichage', 'Affichage'], ['pmBulletins', 'Bulletins programmés'], ['pmMarque', 'Marque'],
+    ['pmCanaux', 'Canaux de partage'], ['pmCompte', 'Abonnement et compte']];
+  nav.innerHTML = cibles.filter(c => document.getElementById(c[0]))
+    .map(c => '<button type="button" class="pm-somm-btn" onclick="document.getElementById(\'' + c[0] + '\').scrollIntoView({behavior:\'smooth\',block:\'start\'})">' + c[1] + '</button>').join('');
+}
+
 // ── CHARGEMENT DU MODULE PARAMS ───────────────────────────────────────
 // loadParamsModule() : le module Parametres est desormais accessible a TOUS
 // les roles (pas seulement admin), mais avec un contenu different — voir
@@ -19039,6 +19487,9 @@ function loadParamsModule() {
   const isAdmin = session.role === 'admin';
   adapterHeroParams(isAdmin);
   // "Mon espace" — commun a tous les roles
+  renderSommaireParams();
+  _BP.charge = false; _BP.edition = null;
+  renderBulletinsProgrammes();
   renderWhatsappContacts();
   renderTelegramGroupes();
   renderEmailGroupes();
@@ -19085,11 +19536,11 @@ function adapterHeroParams(isAdmin) {
   const title = document.getElementById('pmHeroTitle');
   const badge = document.getElementById('pmHeroBadge');
   const sub   = document.getElementById('pmHeroSub');
-  if (title) title.innerHTML = '<i class="ti ti-settings"></i>' + (isAdmin ? 'Parametres &amp; Administration' : 'Mes parametres');
+  if (title) title.innerHTML = '<i class="ti ti-settings"></i>' + (isAdmin ? 'Paramètres &amp; Administration' : 'Mes paramètres');
   if (badge) badge.style.display = isAdmin ? 'flex' : 'none';
   if (sub) sub.textContent = isAdmin
-    ? 'Gestion des acces, droits de telechargement et configuration de la plateforme'
-    : 'Votre marque, vos canaux d\'envoi, votre abonnement et vos statistiques personnelles';
+    ? 'Gestion des accès, droits de téléchargement et configuration de la plateforme'
+    : 'Affichage, bulletins programmés, marque, canaux d\'envoi et abonnement';
 }
 
 // renderMonAbonnement() : forfait actif + date de validite des droits
@@ -19147,7 +19598,7 @@ function renderMesTelechargements() {
       '<div style="font-size:26px;font-weight:800;color:var(--t);font-family:var(--font-mono,monospace)">' + quotaAffiche + '</div>' +
       '<div style="font-size:9px;color:var(--lg);text-transform:uppercase;align-self:flex-end;margin-bottom:4px">utilisés / quota</div>' +
     '</div>' +
-    '<div style="font-size:10px;color:var(--lg);margin-top:6px">' + restantAffiche + ' téléchargement(s) restant(s) sur la période en cours.</div>';
+    '<div style="font-size:10px;color:var(--lg);margin-top:6px">' + (restant === Infinity ? 'Téléchargements illimités sur la période en cours.' : restantAffiche + ' téléchargement(s) restant(s) sur la période en cours.') + '</div>';
 }
 
 // renderMesConnexions() : historique de connexion du compte connecte,

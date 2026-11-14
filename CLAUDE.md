@@ -3768,3 +3768,31 @@ devenu :
 
 **Piège de banc** : un article injecté sans `analysis` est écarté par
 `sourceDateNonFiable`, donc le profil sort vide. Exports 14/14 identiques.
+
+---
+
+## Les bulletins programmés — 14/11/2026
+
+Demande de YORO : programmer des bulletins sur des pays choisis, envoyés
+automatiquement par e-mail, Telegram ou WhatsApp à des heures choisies.
+Fonctionnement, forfaits, consentement et secrets à poser : `docs/bulletins-programmes.md`.
+
+- **Une seule source pour les règles et le texte** : `web/js/bulletin-message.js`
+  (double export), lu par Paramètres ET par `scripts/envoi-bulletins.js`.
+  L'aperçu de Paramètres est le message qui partira.
+- **Le job n'ouvre pas de navigateur** : il lit l'instantané des 54 pays écrit
+  par la collecte (`bulletins_instantanes/courant`, construit par
+  `resumeBulletinProgramme` dans la page) ; rien n'est recalculé.
+- **Seul le dernier créneau échu part**, abandonné au-delà de trois heures de
+  retard : un run GitHub retardé ne déverse pas une rafale.
+- **Consentement** : l'adresse du compte reçoit ; toute autre adresse reçoit une
+  seule demande d'accord (`web/abonnement.html`), refus et désabonnement
+  définitifs. Telegram par `/start <code>`, WhatsApp sur attestation.
+- **Journaux publics** : ni adresse ni numéro en clair (`masquer`). Un test l'exige.
+- **Sans secret, l'état avance quand même** (même règle que `WEBHOOK_ALERTES`).
+- Forfait relu dans le profil par les règles Firestore et par le job :
+  0 / 1 / 5 / 20 programmations.
+
+Paramètres a été réordonné au passage (sommaire ; Lecture, Diffusion, Canaux de
+partage, Abonnement et compte ; suppression du compte en dernier), accents
+rétablis. `scripts/test/bulletins-programmes.test.js` (17).
