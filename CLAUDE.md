@@ -3250,6 +3250,19 @@ jamais, et les renommer n'apportait que du risque.
 demander d'abord à YORO l'identité d'envoi et le logo à insérer (pièce jointe
 ou copier-coller), consigne du 27/10/2026 ; SentiqS est le nom par défaut.
 
+**L'identité se donne au lancement, et tient pour le mois (14/11/2026).**
+Règle de YORO : « si aucune précision, le rapport sort sous le nom de SentiQs
+(par défaut). Toujours demander la précision de l'identité d'envoi. » Le
+lancement manuel porte trois champs, `identite_envoi`, `signature_envoi`,
+`logo_envoi` (nom d'un PNG/JPEG posé dans `scripts/config/`, jamais un chemin).
+Ce qui est saisi est écrit dans `web/rapports/mensuel/emetteur-AAAA-MM.json`
+(`fixerEmetteurMois`) et relu à chaque réécriture quotidienne du mois
+(`emetteurDuMois`) : sans ce fichier, le passage du lendemain repasserait le
+rapport sous SentiqS. Champ vide : SentiqS, et le journal le dit (« émetteur
+par défaut »), jamais en silence. Les rapports déjà générés ne sont pas
+retouchés. `scripts/test/emetteur-mois.test.js` (4, vus échouer sans le
+correctif).
+
 ---
 
 ## Mobile : la page défile d'un bloc — 22/10/2026

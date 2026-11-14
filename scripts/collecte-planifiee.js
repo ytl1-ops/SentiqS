@@ -674,6 +674,15 @@ function ecrireResumeActions(md) {
           // de sa fin. GRSCI_FORCER=1 réécrit le mois en cours tout de suite.
           const aEcrire = rapportGrsci.rapportsAActualiser(RACINE_GRSCI, jour);
           if (process.env.GRSCI_FORCER === '1' && !aEcrire.some((r) => r.mois === mois)) aEcrire.push({ mois, fin: jour });
+          // Identité d'envoi saisie au lancement manuel : retenue pour le mois
+          // (voir fixerEmetteurMois). Rien de saisi : SentiqS par défaut, et le
+          // journal le dit.
+          if (process.env.GRSCI_FORCER === '1') {
+            const saisie = rapportGrsci.fixerEmetteurMois(RACINE_GRSCI, mois, {
+              identite: process.env.RAPPORT_IDENTITE, signature: process.env.RAPPORT_SIGNATURE, logo: process.env.RAPPORT_LOGO,
+            });
+            if (!saisie) console.warn('  Présentation 1 : aucune identité d\'envoi précisée au lancement — émetteur par défaut.');
+          }
           for (const { mois: moisR, fin } of aEcrire) {
             const PptxGenJS = require('pptxgenjs');
             const cumulR = moisR === mois ? cumul : faitsGrsci.lireCumul(RACINE_GRSCI, moisR);
@@ -724,12 +733,14 @@ function ecrireResumeActions(md) {
               illustres.forEach((f) => (f.liens || []).forEach((l) => { const x = parUrl.get(l.url); if (x && f.img && !x.img) x.img = f.img; }));
               faitsGrsci.ecrireCumul(RACINE_GRSCI, cumulR);
               console.log('  Présentation 1 : ' + illustres.length + ' actus (' + marquants.length + ' rédigées), ' + avecPhoto + ' avec photo, ' + chapos + ' chapôs traduits.');
-              const chemin = await rapportGrsci.ecrire(RACINE_GRSCI, PptxGenJS, { jour: fin, ci, regionaux });
+              const emetteur = rapportGrsci.emetteurDuMois(RACINE_GRSCI, moisR);
+              console.log('  Présentation 1 : émetteur « ' + emetteur.identite + ' »' + (emetteur.logo ? ', avec logo' : ', sans logo') + (emetteur.precise ? ' (précisé pour ' + moisR + ')' : ' (par défaut)') + '.');
+              const chemin = await rapportGrsci.ecrire(RACINE_GRSCI, PptxGenJS, { jour: fin, ci, regionaux, emetteur });
               console.log('  Présentation 1 : rapport ecrit — ' + chemin + ' (' + regionaux.length + ' pays regionaux).');
               // Le même rapport en Word : vrais textes et tableaux modifiables.
               // Son échec ne doit pas faire perdre le PowerPoint déjà écrit.
               try {
-                const cheminWord = await rapportGrsciWord.ecrireWord(RACINE_GRSCI, require('docx'), { jour: fin, ci, regionaux });
+                const cheminWord = await rapportGrsciWord.ecrireWord(RACINE_GRSCI, require('docx'), { jour: fin, ci, regionaux, emetteur });
                 console.log('  Présentation 1 : version Word ecrite — ' + cheminWord);
               } catch (e) {
                 console.warn('  Présentation 1 : version Word non ecrite (' + ((e && e.message) || e) + ')');
