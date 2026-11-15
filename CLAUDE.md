@@ -4129,3 +4129,30 @@ retiré ni flouté : un bloc en pied (`blocAbonnement`, bulletin et index des
 54 pays) dit ce que l'abonnement ajoute, chaque ligne décrivant une fonction
 qui existe, avec l'essai gratuit (lien vers le domaine canonique). Masqué à
 l'impression. Les bulletins déjà écrits ne sont pas retouchés.
+
+## Google Pay, branché en mode TEST — 15/11/2026
+
+Demande de YORO : « insère Google Pay également comme mode de paiement ».
+Google Pay ne fait que transmettre une carte chiffrée : il faut un
+**prestataire** (passerelle) pour encaisser et un **identifiant marchand**
+Google (Google Pay & Wallet Console) pour la production. SentiqS n'en a
+aucun au 15/11/2026.
+
+`web/js/google-pay.js` monte le bouton officiel (`createButton`, blanc sur
+le thème sombre, noir sur le clair, FR/EN) en tête du panneau « Déclarer un
+paiement », au-dessus des numéros Mobile Money, **seulement si
+`isReadyToPay` répond oui** ; sinon le bloc reste masqué. Montant en francs
+CFA entiers (`XOF`, `CI`), lu dans le forfait choisi.
+
+- **TEST** (configuration livrée, passerelle d'exemple de Google) : un clic
+  ouvre la feuille Google Pay, rien n'est débité, le jeton n'est ni gardé ni
+  envoyé, aucune déclaration n'est créée.
+- **PRODUCTION** est refusée par `configValide` tant que manquent
+  l'identifiant marchand, la passerelle réelle et un `pointEncaissement`
+  https (fonction serveur du prestataire, à ajouter aussi au `connect-src`).
+  Le navigateur n'active **jamais** un forfait : c'est ce serveur qui l'écrit,
+  les règles Firestore refusent déjà qu'un client le fasse.
+- CSP : `https://pay.google.com` en `script-src`, `frame-src`, `connect-src`.
+
+Le vrai bouton n'a pas pu être rendu ici (pay.google.com refusé par le
+proxy) : captures et tests avec un double de l'API. `google-pay.test.js` (7).
