@@ -1,0 +1,43 @@
+name: Agenda — sources d'événements
+
+# Jours fériés officiels (Nager.Date),
+# écrits dans web/agenda/externe.json (scripts/sources-agenda.js). Le bac à
+# sable n'a pas de réseau : ces sources ne se lisent que d'ici. Une fois par
+# jour suffit, ce sont des calendriers, pas de l'actualité.
+
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sources-agenda
+  cancel-in-progress: false
+
+jobs:
+  agenda:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+      - name: Lit les sources
+        run: node scripts/sources-agenda.js
+      - name: Publie sur main (planifié ou lancé à la main depuis main)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "sources-agenda"
+          git config user.email "actions@github.com"
+          git add web/agenda/externe.json
+          if git diff --cached --quiet; then echo "Rien de neuf."; exit 0; fi
+          git commit -m "Agenda : jours fériés à venir"
+          for i in 1 2 3 4; do
+            if git push origin HEAD:main; then exit 0; fi
+            git pull --rebase --autostash origin main
+          done
+          exit 1

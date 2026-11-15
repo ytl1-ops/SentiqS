@@ -250,6 +250,31 @@ function lignesAngleMort(am, d) {
  * Le bulletin, en HTML autonome (aucune ressource externe, imprimable).
  * `d` : donneesBulletinPays(cy) ; `serie` : web/historique/serie.json.
  */
+// Le bulletin public reste gratuit et complet sur l'essentiel (consigne de
+// YORO du 14/11/2026 : « un motif pour s'abonner dans le respect de la
+// gratuité »). Rien n'y est retiré ni flouté ; ce bloc dit seulement ce que
+// l'abonnement ajoute, et chaque ligne décrit une fonction qui existe dans
+// l'application (un test le vérifie : pas de promesse sans fonction).
+const OFFRE_ABONNEMENT = [
+  ['Assistant de veille', 'posez vos questions en langage courant (« la situation au Mali cette semaine ») ; réponses tirées de la base, cotées et sourcées.'],
+  ['Bulletins programmés', 'les pays de votre choix, à l\'heure de votre choix, par e-mail, Telegram ou WhatsApp.'],
+  ['Alertes', 'le changement de niveau d\'un pays, sans attendre le bulletin du lendemain.'],
+  ['Rapports à votre nom', 'Word, PDF et PowerPoint signés de votre organisation et de son logo.'],
+  ['Agenda des 54 pays', 'jours fériés officiels, grandes fêtes et rassemblements annoncés à l\'avance.'],
+];
+function blocAbonnement() {
+  return '<aside class="offre" aria-labelledby="offre-t"><h2 id="offre-t">Ce bulletin est gratuit. Pour aller plus loin</h2>'
+    + '<p class="meta">Le bulletin quotidien reste gratuit et complet : niveau, faits cotés, ce qui porte le niveau, angles morts, avis officiels. L\'abonnement ajoute :</p><ul>'
+    + OFFRE_ABONNEMENT.map(([t, d]) => '<li><strong>' + esc(t) + '</strong> : ' + esc(d) + '</li>').join('')
+    + '</ul><p><a class="cta" href="' + SITE_CANONIQUE + 'index.html#tarifs">Essai gratuit 72 h — votre e-mail suffit</a></p>'
+    + '<p class="meta">Sans carte bancaire ; l\'essai s\'arrête de lui-même.</p></aside>';
+}
+const CSS_OFFRE = '.offre{margin-top:28px;padding:4px 16px 12px;border:1px solid #D9CBB4;border-left:4px solid #7A4A12;background:#FAF8F5}'
+  + '.offre h2{border:0;padding-top:8px;margin-top:8px}'
+  + '.cta{display:inline-block;padding:9px 16px;background:#0B1B3F;color:#fff;font-weight:700;border-radius:4px;text-decoration:none}'
+  + '.cta:hover{background:#7A4A12}.cta:focus-visible{outline:2px solid #7A4A12;outline-offset:2px}'
+  + '@media print{.offre{display:none}}';
+
 function rendre(d, { jour, genereMs, serie, dernier = false } = {}) {
   const cfg = PAYS_BULLETIN[d.cy] || { conseils: [] };
   const t = tendanceDuJour(serie, d, jour);
@@ -285,6 +310,7 @@ function rendre(d, { jour, genereMs, serie, dernier = false } = {}) {
     + '.cot{display:inline-block;font-size:12px;font-weight:700;padding:1px 7px;border-radius:3px;border:1px solid}'
     + '.cot-confirme{color:#065F46;border-color:#065F46}.cot-probable{color:#854D0E;border-color:#854D0E}.cot-non_confirme{color:#4B5563;border-color:#4B5563}'
     + '@media print{body{background:#fff}main{padding:0}a{color:#1F2937}h2{break-after:avoid}li,.bref{break-inside:avoid}}'
+    + CSS_OFFRE
     + '</style></head><body><main>'
     + '<div class="tag">SentiqS · Bulletin quotidien · Responsable sûreté</div>'
     + '<h1>' + esc(d.nom) + ' — ' + esc(dateFr(jour)) + '</h1>'
@@ -304,6 +330,7 @@ function rendre(d, { jour, genereMs, serie, dernier = false } = {}) {
     + '<h2>5. Conseils officiels aux voyageurs</h2>'
     + (cfg.conseils.length ? '<ul>' + cfg.conseils.map((c) => '<li><a href="' + esc(c.url) + '" rel="noopener">' + esc(c.nom) + '</a></li>').join('') + '</ul>'
       + '<p class="meta">Liens vers les avis en vigueur, à consulter à la source : ils ne sont pas résumés ici pour ne jamais en reproduire une version périmée.</p>' : '')
+    + blocAbonnement()
     + '<p class="meta"><a href="' + URL_SITE + 'SentiqS_Web.html">Ouvrir SentiqS</a> · <a href="../index.html">Bulletins des 54 pays</a> · Outil d\'aide à la décision : '
     + 'il ne remplace pas l\'appréciation de situation du responsable sûreté.</p>'
     + '</main></body></html>\n';
@@ -387,6 +414,7 @@ function rendreIndex(index) {
     + 'a{color:#7A4A12}a:focus-visible{outline:2px solid #7A4A12;outline-offset:2px}'
     + '@media (max-width:560px){thead{display:none}tr{display:block;padding:8px 0;border-bottom:1px solid #E5E0D8}td{display:inline-block;border:0;padding:2px 8px 2px 0}td:first-child{display:block;font-weight:700}.lbl{display:inline;color:#4B5563}}'
     + '@media print{body{background:#fff}main{padding:0}a{color:#1F2937}}'
+    + CSS_OFFRE
     + '</style></head><body><main>'
     + '<div class="tag">SentiqS · Bulletins quotidiens · 54 pays</div>'
     + '<h1>Bulletins sûreté du ' + esc(dateFr(recent)) + '</h1>'
@@ -395,6 +423,7 @@ function rendreIndex(index) {
     + '<p class="meta">« Aucune actualité » ne veut pas dire « calme » : c\'est un pays sur lequel l\'outil ne voit rien dans la fenêtre. Chaque bulletin le précise dans « Ce que nous ne savons pas ».</p>'
     + '<table><thead><tr><th>Pays</th><th>Niveau</th><th>Faits notables</th><th>Bulletin du</th></tr></thead><tbody>'
     + corps + '</tbody></table>'
+    + blocAbonnement()
     + '<p class="meta"><a href="' + URL_SITE + 'SentiqS_Web.html">Ouvrir SentiqS</a> · Outil d\'aide à la décision : '
     + 'il ne remplace pas l\'appréciation de situation du responsable sûreté.</p>'
     + '</main></body></html>\n';
@@ -421,6 +450,7 @@ function messageResume(resumes, jour) {
 }
 
 module.exports = {
+  OFFRE_ABONNEMENT, blocAbonnement,
   URL_SITE, SITE_CANONIQUE, teteSeo, HEURE_BULLETIN_UTC, PAYS_BULLETIN, PAYS_PILOTES, paysAEcrire,
   cheminBulletin, doitEcrire, tendanceDuJour, rendre, ecrire, urlPublique, messageAnnonce, phraseEnBref, moisRevu,
   lireIndex, resumeBulletin, rendreIndex, mettreAJourIndex, messageResume,

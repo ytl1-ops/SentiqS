@@ -102,3 +102,20 @@ test('le module Rapports propose les bulletins des pays publiés', () => {
   assert.match(f, /\/dernier\.html/);
   assert.match(HTML, /function updateDLCounts\(\)\{\n  chargerRapportsAuto\(\);\n  chargerBulletinsPays\(\);/);
 });
+
+// Bulletin public : gratuit et complet, avec ce que l'abonnement ajoute
+// (consigne de YORO du 14/11/2026). Rien n'est retiré ni flouté.
+test('le bulletin public garde ses cinq blocs et dit ce que l\'abonnement ajoute', () => {
+  const b = require('../lib/bulletin');
+  const html = b.blocAbonnement();
+  assert.match(html, /Ce bulletin est gratuit/);
+  assert.match(html, /index\.html#tarifs/);
+  assert.ok(b.OFFRE_ABONNEMENT.length >= 4);
+  const fs = require('fs');
+  const page = fs.readFileSync(require('path').join(__dirname, '../../web/SentiqS_Web.html'), 'utf8');
+  // Pas de promesse sans fonction : chaque ligne nomme une fonction de l'appli.
+  assert.match(page, /function ouvrirAssistant\(/);
+  assert.match(page, /Bulletins programm/);
+  assert.match(page, /entreesCalendrierAgenda/);
+  assert.match(html, /@media print|offre/);
+});

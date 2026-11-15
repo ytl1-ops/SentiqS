@@ -33,6 +33,8 @@
      inline pour etre testables directement (voir web/js/noyau.js). Charge
      AVANT lui : le script applicatif s'appuie sur ces noms. -->
 <script src="js/noyau.js"></script>
+<script src="js/assistant.js"></script>
+<script src="js/calendrier-foules.js"></script>
 <script src="js/bulletin-message.js"></script>
 <script src="js/identifiants-envoi.js"></script>
 <script src="js/intro.js"></script>
@@ -3119,6 +3121,60 @@ html.pays-en-tete .compact-filters{display:none}
 html.force-mobile .acces-rapide-btn{display:none}
 @media (max-width:760px){.ar-aide,.ar-champ kbd{display:none}.ar-boite{margin-top:8px}}
 
+/* ═══ ASSISTANT DE VEILLE — 14/11/2026 (voir CLAUDE.md) ═══
+   Une question en langage courant, une réponse construite uniquement à partir
+   de la base (web/js/assistant.js). Bureau : bouton dans la barre du haut,
+   fenêtre centrée. Téléphone : bouton flottant, fenêtre plein écran. */
+.assistant-btn{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:4px 10px;border-radius:var(--r-md);
+  border:1px solid var(--sig,var(--b));background:transparent;color:var(--t);font:inherit;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.assistant-btn i{color:var(--sig,var(--b));font-size:14px}
+.assistant-btn:hover{background:var(--bl)}
+.assistant-btn:focus-visible{outline:2px solid var(--b);outline-offset:2px}
+@media (max-width:1000px){.assistant-btn .as-lib{display:none}}
+.assistant{position:fixed;inset:0;z-index:200001;display:none}
+.assistant.on{display:block}
+.as-voile{position:absolute;inset:0;background:rgba(4,10,26,.6)}
+.as-boite{position:relative;margin:6vh auto 0;width:min(760px,calc(100% - 24px));height:min(84vh,860px);display:flex;flex-direction:column;
+  background:var(--w);color:var(--t);border:1px solid var(--bd);border-radius:var(--r-md);box-shadow:0 18px 50px rgba(0,0,0,.45);overflow:hidden}
+.as-tete{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--bd)}
+.as-tete h2{margin:0;font-family:var(--font-serif,serif);font-size:var(--fs-lg,17px);font-weight:700;flex:1}
+.as-tete p{margin:2px 0 0;font-size:var(--fs-sm,12px);color:var(--t2);font-family:inherit;font-weight:400}
+.as-fermer{min-width:32px;min-height:32px;border:1px solid var(--bd);border-radius:var(--r-sm);background:transparent;color:var(--t2);cursor:pointer;font-size:16px}
+.as-fil{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:14px}
+.as-q{align-self:flex-end;max-width:85%;background:var(--bl);border:1px solid var(--bb);border-radius:var(--r-md);padding:8px 12px;font-size:14px}
+.as-r{font-size:14px;line-height:1.5;display:flex;flex-direction:column;gap:8px}
+.as-r h3{margin:4px 0 0;font-size:15px;font-weight:700}
+.as-r h3 button{all:unset;cursor:pointer;border-bottom:1px dotted currentColor}
+.as-r h4{margin:6px 0 0;font-size:var(--fs-micro);letter-spacing:.08em;text-transform:uppercase;color:var(--t2);font-weight:700}
+.as-r p{margin:0}
+.as-r ul{margin:0;padding-left:18px}
+.as-r li{margin:2px 0}
+.as-lien{all:unset;cursor:pointer;color:var(--t);border-bottom:1px dotted currentColor}
+.as-faits{list-style:none;padding:0 !important;display:flex;flex-direction:column;gap:6px}
+.as-fait{border:1px solid var(--bd);border-left:3px solid var(--bd);border-radius:var(--r-sm);padding:7px 10px;background:var(--sf)}
+.as-fait.crit{border-left-color:var(--r)}.as-fait.high{border-left-color:var(--a)}.as-fait.mod{border-left-color:var(--j-txt,#854D0E)}
+.as-fait-t{font-weight:600}
+.as-fait-t a,.as-fait-t button{all:unset;cursor:pointer}
+.as-fait-t a:hover,.as-fait-t button:hover{text-decoration:underline}
+.as-meta{font-size:var(--fs-sm,12px);color:var(--t2);margin-top:3px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
+.as-meta a{color:var(--t2)}
+.as-cot{font-size:var(--fs-micro);font-weight:700;padding:1px 7px;border-radius:999px;border:1px solid var(--bd);color:var(--t)}
+.as-cot.confirme,.as-cot.valide{border-color:var(--g);color:var(--g)}
+.as-cot.non_confirme,.as-cot.infirme{color:var(--t2)}
+.as-note{font-size:var(--fs-sm,12px);color:var(--t2);border-left:2px solid var(--bd);padding-left:8px}
+.as-source{font-size:var(--fs-micro);color:var(--t2);border-top:1px solid var(--bd);padding-top:6px}
+.as-sugg{display:flex;flex-wrap:wrap;gap:6px}
+.as-sugg button{min-height:28px;padding:3px 10px;border-radius:999px;border:1px solid var(--bd);background:transparent;color:var(--t2);font:inherit;font-size:12px;cursor:pointer}
+.as-sugg button:hover{color:var(--t);border-color:var(--b)}
+.as-saisie{display:flex;gap:8px;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--bd)}
+.as-saisie input{flex:1;min-width:0;min-height:40px;border:1px solid var(--bd);border-radius:var(--r-md);background:var(--sf);color:var(--t);font-size:16px;padding:6px 12px}
+.as-saisie button{min-height:40px;min-width:44px;border:0;border-radius:var(--r-md);background:var(--b);color:var(--on-b,#fff);font:inherit;font-weight:700;cursor:pointer;padding:0 14px}
+@media (max-width:760px){
+  html:not(.force-web):not(.force-tablette) .assistant-btn{display:none} /* sur téléphone : menu « Plus » > Poser une question */
+  html:not(.force-web):not(.force-tablette) .as-boite{margin:0;width:100%;height:100%;border-radius:0;border:0}
+}
+html.force-mobile .assistant-btn{display:none}
+html.force-mobile .as-boite{margin:0;width:100%;height:100%;border-radius:0;border:0}
 /* ═══ MOBILE : LE CONTENU D'ABORD — 22/10/2026 (voir CLAUDE.md) ═══
    Capture de YORO sur téléphone (texte agrandi par le navigateur) : barre du
    haut, bandeau « Cliquez sur Actualiser », collecte, flash info, filtre pays,
@@ -3551,6 +3607,9 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
     </div>
     <div id="globalCyBadge" onclick="clearGlobalCountryFilter()" title="Filtre pays actif sur toute la plateforme — cliquer pour reinitialiser" style="display:none;align-items:center;gap:5px;padding:5px 10px;background:rgba(138,93,26,.25);border:1px solid rgba(138,93,26,.5);border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;"></div>
     <div class="cy-slot-tb" id="cySlotTb"></div>
+    <button type="button" class="assistant-btn" id="assistantBtn" onclick="ouvrirAssistant()" aria-haspopup="dialog" aria-label="Poser une question à l'assistant" title="Poser une question à l'assistant de veille">
+      <i class="ti ti-message-question" aria-hidden="true"></i><span class="as-lib" data-i18n="btn_assistant">Assistant</span>
+    </button>
     <button type="button" class="acces-rapide-btn" id="accesRapideBtn" onclick="ouvrirAccesRapide()" aria-label="Aller à un pays ou un module" aria-haspopup="dialog" aria-keyshortcuts="Control+K /" title="Aller à un pays ou un module (Ctrl+K ou /)">
       <i class="ti ti-search" aria-hidden="true"></i><span class="ar-lib" data-i18n="btn_aller_a">Aller à…</span><kbd class="ar-kbd" aria-hidden="true">Ctrl K</kbd>
     </button>
@@ -3574,6 +3633,9 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
       </button>
       <button class="actu-btn" onclick="document.getElementById('tbMore').open=false;ouvrirAccesRapide()" id="accesRapideMenu" style="background:var(--sf)">
         <i class="ti ti-search"></i> <span data-i18n="btn_aller_pays">Aller à un pays</span>
+      </button>
+      <button class="actu-btn" onclick="document.getElementById('tbMore').open=false;ouvrirAssistant()" id="assistantMenu" style="background:var(--sf)">
+        <i class="ti ti-message-question"></i> <span data-i18n="btn_assistant_q">Poser une question</span>
       </button>
       <button class="actu-btn" onclick="runDiagnostic()" id="diagBtn" title="Tester les services de collecte" style="background:var(--sf)">
         <i class="ti ti-stethoscope"></i> <span data-i18n="btn_diagnostic">Diagnostic</span>
@@ -6211,7 +6273,7 @@ const I18N = {
     empty_filtres:"Essayez d'élargir les filtres actifs.",
     empty_actualiser:'Cliquez sur Actualiser pour lancer la collecte des flux.',
     logo_sub:"Veille multi-sources · Médias + Réseaux sociaux · 54 pays d'Afrique",
-    live_pret:'Collecte...', btn_actualiser:'Actualiser', btn_diagnostic:'Diagnostic', btn_aller_a:'Aller à…', btn_aller_pays:'Aller à un pays', btn_theme_sombre:'Sombre',
+    live_pret:'Collecte...', btn_actualiser:'Actualiser', btn_diagnostic:'Diagnostic', btn_aller_a:'Aller à…', btn_assistant:'Assistant', btn_assistant_q:'Poser une question', btn_aller_pays:'Aller à un pays', btn_theme_sombre:'Sombre',
     menu_params:'Paramètres & Administration', menu_access:'Gestion des accès', menu_logout:'Se déconnecter',
     menu_reclam:'Signaler un problème', menu_paiement:'Déclarer un paiement',
     menu_mode_emploi:"Mode d'emploi (PDF)",
@@ -6368,7 +6430,7 @@ const I18N = {
     empty_filtres:'Try widening the active filters.',
     empty_actualiser:'Click Refresh to start collecting feeds.',
     logo_sub:'Multi-source monitoring · Media + Social networks · 54 African countries',
-    live_pret:'Collecting...', btn_actualiser:'Refresh', btn_diagnostic:'Diagnostic', btn_aller_a:'Go to…', btn_aller_pays:'Go to a country', btn_theme_sombre:'Dark',
+    live_pret:'Collecting...', btn_actualiser:'Refresh', btn_diagnostic:'Diagnostic', btn_aller_a:'Go to…', btn_assistant:'Assistant', btn_assistant_q:'Ask a question', btn_aller_pays:'Go to a country', btn_theme_sombre:'Dark',
     menu_params:'Settings & Administration', menu_access:'Access management', menu_logout:'Log out',
     menu_reclam:'Report an issue', menu_paiement:'Declare a payment',
     menu_mode_emploi:'User guide (PDF)',
@@ -6564,6 +6626,7 @@ function setLang(lang) {
 // (voir _trPlanifier) : la carte passe alors de « Traduction en cours » au
 // texte traduit sans que l'utilisateur ait a rouvrir le module.
 function redessinerVuesOuvertes() {
+  if (typeof rafraichirAssistant === 'function') { try { rafraichirAssistant(); } catch (_) {} }
   if (typeof renderFeed === 'function') { _rendreOuSignaler('renderFeed', renderFeed); }
   if (typeof updSynthese === 'function' && document.getElementById('syCont')) { _rendreOuSignaler('updSynthese', updSynthese); }
   if (typeof renderDashboard === 'function' && document.getElementById('v-dashboard') && document.getElementById('v-dashboard').classList.contains('on')) { _rendreOuSignaler('renderDashboard', renderDashboard); }
@@ -14014,6 +14077,9 @@ function elementsAccesRapide(q) {
     if (correspond(_sansAccents(lib + ' ' + t.dataset.view))) out.push({ type: 'module', vue: t.dataset.view, lib });
   });
   if (n.length >= 2) out.push({ type: 'recherche', q: String(q).trim(), lib: (en ? 'Search the news for “' : 'Chercher « ') + String(q).trim() + (en ? '”' : ' » dans les actus') });
+  // Une phrase (trois mots, ou un point d'interrogation) est une question :
+  // l'assistant passe en tête (14/11/2026).
+  if (/\?/.test(q) || n.split(/\s+/).filter(Boolean).length >= 3) out.unshift({ type: 'assistant', q: String(q).trim(), lib: (en ? 'Ask the assistant: “' : 'Demander à l’assistant : « ') + String(q).trim() + (en ? '”' : ' »') });
   return out.slice(0, 60);
 }
 let _arSel = 0, _arElems = [], _arRetour = null;
@@ -14027,14 +14093,14 @@ function rendreAccesRapide() {
   let grp = '';
   ul.innerHTML = _arElems.length ? _arElems.map((e, i) => {
     let h = '';
-    const g = e.type === 'pays' ? (en ? 'Countries' : 'Pays') : e.type === 'module' ? (en ? 'Modules' : 'Modules') : (en ? 'Search' : 'Recherche');
+    const g = e.type === 'pays' ? (en ? 'Countries' : 'Pays') : e.type === 'module' ? (en ? 'Modules' : 'Modules') : e.type === 'assistant' ? 'Assistant' : (en ? 'Search' : 'Recherche');
     if (g !== grp) { grp = g; h += '<li class="ar-grp" role="presentation">' + g + '</li>'; }
     let droite = '';
     if (e.type === 'pays') {
       const nv = niveauAlertePays(e.cy);
       droite = '<span class="ar-niv"><span class="ar-pt" style="background:' + nv.col + '"></span>' + _arEchapper(nv.label) + '</span>';
     }
-    const ico = e.type === 'pays' ? '<span class="ar-flag" aria-hidden="true">' + e.flag + '</span>' : '<i class="ti ' + (e.type === 'module' ? 'ti-layout-grid' : 'ti-search') + '" aria-hidden="true"></i>';
+    const ico = e.type === 'pays' ? '<span class="ar-flag" aria-hidden="true">' + e.flag + '</span>' : '<i class="ti ' + (e.type === 'module' ? 'ti-layout-grid' : e.type === 'assistant' ? 'ti-message-question' : 'ti-search') + '" aria-hidden="true"></i>';
     return h + '<li role="option" id="ar-o' + i + '" class="ar-opt" aria-selected="' + (i === _arSel) + '" data-i="' + i + '">' + ico + '<span class="ar-txt">' + _arEchapper(e.lib) + '</span>' + droite + '</li>';
   }).join('') : '<li class="ar-vide" role="presentation">' + (en ? 'Nothing matches.' : 'Aucun résultat.') + '</li>';
   inp.setAttribute('aria-activedescendant', _arElems.length ? 'ar-o' + _arSel : '');
@@ -14045,6 +14111,7 @@ function executerAccesRapide(e) {
   if (!e) return;
   fermerAccesRapide(true);
   if (e.type === 'pays') return ouvrirVuePays(e.cy);
+  if (e.type === 'assistant') return ouvrirAssistant(e.q);
   if (e.type === 'module') { const t = document.querySelector('.ntab[data-view="' + e.vue + '"]'); if (t) t.click(); return; }
   if (e.type === 'recherche') {
     const t = document.querySelector('.ntab[data-view="recherche"]'); if (t) t.click();
@@ -14093,6 +14160,323 @@ function ouvrirAccesRapide() {
   d.classList.add('on');
   rendreAccesRapide();
   setTimeout(() => inp.focus(), 0);
+}
+// ════════════════════════════════════════════════════════════════════════════
+//  ASSISTANT DE VEILLE — 14/11/2026 (voir CLAUDE.md et web/js/assistant.js)
+//
+//  Consigne de YORO : « travailler uniquement la base de données générée par
+//  l'appli pour éviter toute hallucination » et « éviter des répétitions ou
+//  redondances improductives ». Cette partie ne fait que RASSEMBLER ce que la
+//  page sait déjà — niveaux (calcAlertScore), faits collectés (ALL), faits
+//  gardés en référence (HISTORIQUE), cumul mensuel publié par le job
+//  (rapports/mensuel/faits-AAAA-MM.json), agenda — et le passe au module, qui
+//  compose la réponse. Rien n'est recalculé à côté, rien n'est rédigé.
+// ════════════════════════════════════════════════════════════════════════════
+const _asCumuls = new Map();
+async function _asCumulMois(cle) {
+  if (_asCumuls.has(cle)) return _asCumuls.get(cle);
+  const p = fetch('rapports/mensuel/faits-' + cle + '.json', { cache: 'no-cache' })
+    .then(r => (r.ok ? r.json() : null)).catch(() => null);
+  _asCumuls.set(cle, p);
+  return p;
+}
+function _asNomPays(cy) {
+  const en = typeof LANG !== 'undefined' && LANG === 'en';
+  return (en && typeof PAYS_EN !== 'undefined' && PAYS_EN[cy]) || ((PAYS_INFO[cy] || {}).name) || cy;
+}
+function contexteAssistant() {
+  if (!contexteAssistant._ctx) {
+    const pays = Object.keys(PAYS_INFO).filter(cy => cy !== 'INT').map(cy => ({
+      cy, noms: [PAYS_INFO[cy].name, (typeof PAYS_EN !== 'undefined' && PAYS_EN[cy]) || ''].filter(Boolean),
+    }));
+    contexteAssistant._ctx = { pays, _index: SentiqAssistant.indexPays(pays) };
+  }
+  return Object.assign({}, contexteAssistant._ctx, {
+    maintenant: Date.now(), fenetreMs: FENETRE_ACTUALITE_MS,
+    paysCourant: (typeof fCy !== 'undefined' && fCy !== 'all') ? fCy : null,
+  });
+}
+const _AS_RANG = { crit: 0, high: 1, mod: 2 };
+function _asFaitDeArticle(a) {
+  if (!a || !a.title || !(a.level in _AS_RANG) || a.flagged) return null;
+  if (a.cat === 'sport' || a.cat === 'culture') return null;
+  const cot = (typeof cotationActu === 'function') ? cotationActu(a) : null;
+  return {
+    id: a.id, titre: a.title, cy: a.cy, niveau: a.level, publieMs: a.pubDate || null,
+    source: srcName(a.primary), url: a.url || null, cotation: cot ? cot.cle : 'non_confirme',
+    cat: a.cat || null, texte: a.analysis || '', enDirect: true,
+  };
+}
+async function donneesAssistant(interp) {
+  const tous = Object.keys(PAYS_INFO).filter(cy => cy !== 'INT');
+  const scope = interp.pays.length ? interp.pays.filter(cy => PAYS_INFO[cy]) : tous;
+  const detail = interp.pays.length > 0;
+  const am = angleMortPerimetre(scope);
+  const dans = (l, cy) => l.some(p => p.cy === cy);
+  const P = {};
+  const classement = [];
+  const maintenant = Date.now();
+  tous.forEach(cy => {
+    const sc = calcAlertScore(cy);
+    classement.push({ cy, nom: _asNomPays(cy), niveau: sc.key, total100: sc.total100 });
+    if (!scope.includes(cy)) return;
+    const p = { nom: _asNomPays(cy), niveau: sc.key, total100: sc.total100, tendance: tendancePays(cy),
+      angleMort: { muet: dans(am.muets, cy), horsAlerte: dans(am.horsAlerte, cy), sourceUnique: dans(am.sourceUnique, cy), socleAncien: dans(am.socleAncien, cy) } };
+    if (detail) {
+      p.socle = ALERTE_EVENTS.filter(e => e.cy === cy).map(e => {
+        const d = poidsVerifie(e, maintenant);
+        return { titre: L(e.title), date: e.date, ageJ: d.ms ? Math.floor((maintenant - d.ms) / 86400000) : null, ms: d.ms || 0 };
+      }).sort((x, y) => y.ms - x.ms);
+      p.facteurs = (FACTEURS_SPECIAUX[cy] || []).map(f => L(f.label));
+    }
+    P[cy] = p;
+  });
+  // Faits : temps réel, puis référence, puis cumul mensuel publié. Une même
+  // adresse ou un même identifiant ne compte qu'une fois.
+  const vus = new Set();
+  const faits = [];
+  const ajouter = (f) => {
+    if (!f || !scope.includes(f.cy)) return;
+    const k = f.url || f.id;
+    if (k && vus.has(k)) return;
+    if (k) vus.add(k);
+    faits.push(f);
+  };
+  (typeof ALL !== 'undefined' ? ALL : []).forEach(a => ajouter(_asFaitDeArticle(a)));
+  (typeof HISTORIQUE !== 'undefined' ? HISTORIQUE : []).forEach(a => {
+    if (a && a._dateNonFiable) return;
+    const f = _asFaitDeArticle(a);
+    if (f) { f.enDirect = false; ajouter(f); }
+  });
+  const per = interp.periode || {};
+  if (interp.intention !== 'agenda' && per.depuis && per.depuis < maintenant - FENETRE_ACTUALITE_MS) {
+    const mois = [];
+    for (let d = new Date(per.depuis); d.getTime() <= maintenant; d = new Date(d.getFullYear(), d.getMonth() + 1, 1)) {
+      mois.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'));
+    }
+    const cumuls = await Promise.all([...new Set(mois)].slice(-3).map(_asCumulMois));
+    cumuls.forEach(c => {
+      if (!c || !c.pays) return;
+      Object.keys(c.pays).forEach(cy => (c.pays[cy] || []).forEach(x => {
+        if (!x || !x.titre) return;
+        // Le niveau d'un fait du cumul a été posé à sa collecte : il est
+        // relu par la classification d'aujourd'hui, pour qu'un faux critique
+        // corrigé depuis (« fête des morts ») ne revienne pas par là.
+        let niveau = x.niveau;
+        try { const c2 = classify(x.titre + ' ' + (x.resume || ''), null, x.titre); niveau = c2 && c2.lvl; } catch (_) {}
+        if (!(niveau in _AS_RANG)) return;
+        ajouter({ id: null, titre: x.titre, titreFr: x.titreFr || null, cy, niveau, publieMs: x.publieMs || null,
+          source: x.source || null, url: x.url || null, cotation: x.cotation || 'non_confirme', cat: x.cat || null, texte: x.resume || '', enDirect: false });
+      }));
+    });
+  }
+  const dates = faits.map(f => f.publieMs).filter(Boolean);
+  const agenda = (interp.intention === 'agenda') ? (await agendaComplet()).map(e => ({
+    titre: e._calendrier ? e.title : L(e.title), dateMs: _agendaTs(e), cy: resolveAgendaCy(e.cy), pays: e._pays || null, nomLieu: e.cy,
+    type: e.type, src: e.src, surl: e.surl, estime: !!e._estime, statut: e.status,
+  })).filter(e => e.statut !== 'acheve' || e.dateMs >= maintenant - 86400000) : [];
+  return { pays: P, faits, agenda, classement, bulletinsBase: 'bulletins/', nbSources: SRCS.length,
+    forfaits: (typeof getPricing === 'function' ? getPricing() : []).map(f => ({ nom: f.nom, prix: f.prix, periode: f.periode })),
+    couverture: { fenetreH: Math.round(FENETRE_ACTUALITE_MS / 3600000), depuisMs: dates.length ? Math.min(...dates) : null } };
+}
+
+let _asFil = [];
+let _asRetour = null;
+function _asEsc(t) { return escHtml(String(t == null ? '' : t)); }
+function _asDate(ms) {
+  if (!ms) return '';
+  const en = LANG === 'en';
+  return new Date(ms).toLocaleDateString(en ? 'en-GB' : 'fr-FR', { day: 'numeric', month: 'short' })
+    + ' ' + new Date(ms).toLocaleTimeString(en ? 'en-GB' : 'fr-FR', { hour: '2-digit', minute: '2-digit' });
+}
+function _asRendreBloc(b) {
+  const en = LANG === 'en';
+  const LIB = SentiqAssistant.LIB_ASSISTANT[en ? 'en' : 'fr'];
+  if (b.t === 'titre') return '<h3>' + (b.cy ? '<button type="button" onclick="_asAllerPays(\'' + b.cy + '\')">' + _asEsc(b.texte) + '</button>' : _asEsc(b.texte)) + '</h3>';
+  if (b.t === 'texte') return '<p>' + _asEsc(b.texte) + '</p>';
+  if (b.t === 'note') return '<p class="as-note">' + _asEsc(b.texte) + '</p>';
+  if (b.t === 'lien') return '<p><a href="' + _asEsc(b.url) + '" target="_blank" rel="noopener"><i class="ti ti-file-text" aria-hidden="true"></i> ' + _asEsc(b.texte) + '</a></p>';
+  if (b.t === 'source') return '<p class="as-source">' + _asEsc(b.texte) + '</p>';
+  if (b.t === 'liste') {
+    return (b.titre ? '<h4>' + _asEsc(b.titre) + '</h4>' : '') + '<ul>' + b.items.map(i =>
+      '<li>' + (i.cy ? '<button type="button" class="as-lien" onclick="_asAllerPays(\'' + i.cy + '\')">' + _asEsc(i.texte) + '</button>' : _asEsc(i.texte)) + '</li>').join('') + '</ul>';
+  }
+  if (b.t === 'faits') {
+    return (b.titre ? '<h4>' + _asEsc(b.titre) + '</h4>' : '') + '<ul class="as-faits">' + b.faits.map(f => {
+      const titre = L(f.titreFr && LANG === 'fr' ? f.titreFr : f.titre);
+      const enApp = f.id && typeof ALL !== 'undefined' && ALL.some(x => x.id === f.id);
+      const t = f.url ? '<a href="' + _asEsc(safeUrl(f.url, f.titre)) + '" target="_blank" rel="noopener">' + _asEsc(titre) + '</a>' : _asEsc(titre);
+      const autres = f.liens.slice(1).map(l => '<a href="' + _asEsc(safeUrl(l.url, f.titre)) + '" target="_blank" rel="noopener">' + _asEsc(l.source || (en ? 'source' : 'source')) + '</a>').join(', ');
+      return '<li class="as-fait ' + _asEsc(f.niveau) + '"><div class="as-fait-t">' + t + '</div><div class="as-meta">'
+        + '<span class="as-cot ' + _asEsc(f.cotation) + '">' + _asEsc(LIB.cot[f.cotation] || f.cotation) + '</span>'
+        + '<span>' + _asEsc(LIB.grav[f.niveau] || '') + '</span>'
+        + '<span>' + _asEsc(f.sources[0] || '') + (f.sources.length > 1 ? (en ? ' + ' + (f.sources.length - 1) + ' other source' + (f.sources.length > 2 ? 's' : '') : ' + ' + (f.sources.length - 1) + ' autre' + (f.sources.length > 2 ? 's' : '') + ' source' + (f.sources.length > 2 ? 's' : '')) : '') + '</span>'
+        + '<span>' + _asEsc(_asDate(f.publieMs)) + '</span>'
+        + (autres ? '<span>' + (en ? 'Also: ' : 'Aussi : ') + autres + '</span>' : '')
+        + (enApp ? '<button type="button" class="as-lien" onclick="_asOuvrirActu(\'' + _asEsc(f.id) + '\')">' + (en ? 'Open in the app' : 'Ouvrir dans l’appli') + '</button>' : '')
+        + '</div></li>';
+    }).join('') + '</ul>' + (b.plus ? '<p class="as-note">' + (en ? 'And ' + b.plus + ' more fact' + (b.plus > 1 ? 's' : '') + ', less serious or older.' : 'Et ' + b.plus + ' autre' + (b.plus > 1 ? 's' : '') + ' fait' + (b.plus > 1 ? 's' : '') + ', moins grave' + (b.plus > 1 ? 's' : '') + ' ou plus ancien' + (b.plus > 1 ? 's' : '') + '.') + '</p>' : '');
+  }
+  if (b.t === 'agenda') {
+    return '<h4>' + _asEsc(b.titre) + '</h4><ul class="as-faits">' + b.evenements.map(e => {
+      const d = new Date(e.dateMs).toLocaleDateString(en ? 'en-GB' : 'fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+      const t = e.surl ? '<a href="' + _asEsc(safeUrl(e.surl, e.titre)) + '" target="_blank" rel="noopener">' + _asEsc(e.titre) + '</a>' : _asEsc(e.titre);
+      return '<li class="as-fait"><div class="as-fait-t">' + t + '</div><div class="as-meta"><span>' + _asEsc(d) + '</span><span>' + _asEsc(e.nomLieu || '') + '</span>'
+        + (e.src ? '<span>' + _asEsc(e.src) + '</span>' : '') + '</div></li>';
+    }).join('') + '</ul>' + (b.plus ? '<p class="as-note">' + (en ? b.plus + ' more in the Agenda module.' : b.plus + ' de plus dans le module Agenda.') + '</p>' : '');
+  }
+  return '';
+}
+function _asRendreTout() {
+  const fil = document.getElementById('asFil');
+  if (!fil) return;
+  const en = LANG === 'en';
+  if (!_asFil.length) {
+    fil.innerHTML = '<div class="as-r"><p>' + (en
+      ? 'Ask in plain words about a country, a region, a period or a theme — or about the tool itself (rating, plans, bulletin). Answers come only from SentiqS data, with each fact\'s rating and a link to its source; a fact reported by several outlets appears once.'
+      : 'Posez votre question en langage courant : un pays, une région, une période, un thème — ou l\'outil lui-même (cotation, forfaits, bulletin). Les réponses viennent uniquement des données de SentiqS, avec la cotation de chaque fait et le lien vers sa source ; un fait repris par plusieurs médias n\'apparaît qu\'une fois.')
+      + '</p><div class="as-sugg">' + SentiqAssistant.exemplesAssistant(en ? 'en' : 'fr').map(q => '<button type="button" data-as-q="' + _asEsc(q) + '">' + _asEsc(q) + '</button>').join('') + '</div></div>';
+    return;
+  }
+  fil.innerHTML = _asFil.map(e => '<div class="as-q" role="note">' + _asEsc(e.q) + '</div>'
+    + '<div class="as-r">' + (e.attente ? '<p class="as-note">' + (en ? 'Looking in the database…' : 'Recherche dans la base…') + '</p>'
+      : e.r.blocs.map(_asRendreBloc).join('') + (e.r.suggestions.length ? '<div class="as-sugg">' + e.r.suggestions.map(q => '<button type="button" data-as-q="' + _asEsc(q) + '">' + _asEsc(q) + '</button>').join('') + '</div>' : ''))
+    + '</div>').join('');
+  fil.scrollTop = fil.scrollHeight;
+}
+async function poserQuestionAssistant(q) {
+  const question = String(q || '').trim();
+  if (!question) return;
+  const interp = SentiqAssistant.interpreterQuestion(question, contexteAssistant());
+  const entree = { q: question, interp, attente: true };
+  _asFil.push(entree);
+  if (_asFil.length > 12) _asFil = _asFil.slice(-12);
+  _asRendreTout();
+  try {
+    const d = await donneesAssistant(interp);
+    entree.donnees = d;
+    entree.r = SentiqAssistant.composerReponse(interp, d, LANG);
+  } catch (e) {
+    console.error('[assistant]', e);
+    entree.r = { blocs: [{ t: 'note', texte: LANG === 'en' ? 'The database could not be read just now. Try again in a moment.' : 'La base n\'a pas pu être lue à l\'instant. Réessayez dans un moment.' }], suggestions: [] };
+  }
+  entree.attente = false;
+  _asRendreTout();
+}
+// Changement de langue : les réponses déjà données sont recomposées dans la
+// nouvelle langue, à partir des mêmes données (rien n'est relu ni traduit à
+// la volée par un service).
+function rafraichirAssistant() {
+  const d = document.getElementById('assistant');
+  if (!d || !d.classList.contains('on')) return;
+  _asFil.forEach(e => { if (!e.attente && e.donnees) e.r = SentiqAssistant.composerReponse(e.interp, e.donnees, LANG); });
+  _asLibelles();
+  _asRendreTout();
+}
+function _asLibelles() {
+  const d = document.getElementById('assistant');
+  if (!d) return;
+  const en = LANG === 'en';
+  d.querySelector('#asTitre').textContent = en ? 'Monitoring assistant' : 'Assistant de veille';
+  d.querySelector('#asSous').textContent = en ? 'Answers only from SentiqS data — nothing is generated.' : 'Réponses tirées uniquement des données de SentiqS — rien n’est généré.';
+  const inp = d.querySelector('#asSaisie');
+  inp.placeholder = en ? 'e.g. Situation in Mali this week' : 'Ex. : situation au Mali cette semaine';
+  inp.setAttribute('aria-label', en ? 'Your question' : 'Votre question');
+  d.querySelector('#asEnvoyer').textContent = en ? 'Ask' : 'Demander';
+  d.querySelector('.as-fermer').setAttribute('aria-label', en ? 'Close' : 'Fermer');
+}
+function ouvrirAssistant(q) {
+  if (typeof SentiqAssistant === 'undefined') return;
+  let d = document.getElementById('assistant');
+  if (!d) {
+    d = document.createElement('div');
+    d.id = 'assistant';
+    d.className = 'assistant';
+    d.innerHTML = '<div class="as-voile" data-as-fermer></div>'
+      + '<div class="as-boite" role="dialog" aria-modal="true" aria-labelledby="asTitre">'
+      + '<div class="as-tete"><i class="ti ti-message-question" aria-hidden="true" style="font-size:20px;color:var(--sig,var(--b))"></i>'
+      + '<h2><span id="asTitre"></span><p id="asSous"></p></h2>'
+      + '<button type="button" class="as-fermer" data-as-fermer aria-label="Fermer"><span aria-hidden="true">×</span></button></div>'
+      + '<div class="as-fil" id="asFil" aria-live="polite"></div>'
+      + '<form class="as-saisie" id="asForm"><input id="asSaisie" type="text" autocomplete="off" enterkeyhint="send" maxlength="300"><button type="submit" id="asEnvoyer">Demander</button></form>'
+      + '</div>';
+    document.body.appendChild(d);
+    d.addEventListener('click', ev => {
+      if (ev.target.closest('[data-as-fermer]')) return fermerAssistant();
+      const s = ev.target.closest('[data-as-q]');
+      if (s) poserQuestionAssistant(s.getAttribute('data-as-q'));
+    });
+    d.querySelector('#asForm').addEventListener('submit', ev => {
+      ev.preventDefault();
+      const inp = d.querySelector('#asSaisie');
+      const v = inp.value; inp.value = '';
+      poserQuestionAssistant(v);
+    });
+    d.addEventListener('keydown', ev => {
+      if (ev.key === 'Escape') { ev.preventDefault(); fermerAssistant(); }
+      else if (ev.key === 'Tab') {
+        // Le focus reste dans la fenêtre.
+        const f = [...d.querySelectorAll('.as-boite button, .as-boite a[href], .as-boite input')].filter(x => x.offsetParent);
+        if (!f.length) return;
+        const i = f.indexOf(document.activeElement);
+        if (ev.shiftKey && i <= 0) { ev.preventDefault(); f[f.length - 1].focus(); }
+        else if (!ev.shiftKey && i === f.length - 1) { ev.preventDefault(); f[0].focus(); }
+      }
+    });
+  }
+  _asLibelles();
+  if (!d.classList.contains('on')) _asRetour = document.activeElement;
+  d.classList.add('on');
+  document.documentElement.classList.add('as-ouvert');
+  _asRendreTout();
+  if (q) poserQuestionAssistant(q);
+  setTimeout(() => { const i = document.getElementById('asSaisie'); if (i) i.focus(); }, 0);
+}
+function fermerAssistant(sansRetour) {
+  const d = document.getElementById('assistant');
+  if (!d || !d.classList.contains('on')) return;
+  d.classList.remove('on');
+  document.documentElement.classList.remove('as-ouvert');
+  if (!sansRetour && _asRetour && _asRetour.focus) { try { _asRetour.focus(); } catch (_) {} }
+}
+function _asAllerPays(cy) { fermerAssistant(true); ouvrirVuePays(cy); }
+function _asOuvrirActu(id) { fermerAssistant(true); showDet(id); }
+
+// ── Agenda : toutes les entrées, quelle que soit leur origine ───────────────
+// Saisies à la main (AGENDA), détectées dans le Flux (ALL, agenda partagé),
+// jours fériés officiels (agenda/externe.json, écrit par
+// scripts/sources-agenda.js) et grands rassemblements calculés
+// (web/js/calendrier-foules.js). Lu par le module Agenda ET par l'assistant :
+// les deux disent la même chose.
+let _agendaExterne = null;
+function agendaExterne() {
+  if (!_agendaExterne) {
+    _agendaExterne = fetch('agenda/externe.json', { cache: 'no-cache' })
+      .then(r => (r.ok ? r.json() : null))
+      .then(j => (j && Array.isArray(j.evenements) ? j.evenements : []))
+      .catch(() => []);
+  }
+  return _agendaExterne;
+}
+const AGENDA_CALENDRIER_HORIZON_J = 120;
+async function entreesCalendrierAgenda() {
+  if (typeof SentiqCalendrier === 'undefined') return [];
+  const feries = await agendaExterne();
+  const debut = Date.now() - 86400000, fin = Date.now() + AGENDA_CALENDRIER_HORIZON_J * 86400000;
+  const nomPays = cy => _asNomPays(cy);
+  const calc = SentiqCalendrier.evenementsCalendrier(debut, fin, {
+    lang: LANG, paysConnus: Object.keys(PAYS_INFO).filter(cy => cy !== 'INT'), feriesOfficiels: feries, nomPays,
+  });
+  const off = SentiqCalendrier.feriesVersAgenda(feries.filter(h => { const t = Date.parse(h.date + 'T12:00:00Z'); return t >= debut && t <= fin; }), LANG, nomPays);
+  const reco = recoAgendaAuto('religieux');
+  return calc.map(e => Object.assign(e, { reco })).concat(off);
+}
+async function agendaComplet() {
+  const detectes = (ALL || []).filter(a => a._estAgenda && estAgendaRecent(a)).map(a => articleVersAgenda(a));
+  const ids = new Set(detectes.map(e => e.id).filter(Boolean));
+  const partages = (typeof agendaPartageeMisAJour === 'function') ? await agendaPartageeMisAJour() : [];
+  const cal = await entreesCalendrierAgenda();
+  return [...AGENDA, ...detectes, ...(partages || []).filter(e => !ids.has(e.id)), ...cal];
 }
 function fermerAccesRapide(sansRetour) {
   const d = document.getElementById('accesRapide');
@@ -15830,16 +16214,20 @@ async function renderAgenda() {
   const partages = (typeof agendaPartageeMisAJour === 'function') ? await agendaPartageeMisAJour() : [];
   const detectesPartages = (partages || []).filter(e => !idsDetectesLocaux.has(e.id));
   const tousDetectes = [...detectes, ...detectesPartages];
+  // Jours fériés officiels et grands rassemblements calculés (14/11/2026) :
+  // annoncés à l'avance, là où la presse n'en parle que le jour même.
+  const calendrier = await entreesCalendrierAgenda();
+  const toutes = [...AGENDA, ...tousDetectes, ...calendrier];
 
-  let filt = fAg==='all' ? [...AGENDA, ...tousDetectes] : [...AGENDA, ...tousDetectes].filter(e=>e.status===fAg);
+  let filt = fAg==='all' ? toutes : toutes.filter(e=>e.status===fAg);
   filt = trierAgenda(filt);
   let libelleZone = 'Toutes zones';
 
   if (fAgCy !== 'all') {
-    filt = filt.filter(e => resolveAgendaCy(e.cy) === fAgCy);
+    filt = filt.filter(e => resolveAgendaCy(e.cy) === fAgCy || (e._pays || []).includes(fAgCy));
     libelleZone = (PAYS_INFO[fAgCy]||{}).flag + ' ' + (PAYS_INFO[fAgCy]||{}).name;
   } else if (fAgZone !== 'all') {
-    filt = filt.filter(e => resolveAgendaZone(e.cy) === fAgZone);
+    filt = filt.filter(e => resolveAgendaZone(e.cy) === fAgZone || (e._pays || []).some(c => CY_TO_ZONE[c] === fAgZone));
     libelleZone = (ZONES_GEO[fAgZone]||{}).nom || 'Toutes zones';
   }
 
@@ -15848,7 +16236,7 @@ async function renderAgenda() {
   const titreEl = document.getElementById('agTitreZone');
   if (titreEl) titreEl.textContent = 'Agenda surete — ' + libelleZone;
   const cntEl = document.getElementById('agTotalCount');
-  if (cntEl) cntEl.textContent = (AGENDA.length+tousDetectes.length)+' evenement'+((AGENDA.length+tousDetectes.length)>1?'s':'');
+  if (cntEl) cntEl.textContent = toutes.length+' evenement'+(toutes.length>1?'s':'');
 
   const SL={'en-cours':['bc','EN COURS'],'urgent':['bu','URGENT'],'planifie':['bp','PLANIFIE'],'surveillance':['bs','SURVEILLANCE'],'acheve':['ba','ACHEVE']};
   const IC={'haut':'ih','moyen':'im','faible':'if'};
@@ -15864,7 +16252,10 @@ async function renderAgenda() {
     agEl.innerHTML = '<div class="empty"><i class="ti ti-calendar-off"></i><p>Aucun evenement pour ce filtre</p></div>';
     return;
   }
-  await preTraduireRapport(filt.flatMap(e => [e.title, e.desc, e.reco]));
+  // Les entrées du calendrier sont déjà écrites dans la langue de l'interface
+  // (web/js/calendrier-foules.js) : les envoyer au traducteur bloquait le
+  // rendu de tout l'agenda (mesuré le 14/11/2026, hors réseau).
+  await preTraduireRapport(filt.filter(e => !e._calendrier).flatMap(e => [e.title, e.desc, e.reco]));
 
   if (agendaVueCalendrier) {
     agEl.style.display = 'none';
@@ -15894,14 +16285,15 @@ function ligneAgendaHtml(e, i, SL, IC, TYP) {
   const ageHFresh = e._detecteAuto ? (Date.now() - _agendaTs(e)) / 3600000 : Infinity;
   const fresh = ageHFresh < 24;
   const freshTag = fresh ? '<span style="font-size:8px;font-weight:700;color:#fff;background:#15803D;padding:1px 6px;border-radius:3px;margin-left:6px;">−' + Math.max(1, Math.round(ageHFresh)) + 'H</span>' : '';
+  const calTag = e._calendrier ? '<span style="font-size:8px;font-weight:700;color:var(--t2);background:var(--sf);border:1px solid var(--bd);padding:1px 6px;border-radius:3px;margin-left:6px;" title="' + (e._ferie ? (LANG === 'en' ? 'Official public holiday' : 'Jour férié officiel') : (LANG === 'en' ? 'Date computed from the calendar' : 'Date calculée d\'après le calendrier')) + '"><i class="ti ti-calendar-event" style="font-size:9px;"></i> ' + (e._ferie ? (LANG === 'en' ? 'Public holiday' : 'Férié') : (LANG === 'en' ? 'Calendar' : 'Calendrier')) + '</span>' : '';
   const autoTag = e._detecteAuto ? '<span style="font-size:8px;font-weight:700;color:var(--b);background:var(--bl);border:1px solid var(--bb);padding:1px 6px;border-radius:3px;margin-left:6px;" title="Detecte automatiquement depuis les flux RSS"><i class="ti ti-robot" style="font-size:9px;"></i> Auto</span>' : '';
   const evId = e.id || ('agidx-' + i);
   const ttId = 'evtt-' + evId, dcId = 'evdc-' + evId, rcId = 'evrc-' + evId;
   return '<div class="ev ' + e.status + '">' +
     '<div class="ev-dt"><div class="ev-d">' + e.day + '</div><div class="ev-m">' + e.month + '</div>' + (e.hour ? '<div class="ev-h" style="font-size:9px;color:var(--lg);font-weight:600;margin-top:2px;">' + e.hour + '</div>' : '') + '</div>' +
     '<div class="ev-bd">' +
-      '<div class="ev-tp"><div class="ev-tt"><span id="' + ttId + '"' + (artAg ? ' onclick="showDet(\'' + e.id + '\')" role="button" tabindex="0" title="' + (LANG === 'en' ? 'Open the news' : 'Ouvrir l\'actu') + '" style="cursor:pointer"' : '') + '>' + escHtml(L(e.title)) + '</span>' + typBadge + freshTag + autoTag + '</div><span class="ev-bg ' + sl[0] + '"' + (e.status ? attrFiltre('agstatut:' + e.status, (LANG === 'en' ? 'Show events with this status' : 'Voir les événements de ce statut')) : '') + '>' + sl[1] + '</span></div>' +
-      '<div class="ev-dc" id="' + dcId + '">' + escHtml(L(e.desc)) + '</div>' +
+      '<div class="ev-tp"><div class="ev-tt"><span id="' + ttId + '"' + (artAg ? ' onclick="showDet(\'' + e.id + '\')" role="button" tabindex="0" title="' + (LANG === 'en' ? 'Open the news' : 'Ouvrir l\'actu') + '" style="cursor:pointer"' : '') + '>' + escHtml(e._calendrier ? e.title : L(e.title)) + '</span>' + typBadge + freshTag + autoTag + calTag + '</div><span class="ev-bg ' + sl[0] + '"' + (e.status ? attrFiltre('agstatut:' + e.status, (LANG === 'en' ? 'Show events with this status' : 'Voir les événements de ce statut')) : '') + '>' + sl[1] + '</span></div>' +
+      '<div class="ev-dc" id="' + dcId + '">' + escHtml(e._calendrier ? e.desc : L(e.desc)) + '</div>' +
       '<div class="ev-mt">' +
         '<span class="ev-cy"' + (resolveAgendaCy(e.cy) ? ' style="cursor:pointer" onclick="ouvrirVuePays(\'' + resolveAgendaCy(e.cy) + '\')"' : '') + ' role="button" tabindex="0"><i class="ti ti-map-pin" style="font-size:10px"></i>' + e.cy + '</span>' +
         '<span class="ev-ip ' + IC[e.impact] + '">Impact ' + e.impact.toUpperCase() + '</span>' +
