@@ -4226,9 +4226,13 @@ logiciels). La devise est **incrustée dans l'image** : elle a été effacée de
 source d'origine (`git show 1677f99:web/assets/intro-sentiqs.mp4`) par un
 fond pris à l'image 191, appliqué sous un masque = union des différences des
 images 192 à 241 (l'ancienne devise bouge pendant son fondu : un masque pris
-sur la seule dernière image laissait un fantôme), puis la nouvelle est posée en
-Inter SemiBold 25 px, interlettrage 0,14 em, même fondu (8,0 → 8,34 s de la
-source). Les quatre variantes sont ensuite réencodées avec les mêmes filtres
+sur la seule dernière image laissait un fantôme), puis la nouvelle est posée
+avec le même fondu (8,0 → 8,34 s de la source). Traitement « marketing »
+demandé par YORO le même soir : Montserrat Bold (licence OFL) 21 px,
+capitales, interlettrage 0,3 em, dégradé or vertical pris sur la pastille du
+logo (#F6E0A0 → #DEB662 → #C4964A → #966E2D), ombre portée douce et deux
+filets or de part et d'autre ; tout tient dans le recadrage portrait
+(x 362–924 pour une fenêtre 336–944). Rendu à 4× puis réduit (PIL, LANCZOS). Les quatre variantes sont ensuite réencodées avec les mêmes filtres
 que ci-dessus. Le nom accessible de la fenêtre (`aria-label`) suit, un test
 l'exige. Le petit losange en bas à droite de la vue paysage est la marque
 visible du générateur d'IA : il n'a pas été retiré.
