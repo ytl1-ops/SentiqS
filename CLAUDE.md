@@ -4218,3 +4218,17 @@ image floue. La vidéo 16:9 en `object-fit:cover` ne montrait en portrait que
   497 Ko, paysage AV1 512 Ko, H.264 portrait 668 Ko, paysage 639 Ko.
 - Ce Chromium ne décode pas H.264 : les captures « avant » posent la dernière
   image de l'ancienne vidéo dans le même élément ; les « après » lisent l'AV1.
+
+**La devise devient « Security Analysis Point » (15/11/2026, au soir).** Choix
+de YORO après une recherche d'antériorité (nom libre ; descriptif, donc protégé
+seulement avec SentiQs ; jamais abrégé en « SAP », marque de l'éditeur de
+logiciels). La devise est **incrustée dans l'image** : elle a été effacée de la
+source d'origine (`git show 1677f99:web/assets/intro-sentiqs.mp4`) par un
+fond pris à l'image 191, appliqué sous un masque = union des différences des
+images 192 à 241 (l'ancienne devise bouge pendant son fondu : un masque pris
+sur la seule dernière image laissait un fantôme), puis la nouvelle est posée en
+Inter SemiBold 25 px, interlettrage 0,14 em, même fondu (8,0 → 8,34 s de la
+source). Les quatre variantes sont ensuite réencodées avec les mêmes filtres
+que ci-dessus. Le nom accessible de la fenêtre (`aria-label`) suit, un test
+l'exige. Le petit losange en bas à droite de la vue paysage est la marque
+visible du générateur d'IA : il n'a pas été retiré.

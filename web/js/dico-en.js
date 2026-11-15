@@ -327,7 +327,6 @@
     "Outil d'aide à la veille, pas une source unique de vérité : les flux RSS publics peuvent être incomplets, en retard, ou temporairement indisponibles (restrictions réseau côté appareil). L'absence d'alerte sur un pays ne signifie pas l'absence d'événement — elle peut aussi signifier l'absence de source disponible à l'instant T. Toute décision opérationnelle doit recouper ces données avec d'autres canaux de renseignement.": "A monitoring aid, not a single source of truth: public RSS feeds may be incomplete, late or temporarily unavailable (network restrictions on the device). The absence of an alert on a country does not mean the absence of an event — it can also mean that no source was available at that moment. Any operational decision must cross-check this data with other intelligence channels.",
     "Initialisation de la veille en direct...": "Starting live monitoring...",
     "SentiqS · RSS live · Sans API ·": "SentiqS · Live RSS · No API ·",
-    "SentiqS — Expertise en sûreté et renseignement stratégique en Afrique": "SentiqS — Security expertise and strategic intelligence in Africa",
     "Role du nouvel utilisateur": "New user's role",
     "Moyen de paiement": "Payment method",
     "Filtre pays actif sur toute la plateforme — cliquer pour reinitialiser": "Country filter active across the platform — click to reset",
