@@ -126,7 +126,25 @@ function domaine(url) {
  * plusieurs médias a plusieurs chances d'être illustré). L'adresse trouvée
  * est gardée dans `img` pour que le cumul évite de relire la page demain.
  */
-async function illustrer(faits, fetchFn, limiteMs) {
+// Rapport de novembre : 45 Mo pour les trois formats, parce que chaque photo
+// de source y entrait brute (jusqu'à 1,5 Mo, souvent 2 000 px et plus), et
+// trois fois (PowerPoint, Word, PDF). Une photo y occupe au plus une demi-
+// diapositive : 1 000 px de large suffisent. `reduire` (fourni par le job, qui
+// a un navigateur ouvert) rend un JPEG plus léger ; il ne remplace la photo que
+// s'il gagne vraiment, et son échec garde l'originale.
+const PHOTO_LARGEUR_MAX = 1000;
+async function alleger(p, reduire) {
+  if (!reduire || !p) return p;
+  if (p.w <= PHOTO_LARGEUR_MAX && p.data.length <= 200 * 1024) return p;
+  try {
+    const r = await reduire(p.data, PHOTO_LARGEUR_MAX);
+    const dim = r && r.data ? dimensionsImage(r.data) : null;
+    if (!dim || r.data.length >= p.data.length) return p;
+    return Object.assign({}, p, { data: r.data }, dim);
+  } catch (e) { return p; }
+}
+
+async function illustrer(faits, fetchFn, limiteMs, reduire) {
   let n = 0;
   const reste = () => !limiteMs || Date.now() < limiteMs;
   for (const f of faits || []) {
@@ -145,7 +163,7 @@ async function illustrer(faits, fetchFn, limiteMs) {
         img = html ? imageDeclaree(html.toString('utf8'), c.page) : null;
       }
       if (!img) continue;
-      const p = await chargerPhoto(img, fetchFn);
+      const p = await alleger(await chargerPhoto(img, fetchFn), reduire);
       if (!p) continue;
       f.img = f.img || img;
       f.photo = Object.assign(p, { credit: domaine(lien) || domaine(img), lien: lien || null });
@@ -156,4 +174,4 @@ async function illustrer(faits, fetchFn, limiteMs) {
   return n;
 }
 
-module.exports = { ressembleLogo, dimensionsImage, imageDeclaree, chargerPhoto, illustrer, PHOTO_MAX_OCTETS };
+module.exports = { ressembleLogo, dimensionsImage, imageDeclaree, chargerPhoto, illustrer, alleger, PHOTO_MAX_OCTETS, PHOTO_LARGEUR_MAX };

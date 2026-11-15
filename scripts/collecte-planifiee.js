@@ -586,6 +586,20 @@ function ecrireResumeActions(md) {
           }
           if (Number(jour.slice(8, 10)) <= 2) faitsGrsci.cumuler(RACINE_GRSCI, depuis, releve);
           const cumul = faitsGrsci.cumuler(RACINE_GRSCI, mois, releve);
+          // Faits déjà versés : rattachés de nouveau avec la règle courante
+          // (audit du 15/11/2026 : enlèvement dans l'État de Niger compté au
+          // Niger). Chaque déplacement est écrit dans le journal.
+          try {
+            const plats = [];
+            Object.entries(cumul.pays || {}).forEach(([cy, l]) => l.forEach((f) => plats.push({ cy, titre: f.titre, resume: f.resume, source: f.source })));
+            const nouveaux = await page.evaluate((liste) => (typeof paysDuFaitCumule === 'function') ? liste.map((f) => paysDuFaitCumule(f, f.cy)) : null, plats);
+            if (Array.isArray(nouveaux)) {
+              const parCle = new Map(plats.map((f, i) => [f.cy + '|' + f.titre, nouveaux[i]]));
+              const deplaces = faitsGrsci.reattribuer(cumul, (f, cy) => parCle.get(cy + '|' + f.titre));
+              deplaces.forEach((d) => console.log('  Présentation 1 : fait rattaché de ' + d.de + ' à ' + d.vers + ' — ' + d.titre));
+              if (deplaces.length) faitsGrsci.ecrireCumul(RACINE_GRSCI, cumul);
+            }
+          } catch (e) { console.warn('::warning::Rattachement des faits du mois non revu : ' + ((e && e.message) || e)); }
           // Une seule langue dans un document du groupe : les titres en
           // anglais, portugais ou arabe sont traduits en français par la
           // chaîne de la page, une fois, et le titre traduit est gardé dans
@@ -676,7 +690,24 @@ function ecrireResumeActions(md) {
                   } catch (err) { /* chapô gardé dans sa langue : le passage suivant réessaiera */ }
                 }
               }
-              const avecPhoto = await photosGrsci.illustrer(illustres, undefined, limiteGrsci);
+              // Photos ramenées à 1 000 px en JPEG par le navigateur déjà ouvert
+              // (audit du 15/11/2026 : 45 Mo pour le rapport de novembre).
+              const reduirePhoto = async (buf, largeur) => {
+                const b64 = await page.evaluate(async ([donnees, l]) => {
+                  const octets = Uint8Array.from(atob(donnees), (c) => c.charCodeAt(0));
+                  const bmp = await createImageBitmap(new Blob([octets]));
+                  const k = Math.min(1, l / bmp.width);
+                  const c = new OffscreenCanvas(Math.round(bmp.width * k), Math.round(bmp.height * k));
+                  const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
+                  g.drawImage(bmp, 0, 0, c.width, c.height);
+                  const blob = await c.convertToBlob({ type: 'image/jpeg', quality: 0.8 });
+                  const t = new Uint8Array(await blob.arrayBuffer());
+                  let s = ''; for (let i = 0; i < t.length; i += 32768) s += String.fromCharCode.apply(null, t.subarray(i, i + 32768));
+                  return btoa(s);
+                }, [buf.toString('base64'), largeur]);
+                return { data: Buffer.from(b64, 'base64') };
+              };
+              const avecPhoto = await photosGrsci.illustrer(illustres, undefined, limiteGrsci, reduirePhoto);
               illustres.forEach((f) => (f.liens || []).forEach((l) => { const x = parUrl.get(l.url); if (x && f.img && !x.img) x.img = f.img; }));
               faitsGrsci.ecrireCumul(RACINE_GRSCI, cumulR);
               console.log('  Présentation 1 : ' + illustres.length + ' actus (' + marquants.length + ' rédigées), ' + avecPhoto + ' avec photo, ' + chapos + ' chapôs traduits.');

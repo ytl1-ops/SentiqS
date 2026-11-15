@@ -45,6 +45,24 @@ test('le job borne chaque traduction et passe l’échéance aux photos', () => 
   assert.ok(appelsTr.length >= 2, 'deux appels de traduction attendus');
   const bornes = bloc.match(/avecDelai\(traduireJob\(/g) || [];
   assert.strictEqual(bornes.length, appelsTr.length, 'chaque traduction est bornée dans le temps');
-  assert.match(bloc, /illustrer\(illustres, [^)]*limiteGrsci\)/);
+  assert.match(bloc, /illustrer\(illustres, [^)]*limiteGrsci, reduirePhoto\)/);
   assert.match(bloc, /dansBudget\(\)/);
+});
+
+// Audit du 15/11/2026 : le rapport de novembre pesait 45 Mo (photos brutes de
+// 1,5 Mo, trois fois). Une photo lourde passe par le réducteur ; une photo
+// déjà légère, ou un réducteur qui échoue ou ne gagne rien, garde l'originale.
+test('les photos du rapport sont allégées, sans jamais perdre l’originale', async () => {
+  const photos = require('../lib/photos-grsci.js');
+  const jpeg = (w, h, taille) => { const b = Buffer.alloc(taille); b.set([0xFF, 0xD8, 0xFF, 0xC0, 0, 17, 8, h >> 8, h & 255, w >> 8, w & 255], 0); return b; };
+  const lourde = Object.assign({ data: jpeg(2400, 1600, 900000) }, { type: 'jpeg', w: 2400, h: 1600 });
+  const r = await photos.alleger(lourde, async () => ({ data: jpeg(1000, 667, 120000) }));
+  assert.strictEqual(r.w, 1000);
+  assert.strictEqual(r.data.length, 120000);
+  assert.strictEqual((await photos.alleger(lourde, async () => { throw new Error('x'); })).data.length, 900000);
+  assert.strictEqual((await photos.alleger(lourde, async () => ({ data: jpeg(1000, 667, 950000) }))).data.length, 900000);
+  const legere = { data: jpeg(800, 500, 90000), type: 'jpeg', w: 800, h: 500 };
+  let appele = false;
+  await photos.alleger(legere, async () => { appele = true; return null; });
+  assert.strictEqual(appele, false);
 });

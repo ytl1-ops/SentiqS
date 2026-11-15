@@ -7427,6 +7427,19 @@ function faitsMoisPays(cy, depuisMs) {
     video: mediaActu(a).video ? lienVideoActu(a) : null,
   }));
 }
+// paysDuFaitCumule(f, cy) : le pays qu'attribue la regle COURANTE a un fait
+// deja verse dans le cumul du mois. Un fait mal rattache (homonymes nigerians,
+// audit du 15/11/2026) restait sinon sous le mauvais pays jusqu'a la fin du
+// mois : le cumul ne revoit un fait que s'il repasse dans la collecte.
+// Volontairement limite aux homonymes nigerians : rejouer toute l'attribution
+// sur un fait deja verse deplacait aussi, en octobre, « Tebboune deploie l'ANP
+// au Niger » vers l'Algerie, ce qui n'est pas une correction.
+function paysDuFaitCumule(f, cy) {
+  if (!f || !f.titre || (cy !== 'NE' && cy !== 'BJ')) return cy;
+  const src = SRCS.find(x => x.n === f.source);
+  const srcCy = src ? src.cy : ((/\(([A-Z]{2})\)$/.exec(f.source || '') || [])[1] || cy);
+  return _detecterPaysCoeur(f.titre, f.resume || '', srcCy).cy === 'NG' ? 'NG' : cy;
+}
 // Le chapô d'un article pour le rapport : ni le titre redit, ni le texte de
 // remplacement des flux sans description.
 function resumeFaitMois(a) {
@@ -9140,6 +9153,11 @@ function estContenuCulturel(t) {
 // aux vues "actualites recentes PAR PAYS" d'exclure ce genre de faux
 // rattachement, sans toucher aux autres usages (Flux general, ou tout de
 // meme afficher l'article reste legitime) — voir _cyConfiance sur l'article.
+// Ce qui designe sans ambiguite le pays voisin dans un article nigerian.
+const HOMONYME_NIGERIAN_PAYS_RE = {
+  NE: /\b(niamey|nigerien|nigérien|tiani|junta|junte|niger republic|republic of niger|république du niger|republique du niger|agadez|tillab[eé]ri|diffa|maradi|zinder|tahoua|dosso|aes|sahel states)\b/i,
+  BJ: /\b(cotonou|porto-novo|parakou|beninese|béninois|beninois|benin republic|republic of benin|république du bénin|republique du benin|talon|wadagni)\b/i,
+};
 function _detecterPaysCoeur(titre, contenu, srcCy) {
   const titreL = (titre || '').toLowerCase();
   const contenuL = (contenu || '').toLowerCase();
@@ -9225,6 +9243,21 @@ function _detecterPaysCoeur(titre, contenu, srcCy) {
   const meilleur = classe[0];      // [code, score] du pays le mieux detecte
   const meilleurCode = meilleur[0];
   const meilleurScore = meilleur[1];
+
+  // Homonymes nigerians (audit du 15/11/2026, Presentation 1 de novembre).
+  // Pour la presse nigeriane anglophone, « Niger » est d'abord l'Etat de
+  // Niger (Minna) et « Benin » la ville de Benin City (Etat d'Edo). Le cumul
+  // de novembre rattachait au Niger « Bandits abduct 14 Islamic school pupils,
+  // teacher in Niger » (Premium Times, Channels, Vanguard : un enlevement dans
+  // l'Etat de Niger) et au Benin « Man Nabbed For Stealing Cables At TCN Benin
+  // 330kV Switchyard ». Le pays voisin ne l'emporte plus que si le texte le
+  // designe sans ambiguite (capitale, gentile, chef de l'Etat, junte).
+  if (srcCy === 'NG' && (meilleurCode === 'NE' || meilleurCode === 'BJ')
+      && termesTrouvesPar[meilleurCode].every(x => x === (meilleurCode === 'NE' ? 'niger' : 'benin'))
+      && !HOMONYME_NIGERIAN_PAYS_RE[meilleurCode].test(t)
+      && (typeof detectLangue !== 'function' || detectLangue(titre + ' ' + (contenu || '')) === 'en')) {
+    return { cy: 'NG', confiant: true };
+  }
 
   // Si le pays le mieux detecte EST celui de la source : rien a changer.
   if (meilleurCode === srcCy) return { cy: srcCy, confiant: true };

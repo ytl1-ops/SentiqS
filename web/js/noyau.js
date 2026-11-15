@@ -55,6 +55,10 @@ const TERMES_AMBIGUS_MASQUES = {
   // etait rattache a l'ile Maurice, classe eleve, et faisait passer l'ile de
   // jaune a orange. Un prenom n'est pas un pays.
   maurice: ['maurice kamto'],
+  // « Benin City » (Etat d'Edo, Nigeria) et l'ancien royaume du Benin :
+  // audit du 15/11/2026, faits nigerians rattaches au Benin dans la
+  // Presentation 1 de novembre (« Oba of Benin », « TCN Benin 330kV »).
+  benin:   ['benin city', 'benin-city', 'oba of benin', 'benin kingdom', 'kingdom of benin', 'university of benin', 'benin-ore', 'benin-lagos', 'lagos-benin', 'benin-auchi'],
 };
 function masquerTermesComposes(texte, terme) {
   const masques = TERMES_AMBIGUS_MASQUES[terme];
