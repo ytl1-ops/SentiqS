@@ -352,13 +352,43 @@ footer{padding:60px 0 36px;border-top:1px solid var(--line2);margin-top:60px}
    l'écran de connexion de l'application — l'enchaînement accueil → connexion
    ne la rejoue pas. Absente pour qui réduit les animations, économise ses
    données ou arrive par un lien profond. */
-.intro-video-overlay{position:fixed;inset:0;z-index:3000;background:#000;
+.intro-video-overlay{position:fixed;inset:0;z-index:3000}
+/* Révision du 15/11/2026 (capture d'un téléphone : logo et devise coupés,
+   image floue). La vidéo 16:9 en « cover » ne montrait que 26 % de sa largeur
+   en portrait, agrandie 3,5×. Désormais :
+   · deux cadrages (js/intro.js choisit avant lecture) : paysage 16:9 et
+     portrait cadré sur le logo, posé en pleine largeur au centre de l'écran,
+     ses bords fondus dans un fond de même teinte (rien n'est rogné) ;
+   · AV1 d'abord (plus net à poids égal), H.264 en repli ;
+   · apparition en fondu depuis le noir à la première image, zoom très lent,
+     sortie en fondu ; bouton « Passer » de 44 px, hors des zones système. */
+.intro-video-overlay{background:radial-gradient(120% 70% at 50% 46%,#2a2622 0%,#121110 55%,#050506 100%);
   display:flex;align-items:center;justify-content:center;overflow:hidden}
 .intro-video-overlay{transition:opacity .5s ease}
 .intro-video-overlay.intro-sortie{opacity:0;pointer-events:none}
 .intro-video-overlay.hidden{display:none}
-.intro-video-el{width:100%;height:100%;object-fit:cover}
-.intro-progress{position:absolute;left:0;bottom:0;height:3px;width:calc(var(--p,0) * 100%);background:linear-gradient(90deg,#7FB3D3,#E6BA6E);transition:width .3s linear;z-index:1}
+.intro-video-el{width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.001);
+  transition:opacity .8s cubic-bezier(.4,0,.2,1)}
+.intro-video-overlay.intro-joue .intro-video-el{opacity:1;animation:intro-zoom 8s cubic-bezier(.25,.1,.25,1) both}
+@keyframes intro-zoom{from{transform:scale(1.001)}to{transform:scale(1.045)}}
+@media (max-aspect-ratio:1/1){
+  .intro-video-el{height:auto;max-height:100%;
+    -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 14%,#000 86%,transparent 100%);
+    mask-image:linear-gradient(180deg,transparent 0,#000 14%,#000 86%,transparent 100%)}
+}
+.intro-progress{position:absolute;left:0;bottom:0;height:2px;width:calc(var(--p,0) * 100%);
+  background:linear-gradient(90deg,#7FB3D3,#E6BA6E);transition:width .3s linear;z-index:1}
+.intro-video-skip{position:absolute;z-index:1;
+  right:max(16px,env(safe-area-inset-right));bottom:max(20px,calc(env(safe-area-inset-bottom) + 14px));
+  display:inline-flex;align-items:center;gap:10px;min-height:44px;min-width:44px;padding:0 16px 0 20px;
+  border-radius:999px;background:rgba(8,12,20,.58);border:1px solid rgba(255,255,255,.3);
+  color:#fff;font-family:inherit;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:none;
+  cursor:pointer;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  box-shadow:0 6px 24px rgba(0,0,0,.35);transition:background .2s ease,border-color .2s ease}
+.intro-video-skip::after{content:"";width:7px;height:7px;border-top:2px solid currentColor;border-right:2px solid currentColor;
+  transform:rotate(45deg);margin-right:3px}
+.intro-video-skip:hover{background:rgba(8,12,20,.8);border-color:#E6BA6E}
+.intro-video-overlay .intro-video-skip:focus-visible{outline:2px solid #E6BA6E;outline-offset:3px;border-radius:999px}
 /* Entrée de la page de garde : le titre, la promesse, les boutons puis les
    chiffres se révèlent l'un après l'autre quand l'animation d'ouverture
    s'efface (ou tout de suite si elle ne joue pas). Coupée si l'on réduit les
@@ -373,12 +403,6 @@ footer{padding:60px 0 36px;border-top:1px solid var(--line2);margin-top:60px}
 }
 @keyframes garde-entree{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 .hero-note{margin:-36px 0 40px;font-size:12px;letter-spacing:.04em;color:var(--ink3)}
-.intro-video-skip{position:absolute;bottom:24px;right:24px;z-index:1;min-height:40px;
-  padding:10px 18px;border-radius:8px;background:rgba(0,0,0,.55);
-  border:1px solid rgba(255,255,255,.35);color:#fff;font-size:12px;font-weight:700;
-  letter-spacing:.08em;text-transform:uppercase;cursor:pointer;backdrop-filter:blur(4px)}
-.intro-video-skip:hover{background:rgba(0,0,0,.75);border-color:var(--sky)}
-.intro-video-skip:focus-visible{outline:2px solid var(--sky);outline-offset:3px}
 html.intro-actif{overflow:hidden}
 /* ── REVUE DE PRÉSENTATION (revue-pages-2026-10-15) ───────────────────────
    Corrige à la racine, sans rien retirer :
@@ -462,8 +486,10 @@ section p a{padding:5px 0}
      intact. lancer() la révèle seulement si elle doit jouer. -->
 <div class="intro-video-overlay hidden" id="introVideoOverlay" role="dialog" aria-modal="true"
      aria-label="SentiqS — Expertise en sûreté et renseignement stratégique en Afrique">
-  <video id="introVideoEl" class="intro-video-el" muted playsinline preload="none" aria-hidden="true"
-         poster="assets/intro-sentiqs-poster.jpg">
+  <video id="introVideoEl" class="intro-video-el" muted playsinline preload="none" aria-hidden="true">
+    <source media="(max-aspect-ratio: 1/1)" src="assets/intro-sentiqs-portrait.webm" type='video/webm; codecs="av01.0.05M.08"'>
+    <source media="(max-aspect-ratio: 1/1)" src="assets/intro-sentiqs-portrait.mp4" type="video/mp4">
+    <source src="assets/intro-sentiqs.webm" type='video/webm; codecs="av01.0.08M.08"'>
     <source src="assets/intro-sentiqs.mp4" type="video/mp4">
   </video>
   <button type="button" id="introVideoSkip" class="intro-video-skip">Passer l'animation</button>

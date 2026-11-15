@@ -239,14 +239,21 @@ test('l\'animation et le décor de l\'accueil restent légers, sans piste audio 
   const capitales = fs.readdirSync(path.join(dossier, 'capitales')).filter((f) => f.endsWith('.jpg'))
     .reduce((t, f) => t + fs.statSync(path.join(dossier, 'capitales', f)).size, 0);
   assert.ok(capitales <= 1.6e6, `capitales : ${(capitales / 1e6).toFixed(2)} Mo > plafond 1,6 Mo`);
-  const plafonds = { 'intro-sentiqs.mp4': 1.0e6 };
+  // 15/11/2026 : quatre variantes (portrait / paysage × AV1 / H.264). Un
+  // navigateur n'en télécharge qu'une ; aucune ne doit dépasser l'ancienne
+  // vidéo unique (0,77 Mo), et l'AV1 doit rester nettement plus léger.
+  const plafonds = { 'intro-sentiqs.mp4': 0.78e6, 'intro-sentiqs-portrait.mp4': 0.78e6,
+    'intro-sentiqs.webm': 0.6e6, 'intro-sentiqs-portrait.webm': 0.6e6 };
   for (const [f, max] of Object.entries(plafonds)) {
     const taille = fs.statSync(path.join(dossier, f)).size;
-    assert.ok(taille <= max, `${f} : ${(taille / 1e6).toFixed(2)} Mo > plafond ${(max / 1e6).toFixed(1)} Mo`);
+    assert.ok(taille <= max, `${f} : ${(taille / 1e6).toFixed(2)} Mo > plafond ${(max / 1e6).toFixed(2)} Mo`);
+    // Pas de piste audio : l'élément est « muted », l'AAC ne servait à rien (~0,3 Mo).
+    const octets = fs.readFileSync(path.join(dossier, f));
+    assert.equal(octets.includes(Buffer.from('soun')) || octets.includes(Buffer.from('A_OPUS')) || octets.includes(Buffer.from('A_VORBIS')),
+      false, f + ' ne doit pas contenir de piste audio');
   }
-  // Pas de piste audio : l'élément est « muted », l'AAC ne servait à rien (~0,3 Mo).
-  const intro = fs.readFileSync(path.join(dossier, 'intro-sentiqs.mp4'));
-  assert.equal(intro.includes(Buffer.from('soun')), false, 'intro-sentiqs.mp4 ne doit plus contenir de piste audio');
+  assert.equal(fs.existsSync(path.join(dossier, 'intro-sentiqs-poster.jpg')), false,
+    'plus d\'affiche : la vidéo apparaît en fondu depuis le noir, l\'affiche ne servait plus');
 });
 
 test('page d accueil : chaque photo du diaporama est creditee, et le pont d Abidjan alterne avec les capitales', () => {
@@ -311,5 +318,66 @@ test('les deux pages passent « fondu » et portent la barre de progression', ()
     assert.match(html, /fondu: 500/, f);
     assert.match(html, /class="intro-progress"/, f);
     assert.match(html, /\.intro-video-overlay\.intro-sortie\{opacity:0/, f);
+  }
+});
+
+// 15/11/2026 — capture d'un téléphone : en portrait, la vidéo 16:9 en « cover »
+// coupait « SentiQs » et la devise des deux côtés. Les variantes portrait sont
+// retirées avant lecture quand l'écran est en paysage, et inversement elles
+// passent devant quand il est en portrait.
+function sourcesDe(video, liste) {
+  const enfants = liste.map(([media, src]) => ({
+    src, getAttribute: (a) => (a === 'media' ? media : null),
+    addEventListener() {}, removeEventListener() {},
+  }));
+  enfants.forEach((e) => { e.parentNode = { removeChild: (x) => enfants.splice(enfants.indexOf(x), 1) }; });
+  video.querySelectorAll = () => enfants.slice();
+  video.charges = 0; video.load = () => { video.charges++; };
+  return enfants;
+}
+const VARIANTES = [['(max-aspect-ratio: 1/1)', 'portrait.webm'], ['(max-aspect-ratio: 1/1)', 'portrait.mp4'],
+  [null, 'paysage.webm'], [null, 'paysage.mp4']];
+
+test('choisirSources : portrait garde le cadrage portrait en tête, paysage le retire', () => {
+  const p = decor(); const enP = sourcesDe(p.video, VARIANTES);
+  assert.equal(Intro.choisirSources(p.video, env({ media: () => true })), 0);
+  assert.deepEqual(enP.map((s) => s.src), ['portrait.webm', 'portrait.mp4', 'paysage.webm', 'paysage.mp4']);
+  const l = decor(); const enL = sourcesDe(l.video, VARIANTES);
+  assert.equal(Intro.choisirSources(l.video, env({ media: () => false })), 2);
+  assert.deepEqual(enL.map((s) => s.src), ['paysage.webm', 'paysage.mp4']);
+  assert.equal(l.video.charges, 1, 'la sélection est rechargée avant play()');
+  // Sans matchMedia (env sans media) : paysage, jamais d'écran vide.
+  const n = decor(); const enN = sourcesDe(n.video, VARIANTES);
+  Intro.choisirSources(n.video, env());
+  assert.deepEqual(enN.map((s) => s.src), ['paysage.webm', 'paysage.mp4']);
+});
+
+test('lancer : choisit les sources avant de lire, et révèle la vidéo à la première image', () => {
+  const d = decor(); const enfants = sourcesDe(d.video, VARIANTES);
+  let joueAvecSources = null;
+  const play = d.video.play; d.video.play = () => { joueAvecSources = enfants.length; return play(); };
+  Intro.lancer(d.els, { env: env({ media: () => false }) });
+  assert.equal(joueAvecSources, 2, 'les variantes portrait sont retirées AVANT play()');
+  assert.equal(d.overlay.classes.has('intro-joue'), false, 'pas de fondu tant que rien ne joue');
+  d.video.emettre('playing');
+  assert.equal(d.overlay.classes.has('intro-joue'), true);
+  d.video.emettre('ended');
+  assert.equal(d.overlay.classes.has('intro-joue'), false);
+});
+
+test('pages : quatre variantes dans le bon ordre (portrait puis paysage, AV1 puis H.264), bouton Passer accessible', () => {
+  for (const f of ['index.html', 'en.html', 'SentiqS_Web.html']) {
+    const html = fs.readFileSync(path.join(__dirname, '..', '..', 'web', f), 'utf8');
+    const video = html.slice(html.indexOf('id="introVideoEl"'), html.indexOf('</video>', html.indexOf('id="introVideoEl"')));
+    const srcs = [...video.matchAll(/src="assets\/([^"]+)"/g)].map((m) => m[1]);
+    assert.deepEqual(srcs, ['intro-sentiqs-portrait.webm', 'intro-sentiqs-portrait.mp4', 'intro-sentiqs.webm', 'intro-sentiqs.mp4'], f);
+    assert.equal((video.match(/media="\(max-aspect-ratio: 1\/1\)"/g) || []).length, 2, f + ' : deux variantes portrait');
+    assert.doesNotMatch(video, /poster=/, f);
+    // Cible tactile de 44 px et hors des zones système (encoche, barre de geste).
+    const css = html.slice(html.indexOf('.intro-video-skip{'), html.indexOf('}', html.indexOf('.intro-video-skip{')));
+    assert.match(css, /min-height:44px/, f);
+    assert.match(css, /safe-area-inset-bottom/, f);
+    // En portrait, la vidéo tient en largeur : rien n'est rogné sur les côtés.
+    assert.match(html, /@media \(max-aspect-ratio:1\/1\)\{\s*\.intro-video-el\{height:auto/, f);
   }
 });

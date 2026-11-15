@@ -4129,3 +4129,32 @@ retiré ni flouté : un bloc en pied (`blocAbonnement`, bulletin et index des
 54 pays) dit ce que l'abonnement ajoute, chaque ligne décrivant une fonction
 qui existe, avec l'essai gratuit (lien vers le domaine canonique). Masqué à
 l'impression. Les bulletins déjà écrits ne sont pas retouchés.
+
+---
+
+## L'animation d'ouverture recadrée par format — 15/11/2026
+
+Capture de YORO sur téléphone : « SentiQs » et la devise coupés des deux côtés,
+image floue. La vidéo 16:9 en `object-fit:cover` ne montrait en portrait que
+26 % de sa largeur, agrandie 3,5×.
+
+- **Quatre fichiers, un seul téléchargé** : `intro-sentiqs-portrait.webm|mp4`
+  (912×1080, cadré sur le logo, posé en pleine largeur, bords haut/bas fondus
+  dans un fond de même teinte : rien n'est rogné) et `intro-sentiqs.webm|mp4`
+  (paysage ; AV1 en 1600×900, H.264 en 1280×720). AV1 d'abord, H.264 en repli
+  (iPhone sans décodage AV1). `choisirSources` (intro.js) retire avant lecture
+  les `<source media>` qui ne correspondent pas à l'écran : l'attribut `media`
+  seul n'est pas appliqué par tous les navigateurs aux `<video>`.
+- **Source 720p** : la netteté vient du cadrage (agrandissement 3,5× → 1,3×),
+  d'un agrandissement lanczos + accentuation à l'encodage, et de l'AV1. Un vrai
+  rendu HD demande l'export d'origine en 1080p/4K ; le refaire depuis lui avec
+  les mêmes filtres (`trim=start=1.0,setpts=(PTS-STARTPTS)/1.25,fps=30`, crop
+  608:720:336:0 pour le portrait).
+- 1 s de mur vide (et une image fantôme du logo à t=0) retirée, 1,25× : 10 s →
+  7,3 s, aucune image perdue (24 → 30 i/s). Fondu depuis le noir à la première
+  image (`intro-joue`), zoom de 4,5 % sur 8 s, plus d'affiche (elle ne se voyait
+  plus). « Passer » : pilule de 44 px, hors zones système (`safe-area`).
+- Poids (Chromium, réseau local) : 772 Ko pour tous avant ; après, portrait AV1
+  497 Ko, paysage AV1 512 Ko, H.264 portrait 668 Ko, paysage 639 Ko.
+- Ce Chromium ne décode pas H.264 : les captures « avant » posent la dernière
+  image de l'ancienne vidéo dans le même élément ; les « après » lisent l'AV1.
