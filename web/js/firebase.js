@@ -37,6 +37,16 @@
   var VERSION_SDK = '10.14.1';
   var BASE_SDK = 'https://cdn.jsdelivr.net/npm/firebase@' + VERSION_SDK + '/';
   var MODULES_SDK = ['firebase-app-compat.js', 'firebase-auth-compat.js', 'firebase-firestore-compat.js'];
+  // Empreintes SRI des trois fichiers de la version figée (audit du
+  // 15/11/2026) : le kit porte la session et le jeton du compte ; un fichier
+  // modifié sur le CDN ne doit pas s'exécuter. Calculées sur le paquet npm
+  // firebase@10.14.1, que jsDelivr sert à l'octet près ; confrontées au
+  // fichier servi par scripts/verifier-integrite-cdn.js, en CI.
+  var INTEGRITE_SDK = {
+    'firebase-app-compat.js': 'sha384-ZaR6mWzmJtrRibZ1Vm7SoHFr8OXjyAuGAXalGDKqbxFT18oi/z+oZLIRFkpeNor1',
+    'firebase-auth-compat.js': 'sha384-I1LYojsZ5RM1cOda44Z2h42Qa6YfsQ1XkXxREnhp4ueYBR/4d1pG1K+NZM537Vsj',
+    'firebase-firestore-compat.js': 'sha384-Ke0FJhH7LyRqDxZ0wt+/OXV38yfQVu7g9VPEEGjYmB4RVOY/ta04uecRhsMwT7V3',
+  };
   // L'adresse saisie avant l'envoi du lien : Firebase l'exige à nouveau au
   // retour, pour qu'un lien intercepté ne suffise pas à ouvrir le compte.
   var CLE_EMAIL_LIEN = 'sentiq_email_lien';
@@ -58,6 +68,7 @@
       return new Promise(function (ok, ko) {
         var s = doc.createElement('script');
         s.src = BASE_SDK + fichier;
+        if (INTEGRITE_SDK[fichier]) { s.integrity = INTEGRITE_SDK[fichier]; s.crossOrigin = 'anonymous'; }
         s.async = false;
         s.onload = function () { ok(); };
         s.onerror = function () { ko(new Error('SDK Firebase introuvable : ' + fichier)); };
@@ -379,6 +390,8 @@
   var _client = null, _nbEphemeres = 0, _chargement = null;
   var api = {
     VERSION_SDK: VERSION_SDK,
+    BASE_SDK: BASE_SDK,
+    INTEGRITE_SDK: INTEGRITE_SDK,
     CLE_EMAIL_LIEN: CLE_EMAIL_LIEN,
     configuree: configuree,
     creerClient: creerClient,

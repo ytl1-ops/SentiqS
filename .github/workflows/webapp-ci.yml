@@ -222,6 +222,14 @@ jobs:
         # l'export PDF, et seulement quand quelqu'un l'essaie.
         run: node scripts/verifier-ressources.js
 
+      - name: Empreintes SRI des scripts tiers
+        # Audit du 15/11/2026 : chaque script de CDN porte une version exacte
+        # et une empreinte sha384. Une empreinte fausse bloquerait le vrai
+        # fichier (la connexion Firebase ne se chargerait plus) : ce controle
+        # telecharge chaque fichier et la recalcule, ce que le bac a sable de
+        # developpement, sans reseau, ne peut pas faire.
+        run: node scripts/verifier-integrite-cdn.js
+
       - name: Datation des incidents verifies
         # Le niveau d'alerte affiche repose d'abord sur ALERTE_EVENTS et
         # FACTEURS_SPECIAUX, saisis a la main. Ce controle refuse une date

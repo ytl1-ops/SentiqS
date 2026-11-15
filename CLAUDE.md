@@ -579,7 +579,7 @@ dégradation — le vérifier sur deux runs avant de conclure.
   externe doit être miroité avec `curl` puis servi localement, et les requêtes
   interceptées avec `page.route()`. C'est le cas du SDK Supabase dans les
   scripts Playwright.
-- Le binaire est `/opt/pw-browsers/chromium-1194/chrome-linux/chrome`, à lancer
+- Le binaire est `/opt/pw-browsers/chromium-1243/chrome-linux/chrome`, à lancer
   avec `--no-sandbox`. Ne jamais lancer `playwright install`.
 - `require('playwright')` doit être résolvable depuis la racine du dépôt.
 
@@ -1900,7 +1900,7 @@ lieu de `--j`. `col` (brut) reste réservé au non-texte (`border-top`,
 pointer vers le binaire disponible localement :
 
 ```bash
-CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome \
+CHROMIUM_PATH=/opt/pw-browsers/chromium-1243/chrome-linux/chrome \
   node scripts/verifier-accessibilite-interface.js
 ```
 
@@ -4243,3 +4243,35 @@ filets (1,0 → 1,6 s). La dernière image est identique au rendu fixe. Les quat
 que ci-dessus. Le nom accessible de la fenêtre (`aria-label`) suit, un test
 l'exige. Le petit losange en bas à droite de la vue paysage est la marque
 visible du générateur d'IA : il n'a pas été retiré.
+
+---
+
+## Scripts tiers : version exacte et empreinte SRI — 15/11/2026
+
+Audit complet du 15/11/2026 (rapport : https://claude.ai/artifact/K8PaarqeGj26KcsGomHNeN).
+La page chargeait `@supabase/supabase-js@2` et `@emailjs/browser@4` : jsDelivr
+servait la dernière version publiée, exécutée sans relecture dans une page qui
+porte la session. Aucun script de CDN n'avait d'empreinte SRI.
+
+Chaque script tiers (balises des trois pages, `BIBLIOTHEQUES_EXPORT`, EmailJS,
+kit Firebase dans `web/js/firebase.js`) porte désormais une version exacte, un
+`integrity` sha384 et `crossorigin="anonymous"`. L'inventaire vit dans
+`scripts/lib/scripts-cdn.js`, partagé par :
+
+- `scripts/test/integrite-cdn.test.js` (hors ligne) : refuse une version
+  flottante ou un script sans empreinte ;
+- `scripts/verifier-integrite-cdn.js` (CI, qui a le réseau) : télécharge
+  chaque fichier, recalcule l'empreinte et vérifie l'en-tête CORS.
+
+**Changer une version de bibliothèque = changer son empreinte.** Une empreinte
+fausse ne laisse pas passer un fichier modifié : elle bloque le vrai, et la
+connexion Firebase ne se chargerait plus pour personne. Calculer l'empreinte
+sur le paquet npm (`npm pack`, jsDelivr le sert à l'octet près ; le bac à sable
+n'atteint pas jsDelivr), puis laisser le contrôle de la CI la confirmer — il
+imprime l'empreinte réellement servie en cas d'écart (c'est ainsi qu'a été
+obtenue celle de SheetJS, que `npm pack` ne fournit pas).
+
+**Bancs Playwright qui servent ces bibliothèques en local** (`page.route()`) :
+la réponse doit porter `access-control-allow-origin: *`, sinon le navigateur
+refuse le script à cause de `crossorigin`. Banc du 15/11 : fichiers npm
+chargés, mêmes fichiers altérés d'un octet refusés (8 refus SRI).
