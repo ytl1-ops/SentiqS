@@ -4069,3 +4069,63 @@ identiques entre elles ; les PowerPoint embarquent un classeur Excel horodaté
 41 « À COMPLÉTER » des pages légales pèsent sur la confiance d'un acheteur.
 **Suite possible** : une barre d'onglets en bas d'écran sur téléphone
 (5 modules au plus), à mesurer d'abord contre le budget vertical du Flux.
+
+---
+
+## L'assistant de veille — 14/11/2026
+
+Demande de YORO : poser des questions en langage courant sur les pays, les
+alertes et les actus. Consignes : **uniquement la base de l'appli** (« pour
+éviter toute hallucination »), pas de répétitions, pas de recherche hors de
+l'appli, une FAQ instantanée sur l'outil, et le bulletin gratuit en renvoi.
+
+- **Pas d'IA générative, pas de clé.** `web/js/assistant.js` (double export,
+  `SentiqAssistant`) lit la question par règles (pays et sigles, régions AES,
+  Sahel, CEDEAO, Golfe de Guinée…, période, thème, intention) et répond par
+  gabarits remplis par la page (`donneesAssistant`) : `ALL`, puis
+  `HISTORIQUE`, puis le cumul du mois (`rapports/mensuel/faits-AAAA-MM.json`,
+  reclassé par la vraie `classify`). Niveau, tendance et angle mort viennent
+  de `calcAlertScore`, `tendancePays`, `angleMortPerimetre` : rien n'est
+  recalculé à côté. Une question sans réponse dans la base le dit.
+- **Les sigles RCA, RCI, RDC, CAR, DRC ne comptent qu'en capitales** : « car »
+  anglais et « rci » ne doivent pas désigner un pays.
+- **Faits répétés regroupés** (`regrouperFaits`) : racines communes, ou
+  `articlesSontDoublons`, ou même nombre + même thème d'événement à moins de
+  deux jours (pont entre langues). Deux médias distincts → « Confirmé ». La
+  validation analyste prime.
+- **Interface** : bouton « Assistant » de la barre du haut (bureau), entrée
+  « Poser une question » du menu Plus (téléphone, où la boîte passe en plein
+  écran), et l'accès rapide propose l'assistant dès que la saisie ressemble à
+  une question. Dialogue modal, focus piégé, Échap.
+- Exports à la demande : 14/14 identiques avant/après.
+
+`scripts/test/assistant.test.js`.
+
+## L'agenda des rassemblements annoncés à l'avance — 14/11/2026
+
+Suite de « un agenda très pauvre » : les articles n'annoncent souvent un
+rassemblement que le jour même. Deux apports, sans clé :
+
+- **Jours fériés officiels** : `scripts/sources-agenda.js` lit Nager.Date
+  (licence MIT) pour les 54 pays, chaque jour (`sources-agenda.yml`), et écrit
+  `web/agenda/externe.json` (120 jours). Mesuré le 14/11/2026 : 53 pays sur
+  54, 190 jours fériés. Une source muette garde ses anciennes entrées.
+  **TheSportsDB écarté** : 0 match à venir sur ses 7 championnats africains.
+- **Calendrier religieux calculé dans la page** (`web/js/calendrier-foules.js`) :
+  fêtes hégiriennes (Intl `islamic-umalqura`, marquées « date estimée » : la
+  date réelle dépend de l'observation du croissant), Pâques, Magal de Touba,
+  Gamou, Popenguine, Namugongo, Timkat, Meskel, Noël. Dédoublonné avec les
+  fériés officiels à ±2 jours ; un même férié dans plusieurs pays fait une
+  ligne (« Noël — 42 pays »).
+- Ces entrées ne passent pas par la traduction (`preTraduireRapport` bloquait
+  hors ligne et vidait l'agenda) : elles ont leur titre FR/EN.
+- Agenda mesuré : 49 → 128 lignes. **Les exports d'agenda ne changent pas**
+  (`getExportAgenda` ne lit pas ces entrées).
+
+## Le bulletin public, motif d'abonnement — 14/11/2026
+
+YORO : « un motif pour s'abonner dans le respect de la gratuité ». Rien n'est
+retiré ni flouté : un bloc en pied (`blocAbonnement`, bulletin et index des
+54 pays) dit ce que l'abonnement ajoute, chaque ligne décrivant une fonction
+qui existe, avec l'essai gratuit (lien vers le domaine canonique). Masqué à
+l'impression. Les bulletins déjà écrits ne sont pas retouchés.
