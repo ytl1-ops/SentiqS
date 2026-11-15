@@ -222,7 +222,6 @@
     "Renvoyer le code dans 30 s": "Resend the code in # s",
     "Changer d'adresse": "Change address",
     "Pas de lien ? Ouvrir l'application et me connecter avec Google ou un mot de passe": "No link? Open the app and sign in with Google or a password",
-    "SentiqS — Expertise en sûreté et renseignement stratégique en Afrique": "SentiqS — Security and strategic intelligence expertise in Africa",
     "votre@organisation.com": "you@organisation.com",
     "Prénom Nom": "First Last",
     "Ex : Direction Sûreté — Entreprise XYZ": "E.g. Security Department — XYZ Company",

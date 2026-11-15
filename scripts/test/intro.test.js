@@ -381,3 +381,14 @@ test('pages : quatre variantes dans le bon ordre (portrait puis paysage, AV1 pui
     assert.match(html, /@media \(max-aspect-ratio:1\/1\)\{\s*\.intro-video-el\{height:auto/, f);
   }
 });
+
+test('signature de l\'animation : « Security Analysis Point » nomme la fenêtre, l\'ancienne devise a disparu (15/11/2026)', () => {
+  // La devise est incrustée dans l'image : le nom accessible de la fenêtre doit
+  // dire la même chose que ce que l'œil lit, sinon un lecteur d'écran annonce
+  // une autre signature que celle affichée.
+  for (const f of ['index.html', 'en.html', 'SentiqS_Web.html']) {
+    const html = fs.readFileSync(path.join(__dirname, '..', '..', 'web', f), 'utf8');
+    assert.match(html, /id="introVideoOverlay"[^>]*aria-label="SentiqS — Security Analysis Point"|aria-label="SentiqS — Security Analysis Point"[^>]*>\s*[\s\S]{0,400}introVideo/, f);
+    assert.ok(!/Expertise en sûreté et renseignement stratégique en Afrique/.test(html), f + ' : ancienne devise');
+  }
+});
