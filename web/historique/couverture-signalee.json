@@ -1,12 +1,9 @@
 {
- "cle": "BJ,BW,CG,GW,KM,LS,ST",
+ "cle": "BJ,CG,ER,ST",
  "pays": [
   "BJ",
-  "BW",
   "CG",
-  "GW",
-  "KM",
-  "LS",
+  "ER",
   "ST"
  ]
 }
