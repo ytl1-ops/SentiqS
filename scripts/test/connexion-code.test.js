@@ -43,11 +43,11 @@ test('l\'application cree le compte par signInWithOtp et ouvre la session par ve
   assert.match(f, /signInWithOtp\(\{ email, options: \{ shouldCreateUser: true/);
   const v = tranche('async function verifierCodeEmail', '// doRegister()');
   assert.match(v, /verifyOtp\(\{ email: _otpEmail, token: code, type: 'email' \}\)/);
-  assert.match(v, /_ouvrirSessionDepuisSupabase\(data\.user\)/, 'meme porte d\'entree que le mot de passe : statut, essai expire, profil');
+  assert.match(v, /_ouvrirSessionDepuisCompte\(data\.user\)/, 'meme porte d\'entree que le mot de passe : statut, essai expire, profil');
 });
 
 test('le premier passage cree un profil gratuit date (sinon l\'essai de 72 h ne s\'eteint jamais)', () => {
-  const f = tranche('async function _ouvrirSessionDepuisSupabase', 'const user = _profilVersUtilisateur(row)');
+  const f = tranche('async function _ouvrirSessionDepuisCompte', 'const user = _profilVersUtilisateur(row)');
   // Le plan et la date viennent EN DERNIER dans Object.assign : rien de ce que
   // l'accueil a laisse sur l'appareil (profilInscriptionEnAttente) ne les ecrase.
   assert.match(f, /data: Object\.assign\(profilInscriptionEnAttente\(authUser\.email\), \{ plan: 'gratuit', createdAt: new Date\(\)\.toISOString\(\) \}\)/);
@@ -93,7 +93,7 @@ test('l\'accueil : « Essai gratuit » ne demande plus de mot de passe et passe 
 });
 
 test('l\'accueil n\'ecrase jamais le profil d\'un compte existant', () => {
-  const aide = ACCUEIL.slice(ACCUEIL.indexOf('async function _suCreerProfilSiAbsent'), ACCUEIL.indexOf('function getSentinelSupabase'));
+  const aide = ACCUEIL.slice(ACCUEIL.indexOf('async function _suCreerProfilSiAbsent'), ACCUEIL.indexOf('function getClientFirebase'));
   assert.match(aide, /from\('profiles'\)\.select\('id'\)\.eq\('id', id\)\.maybeSingle\(\)[\s\S]*if \(!existant\)/);
   // Les deux portes de l'accueil (code et Google) passent par cette garde.
   const code = ACCUEIL.slice(ACCUEIL.indexOf('async function verifierCodeInscription'));

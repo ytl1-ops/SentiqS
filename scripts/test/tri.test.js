@@ -166,15 +166,11 @@ test('le cache partage est recalcule et dedoublonne avant d\'etre ecrit', () => 
   // jour. Sans recalcul, un article herite garde le verdict de la version qui
   // l'a collecte : le 03/09/2026, un enlevement au Kenya restait « normal »
   // dans le cache publie une heure apres la refonte du tri.
-  // Le recalcul vit dans fusionnerCachePartage(), commune aux deux voies de
-  // publication (Supabase depuis la page, Firestore depuis le job).
+  // Le recalcul vit dans fusionnerCachePartage(), appelee par le job dans la
+  // page avant d'ecrire sur Firestore (seule voie depuis le 15/11/2026).
   const fusion = tranche('function fusionnerCachePartage', 'async function publierCollectePartagee');
   assert.ok(fusion.indexOf('rehydrateArticles(fusionnes)') !== -1, 'le cache fusionne doit etre recalcule');
   assert.ok(fusion.indexOf('fusionnes = dedupliquerArticles(fusionnes)') !== -1, 'le cache fusionne doit etre dedoublonne');
-  const f = tranche('async function publierCollectePartagee', 'async function diagnostiquerCachePartage');
-  const iFusion = f.indexOf('fusionnerCachePartage(');
-  const iUpsert = f.indexOf(".upsert({");
-  assert.ok(iFusion !== -1 && iFusion < iUpsert, 'la fusion doit preceder l\'ecriture Supabase');
   // Voie Firestore : le job fusionne dans la page AVANT d'ecrire.
   const job = require('node:fs').readFileSync(require('node:path').join(__dirname, '../collecte-planifiee.js'), 'utf8');
   const iJobFusion = job.indexOf('fusionnerCachePartage(existants, ALL)');

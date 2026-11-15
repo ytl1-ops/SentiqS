@@ -89,11 +89,11 @@ jobs:
             fi
           done
 
-          # Les migrations sont cumulatives : en perdre est toujours une erreur.
-          migrations=$(git ls-files 'supabase/migrations/*.sql' | wc -l)
-          echo "Migrations présentes : $migrations"
-          if [ "$migrations" -lt 3 ]; then
-            echo "::error::Seulement $migrations migration(s) — au moins 3 sont attendues."
+          # Supabase est retire depuis le 15/11/2026 (tout est sur Firebase) :
+          # ce sont les regles Firestore qui portent la securite des donnees.
+          # Les perdre ouvrirait la base au premier deploiement.
+          if [ ! -s firebase/firestore.rules ]; then
+            echo "::error::firebase/firestore.rules a disparu."
             exit 1
           fi
 
@@ -142,6 +142,23 @@ jobs:
             exit 1
           fi
           echo "Build vérifié."
+
+  regles-firestore:
+    name: Règles Firestore sur l'émulateur
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Exécute les règles (forfait, essai, suspension, configuration)
+        run: |
+          npm i --no-save --no-package-lock firebase-tools@13.29.1 @firebase/rules-unit-testing@3.0.4 firebase@10.14.1
+          npx firebase emulators:exec --config firebase.emulateur.json --only firestore --project demo-sentiqs "node scripts/verifier-regles-firestore.js"
 
   collecte:
     name: Moteur de collecte

@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <!-- Content-Security-Policy — audit de securite : limite les scripts/styles/
      connexions/medias aux domaines effectivement utilises par l'app (CDN des
-     exports, Google Fonts, Supabase, traduction, proxys CORS de collecte
+     exports, Google Fonts, Firebase, traduction, proxys CORS de collecte
      RSS). 'unsafe-inline' reste necessaire pour script-src/style-src : toute
      l'app est un seul fichier avec un <script> inline unique et des
      centaines d'attributs onclick — les retirer serait une refonte separee,
@@ -24,7 +24,7 @@
      X-Frame-Options:DENY en en-tete HTTP reel) retire — seul GitHub Pages
      sert desormais le site, et GitHub Pages ne permet pas de personnaliser
      les en-tetes de reponse : X-Frame-Options n'est plus applique. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.sheetjs.com https://apis.google.com https://pay.google.com; frame-src https://*.firebaseapp.com https://accounts.google.com https://pay.google.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https://pay.google.com https://*.supabase.co https://*.googleapis.com https://translate.googleapis.com https://api.mymemory.translated.net https://lingva.ml https://translate.plausibility.cloud https://lingva.garudalinux.org https://api.rss2json.com https://api.allorigins.win https://api.codetabs.com https://proxy.cors.sh https://test.cors.workers.dev https://corsproxy.org https://thingproxy.freeboard.io https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.sheetjs.com https://apis.google.com https://pay.google.com; frame-src https://*.firebaseapp.com https://accounts.google.com https://pay.google.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https://pay.google.com https://*.googleapis.com https://translate.googleapis.com https://api.mymemory.translated.net https://lingva.ml https://translate.plausibility.cloud https://lingva.garudalinux.org https://api.rss2json.com https://api.allorigins.win https://api.codetabs.com https://proxy.cors.sh https://test.cors.workers.dev https://corsproxy.org https://thingproxy.freeboard.io https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self';">
 <!-- Anti-clickjacking en JS : GitHub Pages (seul hebergeur desormais, voir
      plus haut) ne permet pas de fixer l'en-tete HTTP X-Frame-Options —
      cette protection compense en sortant la page de tout iframe cross-
@@ -39,8 +39,8 @@
 <script src="js/identifiants-envoi.js"></script>
 <script src="js/google-pay.js"></script>
 <script src="js/intro.js"></script>
-<!-- Fournisseur d'identite : Firebase si js/firebase-config.js est rempli,
-     Supabase sinon (voir getSentinelSupabase et FIREBASE.md). -->
+<!-- Comptes, donnees partagees et connexion : Firebase seul depuis le
+     15/11/2026 (voir getClientFirebase et FIREBASE.md). -->
 <script src="js/firebase-config.js"></script>
 <script src="js/firebase.js"></script>
 <script src="js/cache-firestore.js"></script>
@@ -1013,7 +1013,7 @@ body.plein-ecran-module > .stbar { display:none !important; }
    Joue une fois par onglet (sessionStorage, partagé avec la page d'accueil —
    voir web/js/intro.js et afficherIntroVideo) avant l'écran de connexion — jamais pour le job de collecte planifiée
    (checkCollectorSession() revient avant d'appeler afficherEcranConnexion)
-   ni pour une reconnexion automatique du jour (_ouvrirSessionDepuisSupabase,
+   ni pour une reconnexion automatique du jour (_ouvrirSessionDepuisCompte,
    même raison : aucune des deux ne passe par cette fonction). */
 .intro-video-overlay{position:absolute;inset:0;z-index:10}
 /* Révision du 15/11/2026 (capture d'un téléphone : logo et devise coupés,
@@ -3353,7 +3353,6 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
     return _bibliothequesEnCours[nom];
   }
   </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js" integrity="sha384-uteMfOloLDGt042uDz+xHGF3ym63/WQ6rFq7murQRG8Ih7QrXGEGNtWd8688sb4O" crossorigin="anonymous" defer></script>
 </head>
 <body>
 
@@ -5205,14 +5204,14 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
             </div>
           </div>
 
-          <!-- Connexions recentes (tous appareils, via Supabase) -->
+          <!-- Connexions recentes (tous appareils, via Firebase) -->
           <div class="pm-section">
             <div class="pm-sec-hd">
               <div class="pm-sec-hd-l"><i class="ti ti-devices"></i>
                 <div><div class="pm-sec-title">Connexions récentes — tous appareils</div>
                 <div class="pm-sec-sub" id="connexionsSub">Qui s'est réellement connecté, web et mobile confondus</div></div>
               </div>
-              <button class="btn-action btn-rest" style="font-size:10px" onclick="renderConnexionsSupabase()"><i class="ti ti-refresh"></i> <span data-i18n="btn_actualiser">Actualiser</span></button>
+              <button class="btn-action btn-rest" style="font-size:10px" onclick="renderConnexionsServeur()"><i class="ti ti-refresh"></i> <span data-i18n="btn_actualiser">Actualiser</span></button>
             </div>
             <div class="pm-sec-body" style="padding:14px 16px">
               <div id="connexionsBody" style="font-size:11px;color:var(--lg)">Chargement…</div>
@@ -12395,44 +12394,12 @@ function limiteDeTelechargementAtteinte() { return telechargementsRestants() <= 
 // d'export (exportWord/exportPDF/exportPPTX/exportExcel/exportCSV) — bloque
 // et previent l'utilisateur si le quota de son abonnement est deja
 // consomme, avant meme de lancer la generation (evite un travail inutile).
-// _autoriserExportCoteServeur(format, nom) : demande le droit a la fonction
-// Edge `autoriser-export`, qui seule detient la cle de service.
-//
-// Le controle local ci-dessous lit localStorage : un utilisateur peut vider
-// son stockage pour remettre son quota a zero, ou editer une valeur pour se
-// declarer au forfait Entreprise. Pour une offre facturee, le droit doit
-// etre verifie la ou il ne peut pas etre reecrit — et la consommation
-// enregistree cote serveur, sinon le compteur reste fictif.
-//
-// Renvoie null si la voie serveur n'est pas disponible (fonction pas encore
-// deployee, ou pas de session Supabase) : l'appelant retombe alors sur le
-// controle local, comportement actuel inchange. Meme bascule progressive
-// que pour la publication de la collecte.
-async function _autoriserExportCoteServeur(format, nom) {
-  const client = getSentinelSupabase();
-  if (!client) return null;
-  let jeton = null;
-  try {
-    const { data } = await client.auth.getSession();
-    jeton = data && data.session && data.session.access_token;
-  } catch (_) { return null; }
-  if (!jeton) return null; // pas de session Supabase reelle : voie locale
-
-  try {
-    const r = await fetch(SENTINEL_SUPABASE_URL + '/functions/v1/autoriser-export', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'Authorization': 'Bearer ' + jeton },
-      body: JSON.stringify({ format: format, nom: nom || null }),
-    });
-    if (r.status === 404) return null; // fonction pas deployee
-    const d = await r.json().catch(() => null);
-    if (!r.ok || !d || !d.ok) return null; // panne serveur : ne pas bloquer un client legitime
-    return d;
-  } catch (_) {
-    return null;
-  }
-}
-
+// Le droit d'export etait demande a une fonction Edge Supabase
+// (autoriser-export), retiree avec Supabase le 15/11/2026 : le plan gratuit de
+// Firebase n'a pas de fonction serveur. Le controle reste local (falsifiable
+// dans le navigateur, ce qui est ecrit) ; les donnees elles-memes sont
+// protegees par les regles Firestore (forfait et essai, voir
+// firebase/firestore.rules).
 // _verifierLimiteTelechargement(format, nom) : vrai si l'export doit etre
 // BLOQUE. Interroge d'abord le serveur ; a defaut, retombe sur le controle
 // local historique.
@@ -12440,14 +12407,6 @@ async function _verifierLimiteTelechargement(format, nom) {
   const msg = LANG === 'en'
     ? 'Download limit reached for your plan. Upgrade to continue.'
     : 'Limite de téléchargements atteinte pour votre abonnement. Passez à un plan supérieur pour continuer.';
-
-  const verdict = await _autoriserExportCoteServeur(format, nom);
-  if (verdict) {
-    if (verdict.autorise) return false;
-    if (typeof _toastRapide === 'function') _toastRapide(msg, 'ti-lock');
-    else alert(msg);
-    return true;
-  }
 
   if (!limiteDeTelechargementAtteinte()) return false;
   if (typeof _toastRapide === 'function') _toastRapide(msg, 'ti-lock');
@@ -16853,7 +16812,7 @@ async function renderDiagnosticCachePartage() {
     if (court) court.textContent = 'Indisponible';
     zone.innerHTML = `<div style="font-size:11px;color:#8B1A1A;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:6px;padding:8px 10px;display:flex;align-items:flex-start;gap:6px;">
       <i class="ti ti-alert-triangle" style="flex-shrink:0;margin-top:1px;"></i>
-      <span><strong>Cache partagé indisponible</strong> — ${escHtml(diag.raison || 'raison inconnue')}. Tous les visiteurs retombent sur leur propre collecte locale (dégradé mais non bloquant) ; vérifier que la migration <code>collecte_partagee</code> est bien appliquée sur le projet Supabase.</span>
+      <span><strong>Cache partagé indisponible</strong> — ${escHtml(diag.raison || 'raison inconnue')}. Tous les visiteurs retombent sur leur propre collecte locale (dégradé mais non bloquant) ; vérifier le dernier passage du job de collecte (GitHub Actions) et la règle <code>collecte_partagee</code> de Firestore.</span>
     </div>`;
     return;
   }
@@ -17766,11 +17725,7 @@ function _demarrerAutoRefresh() {
         _appliquerArticlesPartages(partagee);
       } else {
         localStorage.setItem('sentinel_lastCollectTs', Date.now().toString());
-        doCollect().then(() => {
-          if (typeof publierCollectePartagee === 'function') publierCollectePartagee(ALL);
-          if (typeof publierArticlesRagPartages === 'function') publierArticlesRagPartages(ALL);
-          if (typeof publierAgendaPartagee === 'function') publierAgendaPartagee(ALL);
-        }).catch(() => {});
+        doCollect().catch(() => {});
       }
     }
   }, 5 * 60 * 1000);
@@ -17898,10 +17853,6 @@ async function init() {
       // Collecte RSS automatique sans clic, des l'ouverture de l'application
       try {
         await doCollect();
-        // Publie le resultat pour les prochains visiteurs (best-effort).
-        if (typeof publierCollectePartagee === 'function') publierCollectePartagee(ALL);
-        if (typeof publierArticlesRagPartages === 'function') publierArticlesRagPartages(ALL);
-        if (typeof publierAgendaPartagee === 'function') publierAgendaPartagee(ALL);
       } catch(e){
         // Si la collecte echoue totalement, le filet pre-charge reste affiche
         document.getElementById('stbarLeft').textContent='Veille en direct indisponible · Donnees de reference affichees · Reessayez avec Actualiser';
@@ -18020,55 +17971,21 @@ const PENDING_KEY = 'sentinel_pending_v1';
 // connexions_log (voir app/sentinel-app/supabase/migrations/20260712010000)
 // reste utilisee pour le journal "Derniere connexion" du panneau
 // Administration, partagee avec l'app mobile qui y ecrit aussi.
-const SENTINEL_SUPABASE_URL      = 'https://zpdwqmliogxbuwirziny.supabase.co';
-const SENTINEL_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwZHdxbWxpb2d4YnV3aXJ6aW55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4NzUyOTYsImV4cCI6MjA5OTQ1MTI5Nn0.fQsTrrV5CIB77l0hxTHHN7oVICVzZdhwa9-d0WsCYI0';
-let _sentinelSupabaseClient = null;
-// Bascule Firebase du 21/10/2026 (plan gratuit, sans SMTP) : des que la
-// configuration publique de web/js/firebase-config.js est remplie, c'est
-// l'adaptateur Firebase (meme API que supabase-js pour ce que la page
-// utilise) qui repond ici — et seulement ici. Sinon, Supabase comme avant.
+// Supabase est retire depuis le 15/11/2026 (demande de YORO : « tout devait
+// etre migre dans Firebase »). Il refusait toute lecture depuis le 27/10/2026
+// (quota de transfert, 402) : le cache, l'agenda, les comptes et les paiements
+// vivaient deja sur Firestore. Plus aucun fournisseur de repli : sans
+// Firebase configure, la page dit « service indisponible » au lieu de lire un
+// serveur que personne ne surveille.
 function _fournisseurFirebase() { return !!(window.SentiqFirebase && window.SentiqFirebase.actif()); }
-function getSentinelSupabase() {
-  if (_fournisseurFirebase()) return window.SentiqFirebase.client();
-  if (!SENTINEL_SUPABASE_URL || !SENTINEL_SUPABASE_ANON_KEY) return null;
-  if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') return null;
-  if (!_sentinelSupabaseClient) {
-    try { _sentinelSupabaseClient = window.supabase.createClient(SENTINEL_SUPABASE_URL, SENTINEL_SUPABASE_ANON_KEY); }
-    catch (_) { return null; }
-  }
-  return _sentinelSupabaseClient;
+function getClientFirebase() {
+  return _fournisseurFirebase() ? window.SentiqFirebase.client() : null;
 }
-// _clientSupabaseEphemere() : instance SEPAREE de getSentinelSupabase(),
-// avec persistSession/autoRefreshToken desactives — indispensable pour
-// qu'un administrateur puisse creer un compte au nom d'un tiers (signUp())
-// SANS que cet appel remplace sa PROPRE session active. supabase-js
-// persiste automatiquement la session retournee par signUp()/
-// signInWithPassword() sur le client qui les appelle ; une instance
-// jetable isole entierement cet effet de bord du client "principal"
-// (getSentinelSupabase) utilise pour la session de l'utilisateur courant.
-// getClientDonnees() : le cache d'actus, l'agenda, la configuration et le
-// corpus partages restent sur Supabase tant que leur bascule n'est pas faite
-// (etapes suivantes de la migration). Ils ne passent donc jamais par
-// l'adaptateur Firebase, meme une fois la connexion basculee : un cache
-// illisible ferait relancer a chaque visiteur sa propre collecte complete.
-function getClientDonnees() {
-  if (!SENTINEL_SUPABASE_URL || !SENTINEL_SUPABASE_ANON_KEY) return null;
-  if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') return null;
-  if (!_sentinelSupabaseClient) {
-    try { _sentinelSupabaseClient = window.supabase.createClient(SENTINEL_SUPABASE_URL, SENTINEL_SUPABASE_ANON_KEY); }
-    catch (_) { return null; }
-  }
-  return _sentinelSupabaseClient;
-}
-function _clientSupabaseEphemere() {
-  if (_fournisseurFirebase()) return window.SentiqFirebase.clientEphemere();
-  if (!SENTINEL_SUPABASE_URL || !SENTINEL_SUPABASE_ANON_KEY) return null;
-  if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') return null;
-  try {
-    return window.supabase.createClient(SENTINEL_SUPABASE_URL, SENTINEL_SUPABASE_ANON_KEY, {
-      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-    });
-  } catch (_) { return null; }
+// _clientFirebaseEphemere() : instance SEPAREE de getClientFirebase(), sans
+// session persistee — indispensable pour qu'un administrateur puisse creer un
+// compte au nom d'un tiers sans que cet appel remplace sa PROPRE session.
+function _clientFirebaseEphemere() {
+  return _fournisseurFirebase() ? window.SentiqFirebase.clientEphemere() : null;
 }
 // _profilVersUtilisateur(row) : convertit une ligne de la table `profiles`
 // (id/email/role/status/data JSONB) dans la forme d'objet "user" que le
@@ -18086,8 +18003,8 @@ function _utilisateurVersProfil(u) {
 // Ecrit un horodatage de connexion — best-effort, jamais bloquant (une
 // connexion doit toujours reussir meme hors-ligne ou si Supabase n'est pas
 // configure/joignable).
-async function logConnexionSupabase(user) {
-  const client = getSentinelSupabase();
+async function logConnexionServeur(user) {
+  const client = getClientFirebase();
   if (!client || !user) return;
   try {
     const { error } = await client.from('connexions_log').insert({
@@ -18095,8 +18012,8 @@ async function logConnexionSupabase(user) {
     });
     // Erreur reelle (ex. table non creee, RLS mal configuree) : journalisee
     // en console pour rester diagnosticable, sans jamais bloquer la connexion.
-    if (error) console.warn('SentiqS — logConnexionSupabase a echoue :', error.message || error);
-  } catch (e) { console.warn('SentiqS — logConnexionSupabase a echoue :', e && e.message ? e.message : e); }
+    if (error) console.warn('SentiqS — logConnexionServeur a echoue :', error.message || error);
+  } catch (e) { console.warn('SentiqS — logConnexionServeur a echoue :', e && e.message ? e.message : e); }
 }
 // Lit les connexions recentes (tous appareils/utilisateurs) pour le panneau
 // Administration. Retourne null si Supabase n'est pas configure/joignable
@@ -18105,7 +18022,7 @@ async function logConnexionSupabase(user) {
 // journalisee en console pour rester diagnosticable (ex. table absente,
 // politique RLS bloquant la lecture) plutot que d'echouer silencieusement.
 async function fetchConnexionsRecentes(limit) {
-  const client = getSentinelSupabase();
+  const client = getClientFirebase();
   if (!client) return null; // non configure (SDK non charge ou cles vides)
   try {
     const { data, error } = await client.from('connexions_log')
@@ -18186,89 +18103,15 @@ async function lireCollectePartagee() {
   // Firestore d'abord : Supabase a depasse son quota de transfert le
   // 27/10/2026 (402) a force de servir 1,4 Mo a chaque ouverture.
   const fs = await _lireCacheFirestore();
-  if (fs && fs.articles.length) {
-    const ageFs = Date.now() - new Date(fs.updated_at).getTime();
-    if (ageFs <= COLLECTE_PARTAGEE_LECTURE_MAX_MS) return fs.articles;
-    return null; // perime — mieux vaut collecter soi-meme, comme pour Supabase
-  }
-  const client = getClientDonnees();
-  if (!client) return null;
-  try {
-    const { data, error } = await client.from('collecte_partagee')
-      .select('articles,updated_at')
-      .eq('id', COLLECTE_PARTAGEE_ID)
-      .maybeSingle();
-    if (error) { console.warn('SentiqS — lireCollectePartagee a echoue :', error.message || error); return null; }
-    if (!data || !Array.isArray(data.articles) || !data.articles.length) return null;
-    const age = Date.now() - new Date(data.updated_at).getTime();
-    if (age > COLLECTE_PARTAGEE_LECTURE_MAX_MS) return null; // perime — mieux vaut collecter soi-meme
-    return data.articles;
-  } catch (e) { console.warn('SentiqS — lireCollectePartagee a echoue :', e && e.message ? e.message : e); return null; }
+  if (!fs || !fs.articles.length) return null;
+  const ageFs = Date.now() - new Date(fs.updated_at).getTime();
+  if (ageFs <= COLLECTE_PARTAGEE_LECTURE_MAX_MS) return fs.articles;
+  return null; // perime — mieux vaut collecter soi-meme
 }
-// Publie le resultat d'une collecte reseau reussie pour les prochains
-// visiteurs — best-effort, jamais bloquant (appele apres doCollect(), sans
-// jamais retarder l'affichage local). Verifie d'abord qu'une publication
-// recente n'existe pas deja, pour eviter une rafale d'ecritures identiques
-// si plusieurs navigateurs terminent leur collecte au meme moment.
-// force=true (utilise UNIQUEMENT par le job de collecte planifie, voir
-// checkCollectorSession/.github/workflows/collecte-planifiee.yml) ignore ce
-// garde-fou : ce job tourne deliberement plus souvent (~15 min) que la
-// fenetre de fraicheur (COLLECTE_PARTAGEE_FRAICHEUR_MS, 20 min) pour garder
-// une marge de securite — sans "force", sa propre publication serait
-// silencieusement ignoree a chaque cycle des le deuxieme, puisque le cache
-// qu'il vient de publier lui-meme la fois precedente serait toujours "frais".
-// Valeur de retour : {ok:true} en cas de publication reelle, {ok:true,
-// ignore:true} si sautee volontairement (garde-fou de fraicheur — pas une
-// erreur), {ok:false, raison} en cas d'echec reel. Les appelants "best-
-// effort" ordinaires (auto-refresh navigateur) ignorent cette valeur sans
-// changement de comportement — seul le job planifie (voir
-// scripts/collecte-planifiee.js) l'exploite desormais pour ne plus rapporter
-// un succes alors que la publication a silencieusement echoue (cause racine
-// du bug ou la table collecte_partagee a pu rester absente/en echec pendant
-// des semaines sans que rien ne le signale — un risque grave pour une appli
-// de surete ou une donnee perimee affichee comme a jour induit en erreur).
-// _publierViaFonctionEdge(articles, force) : voie PRIVILEGIEE de publication.
-//
-// L'ecriture directe dans collecte_partagee imposait d'ouvrir la table au
-// role anon — donc a quiconque lit la cle publique de ce fichier. La
-// fonction Edge `publier-collecte` fait la meme chose avec la cle de
-// service, cote serveur, apres validation du contenu et fusion atomique
-// (voir app/sentinel-app/supabase/functions/publier-collecte/index.ts).
-//
-// Le jeton n'existe que dans la session du collecteur planifie : un
-// visiteur ordinaire n'en a pas, et n'alimente donc plus le cache partage.
-// C'etait deja l'intention du job planifie — garder ce cache frais
-// INDEPENDAMMENT du trafic.
-//
-// Renvoie null si la voie Edge n'est pas disponible (fonction pas encore
-// deployee, ou pas de jeton) : l'appelant retombe alors sur l'ecriture
-// directe, qui reste valide TANT QUE la migration de verrouillage n'est
-// pas appliquee. Cet ordre est volontaire — voir supabase/README.md.
-async function _publierViaFonctionEdge(articles, force) {
-  const jeton = (typeof _MEM_SESSION === 'object' && _MEM_SESSION && _MEM_SESSION.collecteurJeton) || null;
-  if (!jeton) return null;
-  try {
-    const r = await fetch(SENTINEL_SUPABASE_URL + '/functions/v1/publier-collecte', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-collecteur-jeton': jeton,
-        'Authorization': 'Bearer ' + SENTINEL_SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({ articles, force: !!force }),
-    });
-    // 404 : fonction pas encore deployee — on laisse l'appelant reprendre
-    // la voie directe plutot que d'echouer alors qu'elle fonctionne encore.
-    if (r.status === 404) return null;
-    const d = await r.json().catch(() => null);
-    if (!r.ok || !d || !d.ok) {
-      return { ok: false, raison: 'fonction publier-collecte : ' + ((d && d.raison) || ('HTTP ' + r.status)) };
-    }
-    return { ok: true, nbArticles: d.nbArticles };
-  } catch (e) {
-    return { ok: false, raison: 'fonction publier-collecte injoignable : ' + (e && e.message || e) };
-  }
-}
+// Le cache partage n'est publie que par le job de collecte, sur Firestore,
+// depuis Node (scripts/collecte-planifiee.js, compte de service) : les regles
+// refusent toute ecriture depuis un navigateur. La voie Supabase (fonction
+// Edge publier-collecte, ecriture directe anon) est retiree le 15/11/2026.
 
 // fusionnerCachePartage(existants, articles) : fusion + purge + recalcul +
 // dedoublonnage d'un cache partage avec la collecte fraiche. Extraite de
@@ -18319,27 +18162,10 @@ function fusionnerCachePartage(existants, articles) {
   return fusionnes;
 }
 
-async function publierCollectePartagee(articles, force) {
-  const viaEdge = await _publierViaFonctionEdge(articles, force);
-  if (viaEdge) return viaEdge;
-  const client = getClientDonnees();
-  if (!client) return { ok: false, raison: 'Supabase non configure/joignable' };
-  if (!Array.isArray(articles) || !articles.length) return { ok: false, raison: 'Aucun article a publier' };
-  try {
-    const { data: existant, error: erreurLecture } = await client.from('collecte_partagee').select('articles,updated_at').eq('id', COLLECTE_PARTAGEE_ID).maybeSingle();
-    if (erreurLecture) { console.warn('SentiqS — publierCollectePartagee a echoue (lecture) :', erreurLecture.message || erreurLecture); return { ok: false, raison: erreurLecture.message || String(erreurLecture) }; }
-    if (!force && existant && existant.updated_at && (Date.now() - new Date(existant.updated_at).getTime()) < COLLECTE_PARTAGEE_FRAICHEUR_MS) { const _cvr = new Set((existant.articles||[]).filter(a=>a&&a.pubDate&&(Date.now()-a.pubDate)<COLLECTE_PARTAGEE_FRAICHEUR_MS).map(a=>a.cy)); const _neuf = Array.isArray(articles) && articles.some(a=>a&&a.cy&&a.pubDate&&(Date.now()-a.pubDate)<COLLECTE_PARTAGEE_FRAICHEUR_MS&&!_cvr.has(a.cy)); if (!_neuf) return { ok: true, ignore: true }; }
-    // Fusion avec le cache existant : voir fusionnerCachePartage().
-    const fusionnes = fusionnerCachePartage(existant && existant.articles, articles);
-    const { error } = await client.from('collecte_partagee').upsert({
-      id: COLLECTE_PARTAGEE_ID, articles: fusionnes, updated_at: new Date().toISOString(),
-    });
-    if (error) { console.warn('SentiqS — publierCollectePartagee a echoue :', error.message || error); return { ok: false, raison: error.message || String(error) }; }
-    return { ok: true, nbArticles: fusionnes.length };
-  } catch (e) {
-    console.warn('SentiqS — publierCollectePartagee a echoue :', e && e.message ? e.message : e);
-    return { ok: false, raison: e && e.message ? e.message : String(e) };
-  }
+// publierCollectePartagee() : gardee pour les appelants historiques, elle ne
+// publie plus rien depuis le navigateur et le dit.
+async function publierCollectePartagee() {
+  return { ok: false, raison: 'publication reservee au job de collecte (Firestore)' };
 }
 
 // diagnostiquerCachePartage() : etat REEL du pipeline de cache partage, tel
@@ -18363,61 +18189,7 @@ async function diagnostiquerCachePartage() {
       enPanne: ageMs > CACHE_PARTAGE_PANNE_SEUIL_MS,
     };
   }
-  const client = getClientDonnees();
-  if (!client) return { disponible: false, raison: 'Supabase non configure/joignable' };
-  try {
-    const { data, error } = await client.from('collecte_partagee').select('articles,updated_at').eq('id', COLLECTE_PARTAGEE_ID).maybeSingle();
-    if (error) return { disponible: false, raison: error.message || String(error) };
-    if (!data) return { disponible: false, raison: 'Aucune publication trouvee (table vide)' };
-    const ageMs = Date.now() - new Date(data.updated_at).getTime();
-    const arts = Array.isArray(data.articles) ? data.articles : [];
-    const paysUniques = new Set(arts.map(a => a && a.cy).filter(Boolean));
-    return {
-      disponible: true, ageMs, updatedAt: data.updated_at,
-      nbArticles: arts.length, nbPays: paysUniques.size,
-      enPanne: ageMs > CACHE_PARTAGE_PANNE_SEUIL_MS,
-    };
-  } catch (e) { return { disponible: false, raison: e && e.message ? e.message : String(e) }; }
-}
-
-// ── Index RAG (Supabase, table articles_rag) ─────────────────────────────
-// Alimente une table NORMALISEE (colonnes indexables) a partir des memes
-// articles que collecte_partagee (tableau JSONB, pas cherchable en plein
-// texte) — table backend consommee par la fonction Edge rag-ask
-// (supabase/functions/rag-ask). Le module client "Assistant IA" qui
-// l'interrogeait a ete retire de l'application ; cette synchronisation
-// reste volontairement active (backend Supabase laisse en l'etat, non
-// demantele) au cas ou la fonction Edge serait de nouveau exposee plus
-// tard. Best-effort, jamais bloquant (meme principe que
-// publierCollectePartagee) ; necessite la migration
-// 20260718030000_articles_rag.sql, sinon echoue silencieusement sans
-// affecter le reste de l'application.
-// Plafonne aux ARTICLES_RAG_MAX_PAR_APPEL plus recents : suffisant pour
-// la recherche plein texte (les articles plus anciens sont de toute
-// facon purges cote serveur, voir purger_articles_rag_perimes) et evite
-// un upsert de plusieurs centaines de lignes a chaque cycle.
-const ARTICLES_RAG_MAX_PAR_APPEL = 300;
-async function publierArticlesRagPartages(articles) {
-  const client = getClientDonnees();
-  if (!client || !Array.isArray(articles) || !articles.length) return;
-  try {
-    const lignes = articles
-      .slice()
-      .sort((a, b) => (b.pubDate || 0) - (a.pubDate || 0))
-      .slice(0, ARTICLES_RAG_MAX_PAR_APPEL)
-      .map(a => ({
-        id: a.id, title: (a.title || '').slice(0, 300),
-        summary: (a.analysis || '').slice(0, 1000),
-        source: srcName(a.primary), link: a.url || null,
-        cy: a.cy || null, category: a.cat || null,
-        pub_date: a.pubDate ? new Date(a.pubDate).toISOString() : null,
-        updated_at: new Date().toISOString(),
-      }))
-      .filter(l => l.id && l.title);
-    if (!lignes.length) return;
-    const { error } = await client.from('articles_rag').upsert(lignes);
-    if (error) console.warn('SentiqS — publierArticlesRagPartages a echoue :', error.message || error);
-  } catch (e) { console.warn('SentiqS — publierArticlesRagPartages a echoue :', e && e.message ? e.message : e); }
+  return { disponible: false, raison: 'cache Firestore illisible (pas encore publie, perime, ou compte inactif)' };
 }
 
 // ── Agent AGENDA — persistance partagee (Supabase, table agenda_partagee) ──
@@ -18473,28 +18245,8 @@ function lignesAgendaPartagee(articles) {
       }))
       .filter(l => l.id && l.title);
 }
-async function publierAgendaPartagee(articles) {
-  const client = getClientDonnees();
-  if (!client) return { ok: false, publiees: 0, raison: 'client Supabase indisponible' };
-  if (!Array.isArray(articles) || !articles.length) {
-    return { ok: true, publiees: 0, raison: 'aucun article a examiner' };
-  }
-  try {
-    const lignes = lignesAgendaPartagee(articles);
-    if (!lignes.length) return { ok: true, publiees: 0, raison: 'aucune entree d\'agenda recente' };
-    const { error } = await client.from('agenda_partagee').upsert(lignes);
-    if (error) {
-      const raison = error.message || String(error);
-      console.warn('SentiqS — publierAgendaPartagee a echoue :', raison);
-      return { ok: false, publiees: 0, raison };
-    }
-    return { ok: true, publiees: lignes.length, raison: null };
-  } catch (e) {
-    const raison = (e && e.message) ? e.message : String(e);
-    console.warn('SentiqS — publierAgendaPartagee a echoue :', raison);
-    return { ok: false, publiees: 0, raison };
-  }
-}
+// publierAgendaPartagee() : retiree avec Supabase le 15/11/2026. Le job ecrit
+// lignesAgendaPartagee() sur Firestore (collecte_partagee/agenda) depuis Node.
 
 // ligneAgendaPartageeVersEntree(row) : reconstruit une entree affichable
 // (meme forme que articleVersAgenda) a partir d'une ligne persistee —
@@ -18538,17 +18290,7 @@ async function lireAgendaPartagee() {
       }
     } catch (e) { console.warn('SentiqS — lecture de l\'agenda Firestore a echoue :', e && e.message ? e.message : e); }
   }
-  const client = getClientDonnees();
-  if (!client) return null;
-  try {
-    const seuil = new Date(Date.now() - AGENDA_MAX_AGE).toISOString();
-    const { data, error } = await client.from('agenda_partagee')
-      .select('id,title,texte,agenda_type,niveau,cy,source,link,pub_date')
-      .gt('pub_date', seuil).order('pub_date', { ascending: false }).limit(500);
-    if (error) { console.warn('SentiqS — lireAgendaPartagee a echoue :', error.message || error); return null; }
-    if (!Array.isArray(data)) return null;
-    return data.filter(l => !ligneAgendaEstIncident(l)).map(ligneAgendaPartageeVersEntree);
-  } catch (e) { console.warn('SentiqS — lireAgendaPartagee a echoue :', e && e.message ? e.message : e); return null; }
+  return null;
 }
 
 // Cache court (5 min) pour eviter un aller-retour reseau a CHAQUE appel de
@@ -18589,7 +18331,7 @@ const CONFIG_PARTAGEE_ID = 'global';
 // appliquee), ou si aucune configuration valide (les 3 champs) n'a encore
 // ete enregistree par un administrateur.
 async function lireConfigEmailjsPartagee() {
-  const client = getClientDonnees();
+  const client = getClientFirebase();
   if (!client) return null;
   try {
     const { data, error } = await client.from('config_partagee')
@@ -18605,7 +18347,7 @@ async function lireConfigEmailjsPartagee() {
 // Best-effort, jamais bloquant (l'enregistrement local reste effectif meme
 // si Supabase est indisponible).
 async function publierConfigEmailjsPartagee(cfg) {
-  const client = getClientDonnees();
+  const client = getClientFirebase();
   if (!client) return;
   try {
     const { error } = await client.from('config_partagee').upsert({
@@ -18677,7 +18419,7 @@ async function dernieresConnexionsParEmail() {
   if (typeof fetchConnexionsRecentes === 'function') {
     const rows = await fetchConnexionsRecentes(300);
     if (rows) {
-      source = 'supabase';
+      source = 'serveur';
       rows.forEach(r => {
         const ts = new Date(r.created_at).getTime();
         if (!map[r.email] || ts > map[r.email]) map[r.email] = ts;
@@ -18698,7 +18440,7 @@ let _MEM_USERS=[], _MEM_SESSION=null;
 function _ls(fn,fb){try{return fn();}catch(e){return fb;}}
 // getUsers() : interface SYNCHRONE historique, INCHANGEE — 30+ points
 // d'appel a travers l'application continuent de lire ce cache immediatement,
-// sans jamais devenir async. Alimente par refreshUsersDepuisSupabase()
+// sans jamais devenir async. Alimente par refreshUsersDepuisServeur()
 // (apres connexion, ouverture du panneau Administration...) plutot que par
 // localStorage seul comme avant — localStorage ne sert plus ici que de
 // cache de repli/rendu instantane avant la premiere synchronisation reseau.
@@ -18711,14 +18453,14 @@ function getUsers()    { return _MEM_USERS.length?_MEM_USERS:_ls(()=>JSON.parse(
 // presente avant, absente du nouveau tableau) et les modifications (diff
 // par id, l'UUID Supabase Auth) ; une entree SANS id (compte tout juste
 // cree localement, avant que l'appelant n'attache l'id retourne par
-// _clientSupabaseEphemere().auth.signUp() — voir pmAddUser/addUser) est
+// _clientFirebaseEphemere().auth.signUp() — voir pmAddUser/addUser) est
 // ignoree ici, sans consequence puisque ces appelants attachent l'id AVANT
 // de rappeler saveUsers().
 function saveUsers(users) {
   const ancien = _MEM_USERS;
   _MEM_USERS = users;
   _ls(() => localStorage.setItem(USERS_KEY, JSON.stringify(users)));
-  const client = getSentinelSupabase();
+  const client = getClientFirebase();
   if (!client) return;
   try {
     const idsNouveaux = new Set(users.filter(u => u.id).map(u => u.id));
@@ -18734,7 +18476,7 @@ function saveUsers(users) {
 // soumettreNouveauMotDePasse (mise a jour ponctuelle, pas besoin du tableau
 // complet).
 function _majUnProfil(u) {
-  const client = getSentinelSupabase();
+  const client = getClientFirebase();
   if (!client || !u || !u.id) return;
   const profil = _utilisateurVersProfil(u);
   // try/catch synchrone indispensable ici : appelee directement (hors
@@ -18748,13 +18490,13 @@ function _majUnProfil(u) {
       .then(({error}) => { if (error) console.warn('SentiqS — mise a jour du profil a echoue :', error.message); });
   } catch (e) { console.warn('SentiqS — mise a jour du profil a echoue :', e && e.message ? e.message : e); }
 }
-// refreshUsersDepuisSupabase() : recharge le cache local depuis la table
+// refreshUsersDepuisServeur() : recharge le cache local depuis la table
 // `profiles` — un admin voit tous les profils (RLS
 // profiles_select_own_or_admin), un compte normal ne voit que le sien.
 // Appelee apres connexion (finaliserConnexion) et a l'ouverture du panneau
 // Administration/Parametres (voir loadParamsModule) pour un admin.
-async function refreshUsersDepuisSupabase() {
-  const client = getSentinelSupabase();
+async function refreshUsersDepuisServeur() {
+  const client = getClientFirebase();
   if (!client) return getUsers();
   try {
     const { data, error } = await client.from('profiles').select('*');
@@ -18991,7 +18733,7 @@ async function doLogin() {
   const errEl=document.getElementById('loginErr');
   errEl.classList.remove('show');
   if(!email||!pass){errEl.textContent=t('err_fields_required');errEl.classList.add('show');return;}
-  const client = getSentinelSupabase();
+  const client = getClientFirebase();
   if (!client) { errEl.textContent = 'Service d\'authentification indisponible pour le moment. Réessayez dans un instant.'; errEl.classList.add('show'); return; }
   const btn = document.getElementById('loginBtn');
   if (btn) btn.disabled = true;
@@ -19002,21 +18744,21 @@ async function doLogin() {
       errEl.classList.add('show');
       return;
     }
-    await _ouvrirSessionDepuisSupabase(data.user);
+    await _ouvrirSessionDepuisCompte(data.user);
   } finally {
     if (btn) btn.disabled = false;
   }
 }
 
-// _ouvrirSessionDepuisSupabase(authUser) : a partir d'un utilisateur
+// _ouvrirSessionDepuisCompte(authUser) : a partir d'un utilisateur
 // Supabase Auth deja authentifie (session valide), charge/cree son profil
 // applicatif (table `profiles`) puis ouvre reellement la session — ou
 // affiche l'ecran "Definissez votre mot de passe" si ce compte a ete cree
 // par l'administrateur (doitDefinirMdp) et n'a pas encore choisi son propre
 // mot de passe. Deconnecte immediatement (et retourne false) si le compte
 // est suspendu ou si l'essai gratuit a expire.
-async function _ouvrirSessionDepuisSupabase(authUser) {
-  const client = getSentinelSupabase();
+async function _ouvrirSessionDepuisCompte(authUser) {
+  const client = getClientFirebase();
   if (!client || !authUser) return false;
   const errEl = document.getElementById('loginErr');
   let { data: row, error } = await client.from('profiles').select('*').eq('id', authUser.id).maybeSingle();
@@ -19091,8 +18833,8 @@ function finaliserConnexion(user) {
   }
   _majUnProfil(user);
   saveSession({email:user.email,name:user.name,role:user.role,loginAt:new Date().toISOString()});
-  refreshUsersDepuisSupabase();
-  if (typeof logConnexionSupabase === 'function') logConnexionSupabase(user);
+  refreshUsersDepuisServeur();
+  if (typeof logConnexionServeur === 'function') logConnexionServeur(user);
   document.getElementById('authOverlay').classList.add('hidden');
   document.getElementById('userWrap').style.display='block';
   showUserChip(user);
@@ -19143,7 +18885,7 @@ async function demanderReinitialisationMdp() {
   const msgEl = document.getElementById('forgotPasswordMsg');
   errEl.classList.remove('show'); msgEl.textContent = '';
   if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) { errEl.textContent = 'Adresse e-mail invalide.'; errEl.classList.add('show'); return; }
-  const client = getSentinelSupabase();
+  const client = getClientFirebase();
   if (!client) { errEl.textContent = 'Service d\'authentification indisponible pour le moment.'; errEl.classList.add('show'); return; }
   const btn = document.getElementById('forgotPasswordBtn');
   if (btn) btn.disabled = true;
@@ -19164,7 +18906,7 @@ async function soumettreNouveauMotDePasse() {
   const confirm = document.getElementById('spConfirmPass').value;
   const validation = _validerMotDePasse(pass, confirm);
   if (!validation.ok) { errEl.textContent = validation.err; errEl.classList.add('show'); return; }
-  const client = getSentinelSupabase();
+  const client = getClientFirebase();
   if (!client) { errEl.textContent = 'Service d\'authentification indisponible pour le moment.'; errEl.classList.add('show'); return; }
   const btn = document.getElementById('setPasswordBtn');
   if (btn) btn.disabled = true;
@@ -19177,7 +18919,7 @@ async function soumettreNouveauMotDePasse() {
       _majUnProfil(_pendingSetPasswordUser);
       finaliserConnexion(_pendingSetPasswordUser);
     } else {
-      await _ouvrirSessionDepuisSupabase(data.user);
+      await _ouvrirSessionDepuisCompte(data.user);
     }
   } finally {
     if (btn) btn.disabled = false;
@@ -19195,7 +18937,7 @@ async function supprimerMonCompte() {
   if (mot !== 'SUPPRIMER' && mot !== 'DELETE') {
     pmMsg(en ? 'Type DELETE to confirm.' : 'Tapez SUPPRIMER pour confirmer.', 'err', 'supprMsg'); return;
   }
-  const client = getSentinelSupabase();
+  const client = getClientFirebase();
   if (!client || !client.auth || typeof client.auth.supprimerCompte !== 'function') {
     pmMsg((en ? 'Write to ' : 'Écrivez à ') + SUPPORT_CONTACT_EMAIL + (en ? ' to delete your account.' : ' pour supprimer votre compte.'), 'err', 'supprMsg'); return;
   }
@@ -19214,7 +18956,7 @@ async function supprimerMonCompte() {
 }
 
 async function doLogout() {
-  const client = getSentinelSupabase();
+  const client = getClientFirebase();
   if (client) { try { await client.auth.signOut(); } catch (_) {} }
   clearSession();
   document.getElementById('authOverlay').classList.remove('hidden');
@@ -19249,7 +18991,7 @@ function showLoginForm(){document.getElementById('loginForm').style.display='blo
 // ═══ CONNEXION PAR CODE E-MAIL (sans mot de passe) — 21/10/2026 ═══
 // Une seule porte pour s'inscrire ET se connecter : signInWithOtp cree le
 // compte s'il n'existe pas (shouldCreateUser), verifyOtp ouvre la session.
-// Le profil applicatif est cree par _ouvrirSessionDepuisSupabase au premier
+// Le profil applicatif est cree par _ouvrirSessionDepuisCompte au premier
 // passage, avec le plan gratuit de 72 h (role et statut restent decides par
 // le serveur). La connexion par mot de passe reste disponible.
 // Cote Supabase (reglages que seul le proprietaire peut faire) : le modele
@@ -19306,13 +19048,13 @@ function otpVersMotDePasse() {
 // est respectee, puisque c'est une saisie faite maintenant.
 async function connexionGoogle() {
   _otpErreur('loginErr', '');
-  const client = getSentinelSupabase();
+  const client = getClientFirebase();
   if (!client || !client.auth.signInWithOAuth) { _otpErreur('loginErr', t('otp_err_send')); return; }
   const btn = document.getElementById('googleBtn'); if (btn) btn.disabled = true;
   try {
     const { data, error } = await client.auth.signInWithOAuth({ provider: 'google' });
     if (error) { if (!/popup closed/i.test(error.message || '')) _otpErreur('loginErr', t('login_google_err')); return; }
-    if (data && data.user) await _ouvrirSessionDepuisSupabase(data.user);
+    if (data && data.user) await _ouvrirSessionDepuisCompte(data.user);
   } catch (e) { _otpErreur('loginErr', t('login_google_err')); }
   finally { if (btn) btn.disabled = false; }
 }
@@ -19337,7 +19079,7 @@ async function envoyerCodeEmail(renvoi) {
   const erreurId = renvoi ? 'otpErr' : 'loginErr';
   _otpErreur(erreurId, '');
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { _otpErreur(erreurId, t('err_invalid_email')); return; }
-  const client = getSentinelSupabase();
+  const client = getClientFirebase();
   if (!client) { _otpErreur(erreurId, t('otp_err_send')); return; }
   if (renvoi && Date.now() < _otpProchainEnvoi) return;
   const btn = document.getElementById('otpSendBtn'); if (btn) btn.disabled = true;
@@ -19347,7 +19089,7 @@ async function envoyerCodeEmail(renvoi) {
     try {
       const { data, error } = await client.auth.terminerLienEmail(email);
       if (error || !data || !data.user) { _otpErreur('loginErr', messageErreurOtp(error, false)); return; }
-      await _ouvrirSessionDepuisSupabase(data.user);
+      await _ouvrirSessionDepuisCompte(data.user);
     } catch (e) { _otpErreur('loginErr', t('otp_err_send')); }
     finally { if (btn) btn.disabled = false; }
     return;
@@ -19395,7 +19137,7 @@ async function verifierCodeEmail() {
   _otpErreur('otpErr', '');
   const code = normaliserCodeOtp(document.getElementById('otpCode').value);
   if (!code) { _otpErreur('otpErr', t('otp_err_code')); return; }
-  const client = getSentinelSupabase();
+  const client = getClientFirebase();
   if (!client) { _otpErreur('otpErr', t('otp_err_send')); return; }
   _otpEnCours = true;
   const btn = document.getElementById('otpVerifyBtn'); if (btn) btn.disabled = true;
@@ -19403,7 +19145,7 @@ async function verifierCodeEmail() {
     const { data, error } = await client.auth.verifyOtp({ email: _otpEmail, token: code, type: 'email' });
     if (error || !data || !data.user) { _otpErreur('otpErr', messageErreurOtp(error, false)); return; }
     clearInterval(_otpMinuteur);
-    const ok = await _ouvrirSessionDepuisSupabase(data.user);
+    const ok = await _ouvrirSessionDepuisCompte(data.user);
     if (!ok) { _otpAfficher('loginForm'); const l = document.getElementById('loginErr'); if (l && !l.textContent) _otpErreur('loginErr', t('otp_err_code')); }
   } catch (e) { _otpErreur('otpErr', t('otp_err_send')); }
   finally { _otpEnCours = false; if (btn) btn.disabled = false; }
@@ -19429,7 +19171,7 @@ async function doRegister() {
   if(!/^[^@]+@[^@]+\.[^@]+$/.test(email)){errEl.textContent=t('err_invalid_email');errEl.classList.add('show');return;}
   const validation = _validerMotDePasse(pass, passConfirm);
   if (!validation.ok) { errEl.textContent = validation.err; errEl.classList.add('show'); return; }
-  const client = getSentinelSupabase();
+  const client = getClientFirebase();
   if (!client) { errEl.textContent = 'Service d\'authentification indisponible pour le moment.'; errEl.classList.add('show'); return; }
 
   const btn = document.getElementById('registerBtn');
@@ -19474,11 +19216,11 @@ async function doRegister() {
 }
 
 // addUser() : formulaire admin "Octroyer un acces" — cree un compte pour un
-// tiers via un client Supabase EPHEMERE (voir _clientSupabaseEphemere) pour
+// tiers via un client Supabase EPHEMERE (voir _clientFirebaseEphemere) pour
 // ne jamais deconnecter l'admin de sa propre session, avec un mot de passe
 // TEMPORAIRE (genAccessCode) que le nouvel utilisateur devra remplacer par
 // le sien des sa premiere connexion (profil.doitDefinirMdp, voir
-// _ouvrirSessionDepuisSupabase).
+// _ouvrirSessionDepuisCompte).
 async function addUser() {
   const email=document.getElementById('newUserEmail').value.trim().toLowerCase();
   const name =document.getElementById('newUserName').value.trim();
@@ -19487,7 +19229,7 @@ async function addUser() {
   msg.className='admin-msg';
   if(!email||!name){msg.textContent='Email et nom sont requis.';msg.className='admin-msg err';return;}
   if(getUsers().find(u=>u.email===email)){msg.textContent='Cet utilisateur existe deja.';msg.className='admin-msg err';return;}
-  const clientEphemere = _clientSupabaseEphemere();
+  const clientEphemere = _clientFirebaseEphemere();
   if (!clientEphemere) { msg.textContent='Service d\'authentification indisponible pour le moment.'; msg.className='admin-msg err'; return; }
   const motDePasseTemp = genAccessCode();
   const { data, error } = await clientEphemere.auth.signUp({ email, password: motDePasseTemp });
@@ -19498,7 +19240,7 @@ async function addUser() {
   });
   if (errProfil) { msg.textContent='Compte créé mais profil incomplet : '+errProfil.message; msg.className='admin-msg err'; return; }
   if (role && role !== 'user') {
-    const clientPrincipal = getSentinelSupabase();
+    const clientPrincipal = getClientFirebase();
     if (clientPrincipal) {
       const { error: errRole } = await clientPrincipal.from('profiles').update({ role }).eq('id', data.user.id);
       if (errRole) console.warn('SentiqS — application du role a echoue :', errRole.message);
@@ -19509,7 +19251,7 @@ async function addUser() {
   document.getElementById('newUserName').value='';
   const code = motDePasseTemp;
   msg.innerHTML='<b>Acces accorde.</b> Mot de passe temporaire pour '+escHtml(email)+' : <b>'+escHtml(code)+'</b> — A communiquer par e-mail a l\'utilisateur, qui devra le remplacer par son propre mot de passe a sa premiere connexion.';
-  await refreshUsersDepuisSupabase();
+  await refreshUsersDepuisServeur();
   msg.className='admin-msg ok';
   renderUsersTable(); renderPendingTable(); renderAdminStats();
 }
@@ -19607,7 +19349,7 @@ function afficherIntroVideo() {
 // Factorise les trois lignes identiques des deux points de checkAuth() ou
 // un etre humain doit effectivement voir l'ecran de connexion — jamais
 // appelee pour le job de collecte planifiee (checkCollectorSession) ni pour
-// une reconnexion automatique du jour (_ouvrirSessionDepuisSupabase), qui
+// une reconnexion automatique du jour (_ouvrirSessionDepuisCompte), qui
 // retournent toutes deux avant ce point.
 function afficherEcranConnexion() {
   document.getElementById('authOverlay').classList.remove('hidden');
@@ -19641,7 +19383,7 @@ async function checkAuth() {
     try { await window.SentiqFirebase.charger(); } catch (e) { console.warn('SentiqS — kit Firebase non charge :', e && e.message ? e.message : e); }
     if (window.SentiqFirebase.client()) appliquerModeLien();
   }
-  const client = getSentinelSupabase();
+  const client = getClientFirebase();
   if (!client) {
     // Supabase indisponible (SDK non charge, hors ligne au tout premier
     // chargement...) : aucune authentification reelle possible sans le
@@ -19686,7 +19428,7 @@ async function checkAuth() {
     (Date.now() - new Date(session.user.last_sign_in_at || 0).getTime()) < 120000)));
   if (_retourLien) { try { history.replaceState(null, '', location.pathname); } catch (_) {} }
   if (session && session.user && (_retourLien || _sessionLocaleDuJour())) {
-    const ok = await _ouvrirSessionDepuisSupabase(session.user);
+    const ok = await _ouvrirSessionDepuisCompte(session.user);
     if (ok) return;
   } else if (session && session.user) {
     try { await client.auth.signOut(); } catch (_) {}
@@ -19963,7 +19705,7 @@ async function pmAddUser() {
   const role  = document.getElementById('pmNewRole').value;
   if (!email || !name) { pmMsg('Email et nom sont requis.', 'err', 'pmMsg'); return; }
   if (getUsers().find(u => u.email === email)) { pmMsg('Cet utilisateur existe deja.', 'err', 'pmMsg'); return; }
-  const clientEphemere = _clientSupabaseEphemere();
+  const clientEphemere = _clientFirebaseEphemere();
   if (!clientEphemere) { pmMsg('Service d\'authentification indisponible pour le moment.', 'err', 'pmMsg'); return; }
   const motDePasseTemp = genAccessCode();
   const { data, error } = await clientEphemere.auth.signUp({ email, password: motDePasseTemp });
@@ -19974,7 +19716,7 @@ async function pmAddUser() {
   });
   if (errProfil) { pmMsg('Compte créé mais profil incomplet : ' + escHtml(errProfil.message), 'err', 'pmMsg'); return; }
   if (role && role !== 'user') {
-    const clientPrincipal = getSentinelSupabase();
+    const clientPrincipal = getClientFirebase();
     if (clientPrincipal) {
       const { error: errRole } = await clientPrincipal.from('profiles').update({ role }).eq('id', data.user.id);
       if (errRole) console.warn('SentiqS — application du role a echoue :', errRole.message);
@@ -19984,7 +19726,7 @@ async function pmAddUser() {
   document.getElementById('pmNewEmail').value = '';
   document.getElementById('pmNewName').value  = '';
   pmMsg('<b>Accès accordé.</b> Mot de passe temporaire pour ' + escHtml(email) + ' : <b>' + escHtml(motDePasseTemp) + '</b> — à remplacer par l\'utilisateur à sa première connexion.', 'ok', 'pmMsg');
-  await refreshUsersDepuisSupabase();
+  await refreshUsersDepuisServeur();
   pmRenderUsers(); pmRenderPending(); renderClientele();
 }
 
@@ -20052,7 +19794,7 @@ async function pmChangerMotDePassePersonnel() {
   const confirm = document.getElementById('pmNewPassSelfConfirm').value;
   const validation = _validerMotDePasse(pass, confirm);
   if (!validation.ok) { pmMsg(validation.err, 'err', 'pmChangePassMsg'); return; }
-  const client = getSentinelSupabase();
+  const client = getClientFirebase();
   if (!client) { pmMsg('Service d\'authentification indisponible pour le moment.', 'err', 'pmChangePassMsg'); return; }
   const { error } = await client.auth.updateUser({ password: pass });
   if (error) { pmMsg(error.message, 'err', 'pmChangePassMsg'); return; }
@@ -20735,10 +20477,10 @@ function loadParamsModule() {
   renderFeatureRights();
   if (typeof renderMasquageSources === 'function') renderMasquageSources();
   // Recharge le cache depuis `profiles` (table partagee, voir
-  // refreshUsersDepuisSupabase) avant de peindre les tableaux — un admin
+  // refreshUsersDepuisServeur) avant de peindre les tableaux — un admin
   // doit toujours voir les comptes crees depuis N'IMPORTE QUEL appareil,
   // pas seulement le cache local de CE navigateur.
-  refreshUsersDepuisSupabase().then(() => { pmRenderUsers(); renderClientele(); });
+  refreshUsersDepuisServeur().then(() => { pmRenderUsers(); renderClientele(); });
   pmRenderUsers();
   pmRenderPending();
   if (typeof renderDiagnosticProxyPays === 'function') renderDiagnosticProxyPays();
@@ -20754,7 +20496,7 @@ function loadParamsModule() {
   renderDLStats();
   renderReclamationsAdmin();
   renderTraffic();
-  if (typeof renderConnexionsSupabase === 'function') renderConnexionsSupabase();
+  if (typeof renderConnexionsServeur === 'function') renderConnexionsServeur();
 }
 
 // adapterHeroParams(isAdmin) : le bandeau d'en-tete du module Parametres
@@ -20860,13 +20602,13 @@ async function renderMesConnexions() {
     '</div>';
 }
 
-// ── Connexions récentes (tous appareils, via Supabase) ────────────────────
+// ── Connexions récentes (tous appareils, via Firebase) ────────────────────
 // Contrairement a "Suivi du trafic" ci-dessus (local a cet appareil), ce
 // panneau interroge connexions_log (partagee avec l'app mobile) pour montrer
 // les VRAIES connexions de tous les utilisateurs, quel que soit l'appareil
-// utilise. Retombe sur un message explicite si SENTINEL_SUPABASE_URL/
-// SENTINEL_SUPABASE_ANON_KEY ne sont pas renseignes (voir plus haut).
-async function renderConnexionsSupabase() {
+// utilise. Retombe sur un message explicite si le journal est illisible.
+//
+async function renderConnexionsServeur() {
   const body = document.getElementById('connexionsBody');
   const sub  = document.getElementById('connexionsSub');
   if (!body) return;
@@ -20874,11 +20616,9 @@ async function renderConnexionsSupabase() {
   const rows = await fetchConnexionsRecentes(50);
   if (rows === null) {
     body.innerHTML = '<div style="padding:8px 0;line-height:1.5;">'
-      + 'Non configuré — renseignez <code>SENTINEL_SUPABASE_URL</code> et '
-      + '<code>SENTINEL_SUPABASE_ANON_KEY</code> (même projet Supabase que '
-      + 'l\'app mobile) en tête du script pour activer cette vue partagée '
-      + 'entre tous les appareils. En attendant, seul le trafic local à cet '
-      + 'appareil (ci-dessus) est disponible.</div>';
+      + 'Journal des connexions illisible (Firebase non configuré ou '
+      + 'connexion requise). Seul le trafic local à cet appareil (ci-dessus) '
+      + 'est disponible.</div>';
     if (sub) sub.textContent = 'Non configuré';
     return;
   }
@@ -21067,7 +20807,7 @@ function fusionnerMoyensPaiement(stockes) {
   });
 }
 function _clientPaiement() {
-  return (typeof _fournisseurFirebase === 'function' && _fournisseurFirebase()) ? getSentinelSupabase() : null;
+  return (typeof _fournisseurFirebase === 'function' && _fournisseurFirebase()) ? getClientFirebase() : null;
 }
 async function chargerMoyensPaiement() {
   const c = _clientPaiement();
@@ -21137,7 +20877,7 @@ function _clienteleStatutHTML(dernierTs, source) {
   const quand = new Date(dernierTs).toLocaleString('fr-FR', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
   return enLigne
     ? '<span class="stag" style="background:rgba(15,79,42,.12);color:#0F4F2A;font-weight:700"><i class="ti ti-circle-filled" style="font-size:7px;color:#4ade80;vertical-align:1px"></i> En ligne</span>'
-    : '<span class="stag" title="'+(source==='supabase'?'Toutes plateformes':'Cet appareil')+'" style="color:var(--lg)">Vu le '+quand+'</span>';
+    : '<span class="stag" title="'+(source==='serveur'?'Toutes plateformes':'Cet appareil')+'" style="color:var(--lg)">Vu le '+quand+'</span>';
 }
 async function renderClientele() {
   const body = document.getElementById('clienteleBody');
@@ -21963,7 +21703,7 @@ async function _trancherPaiement(id, statut) {
   if (statut === 'confirme') {
     // Le compte doit exister AVANT de marquer la déclaration confirmée :
     // sinon elle sortirait de la file sans qu'aucun forfait ne soit activé.
-    await refreshUsersDepuisSupabase();
+    await refreshUsersDepuisServeur();
     if (!getUsers().some(u => u.email === p.email)) {
       pmMsg('Aucun compte pour ' + escHtml(p.email) + ' : rien n\'a été confirmé.', 'err', 'paiementsMsg');
       return false;
@@ -24774,7 +24514,7 @@ function cotationActu(a, src) {
   return cotationArticle(a, src === undefined ? gs(a.primary) : src, SEUIL_SOURCE_ALERTE, validationDe(a));
 }
 function _clientValidation() {
-  return (typeof _fournisseurFirebase === 'function' && _fournisseurFirebase()) ? getSentinelSupabase() : null;
+  return (typeof _fournisseurFirebase === 'function' && _fournisseurFirebase()) ? getClientFirebase() : null;
 }
 async function chargerValidations() {
   const c = _clientValidation();

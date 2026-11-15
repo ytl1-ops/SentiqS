@@ -13,7 +13,7 @@ const liste = inventaire();
 
 test('les scripts tiers sont bien inventoriés (le test ne regarde pas une liste vide)', () => {
   const urls = liste.map((x) => x.url).join('\n');
-  for (const attendu of ['supabase-js', 'emailjs', 'docx@', 'pdf-lib@', 'pptxgenjs@', 'xlsx-', 'firebase-auth-compat.js']) {
+  for (const attendu of ['emailjs', 'docx@', 'pdf-lib@', 'pptxgenjs@', 'xlsx-', 'firebase-auth-compat.js']) {
     assert.ok(urls.includes(attendu), 'absent de l\'inventaire : ' + attendu);
   }
 });

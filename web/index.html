@@ -20,11 +20,9 @@ aucune pub).
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icone-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <!-- Content-Security-Policy — voir SentiqS_Web.html pour le detail
-     du raisonnement. script-src/connect-src etendus a cdn.jsdelivr.net/
-     *.supabase.co : le formulaire d'inscription public utilise desormais
-     Supabase Auth (authentification reelle, voir submitSignup()) au lieu
-     d'un code d'acces local genere cote client. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://apis.google.com; frame-src https://*.firebaseapp.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self' https://*.supabase.co https://*.googleapis.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self';">
+     du raisonnement. Le formulaire d'inscription passe par Firebase Auth
+     (voir submitSignup()) ; Supabase est retire depuis le 15/11/2026. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://apis.google.com; frame-src https://*.firebaseapp.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self' https://*.googleapis.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self';">
 <!-- SEO:debut — bloc écrit par scripts/generer-seo.js, ne pas modifier à la main -->
 <script src="js/domaine-canonique.js"></script>
 <script>window.SENTIQ_LANGUE_PAGE='fr';</script>
@@ -989,9 +987,6 @@ section p a{padding:5px 0}
   </div>
 </div>
 
-<!-- Supabase JS : authentification reelle (voir submitSignup()) — meme
-     projet que l'application (SentiqS_Web.html). -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js" integrity="sha384-uteMfOloLDGt042uDz+xHGF3ym63/WQ6rFq7murQRG8Ih7QrXGEGNtWd8688sb4O" crossorigin="anonymous" defer></script>
 <!-- Firebase des que js/firebase-config.js est rempli (voir FIREBASE.md). -->
 <script src="js/firebase-config.js"></script>
 <script src="js/firebase.js"></script>
@@ -1125,22 +1120,16 @@ function closeSignup() {
 }
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSignup(); });
 
-// ── Account creation — authentification REELLE via Supabase Auth (meme
-// projet que l'application, voir SentiqS_Web.html), pour qu'un
-// compte cree ici se connecte directement dans SentiqS_Web.html —
-// aucun compte local, aucun code genere cote client. Kept intentionally
-// separate from the app's existing "Demander un accès" flow (which still
-// requires admin validation for users who prefer/need manual review).
-const SENTINEL_SUPABASE_URL      = 'https://zpdwqmliogxbuwirziny.supabase.co';
-const SENTINEL_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwZHdxbWxpb2d4YnV3aXJ6aW55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4NzUyOTYsImV4cCI6MjA5OTQ1MTI5Nn0.fQsTrrV5CIB77l0hxTHHN7oVICVzZdhwa9-d0WsCYI0';
-let _sentinelSupabaseClient = null;
+// ── Creation de compte — Firebase Auth, meme projet que l'application
+// (SentiqS_Web.html) : un compte cree ici se connecte directement dans
+// l'application. Supabase est retire depuis le 15/11/2026.
 // Firebase (plan gratuit, sans SMTP) des que js/firebase-config.js est
 // rempli : meme adaptateur que l'application. Le lien envoye ici ouvre
 // SentiqS_Web.html, qui conclut la connexion et cree le profil.
 function _fournisseurFirebase() { return !!(window.SentiqFirebase && window.SentiqFirebase.actif()); }
 async function _clientInscription() {
   if (_fournisseurFirebase()) { try { await window.SentiqFirebase.charger(); } catch (_) {} return window.SentiqFirebase.client(); }
-  return getSentinelSupabase();
+  return null;
 }
 // Avec Firebase l'e-mail porte un lien : textes et saisie du code s'adaptent,
 // et la connexion Google (sans quota d'e-mail) est proposee.
@@ -1183,13 +1172,8 @@ async function _suCreerProfilSiAbsent(client, id, email, profil) {
     }
   } catch (_) {}
 }
-function getSentinelSupabase() {
-  if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') return null;
-  if (!_sentinelSupabaseClient) {
-    try { _sentinelSupabaseClient = window.supabase.createClient(SENTINEL_SUPABASE_URL, SENTINEL_SUPABASE_ANON_KEY); }
-    catch (_) { return null; }
-  }
-  return _sentinelSupabaseClient;
+function getClientFirebase() {
+  return _fournisseurFirebase() ? window.SentiqFirebase.client() : null;
 }
 const OTP_RENVOI_MS = 60000;
 let _suEmail = '', _suProfil = {}, _suProchainEnvoi = 0, _suMinuteur = null, _suVerifEnCours = false;
@@ -1258,7 +1242,7 @@ async function verifierCodeInscription() {
   _suErr('suCodeErr', '');
   const code = document.getElementById('suCode').value.replace(/[\s-]/g, '');
   if (!/^\d{6,10}$/.test(code)) { _suErr('suCodeErr', 'Code incorrect ou expiré. Vérifiez-le ou demandez-en un nouveau.'); return; }
-  const client = getSentinelSupabase();
+  const client = getClientFirebase();
   if (!client) { _suErr('suCodeErr', "Service d'inscription indisponible pour le moment. Réessayez dans un instant."); return; }
   _suVerifEnCours = true;
   const btn = document.getElementById('suVerifyBtn'); if (btn) btn.disabled = true;

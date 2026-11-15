@@ -9,7 +9,7 @@
 // sortie, comparables d'un commit a l'autre.
 //
 // Usage :
-//   node scripts/banc-tri.js [cache.json]     (par defaut : lit Supabase)
+//   node scripts/banc-tri.js cache.json      (cache exporte de Firestore)
 //   node scripts/banc-tri.js --diff avant.json  compare a une sortie precedente
 //
 // Le cache est la ligne « global » de collecte_partagee : { articles: [...] }
@@ -39,13 +39,9 @@ function chargerArticles(arg) {
   throw new Error('format de cache inconnu');
 }
 
-async function lireSupabase() {
-  const url = (HTML.match(/SENTINEL_SUPABASE_URL\s*=\s*'([^']+)'/) || [])[1];
-  const key = (HTML.match(/SENTINEL_SUPABASE_ANON_KEY\s*=\s*'([^']+)'/) || [])[1];
-  const r = await fetch(url + '/rest/v1/collecte_partagee?select=articles&id=eq.global',
-    { headers: { apikey: key, Authorization: 'Bearer ' + key } });
-  if (!r.ok) throw new Error('Supabase HTTP ' + r.status);
-  return (await r.json())[0].articles;
+async function lireCacheParDefaut() {
+  // Supabase est retire depuis le 15/11/2026 : le banc lit un cache exporte.
+  throw new Error('passer un fichier de cache (le cache partage vit sur Firestore)');
 }
 
 function texteDe(a) {
@@ -76,7 +72,7 @@ function rejouer(arts) {
   const iDiff = args.indexOf('--diff');
   const refPath = iDiff !== -1 ? args[iDiff + 1] : null;
   const fichier = args.find((a, i) => !a.startsWith('--') && (iDiff === -1 || i !== iDiff + 1));
-  const arts = fichier ? chargerArticles(fichier) : await lireSupabase();
+  const arts = fichier ? chargerArticles(fichier) : await lireCacheParDefaut();
   const { compte, lignes } = rejouer(arts);
 
   console.log('Articles : ' + arts.length + '  —  crit ' + compte.crit + ' · high ' + compte.high + ' · mod ' + compte.mod + ' · ok ' + compte.ok);

@@ -2064,7 +2064,7 @@ collecte planifiée ouvre cette page avec `#collecteur-<TOKEN>` ;
 `checkCollectorSession()` l'intercepte et masque `#authOverlay` en entier
 avant qu'aucune autre logique ne s'exécute — la vidéo, posée à l'intérieur
 de ce même conteneur, est donc masquée avec lui et ne se lance jamais. Une
-reconnexion automatique du jour (`_ouvrirSessionDepuisSupabase`) suit le
+reconnexion automatique du jour (`_ouvrirSessionDepuisCompte`) suit le
 même chemin de retour anticipé. Mesuré avec le jeton collecteur réel :
 `authOverlay` et la vidéo masqués, lecture jamais démarrée
 (`introVideoEl.paused === true`), aucune erreur JS.
@@ -2912,7 +2912,7 @@ Demande de l'éditeur : s'enregistrer et se connecter avec le seul e-mail, « co
 
 - **Écran de connexion de l'appli** : l'e-mail et « Recevoir mon code par e-mail » sont l'action principale ; « Utiliser un mot de passe » (lien) révèle l'ancien champ, `doLogin` et « Mot de passe oublié » sont inchangés, « Créer un compte avec mot de passe » aussi. L'écran du code (`#otpForm`) accepte un code collé (espaces et tirets ignorés, 6 à 10 chiffres), valide tout seul à six chiffres, limite le renvoi à une fois par minute (compte à rebours) et dit en clair la limite de débit du serveur. La zone prioritaire est repliée sous « Options » (la carte tenait sur deux écrans).
 - **Fenêtre « Essai gratuit » de l'accueil** : plus de mot de passe ni de confirmation ; l'e-mail et la case d'usage professionnel suffisent, nom/organisation/zone sont facultatifs (repliés). Après le code, le profil (plan gratuit, forfait souhaité) n'est écrit **que s'il n'existe pas** — un compte existant qui revient par là ne voit jamais son plan ou sa date d'essai réécrits — puis redirection vers l'appli (`#connexion-fraiche`).
-- **Premier passage** : `_ouvrirSessionDepuisSupabase` crée désormais le profil avec `plan:'gratuit'` et `createdAt`. Sans date, l'essai de 72 h ne s'éteignait jamais (`compteGratuitExpire` retourne faux sans `createdAt`). Rôle et statut restent décidés par le trigger serveur.
+- **Premier passage** : `_ouvrirSessionDepuisCompte` crée désormais le profil avec `plan:'gratuit'` et `createdAt`. Sans date, l'essai de 72 h ne s'éteignait jamais (`compteGratuitExpire` retourne faux sans `createdAt`). Rôle et statut restent décidés par le trigger serveur.
 - **Reconnexion quotidienne préservée** : `checkAuth` déconnecte toute session Supabase sans trace locale du jour. Un retour de lien e-mail ou l'arrivée depuis l'accueil n'en ont pas ; ils comptent comme une connexion du jour **seulement si** une session réelle existe ET que `last_sign_in_at`, lu sur la réponse du serveur, date de moins de deux minutes. Ajouter `#access_token=` ou `#connexion-fraiche` à la main ne contourne donc rien.
 
 **Réglages que seul le propriétaire peut faire dans Supabase** (non vérifiables depuis ce bac à sable, sans réseau) : Authentication → Email Templates → **Magic Link** ET **Confirm signup** doivent contenir `{{ .Token }}` (sinon l'utilisateur reçoit un lien et pas de code ; le lien marche aussi, mais la page de saisie du code ne sert à rien) ; Authentication → URL Configuration → la page de l'appli (`https://ytl1-ops.github.io/SentiqS/SentiqS_Web.html`) dans les URL de redirection autorisées ; le fournisseur Email actif avec « Allow new users to sign up ». L'envoi par défaut de Supabase est plafonné (quelques e-mails par heure pour tout le projet) : pour du trafic réel, brancher un SMTP (Authentication → SMTP Settings). Longueur du code : 6 par défaut, le client en accepte jusqu'à 10.
@@ -2972,14 +2972,14 @@ et réglages de la console dans `FIREBASE.md`.
 
 - `web/js/firebase.js` imite la **petite** partie de supabase-js que la page
   utilise (`auth.*`, `from(table)`), servie par Firebase Auth et Firestore.
-  `getSentinelSupabase()` la renvoie dès que `web/js/firebase-config.js` est
+  `getClientFirebase()` la renvoie dès que `web/js/firebase-config.js` est
   rempli ; `null` ramène tout sur Supabase. Le kit Firebase (~500 Ko) n'est
   chargé que dans ce cas.
 - **Seules l'identité, les profils et le journal des connexions basculent.**
   Le cache d'actus, l'agenda, la configuration et le corpus passent par
   `getClientDonnees()`, toujours Supabase : un cache illisible ferait
   relancer à chaque visiteur sa collecte complète. Ne pas les rebrancher sur
-  `getSentinelSupabase()` avant leur propre étape.
+  `getClientFirebase()` avant leur propre étape.
 - **Pas de code à six chiffres** : Firebase envoie un lien. `verifyOtp()`
   répond `lien_seulement`. Le gratuit n'envoie que **5 liens par jour** pour
   tout le projet : la connexion Google (sans quota) et le mot de passe restent
