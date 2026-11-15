@@ -149,6 +149,7 @@ try { if (SentiqLangue.lireChoix() === 'en') { document.documentElement.setAttri
   --g:#0F4F2A;--gl:#F0FDF4;--gb:#BBF7D0;--m:#78350F;--j:#CA8A04;--j-txt:#854D0E;
   --gr:#4A4F57;--lg:#5B616A;--bd:#E1E1DC;
   --sf:#F7F7F5;--w:#FFFFFF;--t:#0E1116;--t2:#3A3F47;
+  --voile:rgba(10,18,32,.55);--fenetre-ombre:0 24px 64px rgba(10,18,32,.28);
   --sig:#A97425;--sigl:#FBF3E7;--sigb:#E9CDA0;
   /* Nouvelles variables de design */
   --nav-bg:#0B0E12;--nav-border:#232932;--nav-active:#A97425;
@@ -231,6 +232,7 @@ html[data-theme="dark"]{
   --gl:rgba(15,79,42,.24);--gb:rgba(74,222,128,.4);--g:#4ADE80;--m:#D9A85C;--j:#FDE047;--j-txt:#FDE047;
   --gr:#AFBDD6;--lg:#9FB0CC;--bd:#1E3A6E;
   --sf:#0B1C3F;--w:#0F2450;--t:#EEF3FB;--t2:#C5D1E6;
+  --voile:rgba(3,9,24,.74);--fenetre-ombre:0 24px 64px rgba(0,0,0,.5);
   --ink:#050E24;--ink-2:#0A1838;--ink-line:#1C3466;--ink-txt:#EEF3FB;--ink-mute:#A9B8D2;
   --nav-bg:#050E24;--nav-border:#1C3466;--nav-active:#E6BA6E;
   --sigl:rgba(230,186,110,.16);--sigb:rgba(230,186,110,.42);--sig:#E6BA6E;
@@ -3200,6 +3202,56 @@ html.force-mobile .acces-rapide-btn{display:none}
 }
 html.force-mobile .assistant-btn{display:none}
 html.force-mobile .as-boite{margin:0;width:100%;height:100%;border-radius:0;border:0}
+/* ═══ FENÊTRES ET NOTIFICATIONS — 15/11/2026 (voir CLAUDE.md) ═══
+   Capture de YORO sur téléphone : le popup d'une actu fraîche laissait lire
+   la page au travers (fond --gl translucide en sombre). Un seul style pour
+   toutes les surfaces qui passent au-dessus de la page, sur le modèle des
+   grandes applis (Material, Apple, Google News) :
+   - notification : carte OPAQUE, sans voile (elle n'interrompt pas), pleine
+     largeur sous la barre du haut sur téléphone, croix de 44 px ;
+   - fenêtre : voile sombre qui masque la page, panneau opaque, croix de
+     44 px, défilement interne, page derrière immobile, Échap ; sur
+     téléphone, feuille qui monte du bas (encoche et barre système comprises). */
+#toastContainer{z-index:150000 !important}
+#toastContainer>*{background:var(--w) !important;color:var(--t);border-top:1px solid var(--bd);border-right:1px solid var(--bd);border-bottom:1px solid var(--bd);
+  border-radius:12px !important;box-shadow:var(--fenetre-ombre) !important}
+.notif-fermer,.fenetre-fermer{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;min-width:44px;min-height:44px;margin:-10px -10px -10px auto;
+  padding:0;border:0;border-radius:50%;background:transparent;color:var(--t2);font:inherit;font-size:18px;line-height:1;cursor:pointer}
+.notif-fermer:hover,.fenetre-fermer:hover,.admin-close:hover,.val-fermer:hover,.as-fermer:hover{background:var(--bl);color:var(--t)}
+.notif-fermer:focus-visible,.fenetre-fermer:focus-visible,.admin-close:focus-visible,.val-fermer:focus-visible,.as-fermer:focus-visible{outline:2px solid var(--b);outline-offset:1px}
+.admin-close,.val-fermer,.as-fermer{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;border-radius:50%;font-size:18px}
+.admin-panel,.val-dlg,#kpiDrillOverlay,#diagOverlay{background:var(--voile) !important;backdrop-filter:blur(3px) !important;-webkit-backdrop-filter:blur(3px) !important;overscroll-behavior:contain}
+.ar-voile,.as-voile{background:var(--voile)}
+.admin-panel{z-index:100000 !important}
+.val-dlg{z-index:100000 !important}
+.admin-box,.val-boite,#kpiDrillOverlay>div,#diagOverlay>div,.ar-boite,.as-boite{background:var(--w) !important;color:var(--t);border:1px solid var(--bd) !important;
+  border-radius:12px;box-shadow:var(--fenetre-ombre) !important;overscroll-behavior:contain}
+.admin-box,.val-boite{max-height:calc(100dvh - 40px);overflow-y:auto}
+html.fenetre-ouverte,html.fenetre-ouverte body{overflow:hidden !important}
+/* Le focus posé sur le panneau à l'ouverture (lecteurs d'écran) n'a pas à se voir. */
+.admin-box[tabindex="-1"]:focus,.val-boite[tabindex="-1"]:focus,#kpiDrillOverlay>div[tabindex="-1"]:focus,#diagOverlay>div[tabindex="-1"]:focus{outline:none}
+.tb-more-panel{z-index:600;background:var(--w) !important;box-shadow:var(--fenetre-ombre) !important}
+.tb-more-panel .actu-btn span{display:inline !important}
+.tb-more-panel .actu-btn{min-height:44px}
+@keyframes fenetreMonte{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes fenetreParait{from{transform:scale(.97);opacity:0}to{transform:none;opacity:1}}
+.admin-panel:not(.hidden)>.admin-box,.val-boite,#kpiDrillOverlay>div,#diagOverlay>div{animation:fenetreParait .18s ease-out}
+@media (prefers-reduced-motion:reduce){.admin-box,.val-boite,#kpiDrillOverlay>div,#diagOverlay>div{animation:none !important}}
+@media (max-width:760px){
+  html:not(.force-web) #toastContainer{top:calc(56px + env(safe-area-inset-top,0px)) !important;left:8px !important;right:8px !important;max-width:none !important}
+  html:not(.force-web) .admin-panel,html:not(.force-web) .val-dlg,html:not(.force-web) #kpiDrillOverlay,html:not(.force-web) #diagOverlay{align-items:flex-end !important;padding:0 !important;padding-top:24px !important}
+  html:not(.force-web) .admin-box,html:not(.force-web) .val-boite,html:not(.force-web) #kpiDrillOverlay>div,html:not(.force-web) #diagOverlay>div{margin:0 !important;width:100% !important;max-width:none !important;max-height:92dvh !important;overflow-y:auto;
+    border-radius:16px 16px 0 0 !important;border-bottom:0 !important;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px)) !important;animation:fenetreMonte .22s ease-out}
+  html:not(.force-web) .admin-box{padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px)) !important}
+  html:not(.force-web) .tb-more-panel{position:fixed;top:calc(56px + env(safe-area-inset-top,0px));right:8px;max-height:calc(100dvh - 72px);overflow-y:auto}
+}
+html.force-mobile #toastContainer{top:calc(56px + env(safe-area-inset-top,0px)) !important;left:8px !important;right:8px !important;max-width:none !important}
+html.force-mobile .admin-panel,html.force-mobile .val-dlg,html.force-mobile #kpiDrillOverlay,html.force-mobile #diagOverlay{align-items:flex-end !important;padding:0 !important;padding-top:24px !important}
+html.force-mobile .admin-box,html.force-mobile .val-boite,html.force-mobile #kpiDrillOverlay>div,html.force-mobile #diagOverlay>div{margin:0 !important;width:100% !important;max-width:none !important;max-height:92dvh !important;overflow-y:auto;
+    border-radius:16px 16px 0 0 !important;border-bottom:0 !important;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px)) !important;animation:fenetreMonte .22s ease-out}
+html.force-mobile .admin-box{padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px)) !important}
+html.force-mobile .tb-more-panel{position:fixed;top:calc(56px + env(safe-area-inset-top,0px));right:8px;max-height:calc(100dvh - 72px);overflow-y:auto}
+
 /* ═══ MOBILE : LE CONTENU D'ABORD — 22/10/2026 (voir CLAUDE.md) ═══
    Capture de YORO sur téléphone (texte agrandi par le navigateur) : barre du
    haut, bandeau « Cliquez sur Actualiser », collecte, flash info, filtre pays,
@@ -3300,7 +3352,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
 <h1 class="sr-only">SentiqS — veille de sûreté sur les 54 pays d'Afrique</h1>
 
 <!-- ═══ CONTENEUR NOTIFICATIONS POPUP — flottant sur toute l'application ═══ -->
-<div id="toastContainer" style="position:fixed;top:58px;right:14px;z-index:9999;
+<div id="toastContainer" role="status" aria-live="polite" style="position:fixed;top:58px;right:14px;z-index:9999;
   display:flex;flex-direction:column;gap:10px;max-width:400px;pointer-events:none;"></div>
 
 <!-- Badge analyse IA en cours -->
@@ -13855,7 +13907,10 @@ async function renderToast(a) {
 
   const el = document.createElement('div');
   el.id = id;
-  el.style.cssText = 'pointer-events:auto;background:'+m.bg+';border-left:5px solid '+m.col+
+  el.className = 'notif';
+  // Fond OPAQUE (15/11/2026) : m.bg vaut une teinte translucide en sombre
+  // (--gl = rgba(15,79,42,.24)) ; la page se lisait au travers du popup.
+  el.style.cssText = 'pointer-events:auto;background:var(--w);border-left:5px solid '+m.col+
     ';border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.24);padding:13px 15px;cursor:pointer;'+
     'transform:translateX(400px) scale(.96);opacity:0;transition:transform .35s cubic-bezier(.2,.8,.3,1),opacity .35s ease;';
   el.onclick = () => { switchView('flux', document.querySelector('.ntab')); showDet(a.id); dismissToast(id); };
@@ -13867,7 +13922,7 @@ async function renderToast(a) {
         '<i class="ti '+m.icon+'" style="font-size:10px;vertical-align:-1px"></i> '+m.label+
       '</span>'+
       '<span style="font-size:10.5px;color:var(--t2);font-weight:600;">'+cc.flag+' '+cc.name+'</span>'+
-      '<span style="margin-left:auto;font-size:15px;color:var(--lg);cursor:pointer;padding:2px 4px;" onclick="event.stopPropagation();dismissToastManual(\''+id+'\')" role="button" tabindex="0">✕</span>'+
+      '<button type="button" class="notif-fermer" aria-label="'+(LANG==='en'?'Close':'Fermer')+'" onclick="event.stopPropagation();dismissToastManual(\''+id+'\')"><span aria-hidden="true">✕</span></button>'+
     '</div>'+
     '<div style="display:flex;gap:10px;">'+
       vignette+
@@ -13875,7 +13930,7 @@ async function renderToast(a) {
         '<div style="font-size:13.5px;font-weight:800;color:var(--t);line-height:1.32;margin-bottom:5px;" id="'+id+'-tt">'+escHtml(L(a.title))+'</div>'+
         '<div style="font-size:9.5px;color:var(--lg);display:flex;align-items:center;gap:4px;flex-wrap:wrap;">'+
           (ps && sourcesVisibles() ? '<span style="font-weight:700;color:'+ps.col+';">'+ps.n+'</span><span>·</span>' : '')+
-          '<i class="ti ti-clock" style="font-size:10px"></i> Vient d etre publie · '+(fmtAge(a.pubDate)||'a l instant')+
+          '<i class="ti ti-clock" style="font-size:10px"></i> '+(LANG==='en'?'Just published':'Vient d\'être publié')+' · '+(fmtAge(a.pubDate)||(LANG==='en'?'just now':'à l\'instant'))+
         '</div>'+
       '</div>'+
     '</div>';
@@ -13914,6 +13969,83 @@ function dismissToastManual(id) {
   try { localStorage.setItem('sentinel_toast_suppress_until', Date.now() + 30*60*1000); } catch(_) {}
   dismissToast(id);
 }
+
+// ── FENÊTRES : un seul comportement pour toutes — 15/11/2026 ─────────────────
+// Voir CLAUDE.md, « Fenêtres et notifications ». L'assistant et l'accès rapide
+// gèrent déjà Échap et le focus eux-mêmes : ils ne comptent ici que pour
+// immobiliser la page derrière.
+const FENETRES_GEREES = '.admin-panel:not(.hidden), #valDlg, #kpiDrillOverlay, #diagOverlay';
+const FENETRES_TOUTES = FENETRES_GEREES + ', .acces-rapide.on, .assistant.on';
+// Une fenêtre qui ne porte que de la lecture se ferme d'un clic sur le voile ;
+// une fenêtre avec saisie (administration, paiement, validation) non : un clic
+// à côté ne doit pas faire perdre ce qui a été tapé.
+const FENETRES_LECTURE = new Set(['publicPanel', 'diagOverlay', 'kpiDrillOverlay']);
+function _fenetreVisible(el) { return !!el && el.isConnected && getComputedStyle(el).display !== 'none'; }
+function fenetresOuvertes(sel) {
+  return [...document.querySelectorAll(sel || FENETRES_GEREES)].filter(_fenetreVisible);
+}
+function fermerFenetre(el) {
+  if (!el) return false;
+  const x = el.querySelector('.admin-close, .val-fermer, .fenetre-fermer');
+  if (x) { x.click(); return true; }
+  if (el.id === 'valDlg' && typeof fermerValidation === 'function') { fermerValidation(); return true; }
+  el.remove(); return true;
+}
+let _fenetreRetour = null, _fenetreActive = null;
+function majFenetres() {
+  const toutes = fenetresOuvertes(FENETRES_TOUTES);
+  document.documentElement.classList.toggle('fenetre-ouverte', toutes.length > 0);
+  const gerees = fenetresOuvertes();
+  const haut = gerees[gerees.length - 1] || null;
+  if (haut && haut !== _fenetreActive) {
+    if (!_fenetreActive) _fenetreRetour = document.activeElement;
+    const boite = haut.firstElementChild || haut;
+    if (!boite.hasAttribute('role')) boite.setAttribute('role', 'dialog');
+    boite.setAttribute('aria-modal', 'true');
+    if (!boite.hasAttribute('tabindex')) boite.setAttribute('tabindex', '-1');
+    if (!haut.contains(document.activeElement)) { try { boite.focus({ preventScroll: true }); } catch (_) {} }
+  } else if (!haut && _fenetreActive) {
+    const r = _fenetreRetour; _fenetreRetour = null;
+    if (r && r.isConnected && r.focus) { try { r.focus({ preventScroll: true }); } catch (_) {} }
+  }
+  _fenetreActive = haut;
+}
+let _fenetresPlanifie = false;
+function planifierMajFenetres() {
+  if (_fenetresPlanifie) return;
+  _fenetresPlanifie = true;
+  requestAnimationFrame(() => { _fenetresPlanifie = false; majFenetres(); });
+}
+new MutationObserver(planifierMajFenetres).observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'style'] });
+document.addEventListener('click', ev => {
+  const t = ev.target;
+  if (t && t.matches && t.matches(FENETRES_GEREES) && FENETRES_LECTURE.has(t.id)) fermerFenetre(t);
+});
+document.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape') {
+    if (fenetresOuvertes('.acces-rapide.on, .assistant.on').length) return; // elles ferment elles-mêmes
+    const g = fenetresOuvertes();
+    if (g.length) { ev.preventDefault(); fermerFenetre(g[g.length - 1]); return; }
+    const plus = document.getElementById('tbMore');
+    if (plus && plus.open) { plus.open = false; const s = plus.querySelector('summary'); if (s) s.focus(); return; }
+    const n = [...document.querySelectorAll('#toastContainer > *')].pop();
+    if (n) { if (/^toast_/.test(n.id) && typeof dismissToast === 'function') dismissToast(n.id); else n.remove(); }
+  } else if (ev.key === 'Tab') {
+    const g = fenetresOuvertes(); const haut = g[g.length - 1];
+    if (!haut) return;
+    // Le focus reste dans la fenêtre du dessus.
+    const f = [...haut.querySelectorAll('button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])')].filter(x => !x.disabled && x.offsetParent);
+    if (!f.length) { ev.preventDefault(); return; }
+    const i = f.indexOf(document.activeElement);
+    if (ev.shiftKey && i <= 0) { ev.preventDefault(); f[f.length - 1].focus(); }
+    else if (!ev.shiftKey && (i === f.length - 1 || i < 0)) { ev.preventDefault(); f[0].focus(); }
+  }
+});
+// Le menu « Plus » se referme d'un toucher ailleurs, comme tout menu.
+document.addEventListener('click', ev => {
+  const plus = document.getElementById('tbMore');
+  if (plus && plus.open && !plus.contains(ev.target)) plus.open = false;
+});
 
 // ── RUBAN FLASH INFO ─────────────────────────────────────────────────────
 // Bandeau en mouvement (defilement continu) des titres qui font la une en
@@ -15110,7 +15242,7 @@ async function showKpiDrill(kind) {
     <div style="background:var(--w);color:var(--t);border-bottom:1px solid var(--bd);padding:14px 18px;border-radius:12px 12px 0 0;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:2;">
       <i class="ti ${icon}" style="font-size:20px;color:var(--b);"></i>
       <div style="flex:1;font-size:14px;font-weight:800;">${title}</div>
-      <span onclick="closeKpiDrill()" style="cursor:pointer;font-size:20px;line-height:1;color:var(--lg);" role="button" tabindex="0">&times;</span>
+      <button type="button" class="fenetre-fermer" onclick="closeKpiDrill()" aria-label="Fermer"><span aria-hidden="true">&times;</span></button>
     </div>
     <div style="padding:8px 18px 16px;">${rows}</div>
   </div>`;
@@ -17260,7 +17392,7 @@ async function runDiagnostic() {
   overlay.innerHTML = '<div style="background:var(--w);border-radius:12px;max-width:520px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.4);">'
     + '<div style="background:var(--w);color:var(--t);border-bottom:1px solid var(--bd);padding:14px 18px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between;">'
     + '<span style="font-size:14px;font-weight:700;"><i class="ti ti-stethoscope" style="color:var(--b)"></i> Diagnostic des services de collecte</span>'
-    + '<span onclick="document.getElementById(\'diagOverlay\').remove()" style="cursor:pointer;font-size:20px;line-height:1;color:var(--lg);" role="button" tabindex="0">&times;</span></div>'
+    + '<button type="button" class="fenetre-fermer" onclick="document.getElementById(\'diagOverlay\').remove()" aria-label="Fermer"><span aria-hidden="true">&times;</span></button></div>'
     + '<div id="diagBody" style="padding:16px 18px;"><div id="diagHealthPanel"></div><div style="font-size:12px;color:#4A5568;margin-bottom:12px;">Test en cours sur un flux reel (France 24 Afrique)...</div><div id="diagRows"></div></div></div>';
   document.body.appendChild(overlay);
   document.getElementById('diagHealthPanel').innerHTML = healthSummary;
@@ -23732,6 +23864,7 @@ function pushAlerteChangementToast(c, aggrave) {
   const id = 'toast_niv_' + c.cy + '_' + Date.now();
   const el = document.createElement('div');
   el.id = id;
+  el.className = 'notif';
   el.style.cssText = 'pointer-events:auto;background:var(--w);border-left:4px solid '+c.niv.col+
     ';border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:12px 14px;cursor:pointer;'+
     'transform:translateX(360px);opacity:0;transition:transform .35s ease,opacity .35s ease;';
