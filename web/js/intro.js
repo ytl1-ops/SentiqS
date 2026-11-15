@@ -13,7 +13,7 @@
 //  Elle s'efface au lieu de gêner dès que quelque chose cloche :
 //    · stockage de session refusé (navigation privée stricte) ;
 //    · préférence « réduire les animations » ;
-//    · économiseur de données / connexion 2G (la vidéo pèse ~0,8 Mo) ;
+//    · économiseur de données / connexion 2G ;
 //    · lecture automatique refusée, fichier illisible, ou démarrage trop lent.
 //  Dans tous ces cas la page apparaît immédiatement, comme avant.
 //
@@ -49,12 +49,17 @@
       var c = w.navigator && (w.navigator.connection || w.navigator.mozConnection || w.navigator.webkitConnection);
       connexionLente = !!(c && (c.saveData || /(^|-)2g$/.test(String(c.effectiveType || ''))));
     } catch (_) {}
+    // Requête média (cadrage portrait / paysage) : protégée, un navigateur sans
+    // matchMedia lit simplement la variante paysage.
+    var media = function (q) {
+      try { return !!(w.matchMedia && w.matchMedia(q).matches); } catch (_) { return false; }
+    };
     var hash = '', referrer = '', origine = '';
     try { hash = w.location.hash || ''; } catch (_) {}
     try { referrer = w.document.referrer || ''; } catch (_) {}
     try { origine = w.location.origin || ''; } catch (_) {}
     return { stockage: stockage, mouvementReduit: mouvementReduit, connexionLente: connexionLente,
-             hash: hash, referrer: referrer, origine: origine };
+             hash: hash, referrer: referrer, origine: origine, media: media };
   }
 
   // Renvoie le motif pour lequel il ne faut PAS jouer l'animation, ou null.
@@ -72,6 +77,33 @@
       if (env.referrer && env.origine && env.referrer.indexOf(env.origine) === 0) return 'navigation-interne';
     }
     return null;
+  }
+
+  // Garde, avant la première lecture, les seules variantes faites pour l'écran.
+  // Chaque <source> qui porte un attribut media (la variante portrait, cadrée
+  // sur le logo) est retirée si l'écran ne lui correspond pas ; les sources sans
+  // media (paysage) restent en repli. Le navigateur lit ensuite la première
+  // source qu'il sait décoder (AV1 avant H.264).
+  //
+  // Pourquoi ne pas se fier au seul attribut media : tous les navigateurs ne
+  // l'appliquent pas aux <video>, et ceux qui l'ignorent prendraient la
+  // variante portrait sur un ordinateur. Incident du 15/11/2026 : la vidéo
+  // 16:9 en « cover » ne montrait, sur un téléphone en portrait, que 26 % de sa
+  // largeur — « SentiQs » et la devise étaient coupés des deux côtés.
+  // Renvoie le nombre de sources retirées.
+  function choisirSources(video, env) {
+    var retirees = 0;
+    var correspond = env && typeof env.media === 'function' ? env.media : function () { return false; };
+    var liste = [];
+    try { liste = Array.prototype.slice.call(video.querySelectorAll('source')); } catch (_) { return 0; }
+    liste.forEach(function (s) {
+      var q = s.getAttribute && s.getAttribute('media');
+      if (q && !correspond(q)) {
+        try { s.parentNode.removeChild(s); retirees++; } catch (_) {}
+      }
+    });
+    if (retirees && typeof video.load === 'function') { try { video.load(); } catch (_) {} }
+    return retirees;
   }
 
   function marquerVue(stockage) {
@@ -101,13 +133,19 @@
     function surTouche(e) { if (e && e.key === 'Escape') fin('passee'); }
     function surFin() { fin('terminee'); }
     function surErreur() { fin('erreur'); }
-    function surLecture() { if (minuteur) { clearTimeout(minuteur); minuteur = null; } }
+    // Première image : la vidéo apparaît en fondu depuis le noir (classe
+    // intro-joue, voir la feuille de style) au lieu de surgir d'un coup.
+    function surLecture() {
+      if (minuteur) { clearTimeout(minuteur); minuteur = null; }
+      overlay.classList.add('intro-joue');
+    }
     function surClic() { fin('passee'); }
     // Barre de progression : la duree restante se lit sans chiffre.
     function surTemps() {
       try { if (video.duration > 0) overlay.style.setProperty('--p', String(Math.min(1, video.currentTime / video.duration))); } catch (_) {}
     }
 
+    choisirSources(video, env);
     var sources = [];
     try { sources = Array.prototype.slice.call(video.querySelectorAll('source')); } catch (_) {}
 
@@ -129,9 +167,10 @@
       var fondu = Number(options.fondu) || 0;
       if (fondu > 0 && (motif === 'terminee' || motif === 'passee')) {
         overlay.classList.add('intro-sortie');
-        setTimeout(function () { overlay.classList.add('hidden'); overlay.classList.remove('intro-sortie'); }, fondu);
+        setTimeout(function () { overlay.classList.add('hidden'); overlay.classList.remove('intro-sortie'); overlay.classList.remove('intro-joue'); }, fondu);
       } else {
         overlay.classList.add('hidden');
+        overlay.classList.remove('intro-joue');
       }
       racine.classList.remove('intro-actif');
       inertes.forEach(function (e) { e.inert = false; });
@@ -178,7 +217,8 @@
   }
 
   var api = { CLE: CLE, DELAI_DEMARRAGE_MS: DELAI_DEMARRAGE_MS,
-              envNavigateur: envNavigateur, raisonDeSaut: raisonDeSaut, lancer: lancer };
+              envNavigateur: envNavigateur, raisonDeSaut: raisonDeSaut,
+              choisirSources: choisirSources, lancer: lancer };
   global.SentiqIntro = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
