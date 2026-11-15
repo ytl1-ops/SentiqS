@@ -4232,7 +4232,14 @@ demandé par YORO le même soir : Montserrat Bold (licence OFL) 21 px,
 capitales, interlettrage 0,3 em, dégradé or vertical pris sur la pastille du
 logo (#F6E0A0 → #DEB662 → #C4964A → #966E2D), ombre portée douce et deux
 filets or de part et d'autre ; tout tient dans le recadrage portrait
-(x 362–924 pour une fenêtre 336–944). Rendu à 4× puis réduit (PIL, LANCZOS). Les quatre variantes sont ensuite réencodées avec les mêmes filtres
+(x 362–924 pour une fenêtre 336–944). Rendu à 4× puis réduit (PIL, LANCZOS).
+**Apparition animée** (même soir, « une animation marketing pro ») : le fondu
+simple est remplacé par une séquence image par image (50 images PNG
+superposées à partir de l'image 192 de la source) : une ligne d'or s'ouvre du
+centre (0 → 0,5 s de source, sortie cubique), le texte se révèle du centre vers
+les bords sous un bord flou (0,3 → 0,9 s) pendant que la ligne s'efface sous lui
+et ne laisse que les deux filets, puis un reflet de lumière balaie texte et
+filets (1,0 → 1,6 s). La dernière image est identique au rendu fixe. Les quatre variantes sont ensuite réencodées avec les mêmes filtres
 que ci-dessus. Le nom accessible de la fenêtre (`aria-label`) suit, un test
 l'exige. Le petit losange en bas à droite de la vue paysage est la marque
 visible du générateur d'IA : il n'a pas été retiré.
