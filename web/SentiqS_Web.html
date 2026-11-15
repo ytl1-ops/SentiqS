@@ -3328,10 +3328,10 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
     // SheetJS a quitte npm apres 0.18.5 ; les versions corrigees (0.19.3 pour
     // CVE-2023-30533, 0.20.2 pour CVE-2024-22363) ne sont servies que par son
     // propre CDN, autorise dans la CSP ci-dessus.
-    xlsx:  { global: 'XLSX',      src: 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js' },
-    docx:  { global: 'docx',      src: 'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js' },
-    pptx:  { global: 'PptxGenJS', src: 'https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.12.0/dist/pptxgen.bundle.js' },
-    pdf:   { global: 'PDFLib',    src: 'https://cdn.jsdelivr.net/npm/pdf-lib@1.4.0/dist/pdf-lib.min.js' },
+    xlsx:  { global: 'XLSX',      src: 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js', integrity: 'sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT' },
+    docx:  { global: 'docx',      src: 'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js', integrity: 'sha384-4xaIisuLEy2lo2HkB2C4rEf7v8jbTb2kuogX6TkuEt9feTWKBSFSOzsqNNbV+sKh' },
+    pptx:  { global: 'PptxGenJS', src: 'https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.12.0/dist/pptxgen.bundle.js', integrity: 'sha384-Cck14aA9cifjYolcnjebXRfWGkz5ltHMBiG4px/j8GS+xQcb7OhNQWZYyWjQ+UwQ' },
+    pdf:   { global: 'PDFLib',    src: 'https://cdn.jsdelivr.net/npm/pdf-lib@1.4.0/dist/pdf-lib.min.js', integrity: 'sha384-YmeCSD7/QxqSjaieqkBiGZwmsOBhVDcrd9yQwI4yzD+W2k/PgQRtEky9KiIWgDJx' },
   };
   const _bibliothequesEnCours = {};
   function chargerBibliotheque(nom) {
@@ -3342,6 +3342,10 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
     _bibliothequesEnCours[nom] = new Promise((resolve, reject) => {
       const el = document.createElement('script');
       el.src = b.src; el.async = true;
+      // Empreinte SRI (audit du 15/11/2026) : un CDN compromis ou une version
+      // republiee ne s'executent pas ; scripts/verifier-integrite-cdn.js la
+      // confronte au fichier reellement servi, en CI.
+      if (b.integrity) { el.integrity = b.integrity; el.crossOrigin = 'anonymous'; }
       el.onload = () => resolve(window[b.global]);
       el.onerror = () => { delete _bibliothequesEnCours[nom]; reject(new Error(nom + ' non chargé — vérifiez la connexion internet')); };
       document.head.appendChild(el);
@@ -3349,7 +3353,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
     return _bibliothequesEnCours[nom];
   }
   </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js" integrity="sha384-uteMfOloLDGt042uDz+xHGF3ym63/WQ6rFq7murQRG8Ih7QrXGEGNtWd8688sb4O" crossorigin="anonymous" defer></script>
 </head>
 <body>
 
@@ -21692,7 +21696,11 @@ function _chargerSdkEmailjs() {
   _emailjsSdkPromise = new Promise((resolve, reject) => {
     if (window.emailjs) return resolve();
     const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+    // Version exacte et empreinte SRI (audit du 15/11/2026) : « @4 » chargeait
+    // la derniere 4.x publiee, sans controle, dans une page qui porte la session.
+    s.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js';
+    s.integrity = 'sha384-SALc35EccAf6RzGw4iNsyj7kTPr33K7RoGzYu+7heZhT8s0GZouafRiCg1qy44AS';
+    s.crossOrigin = 'anonymous';
     s.onload = () => resolve();
     s.onerror = () => reject(new Error('Impossible de charger le SDK EmailJS'));
     document.head.appendChild(s);
