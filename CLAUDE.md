@@ -4129,3 +4129,39 @@ retiré ni flouté : un bloc en pied (`blocAbonnement`, bulletin et index des
 54 pays) dit ce que l'abonnement ajoute, chaque ligne décrivant une fonction
 qui existe, avec l'essai gratuit (lien vers le domaine canonique). Masqué à
 l'impression. Les bulletins déjà écrits ne sont pas retouchés.
+
+---
+
+## Fenêtres et notifications — 15/11/2026
+
+Capture de YORO sur téléphone : le popup d'une actu fraîche (`renderToast`)
+laissait lire la page au travers, texte sur texte. Cause : son fond était la
+teinte du niveau (`levelMeta().bg` = `--gl`, `--rl`…), opaque en clair mais
+**translucide en sombre** (`rgba(15,79,42,.24)`), le thème par défaut depuis
+le 20/10. Recensement des surfaces au-dessus de la page, 390 px / tablette /
+bureau : seule cette notification était illisible ; le menu « Plus » montrait
+sur téléphone quatre boutons vides (la règle mobile qui masque le texte des
+boutons de la barre du haut le masquait aussi dans le menu).
+
+Un seul style (bloc CSS « FENÊTRES ET NOTIFICATIONS », avant « MOBILE : LE
+CONTENU D'ABORD ») et un seul comportement (`FENETRES_GEREES`, `majFenetres`) :
+
+- **notification** (`#toastContainer > *`) : fond `--w` opaque, sans voile
+  (elle n'interrompt pas), pleine largeur sous la barre du haut sur
+  téléphone, croix de 44 px, Échap la ferme ;
+- **fenêtre** (panneaux d'administration et publics, validation, détail d'un
+  indicateur, diagnostic) : voile `--voile` (déclaré dans les deux `:root`,
+  le test des jetons l'exige), panneau opaque, croix de 44 px, défilement
+  interne, page derrière immobile (`html.fenetre-ouverte`), Échap ferme celle
+  du dessus, Tab reste dedans, le focus revient au déclencheur ; sur
+  téléphone, feuille qui monte du bas, encoche et barre système comprises ;
+- **un clic sur le voile ne ferme qu'une fenêtre de lecture**
+  (`FENETRES_LECTURE` : méthodologie/bulletin public, diagnostic, détail
+  d'indicateur). Administration, paiement et validation restent ouverts : un
+  clic à côté ne doit pas faire perdre une saisie ;
+- l'assistant et l'accès rapide gèrent déjà Échap et le focus : ils ne
+  comptent que pour immobiliser la page.
+
+Exports à la demande : 14/14 identiques (contrôle : deux générations de `main`
+identiques entre elles). `scripts/test/fenetres.test.js` (6, vus échouer sur
+`main`).
