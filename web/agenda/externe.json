@@ -1,5 +1,5 @@
 {
- "genere": "2026-11-15T11:59:34.773Z",
+ "genere": "2026-11-16T12:50:51.617Z",
  "horizonJours": 120,
  "sources": {
   "feries": {
@@ -65,17 +65,6 @@
   }
  },
  "evenements": [
-  {
-   "id": "ferie-CI-2026-11-15",
-   "date": "2026-11-15",
-   "cy": "CI",
-   "titre": "National Peace Day",
-   "titreEn": "National Peace Day",
-   "type": "ceremonie",
-   "nature": "ferie",
-   "src": "Nager.Date — jours fériés officiels",
-   "surl": "https://date.nager.at/PublicHoliday/CI/2026"
-  },
   {
    "id": "ferie-MA-2026-11-18",
    "date": "2026-11-18",
@@ -2154,6 +2143,17 @@
    "nature": "ferie",
    "src": "Nager.Date — jours fériés officiels",
    "surl": "https://date.nager.at/PublicHoliday/ZM/2027"
+  },
+  {
+   "id": "ferie-LR-2027-03-15",
+   "date": "2027-03-15",
+   "cy": "LR",
+   "titre": "Joseph Jenkins Roberts Birthday",
+   "titreEn": "Joseph Jenkins Roberts Birthday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/LR/2027"
   }
  ]
 }
