@@ -8674,6 +8674,10 @@ const EXPRESSIONS_NON_SECURITAIRES = [
   'coup de cœur','coup de coeur','coup de foudre','coup de theatre','coup de pouce',
   "coup d'accelerateur",'coup d accelerateur','coup de maitre','coup d\'essai','coup d essai',
   'coup de projecteur','coup d\'envoi','coup d envoi','coup de fil','coup de main',
+  // « Accord sur la haute mer : le coup d'avance diplomatique du Burkina
+  // Faso » (Mali 24) sortait CRITIQUE dans la Présentation 1 de novembre
+  // (audit du 15/11/2026).
+  "coup d'avance",'coup d avance','coup de gueule','coup double',
   'siege social','siege de l\'entreprise','siege de l entreprise','siege regional',
   'explosion des prix','explosion demographique','explosion de couleurs','explosion de joie',
   'explosion de talent','explosion des cas',
@@ -8736,6 +8740,12 @@ const SENS_ADMINISTRATIFS = [
   /\benlevements?\s+(?:des|de\s+la|du|de|d')\s*(?:marchandises?|ordures?|dechets?|colis|conteneurs?|vehicules?|epaves?|bagages?|cargaisons?|ordures\s+menageres)/g,
   /\b(?:fete|jour|journee)\s+des\s+morts/g,
   /\bpieces?\s+d'execution/g,
+  // « attaque » au sens de critique (audit du 15/11/2026) : « Minority caucus
+  // attacks 2027 Budget » (JoyOnline) sortait CRITIQUE. Le verbe disparait
+  // quand son objet est un texte, un budget ou une decision ; une attaque
+  // contre des personnes ou des lieux garde son poids.
+  /\battacks?\s+(?:the\s+|on\s+the\s+)?(?:\d{4}\s+)?(?:budget\w*|bill|policy|policies|proposals?|plans?|reports?|decisions?|reforms?|manifesto|appointments?|ruling|verdict|mid-year\s+budget)\b/g,
+  /\b(?:s'attaqu(?:e|ent)|attaqu(?:e|ent))\s+(?:a\s+la\s+|au\s+|aux\s+|le\s+|la\s+|les\s+)(?:budget\w*|projet\s+de\s+loi|reformes?|loi\s+de\s+finances|politique\s+\w+|decisions?|rapports?)/g,
 ];
 
 // neutraliserExpressions(t) : retire les expressions ci-dessus du texte avant
@@ -8928,6 +8938,9 @@ const PAYS_HORS_AFRIQUE = [
   'philippines','filipino','mongolia','kazakhstan','uzbekistan','turkmenistan',
   'kyrgyzstan','tajikistan','azerbaijan','armenia','armenian',
   'australia','australian','new zealand',
+  // « Armed police start patrols in Sydney after Bondi Beach attack »
+  // (JoyOnline) comptait pour le Ghana, en CRITIQUE (audit du 15/11/2026).
+  'sydney','melbourne','brisbane','bondi',
   'white house','beijing','moscow','tehran','baghdad','jerusalem','geneva','vienna',
   // — Equivalents portugais et espagnols —
   //

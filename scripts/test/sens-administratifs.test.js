@@ -45,3 +45,17 @@ test("l'apostrophe typographique ne fait plus échapper une locution à sa garde
   assert.notStrictEqual(niv('Kéniéba : coup d’envoi des travaux du futur hôtel de ville', 'ML'), 'crit');
   assert.strictEqual(niv('Tentative de coup d’État déjouée à la présidence', 'BF'), 'crit');
 });
+
+test("« attaquer » un budget, « coup d'avance » : critique, pas incident", () => {
+  // Présentation 1 de novembre 2026 (audit du 15/11/2026).
+  for (const [t, cy] of [
+    ["‘Stability on paper, hardship in our pockets’ – Minority caucus attacks 2027 Budget", 'GH'],
+    ['Opposition attacks the mid-year budget review', 'GH'],
+    ["L'opposition s'attaque au projet de loi de finances 2027", 'SN'],
+    ["ACCORD SUR LA HAUTE MER : LE COUP D’AVANCE DIPLOMATIQUE DU BURKINA FASO", 'BF'],
+  ]) assert.notStrictEqual(niv(t, cy), 'crit', t);
+  // Garde : une attaque contre des personnes reste critique, même si le
+  // titre parle aussi de budget.
+  assert.strictEqual(niv('Gunmen attack the budget office in Kano, two killed', 'NG'), 'crit');
+  assert.strictEqual(niv('Attaque contre la direction du budget à Djibo : deux gendarmes tués', 'BF'), 'crit');
+});

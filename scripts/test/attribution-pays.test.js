@@ -266,3 +266,12 @@ test('le cumul du mois : seuls les homonymes nigérians changent de pays', () =>
   const f = page.slice(page.indexOf('function paysDuFaitCumule'), page.indexOf('// Le chapô d\'un article pour le rapport'));
   assert.match(f, /cy !== 'NE' && cy !== 'BJ'\)\) return cy/, 'limité aux homonymes');
 });
+
+test('une attaque à Sydney relayée par un média ghanéen ne compte pas pour le Ghana', () => {
+  // Cumul de novembre 2026 : « Armed police start patrols in Sydney after
+  // Bondi Beach attack » (JoyOnline) sortait CRITIQUE au Ghana dans la
+  // Présentation 1 (audit du 15/11/2026).
+  assert.strictEqual(ou('Armed police start patrols in Sydney after Bondi Beach attack', '', 'GH').cy, 'INT');
+  // Un fait ghanéen qui cite l'Australie en passant reste au Ghana.
+  assert.strictEqual(ou('Ghanaian student killed in Sydney, family demands justice in Accra', '', 'GH').cy, 'GH');
+});
