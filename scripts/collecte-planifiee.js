@@ -400,6 +400,10 @@ function ecrireResumeActions(md) {
     // Le calcul n'est pas reimplemente ici : c'est calcAlertScore de la page
     // qui repond, comme partout ailleurs dans ce depot.
     try {
+      // L'avis officiel du FCDO est un témoin de la confiance (voir
+      // lectureAvisOfficiel dans le noyau) : attendre qu'il soit lu, sinon
+      // l'archive dirait une autre confiance que l'écran.
+      await page.evaluate(() => (typeof chargerAvisOfficiels === 'function' ? chargerAvisOfficiels() : null)).catch(() => null);
       const niveaux = await page.evaluate(() => {
         if (typeof calcAlertScore !== 'function' || typeof CYS === 'undefined') return null;
         return CYS.filter((c) => c && c.code && c.code !== 'all').map((c) => {

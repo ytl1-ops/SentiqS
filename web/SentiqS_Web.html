@@ -15448,6 +15448,33 @@ function chargerHistorique() {
     .catch(function () { /* pas d'archive : sans consequence */ });
 }
 
+// ── AVIS OFFICIELS (FCDO) ──────────────────────────────────────────────────
+//
+// Second témoin de la confiance quand la collecte se tait (audit du
+// 15/11/2026, voir lectureAvisOfficiel dans le noyau). Le fichier est écrit
+// chaque jour par scripts/avis-officiels.js, depuis GitHub (le bac à sable
+// n'atteint pas gov.uk), et servi à côté de la page. Il ne touche jamais au
+// niveau : sans lui, la confiance est simplement celle d'avant.
+let AVIS_OFFICIELS = null;
+let avisOfficielsDemande = null;
+function chargerAvisOfficiels() {
+  if (avisOfficielsDemande) return avisOfficielsDemande;
+  avisOfficielsDemande = fetch('historique/avis-officiels.json', { cache: 'no-cache' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (j) {
+      if (!j || !j.pays) return false;
+      AVIS_OFFICIELS = j;
+      if (typeof recalcAlertes === 'function') recalcAlertes({ silencieux: true });
+      if (typeof renderDashboard === 'function' && typeof moduleAffiche === 'function' && moduleAffiche('dashboard')) renderDashboard();
+      return true;
+    })
+    .catch(function () { return false; });
+  return avisOfficielsDemande;
+}
+function avisOfficielPays(cy) {
+  return (AVIS_OFFICIELS && AVIS_OFFICIELS.pays && AVIS_OFFICIELS.pays[cy]) || null;
+}
+
 // Le calcul lui-meme vient du noyau (tendanceNiveaux), partage avec le job
 // qui ecrit la serie. Ici on ne fait que l'habiller.
 function tendancePays(code) {
@@ -17831,6 +17858,7 @@ async function init() {
     try{
       await initDB();
       if (typeof chargerHistorique === 'function') chargerHistorique();
+      if (typeof chargerAvisOfficiels === 'function') chargerAvisOfficiels();
       const saved=await dbAll();
       if(saved.length){
         const fresh=saved.filter(a=>estRecentReel(a));
@@ -22629,6 +22657,8 @@ function calcAlertScore(cy) {
     dernierVerifieMs, maintenant,
     signauxDuJour: eventsLive.length,
     muet: (typeof paysMuet === 'function') ? paysMuet(cy) : false,
+    niveau: key,
+    avisOfficiel: (typeof avisOfficielPays === 'function') ? avisOfficielPays(cy) : null,
   });
   // Le bridage n'est pas silencieux : l'interface doit pouvoir dire POURQUOI
   // un pays ne monte pas plus haut malgre les signaux du jour.

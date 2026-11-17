@@ -1,0 +1,48 @@
+name: Avis officiels — FCDO
+
+# Avis aux voyageurs du FCDO (gov.uk), second témoin de la confiance des
+# niveaux (scripts/avis-officiels.js). Le bac à sable n'atteint pas gov.uk :
+# la lecture se fait d'ici. Une demande de fusion qui touche ces fichiers
+# lance une lecture à blanc (rien n'est publié) pour mesurer l'effet.
+
+on:
+  schedule:
+    - cron: '41 5 * * *'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/avis-officiels.js'
+      - 'scripts/lib/avis-officiels.js'
+      - '.github/workflows/avis-officiels.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: avis-officiels-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  avis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+      - name: Lit les avis du FCDO
+        run: node scripts/avis-officiels.js
+      - name: Publie sur main (planifié ou lancé à la main depuis main)
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: |
+          git config user.name "avis-officiels"
+          git config user.email "actions@github.com"
+          git add web/historique/avis-officiels.json
+          if git diff --cached --quiet; then echo "Rien de neuf."; exit 0; fi
+          git commit -m "Avis officiels : FCDO du jour"
+          for i in 1 2 3 4; do
+            if git push origin HEAD:main; then exit 0; fi
+            git pull --rebase --autostash origin main
+          done
+          exit 1

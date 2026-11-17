@@ -510,6 +510,62 @@ const CONFIANCE_SOCLE_RECENT_J = DECROISSANCE_PLEIN_J;
 const CONFIANCE_SOCLE_ANCIEN_J = 90;
 const CONFIANCE_LIBELLES = { elevee: 'élevée', moyenne: 'moyenne', faible: 'faible' };
 
+// ── Avis officiel : un second témoin quand la collecte se tait ─────────────
+//
+// Audit du 15/11/2026 : 35 pays sur 54 étaient à confiance faible, presque
+// tous parce que leur socle avait plus de 90 jours et qu'aucune source n'en
+// parlait ce jour-là. Le Lesotho s'affichait orange sur un socle de 502 jours.
+// Le niveau ne baisse jamais (arbitrage du 20/10/2026) ; reste à dire s'il est
+// encore tenu. L'avis aux voyageurs du FCDO britannique est un témoin public,
+// gratuit, revu par une administration et daté : s'il a été revu depuis moins
+// de CONFIANCE_SOCLE_ANCIEN_J jours ET que son degré est compatible avec le
+// niveau affiché, le socle ancien est corroboré et la confiance remonte à
+// « moyenne », jamais au-delà (un avis n'est pas un fait daté). S'il diverge,
+// la confiance reste faible et le motif le dit : c'est le socle à relire.
+//
+// Degré FCDO (le plus sévère des statuts `alert_status`) → niveaux compatibles.
+// Les bornes sont larges exprès : un avis national ne se lit pas comme un
+// barème, il ne doit signaler que les écarts francs (un pays « sans
+// restriction » affiché marron, un pays « déconseillé en totalité » au jaune).
+const DEGRES_AVIS_FCDO = ['aucun', 'aabe_partie', 'aat_partie', 'aabe_total', 'aat_total'];
+const AVIS_COMPATIBLE = {
+  aucun:       ['vert', 'jaune'],
+  aabe_partie: ['jaune', 'orange', 'marron'],
+  aat_partie:  ['jaune', 'orange', 'marron', 'rouge'],
+  aabe_total:  ['orange', 'marron', 'rouge'],
+  aat_total:   ['marron', 'rouge'],
+};
+const AVIS_LIBELLES = {
+  aucun: 'aucune restriction', aabe_partie: 'voyages non essentiels déconseillés dans une partie du pays',
+  aat_partie: 'voyages déconseillés dans une partie du pays', aabe_total: 'voyages non essentiels déconseillés dans tout le pays',
+  aat_total: 'voyages déconseillés dans tout le pays',
+};
+
+// Les statuts tels que les publie l'API de contenu de gov.uk
+// (`details.alert_status`) ramenés à un seul degré, le plus sévère.
+function degreAvisFcdo(statuts) {
+  let rang = 0;
+  (Array.isArray(statuts) ? statuts : []).forEach((s) => {
+    s = String(s || '');
+    const total = /whole/.test(s);
+    const r = /avoid_all_travel/.test(s) ? (total ? 4 : 2)
+      : /avoid_all_but_essential/.test(s) ? (total ? 3 : 1) : 0;
+    if (r > rang) rang = r;
+  });
+  return DEGRES_AVIS_FCDO[rang];
+}
+
+// null quand l'avis manque, est illisible ou trop ancien pour témoigner.
+function lectureAvisOfficiel(avis, cleNiveau, maintenant) {
+  if (!avis || !Array.isArray(avis.statuts)) return null;
+  const ms = Date.parse(avis.revu || avis.maj || '');
+  if (!isFinite(ms)) return null;
+  const ageJ = Math.max(0, Math.floor((maintenant - ms) / 86400000));
+  if (ageJ > CONFIANCE_SOCLE_ANCIEN_J) return null;
+  const degre = degreAvisFcdo(avis.statuts);
+  return { degre, ageJ, compatible: (AVIS_COMPATIBLE[degre] || []).includes(cleNiveau) };
+}
+
 function indiceConfiance(o) {
   o = o || {};
   const now = (o.maintenant === undefined) ? Date.now() : o.maintenant;
@@ -523,13 +579,22 @@ function indiceConfiance(o) {
   let cle = 'elevee';
   if (!recent || signaux === 0 || muet) cle = 'moyenne';
   if (ancien && signaux === 0) cle = 'faible';
+  // Second témoin : l'avis officiel récent et compatible corrobore un socle
+  // ancien (voir lectureAvisOfficiel). Il ne fait jamais monter au-delà de
+  // « moyenne » et ne touche pas au niveau.
+  const avis = (o.avisOfficiel && o.niveau) ? lectureAvisOfficiel(o.avisOfficiel, o.niveau, now) : null;
+  if (cle === 'faible' && avis && avis.compatible) cle = 'moyenne';
 
   const socle = ageSocleJ === null ? 'aucun incident vérifié daté'
     : ('incident vérifié le plus récent : ' + ageSocleJ + (ageSocleJ === 1 ? ' jour' : ' jours'));
   const jour = muet ? 'aucune publication sur ce pays'
     : signaux === 0 ? 'aucun signal du jour'
     : (signaux + (signaux === 1 ? ' signal du jour' : ' signaux du jour'));
-  return { cle, libelle: CONFIANCE_LIBELLES[cle], ageSocleJ, signauxDuJour: signaux, muet, motif: socle + ' ; ' + jour };
+  const temoin = !avis ? ''
+    : avis.compatible ? (' ; niveau cohérent avec l\'avis du FCDO revu il y a ' + avis.ageJ + (avis.ageJ === 1 ? ' jour' : ' jours') + ' (' + AVIS_LIBELLES[avis.degre] + ')')
+    : (' ; avis du FCDO divergent (' + AVIS_LIBELLES[avis.degre] + ') : socle à relire');
+  return { cle, libelle: CONFIANCE_LIBELLES[cle], ageSocleJ, signauxDuJour: signaux, muet,
+    avisOfficiel: avis, motif: socle + ' ; ' + jour + temoin };
 }
 
 // ── Où l'outil est aveugle : « Ce que nous ne savons pas » ──────────────────
@@ -741,6 +806,7 @@ const API = {
   DISJONCTEUR_SEUIL, creerDisjoncteur, avecDisjoncteur,
   tendanceNiveaux,
   CONFIANCE_SOCLE_RECENT_J, CONFIANCE_SOCLE_ANCIEN_J, CONFIANCE_LIBELLES, indiceConfiance,
+  DEGRES_AVIS_FCDO, AVIS_COMPATIBLE, AVIS_LIBELLES, degreAvisFcdo, lectureAvisOfficiel,
   angleMort, estRequeteGoogleNews, peutAlerter,
   COTATION_LIBELLES, cotationArticle,
   GRILLE_SOURCE, GRILLE_INFO, INFO_PAR_DECISION, VALIDATION_NOTE_MAX, cleValidation, validationValide,
