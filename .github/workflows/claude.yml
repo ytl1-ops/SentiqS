@@ -1,0 +1,86 @@
+# Claude répond aux mentions « @claude » dans les tickets et les demandes de
+# fusion de ce dépôt : il lit le code, répond, propose une revue ou ouvre une
+# demande de fusion sur une branche claude/… — il ne fusionne jamais.
+#
+# Pourquoi ces gardes :
+# - seul le propriétaire et les collaborateurs déclenchent (author_association) :
+#   le dépôt est public, un inconnu ne doit pas pouvoir consommer le quota de
+#   l'abonnement ni injecter des consignes ;
+# - aucune revue automatique sur chaque PR : chaque exécution consomme le quota
+#   de l'abonnement Claude de YORO, on ne l'appelle que quand on le demande ;
+# - sans le secret CLAUDE_CODE_OAUTH_TOKEN, le job s'arrête proprement au lieu
+#   d'échouer en rouge.
+# Version de l'action figée par empreinte (v1.0.278), comme les scripts tiers
+# de la page (voir « Scripts tiers : version exacte et empreinte SRI »).
+name: Claude
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
+  issues:
+    types: [opened, assigned]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: claude-${{ github.event.issue.number || github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  claude:
+    if: |
+      (
+        (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude') &&
+          contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)) ||
+        (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude') &&
+          contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)) ||
+        (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude') &&
+          contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.review.author_association)) ||
+        (github.event_name == 'issues' &&
+          (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')) &&
+          contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association))
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    steps:
+      - name: Secret présent ?
+        id: secret
+        env:
+          JETON: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          if [ -z "$JETON" ]; then
+            echo "::notice::CLAUDE_CODE_OAUTH_TOKEN absent : Claude n'est pas encore branché sur ce dépôt."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v5
+        if: steps.secret.outputs.ok == 'true'
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        if: steps.secret.outputs.ok == 'true'
+        with:
+          node-version: 20
+
+      - name: Claude
+        if: steps.secret.outputs.ok == 'true'
+        uses: anthropics/claude-code-action@cc98b3ae241b0fcfb6a42a2690751afffecb4452 # v1.0.278
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --max-turns 40
+            --allowedTools "Bash(npm test),Bash(npm ci),Bash(node scripts/*),Bash(git diff:*),Bash(git log:*),Bash(git status)"

@@ -10,6 +10,30 @@ Ce fichier dit **où vit quoi**, **comment vérifier une modification**, et
 
 ---
 
+## Règles qui priment, en une page
+
+À lire en premier, en particulier par Claude appelé depuis GitHub
+(« @claude », `.github/workflows/claude.yml`) :
+
+- **Répondre et écrire en français** : commits, commentaires, PR, interface.
+- **Coût nul.** Le projet tourne sur des offres gratuites (GitHub Actions,
+  Pages, Firebase Spark, sources ouvertes). Ne rien ajouter qui crée une
+  dépense (API payante, licence comme ACLED, service à clé) sans accord écrit
+  du propriétaire.
+- **Cotation des faits : Confirmé / Probable / Non confirmé** (`cotationArticle`,
+  noyau). Confirmé = recoupé par une seconde source, rien de plus.
+- **L'indice de confiance s'affiche à l'écran, jamais dans un document**
+  (exports, bulletins, rapport mensuel, bulletins programmés) ; un test l'exige.
+- **Les rapports se génèrent à la demande** : ne jamais modifier leur mise en
+  page ou leur contenu sans demande explicite, et prouver avant/après que les
+  exports sont identiques (méthode : « Chantier visuel du 13/11/2026 »).
+- **Le niveau d'alerte ne se touche pas à l'intuition** : mesurer avec
+  `scripts/tableau-niveaux.js` ou `banc-tri.js` avant de proposer.
+- **Jamais de fusion, de secret, de Supabase/Firebase en production ni de
+  paiement** : on propose une PR, le propriétaire décide.
+
+---
+
 ## Ce qui est réellement servi
 
 | Ce que voit l'utilisateur | Fichier | Servi par |
