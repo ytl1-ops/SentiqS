@@ -1,6 +1,424 @@
 {
  "source": "FCDO — gov.uk Content API (Open Government Licence v3.0)",
- "lu": null,
- "pays": {},
- "divergences": []
+ "lu": "2026-11-17T11:22:04.303Z",
+ "pays": {
+  "AO": {
+   "statuts": [
+    "avoid_all_but_essential_travel_to_parts"
+   ],
+   "revu": "2026-05-28T10:50:56Z",
+   "maj": "2026-05-28T11:50:56+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/angola"
+  },
+  "BF": {
+   "statuts": [
+    "avoid_all_travel_to_whole_country"
+   ],
+   "revu": "2026-10-26T15:58:48Z",
+   "maj": "2026-10-26T15:58:48+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/burkina-faso"
+  },
+  "BI": {
+   "statuts": [
+    "avoid_all_travel_to_parts"
+   ],
+   "revu": "2026-05-21T15:02:33Z",
+   "maj": "2026-05-21T16:02:33+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/burundi"
+  },
+  "BJ": {
+   "statuts": [
+    "avoid_all_travel_to_parts",
+    "avoid_all_but_essential_travel_to_parts"
+   ],
+   "revu": "2026-11-04T16:27:24Z",
+   "maj": "2026-11-04T16:27:24+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/benin"
+  },
+  "BW": {
+   "statuts": [],
+   "revu": "2026-11-06T14:39:38Z",
+   "maj": "2026-11-06T14:39:38+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/botswana"
+  },
+  "CD": {
+   "statuts": [
+    "avoid_all_travel_to_parts",
+    "avoid_all_but_essential_travel_to_parts"
+   ],
+   "revu": "2026-10-08T12:20:38Z",
+   "maj": "2026-10-08T13:20:38+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/democratic-republic-of-the-congo"
+  },
+  "CF": {
+   "statuts": [
+    "avoid_all_travel_to_parts"
+   ],
+   "revu": "2026-05-28T11:08:37Z",
+   "maj": "2026-05-28T12:08:37+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/central-african-republic"
+  },
+  "CG": {
+   "statuts": [
+    "avoid_all_travel_to_parts"
+   ],
+   "revu": "2026-10-27T12:00:20Z",
+   "maj": "2026-10-27T12:00:20+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/congo"
+  },
+  "CI": {
+   "statuts": [
+    "avoid_all_travel_to_parts"
+   ],
+   "revu": "2026-11-09T16:16:31Z",
+   "maj": "2026-11-09T16:16:31+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/cote-d-ivoire"
+  },
+  "CM": {
+   "statuts": [
+    "avoid_all_travel_to_parts",
+    "avoid_all_but_essential_travel_to_parts"
+   ],
+   "revu": "2026-11-06T16:22:46Z",
+   "maj": "2026-11-06T16:22:46+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/cameroon"
+  },
+  "CV": {
+   "statuts": [],
+   "revu": "2026-07-28T15:13:41Z",
+   "maj": "2026-07-28T16:13:41+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/cape-verde"
+  },
+  "DJ": {
+   "statuts": [
+    "avoid_all_travel_to_parts"
+   ],
+   "revu": "2026-07-27T14:03:02Z",
+   "maj": "2026-07-27T15:03:02+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/djibouti"
+  },
+  "DZ": {
+   "statuts": [
+    "avoid_all_travel_to_parts"
+   ],
+   "revu": "2026-09-25T15:01:59Z",
+   "maj": "2026-09-25T16:01:59+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/algeria"
+  },
+  "EG": {
+   "statuts": [
+    "avoid_all_travel_to_parts",
+    "avoid_all_but_essential_travel_to_parts"
+   ],
+   "revu": "2026-10-27T16:03:56Z",
+   "maj": "2026-10-27T16:03:56+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/egypt"
+  },
+  "ER": {
+   "statuts": [
+    "avoid_all_travel_to_parts",
+    "avoid_all_but_essential_travel_to_parts"
+   ],
+   "revu": "2026-11-09T16:20:13Z",
+   "maj": "2026-11-09T16:20:13+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/eritrea"
+  },
+  "ET": {
+   "statuts": [
+    "avoid_all_travel_to_parts",
+    "avoid_all_but_essential_travel_to_parts"
+   ],
+   "revu": "2026-10-30T21:20:19Z",
+   "maj": "2026-10-30T21:20:19+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/ethiopia"
+  },
+  "GA": {
+   "statuts": [],
+   "revu": "2025-12-10T13:37:09Z",
+   "maj": "2025-12-10T13:37:09+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/gabon"
+  },
+  "GH": {
+   "statuts": [
+    "avoid_all_but_essential_travel_to_parts"
+   ],
+   "revu": "2026-11-04T17:07:08Z",
+   "maj": "2026-11-04T17:07:08+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/ghana"
+  },
+  "GM": {
+   "statuts": [],
+   "revu": "2026-11-11T16:50:01Z",
+   "maj": "2026-11-11T16:50:01+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/the-gambia"
+  },
+  "GN": {
+   "statuts": [],
+   "revu": "2026-08-12T15:34:39Z",
+   "maj": "2026-08-12T16:34:39+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/guinea"
+  },
+  "GQ": {
+   "statuts": [],
+   "revu": "2026-01-08T10:25:07Z",
+   "maj": "2026-01-08T10:25:07+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/equatorial-guinea"
+  },
+  "GW": {
+   "statuts": [],
+   "revu": "2025-12-10T13:55:45Z",
+   "maj": "2025-12-10T13:55:45+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/guinea-bissau"
+  },
+  "KE": {
+   "statuts": [
+    "avoid_all_travel_to_parts",
+    "avoid_all_but_essential_travel_to_parts"
+   ],
+   "revu": "2026-11-06T17:00:48Z",
+   "maj": "2026-11-06T17:00:48+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/kenya"
+  },
+  "KM": {
+   "statuts": [],
+   "revu": "2025-12-10T13:42:55Z",
+   "maj": "2025-12-10T13:42:55+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/comoros"
+  },
+  "LR": {
+   "statuts": [],
+   "revu": "2026-11-11T16:56:17Z",
+   "maj": "2026-11-11T16:56:17+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/liberia"
+  },
+  "LS": {
+   "statuts": [],
+   "revu": "2025-12-10T13:12:05Z",
+   "maj": "2025-12-10T13:12:05+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/lesotho"
+  },
+  "LY": {
+   "statuts": [
+    "avoid_all_travel_to_parts",
+    "avoid_all_but_essential_travel_to_parts"
+   ],
+   "revu": "2026-07-21T09:00:09Z",
+   "maj": "2026-07-21T10:00:09+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/libya"
+  },
+  "MA": {
+   "statuts": [],
+   "revu": "2026-08-19T11:00:36Z",
+   "maj": "2026-08-19T12:00:36+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/morocco"
+  },
+  "MG": {
+   "statuts": [],
+   "revu": "2026-11-16T10:56:40Z",
+   "maj": "2026-11-16T10:56:40+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/madagascar"
+  },
+  "ML": {
+   "statuts": [
+    "avoid_all_travel_to_whole_country"
+   ],
+   "revu": "2026-07-10T13:24:11Z",
+   "maj": "2026-07-10T14:24:11+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/mali"
+  },
+  "MR": {
+   "statuts": [
+    "avoid_all_travel_to_parts"
+   ],
+   "revu": "2026-10-19T19:07:15Z",
+   "maj": "2026-10-19T20:07:15+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/mauritania"
+  },
+  "MU": {
+   "statuts": [],
+   "revu": "2026-10-19T14:45:58Z",
+   "maj": "2026-10-19T15:45:58+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/mauritius"
+  },
+  "MW": {
+   "statuts": [],
+   "revu": "2026-10-20T14:35:09Z",
+   "maj": "2026-10-20T15:35:09+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/malawi"
+  },
+  "MZ": {
+   "statuts": [
+    "avoid_all_travel_to_parts",
+    "avoid_all_but_essential_travel_to_parts"
+   ],
+   "revu": "2026-08-20T13:50:43Z",
+   "maj": "2026-08-20T14:50:43+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/mozambique"
+  },
+  "NA": {
+   "statuts": [],
+   "revu": "2025-12-10T13:15:46Z",
+   "maj": "2025-12-10T13:15:46+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/namibia"
+  },
+  "NE": {
+   "statuts": [
+    "avoid_all_travel_to_whole_country"
+   ],
+   "revu": "2026-10-23T15:14:29Z",
+   "maj": "2026-10-23T16:14:29+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/niger"
+  },
+  "NG": {
+   "statuts": [
+    "avoid_all_travel_to_parts",
+    "avoid_all_but_essential_travel_to_parts"
+   ],
+   "revu": "2026-11-10T14:13:23Z",
+   "maj": "2026-11-10T14:13:23+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/nigeria"
+  },
+  "RW": {
+   "statuts": [
+    "avoid_all_but_essential_travel_to_parts"
+   ],
+   "revu": "2026-09-04T09:15:14Z",
+   "maj": "2026-09-04T10:15:14+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/rwanda"
+  },
+  "SC": {
+   "statuts": [],
+   "revu": "2026-10-23T15:17:13Z",
+   "maj": "2026-10-23T16:17:13+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/seychelles"
+  },
+  "SD": {
+   "statuts": [
+    "avoid_all_travel_to_parts"
+   ],
+   "revu": "2026-05-11T15:07:13Z",
+   "maj": "2026-05-11T16:07:13+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/sudan"
+  },
+  "SL": {
+   "statuts": [],
+   "revu": "2026-06-19T14:34:37Z",
+   "maj": "2026-06-19T15:34:37+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/sierra-leone"
+  },
+  "SN": {
+   "statuts": [],
+   "revu": "2026-10-15T09:00:14Z",
+   "maj": "2026-10-15T10:00:14+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/senegal"
+  },
+  "SO": {
+   "statuts": [
+    "avoid_all_travel_to_parts"
+   ],
+   "revu": "2026-06-04T14:57:41Z",
+   "maj": "2026-06-04T15:57:41+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/somalia"
+  },
+  "SS": {
+   "statuts": [
+    "avoid_all_travel_to_whole_country"
+   ],
+   "revu": "2026-08-25T09:10:08Z",
+   "maj": "2026-08-25T10:10:08+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/south-sudan"
+  },
+  "ST": {
+   "statuts": [],
+   "revu": "2025-12-10T13:33:54Z",
+   "maj": "2025-12-10T13:33:54+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/sao-tome-and-principe"
+  },
+  "SZ": {
+   "statuts": [],
+   "revu": "2026-11-09T14:38:31Z",
+   "maj": "2026-11-09T14:38:31+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/eswatini"
+  },
+  "TD": {
+   "statuts": [
+    "avoid_all_travel_to_parts"
+   ],
+   "revu": "2026-11-04T14:33:29Z",
+   "maj": "2026-11-04T14:33:29+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/chad"
+  },
+  "TG": {
+   "statuts": [
+    "avoid_all_travel_to_parts",
+    "avoid_all_but_essential_travel_to_parts"
+   ],
+   "revu": "2026-11-04T16:27:18Z",
+   "maj": "2026-11-04T16:27:18+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/togo"
+  },
+  "TN": {
+   "statuts": [
+    "avoid_all_travel_to_parts"
+   ],
+   "revu": "2026-07-24T16:07:53Z",
+   "maj": "2026-07-24T17:07:53+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/tunisia"
+  },
+  "TZ": {
+   "statuts": [
+    "avoid_all_but_essential_travel_to_parts"
+   ],
+   "revu": "2026-10-30T14:45:53Z",
+   "maj": "2026-10-30T14:45:53+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/tanzania"
+  },
+  "UG": {
+   "statuts": [],
+   "revu": "2026-11-06T10:16:14Z",
+   "maj": "2026-11-06T10:16:14+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/uganda"
+  },
+  "ZA": {
+   "statuts": [],
+   "revu": "2026-11-05T11:07:46Z",
+   "maj": "2026-11-05T11:07:46+00:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/south-africa"
+  },
+  "ZM": {
+   "statuts": [],
+   "revu": "2026-06-01T13:58:33Z",
+   "maj": "2026-06-01T14:58:33+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/zambia"
+  },
+  "ZW": {
+   "statuts": [],
+   "revu": "2026-07-15T08:15:29Z",
+   "maj": "2026-07-15T09:15:29+01:00",
+   "url": "https://www.gov.uk/foreign-travel-advice/zimbabwe"
+  }
+ },
+ "divergences": [
+  {
+   "code": "MA",
+   "niveau": "orange",
+   "avis": "aucun",
+   "libelle": "aucune restriction",
+   "revuIlYaJ": 90
+  },
+  {
+   "code": "MG",
+   "niveau": "marron",
+   "avis": "aucun",
+   "libelle": "aucune restriction",
+   "revuIlYaJ": 1
+  },
+  {
+   "code": "UG",
+   "niveau": "marron",
+   "avis": "aucun",
+   "libelle": "aucune restriction",
+   "revuIlYaJ": 11
+  }
+ ]
 }
