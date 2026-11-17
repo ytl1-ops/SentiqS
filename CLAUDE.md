@@ -4275,3 +4275,52 @@ obtenue celle de SheetJS, que `npm pack` ne fournit pas).
 la réponse doit porter `access-control-allow-origin: *`, sinon le navigateur
 refuse le script à cause de `crossorigin`. Banc du 15/11 : fichiers npm
 chargés, mêmes fichiers altérés d'un octet refusés (8 refus SRI).
+
+---
+
+## Firebase seul, confiance adossée au FCDO — 17/11/2026
+
+Demande de YORO (15/11/2026) : tout sur Firebase, rien sur Supabase, et
+« améliorer la confiance à un niveau acceptable en sûreté ». Détail de la
+migration dans `FIREBASE.md` (« État au 17/11/2026 »).
+
+- **Règles Firestore testées sur émulateur en CI** (job `regles-firestore`,
+  `scripts/verifier-regles-firestore.js`, 16 cas). La lecture du cache exige un
+  profil actif ET un accès en cours (`accesEnCours` : admin, `accesJusquau`,
+  forfait payant, ou essai de 72 h + un jour de marge). Un compte suspendu ne
+  peut plus supprimer son profil.
+- **Confiance et avis officiels.** `lectureAvisOfficiel` (noyau) : un avis du
+  FCDO revu depuis moins de 90 jours et compatible avec le niveau
+  (`AVIS_COMPATIBLE`, bornes larges exprès) fait passer la confiance de faible à
+  moyenne, jamais au-delà ; un avis divergent la laisse faible avec « socle à
+  relire ». **Le niveau ne bouge jamais**, et la confiance reste hors des
+  documents. `scripts/avis-officiels.js` (workflow quotidien
+  `avis-officiels.yml`, 5 h 41 UTC) écrit `web/historique/avis-officiels.json`
+  depuis l'API de contenu de gov.uk (licence OGL) ; le job de collecte attend
+  ce fichier avant d'archiver la confiance. Mesure du 17/11/2026 : 54 avis lus,
+  **confiance faible 35 → 16**, trois avis divergents à relire : Maroc (orange,
+  FCDO sans restriction), Madagascar et Ouganda (marron, FCDO sans restriction).
+  Un pays sans avis récent garde sa confiance d'avant (le Lesotho, orange sur
+  502 jours, reste faible) : c'est la revue du socle qui le règle, pas l'avis.
+- **Présentation 1.** « Niger State », « Benin City » : un fait d'une source
+  nigériane en anglais, sans marqueur du voisin (Niamey, Cotonou, Tiani…), reste
+  au Nigeria (`HOMONYME_NIGERIAN_PAYS_RE`) ; le cumul du mois est corrigé par le
+  job (`paysDuFaitCumule`, `reattribuer`, limité à NE/BJ → NG ; 8 faits en
+  novembre). Les photos sont ramenées à 1 000 px de large (`alleger`).
+- **Faux critiques** : « coup d'avance », « attaque » d'un budget ou d'un projet
+  de loi, Sydney/Bondi. Banc sur le cumul de novembre : 2 descendent, aucun ne
+  monte. Reste vu et non traité : le verbe « attaquent » n'est pas au lexique
+  (« Des hommes armés attaquent le poste de Djibo » sort normal) ; l'ajouter
+  demande une mesure.
+- **Piège de regex** : `attaquent?` veut dire « attaquen » + « t » facultatif,
+  pas « attaque(nt) ». Écrire `attaqu(?:e|ent)`.
+- **Trouvé, non corrigé** : deux fonctions s'appellent `chargerHistorique` dans
+  la page (lecture IndexedDB de `HISTORIQUE`, et série d'archive) ; la seconde
+  masque la première, donc l'historique local n'est jamais relu au démarrage.
+  Le job n'en a pas (navigateur neuf) : corriger ferait diverger l'écran de
+  l'archive d'au plus 0,5 point. À mesurer avant de toucher.
+
+Exports à la demande : 14/14 identiques avant/après (texte comparé, 200 actus
+françaises du cumul de novembre, horloge figée). Les actus en langue étrangère
+ont été écartées du banc : sans réseau, chaque titre attend tous les moteurs de
+traduction et le banc ne finit pas.
