@@ -66,26 +66,34 @@ function stockage() { const m = new Map(); return { getItem: (k) => (m.has(k) ? 
 const CFG = { apiKey: 'a', authDomain: 'x.firebaseapp.com', projectId: 'x' };
 
 // ── Bascule ──────────────────────────────────────────────────────────────
-test('sans configuration, la page reste sur Supabase', () => {
+test('sans configuration, la page n\'a aucun fournisseur (Supabase retiré)', () => {
   assert.strictEqual(FB.configuree(null), false);
   assert.strictEqual(FB.configuree({ apiKey: 'a' }), false, 'une config incomplete ne bascule pas');
   assert.strictEqual(FB.configuree(CFG), true);
-  const f = tranche('function getSentinelSupabase()', 'function getClientDonnees()');
-  assert.match(f, /if \(_fournisseurFirebase\(\)\) return window\.SentiqFirebase\.client\(\);/);
+  const f = tranche('function getClientFirebase()', 'function _clientFirebaseEphemere()');
+  assert.match(f, /return _fournisseurFirebase\(\) \? window\.SentiqFirebase\.client\(\) : null;/);
   assert.match(HTML, /<script src="js\/firebase-config\.js"><\/script>\s*<script src="js\/firebase\.js"><\/script>/);
   assert.match(ACCUEIL, /<script src="js\/firebase-config\.js"><\/script>\s*<script src="js\/firebase\.js"><\/script>/);
 });
 
-test('les donnees partagees restent sur Supabase pendant la bascule de la connexion', () => {
-  for (const f of ['lireCollectePartagee', 'publierCollectePartagee', 'diagnostiquerCachePartage', 'publierArticlesRagPartages',
-    'publierAgendaPartagee', 'lireAgendaPartagee', 'lireConfigEmailjsPartagee', 'publierConfigEmailjsPartagee']) {
+// Demande de YORO du 15/11/2026 : « tout devait être migré dans Firebase,
+// tout supprimer dans Supabase ». Plus aucune page servie ne parle à Supabase.
+test('aucune page servie ne charge ni n\'appelle Supabase', () => {
+  const servis = ['web/SentiqS_Web.html', 'web/index.html', 'web/en.html',
+    ...fs.readdirSync(path.join(RACINE, 'web/js')).map((f) => 'web/js/' + f)];
+  for (const f of servis) {
+    const src = fs.readFileSync(path.join(RACINE, f), 'utf8');
+    assert.doesNotMatch(src, /supabase\.co|supabase-js|SENTINEL_SUPABASE|window\.supabase|getClientDonnees/i, f);
+  }
+  for (const f of ['lireCollectePartagee', 'diagnostiquerCachePartage', 'lireAgendaPartagee']) {
     const debut = HTML.indexOf('async function ' + f + '(');
     const corps = HTML.slice(debut, HTML.indexOf('\n}', debut));
-    assert.match(corps, /getClientDonnees\(\)/, f + ' doit lire le client de donnees');
-    assert.doesNotMatch(corps, /getSentinelSupabase\(\)/, f);
+    assert.match(corps, /_lireCacheFirestore|SentiqCacheFirestore/, f + ' doit lire Firestore');
   }
-  const d = tranche('function getClientDonnees()', 'function _clientSupabaseEphemere()');
-  assert.doesNotMatch(d, /SentiqFirebase/, 'le client de donnees ne bascule jamais vers Firebase');
+  for (const f of ['lireConfigEmailjsPartagee', 'publierConfigEmailjsPartagee']) {
+    const debut = HTML.indexOf('async function ' + f + '(');
+    assert.match(HTML.slice(debut, HTML.indexOf('\n}', debut)), /getClientFirebase\(\)/, f);
+  }
 });
 
 test('la configuration servie ne contient aucun secret de compte de service', () => {
@@ -236,7 +244,10 @@ test('les regles Firestore portent ce que faisaient les declencheurs Supabase', 
   assert.match(REGLES, /request\.resource\.data\.status == resource\.data\.status/, 'ni de son statut');
   // Depuis le 13/11/2026 un utilisateur supprime aussi son propre profil
   // (Play Store), jamais celui d'un autre ni un profil admin : suppression-compte.test.js.
-  assert.match(REGLES, /allow delete: if estAdmin\(\)\n        \|\| \(connecte\(\) && request\.auth\.uid == uid && resource\.data\.role != 'admin'\);/);
+  // Depuis le 15/11/2026, seulement un profil actif : un compte suspendu le
+  // recréait aussitôt « active » (audit, S2). Exécuté sur l'émulateur par
+  // scripts/verifier-regles-firestore.js.
+  assert.match(REGLES, /allow delete: if estAdmin\(\)\n        \|\| \(connecte\(\) && request\.auth\.uid == uid && resource\.data\.role != 'admin'\n            && resource\.data\.status == 'active'\);/);
   assert.doesNotMatch(REGLES, /allow read, write: if true/);
   // Les adresses des administrateurs vivent dans les regles, jamais dans le
   // code servi. Deux depuis le 21/10/2026, a la demande de YORO.

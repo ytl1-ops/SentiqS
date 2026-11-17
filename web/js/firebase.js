@@ -7,11 +7,12 @@
 //  envoie lui-même ses e-mails de connexion, sans SMTP.
 //
 //  Le choix de conception : cet adaptateur expose la PETITE partie de l'API
-//  supabase-js que la page utilise réellement (auth.* et from(table)), mais
+//  de l’ancien client Supabase que la page utilise réellement (auth.* et from(table)), mais
 //  servie par Firebase Authentication et Firestore. La page garde donc toute
 //  sa logique (essai de 72 h, compte suspendu, reconnexion du jour, droits),
-//  et une seule ligne, dans getSentinelSupabase(), choisit le fournisseur.
-//  Tant que web/js/firebase-config.js vaut null, rien ne change.
+//  Supabase est retiré depuis le 15/11/2026 : Firebase est le seul
+//  fournisseur. Si web/js/firebase-config.js vaut null, la page dit
+//  « service indisponible » (getClientFirebase() rend null).
 //
 //  Trois différences avec Supabase, à connaître :
 //    · pas de code à six chiffres : Firebase envoie un LIEN de connexion.
@@ -25,8 +26,7 @@
 //      refusent toute écriture qu'un client n'a pas le droit de faire.
 //
 //  Le kit Firebase (compat, version figée) n'est chargé que si la
-//  configuration est remplie : il pèse ~500 Ko et ne doit rien coûter tant
-//  que Supabase reste le fournisseur.
+//  configuration est remplie (~500 Ko).
 //
 //  Module à injection (l'espace de noms firebase, le stockage, l'adresse se
 //  passent en paramètre) : testable sans navigateur, comme web/js/intro.js.
@@ -124,7 +124,7 @@
   }
 
   // Firestore refuse `undefined` : un aller-retour JSON donne exactement ce
-  // que supabase-js aurait envoyé à PostgREST.
+  // que l’ancien client Supabase aurait envoyé à PostgREST.
   function propre(v) { return JSON.parse(JSON.stringify(v === undefined ? null : v)); }
 
   // ── Requêtes : sous-ensemble de PostgREST utilisé par la page ──────────
@@ -413,7 +413,7 @@
       };
     },
     // null tant que le kit n'est pas chargé : la page le traite comme
-    // « service indisponible », exactement comme un supabase-js absent.
+    // « service indisponible », sans fournisseur de repli.
     client: function () {
       if (!api.actif() || !global.firebase || !global.firebase.auth) return null;
       if (!_client) _client = creerClient(global.firebase, global.SENTIQ_FIREBASE_CONFIG, {}, api.envNavigateur());

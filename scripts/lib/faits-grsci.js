@@ -87,6 +87,27 @@ function cumuler(racine, mois, parPays) {
   return ecrireCumul(racine, c);
 }
 
+// reattribuer(cumul, paysDe) : déplace les faits que la règle courante
+// rattache à un autre pays (paysDe(fait, cy) rend le code). Jamais vers
+// « INT » : un fait ne sort pas du rapport par cette voie. Rend la liste des
+// déplacements, pour le journal du job.
+function reattribuer(c, paysDe) {
+  const deplaces = [];
+  for (const cy of Object.keys(c.pays || {})) {
+    const garde = [];
+    for (const f of c.pays[cy]) {
+      const n = paysDe(f, cy);
+      if (n && n !== cy && n !== 'INT' && /^[A-Z]{2}$/.test(n)) {
+        const cible = c.pays[n] = c.pays[n] || [];
+        if (!cible.some((x) => cleFait(x) === cleFait(f))) cible.push(f);
+        deplaces.push({ de: cy, vers: n, titre: f.titre });
+      } else garde.push(f);
+    }
+    c.pays[cy] = garde;
+  }
+  return deplaces;
+}
+
 function ecrireCumul(racine, c) {
   fs.mkdirSync(racine, { recursive: true });
   fs.writeFileSync(cheminCumul(racine, c.mois), JSON.stringify(c) + '\n');
@@ -186,4 +207,4 @@ function faitsDuMois(cumul, cy, nomPays) {
   return regrouper(liste.filter((f) => !horsSurete.estHorsSurete(f, cy)), nomPays);
 }
 
-module.exports = { cheminCumul, cumuler, ecrireCumul, lireCumul, nettoyerTitre, regrouper, faitsDuMois, trier };
+module.exports = { cheminCumul, cumuler, ecrireCumul, lireCumul, nettoyerTitre, regrouper, faitsDuMois, trier, reattribuer };

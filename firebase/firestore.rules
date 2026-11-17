@@ -51,6 +51,35 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.status == 'active';
     }
 
+    // Forfait et essai contrôlés côté serveur (audit du 15/11/2026, A1) : le
+    // navigateur décidait seul si l'essai de 72 h était échu
+    // (compteGratuitExpire, falsifiable en vidant le stockage local). Même
+    // règle ici, lue dans le profil, pour ce qui a de la valeur : le cache
+    // d'actus et l'agenda partagés. Dans l'ordre de compteGratuitExpire :
+    //   · « Accès valide jusqu'au » posé par l'admin : jusqu'à la fin du jour ;
+    //   · forfait payant : accès ;
+    //   · forfait gratuit : 72 h, comptées ici au jour près (minuit du jour
+    //     de création + 4 jours, soit 72 à 96 h) — les règles ne lisent pas
+    //     l'heure d'une date écrite en texte, et couper un essai trop tôt
+    //     serait pire que le laisser courir quelques heures de plus ;
+    //   · profil ancien sans date de création : accès, comme dans la page.
+    function jourDe(s) {
+      let p = s.split('T')[0].split('-');
+      return timestamp.date(int(p[0]), int(p[1]), int(p[2]));
+    }
+    function accesEnCours() {
+      let profil = get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data;
+      let d = profil.get('data', {});
+      let jusquau = d.get('accesJusquau', null);
+      let cree = d.get('createdAt', null);
+      return emailAdmin() || profil.get('role', 'user') == 'admin'
+        || (jusquau is string && request.time < jourDe(jusquau) + duration.value(1, 'd'))
+        || (!(jusquau is string) && (
+              d.get('plan', 'gratuit') in ['standard', 'pro', 'entreprise']
+              || !(cree is string)
+              || request.time < jourDe(cree) + duration.value(4, 'd')));
+    }
+
     match /profiles/{uid} {
       allow read: if connecte() && (request.auth.uid == uid || estAdmin());
       allow create: if connecte() && request.auth.uid == uid
@@ -73,8 +102,12 @@ service cloud.firestore {
             && commercialInchange()));
       // Un utilisateur supprime son propre profil (exigence du Play Store,
       // 13/11/2026) ; jamais celui d'un autre, et jamais un profil admin.
+      // Un compte suspendu ne supprime pas son profil lui-même (audit du
+      // 15/11/2026, S2) : il le recréait aussitôt « active », ce qui levait la
+      // suspension. Il passe par l'administrateur.
       allow delete: if estAdmin()
-        || (connecte() && request.auth.uid == uid && resource.data.role != 'admin');
+        || (connecte() && request.auth.uid == uid && resource.data.role != 'admin'
+            && resource.data.status == 'active');
     }
 
     // Journal des connexions : chacun écrit la sienne, seul l'admin lit.
@@ -90,7 +123,7 @@ service cloud.firestore {
     // service (IAM), qui ne passe pas par ces règles. Aucune écriture depuis
     // un navigateur.
     match /collecte_partagee/{id} {
-      allow read: if profilActif();
+      allow read: if profilActif() && accesEnCours();
       allow write: if false;
     }
 
@@ -249,7 +282,14 @@ service cloud.firestore {
       allow read, delete: if false;
     }
 
-    // Tout le reste est fermé tant qu'une PR ne l'ouvre pas explicitement
-    // (agenda, configuration partagée : étape suivante).
+    // Configuration partagée (identifiants publics EmailJS), venue de la table
+    // Supabase config_partagee le 15/11/2026 : lue par tout compte connecté,
+    // écrite par l'administrateur seul.
+    match /config_partagee/{id} {
+      allow read: if connecte();
+      allow write: if estAdmin() && id == 'global';
+    }
+
+    // Tout le reste est fermé tant qu'une PR ne l'ouvre pas explicitement.
   }
 }

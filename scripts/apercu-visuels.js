@@ -51,8 +51,7 @@ const FIGER = () => {
 };
 
 (async () => {
-  // Firestore d'abord (le cache y vit depuis la bascule, Supabase a dépassé son
-  // quota le 27/10/2026 : HTTP 402), Supabase en repli tant que le cache n'y est pas.
+  // Le cache vit sur Firestore seul depuis le 15/11/2026 (Supabase retiré).
   let ligne = null;
   try {
     const cfgSrc = fs.readFileSync(path.join(RACINE, 'js', 'firebase-config.js'), 'utf8');
@@ -65,17 +64,9 @@ const FIGER = () => {
     const r = compte ? await ecr.lireCache(compte, fetch) : await require('../web/js/cache-firestore.js').lire(cfg);
     if (r && r.articles.length) ligne = { articles: r.articles, updated_at: r.updated_at };
   } catch (e) { console.error('Cache Firestore illisible : ' + e.message); }
-  if (!ligne) {
-    const url = constante('SENTINEL_SUPABASE_URL') + '/rest/v1/collecte_partagee?select=articles,updated_at&id=eq.' + constante('COLLECTE_PARTAGEE_ID');
-    const cle = constante('SENTINEL_SUPABASE_ANON_KEY');
-    const rep = await fetch(url, { headers: { apikey: cle, Authorization: 'Bearer ' + cle } });
-    // Informatif (voir apercu-visuels.yml) : sans cache lisible il n'y a rien
-    // a mesurer, ce n'est pas un defaut de la PR. Le 30/10/2026 ce cas faisait
-    // echouer chaque PR (Firestore 403 tant que les regles ne sont pas
-    // publiees, Supabase 402) et rougissait la CI sans rien dire du code.
-    if (!rep.ok) { console.log('::warning::Lecture du cache publie impossible : HTTP ' + rep.status + ' — aucun apercu produit.'); process.exit(0); }
-    [ligne] = await rep.json();
-  }
+  // Informatif (voir apercu-visuels.yml) : sans cache lisible il n'y a rien
+  // a mesurer, ce n'est pas un defaut de la PR.
+  if (!ligne) { console.log('::warning::Lecture du cache publie impossible — aucun apercu produit.'); process.exit(0); }
   const articles = (ligne && ligne.articles) || [];
   console.log('Cache publie du ' + (ligne && ligne.updated_at) + ' : ' + articles.length + ' articles');
   if (!articles.length) { console.log('::warning::Cache publie vide — aucun apercu produit.'); process.exit(0); }

@@ -1,10 +1,10 @@
 // ═══════════════════════════════════════════════════════════════════════════
 //  SentiqS — configuration web PUBLIQUE du projet Firebase
 //
-//  Tant que cet objet vaut null, l'application reste sur Supabase, exactement
-//  comme avant : rien ne change pour l'utilisateur. Dès qu'il est rempli, la
-//  connexion, les comptes et le journal des connexions passent par Firebase
-//  (voir web/js/firebase.js et FIREBASE.md).
+//  Firebase est le seul fournisseur depuis le 15/11/2026 (Supabase retiré) :
+//  connexion, comptes, journal des connexions, cache d'actus, agenda,
+//  configuration, paiements déclarés (voir web/js/firebase.js et FIREBASE.md).
+//  Remettre null ici rend l'application « service indisponible ».
 //
 //  Ces valeurs ne sont PAS des secrets : Firebase les destine à être lues par
 //  n'importe quel navigateur (« Paramètres du projet > Vos applications >
@@ -14,8 +14,7 @@
 //  les secrets GitHub Actions, jamais ici.
 // ═══════════════════════════════════════════════════════════════════════════
 //
-//  Projet « SentiqS » (sentiqs-235ce), créé le 21/10/2026, plan Spark. Remettre
-//  null ici suffit à revenir à Supabase pour la connexion.
+//  Projet « SentiqS » (sentiqs-235ce), créé le 21/10/2026, plan Spark.
 window.SENTIQ_FIREBASE_CONFIG = {
   apiKey: 'AIzaSyCig0xMaVB0YOv4zuYeQeGfTgCuw3ETR4c',
   authDomain: 'sentiqs-235ce.firebaseapp.com',

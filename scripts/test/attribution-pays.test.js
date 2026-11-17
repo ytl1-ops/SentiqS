@@ -216,3 +216,62 @@ test('« Maurice Kamto » est un homme politique camerounais, pas l\'île Mauric
   assert.strictEqual(ou('Cyclone : l\'île Maurice en alerte', '', 'CM').cy, 'MU');
   assert.strictEqual(ou('Port-Louis : manifestation devant le Parlement', '', 'CM').cy, 'MU');
 });
+
+// Audit du 15/11/2026 : dans la Présentation 1 de novembre, un enlèvement de
+// quatorze élèves dans l'État de Niger (Nigeria) figurait sous le Niger, et un
+// vol de câbles à Benin City sous le Bénin. Pour la presse nigériane
+// anglophone, « Niger » et « Benin » sont d'abord des lieux du Nigeria.
+test('presse nigériane : l’État de Niger et Benin City restent au Nigeria', () => {
+  contexte.detectLangue = () => 'en';
+  assert.strictEqual(ou('Bandits abduct 14 Islamic school pupils, teacher in Niger, police confirm',
+    'The police in Niger have confirmed the abduction of 14 pupils of an Islamiyya school.', 'NG').cy, 'NG');
+  assert.strictEqual(ou('Niger gets new police commissioner as Elleman retires', '', 'NG').cy, 'NG');
+  assert.strictEqual(ou('Man Nabbed For Stealing Cables At TCN Benin 330kV Switchyard', '', 'NG').cy, 'NG');
+  assert.strictEqual(ou('Reflections on the 10th coronation anniversary of the Oba of Benin', '', 'NG').cy, 'NG');
+});
+
+test('presse nigériane : le pays voisin reste le sien quand le texte le désigne', () => {
+  contexte.detectLangue = () => 'en';
+  assert.strictEqual(ou('Tinubu condoles with Niger junta leader over father’s death', '', 'NG').cy, 'NE');
+  assert.strictEqual(ou('Niger: Niamey suspends flights', '', 'NG').cy, 'NE');
+  assert.strictEqual(ou('Benin Republic: Talon receives envoys in Cotonou', '', 'NG').cy, 'BJ');
+  // Un texte français d'un relais nigérian (AllAfrica NG) n'est pas concerné.
+  contexte.detectLangue = () => 'fr';
+  assert.strictEqual(ou('Les réfugiés affluent au Niger et au Bénin, le HCR réclame des fonds', '', 'NG').cy !== 'NG', true);
+  // Hors presse nigériane, rien ne change.
+  contexte.detectLangue = () => 'en';
+  assert.strictEqual(ou('Bandits attack village in Niger', '', 'GH').cy, 'NE');
+  delete contexte.detectLangue;
+});
+
+test('« Benin City » ne compte jamais pour le Bénin, quelle que soit la source', () => {
+  assert.notStrictEqual(ou('Flooding in Benin City displaces hundreds', '', 'GH').cy, 'BJ');
+  assert.strictEqual(ou('Cotonou : inondations dans plusieurs quartiers', '', 'GH').cy, 'BJ');
+});
+
+test('le cumul du mois : seuls les homonymes nigérians changent de pays', () => {
+  const g = require('../lib/faits-grsci.js');
+  const c = { mois: '2026-11', pays: {
+    NE: [{ titre: 'Bandits abduct 14 Islamic school pupils, teacher in Niger, police confirm', source: 'Premium Times' },
+         { titre: 'Tinubu condoles with Niger junta leader', source: 'Premium Times' }],
+    BJ: [{ titre: 'Cotonou : la police démantèle un réseau', source: 'Banouto' }],
+  } };
+  const dest = { 'Bandits abduct 14 Islamic school pupils, teacher in Niger, police confirm': 'NG' };
+  const d = g.reattribuer(c, (f, cy) => dest[f.titre] || cy);
+  assert.deepStrictEqual(d.map((x) => x.de + '>' + x.vers), ['NE>NG']);
+  assert.strictEqual(c.pays.NE.length, 1);
+  assert.strictEqual(c.pays.NG.length, 1);
+  assert.deepStrictEqual(g.reattribuer(c, () => 'INT'), [], 'jamais vers INT');
+  const page = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../web/SentiqS_Web.html'), 'utf8');
+  const f = page.slice(page.indexOf('function paysDuFaitCumule'), page.indexOf('// Le chapô d\'un article pour le rapport'));
+  assert.match(f, /cy !== 'NE' && cy !== 'BJ'\)\) return cy/, 'limité aux homonymes');
+});
+
+test('une attaque à Sydney relayée par un média ghanéen ne compte pas pour le Ghana', () => {
+  // Cumul de novembre 2026 : « Armed police start patrols in Sydney after
+  // Bondi Beach attack » (JoyOnline) sortait CRITIQUE au Ghana dans la
+  // Présentation 1 (audit du 15/11/2026).
+  assert.strictEqual(ou('Armed police start patrols in Sydney after Bondi Beach attack', '', 'GH').cy, 'INT');
+  // Un fait ghanéen qui cite l'Australie en passant reste au Ghana.
+  assert.strictEqual(ou('Ghanaian student killed in Sydney, family demands justice in Accra', '', 'GH').cy, 'GH');
+});

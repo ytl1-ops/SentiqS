@@ -11,11 +11,31 @@ Projet Firebase : **SentiqS** (`sentiqs-235ce`), base Firestore en
 | E-mails de connexion par lien | **5 par jour** pour tout le projet | d'où Google et le mot de passe en secours |
 | E-mails de réinitialisation | 150 par jour | suffisant |
 | Connexion Google | sans limite | porte principale sans mot de passe |
-| Cloud Functions | **non disponibles** | `publier-collecte`, `autoriser-export`, `rag-ask`, paiements restent sur Supabase ou s'arrêtent |
+| Cloud Functions | **non disponibles** | `publier-collecte` est remplacé par le job ; `autoriser-export` et `rag-ask` sont arrêtés |
 | Document Firestore | 1 Mo au plus | le cache d'actus (1,4 Mo) devra être découpé |
 | Firestore | 50 000 lectures, 20 000 écritures par jour | suffisant pour le pilote |
 
 Source : documentation Firebase « Authentication limits », lue le 21/10/2026.
+
+## État au 17/11/2026 : Firebase seul
+
+Demande de YORO (15/11/2026) : « tout migrer dans Firebase, tout supprimer dans
+Supabase ». **La page servie, l'accueil, les scripts du job et la CI ne
+connaissent plus Supabase** : plus de SDK, plus de clé, plus de domaine dans la
+CSP, dossier `supabase/` retiré. Cache d'actus, agenda, configuration EmailJS
+(`config_partagee/global`, écrite par l'admin) : Firestore seul. Le job échoue
+bruyamment si la publication Firestore échoue, au lieu de retomber sur Supabase.
+Le droit d'export n'est plus vérifié par une fonction serveur (`autoriser-export`
+vivait sur Supabase) : le quota est compté dans le navigateur.
+
+Ce qui reste hors du produit servi et n'a pas été touché : `webapp/` (Netlify) et
+`app/sentinel-app/` (Expo et ses fonctions Edge Supabase). Les supprimer est une
+décision du propriétaire. Le projet Supabase lui-même ne se supprime que depuis
+son tableau de bord, **après** export de ses tables (le bac à sable ne peut plus
+le lire : erreur 402 depuis le 27/10).
+
+Les sections ci-dessous décrivent la bascule par étapes ; les mentions de
+Supabase y sont historiques.
 
 ## Étapes
 

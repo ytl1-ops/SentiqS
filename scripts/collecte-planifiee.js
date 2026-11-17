@@ -4,7 +4,7 @@
 //
 // Déclenche UNE collecte réelle (~495 sources RSS) via un navigateur
 // headless pointé sur l'application déployée, puis publie le résultat dans
-// le cache partagé Supabase (collecte_partagee) — pour que ce cache reste
+// le cache partagé Firestore (collecte_partagee) — pour que ce cache reste
 // quasi toujours frais, indépendamment du trafic réel de visiteurs.
 // Auparavant, le cache n'était alimenté que par hasard (un visiteur
 // déclenchant lui-même une collecte) : dès qu'il expirait, le prochain
@@ -173,10 +173,9 @@ function ecrireResumeActions(md) {
     // c'est exactement le temps pendant lequel les visiteurs ont vu une
     // donnée périmée. Lecture directe (lireCollectePartagee renvoie null
     // au-delà de la fenêtre de fraîcheur, donc ne peut pas servir ici).
-    // Cache partage sur Firestore (etape 2 de FIREBASE.md) des que le secret
-    // FIREBASE_SERVICE_ACCOUNT est pose ; sinon Supabase, comme avant. Illisible
-    // alors que pose : on ne retombe PAS sur Supabase en silence, la publication
-    // echoue bruyamment plus bas.
+    // Cache partage sur Firestore, seule destination depuis le 15/11/2026
+    // (Supabase retire). Sans FIREBASE_SERVICE_ACCOUNT lisible, la
+    // publication echoue bruyamment plus bas : aucun repli silencieux.
     const secretFirebase = process.env.FIREBASE_SERVICE_ACCOUNT || '';
     const compteLu = secretFirebase ? cacheFirestore.lireCompte(secretFirebase) : null;
     // La clé doit venir du projet que la page LIT (web/js/firebase-config.js).
@@ -200,16 +199,7 @@ function ecrireResumeActions(md) {
         const a = await cacheFirestore.lireCache(compteFirebase, fetch);
         return a && a.updated_at ? Date.now() - new Date(a.updated_at).getTime() : null;
       } catch (_) { return null; }
-    })() : await page.evaluate(async () => {
-      try {
-        const client = (typeof getClientDonnees === 'function' ? getClientDonnees() : getSentinelSupabase());
-        if (!client) return null;
-        const { data, error } = await client.from('collecte_partagee')
-          .select('updated_at').eq('id', COLLECTE_PARTAGEE_ID).maybeSingle();
-        if (error || !data || !data.updated_at) return null;
-        return Date.now() - new Date(data.updated_at).getTime();
-      } catch (_) { return null; }
-    });
+    })() : null;
     if (ageCachePrecedent !== null) {
       const min = Math.round(ageCachePrecedent / 60000);
       const attendu = 30;
@@ -221,29 +211,6 @@ function ecrireResumeActions(md) {
       }
     } else {
       console.log('Cadence réelle : aucune publication précédente lisible (première collecte ?).');
-    }
-
-    // Jeton de publication : injecté dans la session, JAMAIS écrit dans le
-    // fichier public ni dans ce dépôt. Il autorise l'appel à la fonction
-    // Edge `publier-collecte`, qui détient la clé de service et écrit à
-    // notre place — de sorte que la table n'ait plus à être ouverte au rôle
-    // anon (voir supabase/README.md).
-    //
-    // Absent : la publication retombe sur l'écriture directe, encore valide
-    // tant que la migration de verrouillage n'est pas appliquée. On le
-    // signale, sans faire échouer le job — l'ordre de bascule est
-    // volontairement progressif.
-    const jetonPublication = process.env.COLLECTEUR_JETON || '';
-    if (jetonPublication) {
-      await page.evaluate((jeton) => {
-        if (typeof _MEM_SESSION === 'object' && _MEM_SESSION) _MEM_SESSION.collecteurJeton = jeton;
-      }, jetonPublication);
-      console.log('Jeton de publication injecté : publication via la fonction Edge.');
-    } else {
-      console.warn(
-        'COLLECTEUR_JETON absent : publication par écriture directe (voie héritée). ' +
-        'Définissez ce secret avant d\'appliquer la migration de verrouillage.'
-      );
     }
 
     // Orchestration explicite (voir checkCollectorSession, volontairement
@@ -278,11 +245,10 @@ function ecrireResumeActions(md) {
     }
 
     // Publication sur Firestore : le job relit le cache en place, la page le
-    // fusionne avec ALL (fusionnerCachePartage, la meme fonction que la voie
-    // Supabase), puis Node l'ecrit. Lecture impossible (reseau, jeton) : on
+    // fusionne avec ALL (fusionnerCachePartage), puis Node l'ecrit. Lecture impossible (reseau, jeton) : on
     // n'ecrit PAS — publier ALL seul ecraserait la couverture accumulee des
     // cycles precedents (voir fusionnerCachePartage).
-    let publicationExterne = null;
+    let publicationExterne = { ok: false, raison: 'FIREBASE_SERVICE_ACCOUNT absent : rien a publier ailleurs que sur Firestore' };
     if (secretFirebase) {
       try {
         if (!compteFirebase) throw new Error('FIREBASE_SERVICE_ACCOUNT illisible ou d\'un autre projet que la page');
@@ -315,63 +281,15 @@ function ecrireResumeActions(md) {
       }
     }
 
+    // La raison d'etre UNIQUE de ce job est de garder le cache partage a jour
+    // pour tous les visiteurs : la publication doit REELLEMENT reussir, sinon
+    // le run echoue bruyamment (une donnee perimee presentee comme a jour est
+    // un facteur de risque grave pour un outil de surete).
     const resultat = await page.evaluate(async (pubExterne) => {
       if (!Array.isArray(ALL) || !ALL.length) return { ok: false, raison: 'Aucun article dans ALL' };
-      if (!pubExterne && typeof publierCollectePartagee !== 'function') return { ok: false, raison: 'publierCollectePartagee indisponible (Supabase non chargé ?)' };
-      // La raison d'etre UNIQUE de ce job est de garder collecte_partagee a
-      // jour pour tous les visiteurs (voir en-tete du fichier) — publier ne
-      // suffit pas, la publication doit REELLEMENT reussir. Avant ce
-      // controle, ce job rapportait "succes" meme quand la table
-      // n'existait pas / que Supabase refusait l'ecriture (RLS, quota...) :
-      // publierCollectePartagee avalait l'erreur en interne (console.warn
-      // seul), rien ne la faisait remonter jusqu'ici. Consequence reelle
-      // constatee : la table collecte_partagee est restee absente du projet
-      // Supabase pendant des semaines sans qu'aucun run planifie ne l'ait
-      // jamais signale — dans une application de surete, une donnee perimee
-      // presentee comme a jour est un facteur de risque grave ; ce job doit
-      // echouer BRUYAMMENT (exit code non nul, run rouge dans GitHub
-      // Actions) plutot que de masquer une panne de publication.
-      const pub = pubExterne || await publierCollectePartagee(ALL, true);
-      if (!pub || !pub.ok) return { ok: false, raison: 'publierCollectePartagee a echoue : ' + (pub && pub.raison || 'raison inconnue') };
-      // Alimente aussi l'index de recherche de l'Assistant IA (RAG) — best-
-      // effort, ne doit jamais faire echouer la publication du cache
-      // principal si absent/en echec (voir articles_rag, migration
-      // 20260718030000).
-      // Publication passee par Firestore : Supabase (402) n'est plus sollicite
-      // pour le RAG ni l'agenda — l'agenda part sur Firestore cote Node.
-      if (!pubExterne && typeof publierArticlesRagPartages === 'function') { try { await publierArticlesRagPartages(ALL); } catch (_) {} }
-      // Persiste les evenements Agenda detectes automatiquement (agent
-      // AGENDA, voir agenda_partagee/migration 20260719000000) —
-      // best-effort, meme raisonnement que le RAG ci-dessus. C'est ce job
-      // planifie (toutes les ~30 min, sans dependre qu'un visiteur ait la
-      // page ouverte) qui couvre effectivement les 54 pays de facon fiable :
-      // sans lui, un evenement detecte reste invisible des que l'article
-      // source sort de ALL (12h), quel que soit le trafic reel de visiteurs.
-      //
-      // Le verdict est distingue en trois : un succes ayant publie, un succes
-      // sans rien a publier (le cas courant), et un echec. L'ancienne version
-      // ne distinguait rien : elle criait « a echoue : raison inconnue » des
-      // que le retour etait falsy, et la fonction ne retournait alors JAMAIS
-      // rien. Chaque cycle vert portait donc une fausse alarme.
-      if (!pubExterne && typeof publierAgendaPartagee === 'function') {
-        try {
-          const pubAgenda = await publierAgendaPartagee(ALL);
-          if (!pubAgenda || typeof pubAgenda.ok !== 'boolean') {
-            console.error('[collecte-planifiee] publierAgendaPartagee n\'a rendu aucun verdict '
-              + '— contrat rompu, publication non verifiable.');
-          } else if (!pubAgenda.ok) {
-            console.error('[collecte-planifiee] publierAgendaPartagee a echoue :', pubAgenda.raison);
-          } else if (pubAgenda.publiees > 0) {
-            console.log('[collecte-planifiee] agenda partage : ' + pubAgenda.publiees + ' entree(s) publiee(s).');
-          } else {
-            console.log('[collecte-planifiee] agenda partage : rien a publier (' + pubAgenda.raison + ').');
-          }
-        } catch (e) {
-          console.error('[collecte-planifiee] publierAgendaPartagee a leve une exception :', (e && e.message) || e);
-        }
-      }
-      return { ok: true, nbArticles: pub.nbArticles, bestProxy: String(typeof bestProxy !== 'undefined' ? bestProxy : '?') };
-   }, publicationExterne);
+      if (!pubExterne || !pubExterne.ok) return { ok: false, raison: 'publication du cache a echoue : ' + ((pubExterne && pubExterne.raison) || 'raison inconnue') };
+      return { ok: true, nbArticles: pubExterne.nbArticles, bestProxy: String(typeof bestProxy !== 'undefined' ? bestProxy : '?') };
+    }, publicationExterne);
 
     // ── COUVERTURE DE LA COLLECTE ────────────────────────────────────────
     // Un run vert disait seulement « N articles publiés ». Il ne disait pas
@@ -482,6 +400,10 @@ function ecrireResumeActions(md) {
     // Le calcul n'est pas reimplemente ici : c'est calcAlertScore de la page
     // qui repond, comme partout ailleurs dans ce depot.
     try {
+      // L'avis officiel du FCDO est un témoin de la confiance (voir
+      // lectureAvisOfficiel dans le noyau) : attendre qu'il soit lu, sinon
+      // l'archive dirait une autre confiance que l'écran.
+      await page.evaluate(() => (typeof chargerAvisOfficiels === 'function' ? chargerAvisOfficiels() : null)).catch(() => null);
       const niveaux = await page.evaluate(() => {
         if (typeof calcAlertScore !== 'function' || typeof CYS === 'undefined') return null;
         return CYS.filter((c) => c && c.code && c.code !== 'all').map((c) => {
@@ -668,6 +590,20 @@ function ecrireResumeActions(md) {
           }
           if (Number(jour.slice(8, 10)) <= 2) faitsGrsci.cumuler(RACINE_GRSCI, depuis, releve);
           const cumul = faitsGrsci.cumuler(RACINE_GRSCI, mois, releve);
+          // Faits déjà versés : rattachés de nouveau avec la règle courante
+          // (audit du 15/11/2026 : enlèvement dans l'État de Niger compté au
+          // Niger). Chaque déplacement est écrit dans le journal.
+          try {
+            const plats = [];
+            Object.entries(cumul.pays || {}).forEach(([cy, l]) => l.forEach((f) => plats.push({ cy, titre: f.titre, resume: f.resume, source: f.source })));
+            const nouveaux = await page.evaluate((liste) => (typeof paysDuFaitCumule === 'function') ? liste.map((f) => paysDuFaitCumule(f, f.cy)) : null, plats);
+            if (Array.isArray(nouveaux)) {
+              const parCle = new Map(plats.map((f, i) => [f.cy + '|' + f.titre, nouveaux[i]]));
+              const deplaces = faitsGrsci.reattribuer(cumul, (f, cy) => parCle.get(cy + '|' + f.titre));
+              deplaces.forEach((d) => console.log('  Présentation 1 : fait rattaché de ' + d.de + ' à ' + d.vers + ' — ' + d.titre));
+              if (deplaces.length) faitsGrsci.ecrireCumul(RACINE_GRSCI, cumul);
+            }
+          } catch (e) { console.warn('::warning::Rattachement des faits du mois non revu : ' + ((e && e.message) || e)); }
           // Une seule langue dans un document du groupe : les titres en
           // anglais, portugais ou arabe sont traduits en français par la
           // chaîne de la page, une fois, et le titre traduit est gardé dans
@@ -758,7 +694,24 @@ function ecrireResumeActions(md) {
                   } catch (err) { /* chapô gardé dans sa langue : le passage suivant réessaiera */ }
                 }
               }
-              const avecPhoto = await photosGrsci.illustrer(illustres, undefined, limiteGrsci);
+              // Photos ramenées à 1 000 px en JPEG par le navigateur déjà ouvert
+              // (audit du 15/11/2026 : 45 Mo pour le rapport de novembre).
+              const reduirePhoto = async (buf, largeur) => {
+                const b64 = await page.evaluate(async ([donnees, l]) => {
+                  const octets = Uint8Array.from(atob(donnees), (c) => c.charCodeAt(0));
+                  const bmp = await createImageBitmap(new Blob([octets]));
+                  const k = Math.min(1, l / bmp.width);
+                  const c = new OffscreenCanvas(Math.round(bmp.width * k), Math.round(bmp.height * k));
+                  const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
+                  g.drawImage(bmp, 0, 0, c.width, c.height);
+                  const blob = await c.convertToBlob({ type: 'image/jpeg', quality: 0.8 });
+                  const t = new Uint8Array(await blob.arrayBuffer());
+                  let s = ''; for (let i = 0; i < t.length; i += 32768) s += String.fromCharCode.apply(null, t.subarray(i, i + 32768));
+                  return btoa(s);
+                }, [buf.toString('base64'), largeur]);
+                return { data: Buffer.from(b64, 'base64') };
+              };
+              const avecPhoto = await photosGrsci.illustrer(illustres, undefined, limiteGrsci, reduirePhoto);
               illustres.forEach((f) => (f.liens || []).forEach((l) => { const x = parUrl.get(l.url); if (x && f.img && !x.img) x.img = f.img; }));
               faitsGrsci.ecrireCumul(RACINE_GRSCI, cumulR);
               console.log('  Présentation 1 : ' + illustres.length + ' actus (' + marquants.length + ' rédigées), ' + avecPhoto + ' avec photo, ' + chapos + ' chapôs traduits.');

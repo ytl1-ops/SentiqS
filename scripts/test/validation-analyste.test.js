@@ -123,7 +123,7 @@ test('la validation en lot passe sa grille sans lire le formulaire, et rend vrai
   const a = { id: 'x', cy: 'CI', title: 'Grève au port' };
   const cl = client(false);
   const c = page([a], { role: 'admin' });
-  Object.assign(c, { _fournisseurFirebase: () => true, getSentinelSupabase: () => cl, redessinerVuesOuvertes() {}, document: champs({}) });
+  Object.assign(c, { _fournisseurFirebase: () => true, getClientFirebase: () => cl, redessinerVuesOuvertes() {}, document: champs({}) });
   assert.strictEqual(await c.enregistrerValidation('x', 'confirme', { source: 'C', info: '2', note: 'Validé en lot' }), true);
   assert.strictEqual(cl.ecrit[1][2].source + cl.ecrit[1][2].info, 'C2');
   assert.strictEqual(await c.enregistrerValidation('x', 'confirme', { source: 'C', info: '5' }), false);
@@ -166,7 +166,7 @@ test('enregistrer : le journal d\'abord, puis l\'état ; le journal refusé lais
   for (const refus of [false, true]) {
     const c = page([a], { role: 'admin' });
     const cl = client(refus);
-    Object.assign(c, { _fournisseurFirebase: () => true, getSentinelSupabase: () => cl, redessinerVuesOuvertes() {},
+    Object.assign(c, { _fournisseurFirebase: () => true, getClientFirebase: () => cl, redessinerVuesOuvertes() {},
       document: champs({ valS_x: 'B', valI_x: '2', valN_x: ' recoupé avec la gendarmerie ', valM_x: '' }) });
     await c.enregistrerValidation('x', 'confirme');
     if (!refus) {
@@ -188,11 +188,11 @@ test('enregistrer une décision incohérente ou sans droits n\'écrit rien', asy
   const a = { id: 'x', cy: 'CI', title: 'Attaque à Kafolo' };
   const cl = client(false);
   const c = page([a], { role: 'admin' });
-  Object.assign(c, { _fournisseurFirebase: () => true, getSentinelSupabase: () => cl, redessinerVuesOuvertes() {},
+  Object.assign(c, { _fournisseurFirebase: () => true, getClientFirebase: () => cl, redessinerVuesOuvertes() {},
     document: champs({ valS_x: 'B', valI_x: '5', valN_x: '', valM_x: '' }) });
   await c.enregistrerValidation('x', 'confirme');
   const lecteur = page([a], { role: 'reader' });
-  Object.assign(lecteur, { _fournisseurFirebase: () => true, getSentinelSupabase: () => cl,
+  Object.assign(lecteur, { _fournisseurFirebase: () => true, getClientFirebase: () => cl,
     document: champs({ valS_x: 'B', valI_x: '2', valN_x: '', valM_x: '' }) });
   await lecteur.enregistrerValidation('x', 'confirme');
   assert.strictEqual(cl.ecrit.length, 0);
@@ -200,7 +200,7 @@ test('enregistrer une décision incohérente ou sans droits n\'écrit rien', asy
 
 test('le bouton « Valider » n\'apparaît que pour l\'analyste ; le badge pour tous', () => {
   const a = { id: 'x', cy: 'CI', title: 'Attaque à Kafolo', pubDate: 0 };
-  const fx = { _fournisseurFirebase: () => true, getSentinelSupabase: () => ({}), escHtml: (s) => String(s),
+  const fx = { _fournisseurFirebase: () => true, getClientFirebase: () => ({}), escHtml: (s) => String(s),
     fmtFull: () => '13/11', libelleCotationR: (c) => c.libelle };
   const lecteur = Object.assign(page([a]), fx);
   assert.strictEqual(lecteur.badgeValidation(a), '');

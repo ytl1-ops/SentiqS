@@ -76,15 +76,15 @@ test('fusion de l\'agenda : une entrée par id, la plus récente gagne, fenêtre
   assert.equal(fusionnerAgenda([], beaucoup, now, 7 * 86400000).length, 500);
 });
 
-test('la page lit l\'agenda sur Firestore avant Supabase, et le job ne sollicite plus Supabase après Firestore', () => {
+test('la page lit l\'agenda sur Firestore seul, et le job ne publie que sur Firestore', () => {
   const page = lire('web/SentiqS_Web.html');
   const corps = page.slice(page.indexOf('async function lireAgendaPartagee()'), page.indexOf('// Cache court (5 min)'));
-  assert.ok(corps.indexOf("cle: 'agenda'") > 0 && corps.indexOf("cle: 'agenda'") < corps.indexOf('getClientDonnees()'));
+  assert.ok(corps.indexOf("cle: 'agenda'") > 0);
+  assert.doesNotMatch(corps, /agenda_partagee/);
   assert.match(page, /function lignesAgendaPartagee\(articles\)/);
   const job = lire('scripts/collecte-planifiee.js');
   assert.match(job, /ecrireCache\(compteFirebase, agenda, fetch, \{ cle: 'agenda' \}\)/);
-  assert.match(job, /if \(!pubExterne && typeof publierAgendaPartagee === 'function'\)/);
-  assert.match(job, /if \(!pubExterne && typeof publierArticlesRagPartages === 'function'\)/);
+  assert.doesNotMatch(job, /publierAgendaPartagee|publierArticlesRagPartages|getClientDonnees|COLLECTEUR_JETON/);
 });
 
 test('Firebase Hosting sert web/, et le workflow publie hébergement et règles', () => {

@@ -80,6 +80,6 @@ test('l’agenda reçoit aussi salons, expositions, sommets, visites et campagne
 });
 
 test('une ligne d’agenda partagé qui porte un incident est écartée à la lecture', () => {
-  const corps = tranche('async function lireAgendaPartagee', 'catch (e) { console.warn(\'SentiqS — lireAgendaPartagee a echoue');
-  assert.strictEqual((corps.match(/ligneAgendaEstIncident\(l\)/g) || []).length, 2);
+  const corps = tranche('async function lireAgendaPartagee', '// Cache court (5 min)');
+  assert.strictEqual((corps.match(/ligneAgendaEstIncident\(l\)/g) || []).length, 1);
 });
