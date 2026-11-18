@@ -4374,10 +4374,11 @@ DOC 2.0 par aire linguistique (cinq pays au plus, quatre thèmes) ;
 `scripts/sonde-gdelt.js` les mesure depuis GitHub (workflow manuel
 `sonde-gdelt.yml`).
 
-**Mesure du 18/11/2026, trois passages** : 25 réponses sur 28 en **HTTP 429**
-(« one request every 5 seconds »), alors que la sonde espaçait ses appels de
-15 s et tournait seule. Les adresses des runners GitHub sont partagées :
-le quota est déjà consommé par d'autres. Les trois réponses 200 rapportaient
+**Mesure du 18/11/2026, dernier passage** : 23 réponses sur 28 en **HTTP 429**
+(« one request every 5 seconds ») et une coupure réseau, alors que la sonde
+espaçait ses appels de 15 s et tournait seule. Les adresses des runners
+GitHub sont partagées : le quota est déjà consommé par d'autres. Les quatre
+réponses 200 rapportaient
 0 à 4 articles, **aucun ne nommant un des pays visés** (exemple : un don de
 Melinda French Gates, republicanherald.com). Aucune entrée n'est donc
 ajoutée au registre ; le nombre de sources de l'accueil ne change pas.
