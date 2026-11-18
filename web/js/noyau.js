@@ -538,8 +538,13 @@ const AVIS_COMPATIBLE = {
   // l'échelle n'a pas d'équivalent FCDO : « grande prudence » nationale, sans
   // zone déconseillée (prudence) ou avec (prudence_partie, qui peut couvrir
   // une zone rouge).
-  prudence:        ['jaune', 'orange', 'marron'],
-  prudence_partie: ['jaune', 'orange', 'marron', 'rouge'],
+  //
+  // « Grande prudence » inclut le vert : le Canada l'applique à des pays
+  // stables pour la seule délinquance (Botswana, Namibie au 18/11/2026, et
+  // la France elle-même). La lire comme incompatible avec un pays vert
+  // faisait tomber BW à « faible » sur un avis qui ne dit rien d'un danger.
+  prudence:        ['vert', 'jaune', 'orange', 'marron'],
+  prudence_partie: ['vert', 'jaune', 'orange', 'marron', 'rouge'],
 };
 const AVIS_LIBELLES = {
   aucun: 'aucune restriction', aabe_partie: 'voyages non essentiels déconseillés dans une partie du pays',

@@ -100,3 +100,19 @@ test('la liste de relecture nomme la source qui diverge', () => {
   const d = lib.divergences(pays, { pays: [{ code: 'MG', niveau: 'marron' }] }, MAINTENANT);
   assert.deepStrictEqual(d.map((x) => x.source), ['FCDO']);
 });
+
+test('flux américain sans lien reconnu : le pays se lit dans le titre', () => {
+  const xml = '<item><title>Cote d&#39;Ivoire - Level 2: Exercise Increased Caution</title><pubDate>Mon, 02 Nov 2026 00:00:00 GMT</pubDate></item>'
+    + '<item><title>The Gambia - Level 1: Exercise Normal Precautions</title><pubDate>Mon, 02 Nov 2026 00:00:00 GMT</pubDate></item>';
+  assert.deepStrictEqual(Object.keys(lib.lireUsa(xml, { CI: 'cote-d-ivoire', GM: 'the-gambia' })).sort(), ['CI', 'GM']);
+});
+
+test('« grande prudence » n\'est pas incompatible avec un pays vert', () => {
+  // Botswana, 18/11/2026 : Canada « grande prudence » (délinquance), FCDO
+  // sans restriction, affiché vert. Ce n'est pas une divergence.
+  assert.ok(noyau.AVIS_COMPATIBLE.prudence.includes('vert'));
+  const r = noyau.indiceConfiance({ ...socleAncien, niveau: 'vert',
+    avisOfficiel: { statuts: [], revu: il(5), temoins: [{ source: 'Canada', degre: 'prudence', revu: il(35) }] } });
+  assert.strictEqual(r.cle, 'moyenne');
+  assert.doesNotMatch(r.motif, /divergent/);
+});

@@ -74,7 +74,12 @@ function dernierInstantane() {
       const m = /traveladvisories\/([a-z0-9-]+)-travel-advisory\.html/.exec(u);
       if (m) slugs[cy] = m[1];
     });
-    temUsa = r.ok ? avis.lireUsa(await r.text(), slugs) : {};
+    const xml = r.ok ? await r.text() : '';
+    temUsa = avis.lireUsa(xml, slugs);
+    if (r.ok && !Object.keys(temUsa).length) {
+      // Format inattendu : montrer le premier article pour corriger la lecture.
+      console.log('États-Unis : aucun avis reconnu ; premier article du flux :\n' + ((/<item[\s>][\s\S]*?<\/item>/i.exec(xml) || [xml.slice(0, 800)])[0]).slice(0, 1200));
+    }
     console.log('États-Unis : HTTP ' + r.status + ', ' + Object.keys(temUsa).length + '/54 avis');
   } catch (e) { console.log('États-Unis : sans réponse (' + e.message + ')'); }
   console.log('Canada : HTTP ' + ca.code + ', ' + Object.keys(temCanada).length + '/54 avis');

@@ -91,9 +91,15 @@ function lireUsa(xml, slugs) {
   Object.keys(slugs || {}).forEach((cy) => { parSlug[slugs[cy]] = cy; });
   String(xml || '').split(/<item[\s>]/i).slice(1).forEach((it) => {
     const brut = (b) => { const m = new RegExp('<' + b + '[^>]*>([\\s\\S]*?)</' + b + '>', 'i').exec(it); return m ? m[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim() : ''; };
-    const lien = brut('link');
+    const lien = brut('link') || brut('guid');
     const m = /traveladvisories\/([a-z0-9-]+)-travel-advisory\.html/i.exec(lien);
-    const cy = m && parSlug[m[1].toLowerCase()];
+    // Repli sur le titre : « Cote d'Ivoire - Level 2: … » ramené au slug
+    // (« cote-d-ivoire »). Le premier passage depuis GitHub a lu 0 avis sur
+    // 54 par le seul lien : le flux ne le porte pas sous cette forme.
+    const prefixe = brut('title').replace(/&#0*39;|&apos;|&rsquo;|&#8217;/g, "'").replace(/&amp;/g, '&').split(/\s+-\s+Level/i)[0];
+    const slugTitre = prefixe.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+      .replace(/^the\s+/, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const cy = (m && parSlug[m[1].toLowerCase()]) || parSlug[slugTitre] || parSlug['the-' + slugTitre];
     if (!cy) return;
     const n = /Level\s*([1-4])/i.exec(brut('title'));
     const degre = n && degreAvisUsa(n[1]);
