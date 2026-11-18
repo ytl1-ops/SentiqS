@@ -1,5 +1,5 @@
 {
- "genere": "2026-11-17T13:32:45.668Z",
+ "genere": "2026-11-18T13:09:26.771Z",
  "horizonJours": 120,
  "sources": {
   "feries": {
@@ -61,7 +61,7 @@
     "ZM",
     "ZW"
    ],
-   "evenements": 190
+   "evenements": 191
   }
  },
  "evenements": [
@@ -2154,6 +2154,17 @@
    "nature": "ferie",
    "src": "Nager.Date — jours fériés officiels",
    "surl": "https://date.nager.at/PublicHoliday/LR/2027"
+  },
+  {
+   "id": "ferie-KM-2027-03-18",
+   "date": "2027-03-18",
+   "cy": "KM",
+   "titre": "Cheikh Al Maarouf Day",
+   "titreEn": "Cheikh Al Maarouf Day",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/KM/2027"
   }
  ]
 }
