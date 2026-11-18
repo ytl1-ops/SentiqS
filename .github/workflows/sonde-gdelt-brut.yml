@@ -1,0 +1,43 @@
+name: Sonde GDELT (fichiers bruts)
+
+# Mesure ce que les exports de GDELT (data.gdeltproject.org, toutes les 15 min,
+# sans quota ni clé) disent des 54 pays (scripts/sonde-gdelt-brut.js). Le bac à
+# sable n'atteint pas ce domaine : la mesure se fait d'ici. Informative, ne
+# publie rien dans le dépôt, n'échoue jamais une PR.
+on:
+  workflow_dispatch:
+    inputs:
+      heures:
+        description: 'Profondeur en heures (1 à 72)'
+        default: '24'
+  pull_request:
+    paths:
+      - 'scripts/lib/gdelt-brut.js'
+      - 'scripts/sonde-gdelt-brut.js'
+      - '.github/workflows/sonde-gdelt-brut.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sonde-gdelt-brut
+  cancel-in-progress: true
+
+jobs:
+  sonde:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+      - name: Lit les exports GDELT
+        run: node scripts/sonde-gdelt-brut.js "${{ github.event.inputs.heures || '24' }}" gdelt-brut.json
+        continue-on-error: true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sonde-gdelt-brut
+          path: gdelt-brut.json
+          if-no-files-found: ignore

@@ -4389,6 +4389,34 @@ adresses d'articles géolocalisées mais pas de titres — il faudrait lire
 chaque page, un chantier à part. `fetch-respectueux.js` garde son délai par
 domaine (`DELAIS_PAR_DOMAINE_MS`), utile à toute API à quota.
 
+### Les fichiers bruts de GDELT : mesurés, non branchés non plus — 18/11/2026
+
+Après « Ok vas y » de YORO, seconde voie : les exports de 15 minutes de
+`data.gdeltproject.org` (sans quota ni clé). `scripts/lib/gdelt-brut.js` les
+lit (zip sans dépendance, codes FIPS → ISO : le Niger y est `NG`, le Nigeria
+`NI`), ne garde que les familles CAMEO de sûreté (14, 17 à 20) et compte des
+adresses d'articles distinctes. `scripts/sonde-gdelt-brut.js` (workflow
+`sonde-gdelt-brut.yml`) mesure depuis GitHub.
+
+**Mesure du 18/11/2026 au soir, 24 h** : 93 fichiers sur 96 lus en une
+seconde (aucun refus), 472 adresses sur 37 pays. Mais les **17 pays où GDELT
+ne voit rien** recoupent nos angles morts (KM, LS, MR, SC, GQ, GW, ST…) : il
+ne comble pas le silence là où il compte. Et sa géolocalisation automatique
+se trompe souvent : sur les trois exemples relus par pays, **environ un sur
+trois** parle d'un fait de sûreté dans le bon pays. « Mali » pour un accident
+de l'armée indienne au Manipur, « Égypte » pour Alexandria (Louisiane),
+« Gambie » pour Bathurst (Australie), « Congo » pour des frappes en Ukraine,
+« Niger » pour un réseau d'enlèvement nigérian. Un utile : « Ethiopia and
+Eritrea amass forces along border », qui éclaire la divergence érythréenne.
+
+Décision : **rien n'est affiché ni compté**. Afficher « GDELT signale N
+violences » sur un pays muet montrerait deux fois sur trois un fait d'un
+autre continent, et une alerte fausse coûte autant qu'une alerte manquée. La
+lecture et la sonde restent dans le dépôt (lancement manuel, ou à chaque
+modification de ces fichiers) ; un test refuse toute lecture GDELT par la
+page ou le noyau. Si un jour on y revient, la piste est un filtre sur le
+domaine de l'article (presse du pays) avant tout affichage, à mesurer d'abord.
+
 ## Une seule règle d'actus pour tous les modules — 18/11/2026
 
 Demande de YORO : « une cohérence et conformité entre les actus sur tous les
