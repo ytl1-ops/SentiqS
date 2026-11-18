@@ -4348,12 +4348,50 @@ et « socle à relire ». Conséquence assumée : un pays « moyenne » sur le s
 FCDO peut redescendre si le Canada ou les États-Unis le contredisent ; le
 journal du job les nomme.
 
-**Non mesuré d'ici** (le bac à sable n'atteint ni gc.ca ni state.gov) : le
-nombre de pays réellement corroborés. La lecture à blanc de
-`avis-officiels.yml` sur la PR l'écrit (« Confiance faible : 14 → N », puis
-« Restent faibles » avec chaque témoin). Un pays qui reste faible après cela
-ne se règle plus par un avis : c'est la revue du socle (incident daté récent).
-Le format des deux sources a été écrit de mémoire ; si la lecture à blanc
-donne 0/54 pour l'une, c'est le format qu'il faut corriger, pas la règle.
+**Mesuré depuis GitHub** (lecture à blanc de `avis-officiels.yml` sur la
+PR, le bac à sable n'atteint ni gc.ca ni state.gov) : Canada 54/54, États-Unis
+53/54, **faibles 14 → 0**. Un seul pays tombe de « moyenne » à « faible » :
+l'**Érythrée**, affichée jaune alors que le Canada déconseille les voyages non
+essentiels dans tout le pays — une vraie divergence, à la revue du socle.
+Deux corrections imposées par cette mesure :
+
+- « grande prudence » est compatible avec le **vert** : le Canada l'applique
+  au Botswana et à la Namibie pour la seule délinquance (et à la France) ;
+  la première règle faisait tomber BW à « faible » à tort ;
+- le flux du Département d'État ne porte pas l'adresse de chaque avis sous
+  la forme attendue (0/54 au premier passage) : le pays se lit dans le titre
+  (« Cote d'Ivoire - Level 2: … »), ramené au slug de la table CONSEILS.
 `scripts/test/confiance-temoins.test.js` (9 ; 6 vus échouer sur l'ancien
 code, les 3 autres sont des gardes).
+
+---
+
+## Une seule règle d'actus pour tous les modules — 18/11/2026
+
+Demande de YORO : « une cohérence et conformité entre les actus sur tous les
+modules, sauf l'Agenda, qui garde sa particularité d'agenda, et la
+Géopolitique ». `estActuModule(a)` / `actusModules(arts)` portent la règle :
+`estRecentReel` (fenêtre, date fiable, survenance), source et titre (l'ancien
+`antiHalluFilter`), pas d'événement purement calendaire sauf rassemblements,
+manifestations et faits critiques ou élevés (la règle du Flux). Flux, flash
+info, compteurs, tableau de bord, actus à traiter, Synthèse, Recherche,
+réseaux sociaux, chronologie des Alertes, compteur régional et exports
+(`getExportData`) la lisent ; `coherence-modules.test.js` refuse qu'un de ces
+modules refiltre `ALL` avec `estRecentReel` seul.
+
+Banc sur le cumul de novembre injecté dans `ALL`, horloge figée, `main`
+contre la branche : Flux 101 (inchangé) ; tableau de bord, Synthèse et
+exports 104 → 101 (trois événements calendaires que le Flux écartait) ;
+**Synthèse filtrée sur la Côte d'Ivoire 70 → 9** (le filtre pays repartait
+de `ALL` sans date) ; **compteur des critiques du Flux 176 → 15** (il
+comptait tout `ALL`) ; **Recherche (portée Flux) 1 224 → 101**. Le banc
+charge un mois entier : en service, `ALL` est filtré à la collecte et les
+écarts sont plus petits, mais de même nature (agenda à venir conservé par
+`tick()`).
+
+Restent hors de cette règle, volontairement : l'Agenda (ses événements à
+venir), la Géopolitique, `getLiveAlertEvents` (le niveau d'alerte, fenêtre
+propre), l'assistant (il répond sur des périodes, historique compris) et le
+bulletin du job (`donneesBulletinPays`, document généré, non modifié sans
+demande). Les exports Flux et Synthèse changent d'autant : ils suivent
+l'écran.
