@@ -103,10 +103,20 @@ jobs:
           # TWA_SHA256 (vide tant que l'app n'existe pas dans la Play Console).
           TWA_SHA256="${{ vars.TWA_SHA256 }}" node scripts/assetlinks.js
           node scripts/generer-seo.js
+          # Fichier de preuve Google Search Console (web/google<jeton>.html),
+          # publié avec le site. Informatif : un refus ne bloque rien.
+          node scripts/search-console.js preparer || true
           npx -y firebase-tools@15.34.0 deploy --only hosting \
             --project "$projet" --non-interactive --force \
             --message "commit ${GITHUB_SHA::7}"
           echo "### Firebase Hosting publié : https://$projet.web.app" >> "$GITHUB_STEP_SUMMARY"
+      - name: Google Search Console (vérification, propriétaires, sitemap)
+        # Le compte de service prouve la propriété du site publié, ajoute les
+        # administrateurs de firebase/firestore.rules comme propriétaires et
+        # déclare le sitemap. Informatif : jamais bloquant.
+        if: steps.secret.outputs.present == 'true'
+        continue-on-error: true
+        run: node scripts/search-console.js verifier
       - name: Prévenir les moteurs (IndexNow)
         # Bing, Yandex, Seznam, Naver… Informatif : jamais bloquant.
         if: steps.secret.outputs.present == 'true'
