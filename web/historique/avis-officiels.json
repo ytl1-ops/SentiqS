@@ -1,6 +1,6 @@
 {
  "source": "FCDO — gov.uk Content API (Open Government Licence v3.0)",
- "lu": "2026-11-17T11:22:04.303Z",
+ "lu": "2026-11-18T14:31:07.394Z",
  "pays": {
   "AO": {
    "statuts": [
@@ -400,25 +400,18 @@
  },
  "divergences": [
   {
-   "code": "MA",
-   "niveau": "orange",
-   "avis": "aucun",
-   "libelle": "aucune restriction",
-   "revuIlYaJ": 90
-  },
-  {
    "code": "MG",
    "niveau": "marron",
    "avis": "aucun",
    "libelle": "aucune restriction",
-   "revuIlYaJ": 1
+   "revuIlYaJ": 2
   },
   {
    "code": "UG",
    "niveau": "marron",
    "avis": "aucun",
    "libelle": "aucune restriction",
-   "revuIlYaJ": 11
+   "revuIlYaJ": 12
   }
  ]
 }
