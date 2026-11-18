@@ -15,8 +15,12 @@
 //      la vraie classify() de ses titres (le mot qui fait monter chaque
 //      titre au-dessus du normal, pour juger le faux positif) ;
 //   B. pour chaque source de ces pays qui ne passe que par une requête
-//      Google News (donc muette par construction) : existe-t-il un flux
-//      natif, vu depuis GitHub.
+//      Google News (donc muette par construction), et pour chaque agence
+//      nationale de presse des 54 pays dans le même cas : existe-t-il un flux
+//      natif, vu depuis GitHub ;
+//   C. les agences nationales absentes du registre (question de YORO du
+//      18/11/2026 : « les actus des agences nationales sont-elles
+//      collectées ? ») : leur site expose-t-il un flux.
 //
 // Informatif : n'écrit rien dans le registre, ne note personne. Le bac à
 // sable n'atteint pas ces sites ; à lancer depuis GitHub
@@ -52,6 +56,32 @@ const parPays = {};
 for (const s of SRCS) (parPays[s.cy] = parPays[s.cy] || []).push(s);
 const uniques = Object.keys(parPays).filter((cy) => parPays[cy].filter((s) => peutAlerter(s, SEUIL)).length === 1).sort();
 
+// Agences nationales de presse, reconnues au nom (le registre n'a pas de champ
+// « type »). Togo-Presse et La Presse de Tunisie sont des journaux : exclus.
+const AGENCE_RE = /\bagen[cç]|ag[êe]ncia|press service|news agency|press agency|\b(APS|ANP|AIP|MAP|ENA|AIB|AMAP|ABP|ATOP|AGP|AMI|KNA|TAP|SUNA|SNA|ANGOP|AIM|NAN|GNA|MENA|LANA|BOPA|ACI|ACP|ANG|NAMPA|LENA|SLENA|SSNA|LINA|Inforpress|STP-?Press|ADI|ATPE)\b/i;
+const estAgence = (s) => AGENCE_RE.test(s.n || '') && !/allafrica|_gn_|presse de tunisie|togo-presse/i.test(s.id + ' ' + s.n);
+
+// Agences absentes du registre, à sonder par leur page d'accueil.
+const CANDIDATS = [
+  { cy: 'SO', nom: 'SONNA — Somali National News Agency', url: 'https://sonna.so/' },
+  { cy: 'ZA', nom: 'SAnews — South African Government News Agency', url: 'https://www.sanews.gov.za/' },
+  { cy: 'MW', nom: 'MANA — Malawi News Agency', url: 'https://www.manaonline.gov.mw/' },
+  { cy: 'MU', nom: 'GIS — Government Information Service (Maurice)', url: 'https://gis.govmu.org/' },
+  { cy: 'UG', nom: 'Uganda Media Centre', url: 'https://www.mediacentre.go.ug/' },
+  { cy: 'UG', nom: 'UBC — Uganda Broadcasting Corporation', url: 'https://ubc.go.ug/' },
+  { cy: 'TZ', nom: 'Daily News (TSN, Tanzanie)', url: 'https://dailynews.co.tz/' },
+  { cy: 'ZM', nom: 'ZANIS / Zambia Daily Mail', url: 'https://www.daily-mail.co.zm/' },
+  { cy: 'ZM', nom: 'ZNBC', url: 'https://www.znbc.co.zm/' },
+  { cy: 'MG', nom: 'ANTA — Agence nationale d information Taratra', url: 'https://www.anta.mg/' },
+  { cy: 'CF', nom: 'ACAP — Agence centrafricaine de presse', url: 'https://www.acap.cf/' },
+  { cy: 'CF', nom: 'Radio Ndeke Luka', url: 'https://www.radiondekeluka.org/' },
+  { cy: 'SZ', nom: 'Eswatini Government', url: 'https://www.gov.sz/' },
+  { cy: 'GM', nom: 'GRTS', url: 'https://grts.gm/' },
+  { cy: 'ER', nom: 'Shabait (ministère de l Information)', url: 'https://shabait.com/' },
+  { cy: 'GQ', nom: 'Guinea Ecuatorial Press', url: 'https://www.guineaecuatorialpress.com/' },
+  { cy: 'TD', nom: 'ATPE — Agence tchadienne de presse', url: 'https://www.atpe-tchad.info/' },
+];
+
 const UA = 'Mozilla/5.0 (compatible; SentiqS-veille/1.0; lecture editoriale)';
 async function lire(url) {
   const r = await fetch(url, { headers: { 'user-agent': UA, accept: 'application/rss+xml, application/xml, text/xml, */*' }, signal: AbortSignal.timeout(25000), redirect: 'follow' });
@@ -82,24 +112,32 @@ function motDeclencheur(titre, texte) {
   return dansTitre ? dansTitre + ' (titre)' : (listes.find((k) => ctx.matchMot(t, k)) || '?') + ' (corps)';
 }
 
+const maintenant = Date.now();
+const rapport = { seuil: SEUIL, uniques, medias: [], agences: [] };
+async function sonderAgence(cy, id, score, url, etiquette) {
+  let r;
+  try { r = await decouvrirMeilleurFlux(url); } catch (e) { r = { trouve: false, essais: [e.message] }; }
+  let n = 0; let frais = null; let echantillon = [];
+  if (r.trouve) {
+    try {
+      const arts = analyser(await lire(r.url)); n = arts.length; echantillon = arts.slice(0, 3).map((a) => a.titre);
+      const d = arts.map((a) => a.date).filter(Boolean); frais = d.length ? Math.round((maintenant - Math.max(...d)) / 3600000) : null;
+    } catch (e) { r.erreurLecture = e.message; }
+  }
+  rapport.agences.push({ cy, id, score, url, flux: r.trouve ? r.url : null, articles: n, plusFraisH: frais, echantillon, essais: r.essais || null, erreur: r.erreurLecture || null });
+  console.log(etiquette + ' ' + cy + ' ' + id + (score != null ? ' (' + score + ')' : '') + ' → ' + (r.trouve ? r.url + ' : ' + n + ' articles, le plus frais à ' + frais + ' h' + (r.erreurLecture ? ' (lecture : ' + r.erreurLecture + ')' : '') : 'aucun flux (' + (r.essais || []).join(' ; ') + ')'));
+  echantillon.forEach((t) => console.log('      · ' + t.slice(0, 110)));
+}
+
 (async () => {
-  const maintenant = Date.now();
-  const rapport = { seuil: SEUIL, uniques, medias: [], agences: [] };
   console.log('Seuil ' + SEUIL + ' ; pays à source unique : ' + uniques.length + ' (' + uniques.join(' ') + ')\n');
 
   for (const cy of uniques) {
     for (const s of parPays[cy]) {
       if (peutAlerter(s, SEUIL)) continue;
       if (estRequeteGoogleNews(s)) {
-        if ((s.score || 0) < 60 || /_gn_/.test(s.id)) continue;
-        let r;
-        try { r = await decouvrirMeilleurFlux(s.url); } catch (e) { r = { trouve: false, essais: [e.message] }; }
-        let n = 0; let frais = null;
-        if (r.trouve) {
-          try { const arts = analyser(await lire(r.url)); n = arts.length; const d = arts.map((a) => a.date).filter(Boolean); frais = d.length ? Math.round((maintenant - Math.max(...d)) / 3600000) : null; } catch (e) { r.erreurLecture = e.message; }
-        }
-        rapport.agences.push({ cy, id: s.id, score: s.score, url: s.url, flux: r.trouve ? r.url : null, articles: n, plusFraisH: frais, essais: r.essais || null });
-        console.log('[agence] ' + cy + ' ' + s.id + ' (' + s.score + ') → ' + (r.trouve ? r.url + ' : ' + n + ' articles, le plus frais à ' + frais + ' h' + (r.erreurLecture ? ' (lecture : ' + r.erreurLecture + ')' : '') : 'aucun flux (' + (r.essais || []).join(' ; ') + ')'));
+        if ((s.score || 0) < 60 || /_gn_/.test(s.id) || estAgence(s)) continue;
+        await sonderAgence(s.cy, s.id, s.score, s.url, '[agence]');
         continue;
       }
       if (s.cat === 'economique') continue;
@@ -130,5 +168,12 @@ function motDeclencheur(titre, texte) {
       }
     }
   }
+  console.log('\n--- Agences nationales de presse au registre');
+  for (const s of SRCS.filter(estAgence).sort((a, b) => a.cy.localeCompare(b.cy))) {
+    if (!estRequeteGoogleNews(s)) { console.log('[agence native] ' + s.cy + ' ' + s.id + ' (' + s.score + (peutAlerter(s, SEUIL) ? ', alerte' : ', sous le seuil') + ') ' + s.rss); continue; }
+    await sonderAgence(s.cy, s.id, s.score, s.url, '[agence GN]');
+  }
+  console.log('\n--- Agences absentes du registre');
+  for (const c of CANDIDATS) await sonderAgence(c.cy, c.nom, null, c.url, '[candidat]');
   if (SORTIE) fs.writeFileSync(SORTIE, JSON.stringify(rapport, null, 2));
 })().catch((e) => { console.error('Lecture des médias : ' + e.message); process.exitCode = 0; });
