@@ -10286,6 +10286,38 @@ function estRecentReel(article) {
   return true;
 }
 
+// estActuModule(a) : LA règle « cet article est une actualité » de tous les
+// modules qui affichent des actus — Flux, Recherche, Synthèse, Tableau de
+// bord, Alertes (chronologie), Rapports et leurs compteurs. Demande de YORO,
+// 18/11/2026 : « cohérence et conformité entre les actus sur tous les
+// modules, sauf l'Agenda et la Géopolitique », qui gardent leur règle propre.
+//
+// Avant, chaque module filtrait à sa façon et les chiffres ne se
+// recoupaient pas : le Flux retirait les événements purement calendaires,
+// le tableau de bord, la Synthèse et les exports les comptaient ; la
+// Synthèse filtrée sur un pays ou une zone ne filtrait plus du tout la date
+// (ALL garde aussi des événements d'agenda à venir, voir tick()) ; les
+// compteurs « critiques / élevés » du Flux comptaient tout ALL ; la
+// Recherche cherchait dans des articles hors fenêtre.
+//
+// Trois conditions, les mêmes partout :
+//   1. estRecentReel : publié ET survenu dans FENETRE_ACTUALITE_MS, date fiable ;
+//   2. source identifiée et titre non vide (l'ancien antiHalluFilter) ;
+//   3. pas un événement purement calendaire (celui-là vit dans l'Agenda),
+//      sauf rassemblements, manifestations et tout fait critique ou élevé
+//      (règle du Flux, 13-14/11/2026) ;
+// Le niveau d'alerte (getLiveAlertEvents) garde sa propre fenêtre, plus
+// courte et voulue : ce n'est pas un affichage d'actus.
+function estActuModule(a) {
+  if (!a || !estRecentReel(a)) return false;
+  if (!a.primary || !a.title || a.title.length < 8) return false;
+  if (a._estAgenda && !AGENDA_AUSSI_AU_FLUX.has(a._agendaType) && a.level !== 'crit' && a.level !== 'high') return false;
+  return true;
+}
+function actusModules(arts) {
+  return (arts || (typeof ALL !== 'undefined' ? ALL : []) || []).filter(estActuModule);
+}
+
 function antiHalluFilter(arts, maxAgeMs) {
   maxAgeMs = maxAgeMs || FENETRE_ACTUALITE_MS;
   const now = Date.now();
@@ -13771,9 +13803,8 @@ function getFiltered() {
   // continuait pourtant de compter comme actualite. antiHalluFilter() sans
   // second argument retombe sur FENETRE_ACTUALITE_MS, la meme fenetre que
   // partout ailleurs.
-  let a = (typeof antiHalluFilter === 'function')
-    ? antiHalluFilter([...ALL])
-    : [...ALL].filter(x=>estRecentReel(x));
+  // Règle commune à tous les modules (estActuModule, 18/11/2026).
+  let a = actusModules(ALL);
   // Les evenements planifies (colloque, seminaire, concert, conseil des
   // ministres, senat, CESE...) sont achemines vers le module Agenda, pas le
   // Flux. Exception : les manifestations/greves restent aussi visibles en
@@ -13785,7 +13816,6 @@ function getFiltered() {
   // opposition leader vows after campaign event attack » (critiques) étaient
   // retirés du Flux parce que leur corps citait un « forum » — un faux
   // négatif. Un meeting attaqué est d'abord une attaque.
-  a = a.filter(x => !x._estAgenda || AGENDA_AUSSI_AU_FLUX.has(x._agendaType) || x.level === 'crit' || x.level === 'high');
   const q=document.getElementById('artQ').value.toLowerCase();
   if(q) a=a.filter(x=>x.title.toLowerCase().includes(q)||x.analysis.toLowerCase().includes(q));
   if(fCat==='crit') a=a.filter(x=>x.level==='crit');
@@ -14094,7 +14124,7 @@ async function majFlashInfo(force) {
     if (r !== 0) return r;
     return (b.pubDate||0) - (a.pubDate||0);
   };
-  const pool = [...ALL].filter(a => estRecentReel(a));
+  const pool = actusModules(ALL);
   // "La une" = melange equilibre Afrique (par pays) + Monde (cy 'INT'),
   // les niveaux critique/eleve prioritaires dans chaque groupe.
   const monde   = pool.filter(a => a.cy === 'INT').sort(cmpUne).slice(0, 6);
@@ -15110,11 +15140,13 @@ async function showDet(id) {
 
 // ── STATS ────────────────────────────────────────────────────────────────────
 function updStats() {
-  const visible=ALL.filter(a=>estRecentReel(a));
+  // Mêmes articles que le Flux affiche : les compteurs comptaient tout ALL,
+  // agenda à venir compris (estActuModule, 18/11/2026).
+  const visible=actusModules(ALL);
   document.getElementById('stTot').textContent=visible.length;
-  document.getElementById('stCrit').textContent=ALL.filter(x=>x.level==='crit').length;
-  document.getElementById('stHigh').textContent=ALL.filter(x=>x.level==='high').length;
-  document.getElementById('stVer').textContent=ALL.filter(x=>x.verified).length;
+  document.getElementById('stCrit').textContent=visible.filter(x=>x.level==='crit').length;
+  document.getElementById('stHigh').textContent=visible.filter(x=>x.level==='high').length;
+  document.getElementById('stVer').textContent=visible.filter(x=>x.verified).length;
   document.getElementById('stNew').textContent=NEW_IDS.size;
   const elRegional = document.getElementById('stRegional');
   if (elRegional) elRegional.textContent = (typeof compteurRegional === 'function') ? compteurRegional() : 0;
@@ -15189,7 +15221,7 @@ function calcScorePays(cy) {
 function closeKpiDrill() { const o = document.getElementById('kpiDrillOverlay'); if (o) o.remove(); }
 
 async function showKpiDrill(kind) {
-  const artsActifs = (ALL||[]).filter(a=>estRecentReel(a));
+  const artsActifs = actusModules(ALL);
   const scoreCol = key => (typeof NIV !== 'undefined' && NIV[key]) ? NIV[key].col : '#0F4F2A';
   let title = '', icon = 'ti-list', rows = '';
 
@@ -15330,7 +15362,7 @@ function getArticlesATraiter(cyFiltre, zoneFiltre) {
   const traitesSet = new Set(traites);
   const LVL_ORDER = {crit:0, high:1, mod:2, ok:3};
   return (ALL || [])
-    .filter(a => estRecentReel(a) && !traitesSet.has(a.id)
+    .filter(a => estActuModule(a) && !traitesSet.has(a.id)
       && (!cyFiltre || cyFiltre === 'all' || a.cy === cyFiltre)
       && (!zoneFiltre || zoneFiltre === 'all' || (typeof CY_TO_ZONE !== 'undefined' && CY_TO_ZONE[a.cy] === zoneFiltre)))
     // Une actualite internationale ('INT') passe APRES les 54 pays africains a
@@ -15759,7 +15791,7 @@ function setDashCartoMode(m) { window.dashCartoMode = m; if (typeof renderDashbo
   chargerHistorique();
 
   // KPI globaux
-  const artsActifs = (ALL||[]).filter(a=>estRecentReel(a));
+  const artsActifs = actusModules(ALL);
   const nbCrit  = artsActifs.filter(a=>a.level==='crit').length;
   const nbHigh  = artsActifs.filter(a=>a.level==='high').length;
   // Exclut 'INT' (actualite internationale, hors des 54 pays d'Afrique) du
@@ -15851,7 +15883,7 @@ const PROFIL_AXES = [
   { k:'economique',  lb:'Économique' },
 ];
 const profilPays = (cy) => {
-  const arts = (ALL||[]).filter(a => a.cy === cy && estRecentReel(a));
+  const arts = (ALL||[]).filter(a => a.cy === cy && estActuModule(a));
   const parCat = {};
   PROFIL_AXES.forEach(ax => { parCat[ax.k] = 0; });
   arts.forEach(a => { if (parCat[a.cat] !== undefined) parCat[a.cat]++; });
@@ -16044,14 +16076,17 @@ async function updSynthese() {
 
   // Application du filtre zone/pays sur le perimetre de la synthese
   // Filtre anti-hallucination : données < 12h, sourcées et horodatées uniquement
-  let perimetre = (typeof antiHalluFilter === 'function') ? antiHalluFilter(ALL) : ALL.filter(a=>a.pubDate&&(Date.now()-a.pubDate)<12*3600000);
+  // Règle commune (estActuModule). Le filtre pays ou zone repartait de ALL
+  // entier, sans date ni agenda : il se pose désormais SUR ce périmètre.
+  const actusSy = actusModules(ALL);
+  let perimetre = actusSy;
   let libelleZone = 'Toutes zones';
   if (fSyCy !== 'all') {
-    perimetre = ALL.filter(a => a.cy === fSyCy);
+    perimetre = actusSy.filter(a => a.cy === fSyCy);
     libelleZone = (PAYS_INFO[fSyCy] || {}).flag + ' ' + (PAYS_INFO[fSyCy] || {}).name;
   } else if (fSyZone !== 'all') {
     const zoneInfo = ZONES_GEO[fSyZone];
-    perimetre = ALL.filter(a => CY_TO_ZONE[a.cy] === fSyZone);
+    perimetre = actusSy.filter(a => CY_TO_ZONE[a.cy] === fSyZone);
     libelleZone = zoneInfo ? zoneInfo.nom : 'Toutes zones';
   }
   const titreEl = document.getElementById('syTitreZone');
@@ -16248,7 +16283,7 @@ function buildRecherche(query, scope, cyFilter, catFilter) {
   const inScope = (t) => scope === 'all' || scope === t;
 
   if (inScope('flux')) {
-    (ALL||[]).forEach(a => {
+    actusModules(ALL).forEach(a => {
       if (cyFilter !== 'all' && a.cy !== cyFilter) return;
       if (catFilter !== 'all' && a.cat !== catFilter) return;
       const score = _seScore(tokens, a.title, a.analysis, a.primary, a.pubDate);
@@ -21939,7 +21974,7 @@ getFiltered = function() {
 
 // Mettre à jour les compteurs de sources sociales après collecte
 function updateSocialCounts() {
-  const recent = ALL.filter(a => estRecentReel(a));
+  const recent = actusModules(ALL);
   ['twitter','telegram','youtube','reddit'].forEach(p => {
     const el = document.getElementById('cnt-'+p);
     if (el) {
@@ -21999,7 +22034,7 @@ const REG_SOURCES = SRCS.filter(s =>
 function compteurRegional() {
   if (typeof ALL === 'undefined' || !ALL.length) return 0;
   const regIds = new Set(REG_SOURCES.map(s => s.id));
-  return ALL.filter(a => regIds.has(a.primary) && a.pubDate && (Date.now()-a.pubDate) < FENETRE_ACTUALITE_MS).length;
+  return ALL.filter(a => regIds.has(a.primary) && estActuModule(a)).length;
 }
 
 const ZONE_TYPE_META = {
@@ -23461,7 +23496,7 @@ async function renderAlerteChronologie() {
 
   // Articles critiques/eleves recents du Flux (<12h), pour prolonger la
   // chronologie jusqu'a l'instant present avec les tout derniers signaux.
-  (ALL||[]).filter(a => estRecentReel(a) && (a.level==='crit'||a.level==='high') && (fChronoCy==='all'||a.cy===fChronoCy))
+  (ALL||[]).filter(a => estActuModule(a) && (a.level==='crit'||a.level==='high') && (fChronoCy==='all'||a.cy===fChronoCy))
     .forEach(a => items.push({ ts:a.pubDate||0, dateLabel: fmtFull(a.pubDate), cy:a.cy, title:a.title,
       level:a.level, src: srcName(a.primary), type:'flux', id:a.id }));
 
@@ -24471,7 +24506,7 @@ function suffixePerimetre() {
 }
 
 function getExportData(){
-  return ALL.filter(a=>estRecentReel(a) && filtreZonePaysActif(a.cy));
+  return ALL.filter(a=>estActuModule(a) && filtreZonePaysActif(a.cy));
 }
 function lvlFr(l){
   const dict = LANG==='en'
