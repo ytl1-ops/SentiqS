@@ -144,7 +144,11 @@ test('authDomain suit le domaine Firebase Hosting, pas GitHub Pages', () => {
     vm.runInNewContext(src, ctx);
     return ctx.window.SENTIQ_FIREBASE_CONFIG.authDomain;
   };
-  assert.equal(domaine('sentiqs-235ce.web.app'), 'sentiqs-235ce.web.app');
+  // 18/11/2026 : suspendu tant que l'URI de redirection web.app n'est pas
+  // déclarée au client OAuth (sinon Google refuse la connexion). Le jour où
+  // DOMAINE_AUTH_HOSTING repasse à true, web.app doit suivre son domaine.
+  const actif = /var DOMAINE_AUTH_HOSTING = true;/.test(src);
+  assert.equal(domaine('sentiqs-235ce.web.app'), actif ? 'sentiqs-235ce.web.app' : 'sentiqs-235ce.firebaseapp.com');
   assert.equal(domaine('ytl1-ops.github.io'), 'sentiqs-235ce.firebaseapp.com');
   assert.equal(domaine('autre-projet.web.app'), 'sentiqs-235ce.firebaseapp.com');
 });

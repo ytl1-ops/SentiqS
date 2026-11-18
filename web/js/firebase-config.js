@@ -28,8 +28,19 @@ window.SENTIQ_FIREBASE_CONFIG = {
 // domaines : une connexion par redirection (fenêtre surgissante bloquée)
 // revient sans session, et l'écran de connexion réapparaît sans message
 // (01/11/2026, compte administrateur). Sur GitHub Pages, rien ne change.
+//
+// SUSPENDU le 18/11/2026 : Google refuse alors la connexion (« Accès bloqué :
+// la demande de cette appli n'est pas valide », redirect_uri_mismatch), parce
+// que https://sentiqs-235ce.web.app/__/auth/handler n'est pas dans les URI de
+// redirection du client OAuth « Web client (auto created by Google Service) »
+// (console Google Cloud > API et services > Identifiants). Aucune API ne
+// permet de l'y ajouter. Tant qu'il n'y est pas, la connexion passe par
+// firebaseapp.com : la fenêtre Google (signInWithPopup) fonctionne, seul le
+// repli par redirection, quand le navigateur bloque la fenêtre, peut revenir
+// sans session. L'URI ajoutée, passer DOMAINE_AUTH_HOSTING à true.
+var DOMAINE_AUTH_HOSTING = false;
 (function () {
   var c = window.SENTIQ_FIREBASE_CONFIG;
   var h = typeof location !== 'undefined' ? String(location.hostname || '') : '';
-  if (c && (h === c.projectId + '.web.app' || h === c.projectId + '.firebaseapp.com')) c.authDomain = h;
+  if (DOMAINE_AUTH_HOSTING && c && (h === c.projectId + '.web.app' || h === c.projectId + '.firebaseapp.com')) c.authDomain = h;
 })();
