@@ -3788,7 +3788,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
       </div>
     </div>
     <div class="pb-pills" id="pbPills">
-      <span class="ppp ppp-wait"><i class="ti ti-loader spin"></i>Detection en cours...</span>
+      <span class="ppp ppp-wait"><i class="ti ti-loader spin"></i>Détection en cours…</span>
     </div>
   </div>
   <span class="pb-close" onclick="this.parentElement.classList.add(&#39;hidden&#39;);try{localStorage.setItem(&#39;sentinel_pb_dismissed&#39;,Date.now())}catch(_){}" role="button" tabindex="0">✕</span>
@@ -8691,6 +8691,10 @@ const EXPRESSIONS_NON_SECURITAIRES = [
   'menace de disruption','menace planer sur le marche',
   'larme','larmes de joie','aux larmes',
   'prix nobel','prix goncourt','prix litteraire','grand prix litteraire',
+  // « Centre d'innovation des semences […] au service de la souveraineté
+  // alimentaire » (Le Sahel, 18/11/2026) sortait ÉLEVÉ au Niger : « alimentaire »
+  // est un mot de crise (CK_HUM), la souveraineté alimentaire une politique.
+  'souverainete alimentaire',
 ];
 
 // TOURNURES_JUDICIAIRES : « attaquer en justice » veut dire poursuivre, pas
@@ -9475,8 +9479,14 @@ function balisesArticle(a) {
   const balises = [];
 
   // ── Thematiques ──
+  // Un mot court ou un sigle (5 lettres au plus) ne compte qu'en mot entier :
+  // le sigle « gat » se lisait dans « déléGATion » et posait « Terrorisme »
+  // sur 74 faits de novembre (visite de journalistes nigériens en Chine,
+  // grève d'Orabank, épidémie au Sénégal). Les mots longs restent lus en
+  // sous-chaîne pour garder pluriels et dérivés (kamikazes, parlementaire).
+  const contientMot = m => { const n = normaliserAccents(m); return n.length <= 5 ? matchMot(texte, n) : texte.includes(n); };
   Object.entries(BALISE_THEME_KW).forEach(([theme, mots]) => {
-    if (mots.some(m => texte.includes(normaliserAccents(m)))) {
+    if (mots.some(contientMot)) {
       const meta = { terrorisme: ['Terrorisme', 'ti-alert-hexagon'], meteo: ['Météo', 'ti-cloud-storm'],
                      politique: ['Politique', 'ti-building-bank'] }[theme];
       balises.push({ label: meta[0], icon: meta[1], famille: 'theme' });
@@ -11048,7 +11058,8 @@ function patchVisuelActu(id, m) {
 // serif, gravite et cotation. Le clic ouvre le detail, comme une carte du Flux.
 function carteUneHtml(a) {
   const pl = a.flagged ? lp('u') : lp(a.level);
-  const cc = (typeof CYS !== 'undefined' && CYS.find(x => x.code === a.cy)) || { flag: '🌍', name: a.cy || '' };
+  // Nom du pays accentue (PAYS_INFO), pas celui de CYS (« Cote d'Ivoire »).
+  const cc = paysR(a.cy || 'INT');
   const src = gs(a.primary);
   const cot = (typeof cotationArticle === 'function') ? cotationActu(a, src) : null;
   return '<article class="une-carte" onclick="showDet(\'' + a.id + '\')">' +
@@ -13790,7 +13801,9 @@ function articleADesLiensDirects(a) {
   return !!(a.url && a.url !== '#' && a.url !== src.url && !/\?s=|\/search/.test(a.url));
 }
 function rc(s){return s>=85?'rh':s>=65?'rm':'rl';}
-function lp(l){return {crit:['rc2','CRITIQUE'],high:['rh2','ELEVE'],mod:['rm2','MODERE'],ok:['ro2','STABLE'],u:['ru2','NON CONF']}[l]||['rm2','MODERE'];}
+// Libelles d'ecran, accentues : « ELEVE » sans accent se lisait comme une
+// faute dans un produit d'expert (relecture du 18/11/2026).
+function lp(l){return {crit:['rc2','CRITIQUE'],high:['rh2','ÉLEVÉ'],mod:['rm2','MODÉRÉ'],ok:['ro2','STABLE'],u:['ru2','NON CONFIRMÉ']}[l]||['rm2','MODÉRÉ'];}
 function lbg(l){return {crit:'#8B1A1A',high:'#7C4A00',mod:'#4B5563',ok:'#0F4F2A'}[l]||'#4B5563';}
 function lic(l){return l==='crit'?'ti-alert-triangle':l==='high'?'ti-alert-circle':'ti-info-circle';}
 
@@ -14777,8 +14790,8 @@ async function renderFeed() {
   function renderOneArt(a){
     const ps=gs(a.primary);
     const pl=a.flagged?lp('u'):lp(a.level);
-    const cc=CYS.find(x=>x.code===a.cy)||{flag:'🌍',name:a.cy};
-    const scl={local:'Local',national:'National',regional:'Regional'};
+    const cc=paysR(a.cy||'INT');
+    const scl={local:'Local',national:'National',regional:'Régional'};
     // Sources masquees pour les utilisateurs non-admin (voir sourcesVisibles) :
     // aucun nom/lien de source dans les modules de lecture, l'actu doit se
     // comprendre par son propre texte (titre + analyse).
@@ -14834,7 +14847,7 @@ async function renderFeed() {
         '<div class="asum" id="tra-'+a.id+'">'+escHtml(L(a.analysis))+'</div>'+
         // ── Meta secondaire : portee, ville, categorie, source RSS, sentiment, viralite ──
         '<div class="meta2">'+
-          '<span class="stag">'+(scl[a.sc]||'Regional')+'</span>'+
+          '<span class="stag">'+(scl[a.sc]||'Régional')+'</span>'+
           (a._ville ? '<span class="stag" style="display:inline-flex;align-items:center;gap:3px;"'+(a.cy && a.cy!=='INT' ? attrFiltre('ville:'+a.cy+':'+a._ville, (LANG==='en'?'Show the news from ':'Voir les actus de ')+a._ville) : '')+'><i class="ti ti-map-pin" style="font-size:9px"></i>'+a._ville+(a._villeEstimee?' <b style="font-weight:800;">(estimé)</b>':'')+'</span>' : '')+
           (catDoublon ? '' : '<span class="stag"'+(CATS_FILTRABLES.includes(a.cat) ? attrFiltre('cat:'+a.cat, (LANG==='en'?'Show the news in this category':'Voir les actus de cette catégorie')) : '')+'>'+catFr(a.cat)+'</span>')+
           (()=>{
