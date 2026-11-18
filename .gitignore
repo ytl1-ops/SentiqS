@@ -26,3 +26,6 @@ couverture-medias.json
 
 # Rapport de mesure GDELT (scripts/mesurer-gdelt.js)
 mesure-gdelt.json
+
+# Preuve Search Console, écrite au déploiement Firebase (scripts/search-console.js)
+web/google*.html
