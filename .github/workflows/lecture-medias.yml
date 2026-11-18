@@ -1,0 +1,38 @@
+name: Lecture éditoriale des médias
+
+# Prépare la lecture éditoriale des médias qui pourraient sortir un pays de la
+# source unique (scripts/lecture-medias.js). Le bac à sable n'atteint pas ces
+# sites. Informative : n'écrit rien, n'échoue jamais une PR.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/lib/decouverte-source.js'
+      - 'scripts/lecture-medias.js'
+      - '.github/workflows/lecture-medias.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lecture-medias
+  cancel-in-progress: true
+
+jobs:
+  sonde:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+      - name: Lit les flux
+        run: node scripts/lecture-medias.js lecture-medias.json
+        continue-on-error: true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lecture-medias
+          path: lecture-medias.json
+          if-no-files-found: ignore
