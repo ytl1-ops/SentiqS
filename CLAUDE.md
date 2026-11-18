@@ -4366,6 +4366,28 @@ code, les 3 autres sont des gardes).
 
 ---
 
+## GDELT : mesuré, non branché — 18/11/2026
+
+Choix de YORO pour élargir la collecte sans frais (Perplexity écarté :
+payant, et du texte généré). `scripts/lib/gdelt.js` compose des requêtes
+DOC 2.0 par aire linguistique (cinq pays au plus, quatre thèmes) ;
+`scripts/sonde-gdelt.js` les mesure depuis GitHub (workflow manuel
+`sonde-gdelt.yml`).
+
+**Mesure du 18/11/2026, trois passages** : 25 réponses sur 28 en **HTTP 429**
+(« one request every 5 seconds »), alors que la sonde espaçait ses appels de
+15 s et tournait seule. Les adresses des runners GitHub sont partagées :
+le quota est déjà consommé par d'autres. Les trois réponses 200 rapportaient
+0 à 4 articles, **aucun ne nommant un des pays visés** (exemple : un don de
+Melinda French Gates, republicanherald.com). Aucune entrée n'est donc
+ajoutée au registre ; le nombre de sources de l'accueil ne change pas.
+
+Ce qui reste, si l'éditeur veut y revenir : les fichiers d'export bruts de
+GDELT (`data.gdeltproject.org`, toutes les 15 min, sans quota) donnent des
+adresses d'articles géolocalisées mais pas de titres — il faudrait lire
+chaque page, un chantier à part. `fetch-respectueux.js` garde son délai par
+domaine (`DELAIS_PAR_DOMAINE_MS`), utile à toute API à quota.
+
 ## Une seule règle d'actus pour tous les modules — 18/11/2026
 
 Demande de YORO : « une cohérence et conformité entre les actus sur tous les
