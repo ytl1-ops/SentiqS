@@ -9,12 +9,19 @@ const g = require('./lib/gdelt');
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 const sansAccent = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
-async function lire(url, texte) {
-  try {
-    const r = await fetch(url, { headers: { 'User-Agent': 'SentiqS-sonde/1.0' }, signal: AbortSignal.timeout(30000) });
-    const corps = await r.text();
-    return { code: r.status, corps };
-  } catch (e) { return { code: 0, corps: String(e.message || e) }; }
+// Une seule nouvelle tentative, dix secondes plus tard, sur coupure réseau
+// (« fetch failed » sur la moitié des appels de la première sonde).
+async function lire(url) {
+  for (let essai = 1; essai <= 2; essai++) {
+    try {
+      const r = await fetch(url, { headers: { 'User-Agent': 'SentiqS-sonde/1.0' }, signal: AbortSignal.timeout(45000) });
+      const corps = await r.text();
+      return { code: r.status, corps, essai };
+    } catch (e) {
+      if (essai === 2) return { code: 0, corps: String((e.cause && e.cause.code) || e.message || e), essai };
+      await pause(10000);
+    }
+  }
 }
 
 (async () => {

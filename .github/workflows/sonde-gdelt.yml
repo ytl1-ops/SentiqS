@@ -15,10 +15,16 @@ on:
 permissions:
   contents: read
 
+# Une seule sonde à la fois : GDELT limite à une requête toutes les cinq
+# secondes par adresse, et trois sondes parallèles se sont fait refuser (429).
+concurrency:
+  group: sonde-gdelt
+  cancel-in-progress: true
+
 jobs:
   sonde:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5

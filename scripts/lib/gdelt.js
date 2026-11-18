@@ -25,10 +25,14 @@ const DELAI_MIN_MS = 5500;
 
 // Thèmes de la configuration du projet : sécurité, politique, humanitaire
 // (pas de cyber). Thèmes GKG de GDELT.
-const THEMES = ['TERROR', 'KILL', 'ARMEDCONFLICT', 'KIDNAP', 'PROTEST', 'MILITARY',
-  'SECURITY_SERVICES', 'REBELLION', 'ARREST', 'REFUGEES', 'ELECTION', 'COUP'];
+// Thèmes de la configuration du projet : sécurité, politique, humanitaire
+// (pas de cyber). Liste courte : la première sonde (18/11/2026) a reçu
+// « Your query was too short or too long » avec douze thèmes.
+const THEMES = ['KILL', 'TERROR', 'PROTEST', 'ARMEDCONFLICT'];
 
-const REQUETES = [
+// Aires linguistiques découpées en requêtes de cinq pays au plus, pour la
+// même raison.
+const AIRES = [
   { id: 'gdelt_ouest_fr', nom: 'Afrique de l\'Ouest (fr)', langue: 'french',
     pays: ['Sénégal', 'Mali', 'Burkina Faso', 'Niger', 'Guinée', 'Côte d\'Ivoire', 'Togo', 'Bénin', 'Mauritanie'] },
   { id: 'gdelt_centre_fr', nom: 'Afrique centrale et océan Indien (fr)', langue: 'french',
@@ -46,6 +50,15 @@ const REQUETES = [
   { id: 'gdelt_gq_es', nom: 'Guinée équatoriale (es)', langue: 'spanish',
     pays: ['Guinea Ecuatorial'] },
 ];
+const PAYS_PAR_REQUETE = 5;
+const REQUETES = [];
+AIRES.forEach((a) => {
+  const n = Math.ceil(a.pays.length / PAYS_PAR_REQUETE);
+  for (let i = 0; i < n; i++) {
+    REQUETES.push({ id: a.id + (n > 1 ? '_' + (i + 1) : ''), nom: a.nom + (n > 1 ? ' ' + (i + 1) + '/' + n : ''), langue: a.langue,
+      pays: a.pays.slice(i * PAYS_PAR_REQUETE, (i + 1) * PAYS_PAR_REQUETE) });
+  }
+});
 
 const terme = (t) => (/\s|-|'/.test(t) ? '"' + t + '"' : t);
 
