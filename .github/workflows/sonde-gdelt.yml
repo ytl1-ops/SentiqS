@@ -1,0 +1,29 @@
+name: Sonde GDELT
+
+# Mesure ce que rapportent les requêtes GDELT du registre (scripts/sonde-gdelt.js).
+# Le bac à sable n'atteint pas api.gdeltproject.org : la mesure se fait d'ici.
+# Informative, ne publie rien, n'échoue jamais une PR.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/lib/gdelt.js'
+      - 'scripts/sonde-gdelt.js'
+      - '.github/workflows/sonde-gdelt.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  sonde:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+      - name: Interroge GDELT
+        run: node scripts/sonde-gdelt.js
+        continue-on-error: true
