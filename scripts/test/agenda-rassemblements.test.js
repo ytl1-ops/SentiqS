@@ -39,8 +39,11 @@ test('un mot court n’est lu qu’en mot entier, et le corps ne fait pas un év
 test('verser un fait à l’agenda ne le retire pas du Flux quand il compte', () => {
   const { auFlux } = monter();
   for (const t of ['manifestation', 'sportif', 'religieux', 'ceremonie', 'meeting']) assert.ok(auFlux.has(t), t);
-  const corps = tranche('function getFiltered', 'const q=document');
-  assert.match(corps, /AGENDA_AUSSI_AU_FLUX\.has\(x\._agendaType\) \|\| x\.level === 'crit' \|\| x\.level === 'high'/);
+  // Règle portée depuis le 18/11/2026 par estActuModule, commune à tous les
+  // modules d'actus (le Flux y passe par actusModules).
+  const corps = tranche('function estActuModule(a) {', '\n}');
+  assert.match(corps, /a\._estAgenda && !AGENDA_AUSSI_AU_FLUX\.has\(a\._agendaType\) && a\.level !== 'crit' && a\.level !== 'high'/);
+  assert.match(tranche('function getFiltered', 'const q=document'), /actusModules\(ALL\)/);
 });
 
 test('le type d’agenda est recalculé à la réhydratation, et la collecte lit le titre', () => {

@@ -27,8 +27,10 @@ test('getFiltered() ne recopie plus sa propre fenetre, plus courte que celle du 
   const f = tranche('function getFiltered() {', '\n  return a;\n}');
   assert.doesNotMatch(f, /12\s*\*\s*60\s*\*\s*60\s*\*\s*1000/,
     'getFiltered() impose encore une fenetre en dur au lieu de suivre FENETRE_ACTUALITE_MS');
-  assert.match(f, /antiHalluFilter\(\[\.\.\.ALL\]\)/,
-    'getFiltered() doit appeler antiHalluFilter() sans second argument, pour retomber sur FENETRE_ACTUALITE_MS');
+  // Depuis le 18/11/2026, la règle commune estActuModule (via actusModules),
+  // qui repose sur estRecentReel et donc sur FENETRE_ACTUALITE_MS.
+  assert.match(f, /actusModules\(ALL\)/,
+    'getFiltered() doit partir de la règle commune actusModules(ALL)');
 });
 
 test('publierCollectePartagee() ne purge plus le cache partage a 12h en dur', () => {
@@ -43,7 +45,7 @@ test('compteurRegional() suit la meme fenetre que le reste du Flux', () => {
   const f = tranche('function compteurRegional() {', '\n}');
   assert.doesNotMatch(f, /12\s*\*\s*60\s*\*\s*60\s*\*\s*1000/,
     'compteurRegional() impose encore 12h en dur');
-  assert.match(f, /FENETRE_ACTUALITE_MS/, 'compteurRegional() doit suivre FENETRE_ACTUALITE_MS');
+  assert.match(f, /estActuModule\(a\)/, 'compteurRegional() doit suivre la règle commune (estActuModule, donc FENETRE_ACTUALITE_MS)');
 });
 
 test('aucune fenetre de 12h en dur ne subsiste hors des deux exceptions documentees', () => {

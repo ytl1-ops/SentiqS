@@ -4324,3 +4324,97 @@ Exports à la demande : 14/14 identiques avant/après (texte comparé, 200 actus
 françaises du cumul de novembre, horloge figée). Les actus en langue étrangère
 ont été écartées du banc : sans réseau, chaque titre attend tous les moteurs de
 traduction et le banc ne finit pas.
+
+---
+
+## Trois témoins officiels pour la confiance — 18/11/2026
+
+Demande de YORO : « passer la confiance à 54 pays », c'est-à-dire aucun pays
+à confiance faible. Archive du 18/11/2026 : 40 moyenne, **14 faibles** (AO BI
+CV DJ GQ GW KM LS ML SD SL SO ST ZW), tous sans signal du jour et avec un avis
+FCDO de plus de 90 jours — 342 jours pour GQ GW KM LS ST : Londres ne revoit
+pas les petits pays. Le FCDO ne pouvait donc pas les corroborer.
+
+`scripts/avis-officiels.js` lit désormais aussi **Affaires mondiales Canada**
+(un fichier de données ouvertes pour tous les pays, Licence du gouvernement
+ouvert — Canada) et le **Département d'État** (flux RSS, domaine public), et
+range chaque avis dans `pays[cy].temoins` de `avis-officiels.json`. Le noyau
+(`lectureTemoinsOfficiels`) les lit avec la règle du FCDO : récent (90 j),
+compatible avec le niveau (`AVIS_COMPATIBLE`, deux degrés ajoutés :
+`prudence`, `prudence_partie`), faible → moyenne seulement, **niveau
+inchangé**. Corroboré si les compatibles sont **strictement** plus nombreux
+que les divergents ; à égalité, deux administrations se contredisent : faible
+et « socle à relire ». Conséquence assumée : un pays « moyenne » sur le seul
+FCDO peut redescendre si le Canada ou les États-Unis le contredisent ; le
+journal du job les nomme.
+
+**Mesuré depuis GitHub** (lecture à blanc de `avis-officiels.yml` sur la
+PR, le bac à sable n'atteint ni gc.ca ni state.gov) : Canada 54/54, États-Unis
+53/54, **faibles 14 → 0**. Un seul pays tombe de « moyenne » à « faible » :
+l'**Érythrée**, affichée jaune alors que le Canada déconseille les voyages non
+essentiels dans tout le pays — une vraie divergence, à la revue du socle.
+Deux corrections imposées par cette mesure :
+
+- « grande prudence » est compatible avec le **vert** : le Canada l'applique
+  au Botswana et à la Namibie pour la seule délinquance (et à la France) ;
+  la première règle faisait tomber BW à « faible » à tort ;
+- le flux du Département d'État ne porte pas l'adresse de chaque avis sous
+  la forme attendue (0/54 au premier passage) : le pays se lit dans le titre
+  (« Cote d'Ivoire - Level 2: … »), ramené au slug de la table CONSEILS.
+`scripts/test/confiance-temoins.test.js` (9 ; 6 vus échouer sur l'ancien
+code, les 3 autres sont des gardes).
+
+---
+
+## GDELT : mesuré, non branché — 18/11/2026
+
+Choix de YORO pour élargir la collecte sans frais (Perplexity écarté :
+payant, et du texte généré). `scripts/lib/gdelt.js` compose des requêtes
+DOC 2.0 par aire linguistique (cinq pays au plus, quatre thèmes) ;
+`scripts/sonde-gdelt.js` les mesure depuis GitHub (workflow manuel
+`sonde-gdelt.yml`).
+
+**Mesure du 18/11/2026, dernier passage** : 23 réponses sur 28 en **HTTP 429**
+(« one request every 5 seconds ») et une coupure réseau, alors que la sonde
+espaçait ses appels de 15 s et tournait seule. Les adresses des runners
+GitHub sont partagées : le quota est déjà consommé par d'autres. Les quatre
+réponses 200 rapportaient
+0 à 4 articles, **aucun ne nommant un des pays visés** (exemple : un don de
+Melinda French Gates, republicanherald.com). Aucune entrée n'est donc
+ajoutée au registre ; le nombre de sources de l'accueil ne change pas.
+
+Ce qui reste, si l'éditeur veut y revenir : les fichiers d'export bruts de
+GDELT (`data.gdeltproject.org`, toutes les 15 min, sans quota) donnent des
+adresses d'articles géolocalisées mais pas de titres — il faudrait lire
+chaque page, un chantier à part. `fetch-respectueux.js` garde son délai par
+domaine (`DELAIS_PAR_DOMAINE_MS`), utile à toute API à quota.
+
+## Une seule règle d'actus pour tous les modules — 18/11/2026
+
+Demande de YORO : « une cohérence et conformité entre les actus sur tous les
+modules, sauf l'Agenda, qui garde sa particularité d'agenda, et la
+Géopolitique ». `estActuModule(a)` / `actusModules(arts)` portent la règle :
+`estRecentReel` (fenêtre, date fiable, survenance), source et titre (l'ancien
+`antiHalluFilter`), pas d'événement purement calendaire sauf rassemblements,
+manifestations et faits critiques ou élevés (la règle du Flux). Flux, flash
+info, compteurs, tableau de bord, actus à traiter, Synthèse, Recherche,
+réseaux sociaux, chronologie des Alertes, compteur régional et exports
+(`getExportData`) la lisent ; `coherence-modules.test.js` refuse qu'un de ces
+modules refiltre `ALL` avec `estRecentReel` seul.
+
+Banc sur le cumul de novembre injecté dans `ALL`, horloge figée, `main`
+contre la branche : Flux 101 (inchangé) ; tableau de bord, Synthèse et
+exports 104 → 101 (trois événements calendaires que le Flux écartait) ;
+**Synthèse filtrée sur la Côte d'Ivoire 70 → 9** (le filtre pays repartait
+de `ALL` sans date) ; **compteur des critiques du Flux 176 → 15** (il
+comptait tout `ALL`) ; **Recherche (portée Flux) 1 224 → 101**. Le banc
+charge un mois entier : en service, `ALL` est filtré à la collecte et les
+écarts sont plus petits, mais de même nature (agenda à venir conservé par
+`tick()`).
+
+Restent hors de cette règle, volontairement : l'Agenda (ses événements à
+venir), la Géopolitique, `getLiveAlertEvents` (le niveau d'alerte, fenêtre
+propre), l'assistant (il répond sur des périodes, historique compris) et le
+bulletin du job (`donneesBulletinPays`, document généré, non modifié sans
+demande). Les exports Flux et Synthèse changent d'autant : ils suivent
+l'écran.

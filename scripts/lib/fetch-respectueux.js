@@ -84,13 +84,24 @@ async function robotsAutorise(url) {
 
 // attendreQuota(url) : impose un ecart minimal entre deux requetes vers le
 // MEME domaine, quel que soit le nombre de sources SRCS qui le partagent.
+//
+// Un domaine peut exiger plus : l'API GDELT demande au plus une requete
+// toutes les cinq secondes (DELAIS_PAR_DOMAINE_MS, 18/11/2026).
+//
+// Le creneau est RESERVE avant l'attente : sans cela, plusieurs sources du
+// meme domaine appelees en parallele lisaient le meme « dernier appel »,
+// calculaient la meme attente et partaient ensemble — l'ecart promis n'etait
+// tenu que pour des appels successifs.
+const DELAIS_PAR_DOMAINE_MS = { 'api.gdeltproject.org': 5500 };
 async function attendreQuota(url) {
   const domaine = domaineDe(url);
   if (!domaine) return;
+  const delai = DELAIS_PAR_DOMAINE_MS[domaine] || DELAI_MIN_PAR_DOMAINE_MS;
   const dernier = domaineDernierAppel.get(domaine) || 0;
-  const attente = DELAI_MIN_PAR_DOMAINE_MS - (Date.now() - dernier);
+  const creneau = Math.max(Date.now(), dernier + delai);
+  domaineDernierAppel.set(domaine, creneau);
+  const attente = creneau - Date.now();
   if (attente > 0) await new Promise(resolve => setTimeout(resolve, attente));
-  domaineDernierAppel.set(domaine, Date.now());
 }
 
 // fetchRespectueux(url) : {ok:true, texte, status, tentatives} en cas de
@@ -130,4 +141,4 @@ async function fetchRespectueux(url) {
   return { ok: false, raison: derniereErreur, tentatives: MAX_TENTATIVES };
 }
 
-module.exports = { fetchRespectueux, USER_AGENT, DELAI_MIN_PAR_DOMAINE_MS, TIMEOUT_MS, MAX_TENTATIVES };
+module.exports = { fetchRespectueux, USER_AGENT, DELAI_MIN_PAR_DOMAINE_MS, DELAIS_PAR_DOMAINE_MS, TIMEOUT_MS, MAX_TENTATIVES, attendreQuota };

@@ -1,0 +1,33 @@
+name: Sonde GDELT
+
+# Mesure ce que rapportent les requêtes GDELT du registre (scripts/sonde-gdelt.js).
+# Le bac à sable n'atteint pas api.gdeltproject.org : la mesure se fait d'ici.
+# Informative, ne publie rien, n'échoue jamais une PR.
+
+# Lancement manuel seulement depuis la mesure du 18/11/2026 : depuis les
+# runners GitHub, l'API répond 429 à presque toutes les requêtes (voir
+# CLAUDE.md, « GDELT : mesuré, non branché »).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Une seule sonde à la fois : GDELT limite à une requête toutes les cinq
+# secondes par adresse, et trois sondes parallèles se sont fait refuser (429).
+concurrency:
+  group: sonde-gdelt
+  cancel-in-progress: true
+
+jobs:
+  sonde:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+      - name: Interroge GDELT
+        run: node scripts/sonde-gdelt.js
+        continue-on-error: true
