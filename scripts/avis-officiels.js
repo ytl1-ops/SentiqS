@@ -56,17 +56,57 @@ function dernierInstantane() {
     await pause(250);
   }
   const pays = avis.fusionner(ancien, nouveaux);
+  // Témoins supplémentaires (18/11/2026) : Canada (un fichier pour tous les
+  // pays) et États-Unis (un flux RSS). Une source qui ne répond pas garde ses
+  // témoins précédents ; elle ne fait jamais échouer le passage.
+  const codes = Object.keys(PAYS_BULLETIN);
+  const ca = await lireJson(avis.API_CANADA);
+  const temCanada = avis.lireCanada(ca.json, codes);
+  let temUsa = {};
+  try {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), DELAI_MS);
+    const r = await fetch(avis.RSS_USA, { signal: ctl.signal, headers: { 'User-Agent': 'SentiqS-avis/1.0' } });
+    clearTimeout(t);
+    const slugs = {};
+    codes.forEach((cy) => {
+      const u = (PAYS_BULLETIN[cy].conseils.find((c) => /travel\.state\.gov/.test(c.url)) || {}).url || '';
+      const m = /traveladvisories\/([a-z0-9-]+)-travel-advisory\.html/.exec(u);
+      if (m) slugs[cy] = m[1];
+    });
+    temUsa = r.ok ? avis.lireUsa(await r.text(), slugs) : {};
+    console.log('États-Unis : HTTP ' + r.status + ', ' + Object.keys(temUsa).length + '/54 avis');
+  } catch (e) { console.log('États-Unis : sans réponse (' + e.message + ')'); }
+  console.log('Canada : HTTP ' + ca.code + ', ' + Object.keys(temCanada).length + '/54 avis');
+  avis.attacherTemoins(pays, ancien && ancien.pays, { Canada: temCanada, 'États-Unis': temUsa });
   const instantane = dernierInstantane();
   const div = avis.divergences(pays, instantane, maintenant);
-  const sortie = { source: 'FCDO — gov.uk Content API (Open Government Licence v3.0)', lu: new Date(maintenant).toISOString(), pays, divergences: div };
+  const sortie = { source: 'FCDO — gov.uk Content API (Open Government Licence v3.0) ; Affaires mondiales Canada — données ouvertes (Licence du gouvernement ouvert — Canada) ; Département d\'État des États-Unis — flux RSS (domaine public)', lu: new Date(maintenant).toISOString(), pays, divergences: div };
   fs.writeFileSync(SORTIE, JSON.stringify(sortie, null, 1) + '\n');
   console.log('Avis lus : ' + lus + '/54' + (echecs.length ? ' ; sans réponse : ' + echecs.join(', ') : ''));
   console.log('Avis divergents du dernier niveau archivé (' + (instantane && instantane.jour) + ') : ' + div.length);
-  div.forEach((d) => console.log('  ' + d.code + ' affiché ' + d.niveau + ' ; FCDO : ' + d.libelle + ' (revu il y a ' + d.revuIlYaJ + ' j)'));
+  div.forEach((d) => console.log('  ' + d.code + ' affiché ' + d.niveau + ' ; ' + d.source + ' : ' + d.libelle + ' (revu il y a ' + d.revuIlYaJ + ' j)'));
   // Effet attendu sur la confiance : un pays « faible » remonte à « moyenne »
   // quand son avis est récent et compatible (règle du noyau, rien d'autre).
   const faibles = ((instantane && instantane.pays) || []).filter((p) => p.confiance === 'faible');
-  const corrobores = faibles.filter((p) => { const l = noyau.lectureAvisOfficiel(pays[p.code], p.niveau, maintenant); return l && l.compatible; });
+  const corrobores = faibles.filter((p) => {
+    const t = noyau.lectureTemoinsOfficiels(pays[p.code], p.niveau, maintenant);
+    return t.filter((x) => x.compatible).length > t.filter((x) => !x.compatible).length;
+  });
+  // Le passage peut aussi faire REDESCENDRE un pays « moyenne » qu'un nouveau
+  // témoin contredit : le compter, pour ne pas lire seulement les gains.
+  const moyennes = ((instantane && instantane.pays) || []).filter((p) => p.confiance === 'moyenne');
+  const contredits = moyennes.filter((p) => {
+    const t = noyau.lectureTemoinsOfficiels(pays[p.code], p.niveau, maintenant);
+    const fcdo = noyau.lectureAvisOfficiel(pays[p.code], p.niveau, maintenant);
+    return fcdo && fcdo.compatible && t.filter((x) => x.compatible).length <= t.filter((x) => !x.compatible).length;
+  });
+  if (contredits.length) console.log('Corroborés hier par le FCDO seul, contredits aujourd\'hui par un autre témoin : ' + contredits.map((p) => p.code).join(' '));
+  const restants = faibles.filter((p) => !corrobores.includes(p)).map((p) => {
+    const t = noyau.lectureTemoinsOfficiels(pays[p.code], p.niveau, maintenant);
+    return p.code + ' ' + p.niveau + ' [' + (t.length ? t.map((x) => x.source + (x.compatible ? '+' : '−') + x.ageJ + 'j').join(', ') : 'aucun avis récent') + ']';
+  });
+  if (restants.length) console.log('Restent faibles : ' + restants.join(' ; '));
   console.log('Confiance faible : ' + faibles.length + ' → ' + (faibles.length - corrobores.length) + ' (' + corrobores.map((p) => p.code).join(' ') + ' corroborés)');
   if (lus === 0 && !ancien) process.exitCode = 1;
 })();

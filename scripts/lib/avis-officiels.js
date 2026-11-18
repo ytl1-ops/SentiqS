@@ -28,6 +28,98 @@ function lireReponse(json, slug) {
   return { statuts, revu, maj, url: 'https://www.gov.uk/foreign-travel-advice/' + slug };
 }
 
+// ── Témoins supplémentaires (18/11/2026) ────────────────────────────────────
+//
+// Affaires mondiales Canada publie ses 230 avis en un seul fichier de données
+// ouvertes (Licence du gouvernement ouvert — Canada), indexé par code ISO :
+// un appel pour les 54 pays. Le Département d'État publie un flux RSS de ses
+// avis (domaine public). Chacun est ramené aux degrés du noyau
+// (AVIS_COMPATIBLE) ; le noyau seul décide de ce qu'ils changent.
+const API_CANADA = 'https://data.international.gc.ca/travel-voyage/index-updated.json';
+const RSS_USA = 'https://travel.state.gov/_res/rss/TAsTWs.xml';
+
+// advisory-state : 0 précautions normales, 1 grande prudence, 2 éviter les
+// voyages non essentiels, 3 éviter tout voyage ; has-regional-advisory dit
+// qu'une partie du pays est plus restreinte que le reste.
+function degreAvisCanada(etat, regional) {
+  const e = Number(etat);
+  if (e === 3) return 'aat_total';
+  if (e === 2) return 'aabe_total';
+  if (e === 1) return regional ? 'prudence_partie' : 'prudence';
+  if (e === 0) return regional ? 'aat_partie' : 'aucun';
+  return null;
+}
+
+// Niveau 1 précautions normales, 2 prudence accrue (souvent avec des zones
+// « Do Not Travel »), 3 reconsidérer le voyage, 4 ne pas voyager.
+function degreAvisUsa(niveau) {
+  return ({ 1: 'aucun', 2: 'prudence_partie', 3: 'aabe_total', 4: 'aat_total' })[Number(niveau)] || null;
+}
+
+function dateCanada(dp) {
+  if (!dp) return null;
+  const ts = Number(dp.timestamp);
+  if (isFinite(ts) && ts > 0) return new Date(ts * 1000).toISOString();
+  const ms = Date.parse(String(dp.date || '').replace(' ', 'T') + (/Z|[+-]\d\d:?\d\d$/.test(String(dp.date || '')) ? '' : 'Z'));
+  return isFinite(ms) ? new Date(ms).toISOString() : null;
+}
+
+// Le fichier canadien → { cy: témoin } pour les codes demandés.
+function lireCanada(json, codes) {
+  const data = json && typeof json === 'object' ? (json.data || json) : null;
+  const out = {};
+  if (!data) return out;
+  (codes || []).forEach((cy) => {
+    const d = data[cy];
+    if (!d) return;
+    const degre = degreAvisCanada(d['advisory-state'], Number(d['has-regional-advisory']) === 1);
+    const revu = dateCanada(d['date-published']);
+    if (!degre || !revu) return;
+    const slug = d.eng && d.eng['url-slug'];
+    out[cy] = { source: 'Canada', degre, revu,
+      url: 'https://travel.gc.ca/destinations/' + (slug || String(cy).toLowerCase()) };
+  });
+  return out;
+}
+
+// Le flux RSS américain → { cy: témoin }. Chaque <item> porte « <Pays> -
+// Level N: … » et un lien « …/<slug>-travel-advisory.html » ; on reconnaît
+// le pays par ce slug, celui de la table CONSEILS du bulletin.
+function lireUsa(xml, slugs) {
+  const out = {};
+  const parSlug = {};
+  Object.keys(slugs || {}).forEach((cy) => { parSlug[slugs[cy]] = cy; });
+  String(xml || '').split(/<item[\s>]/i).slice(1).forEach((it) => {
+    const brut = (b) => { const m = new RegExp('<' + b + '[^>]*>([\\s\\S]*?)</' + b + '>', 'i').exec(it); return m ? m[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim() : ''; };
+    const lien = brut('link');
+    const m = /traveladvisories\/([a-z0-9-]+)-travel-advisory\.html/i.exec(lien);
+    const cy = m && parSlug[m[1].toLowerCase()];
+    if (!cy) return;
+    const n = /Level\s*([1-4])/i.exec(brut('title'));
+    const degre = n && degreAvisUsa(n[1]);
+    const ms = Date.parse(brut('pubDate'));
+    if (!degre || !isFinite(ms)) return;
+    out[cy] = { source: 'États-Unis', degre, revu: new Date(ms).toISOString(), url: lien };
+  });
+  return out;
+}
+
+// Rattache les témoins à chaque pays. Une source muette ce jour-là garde le
+// témoin du passage précédent (même règle que le FCDO).
+function attacherTemoins(pays, ancienPays, parSource) {
+  Object.keys(pays).forEach((cy) => {
+    const avant = (ancienPays && ancienPays[cy] && Array.isArray(ancienPays[cy].temoins)) ? ancienPays[cy].temoins : [];
+    const temoins = [];
+    Object.keys(parSource).forEach((src) => {
+      const lu = parSource[src] && parSource[src][cy];
+      const garde = avant.find((t) => t && t.source === src);
+      if (lu) temoins.push(lu); else if (garde) temoins.push(garde);
+    });
+    if (temoins.length) pays[cy] = Object.assign({}, pays[cy], { temoins });
+  });
+  return pays;
+}
+
 function fusionner(ancien, nouveaux) {
   const pays = Object.assign({}, (ancien && ancien.pays) || {});
   Object.keys(nouveaux || {}).forEach((cy) => { if (nouveaux[cy]) pays[cy] = nouveaux[cy]; });
@@ -39,12 +131,14 @@ function fusionner(ancien, nouveaux) {
 function divergences(pays, instantane, maintenant) {
   const out = [];
   ((instantane && instantane.pays) || []).forEach((p) => {
-    const lu = noyau.lectureAvisOfficiel(pays[p.code], p.niveau, maintenant);
-    if (lu && !lu.compatible) {
-      out.push({ code: p.code, niveau: p.niveau, avis: lu.degre, libelle: noyau.AVIS_LIBELLES[lu.degre], revuIlYaJ: lu.ageJ });
-    }
+    // Tous les témoins récents : un pays où l'un d'eux diverge est listé,
+    // avec chaque avis divergent (source, degré, âge).
+    noyau.lectureTemoinsOfficiels(pays[p.code], p.niveau, maintenant).filter((t) => !t.compatible).forEach((lu) => {
+      out.push({ code: p.code, niveau: p.niveau, source: lu.source, avis: lu.degre, libelle: noyau.AVIS_LIBELLES[lu.degre], revuIlYaJ: lu.ageJ });
+    });
   });
   return out;
 }
 
-module.exports = { API, slugFcdo, lireReponse, fusionner, divergences };
+module.exports = { API, API_CANADA, RSS_USA, slugFcdo, lireReponse, fusionner, divergences,
+  degreAvisCanada, degreAvisUsa, lireCanada, lireUsa, attacherTemoins };

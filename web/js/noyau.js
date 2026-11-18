@@ -534,11 +534,18 @@ const AVIS_COMPATIBLE = {
   aat_partie:  ['jaune', 'orange', 'marron', 'rouge'],
   aabe_total:  ['orange', 'marron', 'rouge'],
   aat_total:   ['marron', 'rouge'],
+  // Degrés des deux témoins ajoutés le 18/11/2026 (Canada, États-Unis), dont
+  // l'échelle n'a pas d'équivalent FCDO : « grande prudence » nationale, sans
+  // zone déconseillée (prudence) ou avec (prudence_partie, qui peut couvrir
+  // une zone rouge).
+  prudence:        ['jaune', 'orange', 'marron'],
+  prudence_partie: ['jaune', 'orange', 'marron', 'rouge'],
 };
 const AVIS_LIBELLES = {
   aucun: 'aucune restriction', aabe_partie: 'voyages non essentiels déconseillés dans une partie du pays',
   aat_partie: 'voyages déconseillés dans une partie du pays', aabe_total: 'voyages non essentiels déconseillés dans tout le pays',
   aat_total: 'voyages déconseillés dans tout le pays',
+  prudence: 'grande prudence', prudence_partie: 'grande prudence, voyages déconseillés dans une partie du pays',
 };
 
 // Les statuts tels que les publie l'API de contenu de gov.uk
@@ -566,6 +573,37 @@ function lectureAvisOfficiel(avis, cleNiveau, maintenant) {
   return { degre, ageJ, compatible: (AVIS_COMPATIBLE[degre] || []).includes(cleNiveau) };
 }
 
+// ── Plusieurs témoins officiels (18/11/2026) ────────────────────────────────
+//
+// Le FCDO seul laissait 14 pays sur 54 à confiance faible le 18/11/2026 :
+// Guinée équatoriale, Guinée-Bissau, Comores, Lesotho, São Tomé n'avaient pas
+// été revus par Londres depuis 342 jours. Deux administrations publient aussi
+// un avis daté, gratuit et réutilisable : Affaires mondiales Canada (données
+// ouvertes, Licence du gouvernement ouvert — Canada) et le Département d'État
+// (domaine public). scripts/avis-officiels.js les ramène au même vocabulaire
+// de degrés ; chacun est rangé dans `avis.temoins` : [{source, degre, revu, url}].
+//
+// Règle : seuls les avis revus depuis moins de CONFIANCE_SOCLE_ANCIEN_J jours
+// comptent. Le socle ancien est corroboré quand les avis compatibles sont
+// STRICTEMENT plus nombreux que les divergents. À égalité (un pour, un
+// contre), deux administrations se contredisent : la confiance reste faible et
+// le socle est à relire. Rien de tout cela ne touche au niveau.
+function lectureTemoinsOfficiels(avis, cleNiveau, maintenant) {
+  const out = [];
+  const fcdo = lectureAvisOfficiel(avis, cleNiveau, maintenant);
+  if (fcdo) out.push(Object.assign({ source: 'FCDO' }, fcdo));
+  ((avis && Array.isArray(avis.temoins)) ? avis.temoins : []).forEach((t) => {
+    if (!t || !AVIS_COMPATIBLE[t.degre]) return;
+    const ms = Date.parse(t.revu || '');
+    if (!isFinite(ms)) return;
+    const ageJ = Math.max(0, Math.floor((maintenant - ms) / 86400000));
+    if (ageJ > CONFIANCE_SOCLE_ANCIEN_J) return;
+    out.push({ source: String(t.source || 'avis officiel'), degre: t.degre, ageJ,
+      compatible: AVIS_COMPATIBLE[t.degre].includes(cleNiveau) });
+  });
+  return out;
+}
+
 function indiceConfiance(o) {
   o = o || {};
   const now = (o.maintenant === undefined) ? Date.now() : o.maintenant;
@@ -583,18 +621,24 @@ function indiceConfiance(o) {
   // ancien (voir lectureAvisOfficiel). Il ne fait jamais monter au-delà de
   // « moyenne » et ne touche pas au niveau.
   const avis = (o.avisOfficiel && o.niveau) ? lectureAvisOfficiel(o.avisOfficiel, o.niveau, now) : null;
-  if (cle === 'faible' && avis && avis.compatible) cle = 'moyenne';
+  const temoins = (o.avisOfficiel && o.niveau) ? lectureTemoinsOfficiels(o.avisOfficiel, o.niveau, now) : [];
+  const pour = temoins.filter((t) => t.compatible);
+  const contre = temoins.filter((t) => !t.compatible);
+  if (cle === 'faible' && pour.length > contre.length) cle = 'moyenne';
 
   const socle = ageSocleJ === null ? 'aucun incident vérifié daté'
     : ('incident vérifié le plus récent : ' + ageSocleJ + (ageSocleJ === 1 ? ' jour' : ' jours'));
   const jour = muet ? 'aucune publication sur ce pays'
     : signaux === 0 ? 'aucun signal du jour'
     : (signaux + (signaux === 1 ? ' signal du jour' : ' signaux du jour'));
-  const temoin = !avis ? ''
-    : avis.compatible ? (' ; niveau cohérent avec l\'avis du FCDO revu il y a ' + avis.ageJ + (avis.ageJ === 1 ? ' jour' : ' jours') + ' (' + AVIS_LIBELLES[avis.degre] + ')')
-    : (' ; avis du FCDO divergent (' + AVIS_LIBELLES[avis.degre] + ') : socle à relire');
+  const nomTemoin = (t) => t.source === 'FCDO' ? 'du FCDO' : (t.source === 'Canada' ? 'du Canada' : (t.source === 'États-Unis' ? 'des États-Unis' : 'de ' + t.source));
+  const jours = (n) => n + (n === 1 ? ' jour' : ' jours');
+  const temoin = temoins.map((t) => t.compatible
+    ? ' ; niveau cohérent avec l\'avis ' + nomTemoin(t) + ' revu il y a ' + jours(t.ageJ) + ' (' + AVIS_LIBELLES[t.degre] + ')'
+    : ' ; avis ' + nomTemoin(t) + ' divergent (' + AVIS_LIBELLES[t.degre] + ')').join('')
+    + (contre.length && pour.length <= contre.length ? ' : socle à relire' : '');
   return { cle, libelle: CONFIANCE_LIBELLES[cle], ageSocleJ, signauxDuJour: signaux, muet,
-    avisOfficiel: avis, motif: socle + ' ; ' + jour + temoin };
+    avisOfficiel: avis, temoins, motif: socle + ' ; ' + jour + temoin };
 }
 
 // ── Où l'outil est aveugle : « Ce que nous ne savons pas » ──────────────────
@@ -806,7 +850,7 @@ const API = {
   DISJONCTEUR_SEUIL, creerDisjoncteur, avecDisjoncteur,
   tendanceNiveaux,
   CONFIANCE_SOCLE_RECENT_J, CONFIANCE_SOCLE_ANCIEN_J, CONFIANCE_LIBELLES, indiceConfiance,
-  DEGRES_AVIS_FCDO, AVIS_COMPATIBLE, AVIS_LIBELLES, degreAvisFcdo, lectureAvisOfficiel,
+  DEGRES_AVIS_FCDO, AVIS_COMPATIBLE, AVIS_LIBELLES, degreAvisFcdo, lectureAvisOfficiel, lectureTemoinsOfficiels,
   angleMort, estRequeteGoogleNews, peutAlerter,
   COTATION_LIBELLES, cotationArticle,
   GRILLE_SOURCE, GRILLE_INFO, INFO_PAR_DECISION, VALIDATION_NOTE_MAX, cleValidation, validationValide,

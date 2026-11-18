@@ -4324,3 +4324,36 @@ Exports à la demande : 14/14 identiques avant/après (texte comparé, 200 actus
 françaises du cumul de novembre, horloge figée). Les actus en langue étrangère
 ont été écartées du banc : sans réseau, chaque titre attend tous les moteurs de
 traduction et le banc ne finit pas.
+
+---
+
+## Trois témoins officiels pour la confiance — 18/11/2026
+
+Demande de YORO : « passer la confiance à 54 pays », c'est-à-dire aucun pays
+à confiance faible. Archive du 18/11/2026 : 40 moyenne, **14 faibles** (AO BI
+CV DJ GQ GW KM LS ML SD SL SO ST ZW), tous sans signal du jour et avec un avis
+FCDO de plus de 90 jours — 342 jours pour GQ GW KM LS ST : Londres ne revoit
+pas les petits pays. Le FCDO ne pouvait donc pas les corroborer.
+
+`scripts/avis-officiels.js` lit désormais aussi **Affaires mondiales Canada**
+(un fichier de données ouvertes pour tous les pays, Licence du gouvernement
+ouvert — Canada) et le **Département d'État** (flux RSS, domaine public), et
+range chaque avis dans `pays[cy].temoins` de `avis-officiels.json`. Le noyau
+(`lectureTemoinsOfficiels`) les lit avec la règle du FCDO : récent (90 j),
+compatible avec le niveau (`AVIS_COMPATIBLE`, deux degrés ajoutés :
+`prudence`, `prudence_partie`), faible → moyenne seulement, **niveau
+inchangé**. Corroboré si les compatibles sont **strictement** plus nombreux
+que les divergents ; à égalité, deux administrations se contredisent : faible
+et « socle à relire ». Conséquence assumée : un pays « moyenne » sur le seul
+FCDO peut redescendre si le Canada ou les États-Unis le contredisent ; le
+journal du job les nomme.
+
+**Non mesuré d'ici** (le bac à sable n'atteint ni gc.ca ni state.gov) : le
+nombre de pays réellement corroborés. La lecture à blanc de
+`avis-officiels.yml` sur la PR l'écrit (« Confiance faible : 14 → N », puis
+« Restent faibles » avec chaque témoin). Un pays qui reste faible après cela
+ne se règle plus par un avis : c'est la revue du socle (incident daté récent).
+Le format des deux sources a été écrit de mémoire ; si la lecture à blanc
+donne 0/54 pour l'une, c'est le format qu'il faut corriger, pas la règle.
+`scripts/test/confiance-temoins.test.js` (9 ; 6 vus échouer sur l'ancien
+code, les 3 autres sont des gardes).
