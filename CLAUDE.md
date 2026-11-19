@@ -4496,5 +4496,7 @@ SAnews et le GIS mauricien ont un flux mort depuis 2025 et 2023.
 SN, BJ, TG, BF, NE, CM (pas de flux déclaré, ou site injoignable depuis
 GitHub) ; le SGG du Mali a un flux, muet depuis neuf mois. Aucun n'est ajouté :
 un journal officiel publie des textes déjà pris, des jours après, et ne serait
-de toute façon qu'une source de recoupement. MA, TN, DZ, KE, ZA, NG et
-gazettes.africa restent à lire (passe coupée au délai, relevé à 45 min).
+de toute façon qu'une source de recoupement. Même constat pour MA, TN, DZ,
+KE (robots.txt l'interdit), NG et gazettes.africa ; la Government Gazette
+sud-africaine a un flux vivant, mais d'avis administratifs (recrutements,
+comptes bancaires), sans valeur de sûreté.
