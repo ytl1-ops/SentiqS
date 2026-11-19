@@ -80,6 +80,35 @@ const CANDIDATS = [
   { cy: 'ER', nom: 'Shabait (ministère de l Information)', url: 'https://shabait.com/' },
   { cy: 'GQ', nom: 'Guinea Ecuatorial Press', url: 'https://www.guineaecuatorialpress.com/' },
   { cy: 'TD', nom: 'ATPE — Agence tchadienne de presse', url: 'https://www.atpe-tchad.info/' },
+  { cy: 'LY', nom: 'Libya Observer (édition anglaise)', url: 'https://libyaobserver.ly/' },
+  { cy: 'LY', nom: 'Libya Herald', url: 'https://libyaherald.com/' },
+  { cy: 'SD', nom: 'Dabanga (anglais)', url: 'https://www.dabangasudan.org/en' },
+  { cy: 'KM', nom: 'La Gazette des Comores', url: 'https://lagazettedescomores.com/' },
+  { cy: 'SC', nom: 'Seychelles Nation', url: 'https://www.nation.sc/' },
+];
+
+// Journaux officiels (demande de YORO du 18/11/2026 : « regarde journaux
+// officiels »). Ils publient décrets, états d'urgence, couvre-feux,
+// réquisitions : un signal de sûreté réel, mais daté de la signature, pas de
+// l'événement. Sondés pour savoir s'ils exposent un flux ; aucun ne sera lu
+// sans flux (pas de lecture de page à l'aveugle, voir decouverte-source.js).
+const JOURNAUX_OFFICIELS = [
+  { cy: 'CI', nom: 'Journal officiel (SGG Côte d Ivoire)', url: 'https://www.sgg.gouv.ci/' },
+  { cy: 'SN', nom: 'Journal officiel du Sénégal', url: 'https://www.jo.gouv.sn/' },
+  { cy: 'BJ', nom: 'Journal officiel (SGG Bénin)', url: 'https://sgg.gouv.bj/' },
+  { cy: 'TG', nom: 'Journal officiel du Togo', url: 'https://jo.gouv.tg/' },
+  { cy: 'BF', nom: 'LegiBurkina', url: 'https://www.legiburkina.bf/' },
+  { cy: 'ML', nom: 'SGG Mali', url: 'https://sgg-mali.ml/' },
+  { cy: 'NE', nom: 'SGG Niger', url: 'https://www.sgg.gouv.ne/' },
+  { cy: 'CM', nom: 'Services du Premier ministre (Cameroun)', url: 'https://www.spm.gov.cm/' },
+  { cy: 'MA', nom: 'SGG Maroc (Bulletin officiel)', url: 'https://www.sgg.gov.ma/' },
+  { cy: 'TN', nom: 'IORT — Journal officiel tunisien', url: 'https://www.iort.gov.tn/' },
+  { cy: 'DZ', nom: 'JORADP — Journal officiel algérien', url: 'https://www.joradp.dz/' },
+  { cy: 'KE', nom: 'Kenya Gazette (Kenya Law)', url: 'https://new.kenyalaw.org/gazettes/' },
+  { cy: 'ZA', nom: 'Government Gazette (GPW)', url: 'https://www.gpwonline.co.za/' },
+  { cy: 'NG', nom: 'Federal Government Gazette (Nigeria)', url: 'https://gazettes.africa/gazettes/ng' },
+  { cy: 'INT', nom: 'Gazettes.Africa (Laws.Africa, plusieurs pays)', url: 'https://gazettes.africa/' },
+  { cy: 'INT', nom: 'Laws.Africa', url: 'https://laws.africa/' },
 ];
 
 const UA = 'Mozilla/5.0 (compatible; SentiqS-veille/1.0; lecture editoriale)';
@@ -132,7 +161,7 @@ async function sonderAgence(cy, id, score, url, etiquette) {
 (async () => {
   console.log('Seuil ' + SEUIL + ' ; pays à source unique : ' + uniques.length + ' (' + uniques.join(' ') + ')\n');
 
-  for (const cy of uniques) {
+  for (const cy of (process.env.SEULEMENT_CANDIDATS ? [] : uniques)) {
     for (const s of parPays[cy]) {
       if (peutAlerter(s, SEUIL)) continue;
       if (estRequeteGoogleNews(s)) {
@@ -169,11 +198,13 @@ async function sonderAgence(cy, id, score, url, etiquette) {
     }
   }
   console.log('\n--- Agences nationales de presse au registre');
-  for (const s of SRCS.filter(estAgence).sort((a, b) => a.cy.localeCompare(b.cy))) {
+  for (const s of SRCS.filter((x) => estAgence(x) && !process.env.SEULEMENT_CANDIDATS).sort((a, b) => a.cy.localeCompare(b.cy))) {
     if (!estRequeteGoogleNews(s)) { console.log('[agence native] ' + s.cy + ' ' + s.id + ' (' + s.score + (peutAlerter(s, SEUIL) ? ', alerte' : ', sous le seuil') + ') ' + s.rss); continue; }
     await sonderAgence(s.cy, s.id, s.score, s.url, '[agence GN]');
   }
   console.log('\n--- Agences absentes du registre');
   for (const c of CANDIDATS) await sonderAgence(c.cy, c.nom, null, c.url, '[candidat]');
+  console.log('\n--- Journaux officiels');
+  for (const c of JOURNAUX_OFFICIELS) await sonderAgence(c.cy, c.nom, null, c.url, '[journal officiel]');
   if (SORTIE) fs.writeFileSync(SORTIE, JSON.stringify(rapport, null, 2));
 })().catch((e) => { console.error('Lecture des médias : ' + e.message); process.exitCode = 0; });

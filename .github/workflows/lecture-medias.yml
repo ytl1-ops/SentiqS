@@ -29,6 +29,8 @@ jobs:
           node-version: '20'
       - name: Lit les flux
         run: node scripts/lecture-medias.js lecture-medias.json
+        env:
+          SEULEMENT_CANDIDATS: ${{ github.event_name == 'pull_request' && '1' || '' }}
         continue-on-error: true
       - uses: actions/upload-artifact@v4
         if: always()
