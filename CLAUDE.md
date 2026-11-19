@@ -4446,3 +4446,57 @@ propre), l'assistant (il répond sur des périodes, historique compris) et le
 bulletin du job (`donneesBulletinPays`, document généré, non modifié sans
 demande). Les exports Flux et Synthèse changent d'autant : ils suivent
 l'écran.
+
+---
+
+## Source unique : de 21 à 6 pays, par lecture — 19/11/2026
+
+Demande de YORO : « brise les limites ». Dans les 21 pays à source unique,
+la seule source capable d'alerter était **toujours AllAfrica**, qui publie au
+mieux une fois par jour. `scripts/lecture-medias.js` (workflow
+`lecture-medias.yml`, depuis GitHub) a lu, média par média, les flux natifs
+notés 68 de ces pays : rythme de publication, échantillon de titres, ce que la
+vraie `classify()` en fait et le mot qui fait monter chaque titre. C'est la
+lecture que l'arbitrage du 07/09/2026 exigeait avant de rendre 72.
+
+- **Passent à 72** (flux vivant, presse générale en français ou en anglais) :
+  SOS Médias Burundi, Weekend Post (BW), TSA (DZ), The Point (GM), Radio
+  Tamazuj (SS), Times of Eswatini, Kapitalis (TN), 263Chat (ZW), The Sierra
+  Leone Telegraph (édité depuis Londres, noté).
+- **Agences et titres officiels passés de Google News au flux natif**, notés
+  **70** (seuil minimal ; seuls, leurs faits restent cotés Probable) : LENA
+  (LS), AIM (MZ), ATPE (TD), New Ziana (ZW), Adiac (CG, proche du pouvoir,
+  noté), Uganda Media Centre ; 24 Heures au Bénin à 72 ; Eswatini Observer
+  passe au flux natif mais garde 60 (détenu par la famille royale).
+- **Libya Herald** et **Dabanga (anglais)** entrent à 72 (flux vivants, 7 h et
+  10 h ; Dabanga est rédigé à Amsterdam, noté) : la Libye et le Soudan sortent.
+- `PLAFOND_PAYS_SOURCE_UNIQUE` : **21 → 6**. Restent AO ER GQ GW KM SC, tous
+  lusophones, hispanophone, sans flux vivant (Érythrée, Comores, Seychelles).
+  L'accueil passe à 578 sources (un test l'exige).
+
+**Écartés, et pourquoi** : les flux en **arabe** (Libya Observer arabe, Ein
+Libya, Sudan Tribune arabe), en **portugais** (ANG, O Democrata, Carta, O
+País) et en **espagnol** (Ahora EG) — `classify()` ne lit ni l'un ni l'autre.
+Mesuré : « Ataque armado mata 12 pessoas em Cabo Delgado » et « Ataque armado
+deja cinco muertos en Malabo » sortent **normal**. Les noter 72 ferait
+« pays couvert » sans alerte possible. Le français a aussi des trous : «
+octogénaire massacrée à la machette », « un policier abat un collègue et en
+blesse un autre » sortent normal (`massacre` ne reconnaît pas `massacree`).
+Un lexique portugais/espagnol et ces formes françaises sont le chantier
+suivant, à mesurer comme tout lexique (« la bonne réponse est presque toujours
+zéro » ne vaut pas ici : on veut que des faits montent, et seulement eux).
+
+**Agences nationales** (question de YORO du 18/11/2026) : 13 lues en direct et
+capables d'alerter ; parmi celles qui ne passaient que par Google News, aucun
+flux trouvé depuis GitHub pour APS Algérie, MAP, MENA, ENA, ANGOP, TAP, SUNA,
+ABP Bénin, BOPA, ACP, ACI, NAMPA, SNA, SSNA (403, 503, ou aucun flux déclaré).
+SAnews et le GIS mauricien ont un flux mort depuis 2025 et 2023.
+
+**Journaux officiels** (même passe, 19/11/2026) : aucun flux vivant parmi CI,
+SN, BJ, TG, BF, NE, CM (pas de flux déclaré, ou site injoignable depuis
+GitHub) ; le SGG du Mali a un flux, muet depuis neuf mois. Aucun n'est ajouté :
+un journal officiel publie des textes déjà pris, des jours après, et ne serait
+de toute façon qu'une source de recoupement. Même constat pour MA, TN, DZ,
+KE (robots.txt l'interdit), NG et gazettes.africa ; la Government Gazette
+sud-africaine a un flux vivant, mais d'avis administratifs (recrutements,
+comptes bancaires), sans valeur de sûreté.
