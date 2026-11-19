@@ -1,6 +1,6 @@
 {
- "source": "FCDO — gov.uk Content API (Open Government Licence v3.0)",
- "lu": "2026-11-18T14:31:07.394Z",
+ "source": "FCDO — gov.uk Content API (Open Government Licence v3.0) ; Affaires mondiales Canada — données ouvertes (Licence du gouvernement ouvert — Canada) ; Département d'État des États-Unis — flux RSS (domaine public)",
+ "lu": "2026-11-19T14:40:24.911Z",
  "pays": {
   "AO": {
    "statuts": [
@@ -8,7 +8,15 @@
    ],
    "revu": "2026-05-28T10:50:56Z",
    "maj": "2026-05-28T11:50:56+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/angola"
+   "url": "https://www.gov.uk/foreign-travel-advice/angola",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence_partie",
+     "revu": "2026-10-14T11:03:42.000Z",
+     "url": "https://travel.gc.ca/destinations/angola"
+    }
+   ]
   },
   "BF": {
    "statuts": [
@@ -16,7 +24,15 @@
    ],
    "revu": "2026-10-26T15:58:48Z",
    "maj": "2026-10-26T15:58:48+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/burkina-faso"
+   "url": "https://www.gov.uk/foreign-travel-advice/burkina-faso",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "aat_total",
+     "revu": "2026-10-14T12:49:23.000Z",
+     "url": "https://travel.gc.ca/destinations/burkina-faso"
+    }
+   ]
   },
   "BI": {
    "statuts": [
@@ -24,7 +40,15 @@
    ],
    "revu": "2026-05-21T15:02:33Z",
    "maj": "2026-05-21T16:02:33+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/burundi"
+   "url": "https://www.gov.uk/foreign-travel-advice/burundi",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "aabe_total",
+     "revu": "2026-09-24T12:53:33.000Z",
+     "url": "https://travel.gc.ca/destinations/burundi"
+    }
+   ]
   },
   "BJ": {
    "statuts": [
@@ -33,13 +57,29 @@
    ],
    "revu": "2026-11-04T16:27:24Z",
    "maj": "2026-11-04T16:27:24+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/benin"
+   "url": "https://www.gov.uk/foreign-travel-advice/benin",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence_partie",
+     "revu": "2026-11-02T12:27:42.000Z",
+     "url": "https://travel.gc.ca/destinations/benin"
+    }
+   ]
   },
   "BW": {
    "statuts": [],
    "revu": "2026-11-06T14:39:38Z",
    "maj": "2026-11-06T14:39:38+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/botswana"
+   "url": "https://www.gov.uk/foreign-travel-advice/botswana",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence",
+     "revu": "2026-10-14T12:32:51.000Z",
+     "url": "https://travel.gc.ca/destinations/botswana"
+    }
+   ]
   },
   "CD": {
    "statuts": [
@@ -48,7 +88,15 @@
    ],
    "revu": "2026-10-08T12:20:38Z",
    "maj": "2026-10-08T13:20:38+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/democratic-republic-of-the-congo"
+   "url": "https://www.gov.uk/foreign-travel-advice/democratic-republic-of-the-congo",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "aat_total",
+     "revu": "2026-11-02T14:31:46.000Z",
+     "url": "https://travel.gc.ca/destinations/congo-kinshasa"
+    }
+   ]
   },
   "CF": {
    "statuts": [
@@ -56,7 +104,15 @@
    ],
    "revu": "2026-05-28T11:08:37Z",
    "maj": "2026-05-28T12:08:37+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/central-african-republic"
+   "url": "https://www.gov.uk/foreign-travel-advice/central-african-republic",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "aat_total",
+     "revu": "2026-10-14T13:10:00.000Z",
+     "url": "https://travel.gc.ca/destinations/central-african-republic"
+    }
+   ]
   },
   "CG": {
    "statuts": [
@@ -64,7 +120,15 @@
    ],
    "revu": "2026-10-27T12:00:20Z",
    "maj": "2026-10-27T12:00:20+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/congo"
+   "url": "https://www.gov.uk/foreign-travel-advice/congo",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence_partie",
+     "revu": "2026-09-24T12:53:33.000Z",
+     "url": "https://travel.gc.ca/destinations/congo-brazzaville"
+    }
+   ]
   },
   "CI": {
    "statuts": [
@@ -72,7 +136,15 @@
    ],
    "revu": "2026-11-09T16:16:31Z",
    "maj": "2026-11-09T16:16:31+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/cote-d-ivoire"
+   "url": "https://www.gov.uk/foreign-travel-advice/cote-d-ivoire",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence_partie",
+     "revu": "2026-11-02T15:34:23.000Z",
+     "url": "https://travel.gc.ca/destinations/cote-d-ivoire-ivory-coast"
+    }
+   ]
   },
   "CM": {
    "statuts": [
@@ -81,13 +153,29 @@
    ],
    "revu": "2026-11-06T16:22:46Z",
    "maj": "2026-11-06T16:22:46+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/cameroon"
+   "url": "https://www.gov.uk/foreign-travel-advice/cameroon",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence_partie",
+     "revu": "2026-10-14T13:05:54.000Z",
+     "url": "https://travel.gc.ca/destinations/cameroon"
+    }
+   ]
   },
   "CV": {
    "statuts": [],
    "revu": "2026-07-28T15:13:41Z",
    "maj": "2026-07-28T16:13:41+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/cape-verde"
+   "url": "https://www.gov.uk/foreign-travel-advice/cape-verde",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence",
+     "revu": "2026-09-24T12:53:33.000Z",
+     "url": "https://travel.gc.ca/destinations/cabo-verde"
+    }
+   ]
   },
   "DJ": {
    "statuts": [
@@ -95,7 +183,15 @@
    ],
    "revu": "2026-07-27T14:03:02Z",
    "maj": "2026-07-27T15:03:02+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/djibouti"
+   "url": "https://www.gov.uk/foreign-travel-advice/djibouti",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence_partie",
+     "revu": "2026-10-14T13:54:15.000Z",
+     "url": "https://travel.gc.ca/destinations/djibouti"
+    }
+   ]
   },
   "DZ": {
    "statuts": [
@@ -103,7 +199,15 @@
    ],
    "revu": "2026-09-25T15:01:59Z",
    "maj": "2026-09-25T16:01:59+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/algeria"
+   "url": "https://www.gov.uk/foreign-travel-advice/algeria",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence_partie",
+     "revu": "2026-11-17T12:14:18.000Z",
+     "url": "https://travel.gc.ca/destinations/algeria"
+    }
+   ]
   },
   "EG": {
    "statuts": [
@@ -112,7 +216,15 @@
    ],
    "revu": "2026-10-27T16:03:56Z",
    "maj": "2026-10-27T16:03:56+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/egypt"
+   "url": "https://www.gov.uk/foreign-travel-advice/egypt",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence_partie",
+     "revu": "2026-11-12T12:29:26.000Z",
+     "url": "https://travel.gc.ca/destinations/egypt"
+    }
+   ]
   },
   "ER": {
    "statuts": [
@@ -121,7 +233,15 @@
    ],
    "revu": "2026-11-09T16:20:13Z",
    "maj": "2026-11-09T16:20:13+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/eritrea"
+   "url": "https://www.gov.uk/foreign-travel-advice/eritrea",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "aabe_total",
+     "revu": "2026-10-21T13:25:17.000Z",
+     "url": "https://travel.gc.ca/destinations/eritrea"
+    }
+   ]
   },
   "ET": {
    "statuts": [
@@ -130,13 +250,29 @@
    ],
    "revu": "2026-10-30T21:20:19Z",
    "maj": "2026-10-30T21:20:19+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/ethiopia"
+   "url": "https://www.gov.uk/foreign-travel-advice/ethiopia",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "aabe_total",
+     "revu": "2026-10-29T19:40:16.000Z",
+     "url": "https://travel.gc.ca/destinations/ethiopia"
+    }
+   ]
   },
   "GA": {
    "statuts": [],
    "revu": "2025-12-10T13:37:09Z",
    "maj": "2025-12-10T13:37:09+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/gabon"
+   "url": "https://www.gov.uk/foreign-travel-advice/gabon",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence",
+     "revu": "2026-10-15T08:29:53.000Z",
+     "url": "https://travel.gc.ca/destinations/gabon"
+    }
+   ]
   },
   "GH": {
    "statuts": [
@@ -144,31 +280,71 @@
    ],
    "revu": "2026-11-04T17:07:08Z",
    "maj": "2026-11-04T17:07:08+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/ghana"
+   "url": "https://www.gov.uk/foreign-travel-advice/ghana",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence",
+     "revu": "2026-11-02T15:33:47.000Z",
+     "url": "https://travel.gc.ca/destinations/ghana"
+    }
+   ]
   },
   "GM": {
    "statuts": [],
    "revu": "2026-11-11T16:50:01Z",
    "maj": "2026-11-11T16:50:01+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/the-gambia"
+   "url": "https://www.gov.uk/foreign-travel-advice/the-gambia",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence",
+     "revu": "2026-10-13T20:13:03.000Z",
+     "url": "https://travel.gc.ca/destinations/gambia-the"
+    }
+   ]
   },
   "GN": {
    "statuts": [],
    "revu": "2026-08-12T15:34:39Z",
    "maj": "2026-08-12T16:34:39+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/guinea"
+   "url": "https://www.gov.uk/foreign-travel-advice/guinea",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence",
+     "revu": "2026-10-13T17:49:45.000Z",
+     "url": "https://travel.gc.ca/destinations/guinea"
+    }
+   ]
   },
   "GQ": {
    "statuts": [],
    "revu": "2026-01-08T10:25:07Z",
    "maj": "2026-01-08T10:25:07+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/equatorial-guinea"
+   "url": "https://www.gov.uk/foreign-travel-advice/equatorial-guinea",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence",
+     "revu": "2026-09-24T12:53:33.000Z",
+     "url": "https://travel.gc.ca/destinations/equatorial-guinea"
+    }
+   ]
   },
   "GW": {
    "statuts": [],
    "revu": "2025-12-10T13:55:45Z",
    "maj": "2025-12-10T13:55:45+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/guinea-bissau"
+   "url": "https://www.gov.uk/foreign-travel-advice/guinea-bissau",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence_partie",
+     "revu": "2026-10-13T17:52:26.000Z",
+     "url": "https://travel.gc.ca/destinations/guinea-bissau"
+    }
+   ]
   },
   "KE": {
    "statuts": [
@@ -177,25 +353,57 @@
    ],
    "revu": "2026-11-06T17:00:48Z",
    "maj": "2026-11-06T17:00:48+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/kenya"
+   "url": "https://www.gov.uk/foreign-travel-advice/kenya",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence_partie",
+     "revu": "2026-11-17T16:26:57.000Z",
+     "url": "https://travel.gc.ca/destinations/kenya"
+    }
+   ]
   },
   "KM": {
    "statuts": [],
    "revu": "2025-12-10T13:42:55Z",
    "maj": "2025-12-10T13:42:55+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/comoros"
+   "url": "https://www.gov.uk/foreign-travel-advice/comoros",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence",
+     "revu": "2026-09-24T12:53:33.000Z",
+     "url": "https://travel.gc.ca/destinations/comoros"
+    }
+   ]
   },
   "LR": {
    "statuts": [],
    "revu": "2026-11-11T16:56:17Z",
    "maj": "2026-11-11T16:56:17+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/liberia"
+   "url": "https://www.gov.uk/foreign-travel-advice/liberia",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence",
+     "revu": "2026-10-15T09:02:10.000Z",
+     "url": "https://travel.gc.ca/destinations/liberia"
+    }
+   ]
   },
   "LS": {
    "statuts": [],
    "revu": "2025-12-10T13:12:05Z",
    "maj": "2025-12-10T13:12:05+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/lesotho"
+   "url": "https://www.gov.uk/foreign-travel-advice/lesotho",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence",
+     "revu": "2026-10-15T08:59:33.000Z",
+     "url": "https://travel.gc.ca/destinations/lesotho"
+    }
+   ]
   },
   "LY": {
    "statuts": [
@@ -204,19 +412,43 @@
    ],
    "revu": "2026-07-21T09:00:09Z",
    "maj": "2026-07-21T10:00:09+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/libya"
+   "url": "https://www.gov.uk/foreign-travel-advice/libya",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "aat_total",
+     "revu": "2026-10-06T13:33:28.000Z",
+     "url": "https://travel.gc.ca/destinations/libya"
+    }
+   ]
   },
   "MA": {
    "statuts": [],
    "revu": "2026-08-19T11:00:36Z",
    "maj": "2026-08-19T12:00:36+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/morocco"
+   "url": "https://www.gov.uk/foreign-travel-advice/morocco",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence_partie",
+     "revu": "2026-10-09T14:16:02.000Z",
+     "url": "https://travel.gc.ca/destinations/morocco"
+    }
+   ]
   },
   "MG": {
    "statuts": [],
    "revu": "2026-11-16T10:56:40Z",
    "maj": "2026-11-16T10:56:40+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/madagascar"
+   "url": "https://www.gov.uk/foreign-travel-advice/madagascar",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence",
+     "revu": "2026-10-13T14:58:42.000Z",
+     "url": "https://travel.gc.ca/destinations/madagascar"
+    }
+   ]
   },
   "ML": {
    "statuts": [
@@ -224,7 +456,15 @@
    ],
    "revu": "2026-07-10T13:24:11Z",
    "maj": "2026-07-10T14:24:11+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/mali"
+   "url": "https://www.gov.uk/foreign-travel-advice/mali",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "aat_total",
+     "revu": "2026-10-09T14:15:05.000Z",
+     "url": "https://travel.gc.ca/destinations/mali"
+    }
+   ]
   },
   "MR": {
    "statuts": [
@@ -232,19 +472,43 @@
    ],
    "revu": "2026-10-19T19:07:15Z",
    "maj": "2026-10-19T20:07:15+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/mauritania"
+   "url": "https://www.gov.uk/foreign-travel-advice/mauritania",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "aabe_total",
+     "revu": "2026-10-20T16:46:46.000Z",
+     "url": "https://travel.gc.ca/destinations/mauritania"
+    }
+   ]
   },
   "MU": {
    "statuts": [],
    "revu": "2026-10-19T14:45:58Z",
    "maj": "2026-10-19T15:45:58+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/mauritius"
+   "url": "https://www.gov.uk/foreign-travel-advice/mauritius",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "aucun",
+     "revu": "2026-11-03T15:12:54.000Z",
+     "url": "https://travel.gc.ca/destinations/mauritius"
+    }
+   ]
   },
   "MW": {
    "statuts": [],
    "revu": "2026-10-20T14:35:09Z",
    "maj": "2026-10-20T15:35:09+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/malawi"
+   "url": "https://www.gov.uk/foreign-travel-advice/malawi",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence",
+     "revu": "2026-10-14T14:32:00.000Z",
+     "url": "https://travel.gc.ca/destinations/malawi"
+    }
+   ]
   },
   "MZ": {
    "statuts": [
@@ -253,13 +517,29 @@
    ],
    "revu": "2026-08-20T13:50:43Z",
    "maj": "2026-08-20T14:50:43+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/mozambique"
+   "url": "https://www.gov.uk/foreign-travel-advice/mozambique",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence_partie",
+     "revu": "2026-10-15T09:06:54.000Z",
+     "url": "https://travel.gc.ca/destinations/mozambique"
+    }
+   ]
   },
   "NA": {
    "statuts": [],
    "revu": "2025-12-10T13:15:46Z",
    "maj": "2025-12-10T13:15:46+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/namibia"
+   "url": "https://www.gov.uk/foreign-travel-advice/namibia",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence",
+     "revu": "2026-10-15T09:12:36.000Z",
+     "url": "https://travel.gc.ca/destinations/namibia"
+    }
+   ]
   },
   "NE": {
    "statuts": [
@@ -267,7 +547,15 @@
    ],
    "revu": "2026-10-23T15:14:29Z",
    "maj": "2026-10-23T16:14:29+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/niger"
+   "url": "https://www.gov.uk/foreign-travel-advice/niger",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "aat_total",
+     "revu": "2026-10-15T09:46:49.000Z",
+     "url": "https://travel.gc.ca/destinations/niger"
+    }
+   ]
   },
   "NG": {
    "statuts": [
@@ -276,7 +564,15 @@
    ],
    "revu": "2026-11-10T14:13:23Z",
    "maj": "2026-11-10T14:13:23+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/nigeria"
+   "url": "https://www.gov.uk/foreign-travel-advice/nigeria",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "aabe_total",
+     "revu": "2026-11-18T19:36:35.000Z",
+     "url": "https://travel.gc.ca/destinations/nigeria"
+    }
+   ]
   },
   "RW": {
    "statuts": [
@@ -284,13 +580,29 @@
    ],
    "revu": "2026-09-04T09:15:14Z",
    "maj": "2026-09-04T10:15:14+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/rwanda"
+   "url": "https://www.gov.uk/foreign-travel-advice/rwanda",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "aat_partie",
+     "revu": "2026-10-30T10:51:57.000Z",
+     "url": "https://travel.gc.ca/destinations/rwanda"
+    }
+   ]
   },
   "SC": {
    "statuts": [],
    "revu": "2026-10-23T15:17:13Z",
    "maj": "2026-10-23T16:17:13+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/seychelles"
+   "url": "https://www.gov.uk/foreign-travel-advice/seychelles",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "aucun",
+     "revu": "2026-09-24T12:53:35.000Z",
+     "url": "https://travel.gc.ca/destinations/seychelles"
+    }
+   ]
   },
   "SD": {
    "statuts": [
@@ -298,19 +610,43 @@
    ],
    "revu": "2026-05-11T15:07:13Z",
    "maj": "2026-05-11T16:07:13+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/sudan"
+   "url": "https://www.gov.uk/foreign-travel-advice/sudan",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "aat_total",
+     "revu": "2026-10-13T18:30:27.000Z",
+     "url": "https://travel.gc.ca/destinations/sudan"
+    }
+   ]
   },
   "SL": {
    "statuts": [],
    "revu": "2026-06-19T14:34:37Z",
    "maj": "2026-06-19T15:34:37+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/sierra-leone"
+   "url": "https://www.gov.uk/foreign-travel-advice/sierra-leone",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence",
+     "revu": "2026-09-24T12:53:35.000Z",
+     "url": "https://travel.gc.ca/destinations/sierra-leone"
+    }
+   ]
   },
   "SN": {
    "statuts": [],
    "revu": "2026-10-15T09:00:14Z",
    "maj": "2026-10-15T10:00:14+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/senegal"
+   "url": "https://www.gov.uk/foreign-travel-advice/senegal",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence",
+     "revu": "2026-10-15T12:16:43.000Z",
+     "url": "https://travel.gc.ca/destinations/senegal"
+    }
+   ]
   },
   "SO": {
    "statuts": [
@@ -318,7 +654,15 @@
    ],
    "revu": "2026-06-04T14:57:41Z",
    "maj": "2026-06-04T15:57:41+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/somalia"
+   "url": "https://www.gov.uk/foreign-travel-advice/somalia",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "aat_total",
+     "revu": "2026-10-15T12:42:29.000Z",
+     "url": "https://travel.gc.ca/destinations/somalia"
+    }
+   ]
   },
   "SS": {
    "statuts": [
@@ -326,19 +670,43 @@
    ],
    "revu": "2026-08-25T09:10:08Z",
    "maj": "2026-08-25T10:10:08+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/south-sudan"
+   "url": "https://www.gov.uk/foreign-travel-advice/south-sudan",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "aat_total",
+     "revu": "2026-10-02T18:02:37.000Z",
+     "url": "https://travel.gc.ca/destinations/south-sudan"
+    }
+   ]
   },
   "ST": {
    "statuts": [],
    "revu": "2025-12-10T13:33:54Z",
    "maj": "2025-12-10T13:33:54+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/sao-tome-and-principe"
+   "url": "https://www.gov.uk/foreign-travel-advice/sao-tome-and-principe",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "aucun",
+     "revu": "2026-09-24T12:53:35.000Z",
+     "url": "https://travel.gc.ca/destinations/sao-tome-and-principe"
+    }
+   ]
   },
   "SZ": {
    "statuts": [],
    "revu": "2026-11-09T14:38:31Z",
    "maj": "2026-11-09T14:38:31+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/eswatini"
+   "url": "https://www.gov.uk/foreign-travel-advice/eswatini",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence",
+     "revu": "2026-10-14T19:51:22.000Z",
+     "url": "https://travel.gc.ca/destinations/eswatini"
+    }
+   ]
   },
   "TD": {
    "statuts": [
@@ -346,7 +714,15 @@
    ],
    "revu": "2026-11-04T14:33:29Z",
    "maj": "2026-11-04T14:33:29+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/chad"
+   "url": "https://www.gov.uk/foreign-travel-advice/chad",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "aabe_total",
+     "revu": "2026-11-02T14:38:51.000Z",
+     "url": "https://travel.gc.ca/destinations/chad"
+    }
+   ]
   },
   "TG": {
    "statuts": [
@@ -355,7 +731,15 @@
    ],
    "revu": "2026-11-04T16:27:18Z",
    "maj": "2026-11-04T16:27:18+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/togo"
+   "url": "https://www.gov.uk/foreign-travel-advice/togo",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence_partie",
+     "revu": "2026-10-13T20:08:37.000Z",
+     "url": "https://travel.gc.ca/destinations/togo"
+    }
+   ]
   },
   "TN": {
    "statuts": [
@@ -363,7 +747,15 @@
    ],
    "revu": "2026-07-24T16:07:53Z",
    "maj": "2026-07-24T17:07:53+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/tunisia"
+   "url": "https://www.gov.uk/foreign-travel-advice/tunisia",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence_partie",
+     "revu": "2026-10-14T19:47:29.000Z",
+     "url": "https://travel.gc.ca/destinations/tunisia"
+    }
+   ]
   },
   "TZ": {
    "statuts": [
@@ -371,47 +763,97 @@
    ],
    "revu": "2026-10-30T14:45:53Z",
    "maj": "2026-10-30T14:45:53+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/tanzania"
+   "url": "https://www.gov.uk/foreign-travel-advice/tanzania",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence_partie",
+     "revu": "2026-10-30T14:30:01.000Z",
+     "url": "https://travel.gc.ca/destinations/tanzania"
+    }
+   ]
   },
   "UG": {
    "statuts": [],
    "revu": "2026-11-06T10:16:14Z",
    "maj": "2026-11-06T10:16:14+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/uganda"
+   "url": "https://www.gov.uk/foreign-travel-advice/uganda",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "aabe_total",
+     "revu": "2026-10-13T19:34:18.000Z",
+     "url": "https://travel.gc.ca/destinations/uganda"
+    }
+   ]
   },
   "ZA": {
    "statuts": [],
    "revu": "2026-11-05T11:07:46Z",
    "maj": "2026-11-05T11:07:46+00:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/south-africa"
+   "url": "https://www.gov.uk/foreign-travel-advice/south-africa",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence",
+     "revu": "2026-11-10T12:47:23.000Z",
+     "url": "https://travel.gc.ca/destinations/south-africa"
+    }
+   ]
   },
   "ZM": {
    "statuts": [],
    "revu": "2026-06-01T13:58:33Z",
    "maj": "2026-06-01T14:58:33+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/zambia"
+   "url": "https://www.gov.uk/foreign-travel-advice/zambia",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "aat_partie",
+     "revu": "2026-10-13T19:13:11.000Z",
+     "url": "https://travel.gc.ca/destinations/zambia"
+    }
+   ]
   },
   "ZW": {
    "statuts": [],
    "revu": "2026-07-15T08:15:29Z",
    "maj": "2026-07-15T09:15:29+01:00",
-   "url": "https://www.gov.uk/foreign-travel-advice/zimbabwe"
+   "url": "https://www.gov.uk/foreign-travel-advice/zimbabwe",
+   "temoins": [
+    {
+     "source": "Canada",
+     "degre": "prudence",
+     "revu": "2026-10-13T19:11:31.000Z",
+     "url": "https://travel.gc.ca/destinations/zimbabwe"
+    }
+   ]
   }
  },
  "divergences": [
   {
+   "code": "ER",
+   "niveau": "jaune",
+   "source": "Canada",
+   "avis": "aabe_total",
+   "libelle": "voyages non essentiels déconseillés dans tout le pays",
+   "revuIlYaJ": 29
+  },
+  {
    "code": "MG",
    "niveau": "marron",
+   "source": "FCDO",
    "avis": "aucun",
    "libelle": "aucune restriction",
-   "revuIlYaJ": 2
+   "revuIlYaJ": 3
   },
   {
    "code": "UG",
    "niveau": "marron",
+   "source": "FCDO",
    "avis": "aucun",
    "libelle": "aucune restriction",
-   "revuIlYaJ": 12
+   "revuIlYaJ": 13
   }
  ]
 }
