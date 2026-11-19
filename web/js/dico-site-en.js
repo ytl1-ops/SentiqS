@@ -427,7 +427,7 @@
     "La version française fait foi.": "The French version is the legally binding one; this English version is provided for information only.",
     // Audit marketing du 14/11/2026 (accueil).
     "Chaque matin, le point sûreté des pays où vous opérez.": "Every morning, the security picture of the countries where you operate.",
-    "576 sources suivies sur 54 pays. Chaque fait est daté, coté et relié à sa source : vous décidez sans relire toute la presse.": "# sources monitored across # countries. Every fact is dated, rated and linked to its source: you decide without reading the whole press.",
+    "578 sources suivies sur 54 pays. Chaque fait est daté, coté et relié à sa source : vous décidez sans relire toute la presse.": "# sources monitored across # countries. Every fact is dated, rated and linked to its source: you decide without reading the whole press.",
     "Essayer 72 h gratuitement": "Try it free for # hours",
     "Voir le bulletin du jour": "See today's bulletin",
     "Votre e-mail suffit, sans mot de passe ni carte bancaire · exemple : le bulletin public de la Côte d'Ivoire, réécrit chaque jour": "Your e-mail is all you need, no password or bank card · example: the public Côte d'Ivoire bulletin, rewritten every day",
@@ -460,7 +460,7 @@
     "Comment le niveau d'alerte d'un pays est-il calculé ?": "How is a country's alert level calculated?",
     "Il part d'un socle d'incidents vérifiés et datés, auquel s'ajoutent les faits du jour. Un article isolé et non recoupé ne suffit pas à faire passer un pays au rouge. Chaque niveau est accompagné de son indice de confiance.": "It starts from a base of verified, dated incidents, to which the day's facts are added. A single uncorroborated article cannot turn a country red. Every level comes with its confidence index.",
     "D'où viennent les informations ?": "Where does the information come from?",
-    "De 576 sources suivies : presse nationale, agences de presse, institutions et organisations régionales. Les articles en anglais, portugais ou arabe sont traduits ; l'écran n'affiche que le français ou l'anglais, selon votre choix.": "From # monitored sources: national press, news agencies, institutions and regional organisations. Articles in English, Portuguese or Arabic are translated; the screen shows only French or English, as you choose.",
+    "De 578 sources suivies : presse nationale, agences de presse, institutions et organisations régionales. Les articles en anglais, portugais ou arabe sont traduits ; l'écran n'affiche que le français ou l'anglais, selon votre choix.": "From # monitored sources: national press, news agencies, institutions and regional organisations. Articles in English, Portuguese or Arabic are translated; the screen shows only French or English, as you choose.",
     "Que se passe-t-il après les 72 heures d'essai ?": "What happens after the #-hour trial?",
     "Le compte gratuit s'arrête de lui-même, sans prélèvement : aucune carte bancaire n'est demandée. Pour continuer, vous choisissez un forfait et payez par Orange Money, Wave ou virement ; le forfait est actif à votre prochaine connexion après vérification du paiement.": "The free account stops on its own, with no charge: no bank card is asked for. To continue, you choose a plan and pay by Orange Money, Wave or bank transfer; the plan is active at your next sign-in once the payment is checked.",
     "Puis-je l'utiliser sur téléphone ?": "Can I use it on my phone?",

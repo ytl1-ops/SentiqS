@@ -4449,7 +4449,7 @@ l'écran.
 
 ---
 
-## Source unique : de 21 à 8 pays, par lecture — 19/11/2026
+## Source unique : de 21 à 6 pays, par lecture — 19/11/2026
 
 Demande de YORO : « brise les limites ». Dans les 21 pays à source unique,
 la seule source capable d'alerter était **toujours AllAfrica**, qui publie au
@@ -4468,7 +4468,11 @@ lecture que l'arbitrage du 07/09/2026 exigeait avant de rendre 72.
   (LS), AIM (MZ), ATPE (TD), New Ziana (ZW), Adiac (CG, proche du pouvoir,
   noté), Uganda Media Centre ; 24 Heures au Bénin à 72 ; Eswatini Observer
   passe au flux natif mais garde 60 (détenu par la famille royale).
-- `PLAFOND_PAYS_SOURCE_UNIQUE` : **21 → 8**. Restent AO ER GQ GW KM LY SC SD.
+- **Libya Herald** et **Dabanga (anglais)** entrent à 72 (flux vivants, 7 h et
+  10 h ; Dabanga est rédigé à Amsterdam, noté) : la Libye et le Soudan sortent.
+- `PLAFOND_PAYS_SOURCE_UNIQUE` : **21 → 6**. Restent AO ER GQ GW KM SC, tous
+  lusophones, hispanophone, sans flux vivant (Érythrée, Comores, Seychelles).
+  L'accueil passe à 578 sources (un test l'exige).
 
 **Écartés, et pourquoi** : les flux en **arabe** (Libya Observer arabe, Ein
 Libya, Sudan Tribune arabe), en **portugais** (ANG, O Democrata, Carta, O
@@ -4486,5 +4490,11 @@ zéro » ne vaut pas ici : on veut que des faits montent, et seulement eux).
 capables d'alerter ; parmi celles qui ne passaient que par Google News, aucun
 flux trouvé depuis GitHub pour APS Algérie, MAP, MENA, ENA, ANGOP, TAP, SUNA,
 ABP Bénin, BOPA, ACP, ACI, NAMPA, SNA, SSNA (403, 503, ou aucun flux déclaré).
-SAnews et le GIS mauricien ont un flux mort depuis 2025 et 2023. Les journaux
-officiels sont sondés par la même passe ; aucun n'est lu sans flux.
+SAnews et le GIS mauricien ont un flux mort depuis 2025 et 2023.
+
+**Journaux officiels** (même passe, 19/11/2026) : aucun flux vivant parmi CI,
+SN, BJ, TG, BF, NE, CM (pas de flux déclaré, ou site injoignable depuis
+GitHub) ; le SGG du Mali a un flux, muet depuis neuf mois. Aucun n'est ajouté :
+un journal officiel publie des textes déjà pris, des jours après, et ne serait
+de toute façon qu'une source de recoupement. MA, TN, DZ, KE, ZA, NG et
+gazettes.africa restent à lire (passe coupée au délai, relevé à 45 min).
