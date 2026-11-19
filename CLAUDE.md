@@ -3170,6 +3170,43 @@ laissaient la plupart des titres sur « Traduction en cours… ».
 
 `scripts/test/traduction-actus.test.js` (12).
 
+### Une seule langue dans tous les documents, et partout — 19/11/2026 (suite)
+
+YORO, le même soir : « Tout type de rapport sera soit en FR soit en ENG selon
+le choix de langue », puis « pareil pour les paramètres et les autres modules.
+Boost le skill de traduction via GitHub ». Cela **remplace** la convention
+« (EN) … » du 14/11/2026 dans les documents.
+
+- **Exports à la demande** : `enDocument` traduit d'abord toutes les actus que
+  le document peut contenir, puis `getExportData` / `getExportDataPeriode`
+  écartent (`filtrerLangueDocument`) celles qui restent illisibles dans la
+  langue. `noteTraductionRapport` dit combien, dont critiques et élevées. Un
+  texte secondaire non traduit (chapô, description, recommandation, résumé de
+  post) est omis : `L(t, true)`. Ce qui reste (titre d'agenda tiré d'une actu)
+  porte la mention « Texte en anglais — non traduit », jamais le texte source.
+  **Les exports changent** quand une actu n'est pas traduite : c'est la demande.
+- **Présentation 1** : `faitsDuMois` écarte un fait au titre étranger sans
+  `titreFr` (`faitEnFrancais`), `rediger` ne cite pas un chapô étranger non
+  traduit. Le job reprend d'abord les traductions des actus (`a.tr.fr`) avant
+  d'appeler un service.
+- **Paramètres > Affichage** porte le choix de langue (`.lang-opt`, même
+  `setLang` que la barre du haut). Les boîtes natives (`alert`, `confirm`,
+  `prompt`) passent par la table en anglais (`messageDialogue`).
+- **Audit du DOM** (9 modules × FR/EN, sections masquées comprises, cumul de
+  novembre injecté) : restent des noms propres (Côte d'Ivoire, The Continent,
+  Noël copte…), rien d'autre.
+- **Passage de traduction seul** : `scripts/traduire-cache.js`, workflow
+  `traduction-actus.yml`, toutes les heures, budget 8 min. Il lit le cache,
+  détecte les langues avec la vraie page servie en local, traduit, relit
+  l'annonce avant d'écrire (une collecte qui a publié entre deux reçoit les
+  traductions), et **garde `updated_at`** : un cache traduit n'est pas plus
+  frais, le croire masquerait une collecte arrêtée. Groupe de concurrence
+  propre : partager celui de la collecte ferait remplacer une collecte en
+  attente. Secret facultatif `MYMEMORY_EMAIL` (quota MyMemory 5 000 → 50 000
+  caractères par jour). **Non mesuré d'ici** (pas de réseau).
+
+`scripts/test/une-langue-partout.test.js` (6).
+
 ---
 
 ## GRSCI tenu à jour sur sa période, et plus aucun visuel de remplacement — 23/10/2026

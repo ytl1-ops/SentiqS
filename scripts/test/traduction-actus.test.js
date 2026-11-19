@@ -169,12 +169,31 @@ test('rehydrateArticles sème les traductions du cache partagé', () => {
   assert.match(tranche('function rehydrateArticles(arts, opts) {', 'const _sig = signatureCode();'), /semerTraductionsArticles\(arts\)/);
 });
 
-test('seules les LISTES sont masquées : comptes, niveau d\'alerte et documents exportés ne bougent pas', () => {
+test('comptes et niveau d\'alerte ne dépendent pas de la langue ; les listes, si', () => {
   assert.match(tranche('function actusModules(arts) {', '}'), /filter\(estActuModule\)/, 'les comptes restent indépendants de la langue');
-  const exp = tranche('function getExportData(){', '}');
-  assert.doesNotMatch(exp, /actuLisible|actusAffichables/, 'les rapports à la demande ne changent pas');
   const live = tranche('function getLiveAlertEvents(', '\nfunction ');
   assert.doesNotMatch(live, /actuLisible|actusAffichables/, 'le niveau d\'alerte ne dépend pas de la langue');
   assert.match(tranche('function getFiltered() {', 'return a;'), /actusAffichables\(actusModules\(ALL\)\)/);
   assert.match(HTML, /const _nbMasquees = Math\.max\(0, getFiltered\(true\)\.length - artsTous\.length\)/, 'le Flux dit combien d\'actus attendent');
+});
+
+// 19/11/2026, YORO : « Tout type de rapport sera soit en FR soit en ENG selon
+// le choix de langue. »
+test('un document ne contient que des actus lisibles dans sa langue, et dit combien il en écarte', async () => {
+  const en = monte('en');
+  vm.runInContext(tranche('function getExportData(){', 'function lvlFr(l){'), en);
+  en.ALL = [
+    { title: FR, level: 'crit', cy: 'ML' },
+    { title: EN, level: 'high', cy: 'NG' },
+    { title: 'Des hommes armés ont incendié le marché central de la ville hier soir', level: 'mod', cy: 'BF',
+      tr: { en: { t: 'Gunmen set fire to the central market of the town last night' } } },
+  ];
+  en.filtreZonePaysActif = () => true;
+  en.semerTraductionsArticles(en.ALL);
+  assert.strictEqual(en.getExportData().length, 3, 'hors document, rien n\'est écarté');
+  const doc = en.enDocument(async () => en.getExportData());
+  const arts = await doc();
+  assert.strictEqual(arts.map(a => a.cy).join(','), 'NG,BF', 'le titre français sans traduction est écarté');
+  assert.match(en.noteTraductionRapport(), /^Note: 1 news item\(s\) not included, including 1 critical/);
+  assert.doesNotMatch(en.noteTraductionRapport(), /\(EN\)|\(FR\)/);
 });

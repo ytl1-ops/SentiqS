@@ -371,8 +371,9 @@ function ficheTexte(f) {
   const e = r.extraits[0] || null;
   // Un extrait que le job n'a pas encore pu traduire garde sa langue, et le
   // dit, comme le titre : une seule langue par document, sinon on l'annonce.
-  const brut = (f.extraits || []).find((x) => x && x.resume) || null;
-  const marqueExtrait = brut && !brut.fr && LANGUE_ORIGINE[brut.langue] ? '(' + LANGUE_ORIGINE[brut.langue] + ') ' : '';
+  // Depuis le 19/11/2026, rediger() ne cite que des chapôs en français : plus
+  // de marque de langue sur l'extrait.
+  const marqueExtrait = '';
   const extrait = e ? { source: e.source, langue: marqueExtrait, texte: e.texte.length > FICHE_EXTRAIT_MAX ? e.texte.slice(0, FICHE_EXTRAIT_MAX).replace(/\s+\S*$/, '') + ' …' : e.texte } : null;
   return {
     titre: marque + r.titre,

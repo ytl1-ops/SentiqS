@@ -212,4 +212,4 @@ async function traduireActus(articles, opts) {
   return stats;
 }
 
-module.exports = { traduireActus, memoire, paquets, traduirePaquetGoogle, bornerTexte, CIBLES };
+module.exports = { traduireActus, memoire, cleMemoire, paquets, traduirePaquetGoogle, bornerTexte, CIBLES };

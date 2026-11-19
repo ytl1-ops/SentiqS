@@ -204,7 +204,17 @@ function regrouper(faits, nomPays) {
  */
 function faitsDuMois(cumul, cy, nomPays) {
   const liste = (cumul && cumul.pays && cumul.pays[cy]) || [];
-  return regrouper(liste.filter((f) => !horsSurete.estHorsSurete(f, cy)), nomPays);
+  return regrouper(liste.filter((f) => !horsSurete.estHorsSurete(f, cy)), nomPays)
+    .filter(faitEnFrancais);
 }
 
-module.exports = { cheminCumul, cumuler, ecrireCumul, lireCumul, nettoyerTitre, regrouper, faitsDuMois, trier, reattribuer };
+// Une seule langue par document (YORO, 19/11/2026 : « tout type de rapport
+// sera soit en FR soit en ENG ») : un fait dont le titre en langue étrangère
+// n'a pas encore été traduit par le job n'entre pas dans le rapport, au lieu
+// d'y figurer en « (EN) … ». Il y entre au passage qui le traduit.
+const LANGUES_ETRANGERES = new Set(['en', 'pt', 'ar']);
+function faitEnFrancais(f) {
+  return !(f && LANGUES_ETRANGERES.has(f.langue) && !f.titreFr);
+}
+
+module.exports = { faitEnFrancais, cheminCumul, cumuler, ecrireCumul, lireCumul, nettoyerTitre, regrouper, faitsDuMois, trier, reattribuer };

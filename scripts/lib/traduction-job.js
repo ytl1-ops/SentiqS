@@ -45,10 +45,19 @@ async function viaGoogle(texte, source, fetchFn, delaiMs, cible) {
   return out || null;
 }
 
+// MyMemory relève son quota gratuit (5 000 → 50 000 caractères par jour) quand
+// on lui passe une adresse de contact (« de= »). Secret Actions facultatif
+// MYMEMORY_EMAIL (19/11/2026) : sans lui, rien ne change. L'adresse ne sort
+// jamais dans un journal.
+function parametreQuotaMyMemory() {
+  const e = String(process.env.MYMEMORY_EMAIL || '').trim();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) ? '&de=' + encodeURIComponent(e) : '';
+}
+
 async function viaMyMemory(texte, source, fetchFn, delaiMs, cible) {
   if (!source || source === 'auto' || source === 'other') return null; // MyMemory exige la langue source
   const url = 'https://api.mymemory.translated.net/get?langpair=' + encodeURIComponent(source + '|' + (cible || 'fr'))
-    + '&q=' + encodeURIComponent(texte);
+    + '&q=' + encodeURIComponent(texte) + parametreQuotaMyMemory();
   const j = await lireJson(fetchFn, url, delaiMs);
   const out = j && j.responseData && typeof j.responseData.translatedText === 'string' ? j.responseData.translatedText.trim() : '';
   // Quota dépassé : MyMemory renvoie un avertissement à la place du texte.

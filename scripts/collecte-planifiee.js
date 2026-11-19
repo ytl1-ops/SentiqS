@@ -38,7 +38,7 @@ const faitsGrsci = require('./lib/faits-grsci');
 const photosGrsci = require('./lib/photos-grsci');
 const { traduire: traduireJob, ressembleAnglais } = require('./lib/traduction-job');
 const cacheFirestore = require('./lib/cache-firestore-ecriture');
-const { traduireActus } = require('./lib/traduction-actus');
+const { traduireActus, memoire: memoireTraductionsActus, cleMemoire: cleMemoireTraduction } = require('./lib/traduction-actus');
 const { fusionnerAgenda } = require('./lib/agenda-firestore');
 const santeCollecte = require('./lib/sante-collecte');
 
@@ -254,6 +254,9 @@ function ecrireResumeActions(md) {
     // n'ecrit PAS — publier ALL seul ecraserait la couverture accumulee des
     // cycles precedents (voir fusionnerCachePartage).
     let publicationExterne = { ok: false, raison: 'FIREBASE_SERVICE_ACCOUNT absent : rien a publier ailleurs que sur Firestore' };
+    // Traductions françaises des actus (a.tr), reprises par la Présentation 1 :
+    // un titre déjà traduit pour l'écran ne coûte pas une seconde requête.
+    let memoireTraductions = null;
     if (secretFirebase) {
       try {
         if (!compteFirebase) throw new Error('FIREBASE_SERVICE_ACCOUNT illisible ou d\'un autre projet que la page');
@@ -284,6 +287,7 @@ function ecrireResumeActions(md) {
             const echeance = Math.max(Date.now() + 45 * 1000,
               Math.min(Date.now() + TRAD_ACTUS_MAX_MS, echeanceEnv ? echeanceEnv - 60 * 1000 : Infinity));
             const st = await traduireActus(fusionnes, { existants: existant ? existant.articles : [], langues, resumeMax: det.resumeMax, echeance });
+            memoireTraductions = memoireTraductionsActus(fusionnes);
             console.log('Traduction des actus (FR/EN) : ' + st.repris + ' reprise(s), ' + st.traduits + ' nouvelle(s), '
               + st.echecs + ' échec(s), ' + st.reportes + ' reportée(s) au passage suivant, ' + st.requetes + ' requête(s).');
           }
@@ -650,6 +654,10 @@ function ecrireResumeActions(md) {
                 try { f.langue = await page.evaluate((t) => (typeof detectLangue === 'function') ? detectLangue(t) : null, f.titre); } catch (e) { /* passage suivant */ }
                 if ((!f.langue || f.langue === 'other') && ressembleAnglais(f.titre)) f.langue = 'en';
               }
+              if (!f.titreFr && memoireTraductions) {
+                const connu = memoireTraductions.get(cleMemoireTraduction('fr', f.titre));
+                if (connu && connu.trim() !== f.titre.trim()) { f.titreFr = faitsGrsci.nettoyerTitre(connu); titresTraduits++; continue; }
+              }
               if (f.titreFr || !['en', 'pt', 'ar'].includes(f.langue) || aTraduire >= 120) continue;
               if (!dansBudget()) { horsBudget++; continue; }
               aTraduire++;
@@ -711,6 +719,8 @@ function ecrireResumeActions(md) {
                 for (const e of (marquants.includes(f) ? extraits : extraits.slice(0, 1))) {
                   const entree = e.url ? parUrl.get(e.url) : null;
                   if (entree && entree.resumeFr) { e.resume = entree.resumeFr; e.fr = true; continue; }
+                  const connu = memoireTraductions && memoireTraductions.get(cleMemoireTraduction('fr', e.resume));
+                  if (connu) { e.resume = faitsGrsci.nettoyerTitre(connu); e.fr = true; if (entree) entree.resumeFr = e.resume; continue; }
                   if (!dansBudget()) continue;
                   try {
                     const lg = await page.evaluate((t) => (typeof detectLangue === 'function') ? detectLangue(t) : 'fr', e.resume);

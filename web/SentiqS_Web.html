@@ -4419,6 +4419,9 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
               </div>
             </div>
             <div class="pm-sec-body aff-corps">
+            <!-- Langue (19/11/2026, YORO : « pareil pour les paramètres ») : le
+                 même choix que la barre du haut, pour l'écran ET les rapports. -->
+            <div class="aff-groupe" role="group" aria-labelledby="aff_langue-l"><div class="aff-leg" id="aff_langue-l">Langue de l'interface et des rapports</div><div class="aff-choix"><button type="button" class="aff-opt lang-opt" data-lang="fr" aria-pressed="false" onclick="setLang('fr')" lang="fr" translate="no"><i class="ti ti-language" aria-hidden="true"></i><span>Français</span></button><button type="button" class="aff-opt lang-opt" data-lang="en" aria-pressed="false" onclick="setLang('en')" lang="en" translate="no"><i class="ti ti-language" aria-hidden="true"></i><span>English</span></button></div><div class="aff-aide">Une seule langue à l'écran et dans tous les documents : une actu pas encore traduite attend sa traduction.</div></div>
             <div class="aff-groupe" role="group" aria-labelledby="aff_format-l"><div class="aff-leg" id="aff_format-l" data-i18n="aff_format">Format d'écran</div><div class="aff-choix"><button type="button" class="aff-opt" data-aff-format="auto" aria-pressed="false" onclick="changerAffichage(&#39;format&#39;,&#39;auto&#39;)"><i class="ti ti-wand" aria-hidden="true"></i><span data-i18n="aff_auto">Automatique</span></button><button type="button" class="aff-opt" data-aff-format="web" aria-pressed="false" onclick="changerAffichage(&#39;format&#39;,&#39;web&#39;)"><i class="ti ti-device-desktop" aria-hidden="true"></i><span data-i18n="aff_ordinateur">Ordinateur</span></button><button type="button" class="aff-opt" data-aff-format="tablette" aria-pressed="false" onclick="changerAffichage(&#39;format&#39;,&#39;tablette&#39;)"><i class="ti ti-device-tablet" aria-hidden="true"></i><span data-i18n="aff_tablette">Tablette</span></button><button type="button" class="aff-opt" data-aff-format="mobile" aria-pressed="false" onclick="changerAffichage(&#39;format&#39;,&#39;mobile&#39;)"><i class="ti ti-device-mobile" aria-hidden="true"></i><span data-i18n="aff_mobile">Mobile</span></button></div><div class="aff-aide" id="affFormatAide" aria-live="polite"></div></div>
             <div class="aff-groupe" role="group" aria-labelledby="aff_texte-l"><div class="aff-leg" id="aff_texte-l" data-i18n="aff_texte">Taille du texte</div><div class="aff-choix"><button type="button" class="aff-opt" data-aff-texte="normal" aria-pressed="false" onclick="changerAffichage(&#39;texte&#39;,&#39;normal&#39;)"><i class="ti ti-letter-case" aria-hidden="true"></i><span data-i18n="aff_texte_normal">Normale</span></button><button type="button" class="aff-opt" data-aff-texte="grand" aria-pressed="false" onclick="changerAffichage(&#39;texte&#39;,&#39;grand&#39;)"><i class="ti ti-text-increase" aria-hidden="true"></i><span data-i18n="aff_texte_grand">Grande</span></button><button type="button" class="aff-opt" data-aff-texte="tres-grand" aria-pressed="false" onclick="changerAffichage(&#39;texte&#39;,&#39;tres-grand&#39;)"><i class="ti ti-zoom-in" aria-hidden="true"></i><span data-i18n="aff_texte_tres_grand">Très grande</span></button></div></div>
             <div class="aff-groupe" role="group" aria-labelledby="aff_presentation-l"><div class="aff-leg" id="aff_presentation-l" data-i18n="aff_presentation">Présentation des actus</div><div class="aff-choix"><button type="button" class="aff-opt" data-aff-presentation="compacte" aria-pressed="false" onclick="changerAffichage(&#39;presentation&#39;,&#39;compacte&#39;)"><i class="ti ti-layout-list" aria-hidden="true"></i><span data-i18n="aff_compacte">Compacte (vignette à côté)</span></button><button type="button" class="aff-opt" data-aff-presentation="magazine" aria-pressed="false" onclick="changerAffichage(&#39;presentation&#39;,&#39;magazine&#39;)"><i class="ti ti-layout-cards" aria-hidden="true"></i><span data-i18n="aff_magazine">Magazine (grande image au-dessus)</span></button></div></div>
@@ -6667,6 +6670,27 @@ function declarerNomsLangue() {
     _languePaysDeclares = true;
   } catch (_) { /* donnees pas encore initialisees : nouvel essai au prochain appel */ }
 }
+// Les boîtes natives (alert, confirm, prompt) échappent au DOM, donc à la
+// table d'interface : en anglais, leur message y passe ligne par ligne
+// (19/11/2026, une seule langue partout). Un détail technique après « : »
+// (message d'erreur du navigateur) est gardé tel quel.
+function messageDialogue(m) {
+  if (LANG !== 'en' || typeof SentiqLangue === 'undefined' || typeof m !== 'string') return m;
+  return m.split('\n').map(l => {
+    if (!l.trim() || SentiqLangue.connu(l)) return SentiqLangue.traduire(l);
+    const i = l.indexOf(':');
+    if (i > 0 && SentiqLangue.connu(l.slice(0, i).trim())) return SentiqLangue.traduire(l.slice(0, i).trim()) + ':' + l.slice(i + 1);
+    return l;
+  }).join('\n');
+}
+if (typeof window !== 'undefined' && window.alert && !window.__dialoguesTraduits) {
+  window.__dialoguesTraduits = true;
+  ['alert', 'confirm', 'prompt'].forEach(k => {
+    const natif = window[k];
+    if (typeof natif !== 'function') return;
+    window[k] = function (m) { const a = Array.prototype.slice.call(arguments); a[0] = messageDialogue(m); return natif.apply(window, a); };
+  });
+}
 function setLang(lang) {
   LANG = (lang === 'en') ? 'en' : 'fr';
   declarerNomsLangue();
@@ -6675,6 +6699,7 @@ function setLang(lang) {
     SentiqLangue.activer(LANG, { ignorer: estContenuSource });
   }
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('on', b.dataset.lang === LANG));
+  document.querySelectorAll('.lang-opt').forEach(b => b.setAttribute('aria-pressed', b.dataset.lang === LANG ? 'true' : 'false'));
   document.documentElement.setAttribute('lang', LANG);
   // Les durees ecrites en dur dans le HTML statique sont remplies ici, a
   // partir de la constante — jamais recopiees (audit du 07/09/2026).
@@ -7532,10 +7557,21 @@ async function preTraduireRapport(textes) {
 }
 let _rapportNonTraduits = 0;
 function noteTraductionRapport() {
-  if (!_rapportNonTraduits) return '';
-  return LANG === 'en'
-    ? 'Note: ' + _rapportNonTraduits + ' source text(s) could not be translated (translation service unavailable when this document was produced); they are shown in their original language, marked (EN) or (PT), or flagged when in Arabic.'
-    : 'Note : ' + _rapportNonTraduits + ' texte(s) de source n\'ont pas pu être traduits (service de traduction indisponible à la production de ce document) ; ils figurent dans leur langue d\'origine, signalée (EN) ou (PT), ou sont signalés comme tels s\'ils sont en arabe.';
+  const ex = _docActusExclues;
+  if (!_rapportNonTraduits && !(ex && ex.n)) return '';
+  const en = LANG === 'en';
+  if (ex && ex.n) {
+    const dont = [];
+    if (ex.crit) dont.push(ex.crit + (en ? ' critical' : (ex.crit > 1 ? ' critiques' : ' critique')));
+    if (ex.high) dont.push(ex.high + (en ? ' high' : (ex.high > 1 ? ' élevées' : ' élevée')));
+    const d = dont.length ? (en ? ', including ' : ', dont ') + dont.join(en ? ' and ' : ' et ') : '';
+    return en
+      ? 'Note: ' + ex.n + ' news item(s) not included' + d + ': no English translation was available when this document was produced. They appear in the app as soon as they are translated.'
+      : 'Note : ' + ex.n + ' actu(s) non incluse(s)' + d + ' : aucune traduction française n\'était disponible à la production de ce document. Elles apparaissent dans l\'appli dès qu\'elles sont traduites.';
+  }
+  return en
+    ? 'Note: ' + _rapportNonTraduits + ' secondary text(s) could not be translated and are left out of this document.'
+    : 'Note : ' + _rapportNonTraduits + ' texte(s) secondaire(s) n\'ont pas pu être traduits et ne figurent pas dans ce document.';
 }
 // traduireAvantPartage(texte) : traduction ACTIVE (appel reel a l'agent de
 // traduction via trFetch, pas une simple consultation de cache) tentee a
@@ -7561,6 +7597,9 @@ async function traduireAvantPartage(texte) {
 // celle active (FR ou EN), quelle que soit sa langue d'origine.
 function L(texte) {
   if (!texte) return texte;
+  // L(t, true) : texte secondaire (chapô, description), omis d'un document
+  // s'il n'a pas pu être traduit.
+  const secondaire = arguments[1] === true;
   if (LANG === 'en' && typeof MESURES_EN !== 'undefined' && Object.prototype.hasOwnProperty.call(MESURES_EN, texte)) return MESURES_EN[texte];
   const parTable = traductionTable(texte);
   if (parTable !== null) return parTable;
@@ -7576,7 +7615,7 @@ function L(texte) {
   if (texteEtranger(texte)) {
     if (cached !== undefined && cached !== texte) return _trTexteAffichable(cached);
     if (cached === texte && TR_DEJA_BON.has(cacheKey)) return texteAff;
-    if (_docEnCours > 0) return texteDocumentNonTraduit(texteAff);
+    if (_docEnCours > 0) return secondaire ? '' : texteDocumentNonTraduit(texteAff);
     if (cached === undefined) { _trPlanifier(texte); return texteNonTraduit(texte, true); }
     return texteNonTraduit(texte);
   }
@@ -7601,9 +7640,14 @@ function L(texte) {
 // francophone ou anglophone, reste signalé sans être imprimé. L'écran ne
 // change pas : une seule langue, ou la mention.
 let _docEnCours = 0;
+// 19/11/2026, YORO : « Tout type de rapport sera soit en FR soit en ENG selon
+// le choix de langue. » Le « (EN) texte source » du 14/11 est retiré : les
+// actus non traduites sont écartées du document (getExportData), un texte
+// secondaire non traduit (chapô, description) est omis — L(t, true) — et ce
+// qui reste (titre d'agenda tiré d'une actu) porte la mention, jamais le
+// texte d'une autre langue.
 function texteDocumentNonTraduit(texteAff) {
-  const l = langueSure(texteAff);
-  if (l === 'en' || l === 'pt') return '(' + l.toUpperCase() + ') ' + texteAff;
+  const l = langueSure(texteAff) || detectLangue(texteAff);
   const nom = (NOMS_LANGUE[LANG] || NOMS_LANGUE.fr)[l] || '';
   return LANG === 'en'
     ? (nom ? nom + ' text' : 'Text') + ' — not translated, see the source'
@@ -7611,9 +7655,35 @@ function texteDocumentNonTraduit(texteAff) {
 }
 function enDocument(fn) {
   return async function () {
+    // Au premier niveau seulement : traduire d'abord toutes les actus que le
+    // document peut contenir, pour que getExportData n'écarte que celles qui
+    // n'ont vraiment pas pu l'être.
+    if (_docEnCours === 0) {
+      _docActusExclues = null;
+      try {
+        const cand = (ALL || []).filter(a => a && a.title && filtreZonePaysActif(a.cy) && !actuLisible(a));
+        if (cand.length) await preTraduireRapport(cand.flatMap(a => [a.title, a.analysis]));
+      } catch (e) { /* jamais bloquant */ }
+    }
     _docEnCours++;
     try { return await fn.apply(this, arguments); } finally { _docEnCours--; }
   };
+}
+// Actus écartées d'un document faute de traduction (comptées, dites en note).
+let _docActusExclues = null;
+function filtrerLangueDocument(arts) {
+  if (!(_docEnCours > 0)) return arts;
+  const garde = [], exclues = { n: 0, crit: 0, high: 0 };
+  arts.forEach(a => {
+    if (actuLisible(a)) garde.push(a);
+    else { exclues.n++; if (a.level === 'crit') exclues.crit++; else if (a.level === 'high') exclues.high++; }
+  });
+  if (exclues.n) {
+    const d = _docActusExclues || { n: 0, crit: 0, high: 0 };
+    // Plusieurs appels pour un même document : garder le plus grand compte.
+    if (exclues.n > d.n) _docActusExclues = exclues;
+  }
+  return garde;
 }
 // ── PAYS = CLÉ DE CORRÉLATION GLOBALE ──────────────────────────────────────
 // Etat partage par toute la plateforme. PAYS_INFO (54 pays) est le referentiel
@@ -11165,7 +11235,7 @@ function resumeCourt(texte, max) {
 function detailRapportActu(a) {
   const en = LANG === 'en';
   const titre = String(L(a.title) || '').replace(/\s+/g, ' ').trim();
-  let resume = String(L(a.analysis) || '').replace(/\s+/g, ' ').trim();
+  let resume = String(L(a.analysis, true) || '').replace(/\s+/g, ' ').trim();
   if (resume.toLowerCase() === titre.toLowerCase()) resume = '';
   resume = resumeCourt(resume, RESUME_RAPPORT_MAX);
   const voir = typeof sourcesVisibles === 'function' && sourcesVisibles();
@@ -19459,7 +19529,7 @@ function toggleUserStatus(email) {
 }
 function deleteUser(email) {
   if(estAdmin(email))return;
-  if(!confirm('Supprimer definitvement '+email+' ?'))return;
+  if(!confirm((LANG==='en'?'Permanently delete ':'Supprimer définitivement ')+email+' ?'))return;
   saveUsers(getUsers().filter(u=>u.email!==email));
   renderUsersTable();renderAdminStats();
 }
@@ -19934,7 +20004,7 @@ function pmToggleStatus(email) {
 }
 function pmDeleteUser(email) {
   if (estAdmin(email)) return;
-  if (!confirm('Supprimer definitvement ' + email + ' ?')) return;
+  if (!confirm((LANG === 'en' ? 'Permanently delete ' : 'Supprimer définitivement ') + email + ' ?')) return;
   saveUsers(getUsers().filter(u => u.email !== email));
   pmRenderUsers(); renderClientele();
 }
@@ -20024,7 +20094,9 @@ function importerDonneesAdmin(input) {
       if (!payload || typeof payload !== 'object') throw new Error('format non reconnu');
       const found = _backupKeys().filter(k => payload[k] !== undefined);
       if (!found.length) throw new Error('aucune donnee SentiqS reconnue dans ce fichier');
-      if (!confirm('Restaurer cette sauvegarde va REMPLACER les donnees actuelles (' + found.length + ' categorie(s) : utilisateurs / tarifs / paiements declares). Cette action est irreversible. Continuer ?')) return;
+      if (!confirm(LANG === 'en'
+        ? 'Restoring this backup will REPLACE the current data (' + found.length + ' category(ies): users / prices / declared payments). This cannot be undone. Continue?'
+        : 'Restaurer cette sauvegarde va REMPLACER les données actuelles (' + found.length + ' catégorie(s) : utilisateurs / tarifs / paiements déclarés). Cette action est irréversible. Continuer ?')) return;
       found.forEach(k => localStorage.setItem(k, JSON.stringify(payload[k])));
       pmMsg('Sauvegarde restauree. Rechargement de l\'application...', 'ok', 'pmMsg');
       setTimeout(() => location.reload(), 1200);
@@ -24592,7 +24664,7 @@ function suffixePerimetre() {
 }
 
 function getExportData(){
-  return ALL.filter(a=>estActuModule(a) && filtreZonePaysActif(a.cy));
+  return filtrerLangueDocument(ALL.filter(a=>estActuModule(a) && filtreZonePaysActif(a.cy)));
 }
 function lvlFr(l){
   const dict = LANG==='en'
@@ -25322,7 +25394,7 @@ async function exportExcel(type){
         const villeTxt=geo.ville?(geo.ville+(geo.estime?' (estimé)':'')):'';
         return [
           lvlFr(a.level), a.cy||'', villeTxt, a.sc||'',
-          L(a.title), L(a.analysis)||'',
+          L(a.title), L(a.analysis, true)||'',
           catFr(a.cat), a.score||'',
         ].concat(sourcesVisibles() ? [srcName(a.primary), articleLienDirect(a)] : [])
          .concat([a.time||'']);
@@ -25346,7 +25418,7 @@ async function exportExcel(type){
       const SL={'en-cours':'EN COURS','urgent':'URGENT','planifie':'PLANIFIÉ','surveillance':'SURVEILLANCE','acheve':'ACHEVÉ'};
       const agendaX=getExportAgenda();
       await preTraduireRapport(agendaX.flatMap(e=>[e.title,e.desc,e.reco]));
-      const rows2=agendaX.map(e=>[e.day+' '+e.month, SL[e.status]||e.status, L(e.title), L(e.desc), e.cy, e.impact.toUpperCase(), L(e.reco)||'']);
+      const rows2=agendaX.map(e=>[e.day+' '+e.month, SL[e.status]||e.status, L(e.title), L(e.desc, true)||'', e.cy, e.impact.toUpperCase(), L(e.reco, true)||'']);
       const ws2=XLSX.utils.aoa_to_sheet([header2,...rows2]);
       ws2['!cols']=[{wch:8},{wch:14},{wch:40},{wch:65},{wch:20},{wch:9},{wch:55}];
       XLSX.utils.book_append_sheet(wb, ws2, 'Agenda sûreté');
@@ -25407,7 +25479,7 @@ async function exportCSV(type){
         const geo=detectGeo(a.cy, a.title+' '+(a.analysis||''));
         const villeTxt=geo.ville?(geo.ville+(geo.estime?' (estimé)':'')):'';
         return [
-          lvlFr(a.level),a.cy,villeTxt,a.sc,L(a.title),L(a.analysis)||'',catFr(a.cat),a.score
+          lvlFr(a.level),a.cy,villeTxt,a.sc,L(a.title),L(a.analysis, true)||'',catFr(a.cat),a.score
         ].concat(sourcesVisibles() ? [srcName(a.primary),articleLienDirect(a)] : [])
          .concat([a.time]).map(esc).join(',');
       })
@@ -25428,10 +25500,10 @@ async function exportCSV(type){
 // (contrairement à getExportData() qui est figé sur une fenêtre de 12h).
 function getExportDataPeriode(jours) {
   const MAX = jours*24*60*60*1000;
-  return (ALL||[]).filter(a => {
+  return filtrerLangueDocument((ALL||[]).filter(a => {
     if (!a.pubDate || (Date.now()-a.pubDate) >= MAX) return false;
     return filtreZonePaysActif(a.cy);
-  });
+  }));
 }
 
 async function exportPPTX(type) {
@@ -25900,7 +25972,7 @@ async function exportPPTX(type) {
         const sentCol = p.sentiment==='positif'?GREEN:p.sentiment==='negatif'?RED:'9CA3AF';
         circle(s, 0.6, y+0.08, 0.16, sentCol);
         s.addText(p.pays.flag+' '+L(p.pays.name)+'  ·  '+p.sujets.map(x=>x.label).join(', ')+'  ·  '+p.date, {x:0.95,y:y-0.05,w:11.6,h:0.3,fontSize:10,bold:true,color:BLUE,fontFace:'IBM Plex Sans'});
-        s.addText(L(p.resume), {x:0.95,y:y+0.22,w:11.6,h:0.5,fontSize:10.5,color:INK,fontFace:'IBM Plex Sans'});
+        s.addText(L(p.resume, true) || '', {x:0.95,y:y+0.22,w:11.6,h:0.5,fontSize:10.5,color:INK,fontFace:'IBM Plex Sans'});
         s.addText((sourcesVisibles() ? 'Source : '+p.source+' · ' : '')+'Fiabilité : '+p.fiabilite, {x:0.95,y:y+0.68,w:11.6,h:0.25,fontSize:8,italic:true,color:MUTED,fontFace:'IBM Plex Sans'});
       });
     }
@@ -26891,7 +26963,7 @@ async function exportPDF(type) {
         if (postsPDF.length) {
           postsPDF.forEach(p => {
             b.para(L(p.pays.name)+' — '+p.sujets.map(s=>s.label).join(', '), {bold:true, size:10});
-            b.para(L(p.resume), {size:9});
+            if (L(p.resume, true)) b.para(L(p.resume, true), {size:9});
             b.para(p.date+' · Sentiment : '+p.sentiment+' · Criticité : '+p.criticite+' · Fiabilité : '+p.fiabilite, {size:8, color:rgb(0.42,0.46,0.5)});
             b.para('Action recommandée : '+p.action, {size:8.5});
             b.y -= 3;
@@ -26955,8 +27027,8 @@ async function exportPDF(type) {
       agenda.forEach(e=>{
         b.sub((e.day||'')+' '+(e.month||'')+'  —  '+(SL[e.status]||e.status||'').toUpperCase(), rgb(0.114,0.373,0.659));
         b.para(L(e.title)||'', {bold:true, size:10.5});
-        if (e.desc) b.para(L(e.desc), {size:9});
-        if (e.reco) b.para('Recommandation : '+L(e.reco), {size:8.5, color:rgb(0.42,0.46,0.5)});
+        if (e.desc && L(e.desc, true)) b.para(L(e.desc, true), {size:9});
+        if (e.reco && L(e.reco, true)) b.para('Recommandation : '+L(e.reco, true), {size:8.5, color:rgb(0.42,0.46,0.5)});
         b.y -= 4;
       });
       if (!agenda.length) b.empty('Aucun événement pour ce périmètre.');
@@ -27123,8 +27195,8 @@ async function exportPDF(type) {
       agendaC.forEach(e=>{
         b.sub((e.day||'')+' '+(e.month||'')+'  —  '+(SLC[e.status]||e.status||'').toUpperCase(), rgb(0.114,0.373,0.659));
         b.para(L(e.title)||'', {bold:true, size:10.5});
-        if (e.desc) b.para(L(e.desc), {size:9});
-        if (e.reco) b.para('Recommandation : '+L(e.reco), {size:8.5, color:rgb(0.42,0.46,0.5)});
+        if (e.desc && L(e.desc, true)) b.para(L(e.desc, true), {size:9});
+        if (e.reco && L(e.reco, true)) b.para('Recommandation : '+L(e.reco, true), {size:8.5, color:rgb(0.42,0.46,0.5)});
         b.y -= 4;
       });
       if (!agendaC.length) b.empty(LANG==='en'?'No event for this scope.':'Aucun événement pour ce périmètre.');
@@ -27271,7 +27343,7 @@ function _apSocialSection(arts) {
   if (posts.length) {
     html += posts.map(p => '<div style="margin-bottom:14px;break-inside:avoid;">'
       + '<div style="font-weight:700;font-size:13px;color:#0B1A27;">'+_apEsc(L(p.pays.name))+' — '+_apEsc(p.sujets.map(s=>s.label).join(', '))+'</div>'
-      + '<div style="font-size:12.5px;color:#3A4658;line-height:1.5;margin:2px 0;">'+_apEsc(L(p.resume))+'</div>'
+      + '<div style="font-size:12.5px;color:#3A4658;line-height:1.5;margin:2px 0;">'+_apEsc(L(p.resume, true) || '')+'</div>'
       + '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:#9CA3AF;">'+_apEsc(p.date)+' · Sentiment : '+_apEsc(p.sentiment)+' · Criticité : '+_apEsc(p.criticite)+' · Fiabilité : '+_apEsc(p.fiabilite)+'</div>'
       + '</div>').join('');
   } else {
@@ -28032,7 +28104,7 @@ async function exportWord(type){
                 new TextRun({text:p.sujets.map(s=>s.label).join(', '), bold:true, size:19, color:'1B5FA8'}),
               ], spacing:{before:100,after:30}
             }));
-            children.push(para(L(p.resume), {color:'374151'}));
+            if (L(p.resume, true)) children.push(para(L(p.resume, true), {color:'374151'}));
             children.push(new Paragraph({
               children:[new TextRun({
                 text:(sourcesVisibles() ? 'Source : '+p.source+' · ' : '')+p.date+'  ·  Sentiment : '+p.sentiment+'  ·  Criticité : '+p.criticite+'  ·  Fiabilité : '+p.fiabilite,
@@ -28096,9 +28168,9 @@ async function exportWord(type){
             new TextRun({text:L(e.title),bold:true,size:22,color:'0B1A27'}),
           ],spacing:{before:100,after:40}
         }));
-        children.push(para(L(e.desc)||''));
-        if(e.reco) children.push(new Paragraph({
-          children:[new TextRun({text:'▶ '+L(e.reco),size:20,italic:true,color:'1B5FA8'})],
+        children.push(para(L(e.desc, true)||''));
+        if(e.reco && L(e.reco, true)) children.push(new Paragraph({
+          children:[new TextRun({text:'▶ '+(L(e.reco, true)||''),size:20,italic:true,color:'1B5FA8'})],
           spacing:{after:80}
         }));
       }
