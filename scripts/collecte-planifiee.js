@@ -38,6 +38,7 @@ const faitsGrsci = require('./lib/faits-grsci');
 const photosGrsci = require('./lib/photos-grsci');
 const { traduire: traduireJob, ressembleAnglais } = require('./lib/traduction-job');
 const cacheFirestore = require('./lib/cache-firestore-ecriture');
+const { traduireActus } = require('./lib/traduction-actus');
 const { fusionnerAgenda } = require('./lib/agenda-firestore');
 const santeCollecte = require('./lib/sante-collecte');
 
@@ -64,6 +65,10 @@ const HTML_PATH = process.env.SENTINEL_HTML_PATH || path.join(__dirname, '..', '
 // job entier tenant en 13 min pour une garde de 18. La mesure d'effet est
 // dans le journal : « Sources terminees a l'arret » (ci-dessous).
 const COLLECT_TIMEOUT_MS = 11 * 60 * 1000;
+// Budget de la traduction des actus avant publication (19/11/2026) : borné,
+// pour que la publication du cache ne soit jamais repoussée au-delà de la
+// garde du job. Le reliquat attend le passage suivant.
+const TRAD_ACTUS_MAX_MS = 3 * 60 * 1000;
 
 // Fenetre de collecte REELLE : voir scripts/lib/fenetre-collecte.js (le
 // plafond, raccourci si le passage a deja consomme son budget).
@@ -258,6 +263,33 @@ function ecrireResumeActions(md) {
           return fusionnerCachePartage(existants, ALL);
         }, existant ? existant.articles : []);
         if (!fusionnes) throw new Error('Aucun article dans ALL');
+        // Traduction FR et EN des titres et chapôs, rangée dans chaque article
+        // (a.tr) : chaque visiteur la lit sans appeler aucun service (voir
+        // scripts/lib/traduction-actus.js). Best-effort et bornée : un échec
+        // ou un budget épuisé ne bloque jamais la publication, le passage
+        // suivant reprend la suite (les traductions faites sont reprises).
+        try {
+          const textes = [...new Set(fusionnes.flatMap((a) => [a && a.title, a && a.analysis]).filter((t) => typeof t === 'string' && t))];
+          const det = await page.evaluate((liste) => {
+            if (typeof langueSure !== 'function') return null;
+            const aff = (t) => (typeof _trTexteAffichable === 'function' ? _trTexteAffichable(t) : t);
+            return {
+              langues: liste.map((t) => langueSure(aff(t)) || (detectLangue(aff(t)) === 'other' ? 'other' : null)),
+              resumeMax: typeof EXTRAIT_MAX_CARACTERES === 'number' ? EXTRAIT_MAX_CARACTERES + 40 : 320,
+            };
+          }, textes);
+          if (det) {
+            const langues = new Map(textes.map((t, i) => [t, det.langues[i]]));
+            const echeanceEnv = Number(process.env.COLLECTE_ECHEANCE_EPOCH || 0) * 1000;
+            const echeance = Math.max(Date.now() + 45 * 1000,
+              Math.min(Date.now() + TRAD_ACTUS_MAX_MS, echeanceEnv ? echeanceEnv - 60 * 1000 : Infinity));
+            const st = await traduireActus(fusionnes, { existants: existant ? existant.articles : [], langues, resumeMax: det.resumeMax, echeance });
+            console.log('Traduction des actus (FR/EN) : ' + st.repris + ' reprise(s), ' + st.traduits + ' nouvelle(s), '
+              + st.echecs + ' échec(s), ' + st.reportes + ' reportée(s) au passage suivant, ' + st.requetes + ' requête(s).');
+          }
+        } catch (e) {
+          console.warn('::warning::Traduction des actus non faite : ' + ((e && e.message) || e));
+        }
         const pubFs = await cacheFirestore.ecrireCache(compteFirebase, fusionnes, fetch);
         console.log('Cache Firestore publié : ' + pubFs.nbArticles + ' articles, ' + pubFs.parts
           + ' morceau(x), ' + Math.round(pubFs.octets / 1024) + ' Ko (emplacement ' + pubFs.emplacement + ').');

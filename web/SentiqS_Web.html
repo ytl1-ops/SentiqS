@@ -6382,7 +6382,7 @@ const I18N = {
     ph_recherche:'Rechercher...',
     flashinfo_lbl:'FLASH INFO',
     sb_geo:'Filtrer par pays / agence de presse', sb_agences:'Agences nationales',
-    note_flux:'Flux opérationnel : actualités sourcées des dernières {h}, triables et filtrables par pays, catégorie et niveau d\'alerte. Le badge « recoupé » signale un fait rapporté par plusieurs sources. Titres et résumés sont traduits automatiquement en français, quelle que soit la langue de la source ; si le service de traduction ne répond pas, la carte le dit et le bouton Traduire relance.',
+    note_flux:'Flux opérationnel : actualités sourcées des dernières {h}, triables et filtrables par pays, catégorie et niveau d\'alerte. Le badge « recoupé » signale un fait rapporté par plusieurs sources. Titres et résumés sont traduits automatiquement en français, quelle que soit la langue de la source ; une actu pas encore traduite est masquée jusqu\'à l\'arrivée de sa traduction, et le Flux dit combien attendent.',
     note_recherche:'Recherche : retrouvez un pays, un événement, un thème ou une source dans l\'ensemble des données collectées par SentiqS.',
     note_analyse:'Synthèse : rapport analytique thématique généré automatiquement à partir du Flux, filtrable par zone ou par pays.',
     note_agenda:'Agenda : événements en cours, à venir et échéances de sûreté, classés par statut et par zone.',
@@ -6539,7 +6539,7 @@ const I18N = {
     ph_recherche:'Search...',
     flashinfo_lbl:'BREAKING NEWS',
     sb_geo:'Filter by country / press agency', sb_agences:'National agencies',
-    note_flux:'Feed: sourced news from the last {h}, sortable and filterable by country, category and alert level. The cross-checked badge marks a fact reported by several sources. Headlines and summaries are translated automatically into English, whatever the language of the source; if the translation service does not respond, the card says so and the Translate button retries.',
+    note_flux:'Feed: sourced news from the last {h}, sortable and filterable by country, category and alert level. The cross-checked badge marks a fact reported by several sources. Headlines and summaries are translated automatically into English, whatever the language of the source; a news item not yet translated is hidden until its translation arrives, and the feed says how many are waiting.',
     note_recherche:'Search: find a country, event, theme or source across all data collected by SentiqS.',
     note_analyse:'Summary: thematic analytical report automatically generated from the Feed, filterable by zone or country.',
     note_agenda:'Agenda: ongoing and upcoming security events and deadlines, classified by status and zone.',
@@ -6985,6 +6985,54 @@ function _trPlanifier(texte) {
       redessinerVuesOuvertes();
     }
   }, 250);
+}
+
+// ── Traductions faites par le job de collecte (19/11/2026) ──────────────
+// Demande de YORO : « des traductions automatiques générales selon les
+// langues choisies (FR / ENG). Masquer les actus non traduites. » Le job
+// traduit une fois, pour tous, le titre et le chapô de chaque actu en
+// français ET en anglais, et les range dans l'article (a.tr, voir
+// scripts/lib/traduction-actus.js). On les sème ici dans TR_CACHE : L() les
+// rend aussitôt, sans attendre aucun service, et changer de langue ne coûte
+// plus rien. Une traduction faite par le navigateur (bouton Traduire) n'est
+// jamais remplacée par une absence.
+function semerTraductionsArticles(arts) {
+  if (!Array.isArray(arts)) return;
+  arts.forEach(a => {
+    if (!a || !a.tr || typeof a.tr !== 'object') return;
+    ['fr', 'en'].forEach(c => {
+      const t = a.tr[c];
+      if (!t || typeof t !== 'object') return;
+      if (a.title && typeof t.t === 'string' && t.t) TR_CACHE[c + ':' + a.title] = t.t;
+      if (a.analysis && typeof t.s === 'string' && t.s) TR_CACHE[c + ':' + a.analysis] = t.s;
+    });
+  });
+}
+// actuLisible(a) : vrai si le titre de l'actu peut s'afficher dans la
+// langue choisie — il y est déjà, ou sa traduction est disponible. Sinon
+// l'actu est MASQUÉE à l'écran (consigne du 19/11/2026) au lieu d'afficher
+// « Traduction en cours… » ou « traduction indisponible » ; sa traduction
+// part en arrière-plan et l'actu apparaît dès qu'elle arrive
+// (redessinerVuesOuvertes). Seul l'affichage est concerné : le niveau
+// d'alerte (getLiveAlertEvents) et les documents exportés (getExportData)
+// ne lisent pas cette règle, et le Flux dit combien d'actus attendent.
+// La langue d'un titre ne change pas : sa détection est retenue, par langue
+// d'affichage (le Flux relit des milliers de titres à chaque rendu).
+const _ETRANGER_MEMO = new Map();
+function actuLisible(a) {
+  if (!a || !a.title) return false;
+  const t = a.title;
+  const k = LANG + ':' + t;
+  let etr = _ETRANGER_MEMO.get(k);
+  if (etr === undefined) { etr = texteEtranger(t); _ETRANGER_MEMO.set(k, etr); }
+  if (!etr) return true;
+  if (traductionTable(t) !== null) return true;
+  const c = TR_CACHE[k];
+  if (c === undefined) { _trPlanifier(t); return false; }
+  return c !== t || TR_DEJA_BON.has(k);
+}
+function nbActusMasqueesLangue(arts) {
+  return (arts || (typeof ALL !== 'undefined' ? ALL : []) || []).filter(a => estActuModule(a) && !actuLisible(a)).length;
 }
 
 // retraduireActu(id) : declenchee par le bouton "Traduire" — pose sur chaque
@@ -8394,6 +8442,7 @@ function signatureCode() {
 // reprend). Sans budget (job de collecte, publication) le calcul est complet :
 // publier un cache a moitie recalcule serait pire que ne rien changer.
 function rehydrateArticles(arts, opts) {
+  if (typeof semerTraductionsArticles === 'function') semerTraductionsArticles(arts);
   const _sig = signatureCode();
   const _budget = opts && opts.budgetMs;
   const _t0 = _budget ? performance.now() : 0;
@@ -10328,6 +10377,15 @@ function estActuModule(a) {
 }
 function actusModules(arts) {
   return (arts || (typeof ALL !== 'undefined' ? ALL : []) || []).filter(estActuModule);
+}
+// actusAffichables(arts) : les actus que l'écran MONTRE en liste. Une actu
+// dont le titre n'est pas (encore) dans la langue choisie est masquée
+// (actuLisible, 19/11/2026). Les COMPTES restent sur actusModules : un
+// nombre de critiques qui changerait avec la langue ferait paraître un pays
+// plus calme en anglais qu'en français. getExportData, qui fait les
+// documents à la demande, ne lit pas cette règle : les rapports ne changent pas.
+function actusAffichables(arts) {
+  return (arts || []).filter(actuLisible);
 }
 
 function antiHalluFilter(arts, maxAgeMs) {
@@ -13810,6 +13868,9 @@ function lbg(l){return {crit:'#8B1A1A',high:'#7C4A00',mod:'#4B5563',ok:'#0F4F2A'
 function lic(l){return l==='crit'?'ti-alert-triangle':l==='high'?'ti-alert-circle':'ti-info-circle';}
 
 function getFiltered() {
+  // getFiltered(true) : mêmes filtres, sans masquer les actus pas encore
+  // traduites — sert à compter celles que le Flux masque (19/11/2026).
+  const sansMasqueLangue = arguments[0] === true;
   // Filtre anti-hallucination : seules les données sourcées, horodatées et
   // dans FENETRE_ACTUALITE_MS. N'impose plus son propre MAX_AGE : la valeur
   // en dur ici est restee a 12h apres le passage de la fenetre a 36h le
@@ -13818,8 +13879,9 @@ function getFiltered() {
   // continuait pourtant de compter comme actualite. antiHalluFilter() sans
   // second argument retombe sur FENETRE_ACTUALITE_MS, la meme fenetre que
   // partout ailleurs.
-  // Règle commune à tous les modules (estActuModule, 18/11/2026).
-  let a = actusModules(ALL);
+  // Règle commune à tous les modules (estActuModule, 18/11/2026) ; à
+  // l'écran, une actu pas encore dans la langue choisie est masquée.
+  let a = sansMasqueLangue ? actusModules(ALL) : actusAffichables(actusModules(ALL));
   // Les evenements planifies (colloque, seminaire, concert, conseil des
   // ministres, senat, CESE...) sont achemines vers le module Agenda, pas le
   // Flux. Exception : les manifestations/greves restent aussi visibles en
@@ -14139,7 +14201,7 @@ async function majFlashInfo(force) {
     if (r !== 0) return r;
     return (b.pubDate||0) - (a.pubDate||0);
   };
-  const pool = actusModules(ALL);
+  const pool = actusAffichables(actusModules(ALL));
   // "La une" = melange equilibre Afrique (par pays) + Monde (cy 'INT'),
   // les niveaux critique/eleve prioritaires dans chaque groupe.
   const monde   = pool.filter(a => a.cy === 'INT').sort(cmpUne).slice(0, 6);
@@ -14733,6 +14795,15 @@ async function renderFeed() {
   const _monGen = ++_renderFeedGen;
   _visuelOgpDemandes = 0;
   const artsTous = getFiltered();
+  // Actus masquées parce que pas encore traduites (19/11/2026) : on le dit,
+  // pour qu'un Flux plus court en anglais ne se lise pas comme un pays calme.
+  const _nbMasquees = Math.max(0, getFiltered(true).length - artsTous.length);
+  const noteMasquees = _nbMasquees ? '<div class="note-masquees" role="status" style="padding:6px 14px;font-size:var(--fs-micro,10px);color:var(--lg);border-bottom:1px solid var(--bd);">'
+    + '<i class="ti ti-language" aria-hidden="true"></i> '
+    + (LANG === 'en'
+      ? _nbMasquees + (_nbMasquees > 1 ? ' news items are' : ' news item is') + ' hidden until translated into English; they appear as soon as the translation arrives.'
+      : _nbMasquees + (_nbMasquees > 1 ? ' actus sont masquées' : ' actu est masquée') + ' en attente de traduction en français ; elles apparaissent dès que la traduction arrive.')
+    + '</div>' : '';
   // Un filtre, un tri ou une recherche qui change repart de la premiere page.
   const _sig = fluxSignatureFiltres();
   if (_sig !== _fluxSignature) { _fluxSignature = _sig; _fluxLimite = FLUX_PAGE; }
@@ -14762,7 +14833,7 @@ async function renderFeed() {
     }
   }
   if(!artsTous.length){
-    c.innerHTML=dashBanner0+'<div class="empty"><i class="ti ti-inbox"></i><p>'+t('empty_aucun')+'</p>'+
+    c.innerHTML=dashBanner0+noteMasquees+'<div class="empty"><i class="ti ti-inbox"></i><p>'+t('empty_aucun')+'</p>'+
       '<span style="font-size:11px;color:var(--lg);margin-top:4px">'+
       (ALL.length?t('empty_filtres'):t('empty_actualiser'))+
       '</span></div>';
@@ -15048,7 +15119,7 @@ async function renderFeed() {
           (LANG==='en' ? 'Show '+Math.min(FLUX_PAGE,reste)+' more' : 'Afficher '+Math.min(FLUX_PAGE,reste)+' actus de plus')+
           '</button><span class="feed-plus-n">'+arts.length+' / '+artsTous.length+'</span></div>'
       : '';
-    c.innerHTML = dashBanner0 + uneHtml + (html || '<div class="empty"><i class="ti ti-inbox"></i><p>Aucun article</p></div>') + plusHtml;
+    c.innerHTML = dashBanner0 + noteMasquees + uneHtml + (html || '<div class="empty"><i class="ti ti-inbox"></i><p>Aucun article</p></div>') + plusHtml;
   });
 }
 // Version temporisee pour le champ de recherche (#artQ) uniquement — les
@@ -15236,7 +15307,7 @@ function calcScorePays(cy) {
 function closeKpiDrill() { const o = document.getElementById('kpiDrillOverlay'); if (o) o.remove(); }
 
 async function showKpiDrill(kind) {
-  const artsActifs = actusModules(ALL);
+  const artsActifs = actusAffichables(actusModules(ALL));
   const scoreCol = key => (typeof NIV !== 'undefined' && NIV[key]) ? NIV[key].col : '#0F4F2A';
   let title = '', icon = 'ti-list', rows = '';
 
@@ -15377,7 +15448,7 @@ function getArticlesATraiter(cyFiltre, zoneFiltre) {
   const traitesSet = new Set(traites);
   const LVL_ORDER = {crit:0, high:1, mod:2, ok:3};
   return (ALL || [])
-    .filter(a => estActuModule(a) && !traitesSet.has(a.id)
+    .filter(a => estActuModule(a) && actuLisible(a) && !traitesSet.has(a.id)
       && (!cyFiltre || cyFiltre === 'all' || a.cy === cyFiltre)
       && (!zoneFiltre || zoneFiltre === 'all' || (typeof CY_TO_ZONE !== 'undefined' && CY_TO_ZONE[a.cy] === zoneFiltre)))
     // Une actualite internationale ('INT') passe APRES les 54 pays africains a
@@ -16115,7 +16186,7 @@ async function updSynthese() {
   document.getElementById('sySrc').innerHTML='<i class="ti ti-database" style="font-size:9px;vertical-align:-1px"></i> '+okSrc+' sources actives';
 
   const byCat={securite:[],humanitaire:[],politique:[],economique:[]};
-  [...perimetre].sort((a,b)=>(b.pubDate||0)-(a.pubDate||0)).slice(0,60)
+  actusAffichables(perimetre).sort((a,b)=>(b.pubDate||0)-(a.pubDate||0)).slice(0,60)
     .forEach(a=>{if(byCat[a.cat])byCat[a.cat].push(a);});
 
   const cats=[
@@ -16298,7 +16369,7 @@ function buildRecherche(query, scope, cyFilter, catFilter) {
   const inScope = (t) => scope === 'all' || scope === t;
 
   if (inScope('flux')) {
-    actusModules(ALL).forEach(a => {
+    actusAffichables(actusModules(ALL)).forEach(a => {
       if (cyFilter !== 'all' && a.cy !== cyFilter) return;
       if (catFilter !== 'all' && a.cat !== catFilter) return;
       const score = _seScore(tokens, a.title, a.analysis, a.primary, a.pubDate);
@@ -23511,7 +23582,7 @@ async function renderAlerteChronologie() {
 
   // Articles critiques/eleves recents du Flux (<12h), pour prolonger la
   // chronologie jusqu'a l'instant present avec les tout derniers signaux.
-  (ALL||[]).filter(a => estActuModule(a) && (a.level==='crit'||a.level==='high') && (fChronoCy==='all'||a.cy===fChronoCy))
+  (ALL||[]).filter(a => estActuModule(a) && actuLisible(a) && (a.level==='crit'||a.level==='high') && (fChronoCy==='all'||a.cy===fChronoCy))
     .forEach(a => items.push({ ts:a.pubDate||0, dateLabel: fmtFull(a.pubDate), cy:a.cy, title:a.title,
       level:a.level, src: srcName(a.primary), type:'flux', id:a.id }));
 
