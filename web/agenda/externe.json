@@ -1,5 +1,5 @@
 {
- "genere": "2026-11-18T13:09:26.771Z",
+ "genere": "2026-11-19T13:20:40.899Z",
  "horizonJours": 120,
  "sources": {
   "feries": {
@@ -61,21 +61,10 @@
     "ZM",
     "ZW"
    ],
-   "evenements": 191
+   "evenements": 190
   }
  },
  "evenements": [
-  {
-   "id": "ferie-MA-2026-11-18",
-   "date": "2026-11-18",
-   "cy": "MA",
-   "titre": "Eid Al Istiqulal (Independence Day)",
-   "titreEn": "Independence Day",
-   "type": "ceremonie",
-   "nature": "ferie",
-   "src": "Nager.Date — jours fériés officiels",
-   "surl": "https://date.nager.at/PublicHoliday/MA/2026"
-  },
   {
    "id": "ferie-CG-2026-11-28",
    "date": "2026-11-28",
