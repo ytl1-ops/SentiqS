@@ -3216,6 +3216,30 @@ une fausse traduction d'un navigateur ne se propage pas). Règles éprouvées
 sur émulateur en CI (11 cas de plus dans `verifier-regles-firestore.js`). **Non mesuré d'ici** : le taux de partage
 réel (pas de réseau).
 
+
+### GitHub Models en repli de traduction — 20/11/2026
+
+Demande de YORO : « Insère free llmapi de GitHub ». `scripts/lib/github-models.js`
+appelle l'API de modèles gratuite de GitHub (`models.github.ai`, modèle
+`openai/gpt-4o-mini`) avec le `GITHUB_TOKEN` du job (permission
+`models: read`) : aucun secret à créer, rien dans la page servie (un test
+l'exige). Ordre des moteurs : Google « gtx », **puis GitHub Models**, puis
+MyMemory — un paquet refusé par Google est repris d'un seul appel avant le
+repli titre par titre.
+
+- **Quota gratuit** (~150 requêtes par jour, partagé par tout le dépôt) :
+  budget `GITHUB_MODELS_MAX_REQUETES`, 4 par passage horaire, 3 par collecte ;
+  un 401/403/429 coupe le service pour le reste du passage. `GITHUB_MODELS=0`
+  le coupe (c'est ce que fait `npm test` : le bac à sable a un `GITHUB_TOKEN`).
+- **Le modèle traduit, rien d'autre** : niveau et classement restent calculés
+  sur le texte d'origine. Sa réponse est rejetée si elle n'est pas un tableau
+  JSON de même longueur, ou si une ligne est vide ou hors de proportion
+  (réponse bavarde ou détournée par un titre).
+- **Non mesuré d'ici** (le bac à sable n'atteint pas `models.github.ai`) :
+  `sonde-github-models.yml` le mesure depuis GitHub ; le journal de chaque
+  passage dit combien de requêtes ont abouti.
+
+`scripts/test/github-models.test.js` (8).
 ---
 
 ## GRSCI tenu à jour sur sa période, et plus aucun visuel de remplacement — 23/10/2026

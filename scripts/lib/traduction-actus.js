@@ -16,8 +16,8 @@
 // L() les rend sans attendre aucun service. Une langue n'est rangée que si
 // elle diffère de la langue du texte d'origine.
 //
-// Mêmes services gratuits que traduction-job.js (Google « gtx », MyMemory en
-// repli), sans clé. Les titres d'une même langue partent par paquets, une
+// Mêmes services gratuits que traduction-job.js (Google « gtx », puis GitHub
+// Models avec le jeton du job, puis MyMemory), sans clé. Les titres d'une même langue partent par paquets, une
 // ligne par titre : quelques dizaines de requêtes par passage au lieu de
 // plusieurs centaines. Un paquet dont le nombre de lignes revient faux est
 // rejoué titre par titre — jamais une traduction collée au mauvais titre.
@@ -28,6 +28,7 @@
 // passage suivant.
 
 const { traduire: traduireUn } = require('./traduction-job');
+const modeles = require('./github-models');
 
 const CIBLES = ['fr', 'en'];
 const PAQUET_MAX_CARACTERES = 1400; // texte brut ; ~4 000 une fois encodé dans l'adresse
@@ -194,7 +195,15 @@ async function traduireActus(articles, opts) {
   for (const lot of lots) {
     if (Date.now() >= echeance) { stats.reportes += lot.length; continue; }
     stats.requetes++;
-    const res = await traduirePaquetGoogle(lot.map((u) => u.envoye), lot[0].source, lot[0].cible, fetchFn, delaiMs);
+    let res = await traduirePaquetGoogle(lot.map((u) => u.envoye), lot[0].source, lot[0].cible, fetchFn, delaiMs);
+    // Google a refusé le paquet : GitHub Models le reprend d'un seul appel
+    // (20/11/2026), avant le repli titre par titre qui coûte une requête par
+    // ligne. Même règle de forme : une ligne par titre, sinon rejeté.
+    if (!res && modeles.disponible()) {
+      stats.requetes++;
+      res = await modeles.traduireLignes(lot.map((u) => u.envoye), lot[0].source, lot[0].cible, { fetchFn });
+      if (res) stats.viaModeles = (stats.viaModeles || 0) + lot.length;
+    }
     if (res) {
       lot.forEach((u, i) => ranger(u, res[i]));
     } else {
