@@ -1,27 +1,27 @@
 'use strict';
-// GitHub Models : l'API de modèles de langue gratuite de GitHub, en renfort
-// de la traduction des actus — 20/11/2026.
+// Mistral : un modèle de langue à clé gratuite, en renfort de la traduction
+// des actus — 20/11/2026.
 //
-// Demande de YORO : « Insère free llmapi de GitHub ». Les jobs de traduction
-// (traduire-cache.js toutes les heures, et la collecte) n'avaient que deux
-// services gratuits sans clé : Google « gtx », non officiel et qui peut
-// refuser un robot, et MyMemory, plafonné à 5 000 caractères par jour. Quand
-// les deux tombent, les actus restent masquées en anglais (« Masquer les
+// Demande de YORO : « Insère free llmapi de GitHub ». GitHub Models, l'API
+// gratuite de GitHub, est retiré depuis le 30/07/2026 (mesuré depuis Actions :
+// models.github.ai répond « OK » en texte brut). YORO a choisi Mistral (offre
+// gratuite « Experiment », console.mistral.ai) le même jour. Les jobs de
+// traduction (traduire-cache.js toutes les heures, et la collecte) n'avaient
+// que deux services gratuits sans clé : Google « gtx », non officiel et qui
+// peut refuser un robot, et MyMemory, plafonné à 5 000 caractères par jour.
+// Quand les deux tombent, les actus restent masquées en anglais (« Masquer les
 // actus non traduites », 19/11/2026).
 //
-// GitHub Models s'appelle avec le GITHUB_TOKEN que GitHub Actions donne à
-// chaque job (permission `models: read`) : aucun secret à créer, aucun
-// frais, et rien côté navigateur — la page publique ne voit jamais ce jeton.
+// La clé est un secret Actions (MISTRAL_API_KEY), lu par le job seulement :
+// la page publique ne la voit jamais, et un test l'exige. Sans clé, le
+// service n'est simplement pas appelé.
 //
-// Trois règles, qui tiennent au plan gratuit (quelques requêtes par minute
-// et environ 150 par jour pour les petits modèles, partagées entre tous les
-// workflows du dépôt) :
+// Trois règles :
 //
-//  - c'est un REPLI : Google passe d'abord, GitHub Models seulement quand il
-//    a échoué, puis MyMemory. On ne dépense pas le quota quand Google répond ;
-//  - un budget par passage (GITHUB_MODELS_MAX_REQUETES) : 4 pour le passage
-//    horaire (24 × 4 = 96), 3 pour une collecte (au plus 15 par jour, 45) —
-//    141 au pire, sous le plafond quotidien ;
+//  - c'est un REPLI : Google passe d'abord, Mistral seulement quand il a
+//    échoué, puis MyMemory. On ne dépense pas le quota quand Google répond ;
+//  - un budget par passage (MISTRAL_MAX_REQUETES) : 20 pour le passage
+//    horaire, 10 pour une collecte — loin du plafond de l'offre gratuite ;
 //  - un disjoncteur : un refus (401, 403, 429) coupe le service pour le reste
 //    du passage, au lieu de rappeler un service qui a déjà dit non.
 //
@@ -33,9 +33,9 @@
 // aucune instruction qu'il contiendrait, et la vérification de forme fait le
 // reste (une réponse bavarde ou détournée n'a pas la bonne longueur).
 
-const POINT_ACCES = 'https://models.github.ai/inference/chat/completions';
-const MODELE_DEFAUT = 'openai/gpt-4o-mini';
-const MAX_REQUETES_DEFAUT = 4;
+const POINT_ACCES = 'https://api.mistral.ai/v1/chat/completions';
+const MODELE_DEFAUT = 'mistral-small-latest';
+const MAX_REQUETES_DEFAUT = 20;
 const DELAI_MS = 30000;
 
 const NOMS_LANGUES = { fr: 'French', en: 'English', pt: 'Portuguese', ar: 'Arabic', es: 'Spanish', auto: 'the source language (detect it)' };
@@ -44,11 +44,11 @@ let etat = null;
 function reinitialiser(opts) {
   const o = opts || {};
   const env = o.env || process.env;
-  const max = Number(o.maxRequetes !== undefined ? o.maxRequetes : env.GITHUB_MODELS_MAX_REQUETES);
+  const max = Number(o.maxRequetes !== undefined ? o.maxRequetes : env.MISTRAL_MAX_REQUETES);
   etat = {
-    jeton: String((o.jeton !== undefined ? o.jeton : env.GITHUB_TOKEN) || '').trim(),
-    modele: String(o.modele || env.GITHUB_MODELS_MODELE || MODELE_DEFAUT).trim(),
-    coupe: String(env.GITHUB_MODELS || '').trim() === '0',
+    jeton: String((o.jeton !== undefined ? o.jeton : env.MISTRAL_API_KEY) || '').trim(),
+    modele: String(o.modele || env.MISTRAL_MODELE || MODELE_DEFAUT).trim(),
+    coupe: String(env.MISTRAL || '').trim() === '0',
     restant: Number.isFinite(max) && max >= 0 ? max : MAX_REQUETES_DEFAUT,
     refus: null,
     derniereErreur: '',
@@ -110,9 +110,8 @@ async function traduireLignes(lignes, source, cible, opts) {
       signal: ctl ? ctl.signal : undefined,
       headers: {
         Authorization: 'Bearer ' + e.jeton,
-        Accept: 'application/vnd.github+json',
+        Accept: 'application/json',
         'Content-Type': 'application/json',
-        'X-GitHub-Api-Version': '2022-11-28',
       },
       body: JSON.stringify({
         model: e.modele,
@@ -150,9 +149,9 @@ async function traduireLignes(lignes, source, cible, opts) {
 /** Ligne de journal, sans jeton ni texte. */
 function bilan() {
   const e = courant();
-  if (!e.jeton) return 'GitHub Models : non configuré (pas de GITHUB_TOKEN dans ce passage)';
-  if (e.coupe) return 'GitHub Models : coupé (GITHUB_MODELS=0)';
-  return 'GitHub Models (' + e.modele + ') : ' + e.stats.requetes + ' requête(s), '
+  if (!e.jeton) return 'Mistral : non configuré (pas de secret MISTRAL_API_KEY dans ce passage)';
+  if (e.coupe) return 'Mistral : coupé (MISTRAL=0)';
+  return 'Mistral (' + e.modele + ') : ' + e.stats.requetes + ' requête(s), '
     + e.stats.reussies + ' réussie(s), ' + e.stats.rejetees + ' réponse(s) rejetée(s)'
     + (e.refus ? ', service refusé (HTTP ' + e.refus + ') pour la suite du passage' : '')
     + (e.derniereErreur && !e.stats.reussies ? ' — dernière erreur : ' + e.derniereErreur : '');

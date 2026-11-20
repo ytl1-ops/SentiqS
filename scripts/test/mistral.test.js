@@ -1,21 +1,22 @@
-// GitHub Models en repli de la traduction des actus — demande de YORO du
-// 20/11/2026 : « Insère free llmapi de GitHub ».
+// Mistral en repli de la traduction des actus — demande de YORO du
+// 20/11/2026 (« Insère free llmapi de GitHub » ; GitHub Models étant retiré,
+// YORO a choisi Mistral).
 const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
-const modeles = require('../lib/github-models.js');
+const modeles = require('../lib/mistral.js');
 const { traduireActus } = require('../lib/traduction-actus.js');
 const { traduire } = require('../lib/traduction-job.js');
 
 const RACINE = path.join(__dirname, '..', '..');
 
-// Faux GitHub Models : préfixe chaque ligne par la cible, ou répond `forcer`.
+// Faux Mistral : préfixe chaque ligne par la cible, ou répond `forcer`.
 function fauxModeles(journal, opts) {
   const o = opts || {};
   return async (url, init) => {
     const u = new URL(url);
-    if (u.hostname !== 'models.github.ai') {
+    if (u.hostname !== 'api.mistral.ai') {
       if (o.google) return o.google(url, init);
       return { ok: false, status: 503 };
     }
@@ -37,12 +38,12 @@ test('sans jeton, le service n\'est jamais appelé', async () => {
   assert.strictEqual(journal.length, 0);
 });
 
-test('une réponse bien formée est acceptée, appel authentifié par le jeton du job', async () => {
-  modeles.reinitialiser({ jeton: 'jeton-du-job', env: {} });
+test('une réponse bien formée est acceptée, appel authentifié par la clé du secret', async () => {
+  modeles.reinitialiser({ jeton: 'cle-du-secret', env: {} });
   const journal = [];
   const out = await modeles.traduireLignes(['Attaque armée contre un convoi', 'Grève des enseignants'], 'fr', 'en', { fetchFn: fauxModeles(journal) });
   assert.deepStrictEqual(out, ['[en] Attaque armée contre un convoi', '[en] Grève des enseignants']);
-  assert.strictEqual(journal[0].auth, 'Bearer jeton-du-job');
+  assert.strictEqual(journal[0].auth, 'Bearer cle-du-secret');
   assert.strictEqual(journal[0].methode, 'POST');
   assert.strictEqual(journal[0].corps.model, modeles.MODELE_DEFAUT);
   assert.strictEqual(journal[0].corps.temperature, 0);
@@ -77,13 +78,13 @@ test('le budget par passage est respecté', async () => {
   const journal = [];
   for (let i = 0; i < 4; i++) await modeles.traduireLignes(['Bonjour à tous'], 'fr', 'en', { fetchFn: fauxModeles(journal) });
   assert.strictEqual(journal.length, 2);
-  modeles.reinitialiser({ jeton: 'j', env: { GITHUB_MODELS_MAX_REQUETES: '3' } });
+  modeles.reinitialiser({ jeton: 'j', env: { MISTRAL_MAX_REQUETES: '3' } });
   journal.length = 0;
   for (let i = 0; i < 5; i++) await modeles.traduireLignes(['Bonjour à tous'], 'fr', 'en', { fetchFn: fauxModeles(journal) });
-  assert.strictEqual(journal.length, 3, 'le budget se règle par GITHUB_MODELS_MAX_REQUETES');
+  assert.strictEqual(journal.length, 3, 'le budget se règle par MISTRAL_MAX_REQUETES');
 });
 
-test('actus : GitHub Models reprend en un appel le paquet refusé par Google, et rien quand Google répond', async () => {
+test('actus : Mistral reprend en un appel le paquet refusé par Google, et rien quand Google répond', async () => {
   const titres = ['Attaque armée contre un convoi dans le nord du Mali', 'Grève générale des transporteurs à Abidjan', 'Inondations meurtrières à Niamey'];
   const langues = new Map(titres.map((t) => [t, 'fr']));
 
@@ -95,7 +96,7 @@ test('actus : GitHub Models reprend en un appel le paquet refusé par Google, et
   assert.ok(arts.every((a) => a.tr.en.t === '[en] ' + a.title));
   assert.strictEqual(st.viaModeles, 3);
 
-  // Google répond : le quota de GitHub Models n'est pas dépensé.
+  // Google répond : le quota de Mistral n'est pas dépensé.
   modeles.reinitialiser({ jeton: 'j', env: {} });
   journal = [];
   const google = async (url) => {
@@ -108,7 +109,7 @@ test('actus : GitHub Models reprend en un appel le paquet refusé par Google, et
   assert.ok(arts.every((a) => a.tr.en.t === 'G ' + a.title));
 });
 
-test('traduction unitaire : GitHub Models passe entre Google et MyMemory', async () => {
+test('traduction unitaire : Mistral passe entre Google et MyMemory', async () => {
   modeles.reinitialiser({ jeton: 'j', env: {} });
   const hotes = [];
   const fetchFn = async (url, init) => {
@@ -117,15 +118,29 @@ test('traduction unitaire : GitHub Models passe entre Google et MyMemory', async
   };
   const out = await traduire('Gunmen kill three soldiers in northern Nigeria', 'en', { fetchFn });
   assert.strictEqual(out, '[fr] Gunmen kill three soldiers in northern Nigeria');
-  assert.deepStrictEqual(hotes, ['translate.googleapis.com', 'models.github.ai'], 'MyMemory n\'est pas appelé quand GitHub Models a répondu');
+  assert.deepStrictEqual(hotes, ['translate.googleapis.com', 'api.mistral.ai'], 'MyMemory n\'est pas appelé quand Mistral a répondu');
 });
 
-test('le jeton ne vit que dans les jobs : la page servie n\'appelle jamais GitHub Models', () => {
+test('la clé ne vit que dans les jobs : la page servie n\'appelle jamais Mistral', () => {
   const page = fs.readFileSync(path.join(RACINE, 'web', 'SentiqS_Web.html'), 'utf8');
-  assert.ok(!/models\.github\.ai|models\.inference\.ai\.azure/.test(page));
+  assert.ok(!/api\.mistral\.ai|MISTRAL_API_KEY/.test(page));
+  for (const f of fs.readdirSync(path.join(RACINE, 'web', 'js'))) {
+    assert.ok(!/api\.mistral\.ai|MISTRAL_API_KEY/.test(fs.readFileSync(path.join(RACINE, 'web', 'js', f), 'utf8')), f);
+  }
   for (const f of ['traduction-actus.yml', 'collecte-planifiee.yml']) {
     const wf = fs.readFileSync(path.join(RACINE, '.github', 'workflows', f), 'utf8');
-    assert.match(wf, /^\s+models: read$/m, f + ' : permission models: read');
-    assert.match(wf, /GITHUB_TOKEN: \$\{\{ secrets\.GITHUB_TOKEN \}\}/, f + ' : jeton passé au script');
+    assert.match(wf, /MISTRAL_API_KEY: \$\{\{ secrets\.MISTRAL_API_KEY \}\}/, f + ' : clé passée au script');
+    assert.ok(!/^\s+models: read$/m.test(wf), f + ' : plus de permission GitHub Models');
   }
+});
+
+test('par défaut : point d\'accès et modèle de Mistral, budget de 20', async () => {
+  assert.strictEqual(modeles.POINT_ACCES, 'https://api.mistral.ai/v1/chat/completions');
+  assert.strictEqual(modeles.MODELE_DEFAUT, 'mistral-small-latest');
+  modeles.reinitialiser({ env: { MISTRAL_API_KEY: 'k' } });
+  const journal = [];
+  for (let i = 0; i < 25; i++) await modeles.traduireLignes(['Bonjour à tous'], 'fr', 'en', { fetchFn: fauxModeles(journal) });
+  assert.strictEqual(journal.length, 20);
+  modeles.reinitialiser({ env: { MISTRAL_API_KEY: 'k', MISTRAL: '0' } });
+  assert.strictEqual(modeles.disponible(), false, 'MISTRAL=0 coupe le service');
 });

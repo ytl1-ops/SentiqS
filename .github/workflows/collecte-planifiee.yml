@@ -74,8 +74,6 @@ jobs:
       # Declencher le deploiement Pages apres ce commit — voir l'etape
       # « Archiver l'instantane du jour » pour la raison.
       actions: write
-      # GitHub Models, repli de traduction (scripts/lib/github-models.js).
-      models: read
     steps:
       - uses: actions/checkout@v5
 
@@ -172,12 +170,11 @@ jobs:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           # Facultatif : relève le quota gratuit de MyMemory (voir traduction-job.js).
           MYMEMORY_EMAIL: ${{ secrets.MYMEMORY_EMAIL }}
-          # GitHub Models, repli de traduction (scripts/lib/github-models.js) :
-          # jeton du job, jamais exposé à la page. Budget de 3 requêtes par
-          # collecte pour laisser l'essentiel du quota quotidien au passage
-          # horaire de traduction.
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_MODELS_MAX_REQUETES: '3'
+          # Mistral, repli de traduction (scripts/lib/mistral.js) : clé gratuite
+          # en secret Actions, jamais exposée à la page. Sans secret, rien ne
+          # change. Budget de 10 requêtes par collecte.
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          MISTRAL_MAX_REQUETES: '10'
         run: node scripts/collecte-planifiee.js
 
       - name: Sauvegarder la mémoire inter-runs de collecte

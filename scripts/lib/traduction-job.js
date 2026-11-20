@@ -11,7 +11,7 @@
 // Models (jeton du job, 20/11/2026), puis MyMemory. Aucun ne demande de clé. Un échec rend null : le texte reste dans
 // sa langue avec sa marque « (EN) », et le passage suivant réessaie.
 
-const modeles = require('./github-models');
+const modeles = require('./mistral');
 
 const MAX_CARACTERES = 450;
 const DELAI_MS = 12000;
@@ -67,8 +67,8 @@ async function viaMyMemory(texte, source, fetchFn, delaiMs, cible) {
   return out;
 }
 
-// GitHub Models (20/11/2026), entre Google et MyMemory : voir github-models.js.
-async function viaGithubModels(texte, source, fetchFn, delaiMs, cible) {
+// Mistral (20/11/2026), entre Google et MyMemory : voir mistral.js.
+async function viaMistral(texte, source, fetchFn, delaiMs, cible) {
   if (!modeles.disponible()) return null;
   const out = await modeles.traduireLignes([texte], source || 'auto', cible || 'fr', { fetchFn, delaiMs });
   return out ? out[0] : null;
@@ -89,7 +89,7 @@ async function traduire(texte, source, opts) {
   const t = borne(texte);
   if (!t) return null;
   const delaiMs = o.delaiMs || DELAI_MS;
-  for (const moteur of [viaGoogle, viaGithubModels, viaMyMemory]) {
+  for (const moteur of [viaGoogle, viaMistral, viaMyMemory]) {
     const out = await moteur(t, source, fetchFn, delaiMs, o.cible === 'en' ? 'en' : 'fr');
     if (out) return out.trim() === t ? null : decoder(out);
   }
