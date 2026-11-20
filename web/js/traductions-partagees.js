@@ -9,19 +9,21 @@
 //  textes, à chaque ouverture (TR_CACHE ne vit qu'en mémoire), auprès de
 //  services gratuits qui saturent.
 //
-//  Désormais, une traduction obtenue par un navigateur est rangée dans
-//  Firestore (`traductions/{clé}`), et le navigateur suivant la relit au lieu
-//  de rappeler un service. Clé = SHA-256 de « langue cible \n texte envoyé » :
-//  le texte source lui-même n'est pas un nom de document possible (longueur,
-//  caractères), et deux navigateurs qui envoient le même texte retombent sur
-//  la même clé.
+//  Désormais, la page cherche d'abord la traduction dans Firestore
+//  (`traductions/{clé}`). Ce qui manque, elle le traduit pour elle-même comme
+//  avant, et dépose une DEMANDE (`traductions_demandes/{clé}`) : le job GitHub
+//  (scripts/lib/traductions-partagees-job.js, chaque heure) la traduit avec
+//  ses propres services et range le résultat pour tous. Clé = SHA-256 de
+//  « langue cible \n texte envoyé » : le texte source lui-même n'est pas un
+//  nom de document possible (longueur, caractères), et deux navigateurs qui
+//  envoient le même texte retombent sur la même clé.
 //
-//  Règles (firebase/firestore.rules) : lecture et création par un compte
-//  actif dont l'accès est en cours ; création seulement (la première
-//  traduction rangée reste, personne ne la réécrit) ; la clé doit être
-//  l'empreinte du texte qu'elle porte ; l'auteur est noté. Une traduction du
-//  job (a.tr) passe toujours avant : la page ne cherche ici que ce qui
-//  manque.
+//  Pourquoi une demande et pas la traduction du navigateur (YORO, 20/11/2026 :
+//  « garder la bonne traduction ») : un navigateur est sous le contrôle de
+//  son utilisateur, qui pourrait ranger une traduction fausse vue ensuite par
+//  tous. Seul le job (compte de service) écrit `traductions` ; les règles le
+//  refusent à tout navigateur (firebase/firestore.rules). Le pire qu'une
+//  demande puisse faire : faire traduire un texte que personne ne lira.
 //
 //  Partagé par la page (navigateur) et les tests (Node) : double export.
 // ═══════════════════════════════════════════════════════════════════════════
@@ -29,6 +31,8 @@
   'use strict';
 
   var COLLECTION = 'traductions';
+  var COLLECTION_DEMANDES = 'traductions_demandes';
+  var LANGUES_SOURCE = ['fr', 'en', 'pt', 'ar', 'es', 'other'];
   var CIBLES = ['fr', 'en'];
   // Bornes communes avec les règles : un texte envoyé fait au plus
   // EXTRAIT_MAX_CARACTERES + 40 (320) caractères dans la page ; 600 laisse
@@ -117,29 +121,33 @@
     }).then(function () { return trouve; }, function () { return trouve; });
   }
 
-  // ecrire(cfg, entetes, uid, cible, s, t, fetchFn, maintenant) : range une
-  // traduction, création seule (documentId imposé : un second navigateur qui
-  // arrive avec la même reçoit 409, c'est normal). Rend vrai si rangée.
-  function ecrire(cfg, entetes, uid, cible, s, t, fetchFn, maintenant) {
+  // demander(cfg, entetes, uid, cible, s, langue, fetchFn, maintenant) :
+  // dépose une demande de traduction, création seule (documentId imposé : un
+  // second navigateur qui demande le même texte est refusé, c'est normal).
+  // `langue` est la langue source détectée par la page, une indication pour
+  // le job. Rend vrai si la demande est déposée.
+  function demander(cfg, entetes, uid, cible, s, langue, fetchFn, maintenant) {
     if (!cfg || !cfg.projectId || !entetes || !uid || !fetchFn) return Promise.resolve(false);
-    if (CIBLES.indexOf(cible) === -1 || typeof s !== 'string' || !s || s.length > SOURCE_MAX) return Promise.resolve(false);
-    if (typeof t !== 'string' || !t.trim() || t.length > TRADUCTION_MAX || t.trim() === s.trim()) return Promise.resolve(false);
+    if (CIBLES.indexOf(cible) === -1 || typeof s !== 'string' || !s.trim() || s.length > SOURCE_MAX) return Promise.resolve(false);
+    var l = LANGUES_SOURCE.indexOf(langue) !== -1 ? langue : 'other';
+    if (l === cible) return Promise.resolve(false);
     return cle(cible, s).then(function (k) {
       if (!k) return false;
       var at = new Date(maintenant === undefined ? Date.now() : maintenant).toISOString();
-      return Promise.resolve(fetchFn(url(cfg, '/' + COLLECTION + '?documentId=' + k), {
+      return Promise.resolve(fetchFn(url(cfg, '/' + COLLECTION_DEMANDES + '?documentId=' + k), {
         method: 'POST',
         headers: Object.assign({ 'Content-Type': 'application/json' }, entetes),
         body: JSON.stringify({ fields: {
-          c: { stringValue: cible }, s: { stringValue: s }, t: { stringValue: t },
+          c: { stringValue: cible }, s: { stringValue: s }, l: { stringValue: l },
           uid: { stringValue: uid }, at: { timestampValue: at },
         } }),
       })).then(function (r) { return !!(r && r.ok); }, function () { return false; });
     }, function () { return false; });
   }
 
-  var api = { cle: cle, uidDuJeton: uidDuJeton, lire: lire, ecrire: ecrire,
-    COLLECTION: COLLECTION, SOURCE_MAX: SOURCE_MAX, TRADUCTION_MAX: TRADUCTION_MAX };
+  var api = { cle: cle, uidDuJeton: uidDuJeton, lire: lire, demander: demander,
+    COLLECTION: COLLECTION, COLLECTION_DEMANDES: COLLECTION_DEMANDES, LANGUES_SOURCE: LANGUES_SOURCE,
+    CIBLES: CIBLES, SOURCE_MAX: SOURCE_MAX, TRADUCTION_MAX: TRADUCTION_MAX };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   global.SentiqTraductionsPartagees = api;
 })(typeof window !== 'undefined' ? window : globalThis);

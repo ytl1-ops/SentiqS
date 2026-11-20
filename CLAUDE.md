@@ -3220,25 +3220,34 @@ ouverture (`TR_CACHE` ne vit qu'en mémoire).
   (`web/js/traductions-partagees.js`), clé = SHA-256 de « langue cible \n
   texte envoyé » ; `_traduireParLots` le fait en une lecture groupée
   (`batchGet`) pour tout un Flux ou un rapport. Un service n'est appelé que
-  pour ce qui manque, et sa traduction est rangée pour les suivants.
-- `a.tr` du job passe toujours avant (semé dans `TR_CACHE`, la page ne
-  cherche que ce qui manque). « Traduire maintenant » (`force`) passe outre.
-- Règles : lecture et création par un compte qui lit le cache d'actus
-  (`profilActif() && accesEnCours()`), jamais listées, **jamais réécrites**
-  (la première traduction reste), clé recalculée par les règles
-  (`hashing.sha256`), auteur = la session. Seul l'admin supprime une
-  traduction contestée. Risque assumé : un compte payant peut ranger une
-  traduction fausse, vue par tous jusqu'à sa suppression ; son `uid` est
-  noté, et le niveau d'alerte n'en dépend pas (`classify` lit le texte
-  source).
-- Plafonds par onglet : 600 lectures, 300 écritures (quota gratuit Spark :
+  pour ce qui manque.
+- **Un navigateur n'écrit jamais une traduction partagée.** Première version
+  (même jour) : le navigateur rangeait la sienne, et un compte pouvait en
+  ranger une fausse, vue par tous. YORO : « garder la bonne traduction ».
+  Désormais le navigateur dépose une **demande**
+  (`traductions_demandes/{clé}` : texte, langue cible, auteur) ; le passage
+  horaire (`scripts/traduire-cache.js` → `servirDemandes`,
+  `scripts/lib/traductions-partagees-job.js`) la traduit avec les services
+  du job, range le résultat (`par: 'job'`) et efface la demande. Une
+  demande pire qu'inutile ne peut que faire traduire un texte que personne
+  ne lira. Délai : jusqu'à une heure ; en attendant, chaque navigateur
+  traduit pour lui seul, comme avant.
+- `a.tr` du job passe toujours avant (semé dans `TR_CACHE`). « Traduire
+  maintenant » (`force`) passe outre.
+- Règles : `traductions` lue par un compte qui lit le cache d'actus, jamais
+  listée ni écrite par un navigateur, suppression par l'admin ;
+  `traductions_demandes` en création seule (clé recalculée par
+  `hashing.sha256`, auteur = la session), illisible pour un navigateur. Le
+  job, compte de service, passe hors des règles : clé recalculée, traduction
+  rangée jamais réécrite, échec gardé trois jours puis effacé.
+- Plafonds par onglet : 600 lectures, 300 demandes (quota gratuit Spark :
   50 000 lectures et 20 000 écritures par jour pour tout le projet). Délai de
   4 s : au-delà, ou sans compte, on traduit comme avant.
 
-`scripts/test/traductions-partagees.test.js` (8 ; deux navigateurs sur un
-faux Firestore, le second n'appelle aucun service ; 5 vus échouer sur
-l'ancienne page). Règles éprouvées sur émulateur en CI (7 cas de plus dans
-`verifier-regles-firestore.js`). **Non mesuré d'ici** : le taux de partage
+`scripts/test/traductions-partagees.test.js` (10 ; deux navigateurs et le
+job sur un faux Firestore : le second navigateur n'appelle aucun service,
+une fausse traduction d'un navigateur ne se propage pas). Règles éprouvées
+sur émulateur en CI (11 cas de plus dans `verifier-regles-firestore.js`). **Non mesuré d'ici** : le taux de partage
 réel (pas de réseau).
 
 ---

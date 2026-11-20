@@ -52,17 +52,26 @@ const { doc, getDoc, setDoc, deleteDoc } = require('firebase/firestore');
   await t('config non écrite par un client', false, setDoc(doc(ctx('paye'), 'config_partagee', 'global'), { emailjs: { x: 1 } }));
   await t('config écrite par l admin', true, setDoc(doc(ctx('admin'), 'config_partagee', 'global'), { emailjs: { x: 1 } }));
   await t('client ne se passe pas au forfait pro', false, setDoc(doc(ctx('essai'), 'profiles', 'essai'), Object.assign({ id: 'essai', email: 'essai@x.org' }, profils.essai, { data: { plan: 'pro', createdAt: profils.essai.data.createdAt } })));
-  // Traductions partagées (20/11/2026).
+  // Traductions partagées (20/11/2026) : seul le job écrit `traductions`, un
+  // navigateur n'y dépose qu'une demande.
   const empreinte = (c, src) => require('crypto').createHash('sha256').update(c + '\n' + src).digest('hex');
-  const trad = (uid, o) => Object.assign({ c: 'fr', s: 'Gunmen attack police post', t: 'Des hommes armés attaquent un poste de police', uid, at: new Date() }, o || {});
-  const k1 = empreinte('fr', 'Gunmen attack police post');
-  await t('traduction rangée par un compte actif', true, setDoc(doc(ctx('paye'), 'traductions', k1), trad('paye')));
-  await t('traduction relue par un autre compte', true, getDoc(doc(ctx('essai'), 'traductions', k1)));
-  await t('traduction non réécrite', false, setDoc(doc(ctx('essai'), 'traductions', k1), trad('essai', { t: 'Fausse traduction' })));
-  await t('traduction non relue sans accès en cours', false, getDoc(doc(ctx('coupe'), 'traductions', k1)));
-  await t('traduction non rangée par un suspendu', false, setDoc(doc(ctx('suspendu'), 'traductions', empreinte('fr', 'x y z')), trad('suspendu', { s: 'x y z' })));
-  await t('traduction non rangée sous la clé d un autre texte', false, setDoc(doc(ctx('paye'), 'traductions', empreinte('fr', 'autre texte')), trad('paye', { s: 'Gunmen kill five' })));
-  await t('traduction non rangée au nom d un autre', false, setDoc(doc(ctx('paye'), 'traductions', empreinte('en', 'Un texte')), trad('essai', { c: 'en', s: 'Un texte' })));
+  const SRC = 'Gunmen attack police post';
+  const k1 = empreinte('fr', SRC);
+  await env.withSecurityRulesDisabled(async (c) => {
+    await setDoc(doc(c.firestore(), 'traductions', k1), { c: 'fr', s: SRC, t: 'Des hommes armés attaquent un poste de police', par: 'job' });
+  });
+  const dem = (uid, o) => Object.assign({ c: 'fr', s: SRC, l: 'en', uid, at: new Date() }, o || {});
+  await t('traduction du job lue par un compte', true, getDoc(doc(ctx('essai'), 'traductions', k1)));
+  await t('traduction non lue sans accès en cours', false, getDoc(doc(ctx('coupe'), 'traductions', k1)));
+  await t('traduction jamais écrite par un navigateur', false, setDoc(doc(ctx('paye'), 'traductions', empreinte('fr', 'Five killed')), { c: 'fr', s: 'Five killed', t: 'Cinq morts' }));
+  await t('traduction du job jamais réécrite par un navigateur', false, setDoc(doc(ctx('paye'), 'traductions', k1), { c: 'fr', s: SRC, t: 'Fausse traduction' }));
+  await t('demande déposée par un compte actif', true, setDoc(doc(ctx('paye'), 'traductions_demandes', k1), dem('paye')));
+  await t('demande non relue par un navigateur', false, getDoc(doc(ctx('paye'), 'traductions_demandes', k1)));
+  await t('demande non réécrite', false, setDoc(doc(ctx('essai'), 'traductions_demandes', k1), dem('essai')));
+  await t('demande refusée à un suspendu', false, setDoc(doc(ctx('suspendu'), 'traductions_demandes', empreinte('fr', 'x y z')), dem('suspendu', { s: 'x y z' })));
+  await t('demande refusée sous la clé d un autre texte', false, setDoc(doc(ctx('paye'), 'traductions_demandes', empreinte('fr', 'autre')), dem('paye', { s: 'Gunmen kill five' })));
+  await t('demande refusée au nom d un autre', false, setDoc(doc(ctx('paye'), 'traductions_demandes', empreinte('en', 'Un texte')), dem('essai', { c: 'en', s: 'Un texte', l: 'fr' })));
+  await t('demande refusée avec une traduction jointe', false, setDoc(doc(ctx('paye'), 'traductions_demandes', empreinte('en', 'Deux')), Object.assign(dem('paye', { c: 'en', s: 'Deux', l: 'fr' }), { t: 'Two' })));
   console.log(res.join('\n'));
   await env.cleanup();
   process.exit(res.some((r) => r.startsWith('FAIL')) ? 1 : 0);

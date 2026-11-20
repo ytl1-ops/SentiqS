@@ -129,30 +129,37 @@ service cloud.firestore {
 
     // Traductions partagées entre utilisateurs (20/11/2026, demande de
     // YORO : une actu traduite pour l'un ne se retraduit pas pour l'autre).
-    // Lues et créées par un compte qui lit déjà le cache d'actus ; jamais
-    // listées (on lit une clé qu'on connaît), jamais réécrites : la première
-    // traduction rangée reste. La clé est l'empreinte du texte qu'elle porte,
-    // l'auteur est celui de la session. Seul l'administrateur supprime (une
-    // traduction contestée). Voir web/js/traductions-partagees.js.
-    function traductionBienFormee(d, cle) {
-      return d.keys().hasOnly(['c', 's', 't', 'uid', 'at'])
-        && d.keys().hasAll(['c', 's', 't', 'uid', 'at'])
+    // `traductions` n'est ÉCRIT que par le job (compte de service, hors de ces
+    // règles) : un navigateur pourrait y ranger une traduction fausse, vue
+    // ensuite par tous (YORO : « garder la bonne traduction »). Lue par un
+    // compte qui lit le cache d'actus, jamais listée.
+    // `traductions_demandes` : un navigateur y dépose le texte qu'il n'a pas
+    // trouvé, création seule, clé = empreinte du texte (hashing.sha256),
+    // auteur = la session ; seul le job les lit, les traduit et les efface.
+    // Voir web/js/traductions-partagees.js et
+    // scripts/lib/traductions-partagees-job.js.
+    match /traductions/{cle} {
+      allow get: if profilActif() && accesEnCours();
+      allow list, create, update: if false;
+      allow delete: if estAdmin();
+    }
+    function demandeTraductionBienFormee(d, cle) {
+      return d.keys().hasOnly(['c', 's', 'l', 'uid', 'at'])
+        && d.keys().hasAll(['c', 's', 'l', 'uid', 'at'])
         && d.c in ['fr', 'en']
+        && d.l in ['fr', 'en', 'pt', 'ar', 'es', 'other']
+        && d.l != d.c
         && d.s is string && d.s.size() > 0 && d.s.size() <= 600
-        && d.t is string && d.t.size() > 0 && d.t.size() <= 1500
         && d.uid == request.auth.uid
         && d.at is timestamp
         && d.at > request.time - duration.value(1, 'd')
         && d.at < request.time + duration.value(1, 'd')
         && cle == hashing.sha256(d.c + '\n' + d.s).toHexString().lower();
     }
-    match /traductions/{cle} {
-      allow get: if profilActif() && accesEnCours();
-      allow list: if false;
+    match /traductions_demandes/{cle} {
       allow create: if profilActif() && accesEnCours()
-        && traductionBienFormee(request.resource.data, cle);
-      allow update: if false;
-      allow delete: if estAdmin();
+        && demandeTraductionBienFormee(request.resource.data, cle);
+      allow get, list, update, delete: if false;
     }
 
     // Validation des faits par un analyste (13/11/2026). L'état courant est
