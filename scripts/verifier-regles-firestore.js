@@ -52,6 +52,17 @@ const { doc, getDoc, setDoc, deleteDoc } = require('firebase/firestore');
   await t('config non écrite par un client', false, setDoc(doc(ctx('paye'), 'config_partagee', 'global'), { emailjs: { x: 1 } }));
   await t('config écrite par l admin', true, setDoc(doc(ctx('admin'), 'config_partagee', 'global'), { emailjs: { x: 1 } }));
   await t('client ne se passe pas au forfait pro', false, setDoc(doc(ctx('essai'), 'profiles', 'essai'), Object.assign({ id: 'essai', email: 'essai@x.org' }, profils.essai, { data: { plan: 'pro', createdAt: profils.essai.data.createdAt } })));
+  // Traductions partagées (20/11/2026).
+  const empreinte = (c, src) => require('crypto').createHash('sha256').update(c + '\n' + src).digest('hex');
+  const trad = (uid, o) => Object.assign({ c: 'fr', s: 'Gunmen attack police post', t: 'Des hommes armés attaquent un poste de police', uid, at: new Date() }, o || {});
+  const k1 = empreinte('fr', 'Gunmen attack police post');
+  await t('traduction rangée par un compte actif', true, setDoc(doc(ctx('paye'), 'traductions', k1), trad('paye')));
+  await t('traduction relue par un autre compte', true, getDoc(doc(ctx('essai'), 'traductions', k1)));
+  await t('traduction non réécrite', false, setDoc(doc(ctx('essai'), 'traductions', k1), trad('essai', { t: 'Fausse traduction' })));
+  await t('traduction non relue sans accès en cours', false, getDoc(doc(ctx('coupe'), 'traductions', k1)));
+  await t('traduction non rangée par un suspendu', false, setDoc(doc(ctx('suspendu'), 'traductions', empreinte('fr', 'x y z')), trad('suspendu', { s: 'x y z' })));
+  await t('traduction non rangée sous la clé d un autre texte', false, setDoc(doc(ctx('paye'), 'traductions', empreinte('fr', 'autre texte')), trad('paye', { s: 'Gunmen kill five' })));
+  await t('traduction non rangée au nom d un autre', false, setDoc(doc(ctx('paye'), 'traductions', empreinte('en', 'Un texte')), trad('essai', { c: 'en', s: 'Un texte' })));
   console.log(res.join('\n'));
   await env.cleanup();
   process.exit(res.some((r) => r.startsWith('FAIL')) ? 1 : 0);

@@ -127,6 +127,34 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Traductions partagées entre utilisateurs (20/11/2026, demande de
+    // YORO : une actu traduite pour l'un ne se retraduit pas pour l'autre).
+    // Lues et créées par un compte qui lit déjà le cache d'actus ; jamais
+    // listées (on lit une clé qu'on connaît), jamais réécrites : la première
+    // traduction rangée reste. La clé est l'empreinte du texte qu'elle porte,
+    // l'auteur est celui de la session. Seul l'administrateur supprime (une
+    // traduction contestée). Voir web/js/traductions-partagees.js.
+    function traductionBienFormee(d, cle) {
+      return d.keys().hasOnly(['c', 's', 't', 'uid', 'at'])
+        && d.keys().hasAll(['c', 's', 't', 'uid', 'at'])
+        && d.c in ['fr', 'en']
+        && d.s is string && d.s.size() > 0 && d.s.size() <= 600
+        && d.t is string && d.t.size() > 0 && d.t.size() <= 1500
+        && d.uid == request.auth.uid
+        && d.at is timestamp
+        && d.at > request.time - duration.value(1, 'd')
+        && d.at < request.time + duration.value(1, 'd')
+        && cle == hashing.sha256(d.c + '\n' + d.s).toHexString().lower();
+    }
+    match /traductions/{cle} {
+      allow get: if profilActif() && accesEnCours();
+      allow list: if false;
+      allow create: if profilActif() && accesEnCours()
+        && traductionBienFormee(request.resource.data, cle);
+      allow update: if false;
+      allow delete: if estAdmin();
+    }
+
     // Validation des faits par un analyste (13/11/2026). L'état courant est
     // lu par tout compte connecté (c'est ce que le client voit sur le fait) ;
     // seul un administrateur l'écrit, en son propre nom, avec une décision

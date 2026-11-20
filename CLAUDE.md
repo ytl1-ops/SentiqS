@@ -3207,6 +3207,40 @@ Boost le skill de traduction via GitHub ». Cela **remplace** la convention
 
 `scripts/test/une-langue-partout.test.js` (6).
 
+### Une traduction faite pour l'un sert à tous — 20/11/2026
+
+Demande de YORO : « que les actus ouvertes persistent pour les autres, pour
+empêcher de nombreuses sollicitations de traduction ». Le job couvre déjà le
+texte d'une actu ouverte (titre et chapô, coupé comme dans la page à
+`EXTRAIT_MAX_CARACTERES + 40`), mais une fois par heure et avec un budget ;
+entre deux passages, chaque navigateur retraduisait les mêmes textes à chaque
+ouverture (`TR_CACHE` ne vit qu'en mémoire).
+
+- `trFetch` cherche d'abord dans Firestore `traductions/{clé}`
+  (`web/js/traductions-partagees.js`), clé = SHA-256 de « langue cible \n
+  texte envoyé » ; `_traduireParLots` le fait en une lecture groupée
+  (`batchGet`) pour tout un Flux ou un rapport. Un service n'est appelé que
+  pour ce qui manque, et sa traduction est rangée pour les suivants.
+- `a.tr` du job passe toujours avant (semé dans `TR_CACHE`, la page ne
+  cherche que ce qui manque). « Traduire maintenant » (`force`) passe outre.
+- Règles : lecture et création par un compte qui lit le cache d'actus
+  (`profilActif() && accesEnCours()`), jamais listées, **jamais réécrites**
+  (la première traduction reste), clé recalculée par les règles
+  (`hashing.sha256`), auteur = la session. Seul l'admin supprime une
+  traduction contestée. Risque assumé : un compte payant peut ranger une
+  traduction fausse, vue par tous jusqu'à sa suppression ; son `uid` est
+  noté, et le niveau d'alerte n'en dépend pas (`classify` lit le texte
+  source).
+- Plafonds par onglet : 600 lectures, 300 écritures (quota gratuit Spark :
+  50 000 lectures et 20 000 écritures par jour pour tout le projet). Délai de
+  4 s : au-delà, ou sans compte, on traduit comme avant.
+
+`scripts/test/traductions-partagees.test.js` (8 ; deux navigateurs sur un
+faux Firestore, le second n'appelle aucun service ; 5 vus échouer sur
+l'ancienne page). Règles éprouvées sur émulateur en CI (7 cas de plus dans
+`verifier-regles-firestore.js`). **Non mesuré d'ici** : le taux de partage
+réel (pas de réseau).
+
 ---
 
 ## GRSCI tenu à jour sur sa période, et plus aucun visuel de remplacement — 23/10/2026
