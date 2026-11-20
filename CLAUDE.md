@@ -4657,7 +4657,7 @@ les locutions figurées « ataque de nervos », « ataque cardíaco ».
 
 **Ce changement fait monter des niveaux, c'est le but.** Mesure sur le
 cumul d'octobre et novembre (1 915 faits au-dessus du normal) : critiques
-306 → 324, élevés 533 → 556, un seul fait passe du normal au-dessus, aucun
+306 → 322, élevés 533 → 541, un seul fait passe du normal au-dessus, aucun
 ne descend. Relus un par un : assassinats, attaques à main armée, Ménaka
 (54 corps), affrontements de Siguiri. Écartés après cette lecture :
 « enlevées » (« 16 000 tonnes de riz enlevées ») et « mortes » (« 110
