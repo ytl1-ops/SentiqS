@@ -28,7 +28,11 @@ jobs:
         with:
           node-version: '22'
       - name: Interroger GDELT
-        run: node scripts/mesurer-gdelt.js ${{ inputs.pays }}
+        # Valeur saisie passée par l'environnement, jamais collée dans le
+        # script shell (audit du 20/11/2026 : injection de commande possible).
+        env:
+          PAYS: ${{ inputs.pays }}
+        run: node scripts/mesurer-gdelt.js $PAYS
       - name: Conserver le rapport
         if: always()
         uses: actions/upload-artifact@v4
