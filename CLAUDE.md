@@ -4642,3 +4642,31 @@ document d'essai, peut en obtenir un neuf une fois en supprimant son profil.
 Même passe : `connexions_log` borné (cinq champs, nom ≤ 120 caractères ; une
 ligne de 900 Ko passait). 34 cas sur l'émulateur, dont 10 vus réussir
 l'attaque sur les anciennes règles.
+## Les mots entiers ratent les formes accordées — 20/11/2026
+
+`matchMot` compare des mots entiers : « attaque » ne reconnaissait ni
+« attaqués » ni « attaquent ». « Des hommes armés attaquent le poste de
+Djibo », « Deux soldats attaqués près de Kaya », « Attaques djihadistes dans
+le nord du Togo », « Une octogénaire massacrée » sortaient au niveau normal,
+comme toute la presse lusophone et hispanophone (« Ataque armado mata 12
+pessoas em Cabo Delgado »). Ajoutés : formes accordées et conjuguées en
+français, premiers mots portugais et espagnols (crit, élevé, sûreté), et
+les locutions figurées « ataque de nervos », « ataque cardíaco ».
+« abat », « abattu », « blessé » ne comptent qu'à côté d'un mot de sûreté
+(`HIGH_SELON_CONTEXTE`) : des arbres abattus ne sont pas un incident.
+
+**Ce changement fait monter des niveaux, c'est le but.** Mesure sur le
+cumul d'octobre et novembre (1 915 faits au-dessus du normal) : critiques
+306 → 324, élevés 533 → 556, un seul fait passe du normal au-dessus, aucun
+ne descend. Relus un par un : assassinats, attaques à main armée, Ménaka
+(54 corps), affrontements de Siguiri. Écartés après cette lecture :
+« enlevées » (« 16 000 tonnes de riz enlevées ») et « mortes » (« 110
+chèvres mortes »). Les pluriels de `CK_SEC` (« soldats », « militaires »)
+font aussi passer en élevé, dans les pays de `HIGH_BASE_CY`, une
+présentation au drapeau des soldats : même règle que « militaire » au
+singulier, déjà en place.
+
+Le cumul ne contient que des faits au-dessus du normal : il ne mesure pas
+ce qui monte depuis le normal. `banc-lexique.yml` le mesure sur le cache
+réel à chaque PR qui touche la page (`scripts/exporter-cache.js`, compte de
+service), informatif.
