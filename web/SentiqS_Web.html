@@ -8852,12 +8852,15 @@ const CK_HIGH = ['incendie','tension','alerte','insecurite','crise','manifestati
   // en blesse un autre » sortait au niveau normal. « abat » / « abattu » au
   // niveau élevé seulement : des arbres abattus ne sont pas un incident, et
   // l'élevé exige encore un lien de sûreté pour peser sur le niveau du pays.
-  'tensions','manifestations','greves','violences','affrontement','affrontements','heurts','combats',
+  // « violences » et « tensions » au pluriel écartés après le banc du cache
+  // réel (20/11/2026) : « violences faites aux femmes », « Economic Tensions »,
+  // « violência nas escolas » montaient en élevé sans aucun incident.
+  'manifestations','greves','affrontement','affrontements','heurts','combats',
   'incendies','emeute','emeutes','braquage','braquages','blesse','blesses','blessee','blessees',
   'abat','abattu','abattus','abattue',
   // Portugais et espagnol.
-  'feridos','feridas','heridos','heridas','confrontos','enfrentamientos','tiroteio','tiroteo','violencia',
-  'manifestacao','manifestacoes','manifestacion','manifestaciones','protestos','protestas','tensao',
+  'feridos','feridas','heridos','heridas','confrontos','enfrentamientos','tiroteio','tiroteo',
+  'manifestacao','manifestacoes','manifestacion','manifestaciones','protestos','protestas',
   'incendio','huelga','deslocados','desplazados','inseguranca','inseguridad','motim','disturbios'];
 const HIGH_SELON_CONTEXTE = new Set(['abat', 'bles']);
 const CK_SEC  = ['securite','securitaire','arme','armee','militaire','terrorisme','terroriste','terroristes','jihadiste','djihadiste','jnim','aqmi','boko','bandit','bandits','banditisme','criminalite','enlev','fsr','m23','adf','eis','al-shabaab','groupes armes',

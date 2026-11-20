@@ -4667,6 +4667,11 @@ présentation au drapeau des soldats : même règle que « militaire » au
 singulier, déjà en place.
 
 Le cumul ne contient que des faits au-dessus du normal : il ne mesure pas
-ce qui monte depuis le normal. `banc-lexique.yml` le mesure sur le cache
+ce qui monte depuis le normal. Le banc sur le cache réel du 20/11/2026
+(2 272 articles) l'a fait : « violences » et « tensions » au pluriel (et
+« violência », « tensão ») faisaient monter en élevé des articles de
+politique publique (« violences faites aux femmes », « Economic Tensions »),
+ils ont été retirés ; restent des montées réelles (« Violents affrontements
+FARDC-FRN », « neutralizado cidadão que matou esposa a facada »). `banc-lexique.yml` le mesure sur le cache
 réel à chaque PR qui touche la page (`scripts/exporter-cache.js`, compte de
 service), informatif.
