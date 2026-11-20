@@ -8822,14 +8822,54 @@ function parseJSON(d, src) {
 // seul mot anglais dans ces listes. Les termes anglais ci-dessous sont ceux
 // qui apparaissent reellement dans les titres de ces sources.
 const CK_CRIT = ['attaque','attentat','enlev',"enlevement",'massacre','explosion','mort','morts','tue','tues','tuee','tuees','coup d','putsch','assaut',"prise d'otage",'prise d otage','embuscade','frappe','drone','bombardement','meurtre','execution','genocide',
-  'attack','attacks','attacked','killed','kills','kidnap','kidnapped','kidnapping','abduction','abducted','bombing','ambush','gunmen','shooting','beheaded','airstrike','hostage','hostages'];
+  'attack','attacks','attacked','killed','kills','kidnap','kidnapped','kidnapping','abduction','abducted','bombing','ambush','gunmen','shooting','beheaded','airstrike','hostage','hostages',
+  // Formes accordées et conjuguées (audit du 20/11/2026). matchMot compare des
+  // MOTS ENTIERS : « attaque » ne reconnaît ni « attaqués » ni « attaquent ».
+  // « Des hommes armés attaquent le poste de Djibo », « Deux soldats attaqués
+  // près de Kaya », « Attaques djihadistes dans le nord du Togo », « Une
+  // octogénaire massacrée à la machette » sortaient au niveau normal.
+  // Écartés après mesure sur le cumul d'octobre-novembre : « enlevées »
+  // (« 16 000 tonnes de riz enlevées »), « mortes » (« 110 chèvres mortes »).
+  'attaques','attaquee','attaquees','attaquent','attentats','enleves',
+  'massacres','massacree','massacrees','massacrent','meurtres','assassine','assassines',
+  'assassinee','assassinees','assassinat','assassinats','embuscades','bombardements','otages',
+  'fusillade','fusillades','decapite','decapites','egorge','egorges','egorgee','kamikaze',
+  // Portugais et espagnol (audit du 20/11/2026) : la presse lusophone (AO, MZ,
+  // GW, CV, ST) et hispanophone (GQ) n'avait aucun mot au lexique. « Ataque
+  // armado mata 12 pessoas em Cabo Delgado », « Ataque armado deja cinco
+  // muertos en Malabo » sortaient au niveau normal. Locutions figurées
+  // (« ataque de nervos », « ataque cardíaco ») dans EXPRESSIONS_NON_SECURITAIRES.
+  'ataque','ataques','atacam','atacado','atacados','atacada','atentado','atentados','mortos','mortas',
+  'assassinado','assassinados','assassinato','raptado','raptados','raptadas','rapto','sequestro',
+  'sequestrados','emboscada','explosao','decapitados','muertos','muertas','asesinado','asesinados',
+  'asesinato','secuestro','secuestrado','secuestrados'];
 const CK_HIGH = ['incendie','tension','alerte','insecurite','crise','manifestation','greve','blocus','restriction','fermeture','evacuation','deplacement','menace','avertissement','siege','offensive','combat','violence',
   // « threat » ecarte : dans la presse politique nigeriane il designe une
   // menace electorale (« flogging threat may turn voters ») bien plus souvent
   // qu'une menace securitaire — mesure sur le cache du 03/09/2026.
-  'unrest','clashes','protest','protests','curfew','riot','riots','insecurity','lockdown'];
+  'unrest','clashes','protest','protests','curfew','riot','riots','insecurity','lockdown',
+  // Formes accordées (audit du 20/11/2026) : « Un policier abat un collègue et
+  // en blesse un autre » sortait au niveau normal. « abat » / « abattu » au
+  // niveau élevé seulement : des arbres abattus ne sont pas un incident, et
+  // l'élevé exige encore un lien de sûreté pour peser sur le niveau du pays.
+  // « violences » et « tensions » au pluriel écartés après le banc du cache
+  // réel (20/11/2026) : « violences faites aux femmes », « Economic Tensions »,
+  // « violência nas escolas » montaient en élevé sans aucun incident.
+  'manifestations','greves','affrontement','affrontements','heurts','combats',
+  'incendies','emeute','emeutes','braquage','braquages','blesse','blesses','blessee','blessees',
+  'abat','abattu','abattus','abattue',
+  // Portugais et espagnol.
+  'feridos','feridas','heridos','heridas','confrontos','enfrentamientos','tiroteio','tiroteo',
+  'manifestacao','manifestacoes','manifestacion','manifestaciones','protestos','protestas',
+  'incendio','huelga','deslocados','desplazados','inseguranca','inseguridad','motim','disturbios'];
+const HIGH_SELON_CONTEXTE = new Set(['abat', 'bles']);
 const CK_SEC  = ['securite','securitaire','arme','armee','militaire','terrorisme','terroriste','terroristes','jihadiste','djihadiste','jnim','aqmi','boko','bandit','bandits','banditisme','criminalite','enlev','fsr','m23','adf','eis','al-shabaab','groupes armes',
-  'security','troops','soldiers','military','terrorist','terrorists','militants','insurgents','jihadist','jihadists'];
+  'security','troops','soldiers','military','terrorist','terrorists','militants','insurgents','jihadist','jihadists',
+  // Pluriels et formes accordées, portugais et espagnol (audit du 20/11/2026).
+  'djihadistes','jihadistes','militaires','soldats','soldat','policier','policiers','gendarmes','insurges','assaillants',
+  'rebelles','hommes armes','individus armes',
+  'seguranca','seguridad','militares','militar','policia','forcas armadas','fuerzas armadas','insurgentes',
+  'terroristas','jihadistas','rebeldes','homens armados','hombres armados','grupo armado','grupos armados'];
 const CK_HUM  = ['alimentaire','humanitaire','famine','soudure','refugie','deplace','deplacement','ocha','fao','malnutrition','aide humanitaire','cholera','ebola','epidemie','urgence','crise alimentaire'];
 const CK_POL  = ['election','president','gouvernement','parlement','constitution','loi','diplomatique','sommet','junte','transition','coup','veto','sanctions','greve','manifestation'];
 const CK_ECO  = ['economie','marche','prix','croissance','investissement','entreprise','commerce','port','export','inflation','bceao','monnaie',
@@ -8864,6 +8904,9 @@ const CK_HUM_DOMAINE = ['paludisme','vaccination','inondation','inondations',
 // exhaustive par nature (le francais idiomatique est vaste) : complements
 // bienvenus au fil des cas reels rencontres.
 const EXPRESSIONS_NON_SECURITAIRES = [
+  // Portugais et espagnol (audit du 20/11/2026), avec le lexique ajouté ce jour.
+  'ataque de nervos','ataque cardiaco','ataque de panico','ataque de ansiedade','ataque informatico',
+  'ataque de risa','ataque al corazon',
   'coup de cœur','coup de coeur','coup de foudre','coup de theatre','coup de pouce',
   "coup d'accelerateur",'coup d accelerateur','coup de maitre','coup d\'essai','coup d essai',
   'coup de projecteur','coup d\'envoi','coup d envoi','coup de fil','coup de main',
@@ -10091,7 +10134,13 @@ function classify(txt, src, titre) {
   const critTitre = motsTouches(tTitre, CK_CRIT);
   const critCorps = motsTouches(tScan, CK_CRIT);
   const highTitre = motsTouches(tTitre, CK_HIGH);
+  // « abat », « abattu », « blessé » : élevés seulement à côté d'un mot de
+  // sûreté (« un policier abat… », « soldats blessés ») ; seuls, ce sont des
+  // arbres abattus ou un orgueil blessé (audit du 20/11/2026).
+  if (highTitre.size && [...highTitre].every((f) => HIGH_SELON_CONTEXTE.has(f))
+      && !CK_SEC.some(k=>matchMot(tTitre,k))) highTitre.clear();
   const highCorps = motsTouches(tScan, CK_HIGH);
+  if (!CK_SEC.some(k=>matchMot(tScan,k))) for (const f of HIGH_SELON_CONTEXTE) highCorps.delete(f);
   const lienTitre = CK_SEC.some(k=>matchMot(tTitre,k)) || CK_HUM.some(k=>matchMot(tTitre,k));
 
   let lvl;

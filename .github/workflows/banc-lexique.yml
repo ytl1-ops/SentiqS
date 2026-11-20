@@ -1,0 +1,47 @@
+name: Banc du lexique
+
+# Mesure, sur le cache réel, ce qu'une modification de classify() change :
+# rejoue la version de main puis celle de la PR (scripts/banc-tri.js) et
+# imprime les niveaux qui bougent. Le bac à sable n'atteint pas Firestore
+# (audit du 20/11/2026). Informative : n'échoue jamais une PR.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'web/SentiqS_Web.html'
+      - 'scripts/banc-tri.js'
+      - 'scripts/exporter-cache.js'
+      - '.github/workflows/banc-lexique.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: banc-lexique-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  banc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+      - name: Exporte le cache partagé
+        run: node scripts/exporter-cache.js "$RUNNER_TEMP/cache.json"
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        continue-on-error: true
+      - name: Rejoue main puis la PR
+        continue-on-error: true
+        run: |
+          [ -s "$RUNNER_TEMP/cache.json" ] || { echo "Pas de cache : rien à mesurer."; exit 0; }
+          git show origin/main:web/SentiqS_Web.html > "$RUNNER_TEMP/main.html"
+          cd "$RUNNER_TEMP"
+          SENTINEL_HTML_PATH="$RUNNER_TEMP/main.html" node "$GITHUB_WORKSPACE/scripts/banc-tri.js" cache.json > /dev/null
+          mv banc-tri.json avant.json
+          node "$GITHUB_WORKSPACE/scripts/banc-tri.js" cache.json --diff avant.json | sed -n '1,2p;/^Par rapport/,$p'
