@@ -16,6 +16,9 @@
 // Pur : ni réseau ni page. Testé par scripts/test/grsci-marquants.test.js.
 const { nettoyerTitre } = require('./faits-grsci');
 
+// Langues d'origine qu'un rapport en français ne cite jamais telles quelles.
+const LANGUES_ETRANGERES = new Set(['en', 'pt', 'ar']);
+
 // Combien de faits rédigés : quatre pour la Côte d'Ivoire (pays du groupe),
 // un par pays de la sous-région. Les autres restent en liste, comme le modèle.
 const MARQUANTS_CI = 4;
@@ -154,9 +157,12 @@ function rediger(f, nomPays) {
   const vus = new Set();
   const extraits = [];
   const candidats = (f.extraits && f.extraits.length ? f.extraits
-    : (f.resume ? [{ source: f.source, resume: f.resumeFr || f.resume, url: f.url }] : []));
+    : (f.resume ? [{ source: f.source, resume: f.resumeFr || f.resume, url: f.url, langue: f.langue || null, fr: !!f.resumeFr }] : []));
   for (const e of candidats) {
     if (!e || !e.resume || extraits.length >= EXTRAITS_MAX) continue;
+    // Une seule langue par document (YORO, 19/11/2026) : un chapô en langue
+    // étrangère que le job n'a pas pu traduire n'est pas cité.
+    if (LANGUES_ETRANGERES.has(e.langue) && !e.fr) continue;
     const k = sansAccents(e.resume).slice(0, 80);
     if (vus.has(k)) continue;
     vus.add(k);
@@ -179,4 +185,4 @@ function rediger(f, nomPays) {
 const NOTE_REDACTION = 'Faits marquants : textes établis à partir des médias cités, dont les chapôs sont reproduits entre guillemets. '
   + 'Les « enjeux sûreté » sont des repères par type d\'événement, à valider et compléter par l\'analyste.';
 
-module.exports = { phraseDe, choisirMarquants, rediger, enjeuxSurete, MARQUANTS_CI, MARQUANTS_PAYS, NOTE_REDACTION, dateRedigee };
+module.exports = { LANGUES_ETRANGERES, phraseDe, choisirMarquants, rediger, enjeuxSurete, MARQUANTS_CI, MARQUANTS_PAYS, NOTE_REDACTION, dateRedigee };

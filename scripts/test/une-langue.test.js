@@ -44,7 +44,7 @@ test('traduction impossible : la carte le dit dans la langue choisie, sans le te
   await fr.preTraduireRapport([ANGLAIS, ARABE]);
   assert.strictEqual(fr.L(ANGLAIS), 'Texte en anglais — traduction indisponible pour le moment');
   assert.strictEqual(fr.L(ARABE), 'Texte en arabe — traduction indisponible pour le moment');
-  assert.match(fr.noteTraductionRapport(), /^Note : 2 texte\(s\) de source n'ont pas pu être traduits/);
+  assert.match(fr.noteTraductionRapport(), /^Note : 2 texte\(s\) secondaire\(s\) n'ont pas pu être traduits et ne figurent pas/);
   const en = monte('en');
   const titre = 'Attaque armée contre un convoi militaire dans le nord du Mali';
   await en.preTraduireRapport([titre]);

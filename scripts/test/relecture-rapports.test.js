@@ -27,11 +27,14 @@ function monte(lang) {
 const ANGLAIS = 'Gunmen killed three soldiers after the attack on the convoy';
 const ARABE = 'هجوم مسلح على قافلة عسكرية في شمال مالي';
 
-test('dans un document, un titre non traduit garde son texte avec sa langue, jamais « Traduction en cours… »', () => {
+// 19/11/2026 (YORO : « tout type de rapport sera soit en FR soit en ENG ») :
+// plus jamais le texte d'une autre langue dans un document, ni « (EN) … ».
+test('dans un document, un texte non traduit n\'est jamais imprimé dans sa langue, ni « Traduction en cours… »', () => {
   const c = monte('fr');
   c.TR_CACHE['fr:' + ANGLAIS] = ANGLAIS; // traduction échouée
   vm.runInContext('_docEnCours++', c);
-  assert.strictEqual(c.L(ANGLAIS), '(EN) ' + ANGLAIS);
+  assert.strictEqual(c.L(ANGLAIS), 'Texte en anglais — non traduit, voir la source');
+  assert.strictEqual(c.L(ANGLAIS, true), '', 'un texte secondaire non traduit est omis');
   assert.strictEqual(c.L(ARABE), 'Texte en arabe — non traduit, voir la source');
   vm.runInContext('_docEnCours--', c);
   // L'écran ne change pas : une seule langue, ou la mention.

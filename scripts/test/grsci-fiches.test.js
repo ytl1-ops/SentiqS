@@ -71,11 +71,19 @@ test('PowerPoint : chaque actu montre son texte, et sa photo quand il y en a une
   assert.strictEqual(images.length, 1);
 });
 
-test('un extrait non traduit le dit, comme le titre', () => {
+// 19/11/2026, YORO : « tout type de rapport sera soit en FR soit en ENG ».
+test('un extrait non traduit n\'est pas cité, et un fait au titre non traduit n\'entre pas au rapport', () => {
   const f = fg.regrouper([brut('Attack on a convoy near Gao', 'high', { langue: 'en', titreFr: 'Attaque contre un convoi près de Gao', resume: 'Gunmen attacked a convoy.' })], 'Mali')[0];
-  assert.strictEqual(g.ficheTexte(f).extrait.langue, '(EN) ');
+  assert.strictEqual(g.ficheTexte(f).extrait, null, 'chapô anglais non traduit : pas cité');
+  assert.match(g.ficheTexte(f).sansExtrait, /détail est dans l'article/);
   f.extraits[0].fr = true;
   assert.strictEqual(g.ficheTexte(f).extrait.langue, '');
+  assert.doesNotMatch(g.ficheTexte(f).titre, /\(EN\)/);
+  const cumul = { pays: { ML: [brut('Attack on a convoy near Gao', 'high', { langue: 'en' }),
+    brut('Attaque contre un poste militaire près de Ménaka', 'high', { langue: 'fr' })] } };
+  const faits = fg.faitsDuMois(cumul, 'ML', 'Mali');
+  assert.strictEqual(faits.length, 1);
+  assert.match(faits[0].titre, /Ménaka/);
 });
 
 // Faux `docx` : enregistre le texte des TextRun et compte les images.

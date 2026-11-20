@@ -159,6 +159,8 @@ jobs:
           # (Supabase retire). Sans lui la publication echoue. Voir
           # FIREBASE.md. Jamais ecrit dans le depot.
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          # Facultatif : relève le quota gratuit de MyMemory (voir traduction-job.js).
+          MYMEMORY_EMAIL: ${{ secrets.MYMEMORY_EMAIL }}
         run: node scripts/collecte-planifiee.js
 
       - name: Sauvegarder la mémoire inter-runs de collecte

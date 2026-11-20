@@ -3130,6 +3130,83 @@ titres déjà traduits dans le cache partagé — décision du propriétaire
 
 `scripts/test/une-langue.test.js` (7 tests, vus échouer sur l'ancien code).
 
+
+### Traduites par le job, masquées tant qu'elles ne le sont pas — 19/11/2026
+
+Demande de YORO : « des traductions automatiques générales selon les langues
+choisies (FR / ENG). Masquer les actus non traduites. » Les services gratuits
+appelés par chaque navigateur, à travers des relais publics saturés,
+laissaient la plupart des titres sur « Traduction en cours… ».
+
+- **Le job traduit pour tous** (`scripts/lib/traduction-actus.js`, appelé dans
+  `collecte-planifiee.js` juste avant `ecrireCache`) : titre et chapô (coupé à
+  `EXTRAIT_MAX_CARACTERES + 40`) vers le français ET l'anglais, rangés dans
+  l'article (`a.tr = { en:{t,s}, fr:{t,s} }`), jamais vers la langue
+  d'origine. Google « gtx » puis MyMemory, sans clé ; par paquets de même
+  langue (une ligne par titre, 25 lignes ou 1 400 caractères) ; un paquet dont
+  le nombre de lignes revient faux est rejoué titre par titre. La langue est
+  celle que la page détecte (`langueSure`, ou `other` en détection
+  automatique, titres seuls). Budget `TRAD_ACTUS_MAX_MS` (3 min, borné par
+  l'échéance du passage) ; titres critiques d'abord, chapôs ensuite ; les
+  traductions du cache précédent sont reprises sans requête. Un échec ne
+  bloque jamais la publication.
+- **La page sème `a.tr` dans `TR_CACHE`** (`semerTraductionsArticles`, en tête
+  de `rehydrateArticles`) : `L()` les rend sans aucun service.
+- **Masquage, listes seulement** : `actuLisible(a)` / `actusAffichables` —
+  Flux (`getFiltered`), flash info, Recherche, détail d'un indicateur, faits
+  du jour (`getArticlesATraiter`), Synthèse par thème, chronologie des
+  Alertes. Une actu masquée part en traduction en arrière-plan et apparaît
+  dès qu'elle arrive. Le Flux dit combien attendent (`.note-masquees`) : un
+  Flux plus court en anglais ne doit pas se lire comme un pays calme.
+- **Ne bougent pas, volontairement** : les comptes (`actusModules`, sinon un
+  pays aurait moins de critiques en anglais), le niveau d'alerte
+  (`getLiveAlertEvents`) et les documents à la demande (`getExportData`, qui
+  gardent leur règle « (EN) … » du 14/11/2026). Un test l'exige.
+- **Non mesuré d'ici** (pas de réseau, Google répond par sa page anti-robot) :
+  le taux de traduction réel du job. Le journal du passage le dit
+  (« Traduction des actus (FR/EN) : N reprise(s), N nouvelle(s)… »). Le
+  premier passage a tout l'arriéré à traduire : il faudra plusieurs passages
+  pour que l'anglais soit complet.
+
+`scripts/test/traduction-actus.test.js` (12).
+
+### Une seule langue dans tous les documents, et partout — 19/11/2026 (suite)
+
+YORO, le même soir : « Tout type de rapport sera soit en FR soit en ENG selon
+le choix de langue », puis « pareil pour les paramètres et les autres modules.
+Boost le skill de traduction via GitHub ». Cela **remplace** la convention
+« (EN) … » du 14/11/2026 dans les documents.
+
+- **Exports à la demande** : `enDocument` traduit d'abord toutes les actus que
+  le document peut contenir, puis `getExportData` / `getExportDataPeriode`
+  écartent (`filtrerLangueDocument`) celles qui restent illisibles dans la
+  langue. `noteTraductionRapport` dit combien, dont critiques et élevées. Un
+  texte secondaire non traduit (chapô, description, recommandation, résumé de
+  post) est omis : `L(t, true)`. Ce qui reste (titre d'agenda tiré d'une actu)
+  porte la mention « Texte en anglais — non traduit », jamais le texte source.
+  **Les exports changent** quand une actu n'est pas traduite : c'est la demande.
+- **Présentation 1** : `faitsDuMois` écarte un fait au titre étranger sans
+  `titreFr` (`faitEnFrancais`), `rediger` ne cite pas un chapô étranger non
+  traduit. Le job reprend d'abord les traductions des actus (`a.tr.fr`) avant
+  d'appeler un service.
+- **Paramètres > Affichage** porte le choix de langue (`.lang-opt`, même
+  `setLang` que la barre du haut). Les boîtes natives (`alert`, `confirm`,
+  `prompt`) passent par la table en anglais (`messageDialogue`).
+- **Audit du DOM** (9 modules × FR/EN, sections masquées comprises, cumul de
+  novembre injecté) : restent des noms propres (Côte d'Ivoire, The Continent,
+  Noël copte…), rien d'autre.
+- **Passage de traduction seul** : `scripts/traduire-cache.js`, workflow
+  `traduction-actus.yml`, toutes les heures, budget 8 min. Il lit le cache,
+  détecte les langues avec la vraie page servie en local, traduit, relit
+  l'annonce avant d'écrire (une collecte qui a publié entre deux reçoit les
+  traductions), et **garde `updated_at`** : un cache traduit n'est pas plus
+  frais, le croire masquerait une collecte arrêtée. Groupe de concurrence
+  propre : partager celui de la collecte ferait remplacer une collecte en
+  attente. Secret facultatif `MYMEMORY_EMAIL` (quota MyMemory 5 000 → 50 000
+  caractères par jour). **Non mesuré d'ici** (pas de réseau).
+
+`scripts/test/une-langue-partout.test.js` (6).
+
 ---
 
 ## GRSCI tenu à jour sur sa période, et plus aucun visuel de remplacement — 23/10/2026

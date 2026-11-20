@@ -13,6 +13,24 @@
   'use strict';
   if (typeof SentiqLangue === 'undefined') return;
   SentiqLangue.ajouter({
+    // Une seule langue partout (19/11/2026) : Paramètres, boîtes natives.
+    "Langue de l'interface et des rapports": "Interface and report language",
+    "Une seule langue à l'écran et dans tous les documents : une actu pas encore traduite attend sa traduction.": "One language on screen and in every document: a news item not yet translated waits for its translation.",
+    "Aucun développement géopolitique détecté": "No geopolitical development detected",
+    "— un service gratuit conçu pour l'envoi d'e-mails depuis une page statique, sans serveur. La connexion n'en dépend pas (Firebase Authentication), ni les bulletins programmés, envoyés par le job planifié avec son propre compte SMTP.": "— a free service designed for sending emails from a static page, with no server. Sign-in does not depend on it (Firebase Authentication), nor do scheduled bulletins, sent by the scheduled job with its own SMTP account.",
+    "Échec de la copie — copiez manuellement.": "Copy failed — copy it manually.",
+    "SheetJS non chargé. Vérifiez votre connexion internet.": "SheetJS not loaded. Check your internet connection.",
+    "Aperçu non disponible pour ce type de rapport.": "Preview not available for this type of report.",
+    "Fenêtre bloquée par le navigateur — autorisez les popups pour SentiqS puis réessayez.": "Window blocked by the browser — allow pop-ups for SentiqS, then try again.",
+    "Erreur aperçu": "Preview error",
+    "Erreur Word": "Word error",
+    "Erreur Excel": "Excel error",
+    "Erreur CSV": "CSV error",
+    "Erreur PowerPoint": "PowerPoint error",
+    "Erreur PDF": "PDF error",
+    "Vérifiez que vous êtes connecté à internet (bibliothèque docx.js requise).": "Check that you are connected to the internet (docx.js library required).",
+    "Réinitialiser toutes les données locales ? (articles, cache, préférences)": "Reset all local data? (articles, cache, preferences)",
+    "Les comptes utilisateurs seront conservés.": "User accounts will be kept.",
     "Aller au contenu principal": "Skip to main content",
     "SentiqS — veille de sûreté sur les 54 pays d'Afrique": "SentiqS — security monitoring across Africa's # countries",
     "Analyse IA en cours...": "AI analysis in progress...",

@@ -15,7 +15,9 @@ const { HTML } = require('./_bac.js');
 
 const EXEMPTES = new Set(['EN', 'FR', 'WEB', 'MOBILE', 'CSV', 'PDF', 'Excel', 'Word', '✕', 'MaJ', '-12h',
   // Le libelle du bouton de theme est resynchronise par appliquerTheme(), pas par le dictionnaire.
-  'Sombre']);
+  'Sombre',
+  // Le nom d'une langue s'écrit dans cette langue (choix de Paramètres, 19/11/2026).
+  'Français', 'English']);
 const STATIQUE = HTML.replace(/<script\b[\s\S]*?<\/script>/g, '');
 
 test('chaque bouton du HTML statique porte une accroche de traduction', () => {
