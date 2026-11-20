@@ -899,6 +899,14 @@ function ecrireResumeActions(md) {
     if (erreursPage.length) {
       console.warn('Erreurs JS détectées sur la page :', JSON.stringify(erreursPage));
     }
-    await browser.close();
+    // Fermeture bornee puis sortie explicite (20/11/2026) : passages 1239 a
+    // 1243, le cache etait publie mais le processus restait vivant 17 min de
+    // plus (requetes et minuteries encore en attente) jusqu'a l'annulation
+    // du job, archive et bulletins compris. Le travail utile est fini ici.
+    await Promise.race([
+      browser.close().catch(() => {}),
+      new Promise((resolve) => setTimeout(resolve, 30000).unref()),
+    ]);
   }
+  process.exit(process.exitCode || 0);
 })();

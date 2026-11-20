@@ -62,7 +62,10 @@ jobs:
     # (borne a 8 min) + archive + marge. A 20, le passage n° 1143 (27/10/2026)
     # a ete tue pendant l'installation de LibreOffice, avant le commit : le
     # rapport regenere n'a jamais ete publie.
-    timeout-minutes: 30
+    # 36 depuis le 20/11/2026 : la collecte a desormais sa propre garde (20 min,
+    # etape « Lancer la collecte planifiee ») ; il reste au moins 12 min au PDF,
+    # a l'index et au commit de l'archive meme quand elle la depasse.
+    timeout-minutes: 36
     permissions:
       # Ecriture necessaire au seul commit de l'archive des niveaux
       # (web/historique/). Le reste du job ne touche pas au depot.
@@ -133,6 +136,12 @@ jobs:
             sante-collecte-
 
       - name: Lancer la collecte planifiée
+        # Garde propre a l'etape (20/11/2026). Une etape qui depasse sa garde
+        # ECHOUE, elle n'annule pas le job : les etapes suivantes en
+        # !cancelled() (PDF, index, archive, bulletins) s'executent quand
+        # meme. Passages 1239 a 1243 : la garde du job a annule le tout, et
+        # l'archive comme les bulletins publics sont restes figes au 18/11.
+        timeout-minutes: 20
         env:
           GRSCI_FORCER: ${{ inputs.rapport_mensuel && '1' || '' }}
           RAPPORT_IDENTITE: ${{ inputs.identite_envoi }}
@@ -296,7 +305,10 @@ jobs:
     needs: collecte
     # cancelled() : un job tue par sa garde de temps n'est pas « en echec » pour
     # GitHub, et deux cycles ont ete perdus sans un mot les 03 et 04/09/2026.
-    if: failure() || cancelled()
+    # always() + resultat : le 20/11/2026, cinq passages annules par la garde
+    # du job n'ont declenche aucune alerte (job « skipped ») avec
+    # failure() || cancelled().
+    if: always() && needs.collecte.result != 'success'
     permissions:
       issues: write
     steps:
