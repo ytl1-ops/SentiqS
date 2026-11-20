@@ -4620,3 +4620,25 @@ de toute façon qu'une source de recoupement. Même constat pour MA, TN, DZ,
 KE (robots.txt l'interdit), NG et gazettes.africa ; la Government Gazette
 sud-africaine a un flux vivant, mais d'avis administratifs (recrutements,
 comptes bancaires), sans valeur de sûreté.
+
+---
+
+## L'essai de 72 h attaché à l'adresse — 20/11/2026
+
+Audit du 20/11/2026, prouvé sur l'émulateur : un profil créé sans
+`createdAt` (ou daté de 2099) lisait le cache sans limite, et un essai échu
+se rouvrait en supprimant son profil puis en le recréant. Les règles
+exigent désormais que tout profil non admin porte la date de
+`essais/{adresse}` (adresse du jeton, en minuscules), document créé une
+seule fois par son titulaire, daté du jour du serveur à un jour près, jamais
+réécrit ni effacé hors administrateur (qui peut l'effacer pour rouvrir un
+essai). `_ecrireProfil` (`web/js/firebase.js`) le crée au premier profil et
+reprend sa date ensuite ; un profil existant n'est jamais redaté. Un profil
+ancien sans date ne lit plus que si l'essai de son adresse court.
+
+**Limite connue** : une nouvelle adresse reste un nouvel essai (c'est le cas
+de tout essai gratuit sans carte), et un compte créé avant cette règle, sans
+document d'essai, peut en obtenir un neuf une fois en supprimant son profil.
+Même passe : `connexions_log` borné (cinq champs, nom ≤ 120 caractères ; une
+ligne de 900 Ko passait). 34 cas sur l'émulateur, dont 10 vus réussir
+l'attaque sur les anciennes règles.

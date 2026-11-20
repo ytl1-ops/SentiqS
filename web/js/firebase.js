@@ -266,11 +266,39 @@
       _ecrireProfil: function (col, row) {
         var ref = col.doc(String(row.id));
         if (row.role || row.status) return ref.set(row).then(function () { return row; });
-        var admin = Object.assign({}, row, { role: 'admin', status: 'active' });
-        var normal = Object.assign({}, row, { role: 'user', status: 'active' });
-        return ref.set(admin).then(function () { return admin; }, function (e) {
-          if (String(e && e.code) !== 'permission-denied') throw e;
-          return ref.set(normal).then(function () { return normal; });
+        return client._dateEssai(ref, row).then(function (row) {
+          var admin = Object.assign({}, row, { role: 'admin', status: 'active' });
+          var normal = Object.assign({}, row, { role: 'user', status: 'active' });
+          return ref.set(admin).then(function () { return admin; }, function (e) {
+            if (String(e && e.code) !== 'permission-denied') throw e;
+            return ref.set(normal).then(function () { return normal; });
+          });
+        });
+      },
+      // Essai gratuit attaché à l'adresse (audit du 20/11/2026, C2) : les
+      // règles exigent qu'un profil créé porte la date de essais/{adresse}.
+      // Premier profil de l'adresse : on crée l'essai avec la date du profil.
+      // Profil supprimé puis recréé : on reprend la date de l'essai existant,
+      // donc un essai échu le reste. Un profil qui existe déjà n'est pas
+      // touché (sa date de création ne se réécrit pas).
+      _dateEssai: function (ref, row) {
+        var u = auth.currentUser;
+        var cree = row && row.data && row.data.createdAt;
+        if (!u || !u.email || String(row.id) !== u.uid || typeof cree !== 'string') return Promise.resolve(row);
+        var essai = db.collection('essais').doc(String(u.email).toLowerCase());
+        return ref.get().then(function (p) {
+          if (p && p.exists) return row;
+          return essai.get().then(function (e) {
+            if (e && e.exists && e.data() && typeof e.data().debut === 'string') {
+              return Object.assign({}, row, { data: Object.assign({}, row.data, { createdAt: e.data().debut }) });
+            }
+            return essai.set({ debut: cree, uid: u.uid }).then(function () { return row; }, function (err) {
+              // Règles plus anciennes (essais inconnu) : le profil s'écrit
+              // comme avant. Toute autre erreur remonte.
+              if (String(err && err.code) === 'permission-denied') return row;
+              throw err;
+            });
+          });
         });
       },
       auth: {
