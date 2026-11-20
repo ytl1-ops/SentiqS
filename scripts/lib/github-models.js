@@ -51,6 +51,7 @@ function reinitialiser(opts) {
     coupe: String(env.GITHUB_MODELS || '').trim() === '0',
     restant: Number.isFinite(max) && max >= 0 ? max : MAX_REQUETES_DEFAUT,
     refus: null,
+    derniereErreur: '',
     stats: { requetes: 0, reussies: 0, rejetees: 0 },
   };
   return etat;
@@ -124,6 +125,11 @@ async function traduireLignes(lignes, source, cible, opts) {
     });
     if (!r || !r.ok) {
       const code = r ? r.status : 0;
+      // Diagnostic pour le journal : code et début du message d'erreur du
+      // service (jamais le jeton, jamais le texte envoyé).
+      let detail = '';
+      try { detail = r && typeof r.text === 'function' ? String(await r.text()).replace(/\s+/g, ' ').slice(0, 160) : ''; } catch (_) { detail = ''; }
+      e.derniereErreur = 'HTTP ' + code + (detail ? ' ' + detail : '');
       // Jeton refusé, permission absente ou quota atteint : on n'insiste pas.
       if (code === 401 || code === 403 || code === 429) e.refus = code;
       return null;
@@ -134,6 +140,7 @@ async function traduireLignes(lignes, source, cible, opts) {
     if (out) e.stats.reussies++; else e.stats.rejetees++;
     return out;
   } catch (err) {
+    e.derniereErreur = 'réseau : ' + String((err && err.message) || err).slice(0, 120);
     return null;
   } finally {
     if (minuteur) clearTimeout(minuteur);
@@ -147,7 +154,8 @@ function bilan() {
   if (e.coupe) return 'GitHub Models : coupé (GITHUB_MODELS=0)';
   return 'GitHub Models (' + e.modele + ') : ' + e.stats.requetes + ' requête(s), '
     + e.stats.reussies + ' réussie(s), ' + e.stats.rejetees + ' réponse(s) rejetée(s)'
-    + (e.refus ? ', service refusé (HTTP ' + e.refus + ') pour la suite du passage' : '');
+    + (e.refus ? ', service refusé (HTTP ' + e.refus + ') pour la suite du passage' : '')
+    + (e.derniereErreur && !e.stats.reussies ? ' — dernière erreur : ' + e.derniereErreur : '');
 }
 
 module.exports = { traduireLignes, disponible, reinitialiser, bilan, lireReponse, POINT_ACCES, MODELE_DEFAUT };
