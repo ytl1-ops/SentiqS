@@ -126,14 +126,14 @@ test("le rebase de repli du job tolère les modifications laissées par npm", ()
   assert.ok(!/git pull --rebase origin main/.test(wf));
 });
 
-test("le rapport est retrouvable : lien stable, index lu par l'appli", async () => {
+test("le rapport est retrouvable : index lu par l'appli, sans copie « dernier »", async () => {
   // Signalement du 21/10/2026 : le rapport existait sur le dépôt mais rien dans
   // l'appli ne y menait, et Pages ne liste pas un dossier.
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'grsci-'));
   await g.ecrire(dir, FauxPptx, { jour: '2026-10-25', ci: pays('CI', 'CI', []), regionaux: [] });
   await g.ecrire(dir, FauxPptx, { jour: '2026-11-24', ci: pays('CI', 'CI', []), regionaux: [] });
   await g.ecrire(dir, FauxPptx, { jour: '2026-11-26', ci: pays('CI', 'CI', []), regionaux: [] });
-  assert.ok(fs.existsSync(path.join(dir, 'dernier.pptx')));
+  assert.ok(!fs.existsSync(path.join(dir, 'dernier.pptx')), 'plus de copie « dernier » (20/11/2026)');
   const idx = JSON.parse(fs.readFileSync(path.join(dir, 'index.json'), 'utf8')).rapports;
   assert.deepStrictEqual(idx.map((r) => r.mois), ['2026-11', '2026-10'], 'récent d’abord, un seul par mois');
   assert.ok(!isNaN(new Date(idx[0].genere)), 'date de génération lisible');
@@ -153,7 +153,7 @@ test('le rapport et son index publiés sont cohérents', () => {
   // L'index peut être vide le temps d'une régénération (27/10/2026 : rapports
   // portant le nom du groupe retirés) ; ce qu'il liste doit exister.
   for (const r of idx) for (const f of r.formats) assert.ok(fs.existsSync(path.join(racine, r.mois + '.' + f)), r.mois + '.' + f);
-  if (idx.length) assert.ok(fs.existsSync(path.join(racine, 'dernier.pptx')));
+  for (const f of ['pptx', 'docx', 'pdf']) assert.ok(!fs.existsSync(path.join(racine, 'dernier.' + f)), 'dernier.' + f + ' retiré');
 });
 
 // Faux `docx` : chaque classe garde ses options, les énumérations rendent leur nom.
@@ -188,7 +188,7 @@ test('la version Word reprend les pages du PowerPoint avec de vrais textes', asy
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'grsci-'));
   const ci = pays('CI', 'Côte d\u2019Ivoire', [fait('Manifestation anti 4e mandat', 'politique'), fait('Faux QR codes', 'humanitaire')]);
   const chemin = await w.ecrireWord(dir, docx, { jour: '2026-10-25', ci, regionaux: [pays('ML', 'Mali', [])] });
-  assert.ok(chemin.endsWith('2026-10.docx') && fs.existsSync(chemin) && fs.existsSync(path.join(dir, 'dernier.docx')));
+  assert.ok(chemin.endsWith('2026-10.docx') && fs.existsSync(chemin) && !fs.existsSync(path.join(dir, 'dernier.docx')));
   const tout = textes.join('\n');
   for (const attendu of ['RAPPORT MENSUEL', 'DE SÛRETÉ', g.piedTexte(g.EMETTEUR_DEFAUT), 'TABLE DES MATIÈRES', '- POLITIQUE', '- SOCIAL', 'DYNAMIQUES RÉGIONALES', 'MERCI', 'Manifestation anti 4e mandat']) {
     assert.ok(tout.includes(attendu), attendu);

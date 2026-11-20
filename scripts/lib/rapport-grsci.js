@@ -718,9 +718,12 @@ function reconstruireIndex(racine, maintenant) {
   return rapports;
 }
 
-/** Lien stable « dernier » + index, appelé après l'écriture du fichier du mois. */
+/**
+ * Index, appelé après l'écriture du fichier du mois. Plus de copie « dernier.* »
+ * depuis le 20/11/2026 (choix de YORO) : réécrites chaque jour, elles doublaient
+ * le poids du rapport dans le dépôt (~26 Mo par jour), et l'appli lit l'index.
+ */
 function majIndex(racine, chemin, jour, maintenant) {
-  fs.copyFileSync(chemin, path.join(racine, 'dernier.pptx'));
   const rapports = reconstruireIndex(racine, maintenant);
   const r = rapports.find((x) => x.mois === String(jour).slice(0, 7));
   if (r) {
