@@ -42,7 +42,9 @@ test('la fenetre de collecte raccourcit quand l\'installation a mange le budget'
 
 test('le navigateur est mis en cache et un passage tue par sa garde declenche l\'alerte', () => {
   assert.match(FLUX, /uses: actions\/cache@v4\s+with:\s+path: ~\/\.cache\/ms-playwright/, 'le telechargement de Chromium (7 min les 03 et 04/09) doit etre mis en cache');
-  assert.match(FLUX, /if: failure\(\) \|\| cancelled\(\)/, 'un job annule par sa garde doit ouvrir l\'incident, pas se taire');
+  // Depuis le 20/11/2026 : always() + resultat du job, failure() || cancelled()
+  // ayant laisse cinq annulations sans alerte (voir collecte-file-attente.test.js).
+  assert.match(FLUX, /if: always\(\) && needs\.collecte\.result != 'success'/, 'un job annule par sa garde doit ouvrir l\'incident, pas se taire');
   assert.match(JOB, /fenetreCollecteMs\(\)/, 'le job doit utiliser la fenetre adaptative');
 });
 

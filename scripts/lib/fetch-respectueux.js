@@ -88,20 +88,35 @@ async function robotsAutorise(url) {
 // Un domaine peut exiger plus : l'API GDELT demande au plus une requete
 // toutes les cinq secondes (DELAIS_PAR_DOMAINE_MS, 18/11/2026).
 //
-// Le creneau est RESERVE avant l'attente : sans cela, plusieurs sources du
-// meme domaine appelees en parallele lisaient le meme « dernier appel »,
-// calculaient la meme attente et partaient ensemble — l'ecart promis n'etait
-// tenu que pour des appels successifs.
+// Pour ces domaines a quota declare, le creneau est RESERVE avant
+// l'attente : sans cela, plusieurs appels paralleles lisaient le meme
+// « dernier appel », calculaient la meme attente et partaient ensemble.
+//
+// Pour TOUS LES AUTRES domaines, pas de reservation : l'ecart ne vaut
+// qu'entre deux appels successifs, comme avant le 18/11/2026. La
+// reservation generalisee ce jour-la a mis en file les 57 sources
+// AllAfrica et leurs relais (1,5 s chacune, plus de 10 min de file) : la
+// page abandonnait ces requetes, les sources passaient en veille (48 → 377,
+// sources qui repondent 90 % → 28 %) et les minuteries encore en attente
+// empechaient le job de se terminer. Les passages 1239 a 1243
+// (18-20/11/2026) ont tous ete annules au plafond de 30 minutes, archive,
+// bulletins et PDF du rapport compris. Un test l'interdit desormais.
 const DELAIS_PAR_DOMAINE_MS = { 'api.gdeltproject.org': 5500 };
 async function attendreQuota(url) {
   const domaine = domaineDe(url);
   if (!domaine) return;
-  const delai = DELAIS_PAR_DOMAINE_MS[domaine] || DELAI_MIN_PAR_DOMAINE_MS;
   const dernier = domaineDernierAppel.get(domaine) || 0;
-  const creneau = Math.max(Date.now(), dernier + delai);
-  domaineDernierAppel.set(domaine, creneau);
-  const attente = creneau - Date.now();
+  const strict = DELAIS_PAR_DOMAINE_MS[domaine];
+  if (strict) {
+    const creneau = Math.max(Date.now(), dernier + strict);
+    domaineDernierAppel.set(domaine, creneau);
+    const attente = creneau - Date.now();
+    if (attente > 0) await new Promise(resolve => setTimeout(resolve, attente));
+    return;
+  }
+  const attente = DELAI_MIN_PAR_DOMAINE_MS - (Date.now() - dernier);
   if (attente > 0) await new Promise(resolve => setTimeout(resolve, attente));
+  domaineDernierAppel.set(domaine, Date.now());
 }
 
 // fetchRespectueux(url) : {ok:true, texte, status, tentatives} en cas de
