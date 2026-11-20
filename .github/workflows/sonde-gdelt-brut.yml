@@ -33,7 +33,9 @@ jobs:
         with:
           node-version: '20'
       - name: Lit les exports GDELT
-        run: node scripts/sonde-gdelt-brut.js "${{ github.event.inputs.heures || '24' }}" gdelt-brut.json
+        env:
+          HEURES: ${{ github.event.inputs.heures || '24' }}
+        run: node scripts/sonde-gdelt-brut.js "$HEURES" gdelt-brut.json
         continue-on-error: true
       - uses: actions/upload-artifact@v4
         if: always()

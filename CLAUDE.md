@@ -579,7 +579,7 @@ dégradation — le vérifier sur deux runs avant de conclure.
   externe doit être miroité avec `curl` puis servi localement, et les requêtes
   interceptées avec `page.route()`. C'est le cas du SDK Supabase dans les
   scripts Playwright.
-- Le binaire est `/opt/pw-browsers/chromium-1243/chrome-linux/chrome`, à lancer
+- Le binaire est `/opt/pw-browsers/chromium-1243/chrome-linux64/chrome`, à lancer
   avec `--no-sandbox`. Ne jamais lancer `playwright install`.
 - `require('playwright')` doit être résolvable depuis la racine du dépôt.
 
@@ -600,40 +600,6 @@ quoi abaisser quand la dette recule ; aucun ne doit être relevé.
 Deux tests comparent la dette **déclarée** à la dette **réelle** : allonger la
 liste au lieu de fournir les données fait tomber le test. C'est exactement le
 contournement que ces cliquets visent.
-
----
-
-## Accessibilité
-
-`verifier-accessibilite-interface.js` mesure le **DOM après rendu**, jamais le
-fichier source : l'essentiel de cette interface est construit par JavaScript,
-et compter les attributs dans le source ne dit rien de ce que voit un lecteur
-d'écran. La note d'accessibilité de ce produit a été fausse deux fois pour
-cette raison exacte.
-
-Cliquet à **zéro champ sans nom accessible**. Les repères de structure sont
-posés en attributs (`role=`) et non en changeant les balises : le CSS est
-entièrement indexé sur les classes.
-
-**Un libellé inventé est pire qu'un libellé absent** — il décrit à
-l'utilisateur un autre contrôle que celui qu'il manipule. Reprendre le texte
-déjà visible à l'écran, à côté du champ.
-
----
-
-## Les services externes tombent, et il faut cesser de les rappeler
-
-Mesure du 02/09/2026 : les trois miroirs de Lingva répondent 500, 502 et 403.
-Morts, pas lents. La chaîne de traduction les essayait avec neuf secondes de
-patience chacun, pour **chaque titre**.
-
-`creerDisjoncteur` / `avecDisjoncteur`, dans le noyau : après deux échecs
-consécutifs le service est court-circuité pour la session — on lève tout de
-suite au lieu d'attendre le réseau. Un seul succès le referme, parce qu'un
-miroir qui revient doit pouvoir resservir.
-
-Aucun moteur n'est retiré de la liste : c'est le disjoncteur qui décide, pas
-une suppression figée dans le code.
 
 ---
 
@@ -1900,7 +1866,7 @@ lieu de `--j`. `col` (brut) reste réservé au non-texte (`border-top`,
 pointer vers le binaire disponible localement :
 
 ```bash
-CHROMIUM_PATH=/opt/pw-browsers/chromium-1243/chrome-linux/chrome \
+CHROMIUM_PATH=/opt/pw-browsers/chromium-1243/chrome-linux64/chrome \
   node scripts/verifier-accessibilite-interface.js
 ```
 
