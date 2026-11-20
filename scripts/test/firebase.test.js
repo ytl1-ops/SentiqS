@@ -197,6 +197,33 @@ test('le role admin n\'est retenu que si les regles l\'acceptent, sinon « user 
   assert.strictEqual(r2.data.role, 'admin', 'accepte par les regles = adresse admin verifiee');
 });
 
+// Audit du 20/11/2026 (C2) : l'essai de 72 h se rouvrait en supprimant puis
+// recréant son profil. Les règles exigent maintenant la date de
+// essais/{adresse} ; l'adaptateur la crée au premier profil et la reprend
+// ensuite.
+test('premier profil : l\'essai de l\'adresse est créé à sa date ; profil recréé : la date d\'origine revient', async () => {
+  const { fb, docs } = fauxFirebase({ refuser: (t, v) => t === 'profiles' && v.role === 'admin' });
+  const c = FB.creerClient(fb, CFG, {}, {});
+  await fb.auth().signInWithEmailAndPassword('A@B.org', 'bon');
+  const uid = fb.auth().currentUser.uid;
+  await c.from('profiles').insert({ id: uid, email: 'a@b.org', data: { plan: 'gratuit', createdAt: '2026-11-01T08:00:00.000Z' } });
+  assert.deepStrictEqual(docs.get('essais/a@b.org'), { debut: '2026-11-01T08:00:00.000Z', uid });
+  await c.from('profiles').delete().eq('id', uid);
+  await c.from('profiles').insert({ id: uid, email: 'a@b.org', data: { plan: 'gratuit', createdAt: '2026-11-20T09:00:00.000Z' } });
+  assert.strictEqual(docs.get('profiles/' + uid).data.createdAt, '2026-11-01T08:00:00.000Z', 'l\'essai échu le reste');
+  assert.strictEqual(docs.get('essais/a@b.org').debut, '2026-11-01T08:00:00.000Z');
+  // Un profil existant n'est pas redaté.
+  await c.from('profiles').upsert({ id: uid, email: 'a@b.org', role: 'user', status: 'active', data: { plan: 'gratuit', createdAt: '2026-11-01T08:00:00.000Z', nom: 'A' } });
+  assert.strictEqual(docs.get('profiles/' + uid).data.nom, 'A');
+});
+
+test('règles : tout profil non admin porte la date de l\'essai de son adresse', () => {
+  assert.match(REGLES, /match \/essais\/\{adresse\}/);
+  assert.match(REGLES, /allow update: if false;\s*allow delete: if estAdmin\(\);/);
+  assert.match(REGLES, /champ\(request\.resource\.data, 'accesJusquau'\) == null\s*&& createdAtDeLEssai\(request\.resource\.data\)/);
+  assert.doesNotMatch(REGLES, /\|\| !\(cree is string\)\s*\|\|/, 'un profil sans date ne lit plus sans limite');
+});
+
 test('lecture, mise a jour et suppression d\'un profil par son id, comme PostgREST', async () => {
   const { fb, docs } = fauxFirebase();
   const c = FB.creerClient(fb, CFG, {}, { maintenant: () => new Date('2026-10-21T08:00:00Z') });

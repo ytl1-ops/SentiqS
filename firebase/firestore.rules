@@ -16,7 +16,8 @@ rules_version = '2';
 //  l'administrateur n'apparaît pas dans le code envoyé au navigateur.
 //
 //  À coller dans la console Firebase > Firestore > Règles (ou
-//  `firebase deploy --only firestore:rules`). Testé par
+//  `firebase deploy --only firestore:rules`). Exécuté sur l'émulateur par
+//  scripts/verifier-regles-firestore.js (job regles-firestore) ; forme lue par
 //  scripts/test/firebase.test.js (forme), pas par l'émulateur.
 // ═══════════════════════════════════════════════════════════════════════════
 service cloud.firestore {
@@ -43,8 +44,28 @@ service cloud.firestore {
       return inchange('plan') && inchange('paiement') && inchange('echeance')
         && inchange('dlQuotaOverride') && inchange('accesJusquau')
         // La date de création décide de l'essai de 72 h : posée une fois,
-        // jamais réécrite (un profil ancien sans date peut la recevoir).
-        && (inchange('createdAt') || champ(resource.data, 'createdAt') == null);
+        // jamais réécrite. Un profil ancien sans date ne peut recevoir que la
+        // date de l'essai de son adresse (audit du 20/11/2026, C2 : avant,
+        // n'importe quelle date passait, 2099 comprise).
+        && (inchange('createdAt')
+            || (champ(resource.data, 'createdAt') == null && createdAtDeLEssai(request.resource.data)));
+    }
+    // Essai gratuit attaché à l'ADRESSE, pas au profil (audit du 20/11/2026,
+    // C2, prouvé sur l'émulateur) : un essai échu se rouvrait en supprimant
+    // son profil puis en le recréant, et un profil créé sans date de création
+    // (ou daté de 2099) lisait le cache sans limite. Le document
+    // essais/{adresse} naît une fois, daté d'aujourd'hui, et n'est jamais
+    // réécrit ni effacé par l'utilisateur ; tout profil non admin doit porter
+    // sa date.
+    function adresseCompte() {
+      return request.auth.token.get('email', '') is string ? request.auth.token.get('email', '').lower() : '';
+    }
+    function cheminEssai() { return /databases/$(database)/documents/essais/$(adresseCompte()); }
+    function createdAtDeLEssai(d) {
+      return adresseCompte() != ''
+        && champ(d, 'createdAt') is string
+        && exists(cheminEssai())
+        && champ(d, 'createdAt') == get(cheminEssai()).data.debut;
     }
     function profilActif() {
       return connecte()
@@ -76,8 +97,15 @@ service cloud.firestore {
         || (jusquau is string && request.time < jourDe(jusquau) + duration.value(1, 'd'))
         || (!(jusquau is string) && (
               d.get('plan', 'gratuit') in ['standard', 'pro', 'entreprise']
-              || !(cree is string)
-              || request.time < jourDe(cree) + duration.value(4, 'd')));
+              || (cree is string && request.time < jourDe(cree) + duration.value(4, 'd'))
+              // Profil ancien sans date : l'essai de son adresse fait foi ;
+              // sans essai connu, pas d'accès (avant le 20/11/2026 : accès
+              // illimité, c'était la faille).
+              || (!(cree is string) && adresseCompte() != '' && exists(cheminEssai())
+                  && request.time < jourDe(get(cheminEssai()).data.debut) + duration.value(4, 'd'))));
+    }
+    function jourServeur() {
+      return timestamp.date(request.time.year(), request.time.month(), request.time.day());
     }
 
     match /profiles/{uid} {
@@ -92,7 +120,8 @@ service cloud.firestore {
             && champ(request.resource.data, 'paiement') == null
             && champ(request.resource.data, 'echeance') == null
             && champ(request.resource.data, 'dlQuotaOverride') == null
-            && champ(request.resource.data, 'accesJusquau') == null));
+            && champ(request.resource.data, 'accesJusquau') == null
+            && createdAtDeLEssai(request.resource.data)));
       allow update: if connecte() && (
         estAdmin()
         || (request.auth.uid == uid
@@ -110,9 +139,34 @@ service cloud.firestore {
             && resource.data.status == 'active');
     }
 
+    // Essai gratuit d'une adresse (voir createdAtDeLEssai). Créé une seule
+    // fois par son titulaire, daté du jour du serveur à un jour près (fuseaux),
+    // jamais modifié ; seul l'administrateur l'efface (pour rouvrir un essai).
+    match /essais/{adresse} {
+      allow read: if connecte() && (adresse == adresseCompte() || estAdmin());
+      allow create: if connecte() && adresseCompte() != '' && adresse == adresseCompte()
+        && request.resource.data.keys().hasOnly(['debut', 'uid'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.debut is string
+        && request.resource.data.debut.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:.]{8,12}Z$')
+        && jourDe(request.resource.data.debut) >= jourServeur() - duration.value(1, 'd')
+        && jourDe(request.resource.data.debut) <= jourServeur() + duration.value(1, 'd');
+      allow update: if false;
+      allow delete: if estAdmin();
+    }
+
     // Journal des connexions : chacun écrit la sienne, seul l'admin lit.
+    // Champs et tailles bornés (audit du 20/11/2026 : une ligne de 900 Ko
+    // passait, de quoi épuiser le stockage gratuit en quelques boucles).
     match /connexions_log/{id} {
-      allow create: if connecte() && request.resource.data.email == request.auth.token.email;
+      allow create: if connecte() && request.resource.data.email == request.auth.token.email
+        && request.resource.data.keys().hasOnly(['email', 'name', 'role', 'platform', 'created_at'])
+        && (!('name' in request.resource.data) || request.resource.data.name == null
+            || (request.resource.data.name is string && request.resource.data.name.size() <= 120))
+        && (!('role' in request.resource.data) || request.resource.data.role == null
+            || (request.resource.data.role is string && request.resource.data.role.size() <= 20))
+        && (!('platform' in request.resource.data) || (request.resource.data.platform is string && request.resource.data.platform.size() <= 20))
+        && (!('created_at' in request.resource.data) || (request.resource.data.created_at is string && request.resource.data.created_at.size() <= 40));
       allow read: if estAdmin();
     }
 
