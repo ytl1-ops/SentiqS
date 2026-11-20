@@ -3207,6 +3207,49 @@ Boost le skill de traduction via GitHub ». Cela **remplace** la convention
 
 `scripts/test/une-langue-partout.test.js` (6).
 
+### Une traduction faite pour l'un sert à tous — 20/11/2026
+
+Demande de YORO : « que les actus ouvertes persistent pour les autres, pour
+empêcher de nombreuses sollicitations de traduction ». Le job couvre déjà le
+texte d'une actu ouverte (titre et chapô, coupé comme dans la page à
+`EXTRAIT_MAX_CARACTERES + 40`), mais une fois par heure et avec un budget ;
+entre deux passages, chaque navigateur retraduisait les mêmes textes à chaque
+ouverture (`TR_CACHE` ne vit qu'en mémoire).
+
+- `trFetch` cherche d'abord dans Firestore `traductions/{clé}`
+  (`web/js/traductions-partagees.js`), clé = SHA-256 de « langue cible \n
+  texte envoyé » ; `_traduireParLots` le fait en une lecture groupée
+  (`batchGet`) pour tout un Flux ou un rapport. Un service n'est appelé que
+  pour ce qui manque.
+- **Un navigateur n'écrit jamais une traduction partagée.** Première version
+  (même jour) : le navigateur rangeait la sienne, et un compte pouvait en
+  ranger une fausse, vue par tous. YORO : « garder la bonne traduction ».
+  Désormais le navigateur dépose une **demande**
+  (`traductions_demandes/{clé}` : texte, langue cible, auteur) ; le passage
+  horaire (`scripts/traduire-cache.js` → `servirDemandes`,
+  `scripts/lib/traductions-partagees-job.js`) la traduit avec les services
+  du job, range le résultat (`par: 'job'`) et efface la demande. Une
+  demande pire qu'inutile ne peut que faire traduire un texte que personne
+  ne lira. Délai : jusqu'à une heure ; en attendant, chaque navigateur
+  traduit pour lui seul, comme avant.
+- `a.tr` du job passe toujours avant (semé dans `TR_CACHE`). « Traduire
+  maintenant » (`force`) passe outre.
+- Règles : `traductions` lue par un compte qui lit le cache d'actus, jamais
+  listée ni écrite par un navigateur, suppression par l'admin ;
+  `traductions_demandes` en création seule (clé recalculée par
+  `hashing.sha256`, auteur = la session), illisible pour un navigateur. Le
+  job, compte de service, passe hors des règles : clé recalculée, traduction
+  rangée jamais réécrite, échec gardé trois jours puis effacé.
+- Plafonds par onglet : 600 lectures, 300 demandes (quota gratuit Spark :
+  50 000 lectures et 20 000 écritures par jour pour tout le projet). Délai de
+  4 s : au-delà, ou sans compte, on traduit comme avant.
+
+`scripts/test/traductions-partagees.test.js` (10 ; deux navigateurs et le
+job sur un faux Firestore : le second navigateur n'appelle aucun service,
+une fausse traduction d'un navigateur ne se propage pas). Règles éprouvées
+sur émulateur en CI (11 cas de plus dans `verifier-regles-firestore.js`). **Non mesuré d'ici** : le taux de partage
+réel (pas de réseau).
+
 ---
 
 ## GRSCI tenu à jour sur sa période, et plus aucun visuel de remplacement — 23/10/2026

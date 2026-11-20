@@ -44,6 +44,7 @@
 <script src="js/firebase-config.js"></script>
 <script src="js/firebase.js"></script>
 <script src="js/cache-firestore.js"></script>
+<script src="js/traductions-partagees.js"></script>
 <!-- Le kit se télécharge dès l'ouverture, pendant l'animation de garde, au lieu
      d'attendre checkAuth : la connexion ne patiente plus après la vidéo. -->
 <!-- Et l'écran de connexion passe en mode Firebase (bouton Google, lien
@@ -7293,6 +7294,13 @@ async function trFetch(texte, srcLang, tgtLang, force) {
   // meme raison. Le cache reste indexe sur le texte ORIGINAL non tronque
   // (cacheKey ci-dessus) : seul l'appel reseau porte sur la version courte.
   const texteEnvoye = _trTexteTraduisible(texte, EXTRAIT_MAX_CARACTERES + 40);
+  // Traduction déjà rangée pour tous par le job (traductions partagées,
+  // 20/11/2026) : aucun service n'est rappelé. « Traduire maintenant »
+  // (force) passe outre, pour qu'une traduction contestée puisse se refaire.
+  if (!force) {
+    await _trPartageChercher([texte], tgtLang);
+    if (TR_CACHE[cacheKey] !== undefined) return TR_CACHE[cacheKey];
+  }
   // 'other' (langue locale non couverte par detectLangue — chichewa, swahili,
   // haoussa...) n'est pas un code de langue valide pour les moteurs de
   // traduction : chaque moteur mappe ce cas vers son propre mot-cle de
@@ -7531,7 +7539,71 @@ function resumeFaitMois(a) {
 // N "travailleurs" qui consomment la liste au lieu d'un Promise.all sans
 // limite — tout est quand meme traduit, juste par lots au lieu d'un seul.
 const TR_CONCURRENCE_MAX = 8;
+// ── Traductions partagées entre utilisateurs (20/11/2026) ────────────────
+// Demande de YORO : une actu traduite pour un utilisateur doit l'être pour
+// les autres, sans redemander le même texte au service. Avant, TR_CACHE ne
+// vivait qu'en mémoire : chaque visiteur, à chaque ouverture, retraduisait
+// tout ce que le job n'avait pas encore couvert. On cherche d'abord dans
+// Firestore (web/js/traductions-partagees.js) et on n'appelle un service que
+// pour ce qui manque. Ce qui manque fait l'objet d'une DEMANDE au job, qui le
+// traduit lui-même et le range pour tous : le navigateur n'écrit jamais une
+// traduction partagée (YORO : « garder la bonne traduction » — une
+// traduction posée par un navigateur pourrait être fausse). Jamais
+// bloquant : sans compte, hors ligne ou au-delà du délai, on traduit comme
+// avant.
+// Plafonds par onglet, pour tenir le quota gratuit de Firestore (50 000
+// lectures et 20 000 écritures par jour pour tout le projet).
+const TR_PARTAGE_LECTURES_MAX = 600;
+const TR_PARTAGE_DEMANDES_MAX = 300;
+const TR_PARTAGE_DELAI_MS = 4000;
+const _trPartage = { vus: new Set(), lectures: 0, demandes: 0 };
+function _trPartageDispo() {
+  return typeof window !== 'undefined' && window.SentiqTraductionsPartagees && window.SENTIQ_FIREBASE_CONFIG
+    && typeof _fournisseurFirebase === 'function' && _fournisseurFirebase();
+}
+async function _trPartageChercher(textes, tgt) {
+  if (!_trPartageDispo() || (tgt !== 'fr' && tgt !== 'en')) return;
+  const demandes = [];
+  (textes || []).forEach(t => {
+    const k = tgt + ':' + t;
+    if (!t || TR_CACHE[k] !== undefined || _trPartage.vus.has(k)) return;
+    if (_trPartage.lectures + demandes.length >= TR_PARTAGE_LECTURES_MAX) return;
+    if (detectLangue(t) === tgt) return;
+    _trPartage.vus.add(k);
+    demandes.push({ cible: tgt, s: _trTexteTraduisible(t, EXTRAIT_MAX_CARACTERES + 40), texte: t });
+  });
+  if (!demandes.length) return;
+  _trPartage.lectures += demandes.length;
+  try {
+    const entetes = await _entetesFirestore();
+    if (!entetes) return;
+    const trouve = await Promise.race([
+      window.SentiqTraductionsPartagees.lire(window.SENTIQ_FIREBASE_CONFIG, entetes, demandes, fetch.bind(window)),
+      new Promise(r => setTimeout(() => r(null), TR_PARTAGE_DELAI_MS)),
+    ]);
+    if (!trouve) return;
+    demandes.forEach(d => {
+      const v = trouve.get(d.cible + '\n' + d.s);
+      if (v) { if (TR_CACHE[d.cible + ':' + d.texte] === undefined) TR_CACHE[d.cible + ':' + d.texte] = v; }
+      else _trPartageDemander(d.s, d.cible, detectLangue(d.texte), entetes);
+    });
+  } catch (_) { /* on traduira localement */ }
+}
+// _trPartageDemander : dépose la demande au job (création seule, voir
+// web/js/traductions-partagees.js). Sans effet sur l'affichage de cet onglet,
+// qui traduit lui-même comme avant.
+function _trPartageDemander(texteEnvoye, tgt, langue, entetes) {
+  if (_trPartage.demandes >= TR_PARTAGE_DEMANDES_MAX) return;
+  _trPartage.demandes++;
+  try {
+    const uid = window.SentiqTraductionsPartagees.uidDuJeton(String(entetes.Authorization || '').replace(/^Bearer /, ''));
+    window.SentiqTraductionsPartagees.demander(window.SENTIQ_FIREBASE_CONFIG, entetes, uid, tgt, texteEnvoye, langue, fetch.bind(window))
+      .catch(() => {});
+  } catch (_) { /* demande perdue : le job traduira l'actu à son passage */ }
+}
 async function _traduireParLots(uniques) {
+  // Une seule lecture groupée pour tout le lot, avant tout appel de service.
+  await _trPartageChercher(uniques, LANG);
   let i = 0;
   async function travailleur() {
     while (i < uniques.length) {

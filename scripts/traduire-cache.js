@@ -20,12 +20,19 @@
 //      masquerait une collecte arrêtée (COLLECTE_PARTAGEE_LECTURE_MAX_MS).
 //
 // Rien n'est écrit quand rien n'a été traduit.
+//
+//   6. sert les demandes de traduction déposées par les navigateurs
+//      (scripts/lib/traductions-partagees-job.js, 20/11/2026) : ce que les
+//      visiteurs ont ouvert sans le trouver traduit est traduit ici, une fois,
+//      et rangé pour tous. Les navigateurs n'écrivent jamais de traduction
+//      partagée.
 
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const cacheFirestore = require('./lib/cache-firestore-ecriture');
 const { traduireActus, memoire, cleMemoire, CIBLES } = require('./lib/traduction-actus');
+const { servirDemandes } = require('./lib/traductions-partagees-job');
 
 const BUDGET_MS = Number(process.env.TRAD_BUDGET_MS || 8 * 60 * 1000);
 const RACINE = path.join(__dirname, '..', 'web');
@@ -86,6 +93,24 @@ async function principal() {
   const compte = cacheFirestore.lireCompte(process.env.FIREBASE_SERVICE_ACCOUNT || '');
   if (!compte) { console.log('FIREBASE_SERVICE_ACCOUNT absent ou illisible : rien à traduire.'); return; }
   const debut = Date.now();
+  try {
+    await passageCache(compte, debut);
+  } catch (e) {
+    console.warn('::warning::Traduction du cache non terminée : ' + ((e && e.message) || e));
+  }
+  // Les demandes des navigateurs passent après le cache, dans le même budget
+  // (deux minutes de plus au plus : le cache est ce que tout le monde lit).
+  try {
+    const d = await servirDemandes(compte, fetch, { echeance: debut + BUDGET_MS + 2 * 60 * 1000 });
+    console.log('Demandes de traduction des navigateurs : ' + d.lues + ' lue(s), ' + d.traduites + ' traduite(s) et rangée(s) pour tous, '
+      + d.dejaRangees + ' déjà rangée(s), ' + d.echecs + ' échec(s) (gardées), ' + d.perimees + ' périmée(s), ' + d.invalides + ' invalide(s), '
+      + d.reportees + ' reportée(s).');
+  } catch (e) {
+    console.warn('::warning::Demandes de traduction non servies : ' + ((e && e.message) || e));
+  }
+}
+
+async function passageCache(compte, debut) {
   const lu = await cacheFirestore.lireCache(compte, fetch);
   if (!lu || !lu.articles.length) { console.log('Cache partagé vide ou illisible : rien à traduire.'); return; }
   const articles = lu.articles;
