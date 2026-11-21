@@ -225,7 +225,6 @@ jobs:
             if [ ! -f "${f%.pptx}.pdf" ] || [ -n "$(git status --porcelain -- "$f")" ]; then
               sudo apt-get install -y --no-install-recommends libreoffice-impress fonts-liberation >/dev/null
               soffice --headless --convert-to pdf "$f" >/dev/null
-              cp "${f%.pptx}.pdf" dernier.pdf
             fi
           done
 

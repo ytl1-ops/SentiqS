@@ -315,7 +315,6 @@ async function ecrireWord(racine, D, donnees) {
   fs.mkdirSync(racine, { recursive: true });
   const chemin = cheminWord(racine, donnees.jour);
   fs.writeFileSync(chemin, await D.Packer.toBuffer(doc));
-  fs.copyFileSync(chemin, path.join(racine, 'dernier.docx'));
   g.reconstruireIndex(racine);
   return chemin;
 }

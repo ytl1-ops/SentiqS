@@ -2489,7 +2489,7 @@ groupe, date, numéro).
   (`continue-on-error` : son échec ne perd pas les deux autres) ;
 - `scripts/indexer-rapports-grsci.js` reconstruit `index.json` à partir des
   fichiers ; le module Rapports (carte « Rapports automatiques ») le lit et
-  offre les trois téléchargements ; liens stables `dernier.pptx|docx|pdf`.
+  offre les trois téléchargements. Plus de copie `dernier.*` depuis le 20/11/2026 (choix de YORO : elle doublait le poids du rapport dans le dépôt, ~26 Mo par jour) ; le module Rapports lit l'index.
 
 Un rapport par mois sous `web/rapports/GRSCI/AAAA-MM.*`, écrit par le premier
 passage du job à partir du 24. `workflow_dispatch` avec `grsci` = vrai
