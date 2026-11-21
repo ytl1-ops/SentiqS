@@ -1,6 +1,6 @@
 {
  "source": "FCDO — gov.uk Content API (Open Government Licence v3.0) ; Affaires mondiales Canada — données ouvertes (Licence du gouvernement ouvert — Canada) ; Département d'État des États-Unis — flux RSS (domaine public)",
- "lu": "2026-11-20T14:20:30.686Z",
+ "lu": "2026-11-21T13:42:23.254Z",
  "pays": {
   "AO": {
    "statuts": [
@@ -801,7 +801,7 @@
     {
      "source": "Canada",
      "degre": "aat_partie",
-     "revu": "2026-11-19T16:53:42.000Z",
+     "revu": "2026-11-20T15:43:21.000Z",
      "url": "https://travel.gc.ca/destinations/rwanda"
     },
     {
@@ -1155,7 +1155,7 @@
    "source": "Canada",
    "avis": "aabe_total",
    "libelle": "voyages non essentiels déconseillés dans tout le pays",
-   "revuIlYaJ": 30
+   "revuIlYaJ": 31
   },
   {
    "code": "MG",
@@ -1163,15 +1163,23 @@
    "source": "FCDO",
    "avis": "aucun",
    "libelle": "aucune restriction",
-   "revuIlYaJ": 4
+   "revuIlYaJ": 5
   },
   {
-   "code": "MW",
+   "code": "MU",
    "niveau": "orange",
    "source": "FCDO",
    "avis": "aucun",
    "libelle": "aucune restriction",
-   "revuIlYaJ": 30
+   "revuIlYaJ": 32
+  },
+  {
+   "code": "MU",
+   "niveau": "orange",
+   "source": "Canada",
+   "avis": "aucun",
+   "libelle": "aucune restriction",
+   "revuIlYaJ": 17
   },
   {
    "code": "UG",
@@ -1179,7 +1187,7 @@
    "source": "FCDO",
    "avis": "aucun",
    "libelle": "aucune restriction",
-   "revuIlYaJ": 14
+   "revuIlYaJ": 15
   }
  ]
 }
