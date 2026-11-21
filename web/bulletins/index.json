@@ -5,22 +5,22 @@
    "niveau": "jaune",
    "libelle": "JAUNE",
    "sous": "Modéré",
-   "faitsNotables": 1,
+   "faitsNotables": 2,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.591Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.455Z"
   },
   "AO": {
    "nom": "Angola",
    "niveau": "jaune",
    "libelle": "JAUNE",
    "sous": "Modéré",
-   "faitsNotables": 0,
+   "faitsNotables": 1,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.597Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.468Z"
   },
   "BF": {
    "nom": "Burkina Faso",
@@ -30,52 +30,52 @@
    "faitsNotables": 3,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.601Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.472Z"
   },
   "BI": {
    "nom": "Burundi",
    "niveau": "marron",
    "libelle": "MARRON",
    "sous": "Critique",
-   "faitsNotables": 3,
+   "faitsNotables": 2,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.605Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.476Z"
   },
   "BJ": {
    "nom": "Bénin",
    "niveau": "jaune",
    "libelle": "JAUNE",
    "sous": "Modéré",
-   "faitsNotables": 1,
+   "faitsNotables": 2,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.607Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.479Z"
   },
   "BW": {
    "nom": "Botswana",
    "niveau": "vert",
    "libelle": "VERT",
    "sous": "Stable",
-   "faitsNotables": 2,
+   "faitsNotables": 3,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.610Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.483Z"
   },
   "CD": {
    "nom": "RD Congo",
    "niveau": "rouge",
    "libelle": "ROUGE",
    "sous": "Grave",
-   "faitsNotables": 6,
-   "confirmes": 0,
+   "faitsNotables": 7,
+   "confirmes": 2,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.613Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.489Z"
   },
   "CF": {
    "nom": "Centrafrique",
@@ -85,8 +85,8 @@
    "faitsNotables": 4,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.619Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.494Z"
   },
   "CG": {
    "nom": "Congo-Brazzaville",
@@ -96,19 +96,19 @@
    "faitsNotables": 0,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.622Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.497Z"
   },
   "CM": {
    "nom": "Cameroun",
    "niveau": "marron",
    "libelle": "MARRON",
    "sous": "Critique",
-   "faitsNotables": 6,
-   "confirmes": 1,
+   "faitsNotables": 2,
+   "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.625Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.502Z"
   },
   "CV": {
    "nom": "Cap-Vert",
@@ -118,30 +118,30 @@
    "faitsNotables": 0,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.628Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.505Z"
   },
   "DJ": {
    "nom": "Djibouti",
    "niveau": "orange",
    "libelle": "ORANGE",
    "sous": "Élevé",
-   "faitsNotables": 2,
+   "faitsNotables": 3,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.630Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.508Z"
   },
   "DZ": {
    "nom": "Algérie",
    "niveau": "orange",
    "libelle": "ORANGE",
    "sous": "Élevé",
-   "faitsNotables": 2,
+   "faitsNotables": 3,
    "confirmes": 1,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.634Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.514Z"
   },
   "EG": {
    "nom": "Égypte",
@@ -150,86 +150,86 @@
    "sous": "Élevé",
    "faitsNotables": 0,
    "confirmes": 0,
-   "muet": true,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.636Z"
+   "muet": false,
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.517Z"
   },
   "ER": {
    "nom": "Érythrée",
    "niveau": "jaune",
    "libelle": "JAUNE",
    "sous": "Modéré",
-   "faitsNotables": 0,
+   "faitsNotables": 1,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.638Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.520Z"
   },
   "ET": {
    "nom": "Éthiopie",
    "niveau": "orange",
    "libelle": "ORANGE",
    "sous": "Élevé",
-   "faitsNotables": 0,
+   "faitsNotables": 2,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.640Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.523Z"
   },
   "GA": {
    "nom": "Gabon",
    "niveau": "jaune",
    "libelle": "JAUNE",
    "sous": "Modéré",
-   "faitsNotables": 4,
-   "confirmes": 0,
+   "faitsNotables": 5,
+   "confirmes": 1,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.643Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.527Z"
   },
   "GH": {
    "nom": "Ghana",
    "niveau": "orange",
    "libelle": "ORANGE",
    "sous": "Élevé",
-   "faitsNotables": 3,
+   "faitsNotables": 1,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.647Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.533Z"
   },
   "GM": {
    "nom": "Gambie",
    "niveau": "jaune",
    "libelle": "JAUNE",
    "sous": "Modéré",
-   "faitsNotables": 3,
+   "faitsNotables": 2,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.650Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.537Z"
   },
   "GN": {
    "nom": "Guinée",
    "niveau": "jaune",
    "libelle": "JAUNE",
    "sous": "Modéré",
-   "faitsNotables": 3,
+   "faitsNotables": 5,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.654Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.543Z"
   },
   "GQ": {
    "nom": "Guinée équatoriale",
    "niveau": "orange",
    "libelle": "ORANGE",
    "sous": "Élevé",
-   "faitsNotables": 0,
+   "faitsNotables": 1,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.656Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.546Z"
   },
   "GW": {
    "nom": "Guinée-Bissau",
@@ -239,19 +239,19 @@
    "faitsNotables": 0,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.658Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.549Z"
   },
   "KE": {
    "nom": "Kenya",
    "niveau": "marron",
    "libelle": "MARRON",
    "sous": "Critique",
-   "faitsNotables": 2,
+   "faitsNotables": 0,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.664Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.552Z"
   },
   "KM": {
    "nom": "Comores",
@@ -261,19 +261,19 @@
    "faitsNotables": 0,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.666Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.556Z"
   },
   "LR": {
    "nom": "Liberia",
    "niveau": "jaune",
    "libelle": "JAUNE",
    "sous": "Modéré",
-   "faitsNotables": 3,
+   "faitsNotables": 1,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.670Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.559Z"
   },
   "LS": {
    "nom": "Lesotho",
@@ -283,30 +283,30 @@
    "faitsNotables": 0,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.672Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.562Z"
   },
   "LY": {
    "nom": "Libye",
    "niveau": "rouge",
    "libelle": "ROUGE",
    "sous": "Grave",
-   "faitsNotables": 1,
+   "faitsNotables": 0,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.675Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.566Z"
   },
   "MA": {
    "nom": "Maroc",
    "niveau": "orange",
    "libelle": "ORANGE",
    "sous": "Élevé",
-   "faitsNotables": 2,
+   "faitsNotables": 10,
    "confirmes": 1,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.679Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.572Z"
   },
   "MG": {
    "nom": "Madagascar",
@@ -314,109 +314,109 @@
    "libelle": "MARRON",
    "sous": "Critique",
    "faitsNotables": 2,
-   "confirmes": 0,
+   "confirmes": 1,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.682Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.577Z"
   },
   "ML": {
    "nom": "Mali",
    "niveau": "rouge",
    "libelle": "ROUGE",
    "sous": "Grave",
-   "faitsNotables": 6,
-   "confirmes": 1,
+   "faitsNotables": 5,
+   "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.685Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.581Z"
   },
   "MR": {
    "nom": "Mauritanie",
    "niveau": "marron",
    "libelle": "MARRON",
    "sous": "Critique",
-   "faitsNotables": 3,
+   "faitsNotables": 1,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.688Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.585Z"
   },
   "MU": {
    "nom": "Maurice",
    "niveau": "jaune",
    "libelle": "JAUNE",
    "sous": "Modéré",
-   "faitsNotables": 3,
+   "faitsNotables": 1,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.691Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.588Z"
   },
   "MW": {
    "nom": "Malawi",
-   "niveau": "orange",
-   "libelle": "ORANGE",
-   "sous": "Élevé",
-   "faitsNotables": 4,
+   "niveau": "jaune",
+   "libelle": "JAUNE",
+   "sous": "Modéré",
+   "faitsNotables": 2,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.695Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.592Z"
   },
   "MZ": {
    "nom": "Mozambique",
    "niveau": "marron",
    "libelle": "MARRON",
    "sous": "Critique",
-   "faitsNotables": 0,
+   "faitsNotables": 2,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.697Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.596Z"
   },
   "NA": {
    "nom": "Namibie",
    "niveau": "vert",
    "libelle": "VERT",
    "sous": "Stable",
-   "faitsNotables": 2,
+   "faitsNotables": 1,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.701Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.601Z"
   },
   "NE": {
    "nom": "Niger",
    "niveau": "marron",
    "libelle": "MARRON",
    "sous": "Critique",
-   "faitsNotables": 2,
+   "faitsNotables": 1,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.704Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.605Z"
   },
   "NG": {
    "nom": "Nigeria",
    "niveau": "marron",
    "libelle": "MARRON",
    "sous": "Critique",
-   "faitsNotables": 3,
+   "faitsNotables": 7,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.711Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.619Z"
   },
   "RW": {
    "nom": "Rwanda",
    "niveau": "marron",
    "libelle": "MARRON",
    "sous": "Critique",
-   "faitsNotables": 2,
+   "faitsNotables": 0,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.714Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.622Z"
   },
   "SC": {
    "nom": "Seychelles",
@@ -426,19 +426,19 @@
    "faitsNotables": 0,
    "confirmes": 0,
    "muet": true,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.716Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.625Z"
   },
   "SD": {
    "nom": "Soudan",
    "niveau": "rouge",
    "libelle": "ROUGE",
    "sous": "Grave",
-   "faitsNotables": 4,
+   "faitsNotables": 3,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.719Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.628Z"
   },
   "SL": {
    "nom": "Sierra Leone",
@@ -448,52 +448,52 @@
    "faitsNotables": 0,
    "confirmes": 0,
    "muet": true,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.721Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.631Z"
   },
   "SN": {
    "nom": "Sénégal",
    "niveau": "jaune",
    "libelle": "JAUNE",
    "sous": "Modéré",
-   "faitsNotables": 8,
+   "faitsNotables": 12,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.725Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.638Z"
   },
   "SO": {
    "nom": "Somalie",
    "niveau": "marron",
    "libelle": "MARRON",
    "sous": "Critique",
-   "faitsNotables": 5,
+   "faitsNotables": 6,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.728Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.642Z"
   },
   "SS": {
    "nom": "Soudan du Sud",
    "niveau": "marron",
    "libelle": "MARRON",
    "sous": "Critique",
-   "faitsNotables": 3,
+   "faitsNotables": 5,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.731Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.646Z"
   },
   "ST": {
    "nom": "Sao Tomé-et-Principe",
    "niveau": "jaune",
    "libelle": "JAUNE",
    "sous": "Modéré",
-   "faitsNotables": 0,
+   "faitsNotables": 1,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.734Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.650Z"
   },
   "SZ": {
    "nom": "Eswatini",
@@ -503,63 +503,63 @@
    "faitsNotables": 1,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.737Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.655Z"
   },
   "TD": {
    "nom": "Tchad",
    "niveau": "marron",
    "libelle": "MARRON",
    "sous": "Critique",
-   "faitsNotables": 3,
+   "faitsNotables": 5,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.739Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.659Z"
   },
   "TG": {
    "nom": "Togo",
    "niveau": "orange",
    "libelle": "ORANGE",
    "sous": "Élevé",
-   "faitsNotables": 3,
+   "faitsNotables": 4,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.742Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.664Z"
   },
   "TN": {
    "nom": "Tunisie",
    "niveau": "jaune",
    "libelle": "JAUNE",
    "sous": "Modéré",
-   "faitsNotables": 2,
+   "faitsNotables": 5,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.745Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.669Z"
   },
   "TZ": {
    "nom": "Tanzanie",
    "niveau": "marron",
    "libelle": "MARRON",
    "sous": "Critique",
-   "faitsNotables": 1,
+   "faitsNotables": 3,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.748Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.673Z"
   },
   "UG": {
    "nom": "Ouganda",
    "niveau": "marron",
    "libelle": "MARRON",
    "sous": "Critique",
-   "faitsNotables": 5,
-   "confirmes": 1,
+   "faitsNotables": 4,
+   "confirmes": 2,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.752Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.678Z"
   },
   "ZA": {
    "nom": "Afrique du Sud",
@@ -567,21 +567,21 @@
    "libelle": "JAUNE",
    "sous": "Modéré",
    "faitsNotables": 5,
-   "confirmes": 0,
+   "confirmes": 1,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.760Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.682Z"
   },
   "ZM": {
    "nom": "Zambie",
    "niveau": "orange",
    "libelle": "ORANGE",
    "sous": "Élevé",
-   "faitsNotables": 0,
+   "faitsNotables": 3,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.763Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.686Z"
   },
   "ZW": {
    "nom": "Zimbabwe",
@@ -591,9 +591,9 @@
    "faitsNotables": 1,
    "confirmes": 0,
    "muet": false,
-   "jour": "2026-11-20",
-   "genere": "2026-11-20T12:08:54.766Z"
+   "jour": "2026-11-21",
+   "genere": "2026-11-21T10:50:09.689Z"
   }
  },
- "genere": "2026-11-20T12:08:54.766Z"
+ "genere": "2026-11-21T10:50:09.689Z"
 }
