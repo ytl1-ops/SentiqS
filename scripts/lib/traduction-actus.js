@@ -28,7 +28,7 @@
 // passage suivant.
 
 const { traduire: traduireUn } = require('./traduction-job');
-const modeles = require('./mistral');
+const modeles = require('./gemini');
 
 const CIBLES = ['fr', 'en'];
 const PAQUET_MAX_CARACTERES = 1400; // texte brut ; ~4 000 une fois encodé dans l'adresse
@@ -196,7 +196,7 @@ async function traduireActus(articles, opts) {
     if (Date.now() >= echeance) { stats.reportes += lot.length; continue; }
     stats.requetes++;
     let res = await traduirePaquetGoogle(lot.map((u) => u.envoye), lot[0].source, lot[0].cible, fetchFn, delaiMs);
-    // Google a refusé le paquet : Mistral le reprend d'un seul appel
+    // Google a refusé le paquet : Gemini le reprend d'un seul appel
     // (20/11/2026), avant le repli titre par titre qui coûte une requête par
     // ligne. Même règle de forme : une ligne par titre, sinon rejeté.
     if (!res && modeles.disponible()) {

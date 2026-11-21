@@ -3217,31 +3217,33 @@ sur émulateur en CI (11 cas de plus dans `verifier-regles-firestore.js`). **Non
 réel (pas de réseau).
 
 
-### Mistral en repli de traduction — 20/11/2026
+### Gemini en repli de traduction — 20-21/11/2026
 
 Demande de YORO : « Insère free llmapi de GitHub ». GitHub Models est
 **retiré depuis le 30/07/2026** : mesuré depuis Actions, `models.github.ai`
-répond « OK » en texte brut. Ne pas y revenir. YORO a choisi **Mistral**
-(offre gratuite « Experiment », console.mistral.ai) le même jour.
-`scripts/lib/mistral.js` appelle `api.mistral.ai/v1/chat/completions`
-(modèle `mistral-small-latest`) avec le secret Actions `MISTRAL_API_KEY`,
-lu par les jobs seulement (rien dans la page servie ni dans `web/js/`, un
-test l'exige). Sans secret, rien ne change. Ordre des moteurs : Google
-« gtx », **puis Mistral**, puis MyMemory — un paquet refusé par Google est
-repris d'un seul appel avant le repli titre par titre.
+répond « OK » en texte brut. Ne pas y revenir. Mistral, choisi ensuite, a
+refusé la clé du plan gratuit ; YORO a basculé le 21/11/2026 sur **Google
+Gemini** (clé gratuite d'AI Studio). `scripts/lib/gemini.js` appelle le
+point d'accès compatible OpenAI
+`generativelanguage.googleapis.com/v1beta/openai/chat/completions`
+(modèle `gemini-2.5-flash`) avec le secret Actions `GEMINI_API_KEY`, lu par
+les jobs seulement (rien dans la page servie ni dans `web/js/`, un test
+l'exige). Sans secret, rien ne change. Ordre des moteurs : Google « gtx »,
+**puis Gemini**, puis MyMemory — un paquet refusé par Google est repris d'un
+seul appel avant le repli titre par titre.
 
-- **Budget** `MISTRAL_MAX_REQUETES` : 20 par passage horaire, 10 par
-  collecte ; un 401/403/429 coupe le service pour le reste du passage.
-  `MISTRAL=0` le coupe (c'est ce que fait `npm test`).
+- **Budget** `GEMINI_MAX_REQUETES` : 6 par passage horaire, 4 par collecte
+  (204 par jour au pire, sous le plafond quotidien gratuit) ; un 401/403/429
+  coupe le service pour le reste du passage. `GEMINI=0` le coupe (c'est ce
+  que fait `npm test`).
 - **Le modèle traduit, rien d'autre** : niveau et classement restent calculés
   sur le texte d'origine. Sa réponse est rejetée si elle n'est pas un tableau
   JSON de même longueur, ou si une ligne est vide ou hors de proportion
   (réponse bavarde ou détournée par un titre).
-- **Non mesuré d'ici** (le bac à sable n'atteint pas `api.mistral.ai`) :
-  `sonde-mistral.yml` le mesure depuis GitHub une fois le secret posé ; le
+- **Mesure** : `sonde-gemini.yml` traduit trois titres depuis GitHub ; le
   journal de chaque passage dit combien de requêtes ont abouti.
 
-`scripts/test/mistral.test.js` (9).
+`scripts/test/gemini.test.js` (9).
 ---
 
 ## GRSCI tenu à jour sur sa période, et plus aucun visuel de remplacement — 23/10/2026

@@ -47,7 +47,7 @@ jobs:
           # Facultatif : une adresse e-mail passée à MyMemory relève son quota
           # gratuit de 5 000 à 50 000 caractères par jour. Sans elle, rien ne change.
           MYMEMORY_EMAIL: ${{ secrets.MYMEMORY_EMAIL }}
-          # Mistral, repli de traduction (scripts/lib/mistral.js) : clé gratuite
+          # Gemini, repli de traduction (scripts/lib/gemini.js) : clé gratuite
           # en secret Actions, jamais exposée à la page. Sans secret, rien ne change.
-          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: node scripts/traduire-cache.js

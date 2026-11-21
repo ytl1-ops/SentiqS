@@ -1,22 +1,22 @@
-// Mistral en repli de la traduction des actus — demande de YORO du
+// Gemini en repli de la traduction des actus — demande de YORO du
 // 20/11/2026 (« Insère free llmapi de GitHub » ; GitHub Models étant retiré,
-// YORO a choisi Mistral).
+// YORO a choisi Gemini, Mistral ayant refusé la clé gratuite).
 const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
-const modeles = require('../lib/mistral.js');
+const modeles = require('../lib/gemini.js');
 const { traduireActus } = require('../lib/traduction-actus.js');
 const { traduire } = require('../lib/traduction-job.js');
 
 const RACINE = path.join(__dirname, '..', '..');
 
-// Faux Mistral : préfixe chaque ligne par la cible, ou répond `forcer`.
+// Faux Gemini : préfixe chaque ligne par la cible, ou répond `forcer`.
 function fauxModeles(journal, opts) {
   const o = opts || {};
   return async (url, init) => {
     const u = new URL(url);
-    if (u.hostname !== 'api.mistral.ai') {
+    if (u.hostname !== 'generativelanguage.googleapis.com') {
       if (o.google) return o.google(url, init);
       return { ok: false, status: 503 };
     }
@@ -78,13 +78,13 @@ test('le budget par passage est respecté', async () => {
   const journal = [];
   for (let i = 0; i < 4; i++) await modeles.traduireLignes(['Bonjour à tous'], 'fr', 'en', { fetchFn: fauxModeles(journal) });
   assert.strictEqual(journal.length, 2);
-  modeles.reinitialiser({ jeton: 'j', env: { MISTRAL_MAX_REQUETES: '3' } });
+  modeles.reinitialiser({ jeton: 'j', env: { GEMINI_MAX_REQUETES: '3' } });
   journal.length = 0;
   for (let i = 0; i < 5; i++) await modeles.traduireLignes(['Bonjour à tous'], 'fr', 'en', { fetchFn: fauxModeles(journal) });
-  assert.strictEqual(journal.length, 3, 'le budget se règle par MISTRAL_MAX_REQUETES');
+  assert.strictEqual(journal.length, 3, 'le budget se règle par GEMINI_MAX_REQUETES');
 });
 
-test('actus : Mistral reprend en un appel le paquet refusé par Google, et rien quand Google répond', async () => {
+test('actus : Gemini reprend en un appel le paquet refusé par Google, et rien quand Google répond', async () => {
   const titres = ['Attaque armée contre un convoi dans le nord du Mali', 'Grève générale des transporteurs à Abidjan', 'Inondations meurtrières à Niamey'];
   const langues = new Map(titres.map((t) => [t, 'fr']));
 
@@ -96,7 +96,7 @@ test('actus : Mistral reprend en un appel le paquet refusé par Google, et rien 
   assert.ok(arts.every((a) => a.tr.en.t === '[en] ' + a.title));
   assert.strictEqual(st.viaModeles, 3);
 
-  // Google répond : le quota de Mistral n'est pas dépensé.
+  // Google répond : le quota de Gemini n'est pas dépensé.
   modeles.reinitialiser({ jeton: 'j', env: {} });
   journal = [];
   const google = async (url) => {
@@ -109,7 +109,7 @@ test('actus : Mistral reprend en un appel le paquet refusé par Google, et rien 
   assert.ok(arts.every((a) => a.tr.en.t === 'G ' + a.title));
 });
 
-test('traduction unitaire : Mistral passe entre Google et MyMemory', async () => {
+test('traduction unitaire : Gemini passe entre Google et MyMemory', async () => {
   modeles.reinitialiser({ jeton: 'j', env: {} });
   const hotes = [];
   const fetchFn = async (url, init) => {
@@ -118,29 +118,29 @@ test('traduction unitaire : Mistral passe entre Google et MyMemory', async () =>
   };
   const out = await traduire('Gunmen kill three soldiers in northern Nigeria', 'en', { fetchFn });
   assert.strictEqual(out, '[fr] Gunmen kill three soldiers in northern Nigeria');
-  assert.deepStrictEqual(hotes, ['translate.googleapis.com', 'api.mistral.ai'], 'MyMemory n\'est pas appelé quand Mistral a répondu');
+  assert.deepStrictEqual(hotes, ['translate.googleapis.com', 'generativelanguage.googleapis.com'], 'MyMemory n\'est pas appelé quand Gemini a répondu');
 });
 
-test('la clé ne vit que dans les jobs : la page servie n\'appelle jamais Mistral', () => {
+test('la clé ne vit que dans les jobs : la page servie n\'appelle jamais Gemini', () => {
   const page = fs.readFileSync(path.join(RACINE, 'web', 'SentiqS_Web.html'), 'utf8');
-  assert.ok(!/api\.mistral\.ai|MISTRAL_API_KEY/.test(page));
+  assert.ok(!/generativelanguage\.googleapis\.com|GEMINI_API_KEY/.test(page));
   for (const f of fs.readdirSync(path.join(RACINE, 'web', 'js'))) {
-    assert.ok(!/api\.mistral\.ai|MISTRAL_API_KEY/.test(fs.readFileSync(path.join(RACINE, 'web', 'js', f), 'utf8')), f);
+    assert.ok(!/generativelanguage\.googleapis\.com|GEMINI_API_KEY/.test(fs.readFileSync(path.join(RACINE, 'web', 'js', f), 'utf8')), f);
   }
   for (const f of ['traduction-actus.yml', 'collecte-planifiee.yml']) {
     const wf = fs.readFileSync(path.join(RACINE, '.github', 'workflows', f), 'utf8');
-    assert.match(wf, /MISTRAL_API_KEY: \$\{\{ secrets\.MISTRAL_API_KEY \}\}/, f + ' : clé passée au script');
+    assert.match(wf, /GEMINI_API_KEY: \$\{\{ secrets\.GEMINI_API_KEY \}\}/, f + ' : clé passée au script');
     assert.ok(!/^\s+models: read$/m.test(wf), f + ' : plus de permission GitHub Models');
   }
 });
 
-test('par défaut : point d\'accès et modèle de Mistral, budget de 20', async () => {
-  assert.strictEqual(modeles.POINT_ACCES, 'https://api.mistral.ai/v1/chat/completions');
-  assert.strictEqual(modeles.MODELE_DEFAUT, 'mistral-small-latest');
-  modeles.reinitialiser({ env: { MISTRAL_API_KEY: 'k' } });
+test('par défaut : point d\'accès et modèle de Gemini, budget de 6', async () => {
+  assert.strictEqual(modeles.POINT_ACCES, 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions');
+  assert.strictEqual(modeles.MODELE_DEFAUT, 'gemini-2.5-flash');
+  modeles.reinitialiser({ env: { GEMINI_API_KEY: 'k' } });
   const journal = [];
-  for (let i = 0; i < 25; i++) await modeles.traduireLignes(['Bonjour à tous'], 'fr', 'en', { fetchFn: fauxModeles(journal) });
-  assert.strictEqual(journal.length, 20);
-  modeles.reinitialiser({ env: { MISTRAL_API_KEY: 'k', MISTRAL: '0' } });
-  assert.strictEqual(modeles.disponible(), false, 'MISTRAL=0 coupe le service');
+  for (let i = 0; i < 10; i++) await modeles.traduireLignes(['Bonjour à tous'], 'fr', 'en', { fetchFn: fauxModeles(journal) });
+  assert.strictEqual(journal.length, 6);
+  modeles.reinitialiser({ env: { GEMINI_API_KEY: 'k', GEMINI: '0' } });
+  assert.strictEqual(modeles.disponible(), false, 'GEMINI=0 coupe le service');
 });

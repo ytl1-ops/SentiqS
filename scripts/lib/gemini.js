@@ -1,27 +1,30 @@
 'use strict';
-// Mistral : un modèle de langue à clé gratuite, en renfort de la traduction
+// Gemini : un modèle de langue à clé gratuite, en renfort de la traduction
 // des actus — 20/11/2026.
 //
 // Demande de YORO : « Insère free llmapi de GitHub ». GitHub Models, l'API
 // gratuite de GitHub, est retiré depuis le 30/07/2026 (mesuré depuis Actions :
-// models.github.ai répond « OK » en texte brut). YORO a choisi Mistral (offre
-// gratuite « Experiment », console.mistral.ai) le même jour. Les jobs de
+// models.github.ai répond « OK » en texte brut). YORO a d'abord choisi
+// Mistral, dont la clé a été refusée sur le plan gratuit, puis Google Gemini
+// (offre gratuite d'AI Studio, modèle gemini-2.5-flash) le 21/11/2026, appelé
+// par son point d'accès compatible OpenAI. Les jobs de
 // traduction (traduire-cache.js toutes les heures, et la collecte) n'avaient
 // que deux services gratuits sans clé : Google « gtx », non officiel et qui
 // peut refuser un robot, et MyMemory, plafonné à 5 000 caractères par jour.
 // Quand les deux tombent, les actus restent masquées en anglais (« Masquer les
 // actus non traduites », 19/11/2026).
 //
-// La clé est un secret Actions (MISTRAL_API_KEY), lu par le job seulement :
+// La clé est un secret Actions (GEMINI_API_KEY), lu par le job seulement :
 // la page publique ne la voit jamais, et un test l'exige. Sans clé, le
 // service n'est simplement pas appelé.
 //
 // Trois règles :
 //
-//  - c'est un REPLI : Google passe d'abord, Mistral seulement quand il a
+//  - c'est un REPLI : Google passe d'abord, Gemini seulement quand il a
 //    échoué, puis MyMemory. On ne dépense pas le quota quand Google répond ;
-//  - un budget par passage (MISTRAL_MAX_REQUETES) : 20 pour le passage
-//    horaire, 10 pour une collecte — loin du plafond de l'offre gratuite ;
+//  - un budget par passage (GEMINI_MAX_REQUETES) : 6 pour le passage
+//    horaire, 4 pour une collecte (24 × 6 + 15 × 4 = 204 par jour au pire),
+//    sous le plafond quotidien de l'offre gratuite ;
 //  - un disjoncteur : un refus (401, 403, 429) coupe le service pour le reste
 //    du passage, au lieu de rappeler un service qui a déjà dit non.
 //
@@ -33,9 +36,9 @@
 // aucune instruction qu'il contiendrait, et la vérification de forme fait le
 // reste (une réponse bavarde ou détournée n'a pas la bonne longueur).
 
-const POINT_ACCES = 'https://api.mistral.ai/v1/chat/completions';
-const MODELE_DEFAUT = 'mistral-small-latest';
-const MAX_REQUETES_DEFAUT = 20;
+const POINT_ACCES = 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
+const MODELE_DEFAUT = 'gemini-2.5-flash';
+const MAX_REQUETES_DEFAUT = 6;
 const DELAI_MS = 30000;
 
 const NOMS_LANGUES = { fr: 'French', en: 'English', pt: 'Portuguese', ar: 'Arabic', es: 'Spanish', auto: 'the source language (detect it)' };
@@ -44,11 +47,11 @@ let etat = null;
 function reinitialiser(opts) {
   const o = opts || {};
   const env = o.env || process.env;
-  const max = Number(o.maxRequetes !== undefined ? o.maxRequetes : env.MISTRAL_MAX_REQUETES);
+  const max = Number(o.maxRequetes !== undefined ? o.maxRequetes : env.GEMINI_MAX_REQUETES);
   etat = {
-    jeton: String((o.jeton !== undefined ? o.jeton : env.MISTRAL_API_KEY) || '').trim(),
-    modele: String(o.modele || env.MISTRAL_MODELE || MODELE_DEFAUT).trim(),
-    coupe: String(env.MISTRAL || '').trim() === '0',
+    jeton: String((o.jeton !== undefined ? o.jeton : env.GEMINI_API_KEY) || '').trim(),
+    modele: String(o.modele || env.GEMINI_MODELE || MODELE_DEFAUT).trim(),
+    coupe: String(env.GEMINI || '').trim() === '0',
     restant: Number.isFinite(max) && max >= 0 ? max : MAX_REQUETES_DEFAUT,
     refus: null,
     derniereErreur: '',
@@ -149,9 +152,9 @@ async function traduireLignes(lignes, source, cible, opts) {
 /** Ligne de journal, sans jeton ni texte. */
 function bilan() {
   const e = courant();
-  if (!e.jeton) return 'Mistral : non configuré (pas de secret MISTRAL_API_KEY dans ce passage)';
-  if (e.coupe) return 'Mistral : coupé (MISTRAL=0)';
-  return 'Mistral (' + e.modele + ') : ' + e.stats.requetes + ' requête(s), '
+  if (!e.jeton) return 'Gemini : non configuré (pas de secret GEMINI_API_KEY dans ce passage)';
+  if (e.coupe) return 'Gemini : coupé (GEMINI=0)';
+  return 'Gemini (' + e.modele + ') : ' + e.stats.requetes + ' requête(s), '
     + e.stats.reussies + ' réussie(s), ' + e.stats.rejetees + ' réponse(s) rejetée(s)'
     + (e.refus ? ', service refusé (HTTP ' + e.refus + ') pour la suite du passage' : '')
     + (e.derniereErreur && !e.stats.reussies ? ' — dernière erreur : ' + e.derniereErreur : '');

@@ -120,7 +120,7 @@ async function passageCache(compte, debut) {
   const st = await traduireActus(articles, { existants: articles, langues, resumeMax: det.resumeMax, echeance: debut + BUDGET_MS });
   console.log('Traduction des actus (FR/EN, passage seul) : ' + st.repris + ' reprise(s), ' + st.traduits + ' nouvelle(s), '
     + st.echecs + ' échec(s), ' + st.reportes + ' reportée(s), ' + st.requetes + ' requête(s), en ' + Math.round((Date.now() - debut) / 1000) + ' s.');
-  console.log(require('./lib/mistral').bilan() + '.');
+  console.log(require('./lib/gemini').bilan() + '.');
   if (!st.traduits) { console.log('Aucune traduction nouvelle : le cache n\'est pas réécrit.'); return; }
 
   // Une collecte a pu publier pendant ce passage : on relit, et on reporte.

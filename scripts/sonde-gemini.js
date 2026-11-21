@@ -1,9 +1,9 @@
 'use strict';
-// Sonde de Mistral depuis un runner (le bac à sable de développement
-// n'atteint pas api.mistral.ai) — 20/11/2026. Traduit trois titres types,
+// Sonde de Gemini depuis un runner (le bac à sable de développement
+// n'atteint pas generativelanguage.googleapis.com) — 20/11/2026. Traduit trois titres types,
 // dans les deux sens, et dit ce qui a répondu. Informative : n'échoue jamais,
 // et n'imprime jamais la clé.
-const modeles = require('./lib/mistral');
+const modeles = require('./lib/gemini');
 
 const ESSAIS = [
   ['fr', 'en', ['Attaque armée contre un convoi de l\'armée près de Djibo', 'Grève générale des transporteurs à Abidjan']],
@@ -14,7 +14,7 @@ const ESSAIS = [
 (async () => {
   modeles.reinitialiser({ maxRequetes: ESSAIS.length });
   if (!modeles.disponible()) {
-    console.log('Secret MISTRAL_API_KEY absent : rien à sonder. ' + modeles.bilan() + '.');
+    console.log('Secret GEMINI_API_KEY absent : rien à sonder. ' + modeles.bilan() + '.');
     return;
   }
   for (const [src, cible, lignes] of ESSAIS) {
