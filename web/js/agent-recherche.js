@@ -69,7 +69,7 @@
   ];
 
   var COTATIONS = ['confirme', 'probable', 'non_confirme'];
-  var STATUTS = ['insere', 'deja', 'quarantaine'];
+  var STATUTS = ['insere', 'deja', 'quarantaine', 'hors_theme'];
 
   function jourDe(ms) { return Math.floor(Number(ms) / JOUR_MS); }
   function idDemande(uid, jour, n) { return String(uid) + '_' + String(jour) + '_' + String(n); }
@@ -241,13 +241,13 @@
   var LIB = {
     fr: {
       cot: { confirme: 'Confirmé', probable: 'Probable', non_confirme: 'Non confirmé' },
-      statut: { insere: 'Ajouté à la base', deja: 'Déjà dans la base', quarantaine: 'En attente de validation par l’analyste' },
+      statut: { insere: 'Ajouté à la base', deja: 'Déjà dans la base', quarantaine: 'En attente de validation par l’analyste', hors_theme: 'Hors sûreté : non proposé à la base' },
       etat: { ok: 'interrogé', robots: 'refusé par son robots.txt', erreur: 'injoignable', quota: 'quota atteint', ignore: 'non interrogé' },
       ecarte: { hors_liste: 'média hors du registre', hors_periode: 'hors de la période', sans_date: 'sans date', autre_pays: 'autre pays', hors_surete: 'hors sûreté', doublon: 'déjà vu' },
     },
     en: {
       cot: { confirme: 'Confirmed', probable: 'Probable', non_confirme: 'Unconfirmed' },
-      statut: { insere: 'Added to the database', deja: 'Already in the database', quarantaine: 'Awaiting analyst validation' },
+      statut: { insere: 'Added to the database', deja: 'Already in the database', quarantaine: 'Awaiting analyst validation', hors_theme: 'Not security-related: not proposed to the database' },
       etat: { ok: 'queried', robots: 'refused by its robots.txt', erreur: 'unreachable', quota: 'quota reached', ignore: 'not queried' },
       ecarte: { hors_liste: 'outlet not in the registry', hors_periode: 'outside the period', sans_date: 'undated', autre_pays: 'another country', hors_surete: 'not security-related', doublon: 'already seen' },
     },

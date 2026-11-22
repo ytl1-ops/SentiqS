@@ -4814,3 +4814,29 @@ quand l'un d'eux tombe. Guide pour l'éditeur : `docs/sans-serveur.md`.
   `scripts/test/rapport-release.test.js` (7).
 
 `scripts/test/sans-serveur.test.js` (9).
+
+---
+
+## Louis, l'agent de veille — 22/11/2026
+
+Demande de YORO : « Insère une bulle chat pour l'IA, le nom de l'agent IA est
+Louis. » L'assistant et l'agent de recherche web portent désormais ce nom
+partout : bouton de la barre du haut, menu « Plus » (« Demander à Louis »),
+accès rapide, titre de la fenêtre, premier message, FAQ (« Qui est Louis ? »).
+**Rien n'a changé dans ce qu'il répond** : extraits sourcés ou « introuvable »,
+aucun modèle de langue.
+
+- **Bulle flottante** (`#louisBulle`, bloc CSS « LOUIS, L'AGENT DE VEILLE ») :
+  bas à droite, au-dessus de la barre d'état sur bureau, ronde sur téléphone
+  (règle écrite deux fois). Masquée sur l'écran de connexion, quand une
+  fenêtre est ouverte et à l'impression. Bleu nuit et or, **aucune couleur de
+  gravité** : un test l'interdit, Louis n'alerte jamais. Le badge d'analyse IA
+  (`#ia-badge`) passe en bas à gauche pour ne pas la recouvrir.
+- **« Louis cherche… »** : `majBulleLouis` lit les recherches web en attente
+  (`_agentAttente`) ; une pastille les compte, puis la bulle dit « Louis a
+  répondu » si la réponse arrive fenêtre fermée (relecture toutes les 5 min).
+- Version hors ligne : la recherche web n'est pas proposée (`estHorsLigne`).
+- La FAQ dit maintenant qu'une recherche web transmet la question au serveur
+  de SentiqS (c'était vrai depuis l'agent, la phrase disait le contraire).
+
+`scripts/test/louis.test.js` (6).
