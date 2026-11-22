@@ -152,7 +152,9 @@ test('le rapport et son index publiés sont cohérents', () => {
   const idx = JSON.parse(fs.readFileSync(path.join(racine, 'index.json'), 'utf8')).rapports;
   // L'index peut être vide le temps d'une régénération (27/10/2026 : rapports
   // portant le nom du groupe retirés) ; ce qu'il liste doit exister.
-  for (const r of idx) for (const f of r.formats) assert.ok(fs.existsSync(path.join(racine, r.mois + '.' + f)), r.mois + '.' + f);
+  // Une entrée `base` (rapport du mois en cours, servi par une release GitHub depuis
+  // la PR #197) n'a volontairement aucun fichier dans l'arbre : rien à vérifier ici.
+  for (const r of idx.filter(x => !x.base)) for (const f of r.formats) assert.ok(fs.existsSync(path.join(racine, r.mois + '.' + f)), r.mois + '.' + f);
   for (const f of ['pptx', 'docx', 'pdf']) assert.ok(!fs.existsSync(path.join(racine, 'dernier.' + f)), 'dernier.' + f + ' retiré');
 });
 
