@@ -12,6 +12,15 @@
     ],
     "headers": [
       {
+        "source": "/@(historique|agenda)/*.json",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=300, stale-while-revalidate=3600"
+          }
+        ]
+      },
+      {
         "source": "**/*.@(html|json)",
         "headers": [
           {
@@ -25,7 +34,7 @@
         "headers": [
           {
             "key": "Cache-Control",
-            "value": "no-cache"
+            "value": "public, max-age=300, stale-while-revalidate=86400"
           }
         ]
       },
@@ -34,7 +43,7 @@
         "headers": [
           {
             "key": "Cache-Control",
-            "value": "public, max-age=86400"
+            "value": "public, max-age=604800"
           }
         ]
       },
