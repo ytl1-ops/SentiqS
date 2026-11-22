@@ -15255,9 +15255,29 @@ async function _listerFirestore(collection, n) {
     return (j.documents || []).map(d => ({ id: String(d.name).split('/').pop(), f: d.fields || {} }));
   } catch (_) { return []; }
 }
+// Contenu commun (faits de l'agent, agenda de l'agent, validations) : fichiers
+// statiques écrits par le job sous agent/ (scripts/exporter-statiques.js),
+// servis par Pages et le CDN — aucune lecture Firestore par utilisateur
+// (audit de capacité du 22/11/2026 : ~640 lectures par ouverture avant).
+// Repli sur Firestore seulement si le fichier n'existe pas encore (404), le
+// temps du premier export ; une panne réseau ne déclenche aucune lecture.
+async function _lireFichierAgent(nom) {
+  try {
+    const r = await fetch('agent/' + nom + '.json', { cache: 'no-cache' });
+    if (r.status === 404) return null;
+    if (!r.ok) return [];
+    const j = await r.json();
+    return Array.isArray(j) ? j : [];
+  } catch (_) { return []; }
+}
+async function _faitsAgent(nom, collection, n) {
+  const f = await _lireFichierAgent(nom);
+  if (f) return f.map(d => ({ id: d.id, f: nom === 'actus' ? { article: { stringValue: d.article } } : { evenement: { stringValue: d.evenement } } }));
+  return _listerFirestore(collection, n);
+}
 async function chargerActusAgent() {
   if (typeof SentiqAgent === 'undefined') return;
-  const docs = await _listerFirestore(SentiqAgent.COLLECTIONS.actus, 300);
+  const docs = await _faitsAgent('actus', SentiqAgent.COLLECTIONS.actus, 300);
   const srcs = SRCS.map(s => ({ id: s.id }));
   _actusAgent = docs.map(d => { try { return SentiqAgent.articleAgentValide(JSON.parse((d.f.article || {}).stringValue || 'null'), srcs); } catch (_) { return null; } }).filter(Boolean);
   if (_actusAgent.length && typeof ALL !== 'undefined' && ALL.length) {
@@ -15282,7 +15302,7 @@ async function agendaAgent() {
   if (_agendaAgent && Date.now() - _agendaAgentTs < 30 * 60000) return _agendaAgent;
   if (typeof SentiqAgent === 'undefined') return [];
   const MOIS_ABBR = ['Jan','Fev','Mar','Avr','Mai','Jun','Jul','Aou','Sep','Oct','Nov','Dec'];
-  const docs = await _listerFirestore(SentiqAgent.COLLECTIONS.agenda, 300);
+  const docs = await _faitsAgent('agenda', SentiqAgent.COLLECTIONS.agenda, 300);
   _agendaAgent = docs.map(d => agendaAgentVersEntree(d.id, (d.f.evenement || {}).stringValue, MOIS_ABBR)).filter(Boolean);
   _agendaAgentTs = Date.now();
   return _agendaAgent;
@@ -25515,11 +25535,21 @@ function _clientValidation() {
   return (typeof _fournisseurFirebase === 'function' && _fournisseurFirebase()) ? getClientFirebase() : null;
 }
 async function chargerValidations() {
-  const c = _clientValidation();
-  if (!c) return;
   try {
-    const { data, error } = await c.from('validations').select();
-    if (error || !Array.isArray(data)) return;
+    // Fichier statique d'abord (agent/validations.json : décisions sans
+    // adresse d'analyste) ; la lecture Firestore ne sert qu'avant le premier
+    // export, et à l'analyste, qui doit voir sa décision tout de suite.
+    let data = await _lireFichierAgent('validations');
+    if (data === null || estAdmin(typeof getSession === 'function' ? getSession() : null)) {
+      const c = _clientValidation();
+      if (!c) { if (data === null) return; }
+      else {
+        const r = await c.from('validations').select();
+        if (r.error || !Array.isArray(r.data)) { if (data === null) return; }
+        else data = r.data;
+      }
+    }
+    if (!Array.isArray(data)) return;
     VALIDATIONS.clear();
     data.forEach(v => { if (v && v.cle && validationValide(v)) VALIDATIONS.set(v.cle, v); });
     _validationsChargees = true;

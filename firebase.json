@@ -12,7 +12,7 @@
     ],
     "headers": [
       {
-        "source": "/@(historique|agenda)/*.json",
+        "source": "/@(historique|agenda|agent)/*.json",
         "headers": [
           {
             "key": "Cache-Control",

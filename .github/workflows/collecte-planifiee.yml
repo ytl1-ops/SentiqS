@@ -248,6 +248,14 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node scripts/publier-rapport-release.js
 
+      - name: Fichiers statiques de l'agent (faits, agenda, validations)
+        # Contenu commun lu par tous les comptes, servi sans lecture Firestore
+        # (audit de capacité du 22/11/2026). Voir scripts/lib/exporter-statiques.js.
+        if: ${{ !cancelled() }}
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/exporter-statiques.js
+
       - name: Archiver l'instantané du jour
         # Un instantané par jour, écrit par le premier passage (voir
         # scripts/lib/historique.js), plus l'état de dédoublonnage des
@@ -266,7 +274,7 @@ jobs:
           GRSCI_FORCER: ${{ inputs.rapport_mensuel && '1' || '' }}
         run: |
           set -euo pipefail
-          if [ -z "$(git status --porcelain web/historique web/bulletins web/rapports)" ]; then
+          if [ -z "$(git status --porcelain --untracked-files=all web/historique web/bulletins web/rapports web/agent)" ]; then
             echo "Rien de neuf dans l'archive — journée déjà couverte."
             exit 0
           fi
@@ -281,9 +289,10 @@ jobs:
           # passage non commité reste dans les flux et le cache de 36 h : le
           # passage commité suivant le reprend.
           if [ -z "$(git status --porcelain web/historique)" ] \
-             && [ -z "$(git status --porcelain --untracked-files=all web/bulletins web/rapports | grep '^??' || true)" ] \
+             && [ -z "$(git status --porcelain web/agent/validations.json)" ] \
+             && [ -z "$(git status --porcelain --untracked-files=all web/bulletins web/rapports web/agent | grep '^??' || true)" ] \
              && [ "${GRSCI_FORCER:-}" != "1" ]; then
-            dernier=$(git log -1 --format=%ct --author=collecte-planifiee -- web/rapports web/bulletins 2>/dev/null || echo 0)
+            dernier=$(git log -1 --format=%ct --author=collecte-planifiee -- web/rapports web/bulletins web/agent 2>/dev/null || echo 0)
             if [ -n "$dernier" ] && [ $(( $(date +%s) - ${dernier:-0} )) -lt 10800 ]; then
               echo "Cumul et bulletins déjà commités il y a moins de 3 h — gardés pour le passage suivant."
               exit 0
@@ -292,6 +301,8 @@ jobs:
           git config user.name  "collecte-planifiee[bot]"
           git config user.email "collecte-planifiee@users.noreply.github.com"
           git add web/historique
+          # Faits, agenda et validations de l'agent, en fichiers statiques.
+          [ -d web/agent ] && git add web/agent
           # Bulletin quotidien des pays pilotes (scripts/lib/bulletin.js).
           [ -d web/bulletins ] && git add web/bulletins
           # Rapport mensuel de sûreté (scripts/lib/rapport-grsci.js).

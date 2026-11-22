@@ -4880,3 +4880,21 @@ aucun modèle de langue.
   de SentiqS (c'était vrai depuis l'agent, la phrase disait le contraire).
 
 `scripts/test/louis.test.js` (6).
+
+---
+
+## Contenu commun en fichiers statiques — 22/11/2026
+
+Audit de capacité (50 000 comptes, gratuit) : chaque ouverture relisait dans
+Firestore 300 faits de l'agent, 300 entrées d'agenda et les validations
+(~640 lectures pour un quota de 50 000 par jour). Décision déléguée par YORO :
+ces trois collections, communes à tous et sans donnée personnelle, sont
+exportées par le job (`scripts/exporter-statiques.js`, étape de
+`collecte-planifiee.yml`) en `web/agent/{actus,agenda,validations}.json`.
+La page les lit par `_lireFichierAgent` ; Firestore ne sert qu'en repli sur un
+**404** (avant le premier export) et à l'analyste pour ses propres validations.
+Les validations exportées n'ont jamais l'adresse de l'analyste (`par` =
+« analyste »). Le cache d'actus principal reste réservé aux comptes (verrou du
+13/11/2026). Sorties déterministes : aucun diff, aucun commit. Ne rebrancher
+aucune lecture par utilisateur sur une collection commune. Modèle :
+`node scripts/capacite-50000.js`, `docs/capacite-50000.md`.
