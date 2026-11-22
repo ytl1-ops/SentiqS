@@ -7,9 +7,11 @@
 // ou par le traducteur intégré de Chrome, absent sur le runner. Node, lui, a
 // le réseau en direct : on appelle les mêmes services gratuits sans relais.
 //
-// Deux moteurs, dans l'ordre : Google (point d'accès gratuit « gtx »), puis
-// MyMemory. Aucun ne demande de clé. Un échec rend null : le texte reste dans
+// Trois moteurs, dans l'ordre : Google (point d'accès gratuit « gtx »), GitHub
+// Models (jeton du job, 20/11/2026), puis MyMemory. Aucun ne demande de clé. Un échec rend null : le texte reste dans
 // sa langue avec sa marque « (EN) », et le passage suivant réessaie.
+
+const modeles = require('./gemini');
 
 const MAX_CARACTERES = 450;
 const DELAI_MS = 12000;
@@ -65,6 +67,13 @@ async function viaMyMemory(texte, source, fetchFn, delaiMs, cible) {
   return out;
 }
 
+// Gemini (20/11/2026), entre Google et MyMemory : voir gemini.js.
+async function viaGemini(texte, source, fetchFn, delaiMs, cible) {
+  if (!modeles.disponible()) return null;
+  const out = await modeles.traduireLignes([texte], source || 'auto', cible || 'fr', { fetchFn, delaiMs });
+  return out ? out[0] : null;
+}
+
 const decoder = (s) => s.replace(/&#39;|&#039;/g, '\'').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 
 /**
@@ -80,7 +89,7 @@ async function traduire(texte, source, opts) {
   const t = borne(texte);
   if (!t) return null;
   const delaiMs = o.delaiMs || DELAI_MS;
-  for (const moteur of [viaGoogle, viaMyMemory]) {
+  for (const moteur of [viaGoogle, viaGemini, viaMyMemory]) {
     const out = await moteur(t, source, fetchFn, delaiMs, o.cible === 'en' ? 'en' : 'fr');
     if (out) return out.trim() === t ? null : decoder(out);
   }

@@ -170,6 +170,11 @@ jobs:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           # Facultatif : relève le quota gratuit de MyMemory (voir traduction-job.js).
           MYMEMORY_EMAIL: ${{ secrets.MYMEMORY_EMAIL }}
+          # Gemini, repli de traduction (scripts/lib/gemini.js) : clé gratuite
+          # en secret Actions, jamais exposée à la page. Sans secret, rien ne
+          # change. Budget de 4 requêtes par collecte.
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MAX_REQUETES: '4'
         run: node scripts/collecte-planifiee.js
 
       - name: Sauvegarder la mémoire inter-runs de collecte

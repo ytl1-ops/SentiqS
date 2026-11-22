@@ -290,6 +290,7 @@ function ecrireResumeActions(md) {
             memoireTraductions = memoireTraductionsActus(fusionnes);
             console.log('Traduction des actus (FR/EN) : ' + st.repris + ' reprise(s), ' + st.traduits + ' nouvelle(s), '
               + st.echecs + ' échec(s), ' + st.reportes + ' reportée(s) au passage suivant, ' + st.requetes + ' requête(s).');
+            console.log(require('./lib/gemini').bilan() + '.');
           }
         } catch (e) {
           console.warn('::warning::Traduction des actus non faite : ' + ((e && e.message) || e));
