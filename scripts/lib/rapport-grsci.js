@@ -673,7 +673,11 @@ function rapportsAActualiser(racine, aujourdhui) {
   if (ep && !(ep.jour === finPrec && genereP && genereP > finPrec)) out.push({ mois: prec, fin: finPrec });
   const mois = String(aujourdhui).slice(0, 7);
   const e = entreeIndex(racine, mois);
-  if (!e || e.jour !== aujourdhui || !fs.existsSync(cheminRapport(racine, aujourdhui))) out.push({ mois, fin: aujourdhui });
+  // Le fichier du mois en cours n'est plus dans le dépôt depuis le 22/11/2026
+  // (servi par une release, voir publier-rapport-release.js) : une entrée qui
+  // porte `base` est publiée, elle ne se réécrit pas une seconde fois le même jour.
+  const publie = fs.existsSync(cheminRapport(racine, aujourdhui)) || !!(e && e.base);
+  if (!e || e.jour !== aujourdhui || !publie) out.push({ mois, fin: aujourdhui });
   return out;
 }
 
@@ -704,7 +708,11 @@ function reconstruireIndex(racine, maintenant) {
     if (m) (parMois[m[1]] = parMois[m[1]] || []).push(m[2]);
   }
   const ordre = ['pptx', 'docx', 'pdf'];
-  const rapports = Object.keys(parMois).sort().reverse().map((mois) => {
+  // Un mois servi par une release (champ `base`) n'a plus ses fichiers dans
+  // le dépôt : son entrée est gardée telle quelle. Un mois dont les fichiers
+  // sont là (version finale commitée, ou release en échec) est servi par Pages.
+  const publies = avant.filter((r) => r && r.base && !parMois[r.mois] && baseValide(r.base));
+  const rapports = publies.concat(Object.keys(parMois).map((mois) => {
     const ancien = avant.find((r) => r.mois === mois) || {};
     const st = fs.statSync(path.join(racine, mois + '.' + parMois[mois][0]));
     return {
@@ -713,9 +721,43 @@ function reconstruireIndex(racine, maintenant) {
       jour: ancien.jour || null,
       genere: ancien.genere || (maintenant || st.mtime).toISOString(),
     };
-  });
+  })).sort((a, b) => (a.mois < b.mois ? 1 : a.mois > b.mois ? -1 : 0));
   fs.writeFileSync(fIndex, JSON.stringify({ rapports }, null, 1) + '\n');
   return rapports;
+}
+
+/**
+ * Versions quotidiennes servies par une release GitHub — choix de YORO du
+ * 22/11/2026 (« version finale seule dans Git »). Le rapport du mois en cours
+ * (~24 Mo) était recommité chaque jour et chaque version restait dans
+ * l'historique : ~700 Mo par mois, la première limite que le dépôt aurait
+ * atteinte. Désormais seule la version finale d'un mois clos est commitée ;
+ * le mois en cours est déposé (et remplacé chaque jour) dans la release
+ * `rapport-AAAA-MM`. Les assets d'une release ne pèsent pas sur le dépôt et
+ * n'ont pas d'historique.
+ */
+const PREFIXE_TAG = 'rapport-';
+function tagRelease(mois) { return PREFIXE_TAG + mois; }
+function nomAsset(mois, ext) { return 'Presentation-1-' + mois + '.' + ext; }
+function baseRelease(depot, mois) {
+  return 'https://github.com/' + depot + '/releases/download/' + tagRelease(mois) + '/';
+}
+// Seule une adresse de release GitHub est acceptée : l'index est servi au
+// navigateur, qui en fait des liens de téléchargement.
+function baseValide(b) {
+  return /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/releases\/download\/rapport-\d{4}-\d{2}\/$/.test(String(b || ''));
+}
+/** Pose `base` sur l'entrée du mois (après dépôt réussi dans la release). */
+function marquerRelease(racine, mois, base, formats) {
+  if (!baseValide(base)) throw new Error('adresse de release invalide : ' + base);
+  const fIndex = path.join(racine, 'index.json');
+  const d = JSON.parse(fs.readFileSync(fIndex, 'utf8'));
+  const r = (d.rapports || []).find((x) => x.mois === mois);
+  if (!r) throw new Error('mois absent de l\'index : ' + mois);
+  r.base = base;
+  if (formats && formats.length) r.formats = formats.slice();
+  fs.writeFileSync(fIndex, JSON.stringify(d, null, 1) + '\n');
+  return r;
 }
 
 /**
@@ -735,6 +777,7 @@ function majIndex(racine, chemin, jour, maintenant) {
 
 module.exports = {
   urlPptx,
+  tagRelease, nomAsset, baseRelease, baseValide, marquerRelease,
   PAYS_REGIONAUX, construire, planRapport, faitsMarquants, faitsIllustres, ficheTexte, rapportsAActualiser, dernierJourMois, moisPrecedent, libellePeriode, ecrire, majIndex, reconstruireIndex, cheminRapport, rubriqueDe, RUBRIQUES,
   // partagés avec la version Word (rapport-grsci-word.js)
   ASSETS, NOM_MODELE, EMETTEUR_DEFAUT, CONFIG_EMETTEUR, lireEmetteur, fixerEmetteurMois, emetteurDuMois, cheminEmetteurMois, piedTexte, cadreLogo, ratioImage, TITRE_COUVERTURE, TITRE_DOCUMENT, VERT, TEXTE, LEGERE, POLICE, POLICE_TITRE, DRAPEAUX, rectsDrapeau,

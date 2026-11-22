@@ -25866,9 +25866,15 @@ function chargerRapportsAuto(){
         (r.formats || []).forEach(function(f){
           if (!NOMS[f] || !/^\d{4}-\d{2}$/.test(String(r.mois))) return;
           var a = document.createElement('a');
-          a.href = 'rapports/mensuel/' + r.mois + '.' + f;
+          // Le mois en cours est servi par sa release GitHub (`base`, choix de
+          // YORO du 22/11/2026 : seule la version finale d'un mois est dans le
+          // dépôt). Une autre adresse que celle d'une release est ignorée.
+          var rel = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/releases\/download\/rapport-\d{4}-\d{2}\/$/.test(String(r.base || ''));
+          a.href = rel ? r.base + 'Presentation-1-' + r.mois + '.' + f : 'rapports/mensuel/' + r.mois + '.' + f;
+          if (rel) a.rel = 'noopener';
           // Nom du fichier enregistré : celui du modèle, jamais l'ancien sigle
-          // (« Présentation 1 », YORO, 01/11/2026).
+          // (« Présentation 1 », YORO, 01/11/2026). Sans effet sur la release
+          // (autre origine) : ses fichiers portent déjà ce nom.
           a.download = 'Presentation-1-' + r.mois + '.' + f;
           a.style.cssText = 'display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border:1px solid var(--bd);border-radius:5px;color:var(--b);font-weight:700;text-decoration:none';
           a.textContent = NOMS[f];
