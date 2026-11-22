@@ -180,6 +180,35 @@ function coter(groupe, seuil) {
   if (domaines.size >= 2) return 'confirme';
   return groupe.some((c) => noyau.peutAlerter({ score: c.source.score }, seuil === undefined ? 70 : seuil)) ? 'probable' : 'non_confirme';
 }
+// ── Pertinence sûreté d'un fait trouvé sur le web (22/11/2026) ──────────────
+// Premier passage réel : « LEC regularizes 304 volunteers » (compagnie
+// d'électricité du Liberia) est parti en quarantaine, à côté de « Gambia Navy
+// intercepts boat carrying 150 migrants ». La vraie classify() met les DEUX
+// au niveau normal : le niveau seul ne sépare pas l'utile du hors-thème.
+// Règle : un fait au-dessus du normal est pertinent ; au niveau normal, il
+// l'est seulement si son TITRE (le titre décide, comme dans classify) porte
+// un mot du domaine sûreté. Un fait non pertinent reste dans la réponse à la
+// question posée (statut « hors_theme »), mais n'est jamais proposé à la base.
+const PERTINENCE_SURETE_RE = new RegExp('\\b(' + [
+  // forces et ordre public
+  'armee', 'armees', 'army', 'military', 'militaires?', 'soldats?', 'soldiers?', 'troops?', 'navy', 'marine', 'gendarmes?', 'gendarmerie', 'police', 'policiers?', 'douane', 'customs', 'forca', 'forcas', 'policia', 'fuerzas', 'fama', 'fardc',
+  // violence et menaces
+  'attaques?', 'attaquent', 'attaque', 'attack(s|ed)?', 'ataques?', 'jihadistes?', 'djihadistes?', 'jihadists?', 'terroris\\w*', 'insurg\\w*', 'rebelles?', 'rebels?', 'bandits?', 'banditry', 'gunmen', 'hommes armes', 'armed', 'tue(s|e|es)?', 'killed', 'kills?', 'morts?', 'dead', 'mortos', 'muertos', 'enlev\\w*', 'kidnap\\w*', 'sequestr\\w*', 'otages?', 'hostages?', 'explosion', 'explosifs?', 'bomb\\w*', 'ied', 'coup', 'putsch', 'mutinerie', 'mutiny', 'violences?', 'violent', 'clash(es)?', 'affrontements?', 'combats?', 'fighting',
+  // mouvements de population et ordre public
+  'migrants?', 'migration', 'refugies?', 'refugees?', 'deplaces?', 'displaced', 'frontieres?', 'borders?', 'manifestations?', 'manifestants?', 'protests?', 'protesters?', 'greve', 'strikes?', 'emeutes?', 'riots?', 'couvre-feu', 'curfew', 'arrest\\w*', 'arrete(s|e|es)?', 'interpell\\w*', 'intercept\\w*',
+  // criminalité, sinistres, santé publique
+  'trafi(c|quants?|cking|ckers?)', 'drogue', 'drugs?', 'cocaine', 'piraterie', 'piracy', 'pirates?', 'braquages?', 'robbery', 'crimes?', 'criminal\\w*', 'incendies?', 'fires?', 'inondations?', 'floods?', 'naufrage', 'shipwreck', 'epidemie', 'outbreak', 'cholera', 'ebola', 'mpox',
+  // sûreté au sens propre
+  'securite', 'security', 'seguranca', 'seguridad', 'surete', 'evacuat\\w*', 'alerte', 'alert',
+].join('|') + ')\\b');
+function pertinentSurete(titre, niveau) {
+  if (niveau && niveau !== 'normal' && niveau !== 'ok') return true;
+  const t = String(titre || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[’']/g, ' ')
+    // Locutions figurées : « coup d'envoi », « coup de pouce », « coup de cœur » ne sont pas un putsch.
+    .replace(/\bcoups? d(e|u|es)? ?(envoi|pouce|coeur|projecteur|maitre|theatre|gueule|main)\b/g, ' ');
+  return PERTINENCE_SURETE_RE.test(t);
+}
+
 function cleFait(cy, titre) {
   return crypto.createHash('sha256').update(String(cy) + '\n' + noyau.titreNormalise(titre)).digest('hex').slice(0, 40);
 }
@@ -260,11 +289,12 @@ async function servirDemande(d, ctx) {
     const tete = g[0];
     const cotation = coter(g);
     const deja = g.some((c) => estDejaDansBase(c, ctx.existants));
-    const statut = deja ? 'deja' : (cotation === 'confirme' ? 'insere' : 'quarantaine');
+    const pertinent = pertinentSurete(tete.titre, tete.niveau);
+    const statut = deja ? 'deja' : (!pertinent ? 'hors_theme' : (cotation === 'confirme' ? 'insere' : 'quarantaine'));
     const liens = g.slice(0, 6).map((c) => ({ url: c.url, source: c.source.n, moteur: c.moteur }));
     faits.push({ titre: tete.titre, extrait: tete.extrait, liens, publieMs: Math.max(...g.map((c) => c.publieMs)),
       cy: tete.cy, niveau: tete.niveau, cotation, statut });
-    if (deja) return;
+    if (deja || !pertinent) return;
     const srcs = [...new Set(g.map((c) => c.source.id))];
     const article = Object.assign({}, tete.article, {
       srcs, primary: tete.source.id, crosses: [...new Set(g.map((c) => c.source.n))],
@@ -578,5 +608,5 @@ function contradictions(articles) {
   return out;
 }
 
-module.exports = { REQUETES_AGENDA, REQUETES_AGENDA_EN, PAYS_FRANCOPHONES, couverturePays, tourneeAgenda, paysPauvres, dateAnnoncee, requetesAgenda, collecterAgenda, contradictions, HOTES_RELAIS, listeBlanche, urlBing, urlReliefweb, requetes, decoder, parserRss, parserReliefweb,
+module.exports = { pertinentSurete, REQUETES_AGENDA, REQUETES_AGENDA_EN, PAYS_FRANCOPHONES, couverturePays, tourneeAgenda, paysPauvres, dateAnnoncee, requetesAgenda, collecterAgenda, contradictions, HOTES_RELAIS, listeBlanche, urlBing, urlReliefweb, requetes, decoder, parserRss, parserReliefweb,
   urlReelle, memeFait, grouper, coter, cleFait, estDejaDansBase, servirDemande, qualiteBase, aRecouper, signauxFaibles, NOMS_FAMILLES };

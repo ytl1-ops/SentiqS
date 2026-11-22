@@ -17,6 +17,15 @@ on:
   schedule:
     - cron: '7,37 * * * *'
   workflow_dispatch:
+    inputs:
+      valider_pays:
+        description: "Valider les faits en attente de ce pays (code à 2 lettres, ex. GM)"
+        required: false
+        default: ''
+      valider_titre:
+        description: "… dont le titre contient ce mot (4 lettres au moins, ex. migrants)"
+        required: false
+        default: ''
   pull_request:
     paths:
       - 'scripts/agent-recherche.js'
@@ -45,6 +54,7 @@ jobs:
         if: github.event_name != 'pull_request'
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          AGENT_VALIDER_PAYS: ${{ inputs.valider_pays }}
         run: node scripts/agent-recherche.js --compter
       - name: Restaurer le navigateur Playwright
         if: github.event_name == 'pull_request' || steps.compter.outputs.travail == '1'
@@ -67,4 +77,6 @@ jobs:
         if: github.event_name != 'pull_request' && steps.compter.outputs.travail == '1'
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          AGENT_VALIDER_PAYS: ${{ inputs.valider_pays }}
+          AGENT_VALIDER_TITRE: ${{ inputs.valider_titre }}
         run: node scripts/agent-recherche.js
