@@ -152,7 +152,7 @@ async function principal() {
     const agendaDu = !tour || !(Date.now() - Date.parse(tour.le || 0) < AGENDA_TOURNEE_MIN * 60000);
     const enAttente = dem.filter((x) => !rep.has(x.id)).length;
     const decisions = q.filter((x) => x.data.decision).length;
-    const travail = enAttente + decisions > 0 || quotidien || agendaDu || dem.some((x) => x.data.jour < A.jourDe(Date.now()) - 2);
+    const travail = enAttente + decisions > 0 || !!process.env.AGENT_VALIDER_PAYS || quotidien || agendaDu || dem.some((x) => x.data.jour < A.jourDe(Date.now()) - 2);
     console.log('Demandes en attente : ' + enAttente + ', décisions de l’analyste : ' + decisions + ', passage quotidien dû : ' + (quotidien ? 'oui' : 'non') + ', tournée d’agenda due : ' + (agendaDu ? 'oui' : 'non') + '.');
     if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, 'travail=' + (travail ? 1 : 0) + '\n');
     return;
@@ -235,6 +235,24 @@ async function principal() {
     console.log('Demandes servies : ' + servies + '.');
 
     // ── 2. Décisions de l'analyste sur la quarantaine ────────────────────────
+    // Lancement manuel (workflow_dispatch) : l'administrateur peut valider en
+    // un passage les faits d'un pays dont le titre contient un mot donné. Le
+    // choix vient de lui (il lance le workflow), le journal le dit.
+    const vPays = String(process.env.AGENT_VALIDER_PAYS || '').trim().toUpperCase();
+    const vMot = String(process.env.AGENT_VALIDER_TITRE || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    // Un fait en attente que la règle de pertinence juge hors sûreté est
+    // écarté sans attendre l'analyste (faits entrés avant la règle).
+    for (const q of quarantaine) {
+      if (q.data.decision || q.data.genre === 'agenda') continue;
+      let a; try { a = JSON.parse(q.data.article); } catch (_) { a = null; }
+      if (!a) continue;
+      const titreNorm = String(a.title || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      if (vPays && vMot && vMot.length >= 4 && q.data.cy === vPays && titreNorm.includes(vMot)) {
+        q.data.decision = 'valide'; q.data.decidePar = 'administrateur (lancement manuel)'; q.data.decideLe = new Date().toISOString();
+      } else if (!L.pertinentSurete(a.title, a.level)) {
+        q.data.decision = 'rejete'; q.data.decidePar = 'agent (hors sûreté)'; q.data.decideLe = new Date().toISOString();
+      }
+    }
     const journal = [];
     for (const q of quarantaine) {
       if (q.data.decision === 'valide' && q.data.genre === 'agenda') {

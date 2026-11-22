@@ -16,6 +16,9 @@
     // Premières actus d'abord, cache périmé affiché (22/11/2026).
     "# premières actus · chargement complet en cours…": "# first news items · full load in progress…",
     "Cache partagé de # h · actualisation en direct en cours…": "# h old shared cache · live refresh in progress…",
+    // Louis, l'agent de veille (22/11/2026).
+    "Discuter avec Louis, l'agent de veille": "Chat with Louis, the monitoring agent",
+    "Demander à Louis": "Ask Louis",
     // Une seule langue partout (19/11/2026) : Paramètres, boîtes natives.
     "Langue de l'interface et des rapports": "Interface and report language",
     "Une seule langue à l'écran et dans tous les documents : une actu pas encore traduite attend sa traduction.": "One language on screen and in every document: a news item not yet translated waits for its translation.",
