@@ -166,4 +166,55 @@ function filtrerFlash(mouvement, seuils) {
   return { montees, descentes: (mouvement && mouvement.descentes) || 0, sousSeuil };
 }
 
-module.exports = { URL_PRODUIT, SEUIL_FLASH, SEUIL_FLASH_PILOTES, filtrerFlash, etatDepuis, changements, etatSuivant, construireMessage, envoyer };
+// ── Canal par défaut sans secret : un ticket GitHub (22/11/2026) ───────────
+// WEBHOOK_ALERTES n'est toujours pas branché au 22/11/2026 : depuis le
+// 20/10, chaque flash n'existait que dans les journaux d'Actions, que
+// personne ne relit. Le job a déjà le droit d'écrire des tickets (il s'en
+// sert pour signaler une collecte en échec) et GitHub envoie un e-mail au
+// propriétaire du dépôt pour chaque commentaire d'un ticket qu'il suit. Un
+// ticket unique, « Flash sûreté », reçoit un commentaire par flash : aucun
+// secret, aucun compte de plus, et l'historique des flashs reste lisible.
+// Un webhook configuré garde la priorité ; le ticket n'est qu'un repli.
+const TITRE_TICKET_FLASH = 'Flash sûreté — changements de niveau';
+
+async function envoyerTicket(charge, o) {
+  const opts = o || {};
+  const jeton = opts.jeton;
+  const depot = opts.depot;
+  if (!jeton || !depot || !charge || !charge.text) return { ok: false, raison: 'jeton ou dépôt absent' };
+  const f = opts.fetch || ((u, x) => fetch(u, x));
+  const api = 'https://api.github.com/repos/' + depot;
+  const entetes = { authorization: 'Bearer ' + jeton, accept: 'application/vnd.github+json', 'content-type': 'application/json', 'user-agent': 'sentiqs-collecte' };
+  const corps = charge.text + '\n\n---\n_Message automatique du job de collecte (aucune réponse attendue ici)._';
+  try {
+    const r = await f(api + '/issues?state=open&per_page=100', { headers: entetes });
+    const liste = r && r.ok ? await r.json() : [];
+    const ticket = Array.isArray(liste) ? liste.find((t) => t && !t.pull_request && t.title === TITRE_TICKET_FLASH) : null;
+    let res;
+    if (ticket) {
+      res = await f(api + '/issues/' + ticket.number + '/comments', { method: 'POST', headers: entetes, body: JSON.stringify({ body: corps }) });
+    } else {
+      res = await f(api + '/issues', { method: 'POST', headers: entetes, body: JSON.stringify({
+        // Sans étiquette : une étiquette absente du dépôt ferait refuser la
+        // création (422) et perdre le flash. Le ticket se retrouve par son titre.
+        title: TITRE_TICKET_FLASH,
+        body: 'Chaque changement de niveau au-dessus du seuil du flash est ajouté ici en commentaire. '
+          + 'GitHub envoie un e-mail à chaque commentaire : ne pas fermer ce ticket.\n\n' + corps,
+      }) });
+    }
+    if (res && res.ok) return { ok: true, statut: res.status, canal: 'ticket' };
+    return { ok: false, raison: 'HTTP ' + ((res && res.status) || '?') };
+  } catch (e) {
+    return { ok: false, raison: (e && e.message) || String(e) };
+  }
+}
+
+// Webhook s'il existe, sinon ticket GitHub, sinon rien (journal seul).
+async function diffuser(charge, env, f) {
+  const e = env || {};
+  if (e.WEBHOOK_ALERTES) return Object.assign({ canal: 'webhook' }, await envoyer(e.WEBHOOK_ALERTES, charge, f));
+  if (e.GITHUB_TOKEN && e.GITHUB_REPOSITORY) return envoyerTicket(charge, { jeton: e.GITHUB_TOKEN, depot: e.GITHUB_REPOSITORY, fetch: f });
+  return { ok: false, canal: null, raison: 'aucun canal configuré' };
+}
+
+module.exports = { URL_PRODUIT, SEUIL_FLASH, SEUIL_FLASH_PILOTES, filtrerFlash, etatDepuis, changements, etatSuivant, construireMessage, envoyer, envoyerTicket, diffuser, TITRE_TICKET_FLASH };

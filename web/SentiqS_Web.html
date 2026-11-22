@@ -3733,6 +3733,9 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
       <button class="actu-btn" onclick="document.getElementById('tbMore').open=false;ouvrirAssistant()" id="assistantMenu" style="background:var(--sf)">
         <i class="ti ti-message-question"></i> <span data-i18n="btn_assistant_q">Poser une question</span>
       </button>
+      <button class="actu-btn" onclick="document.getElementById('tbMore').open=false;installerApplication()" id="installerAppBtn" hidden style="background:var(--sf)">
+        <i class="ti ti-download"></i> <span data-i18n="btn_installer_app">Installer l'application</span>
+      </button>
       <button class="actu-btn" onclick="runDiagnostic()" id="diagBtn" title="Tester les services de collecte" style="background:var(--sf)">
         <i class="ti ti-stethoscope"></i> <span data-i18n="btn_diagnostic">Diagnostic</span>
       </button>
@@ -6374,7 +6377,7 @@ const I18N = {
     empty_filtres:"Essayez d'élargir les filtres actifs.",
     empty_actualiser:'Cliquez sur Actualiser pour lancer la collecte des flux.',
     logo_sub:"Veille multi-sources · Médias + Réseaux sociaux · 54 pays d'Afrique",
-    live_pret:'Collecte...', btn_actualiser:'Actualiser', btn_diagnostic:'Diagnostic', btn_aller_a:'Aller à…', btn_assistant:'Assistant', btn_assistant_q:'Poser une question', btn_aller_pays:'Aller à un pays', btn_theme_sombre:'Sombre',
+    live_pret:'Collecte...', btn_actualiser:'Actualiser', btn_diagnostic:'Diagnostic', btn_aller_a:'Aller à…', btn_assistant:'Assistant', btn_assistant_q:'Poser une question', btn_installer_app:'Installer l\'application', btn_aller_pays:'Aller à un pays', btn_theme_sombre:'Sombre',
     menu_params:'Paramètres & Administration', menu_access:'Gestion des accès', menu_logout:'Se déconnecter',
     menu_reclam:'Signaler un problème', menu_paiement:'Déclarer un paiement',
     menu_mode_emploi:"Mode d'emploi (PDF)",
@@ -6531,7 +6534,7 @@ const I18N = {
     empty_filtres:'Try widening the active filters.',
     empty_actualiser:'Click Refresh to start collecting feeds.',
     logo_sub:'Multi-source monitoring · Media + Social networks · 54 African countries',
-    live_pret:'Collecting...', btn_actualiser:'Refresh', btn_diagnostic:'Diagnostic', btn_aller_a:'Go to…', btn_assistant:'Assistant', btn_assistant_q:'Ask a question', btn_aller_pays:'Go to a country', btn_theme_sombre:'Dark',
+    live_pret:'Collecting...', btn_actualiser:'Refresh', btn_diagnostic:'Diagnostic', btn_aller_a:'Go to…', btn_assistant:'Assistant', btn_assistant_q:'Ask a question', btn_installer_app:'Install the app', btn_aller_pays:'Go to a country', btn_theme_sombre:'Dark',
     menu_params:'Settings & Administration', menu_access:'Access management', menu_logout:'Log out',
     menu_reclam:'Report an issue', menu_paiement:'Declare a payment',
     menu_mode_emploi:'User guide (PDF)',
@@ -28513,4 +28516,33 @@ initMobileCollapsibles();
 </script>
 
 
+<script>
+// Installation de l'application sans le Play Store (22/11/2026). La page a
+// déjà un manifeste complet (web/manifest.webmanifest) : Chrome et Edge
+// l'installent comme une application (icône, plein écran), sur Android
+// comme sur ordinateur, sans compte développeur ni frais. Le bouton
+// n'apparaît que si le navigateur propose l'installation (événement
+// beforeinstallprompt) ; il disparaît une fois l'application installée.
+(function () {
+  var invite = null;
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    invite = e;
+    var b = document.getElementById('installerAppBtn');
+    if (b) b.hidden = false;
+  });
+  window.addEventListener('appinstalled', function () {
+    invite = null;
+    var b = document.getElementById('installerAppBtn');
+    if (b) b.hidden = true;
+  });
+  window.installerApplication = function () {
+    if (!invite) return;
+    var e = invite; invite = null;
+    try { e.prompt(); } catch (_) {}
+    var b = document.getElementById('installerAppBtn');
+    if (b) b.hidden = true;
+  };
+})();
+</script>
 </body></html>
