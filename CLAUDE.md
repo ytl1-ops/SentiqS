@@ -4814,3 +4814,46 @@ quand l'un d'eux tombe. Guide pour l'éditeur : `docs/sans-serveur.md`.
   `scripts/test/rapport-release.test.js` (7).
 
 `scripts/test/sans-serveur.test.js` (9).
+
+---
+
+## Collecte toutes les 30 min pour de vrai, premières actus d'abord — 22/11/2026
+
+Demande de YORO : « le max d'actus, de meilleurs rendus, un délai de
+chargement très réduit ». Mesure d'abord, dans les journaux Actions : le cron
+`*/30` est étranglé par GitHub, les passages n° 1245 à 1252 sont espacés de
+**4 à 8 h**. Deux effets : au-delà de 6 h (`COLLECTE_PARTAGEE_LECTURE_MAX_MS`)
+chaque visiteur attendait 0 à 45 s puis collectait lui-même à travers les
+relais publics, devant un Flux vide ; et un flux RSS ne garde que ses N
+derniers articles, donc ce qui en sortait entre deux passages n'était jamais
+lu. Passage n° 1252 : 1 694 articles, cache de 685 Ko, 517/578 sources, 49/54
+pays frais (BW ER GW SC SL sans actu de moins de 12 h).
+
+- **Relance chaînée** (job `relance` de `collecte-planifiee.yml`) : chaque
+  passage attend que `COLLECTE_CADENCE_MIN` (30) se soient écoulées depuis son
+  début puis lance le suivant par `workflow_dispatch`. Le groupe de
+  concurrence ne garde qu'un passage en attente : cron et chaîne se fondent.
+  Arrêt : variable de dépôt `COLLECTE_CHAINEE = 0`.
+- **Commits bornés** : à 30 min, le cumul du mois (~1 Mo) serait commité 48
+  fois par jour. `web/historique` (état des alertes sortantes, sans lequel le
+  passage suivant réannoncerait le même changement), un fichier nouveau et un
+  rapport forcé partent tout de suite ; le reste au plus toutes les 3 h.
+- **Tête du cache** (`collecte_partagee/tete`, `selectionnerTete` dans
+  `web/js/cache-firestore.js`) : tout article au-dessus du normal, les trois
+  plus récents et le plus récent d'une source fiable de chaque pays, toute la
+  Côte d'Ivoire, les 150 plus récents. Niveaux d'alerte, pays muets et hors
+  alerte y sont identiques au cache complet ; seuls les comptes sont
+  partiels, la barre d'état le dit. Lue par un appareil qui n'a rien en cache
+  local, avant le cache complet.
+- **Cache périmé affiché** : au-delà de 6 h, il s'affiche (filtré par la
+  fenêtre de 36 h, âge dit dans la barre d'état) pendant que la collecte du
+  visiteur le complète, au lieu d'un écran vide. `_afficherArticlesProvisoires`
+  n'écrit ni IndexedDB ni `sentinel_lastCollectTs` : l'appareil ne se croit
+  pas à jour.
+- Pas de service worker (décision antérieure, niveaux périmés sans le dire).
+  Les images étaient déjà paresseuses, le Flux déjà paginé (40).
+
+**Non mesuré d'ici** (le bac à sable n'atteint ni Pages ni les sources) : la
+taille réelle de la tête, la cadence obtenue et le gain d'actus ; le journal
+du job les donne (« Tête du cache publiée : N articles, X Ko »).
+`scripts/test/chargement-rapide.test.js` (6, vus échouer sur l'ancien code).

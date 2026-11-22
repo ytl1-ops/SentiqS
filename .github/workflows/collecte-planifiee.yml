@@ -263,11 +263,31 @@ jobs:
         if: ${{ !cancelled() }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GRSCI_FORCER: ${{ inputs.rapport_mensuel && '1' || '' }}
         run: |
           set -euo pipefail
           if [ -z "$(git status --porcelain web/historique web/bulletins web/rapports)" ]; then
             echo "Rien de neuf dans l'archive — journée déjà couverte."
             exit 0
+          fi
+          # Cadence de 30 min (22/11/2026, voir le job « relance ») : sans
+          # garde, le cumul du mois (faits-AAAA-MM.json, ~1 Mo réécrit à chaque
+          # passage) et l'index des bulletins seraient commités 48 fois par
+          # jour. On commite toujours ce qui ne doit pas attendre — l'état des
+          # alertes sortantes (web/historique : sans lui le passage suivant
+          # réannoncerait le même changement), un fichier nouveau (instantané
+          # ou bulletins du jour), un rapport forcé — et le reste au plus une
+          # fois toutes les trois heures, la cadence d'avant. Un fait vu par un
+          # passage non commité reste dans les flux et le cache de 36 h : le
+          # passage commité suivant le reprend.
+          if [ -z "$(git status --porcelain web/historique)" ] \
+             && [ -z "$(git status --porcelain --untracked-files=all web/bulletins web/rapports | grep '^??' || true)" ] \
+             && [ "${GRSCI_FORCER:-}" != "1" ]; then
+            dernier=$(git log -1 --format=%ct --author=collecte-planifiee -- web/rapports web/bulletins 2>/dev/null || echo 0)
+            if [ -n "$dernier" ] && [ $(( $(date +%s) - ${dernier:-0} )) -lt 10800 ]; then
+              echo "Cumul et bulletins déjà commités il y a moins de 3 h — gardés pour le passage suivant."
+              exit 0
+            fi
           fi
           git config user.name  "collecte-planifiee[bot]"
           git config user.email "collecte-planifiee@users.noreply.github.com"
@@ -315,6 +335,49 @@ jobs:
           done
           echo "::warning::Archive du $jour non poussée après trois tentatives."
 
+
+  # ── Relance du passage suivant (22/11/2026) ──────────────────────────────
+  # Le cron « */30 » est étranglé par GitHub : passages réels n° 1245 à 1252
+  # espacés de 4 à 8 h (13 h 26, 21 h 25, 02 h 41, 10 h 41, 17 h 52, 22 h 49,
+  # 02 h 50, 10 h 47 UTC). Au-delà de six heures
+  # (COLLECTE_PARTAGEE_LECTURE_MAX_MS), chaque visiteur relançait sa propre
+  # collecte à travers les relais publics : 0 à 45 s d'attente puis plusieurs
+  # minutes. Et un flux RSS ne garde que ses N derniers articles : à 6 h
+  # d'écart, ce qui en était sorti entre deux passages n'était jamais lu.
+  #
+  # Chaque passage relance donc le suivant par workflow_dispatch (exception
+  # documentée au garde-fou du GITHUB_TOKEN, déjà utilisée pour Pages), après
+  # avoir attendu que COLLECTE_CADENCE_MIN (30 par défaut) se soient écoulées
+  # depuis son début. Le groupe de concurrence ne garde qu'un passage en
+  # attente : si le cron en ajoute un, les deux chaînes se fondent en une. Le
+  # cron reste le filet qui relance la chaîne si elle casse.
+  # Arrêt : variable de dépôt COLLECTE_CHAINEE = 0. Dépôt public : les
+  # minutes d'Actions de l'attente ne coûtent rien.
+  relance:
+    name: Relancer le passage suivant
+    runs-on: ubuntu-latest
+    needs: collecte
+    if: always() && github.ref == 'refs/heads/main' && vars.COLLECTE_CHAINEE != '0'
+    timeout-minutes: 32
+    permissions:
+      actions: write
+    steps:
+      - name: Attendre la cadence puis relancer
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CADENCE_MIN: ${{ vars.COLLECTE_CADENCE_MIN || '30' }}
+        run: |
+          set -euo pipefail
+          debut=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" --jq .run_started_at)
+          ecoule=$(( $(date +%s) - $(date -d "$debut" +%s) ))
+          attente=$(( CADENCE_MIN * 60 - ecoule ))
+          [ "$attente" -lt 0 ] && attente=0
+          [ "$attente" -gt 1680 ] && attente=1680
+          echo "Passage commencé à $debut, il y a $ecoule s ; relance dans $attente s."
+          sleep "$attente"
+          gh workflow run collecte-planifiee.yml -R "$GITHUB_REPOSITORY" --ref main \
+            && echo "Passage suivant demandé." \
+            || echo "::warning::Relance non demandée — le cron prendra le relais."
 
   alerte:
     name: Signaler l'échec
