@@ -1010,6 +1010,9 @@ body.plein-ecran-module > .stbar { display:none !important; }
 /* Bouton secondaire : le theme sombre force le texte des .auth-btn en
    couleur « sur action » (!important), d'ou la specificite renforcee. */
 .auth-btn.auth-btn-google,html[data-theme="dark"] .auth-btn.auth-btn-google{background:var(--w);color:var(--t) !important;border:1px solid var(--bd);margin-top:8px}
+/* Google d'abord (sans quota d'e-mail : Spark n'envoie que 5 liens par jour pour tout le projet), le lien e-mail en repli. */
+.auth-btn.auth-btn-premier,html[data-theme="dark"] .auth-btn.auth-btn-premier{margin-top:0;border-color:var(--b);font-weight:700}
+.auth-btn.auth-btn-secondaire,html[data-theme="dark"] .auth-btn.auth-btn-secondaire{background:var(--w);color:var(--t) !important;border:1px solid var(--bd);margin-top:8px}
 .auth-btn.auth-btn-google:hover,html[data-theme="dark"] .auth-btn.auth-btn-google:hover{background:var(--sf);border-color:var(--b)}
 
 /* ═══ VIDÉO DE DÉMARRAGE ════════════════════════════════════════════════
@@ -3517,11 +3520,11 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
           </div>
         </div>
       </details>
-      <button class="auth-btn" onclick="envoyerCodeEmail()" id="otpSendBtn">
-        <i class="ti ti-mail"></i> <span data-i18n="otp_send">Recevoir mon code par e-mail</span>
-      </button>
-      <button class="auth-btn auth-btn-google" onclick="connexionGoogle()" id="googleBtn" style="display:none">
+      <button class="auth-btn auth-btn-google auth-btn-premier" onclick="connexionGoogle()" id="googleBtn" style="display:none">
         <i class="ti ti-brand-google"></i> <span data-i18n="login_google">Continuer avec Google</span>
+      </button>
+      <button class="auth-btn auth-btn-secondaire" onclick="envoyerCodeEmail()" id="otpSendBtn">
+        <i class="ti ti-mail"></i> <span data-i18n="otp_send">Recevoir mon code par e-mail</span>
       </button>
       <button class="auth-btn" onclick="doLogin()" id="loginBtn" style="display:none">
         <i class="ti ti-login"></i> <span data-i18n="login_btn">Se connecter</span>

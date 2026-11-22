@@ -320,3 +320,10 @@ test('l\'appli lance le chargement du kit dès l\'ouverture', () => {
   const suite = HTML.slice(i, i + 1200);
   assert.match(suite, /SentiqFirebase\.charger\(\)\.(then|catch)\(/);
 });
+
+test('connexion : Google passe avant le lien e-mail, qui reste en repli', () => {
+  const i = HTML.indexOf('id="googleBtn"'), j = HTML.indexOf('id="otpSendBtn"');
+  assert.ok(i > 0 && j > 0 && i < j, 'le bouton Google doit précéder le lien e-mail (quota de 5 liens par jour)');
+  assert.match(HTML, /id="otpSendBtn"/);
+  assert.match(HTML, /function envoyerCodeEmail/);
+});
