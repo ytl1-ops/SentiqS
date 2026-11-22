@@ -13,6 +13,9 @@
   'use strict';
   if (typeof SentiqLangue === 'undefined') return;
   SentiqLangue.ajouter({
+    // Premières actus d'abord, cache périmé affiché (22/11/2026).
+    "# premières actus · chargement complet en cours…": "# first news items · full load in progress…",
+    "Cache partagé de # h · actualisation en direct en cours…": "# h old shared cache · live refresh in progress…",
     // Louis, l'agent de veille (22/11/2026).
     "Discuter avec Louis, l'agent de veille": "Chat with Louis, the monitoring agent",
     "Demander à Louis": "Ask Louis",

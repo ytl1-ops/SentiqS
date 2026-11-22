@@ -18636,6 +18636,13 @@ async function init() {
         }
       }
     }catch(e){}
+    // ── Premières actus d'abord (22/11/2026) ─────────────────────────────────
+    // Rien en cache local (nouvel appareil, cache vide ou vieux) : la tete du
+    // cache partage s'affiche avant le cache complet, lu juste apres.
+    if (!ALL.length) {
+      const _tete = await lireTetePartagee();
+      if (_tete) _afficherArticlesProvisoires(_tete.articles, _tete.articles.length + ' premières actus · chargement complet en cours…');
+    }
     // ── Éviter une collecte réseau redondante à CHAQUE connexion ─────────────
     // Auparavant, une collecte complète (~500 sources) repartait sans condition
     // à chaque ouverture de l'appli (nouvel onglet, reconnexion, plusieurs
@@ -18669,6 +18676,13 @@ async function init() {
         document.getElementById('stbarLeft').textContent = 'À jour (cache partagé — collecte récente d\'un autre appareil) · Prochaine actualisation automatique en cours de planification';
         document.getElementById('liveTxt').textContent = 'En direct';
       } else {
+      // Cache partage trop vieux pour dispenser de collecter : on l'affiche
+      // quand meme (filtre par la fenetre d'actualite) en disant son age, et
+      // la collecte ci-dessous le complete au lieu de partir d'un ecran vide.
+      if (_cachePartagePerime) {
+        const _h = Math.round(_cachePartagePerime.ageMs / 3600000);
+        _afficherArticlesProvisoires(_cachePartagePerime.articles, 'Cache partagé de ' + _h + ' h · actualisation en direct en cours…');
+      }
       // ── Delai aleatoire avant la PREMIERE collecte reseau ────────────────────
       // Sans lui, des millions d'utilisateurs ouvrant l'appli au meme moment
       // (heure de pointe, lien partage, rentree...) lanceraient TOUS, a
@@ -18948,16 +18962,51 @@ async function _lireCacheFirestore() {
     return window.SentiqCacheFirestore.lireLocal(cfg, stockage);
   }
 }
+// Dernier cache partage lu mais trop vieux pour dispenser de collecter
+// (22/11/2026) : init() l'AFFICHE tout de suite au lieu d'un Flux vide, puis
+// lance sa collecte qui le complete. Avant, un cache de plus de six heures
+// (cadence reelle du job : 4 a 8 h) laissait le visiteur devant un ecran
+// vide pendant 0 a 45 s d'attente puis plusieurs minutes de collecte.
+let _cachePartagePerime = null;
 async function lireCollectePartagee() {
   // Firestore d'abord : Supabase a depasse son quota de transfert le
   // 27/10/2026 (402) a force de servir 1,4 Mo a chaque ouverture.
+  _cachePartagePerime = null;
   const fs = await _lireCacheFirestore();
   if (!fs || !fs.articles.length) return null;
   const ageFs = Date.now() - new Date(fs.updated_at).getTime();
   // Version dégradée (copie locale, Firestore refusé) : acceptée jusqu'à 24 h,
   // car la seule alternative est une collecte de ~560 sources par visiteur.
   if (ageFs <= (fs.degrade ? COLLECTE_PARTAGEE_DEGRADEE_MAX_MS : COLLECTE_PARTAGEE_LECTURE_MAX_MS)) return fs.articles;
-  return null; // perime — mieux vaut collecter soi-meme
+  _cachePartagePerime = { articles: fs.articles, ageMs: ageFs };
+  return null; // perime — mieux vaut collecter soi-meme (mais l'afficher d'abord)
+}
+// Tete du cache partage (collecte_partagee/tete, voir selectionnerTete dans
+// js/cache-firestore.js) : quelques centaines d'articles, lus AVANT le cache
+// complet quand cet appareil n'a encore rien a montrer. Niveaux d'alerte et
+// pays muets y sont identiques ; seuls les comptes d'actus sont partiels.
+async function lireTetePartagee() {
+  if (!_fournisseurFirebase() || !window.SentiqCacheFirestore || !window.SENTIQ_FIREBASE_CONFIG) return null;
+  try {
+    const entetes = await _entetesFirestore();
+    if (!entetes) return null;
+    const cfg = Object.assign({}, window.SENTIQ_FIREBASE_CONFIG, { cle: window.SentiqCacheFirestore.CLE_TETE || 'tete' });
+    const r = await window.SentiqCacheFirestore.lire(cfg, { entetes });
+    return r && Array.isArray(r.articles) && r.articles.length ? r : null;
+  } catch (_) { return null; }
+}
+// Affiche des articles partages SANS les tenir pour une collecte du jour :
+// ni IndexedDB, ni sentinel_lastCollectTs (sinon l'appareil se croirait a
+// jour et ne collecterait plus). Sert a la tete et au cache perime.
+function _afficherArticlesProvisoires(articles, texteEtat) {
+  const recents = (articles || []).filter(a => estRecentReel(a));
+  if (!recents.length || ALL.length >= recents.length) return false;
+  ALL = recents;
+  ALL.forEach(a => { a.time = fmtAge(a.pubDate || 0); });
+  if (typeof rehydraterParLots === 'function') rehydraterParLots(ALL);
+  synchroniserTousLesModules();
+  const sb = document.getElementById('stbarLeft'); if (sb && texteEtat) sb.textContent = texteEtat;
+  return true;
 }
 // Le cache partage n'est publie que par le job de collecte, sur Firestore,
 // depuis Node (scripts/collecte-planifiee.js, compte de service) : les regles
