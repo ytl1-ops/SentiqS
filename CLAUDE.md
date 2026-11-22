@@ -4641,3 +4641,36 @@ ils ont été retirés ; restent des montées réelles (« Violents affrontement
 FARDC-FRN », « neutralizado cidadão que matou esposa a facada »). `banc-lexique.yml` le mesure sur le cache
 réel à chaque PR qui touche la page (`scripts/exporter-cache.js`, compte de
 service), informatif.
+
+---
+
+## Débloquer sans secret — 22/11/2026
+
+Demande de YORO : « contourne les blocages et trouve des alternatives
+durables ». Trois blocages tenaient à un service tiers ou à un secret absent.
+
+- **Traduction.** Le passage horaire du 22/11/2026 à 8 h UTC a fait 766
+  requêtes en ligne pour **0 traduction** (729 échecs, 1 967 reportées) :
+  Google « gtx » et MyMemory ne répondent plus aux runners GitHub, et
+  `GEMINI_API_KEY` (PR #192) reste invisible pour Actions. Le workflow
+  `traduction-actus.yml` installe désormais **Argos Translate** (MIT, modèles
+  OPUS-MT, CPU, sans clé ni quota) : `scripts/traducteur-local.py`, piloté par
+  `scripts/lib/traducteur-local.js`. Paires en→fr, fr→en, pt→en, ar→en,
+  es→en ; pt/ar/es → fr passe par l'anglais ; une langue inconnue n'est pas
+  devinée. Après trois paquets refusés d'affilée, Google n'est plus appelé
+  du passage et rien n'est rejoué titre par titre. Qualité : traduction
+  automatique de titres, inférieure à Google, mais l'actu cesse d'être
+  masquée en anglais. Sans Python ou sans modèle, le job retombe sur les
+  services en ligne, comme avant. La collecte (budget de 3 min) n'installe
+  pas le traducteur local.
+- **Flash sûreté.** Sans `WEBHOOK_ALERTES`, un flash part en commentaire du
+  ticket GitHub « Flash sûreté — changements de niveau » (créé au premier
+  flash, retrouvé par son titre) : GitHub envoie un e-mail au propriétaire à
+  chaque commentaire. Le webhook garde la priorité s'il est posé. Seul le
+  flash y va : ni bulletins quotidiens, ni couverture (ce serait du bruit).
+- **Déploiement Pages.** Deux publications sur trois jours (20/11, 21/11) ont
+  échoué en « No artifacts named github-pages » juste après le téléversement :
+  second essai automatique une minute plus tard.
+
+`traducteur-local.test.js` (5) et `flash-ticket.test.js` (5), vus échouer
+sur l'ancien code.

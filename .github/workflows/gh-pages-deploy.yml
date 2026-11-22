@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url || steps.premier-essai.outputs.page_url }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/configure-pages@v5
@@ -34,7 +34,19 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: web
+      # Les 20/11 et 21/11/2026, deux publications sur trois jours ont échoué en
+      # « No artifacts named github-pages were found » alors que l'artefact
+      # venait d'être téléversé : l'API d'Actions ne le voyait pas encore. Une
+      # minute plus tard il est visible ; on réessaie au lieu d'attendre la
+      # collecte suivante (3 à 5 h) pour republier.
+      - id: premier-essai
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+      - name: Attendre avant le second essai
+        if: steps.premier-essai.outcome == 'failure'
+        run: sleep 60
       - id: deployment
+        if: steps.premier-essai.outcome == 'failure'
         uses: actions/deploy-pages@v4
 
   # ── Firebase Hosting + règles Firestore (01/11/2026) ─────────────────────

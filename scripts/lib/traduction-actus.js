@@ -34,6 +34,7 @@ const PAQUET_MAX_CARACTERES = 1400; // texte brut ; ~4 000 une fois encodé dans
 const PAQUET_MAX_LIGNES = 25;
 const DELAI_REQUETE_MS = 12000;
 const PAUSE_ENTRE_REQUETES_MS = 250;
+const GOOGLE_ECHECS_MAX = 3;
 
 const cleMemoire = (cible, texte) => cible + '\u0001' + texte;
 
@@ -129,6 +130,8 @@ const attendre = (ms) => new Promise((r) => setTimeout(r, ms));
  * @param opts.resumeMax  longueur maximale d'un chapô envoyé (celle de la page)
  * @param opts.echeance   instant (ms) au-delà duquel on n'envoie plus rien
  * @param opts.fetchFn, opts.pauseMs, opts.delaiMs
+ * @param opts.traducteurLocal (lignes, source, cible) → Promise<tableau|null>,
+ *                        repli hors ligne (scripts/lib/traducteur-local.js)
  * @returns statistiques { repris, traduits, echecs, reportes, requetes }
  */
 async function traduireActus(articles, opts) {
@@ -191,12 +194,33 @@ async function traduireActus(articles, opts) {
   };
   // L'ordre de priorité doit survivre au découpage en paquets.
   const lots = paquets(uniques).sort((p, q) => p[0].rang - q[0].rang);
+  // Traducteur hors ligne (scripts/lib/traducteur-local.js, 22/11/2026) :
+  // après GOOGLE_ECHECS_MAX paquets refusés d'affilée, Google n'est plus
+  // appelé pour ce passage (même idée que creerDisjoncteur dans le noyau) et
+  // chaque paquet va directement au traducteur local. Le 22/11/2026 à 8 h
+  // UTC, 766 requêtes en ligne avaient donné 0 traduction.
+  const local = typeof o.traducteurLocal === 'function' ? o.traducteurLocal : null;
+  let googleEchecs = 0;
   for (const lot of lots) {
     if (Date.now() >= echeance) { stats.reportes += lot.length; continue; }
-    stats.requetes++;
-    const res = await traduirePaquetGoogle(lot.map((u) => u.envoye), lot[0].source, lot[0].cible, fetchFn, delaiMs);
+    const lignes = lot.map((u) => u.envoye);
+    let res = null;
+    if (googleEchecs < GOOGLE_ECHECS_MAX) {
+      stats.requetes++;
+      res = await traduirePaquetGoogle(lignes, lot[0].source, lot[0].cible, fetchFn, delaiMs);
+      googleEchecs = res ? 0 : googleEchecs + 1;
+    }
+    if (!res && local && lot[0].source !== 'auto') {
+      try { res = await local(lignes, lot[0].source, lot[0].cible); } catch (e) { res = null; }
+      if (!Array.isArray(res) || res.length !== lignes.length) res = null;
+      if (res) stats.locaux = (stats.locaux || 0) + lot.length;
+    }
     if (res) {
       lot.forEach((u, i) => ranger(u, res[i]));
+    } else if (local && googleEchecs >= GOOGLE_ECHECS_MAX) {
+      // Le local a refusé ce paquet et les services en ligne sont tombés :
+      // inutile de les rejouer ligne par ligne, le passage suivant réessaiera.
+      lot.forEach(() => stats.echecs++);
     } else {
       for (const u of lot) {
         if (Date.now() >= echeance) { stats.reportes++; continue; }

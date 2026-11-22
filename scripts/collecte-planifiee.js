@@ -500,14 +500,17 @@ function ecrireResumeActions(md) {
           console.log('  Alerte : aucun changement au-dessus du seuil du flash depuis le dernier signalement'
             + (mouvement.descentes ? ' (' + mouvement.descentes + ' amelioration(s))' : '')
             + (mouvement.sousSeuil ? ' (' + mouvement.sousSeuil + ' montee(s) sous le seuil)' : '') + '.');
-        } else if (!process.env.WEBHOOK_ALERTES) {
+        } else if (!process.env.WEBHOOK_ALERTES && !process.env.GITHUB_TOKEN) {
           console.log('  Alerte : ' + mouvement.montees.length
             + ' aggravation(s) — aucun canal configure (WEBHOOK_ALERTES absent). Message qui serait parti :');
           message.text.split('\n').forEach((l) => console.log('    | ' + l));
         } else {
-          const envoi = await alerteSortante.envoyer(process.env.WEBHOOK_ALERTES, message);
+          // Webhook s'il est configure, sinon ticket GitHub « Flash surete »
+          // (e-mail de GitHub au proprietaire, sans secret) : 22/11/2026.
+          message.text.split('\n').forEach((l) => console.log('    | ' + l));
+          const envoi = await alerteSortante.diffuser(message, process.env);
           console.log('  Alerte : ' + mouvement.montees.length + ' aggravation(s) — '
-            + (envoi.ok ? 'envoyee.' : 'NON envoyee (' + envoi.raison + ').'));
+            + (envoi.ok ? 'envoyee (' + envoi.canal + ').' : 'NON envoyee (' + envoi.raison + ').'));
           if (!envoi.ok) console.warn('::warning::Sortie d\'alerte en echec : ' + envoi.raison);
         }
 

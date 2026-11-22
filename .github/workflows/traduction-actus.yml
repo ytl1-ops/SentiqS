@@ -26,7 +26,7 @@ concurrency:
 jobs:
   traduire:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -41,6 +41,27 @@ jobs:
         run: |
           npm install --no-save playwright@1
           npx playwright install --with-deps chromium
+      # Traducteur hors ligne (22/11/2026) : depuis les runners, Google « gtx »
+      # et MyMemory ne répondaient plus (0 traduction sur 766 requêtes au
+      # passage de 8 h UTC). Argos Translate traduit sur le runner, sans clé
+      # ni quota ; ses modèles (~100 Mo par paire) sont gardés en cache.
+      # Un échec ici ne bloque rien : le script retombe sur les services en ligne.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: scripts/traducteur-local.requirements.txt
+      - name: Restaurer les modèles de traduction
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/argos-translate
+          key: argos-modeles-${{ runner.os }}-v1-${{ hashFiles('scripts/traducteur-local.py') }}
+          restore-keys: argos-modeles-${{ runner.os }}-v1-
+      - name: Installer le traducteur hors ligne
+        continue-on-error: true
+        run: |
+          pip install --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple -r scripts/traducteur-local.requirements.txt
+          python3 scripts/traducteur-local.py < /dev/null
       - name: Traduire les actus du cache partagé
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}

@@ -163,6 +163,10 @@ jobs:
           # Actions. Ne jamais l'ecrire dans le depot : une URL de webhook
           # est une capacite d'ecriture sur le canal, pas une simple adresse.
           WEBHOOK_ALERTES: ${{ secrets.WEBHOOK_ALERTES }}
+          # Repli sans secret (22/11/2026) : sans webhook, le flash part en
+          # commentaire du ticket « Flash sûreté » (GitHub prévient le
+          # propriétaire par e-mail). Le job a déjà issues: write.
+          GITHUB_TOKEN: ${{ github.token }}
           # Compte de service Firebase (JSON du projet sentiqs-235ce) : seule
           # destination du cache d'actus et de l'agenda depuis le 15/11/2026
           # (Supabase retire). Sans lui la publication echoue. Voir

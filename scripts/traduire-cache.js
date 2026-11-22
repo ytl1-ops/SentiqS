@@ -32,6 +32,7 @@ const fs = require('fs');
 const path = require('path');
 const cacheFirestore = require('./lib/cache-firestore-ecriture');
 const { traduireActus, memoire, cleMemoire, CIBLES } = require('./lib/traduction-actus');
+const { demarrerTraducteurLocal } = require('./lib/traducteur-local');
 const { servirDemandes } = require('./lib/traductions-partagees-job');
 
 const BUDGET_MS = Number(process.env.TRAD_BUDGET_MS || 8 * 60 * 1000);
@@ -117,9 +118,18 @@ async function passageCache(compte, debut) {
   const textes = [...new Set(articles.flatMap((a) => [a && a.title, a && a.analysis]).filter((t) => typeof t === 'string' && t))];
   const det = await detecterLangues(textes);
   const langues = new Map(textes.map((t, i) => [t, det.langues[i]]));
-  const st = await traduireActus(articles, { existants: articles, langues, resumeMax: det.resumeMax, echeance: debut + BUDGET_MS });
+  // Repli hors ligne (Argos Translate), installé par le workflow : sans lui,
+  // les services en ligne seuls, comme avant le 22/11/2026.
+  const local = process.env.TRADUCTEUR_LOCAL === '0' ? null : await demarrerTraducteurLocal();
+  console.log(local ? 'Traducteur hors ligne prêt : ' + local.paires.join(', ') + '.' : 'Traducteur hors ligne absent : services en ligne seuls.');
+  let st;
+  try {
+    st = await traduireActus(articles, { existants: articles, langues, resumeMax: det.resumeMax, echeance: debut + BUDGET_MS, traducteurLocal: local });
+  } finally {
+    if (local) local.arreter();
+  }
   console.log('Traduction des actus (FR/EN, passage seul) : ' + st.repris + ' reprise(s), ' + st.traduits + ' nouvelle(s), '
-    + st.echecs + ' échec(s), ' + st.reportes + ' reportée(s), ' + st.requetes + ' requête(s), en ' + Math.round((Date.now() - debut) / 1000) + ' s.');
+    + st.echecs + ' échec(s), ' + (st.locaux || 0) + ' hors ligne, ' + st.reportes + ' reportée(s), ' + st.requetes + ' requête(s), en ' + Math.round((Date.now() - debut) / 1000) + ' s.');
   if (!st.traduits) { console.log('Aucune traduction nouvelle : le cache n\'est pas réécrit.'); return; }
 
   // Une collecte a pu publier pendant ce passage : on relit, et on reporte.
