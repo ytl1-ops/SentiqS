@@ -46,6 +46,7 @@
 <script src="js/firebase.js"></script>
 <script src="js/cache-firestore.js"></script>
 <script src="js/traductions-partagees.js"></script>
+<script src="js/agent-recherche.js"></script>
 <!-- Le kit se télécharge dès l'ouverture, pendant l'animation de garde, au lieu
      d'attendre checkAuth : la connexion ne patiente plus après la vidéo. -->
 <!-- Et l'écran de connexion passe en mode Firebase (bouton Google, lien
@@ -3204,6 +3205,18 @@ html.force-mobile .acces-rapide-btn{display:none}
 .as-sugg{display:flex;flex-wrap:wrap;gap:6px}
 .as-sugg button{min-height:28px;padding:3px 10px;border-radius:999px;border:1px solid var(--bd);background:transparent;color:var(--t2);font:inherit;font-size:12px;cursor:pointer}
 .as-sugg button:hover{color:var(--t);border-color:var(--b)}
+/* Agent de recherche web (22/11/2026) : le bouton dit ce qu'il fait, sans
+   couleur d'alerte ; « introuvable » est une réponse, pas une erreur. */
+.as-web{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.as-web button{min-height:32px;padding:4px 12px;border-radius:999px;border:1px solid var(--b);background:transparent;color:var(--t);font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.as-web button.fort{background:var(--b);color:var(--on-b,#fff)}
+.as-web button:disabled{opacity:.6;cursor:default}
+.as-statut{font-size:var(--fs-micro);color:var(--t2);border:1px dashed var(--bd);padding:1px 7px;border-radius:999px}
+.as-tab{width:100%;border-collapse:collapse;font-size:12px}
+.as-tab th,.as-tab td{border-bottom:1px solid var(--bd);padding:3px 6px;text-align:left}
+.as-tab td.pauvre{color:var(--t);font-weight:700}
+.as-dec{display:flex;gap:6px;margin-top:4px}
+.as-dec button{min-height:28px;padding:2px 10px;border-radius:999px;border:1px solid var(--bd);background:transparent;color:var(--t);font:inherit;font-size:12px;cursor:pointer}
 .as-saisie{display:flex;gap:8px;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--bd)}
 .as-saisie input{flex:1;min-width:0;min-height:40px;border:1px solid var(--bd);border-radius:var(--r-md);background:var(--sf);color:var(--t);font-size:16px;padding:6px 12px}
 .as-saisie button{min-height:40px;min-width:44px;border:0;border-radius:var(--r-md);background:var(--b);color:var(--on-b,#fff);font:inherit;font-weight:700;cursor:pointer;padding:0 14px}
@@ -9583,7 +9596,14 @@ const EVENT_PLANIFIE_KW = {
   gouvernemental:['conseil des ministres', 'conseil de ministres', 'réunion du sénat',
                   'séance plénière', 'conseil économique et social', 'cese',
                   'assemblée nationale', 'assemblée générale', 'réunion plénière',
-                  'sommet', 'conférence', 'congrès', 'forum'],
+                  'sommet', 'conférence', 'congrès', 'forum',
+                  // Vie parlementaire (YORO, 22/11/2026 : « ouverture de session
+                  // assemblée nationale ») — formulations de plusieurs mots,
+                  // pour qu'un député cité au corps n'en fasse pas un événement.
+                  'ouverture de la session', 'clôture de la session', 'session ordinaire',
+                  'session extraordinaire', 'session parlementaire', 'session budgétaire',
+                  'rentrée parlementaire', 'opening of parliament', 'state opening of parliament',
+                  'parliament session', 'parliamentary session'],
   // Election/scrutin/referendum : fenetre a haut risque securitaire
   // (mobilisation, tensions, parfois violences) pour un module Agenda a
   // vocation surete — absent jusqu'ici alors que "gouvernemental" couvre
@@ -9640,7 +9660,20 @@ const EVENT_PLANIFIE_KW = {
                   'airport closure', 'airport closed', 'border closure', 'border closed',
                   'road construction', 'road rehabilitation', 'road maintenance works',
                   'traffic diversion', 'traffic disruption', 'commissioning of the road',
-                  'flyover construction', 'highway construction', 'road project launch'],
+                  'flyover construction', 'highway construction', 'road project launch',
+                  // Fermetures de voie et mises en service (YORO, 22/11/2026) :
+                  // une route ou un échangeur qui ouvre déplace la circulation
+                  // autant qu'un chantier qui la coupe. « Mise en service » seul
+                  // désignerait aussi une centrale ou un logiciel : toujours
+                  // avec son ouvrage.
+                  'fermeture de voie', 'fermeture de la voie', 'fermeture partielle de la voie',
+                  'fermeture de la route', 'fermeture du pont', 'ouverture à la circulation',
+                  "mise en service de l'échangeur", 'mise en service du pont', 'mise en service de la route',
+                  "mise en service de l'autoroute", 'mise en circulation du pont', "inauguration de l'échangeur",
+                  'inauguration du pont', 'inauguration de la route', "inauguration de l'autoroute",
+                  "livraison de l'échangeur", 'lane closure', 'road diversion', 'interchange commissioned',
+                  'commissioning of the interchange', 'commissions interchange', 'commissions road',
+                  'bridge commissioned', 'opened to traffic'],
 };
 
 // EVENT_RASSEMBLEMENT_RE : les rassemblements de foule, lus dans le TITRE
@@ -9687,7 +9720,19 @@ function estIncidentTitre(tt) { return AGENDA_INCIDENT_RE.test(tt); }
 const EVENT_CORPS_TYPES = ['colloque', 'seminaire', 'foire', 'gouvernemental', 'manifestation', 'travaux'];
 // Formulations trop courantes dans un corps d'article pour désigner une
 // réunion : un député cité « à l'Assemblée nationale » n'annonce rien.
-const EVENT_CORPS_EXCLUS = new Set(['assemblée nationale', 'assemblée générale']);
+const EVENT_CORPS_EXCLUS = new Set(['assemblée nationale', 'assemblée générale',
+  // 22/11/2026 : lues dans le TITRE seulement. Mesure sur les cumuls d'octobre
+  // et novembre (2 071 faits) : au corps, « session ordinaire » faisait d'un
+  // vote du Sénat un événement d'agenda, et « mise en service du pont » d'un
+  // article sur le RETARD du pont de Rosso — deux actus que l'agenda aurait
+  // retirées du Flux.
+  'session ordinaire', 'session extraordinaire', 'clôture de la session', 'session parlementaire',
+  'session budgétaire', 'parliament session', 'parliamentary session',
+  "mise en service de l'échangeur", 'mise en service du pont', 'mise en service de la route',
+  "mise en service de l'autoroute", 'mise en circulation du pont', "inauguration de l'échangeur",
+  'inauguration du pont', 'inauguration de la route', "inauguration de l'autoroute", "livraison de l'échangeur",
+  'interchange commissioned', 'commissioning of the interchange', 'commissions interchange', 'commissions road',
+  'bridge commissioned', 'opened to traffic', 'ouverture à la circulation']);
 // Les rassemblements restent AUSSI au Flux, comme les manifestations : un
 // match, un culte ou un meeting n'était pas retiré du Flux avant le
 // 14/11/2026, les verser à l'agenda ne doit rien enlever au Flux.
@@ -14833,12 +14878,15 @@ function _asRendreTout() {
     fil.innerHTML = '<div class="as-r"><p>' + (en
       ? 'Ask in plain words about a country, a region, a period or a theme — or about the tool itself (rating, plans, bulletin). Answers come only from SentiqS data, with each fact\'s rating and a link to its source; a fact reported by several outlets appears once.'
       : 'Posez votre question en langage courant : un pays, une région, une période, un thème — ou l\'outil lui-même (cotation, forfaits, bulletin). Les réponses viennent uniquement des données de SentiqS, avec la cotation de chaque fait et le lien vers sa source ; un fait repris par plusieurs médias n\'apparaît qu\'une fois.')
-      + '</p><div class="as-sugg">' + SentiqAssistant.exemplesAssistant(en ? 'en' : 'fr').map(q => '<button type="button" data-as-q="' + _asEsc(q) + '">' + _asEsc(q) + '</button>').join('') + '</div></div>';
+      + '</p><div class="as-sugg">' + SentiqAssistant.exemplesAssistant(en ? 'en' : 'fr').map(q => '<button type="button" data-as-q="' + _asEsc(q) + '">' + _asEsc(q) + '</button>').join('')
+      + (typeof SentiqAgent !== 'undefined' && estAdmin(getSession()) ? '<button type="button" data-ag-revue><i class="ti ti-shield-check" aria-hidden="true"></i> ' + (en ? 'Agent review' : 'Revue de l’agent') + '</button>' : '')
+      + '</div></div>';
     return;
   }
-  fil.innerHTML = _asFil.map(e => '<div class="as-q" role="note">' + _asEsc(e.q) + '</div>'
+  fil.innerHTML = _asFil.map((e, i) => '<div class="as-q" role="note">' + _asEsc(e.q) + '</div>'
     + '<div class="as-r">' + (e.attente ? '<p class="as-note">' + (en ? 'Looking in the database…' : 'Recherche dans la base…') + '</p>'
-      : e.r.blocs.map(_asRendreBloc).join('') + (e.r.suggestions.length ? '<div class="as-sugg">' + e.r.suggestions.map(q => '<button type="button" data-as-q="' + _asEsc(q) + '">' + _asEsc(q) + '</button>').join('') + '</div>' : ''))
+      : (e.html || '') + e.r.blocs.map(_asRendreBloc).join('') + (e.r.suggestions.length ? '<div class="as-sugg">' + e.r.suggestions.map(q => '<button type="button" data-as-q="' + _asEsc(q) + '">' + _asEsc(q) + '</button>').join('') + '</div>' : '')
+        + (typeof _agentRendreWeb === 'function' ? _agentRendreWeb(e, i) : ''))
     + '</div>').join('');
   fil.scrollTop = fil.scrollHeight;
 }
@@ -14902,7 +14950,18 @@ function ouvrirAssistant(q) {
     d.addEventListener('click', ev => {
       if (ev.target.closest('[data-as-fermer]')) return fermerAssistant();
       const s = ev.target.closest('[data-as-q]');
-      if (s) poserQuestionAssistant(s.getAttribute('data-as-q'));
+      if (s) return poserQuestionAssistant(s.getAttribute('data-as-q'));
+      const w = ev.target.closest('[data-ag-web]');
+      if (w) return chercherSurLeWeb(Number(w.getAttribute('data-ag-web')));
+      if (ev.target.closest('[data-ag-revue]')) return ouvrirRevueAgent();
+      const dec = ev.target.closest('[data-ag-dec]');
+      if (dec) {
+        dec.disabled = true;
+        deciderQuarantaine(dec.getAttribute('data-ag-id'), dec.getAttribute('data-ag-dec')).then(ok => {
+          const li = dec.closest('li');
+          if (li) li.querySelector('.as-dec').innerHTML = '<span class="as-statut">' + (ok ? (LANG === 'en' ? 'Recorded — applied at the next pass' : 'Enregistré — appliqué au prochain passage') : (LANG === 'en' ? 'Not recorded' : 'Non enregistré')) + '</span>';
+        });
+      }
     });
     d.querySelector('#asForm').addEventListener('submit', ev => {
       ev.preventDefault();
@@ -14927,6 +14986,7 @@ function ouvrirAssistant(q) {
   d.classList.add('on');
   document.documentElement.classList.add('as-ouvert');
   _asRendreTout();
+  if (typeof sonderReponsesAgent === 'function' && _agentAttente().length) { sonderReponsesAgent().catch(() => {}); _agentDemarrerSondeur(); }
   if (q) poserQuestionAssistant(q);
   setTimeout(() => { const i = document.getElementById('asSaisie'); if (i) i.focus(); }, 0);
 }
@@ -14974,7 +15034,8 @@ async function agendaComplet() {
   const ids = new Set(detectes.map(e => e.id).filter(Boolean));
   const partages = (typeof agendaPartageeMisAJour === 'function') ? await agendaPartageeMisAJour() : [];
   const cal = await entreesCalendrierAgenda();
-  return [...AGENDA, ...detectes, ...(partages || []).filter(e => !ids.has(e.id)), ...cal];
+  const agent = (typeof agendaAgent === 'function') ? await agendaAgent().catch(() => []) : [];
+  return [...AGENDA, ...detectes, ...(partages || []).filter(e => !ids.has(e.id)), ...agent, ...cal];
 }
 function fermerAccesRapide(sansRetour) {
   const d = document.getElementById('accesRapide');
@@ -14982,6 +15043,285 @@ function fermerAccesRapide(sansRetour) {
   d.classList.remove('on');
   if (!sansRetour && _arRetour && _arRetour.focus) { try { _arRetour.focus(); } catch (_) {} }
 }
+// ── Agent de recherche web (22/11/2026, demande de YORO) ────────────────────
+// Quand la base ne répond pas, l'utilisateur peut demander à l'agent de
+// chercher sur le web. Rien ne part d'ici vers un moteur : la page DÉPOSE une
+// demande (Firestore, création seule, cinq par jour et par compte — les
+// règles le comptent), et le passage GitHub (scripts/agent-recherche.js) la
+// sert : Bing Actualités et ReliefWeb (Google News, DuckDuckGo et Yahoo
+// l'interdisent dans leur robots.txt), médias du registre seulement, chaque
+// fait avec son lien, sa date et sa cotation. Un fait recoupé par deux médias
+// distincts et absent de la base y est ajouté ; le reste attend l'analyste.
+// Rien n'est généré : ce qui n'est pas trouvé est dit « introuvable ».
+const AGENT_ATTENTE_CLE = 'sentinel_agent_attente';
+let _agentSondeur = null;
+function _agentAttente() {
+  try { const l = JSON.parse(localStorage.getItem(AGENT_ATTENTE_CLE) || '[]'); return Array.isArray(l) ? l.filter(x => x && x.id && Date.now() - x.le < 2 * 86400000) : []; }
+  catch (_) { return []; }
+}
+function _agentGarderAttente(l) { try { localStorage.setItem(AGENT_ATTENTE_CLE, JSON.stringify(l.slice(-20))); } catch (_) {} }
+async function _agentSession() {
+  const entetes = await _entetesFirestore();
+  const cfg = window.SENTIQ_FIREBASE_CONFIG;
+  if (!entetes || !cfg || typeof SentiqAgent === 'undefined') return null;
+  const jeton = String(entetes.Authorization || '').replace(/^Bearer\s+/, '');
+  const uid = window.SentiqTraductionsPartagees ? SentiqTraductionsPartagees.uidDuJeton(jeton) : null;
+  return uid ? { entetes, cfg, uid } : null;
+}
+function _agentRendreWeb(e, i) {
+  const en = LANG === 'en';
+  if (e.attente || !e.interp || typeof SentiqAgent === 'undefined') return '';
+  const w = e.web || {};
+  const vide = !e.r || !e.r.blocs || !e.r.blocs.some(b => b.t === 'faits' && b.faits && b.faits.length);
+  if (!w.etat) {
+    return '<div class="as-web"><button type="button" class="' + (vide ? 'fort' : '') + '" data-ag-web="' + i + '"><i class="ti ti-world-search" aria-hidden="true"></i> '
+      + (en ? 'Also search the web' : 'Chercher aussi sur le web') + '</button><span class="as-note">'
+      + (en ? 'News engines and the outlets of the registry only; answer within about 40 minutes.' : 'Moteurs d’actualité et médias du registre seulement ; réponse sous 40 minutes environ.') + '</span></div>';
+  }
+  const MSG = {
+    envoi: en ? 'Sending the request…' : 'Envoi de la demande…',
+    attente: en ? 'Request sent. The agent searches at the next pass (about every 30 minutes); the answer will appear here, and next time you open the assistant.' : 'Demande envoyée. L’agent cherche au prochain passage (toutes les 30 minutes environ) ; la réponse apparaîtra ici, et à votre prochaine ouverture de l’assistant.',
+    quota: en ? 'Daily limit reached (5 web searches per account). Try again tomorrow.' : 'Limite du jour atteinte (5 recherches web par compte). Réessayez demain.',
+    refus: en ? 'The request was refused: daily limit reached, or your account does not have access.' : 'Demande refusée : limite du jour atteinte, ou compte sans accès.',
+    reseau: en ? 'The request could not be sent. Try again in a moment.' : 'La demande n’a pas pu être envoyée. Réessayez dans un moment.',
+    question: en ? 'The question is too short to be searched.' : 'La question est trop courte pour être cherchée.',
+    session: en ? 'Sign in to search the web.' : 'Connectez-vous pour chercher sur le web.',
+  };
+  if (w.etat !== 'pret') return '<div class="as-web"><p class="as-note">' + _asEsc(MSG[w.etat] || '') + '</p></div>';
+  return _agentRendreResultat(w.resultat);
+}
+function _agentRendreResultat(r) {
+  const en = LANG === 'en';
+  const LIB = SentiqAgent.LIB[en ? 'en' : 'fr'];
+  let h = '<h4>' + (en ? 'On the web' : 'Sur le web') + '</h4>';
+  if (!r.faits.length) {
+    h += '<p>' + (en ? 'Not found: no outlet of the registry reported this on the engines queried, for this period.' : 'Introuvable : aucun média du registre n’en a parlé sur les moteurs interrogés, pour cette période.') + '</p>';
+  } else {
+    h += '<ul class="as-faits">' + r.faits.map(f => {
+      const l0 = f.liens[0];
+      const autres = f.liens.slice(1).map(l => '<a href="' + _asEsc(l.url) + '" target="_blank" rel="noopener">' + _asEsc(l.source || l.domaine) + '</a>').join(', ');
+      return '<li class="as-fait ' + _asEsc(f.niveau) + '"><div class="as-fait-t"><a href="' + _asEsc(l0.url) + '" target="_blank" rel="noopener">' + _asEsc(f.titre) + '</a></div>'
+        + (f.extrait ? '<p class="as-note">« ' + _asEsc(f.extrait) + ' »</p>' : '')
+        + '<div class="as-meta"><span class="as-cot ' + _asEsc(f.cotation) + '">' + _asEsc(LIB.cot[f.cotation] || '') + '</span>'
+        + '<span class="as-statut">' + _asEsc(LIB.statut[f.statut] || '') + '</span>'
+        + '<span>' + _asEsc(l0.source || l0.domaine) + '</span>'
+        + (f.publieMs ? '<span>' + _asEsc(_asDate(f.publieMs)) + '</span>' : '')
+        + (f.cy && PAYS_INFO[f.cy] ? '<span>' + _asEsc(_asNomPays(f.cy)) + '</span>' : '')
+        + (autres ? '<span>' + (en ? 'Also: ' : 'Aussi : ') + autres + '</span>' : '') + '</div></li>';
+    }).join('') + '</ul>';
+  }
+  const ec = Object.entries(r.ecartes || {}).filter(x => x[1] > 0).map(x => x[1] + ' ' + (LIB.ecarte[x[0]] || x[0])).join(', ');
+  h += '<p class="as-source">' + (en ? 'Engines: ' : 'Moteurs : ') + r.moteurs.map(m => _asEsc(m.nom) + ' (' + _asEsc(LIB.etat[m.etat] || m.etat) + ', ' + m.n + ')').join(' · ')
+    + (ec ? '<br>' + (en ? 'Set aside: ' : 'Écartés : ') + _asEsc(ec) : '') + '</p>';
+  return h;
+}
+async function chercherSurLeWeb(i) {
+  const e = _asFil[i];
+  if (!e || (e.web && e.web.etat && e.web.etat !== 'reseau')) return;
+  e.web = { etat: 'envoi' };
+  _asRendreTout();
+  const s = await _agentSession();
+  if (!s) { e.web = { etat: 'session' }; return _asRendreTout(); }
+  const attente = _agentAttente();
+  const jour = SentiqAgent.jourDe(Date.now());
+  const depart = attente.filter(x => x.jour === jour).reduce((m, x) => Math.max(m, x.n + 1), 0);
+  const r = await SentiqAgent.deposer(s.cfg, s.entetes, e.q, e.interp, s.uid, LANG, fetch.bind(window), estAdmin(getSession()), depart);
+  if (r.id) {
+    e.web = { etat: 'attente', id: r.id };
+    attente.push({ id: r.id, q: e.q, jour: r.jour, n: r.n, le: Date.now() });
+    _agentGarderAttente(attente);
+    _agentDemarrerSondeur();
+  } else e.web = { etat: r.erreur || 'reseau' };
+  _asRendreTout();
+}
+// Relit les réponses attendues : à l'ouverture de l'assistant, puis chaque
+// minute tant qu'il reste ouvert et qu'une demande attend.
+async function sonderReponsesAgent() {
+  const attente = _agentAttente();
+  if (!attente.length) return;
+  const s = await _agentSession();
+  if (!s) return;
+  const trouve = await SentiqAgent.lireReponses(s.cfg, s.entetes, attente.map(x => x.id), fetch.bind(window));
+  if (!trouve.size) return;
+  trouve.forEach((res, id) => {
+    const ent = _asFil.find(x => x.web && x.web.id === id);
+    if (ent) ent.web = { etat: 'pret', id, resultat: res };
+    else {
+      const a = attente.find(x => x.id === id);
+      _asFil.push({ q: (a && a.q) || res.q, interp: null, attente: false, r: { blocs: [], suggestions: [] }, web: { etat: 'pret', id, resultat: res } });
+    }
+  });
+  _agentGarderAttente(attente.filter(x => !trouve.has(x.id)));
+  _asRendreTout();
+}
+function _agentDemarrerSondeur() {
+  if (_agentSondeur) return;
+  _agentSondeur = setInterval(() => {
+    const d = document.getElementById('assistant');
+    if (!d || !d.classList.contains('on') || !_agentAttente().length) { clearInterval(_agentSondeur); _agentSondeur = null; return; }
+    sonderReponsesAgent().catch(() => {});
+  }, 60000);
+}
+
+// Faits insérés par l'agent : la base de l'appli, ajoutés à la liste des
+// actus comme ceux du cache partagé (même tri, même dédoublonnage). Ils ne
+// font PAS monter un niveau d'alerte (getLiveAlertEvents les écarte) : ce
+// qu'on cherche ne doit pas biaiser ce qu'on mesure.
+let _actusAgent = [];
+async function _listerFirestore(collection, n) {
+  const s = await _agentSession();
+  if (!s) return [];
+  try {
+    const r = await fetch('https://firestore.googleapis.com/v1/projects/' + s.cfg.projectId + '/databases/(default)/documents/' + collection + '?pageSize=' + (n || 300), { headers: s.entetes });
+    if (!r.ok) return [];
+    const j = await r.json();
+    return (j.documents || []).map(d => ({ id: String(d.name).split('/').pop(), f: d.fields || {} }));
+  } catch (_) { return []; }
+}
+async function chargerActusAgent() {
+  if (typeof SentiqAgent === 'undefined') return;
+  const docs = await _listerFirestore(SentiqAgent.COLLECTIONS.actus, 300);
+  const srcs = SRCS.map(s => ({ id: s.id }));
+  _actusAgent = docs.map(d => { try { return SentiqAgent.articleAgentValide(JSON.parse((d.f.article || {}).stringValue || 'null'), srcs); } catch (_) { return null; } }).filter(Boolean);
+  if (_actusAgent.length && typeof ALL !== 'undefined' && ALL.length) {
+    const avant = ALL.length;
+    ALL = fusionnerActusAgent(ALL, _actusAgent);
+    if (ALL.length > avant) { try { rehydrateArticles(ALL); } catch (_) {} synchroniserTousLesModules(); }
+  }
+}
+function fusionnerActusAgent(articles, agent) {
+  const urls = new Set(articles.map(a => a.url).filter(Boolean));
+  const titres = new Set(articles.map(a => (a.cy || '') + '|' + titreNormalise(a.title || '')));
+  const ajout = (agent || []).filter(a => !urls.has(a.url) && !titres.has((a.cy || '') + '|' + titreNormalise(a.title || '')) && estRecentReel(a));
+  return ajout.length ? articles.concat(ajout.map(a => Object.assign({}, a, { time: fmtAge(a.pubDate || 0) }))) : articles;
+}
+
+// Agenda de la vie de chaque pays, collecté par l'agent sur les 54 pays :
+// colloques, séminaires, concerts, foires, sessions parlementaires,
+// fermetures de voie, inaugurations, mises en service de routes. Chaque
+// entrée porte une date ÉCRITE dans un article d'un média du registre.
+let _agendaAgent = null, _agendaAgentTs = 0;
+async function agendaAgent() {
+  if (_agendaAgent && Date.now() - _agendaAgentTs < 30 * 60000) return _agendaAgent;
+  if (typeof SentiqAgent === 'undefined') return [];
+  const MOIS_ABBR = ['Jan','Fev','Mar','Avr','Mai','Jun','Jul','Aou','Sep','Oct','Nov','Dec'];
+  const docs = await _listerFirestore(SentiqAgent.COLLECTIONS.agenda, 300);
+  _agendaAgent = docs.map(d => agendaAgentVersEntree(d.id, (d.f.evenement || {}).stringValue, MOIS_ABBR)).filter(Boolean);
+  _agendaAgentTs = Date.now();
+  return _agendaAgent;
+}
+const AGENDA_AGENT_TYPES = ['colloque', 'seminaire', 'concert', 'festival', 'foire', 'gouvernemental', 'election', 'manifestation', 'travaux', 'sportif', 'religieux', 'ceremonie', 'meeting'];
+function agendaAgentVersEntree(cle, json, MOIS_ABBR) {
+  let e = null;
+  try { e = JSON.parse(json || 'null'); } catch (_) { return null; }
+  if (!e || !PAYS_INFO[e.cy] || e.cy === 'INT' || AGENDA_AGENT_TYPES.indexOf(e.type) === -1) return null;
+  const debut = Number(e.debutMs);
+  if (!(debut > 0) || debut < Date.now() - 2 * 86400000) return null;
+  const titre = SentiqAgent.nettoyerTexte(e.titre, SentiqAgent.TITRE_MAX);
+  const lien = (Array.isArray(e.liens) ? e.liens : []).map(l => l && SentiqAgent.urlSure(l.url)).filter(Boolean)[0];
+  const src = SRCS.find(s => s.id === e.sourceId);
+  if (titre.length < 8 || !lien || !src) return null;
+  const d = new Date(debut);
+  return {
+    id: 'agent-' + String(cle).replace(/[^a-f0-9]/g, '').slice(0, 40),
+    day: String(d.getUTCDate()).padStart(2, '0'), month: MOIS_ABBR[d.getUTCMonth()], year: String(d.getUTCFullYear()),
+    title: titre, desc: SentiqAgent.nettoyerTexte(e.extrait, 220),
+    status: 'planifie', type: e.type, cy: e.cy,
+    impact: (e.type === 'travaux' || e.type === 'manifestation') ? 'moyen' : 'faible',
+    surl: lien, src: src.n, reco: recoAgendaAuto(e.type), _detecteAuto: true, _agent: true, _ts: debut,
+    _cotation: SentiqAgent.COTATIONS.indexOf(e.cotation) !== -1 ? e.cotation : 'non_confirme',
+  };
+}
+
+// Revue de l'analyste (administrateur) : la quarantaine à trancher et le
+// rapport quotidien de l'agent — couverture des 54 pays, veille des pays les
+// moins couverts, recoupements proposés, cohérence de la base, signaux
+// faibles, médias inconnus, tournée d'agenda.
+async function _lireFirestoreDoc(chemin) {
+  const s = await _agentSession();
+  if (!s) return null;
+  try {
+    const r = await fetch('https://firestore.googleapis.com/v1/projects/' + s.cfg.projectId + '/databases/(default)/documents/' + chemin, { headers: s.entetes });
+    return r.ok ? ((await r.json()).fields || null) : null;
+  } catch (_) { return null; }
+}
+async function revueAgent() {
+  const en = LANG === 'en';
+  const C = SentiqAgent.COLLECTIONS;
+  const LIB = SentiqAgent.LIB[en ? 'en' : 'fr'];
+  const [q, quot, tour] = await Promise.all([_listerFirestore(C.quarantaine, 200), _lireFirestoreDoc(C.rapport + '/quotidien'), _lireFirestoreDoc(C.rapport + '/agenda_tournee')]);
+  let h = '<h3>' + (en ? 'Agent — analyst review' : 'Agent — revue de l’analyste') + '</h3>';
+  const enAttente = q.filter(d => !d.f.decision);
+  h += '<h4>' + (en ? 'Awaiting validation' : 'En attente de validation') + ' (' + enAttente.length + ')</h4>';
+  h += enAttente.length ? '<ul class="as-faits">' + enAttente.slice(0, 40).map(d => {
+    let x = {};
+    try { x = d.f.genre && d.f.genre.stringValue === 'agenda' ? JSON.parse(d.f.evenement.stringValue) : JSON.parse(d.f.article.stringValue); } catch (_) {}
+    const titre = SentiqAgent.nettoyerTexte(x.titre || x.title, 300);
+    const url = SentiqAgent.urlSure((x.liens && x.liens[0] && x.liens[0].url) || x.url);
+    const agenda = d.f.genre && d.f.genre.stringValue === 'agenda';
+    return '<li class="as-fait"><div class="as-fait-t">' + (url ? '<a href="' + _asEsc(url) + '" target="_blank" rel="noopener">' + _asEsc(titre) + '</a>' : _asEsc(titre)) + '</div>'
+      + '<div class="as-meta"><span>' + _asEsc(agenda ? (en ? 'Agenda' : 'Agenda') : (en ? 'News' : 'Actu')) + '</span><span>' + _asEsc(_asNomPays(x.cy) || '') + '</span>'
+      + '<span class="as-cot ' + _asEsc((d.f.cotation || {}).stringValue || 'non_confirme') + '">' + _asEsc(LIB.cot[(d.f.cotation || {}).stringValue] || LIB.cot.non_confirme) + '</span></div>'
+      + '<div class="as-dec"><button type="button" data-ag-dec="valide" data-ag-id="' + _asEsc(d.id) + '">' + (en ? 'Validate' : 'Valider') + '</button>'
+      + '<button type="button" data-ag-dec="rejete" data-ag-id="' + _asEsc(d.id) + '">' + (en ? 'Reject' : 'Rejeter') + '</button></div></li>';
+  }).join('') + '</ul>' : '<p class="as-note">' + (en ? 'Nothing to decide.' : 'Rien à trancher.') + '</p>';
+  let rap = null;
+  try { rap = quot && JSON.parse(quot.rapport.stringValue); } catch (_) {}
+  if (rap && rap.couverture) {
+    const lignes = Object.entries(rap.couverture).sort((a, b) => a[1].score - b[1].score);
+    const n = k => lignes.filter(x => x[1].etat === k).length;
+    h += '<h4>' + (en ? 'Coverage of the 54 countries' : 'Couverture des 54 pays') + ' — ' + _asEsc(rap.jour) + '</h4><p class="as-note">'
+      + (en ? n('pauvre') + ' poorly covered, ' + n('moyenne') + ' average, ' + n('bonne') + ' well covered. The score says how well the tool sees a country, not how dangerous it is.'
+           : n('pauvre') + ' peu couverts, ' + n('moyenne') + ' moyens, ' + n('bonne') + ' bien couverts. Le score dit combien l’outil voit un pays, pas son danger.') + '</p>'
+      + '<table class="as-tab"><thead><tr><th>' + (en ? 'Country' : 'Pays') + '</th><th>' + (en ? 'News 36 h' : 'Actus 36 h') + '</th><th>' + (en ? '7 days' : '7 jours') + '</th><th>Agenda</th><th>' + (en ? 'Alert sources' : 'Sources d’alerte') + '</th><th>Score</th></tr></thead><tbody>'
+      + lignes.map(([cy, c]) => '<tr><td class="' + (c.etat === 'pauvre' ? 'pauvre' : '') + '">' + _asEsc(_asNomPays(cy)) + (c.muet ? (en ? ' (silent)' : ' (muet)') : '') + '</td><td>' + c.actus36h + '</td><td>' + c.actus7j + '</td><td>' + c.agenda + '</td><td>' + c.sources + '</td><td>' + c.score + '</td></tr>').join('')
+      + '</tbody></table>';
+  }
+  if (rap) {
+    const liste = (titre, items) => items.length ? '<h4>' + titre + '</h4><ul>' + items.map(t => '<li>' + t + '</li>').join('') + '</ul>' : '';
+    h += liste(en ? 'Watch of the least covered countries' : 'Veille des pays les moins couverts', (rap.veille || []).map(v => _asEsc(_asNomPays(v.cy)) + ' : ' + v.faits + (en ? ' fact(s), ' : ' fait(s), ') + v.inseres + (en ? ' added, ' : ' ajouté(s), ') + v.quarantaine + (en ? ' awaiting' : ' en attente')));
+    h += liste(en ? 'Proposed cross-checks' : 'Recoupements proposés', (rap.recoupements || []).filter(r => r.proposition === 'confirme').map(r => _asEsc(SentiqAgent.nettoyerTexte(r.titre, 200)) + ' — ' + (en ? 'confirmed by ' : 'confirmé par ') + r.liens.map(l => { const u = SentiqAgent.urlSure(l.url); return u ? '<a href="' + _asEsc(u) + '" target="_blank" rel="noopener">' + _asEsc(SentiqAgent.nettoyerTexte(l.source, 80) || new URL(u).hostname) + '</a>' : ''; }).join(', ')));
+    const qa = rap.qualite || {};
+    h += liste(en ? 'Database consistency' : 'Cohérence de la base', [
+      (qa.doublons || []).length + (en ? ' unmerged duplicate(s)' : ' doublon(s) non fusionné(s)'),
+      (qa.dates || []).length + (en ? ' doubtful date(s)' : ' date(s) douteuse(s)'),
+      (qa.horsSurete || []).length + (en ? ' critical/high not security-related' : ' critique(s)/élevé(s) hors sûreté'),
+      (qa.contradictions || []).length + (en ? ' contradiction(s) between outlets' : ' contradiction(s) entre médias'),
+    ]);
+    h += liste(en ? 'Weak signals' : 'Signaux faibles', (rap.signaux || []).slice(0, 12).map(x => _asEsc(_asNomPays(x.cy)) + ' — ' + _asEsc(x.famille) + ' : ' + x.recents + (en ? ' in 3 days vs ' : ' en 3 jours contre ') + x.base + (en ? ' usual' : ' habituellement')));
+    h += liste(en ? 'Unknown outlets seen' : 'Médias inconnus vus passer', (rap.decouvertes || []).slice(0, 15).map(x => _asEsc(x.domaine) + ' (' + x.n + ', ' + _asEsc((x.pays || []).join(' ')) + ')'));
+  }
+  let bil = [];
+  try { bil = tour ? JSON.parse(tour.bilans.stringValue) : []; } catch (_) {}
+  if (bil.length) h += '<h4>' + (en ? 'Agenda round (last countries searched)' : 'Tournée d’agenda (derniers pays cherchés)') + '</h4><ul>' + bil.slice(0, 12).map(b => '<li>' + _asEsc(_asNomPays(b.cy)) + ' : ' + b.trouves + (en ? ' dated event(s), ' : ' événement(s) daté(s), ') + b.inseres + (en ? ' added' : ' inscrit(s)') + '</li>').join('') + '</ul>';
+  if (!rap && !bil.length) h += '<p class="as-note">' + (en ? 'No report yet: the agent writes it at its first daily pass.' : 'Pas encore de rapport : l’agent l’écrit à son premier passage du jour.') + '</p>';
+  return h;
+}
+async function ouvrirRevueAgent() {
+  const entree = { q: LANG === 'en' ? 'Agent review' : 'Revue de l’agent', interp: null, attente: true };
+  _asFil.push(entree);
+  _asRendreTout();
+  let h = '';
+  try { h = await revueAgent(); } catch (e) { h = '<p class="as-note">' + (LANG === 'en' ? 'The review could not be read.' : 'La revue n’a pas pu être lue.') + '</p>'; }
+  entree.attente = false;
+  entree.r = { blocs: [], suggestions: [] };
+  entree.html = h;
+  _asRendreTout();
+}
+async function deciderQuarantaine(id, decision) {
+  const s = await _agentSession();
+  const email = getSession().email;
+  if (!s || !email || ['valide', 'rejete'].indexOf(decision) === -1) return false;
+  const champs = ['decision', 'decidePar', 'decideLe'];
+  const url = 'https://firestore.googleapis.com/v1/projects/' + s.cfg.projectId + '/databases/(default)/documents/' + SentiqAgent.COLLECTIONS.quarantaine + '/' + encodeURIComponent(id)
+    + '?' + champs.map(c => 'updateMask.fieldPaths=' + c).join('&') + '&currentDocument.exists=true';
+  try {
+    const r = await fetch(url, { method: 'PATCH', headers: Object.assign({ 'Content-Type': 'application/json' }, s.entetes),
+      body: JSON.stringify({ fields: { decision: { stringValue: decision }, decidePar: { stringValue: email }, decideLe: { stringValue: new Date().toISOString() } } }) });
+    return r.ok;
+  } catch (_) { return false; }
+}
+// ── fin de l'agent de recherche web ──
 document.addEventListener('keydown', ev => {
   const cible = ev.target, tag = cible && cible.tagName;
   const saisie = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (cible && cible.isContentEditable);
@@ -18141,6 +18481,9 @@ async function init() {
   // 15 minutes, comme le cache partage ; sans Firebase, ne fait rien.
   chargerValidations();
   setInterval(chargerValidations, 15 * 60 * 1000);
+  // Faits ajoutés par l'agent de recherche (22/11/2026) : relus comme les validations.
+  setTimeout(() => { chargerActusAgent().catch(() => {}); }, 8000);
+  setInterval(() => { chargerActusAgent().catch(() => {}); }, 30 * 60 * 1000);
   demanderPermissionNotifWeb();
   // Regle : si l'utilisateur a ferme la banniere de diagnostic recemment
   // (moins de 30 min), ne pas la reafficher — evite l'effet pop-up repetitif.
@@ -18805,6 +19148,7 @@ function synchroniserTousLesModules() {
 // partage au lieu de relancer leur propre collecte reseau.
 function _appliquerArticlesPartages(articles) {
   ALL = articles.filter(a => estRecentReel(a));
+  if (typeof fusionnerActusAgent === 'function' && _actusAgent.length) ALL = fusionnerActusAgent(ALL, _actusAgent);
   ALL.forEach(a => { a.time = fmtAge(a.pubDate || 0); });
   if (typeof rehydraterParLots === 'function') rehydraterParLots(ALL);
   if (typeof agentCorrigerTextesArticles === 'function') agentCorrigerTextesArticles();
@@ -22745,6 +23089,7 @@ function getLiveAlertEvents(cy) {
   // critique) restent les garde-fous.
   const candidats = ALL.filter(a =>
     a.cy === cy &&
+    a.origine !== 'agent' &&          // trouvé par l'agent : n'alerte pas (22/11/2026)
     a.pubDate && (now - a.pubDate) < MAX_AGE &&
     a.primary &&                      // source identifiée
     (a.score || 0) >= 70 &&           // source de fiabilité suffisante

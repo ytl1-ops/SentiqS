@@ -1,0 +1,70 @@
+name: Agent de recherche d'actus
+
+# Agent de recherche d'actus (22/11/2026, demande de YORO) : sert les
+# recherches web déposées depuis l'assistant de l'appli, applique les
+# décisions de l'analyste sur la quarantaine et, une fois par jour, fait la
+# veille des angles morts, le recoupement des faits à source unique, le
+# contrôle qualité de la base, les signaux faibles et le relevé des médias
+# inconnus. Voir web/js/agent-recherche.js et scripts/agent-recherche.js.
+#
+# Gratuit, sans clé : moteurs qui l'autorisent dans leur robots.txt (Bing
+# Actualités) et API publique (ReliefWeb). Le passage ne lance le navigateur
+# que s'il y a du travail (étape « compter »).
+#
+# Sur une PR qui touche l'agent : une SONDE (trois recherches d'essai, rien
+# n'est écrit) mesure les moteurs depuis les runners GitHub.
+on:
+  schedule:
+    - cron: '7,37 * * * *'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/agent-recherche.js'
+      - 'scripts/lib/agent-recherche.js'
+      - 'web/js/agent-recherche.js'
+      - '.github/workflows/agent-recherche.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agent-recherche-${{ github.event_name == 'pull_request' && github.head_ref || 'base' }}
+  cancel-in-progress: false
+
+jobs:
+  agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+      - name: Compter le travail
+        id: compter
+        if: github.event_name != 'pull_request'
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/agent-recherche.js --compter
+      - name: Restaurer le navigateur Playwright
+        if: github.event_name == 'pull_request' || steps.compter.outputs.travail == '1'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-v1
+      - name: Installer Playwright + Chromium
+        if: github.event_name == 'pull_request' || steps.compter.outputs.travail == '1'
+        run: |
+          npm install --no-save playwright@1
+          npx playwright install --with-deps chromium
+      - name: Sonde des moteurs (rien n'est écrit)
+        if: github.event_name == 'pull_request'
+        env:
+          AGENT_SONDE: '1'
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/agent-recherche.js
+      - name: Passage de l'agent
+        if: github.event_name != 'pull_request' && steps.compter.outputs.travail == '1'
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/agent-recherche.js

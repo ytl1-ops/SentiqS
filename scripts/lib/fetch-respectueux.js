@@ -101,7 +101,9 @@ async function robotsAutorise(url) {
 // empechaient le job de se terminer. Les passages 1239 a 1243
 // (18-20/11/2026) ont tous ete annules au plafond de 30 minutes, archive,
 // bulletins et PDF du rapport compris. Un test l'interdit desormais.
-const DELAIS_PAR_DOMAINE_MS = { 'api.gdeltproject.org': 5500 };
+// Moteurs interrogés par l'agent de recherche (22/11/2026) : une requête
+// toutes les trois secondes au plus, même si plusieurs demandes s'enchaînent.
+const DELAIS_PAR_DOMAINE_MS = { 'api.gdeltproject.org': 5500, 'www.bing.com': 3000, 'api.reliefweb.int': 2000 };
 async function attendreQuota(url) {
   const domaine = domaineDe(url);
   if (!domaine) return;
