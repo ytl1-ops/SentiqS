@@ -23,11 +23,12 @@ téléphone. Les « serveurs » sont ceux de GitHub et de Google, gratuits.
   sans activité depuis 60 jours ; la collecte commite l'archive chaque jour,
   ce cas ne se présente pas tant qu'elle tourne. La cadence réelle reste
   de 3 à 5 heures, pas 30 minutes (voir CLAUDE.md, « Collecte planifiée »).
-- **Taille du dépôt** : 312 Mo et elle grossit. Le rapport mensuel (PowerPoint,
-  Word, PDF, ~24 Mo) est réécrit chaque jour et chaque version reste dans
-  l'historique : environ 24 Mo par jour, soit ~700 Mo par mois. GitHub
-  recommande de rester sous 1 Go et bloque au-delà de 5 Go. **C'est la
-  limite qui arrivera la première** (voir « À décider » plus bas).
+- **Taille du dépôt** : 312 Mo. Depuis le 22/11/2026 (choix de YORO), le
+  rapport mensuel du mois en cours n'est plus commité chaque jour : il est
+  déposé dans la release GitHub `rapport-AAAA-MM` (remplacé chaque jour, sans
+  historique), et seule la version finale d'un mois clos entre dans le dépôt,
+  soit ~24 Mo par mois au lieu de ~700. Le module Rapports télécharge le mois
+  en cours depuis la release.
 - **Firebase Spark** : 50 000 lectures et 20 000 écritures par jour,
   10 Go de sortie Firestore par mois, 360 Mo par jour de transfert pour le
   miroir. Chaque ouverture de l'appli lit le cache d'actus (~1,5 Mo) :
@@ -121,11 +122,3 @@ Donner l'adresse du miroir : `https://sentiqs-235ce.web.app/SentiqS_Web.html`.
 Mêmes comptes, mêmes données. Aucun autre hébergeur (Netlify, Cloudflare
 Pages) n'est nécessaire : ils demanderaient un compte de plus pour le même
 service.
-
-## À décider
-
-- **Taille du dépôt** : garder dans l'historique Git seulement la version
-  finale du rapport mensuel, et publier les versions quotidiennes autrement
-  (artefact ou « release » GitHub), ce qui arrête la croissance de ~700 Mo
-  par mois. Cela change l'endroit d'où le module Rapports télécharge le
-  rapport du mois en cours.

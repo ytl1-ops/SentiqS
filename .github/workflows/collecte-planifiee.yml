@@ -234,6 +234,20 @@ jobs:
         if: ${{ !cancelled() }}
         run: node scripts/indexer-rapports-grsci.js
 
+      - name: Rapport du mois en cours dans sa release
+        # Choix de YORO du 22/11/2026 (« version finale seule dans Git ») : le
+        # rapport du mois en cours (~24 Mo) était recommité chaque jour et
+        # chaque version restait dans l'historique, ~700 Mo par mois. Il est
+        # désormais déposé dans la release rapport-AAAA-MM (remplacé chaque
+        # jour, sans historique) et retiré de l'arbre ; seule la version finale
+        # d'un mois clos est commitée. En cas d'échec les fichiers restent et
+        # sont commités comme avant (scripts/publier-rapport-release.js).
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/publier-rapport-release.js
+
       - name: Archiver l'instantané du jour
         # Un instantané par jour, écrit par le premier passage (voir
         # scripts/lib/historique.js), plus l'état de dédoublonnage des

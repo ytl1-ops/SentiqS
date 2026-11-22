@@ -4802,8 +4802,15 @@ quand l'un d'eux tombe. Guide pour l'éditeur : `docs/sans-serveur.md`.
   et icônes rendus. **Non vérifié d'ici** : un vrai export depuis une session
   payante sur la page publiée, la sauvegarde sur la vraie base (pas de réseau
   vers Google), le `.bat` sur Windows.
-- **Limite qui arrivera la première** : le dépôt (312 Mo le 22/11) grossit
-  d'environ 24 Mo par jour, le rapport mensuel étant réécrit et commité
-  chaque jour. À trancher par l'éditeur (voir le guide).
+- **Version finale seule dans Git** (choix de YORO, 22/11/2026) : le rapport
+  du mois en cours (~24 Mo, réécrit chaque jour) faisait grossir le dépôt de
+  ~700 Mo par mois. `scripts/publier-rapport-release.js` (après l'index, avant
+  l'archive) le dépose dans la release `rapport-AAAA-MM` sous le nom
+  `Presentation-1-AAAA-MM.*`, pose `base` dans `index.json` et retire les
+  fichiers de l'arbre ; le mois clos, réécrit le 1er, revient dans le dépôt et
+  perd `base`. Une release en échec ne retire rien. `reconstruireIndex` garde
+  une entrée `base` sans fichiers locaux ; `rapportsAActualiser` la tient pour
+  publiée ; la page n'accepte comme `base` qu'une adresse de release du dépôt.
+  `scripts/test/rapport-release.test.js` (7).
 
 `scripts/test/sans-serveur.test.js` (9).
