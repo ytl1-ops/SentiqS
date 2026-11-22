@@ -1,6 +1,6 @@
 {
  "source": "FCDO — gov.uk Content API (Open Government Licence v3.0) ; Affaires mondiales Canada — données ouvertes (Licence du gouvernement ouvert — Canada) ; Département d'État des États-Unis — flux RSS (domaine public)",
- "lu": "2026-11-21T13:42:23.254Z",
+ "lu": "2026-11-22T13:35:38.214Z",
  "pays": {
   "AO": {
    "statuts": [
@@ -1155,7 +1155,7 @@
    "source": "Canada",
    "avis": "aabe_total",
    "libelle": "voyages non essentiels déconseillés dans tout le pays",
-   "revuIlYaJ": 31
+   "revuIlYaJ": 32
   },
   {
    "code": "MG",
@@ -1163,23 +1163,7 @@
    "source": "FCDO",
    "avis": "aucun",
    "libelle": "aucune restriction",
-   "revuIlYaJ": 5
-  },
-  {
-   "code": "MU",
-   "niveau": "orange",
-   "source": "FCDO",
-   "avis": "aucun",
-   "libelle": "aucune restriction",
-   "revuIlYaJ": 32
-  },
-  {
-   "code": "MU",
-   "niveau": "orange",
-   "source": "Canada",
-   "avis": "aucun",
-   "libelle": "aucune restriction",
-   "revuIlYaJ": 17
+   "revuIlYaJ": 6
   },
   {
    "code": "UG",
@@ -1187,7 +1171,7 @@
    "source": "FCDO",
    "avis": "aucun",
    "libelle": "aucune restriction",
-   "revuIlYaJ": 15
+   "revuIlYaJ": 16
   }
  ]
 }
