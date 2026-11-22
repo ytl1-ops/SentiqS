@@ -4674,3 +4674,8 @@ durables ». Trois blocages tenaient à un service tiers ou à un secret absent.
 
 `traducteur-local.test.js` (5) et `flash-ticket.test.js` (5), vus échouer
 sur l'ancien code.
+- **Installation sans Play Store.** Le manifeste existait déjà ; le menu
+  « Plus » porte « Installer l'application » quand Chrome ou Edge propose
+  l'installation (`beforeinstallprompt`). Sans compte Google Play ni frais,
+  l'appli s'installe sur Android et sur ordinateur. Pas de service worker :
+  un cache hors ligne mal invalidé servirait des niveaux périmés.
