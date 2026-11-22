@@ -379,6 +379,72 @@ service cloud.firestore {
       allow write: if estAdmin() && id == 'global';
     }
 
+    // Agent de recherche d'actus (22/11/2026, demande de YORO). Voir
+    // web/js/agent-recherche.js et scripts/agent-recherche.js.
+    //
+    // agent_demandes/{uid}_{jour}_{n} : un compte actif dépose une recherche
+    // web. Le jour (jours depuis 1970, temps du serveur) et le numéro n font
+    // partie de la clé et la création est seule permise : cinq recherches par
+    // jour et par compte (vingt pour l'administrateur), comptées ici, sans
+    // compteur à tenir. Le job (compte de service) les sert ; un navigateur ne
+    // les relit ni ne les efface.
+    function demandeAgentBienFormee(d, id) {
+      return d.keys().hasOnly(['uid', 'q', 'pays', 'jours', 'lang', 'jour', 'n', 'at'])
+        && d.keys().hasAll(['uid', 'q', 'pays', 'jours', 'lang', 'jour', 'n', 'at'])
+        && d.uid == request.auth.uid
+        && d.q is string && d.q.size() >= 3 && d.q.size() <= 160
+        && d.pays is list && d.pays.size() <= 3
+        && d.jours is int && d.jours >= 1 && d.jours <= 30
+        && d.lang in ['fr', 'en']
+        && d.jour is int && d.jour == math.floor(request.time.toMillis() / 86400000)
+        && d.n is int && d.n >= 0 && d.n < (estAdmin() ? 20 : 5)
+        && d.at is timestamp
+        && d.at > request.time - duration.value(10, 'm')
+        && d.at < request.time + duration.value(10, 'm')
+        && id == d.uid + '_' + string(d.jour) + '_' + string(d.n);
+    }
+    match /agent_demandes/{id} {
+      allow create: if profilActif() && accesEnCours() && demandeAgentBienFormee(request.resource.data, id);
+      allow get, list, update, delete: if false;
+    }
+    // Réponse du job, sous la même clé que la demande : lue par son auteur
+    // (la clé commence par son identifiant) ou l'administrateur.
+    match /agent_reponses/{id} {
+      allow get: if connecte() && (id.matches(request.auth.uid + '_[0-9]+_[0-9]+') || estAdmin());
+      allow list: if estAdmin();
+      allow write: if false;
+    }
+    // Faits vérifiés et insérés par l'agent : la base de l'appli, lue comme
+    // le cache d'actus, écrite par le job seul.
+    match /actus_agent/{cle} {
+      allow read: if profilActif() && accesEnCours();
+      allow write: if false;
+    }
+    // Agenda de la vie de chaque pays, collecté par l'agent : même lecture.
+    match /agenda_agent/{cle} {
+      allow read: if profilActif() && accesEnCours();
+      allow write: if false;
+    }
+    // Quarantaine : les faits probables ou non confirmés attendent
+    // l'analyste. Lus et tranchés par l'administrateur seul, en son nom ; le
+    // contenu trouvé ne se modifie pas. Le job applique la décision.
+    match /actus_agent_quarantaine/{cle} {
+      allow read: if estAdmin();
+      allow update: if estAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['decision', 'decidePar', 'decideLe'])
+        && request.resource.data.decision in ['valide', 'rejete']
+        && request.resource.data.decidePar == request.auth.token.email
+        && request.resource.data.decideLe is string && request.resource.data.decideLe.size() <= 40;
+      allow create, delete: if false;
+    }
+    // Rapport quotidien de l'agent (veille des angles morts, recoupements
+    // proposés, contrôle qualité, signaux faibles, médias inconnus) et
+    // journal des décisions : pour l'analyste seul.
+    match /agent_rapport/{id} {
+      allow read: if estAdmin();
+      allow write: if false;
+    }
+
     // Tout le reste est fermé tant qu'une PR ne l'ouvre pas explicitement.
   }
 }

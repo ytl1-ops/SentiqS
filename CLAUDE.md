@@ -4682,3 +4682,85 @@ sur l'ancien code.
   l'installation (`beforeinstallprompt`). Sans compte Google Play ni frais,
   l'appli s'installe sur Android et sur ordinateur. Pas de service worker :
   un cache hors ligne mal invalidé servirait des niveaux périmés.
+
+---
+
+## L'agent de recherche d'actus — 22/11/2026
+
+Demande de YORO : un agent autonome et sûr qui cherche des actus dans la base
+de l'appli et, si besoin, sur les moteurs de recherche, et insère dans la base
+ce qui est vérifié et absent. Précisions du même jour : l'agenda comme point de
+référence de la vie de chaque pays (colloques, concerts, séminaires, foires,
+sessions parlementaires, fermetures de voie, inaugurations, mises en service de
+routes et d'échangeurs), **les 54 pays** bien enrichis, et **aucune dépendance
+à Claude ni à un abonnement**.
+
+**Sans modèle de langue, exprès.** Tout est déterministe : recherche, filtre
+sur le registre, recoupement, cotation, dédoublonnage, dates. Une réponse est
+faite d'extraits cités avec leur lien, ou dit « introuvable ». Une couche de
+rédaction par un modèle (même local, gratuit) a été écartée : c'est elle qui
+inventerait. Rien à payer, aucun secret nouveau (le job utilise
+`FIREBASE_SERVICE_ACCOUNT`, déjà posé).
+
+**Architecture** (même schéma que les traductions partagées) : la page dépose
+une demande (`agent_demandes/{uid}_{jour}_{n}`, création seule ; les règles
+comptent cinq demandes par jour et par compte, vingt pour l'admin, sans
+compteur), le job `agent-recherche.yml` (toutes les 30 min, Playwright
+installé seulement s'il y a du travail) la sert et écrit
+`agent_reponses/{même clé}`, lue par son seul auteur. Fichiers :
+`web/js/agent-recherche.js` (partagé page / job / tests),
+`scripts/lib/agent-recherche.js` (logique pure), `scripts/agent-recherche.js`.
+
+**Moteurs, d'après leur robots.txt (lu le 22/11/2026)** : Bing Actualités
+(RSS) et l'API ReliefWeb sont interrogés ; **Google News, DuckDuckGo et Yahoo
+l'interdisent** et ne le sont pas — les contourner serait un arbitrage de
+l'éditeur. GDELT reste écarté (429 depuis les runners, voir plus haut). Le
+délai par domaine est dans `fetch-respectueux.js`.
+
+**Ce qui est cru** : seuls les articles d'un domaine du registre `SRCS` (hors
+relais et réseaux sociaux) ; le pays, le niveau et la catégorie sont décidés
+par la vraie page (`parseRSS` sur un flux synthétique), rien n'est
+réimplémenté. Le texte venu du web est nettoyé (balises, caractères invisibles
+et bidirectionnels), borné et échappé : une instruction cachée dans une page
+reste une donnée. Seules les adresses des moteurs sont demandées, jamais une
+page d'article.
+
+**Insertion** : un fait recoupé par deux domaines distincts et absent de la
+base entre dans `actus_agent` (origine `agent`, date, liens) ; le reste va en
+quarantaine (`actus_agent_quarantaine`), tranchée par l'admin dans
+l'assistant (« Revue de l'agent »), appliquée au passage suivant. **Un fait
+de l'agent ne fait jamais monter un niveau** (`getLiveAlertEvents` l'écarte) :
+ce qu'on cherche ne doit pas biaiser ce qu'on mesure. Un test l'exige.
+
+**Agenda des 54 pays** : à chaque passage horaire, deux pays — la Côte
+d'Ivoire toutes les 4 h, puis le pays cherché il y a le plus longtemps, le
+moins couvert à égalité (`tourneeAgenda`). Requêtes en français pour les pays
+francophones, en anglais (Bing en-GB) pour les autres : la page ne reconnaît
+les types d'événement qu'en français et en anglais. **Un événement n'entre
+que s'il porte une date écrite** (`dateAnnoncee` : « du 25 au 27 novembre »,
+« November 30 », « 3 de diciembre ») ; sans date, rien n'est deviné.
+`agenda_agent` est lu par `agendaComplet()` (module Agenda et assistant).
+Une source unique notée sous 70 envoie l'événement à l'analyste.
+
+**Lexique d'agenda élargi** (sessions parlementaires, fermetures de voie,
+mises en service et inaugurations d'ouvrages). Les formulations ambiguës sont
+lues **dans le titre seulement** (`EVENT_CORPS_EXCLUS`) : mesuré sur les
+cumuls d'octobre et novembre, au corps « session ordinaire » faisait d'un vote
+du Sénat un événement, et « mise en service du pont » d'un article sur le
+retard du pont de Rosso — deux actus que l'agenda aurait retirées du Flux.
+
+**Passage quotidien** : couverture des 54 pays (`couverturePays` : actus
+36 h et 7 jours, agenda à venir, sources capables d'alerter, muet ou hors
+alerte — un score de visibilité, **pas de danger**), veille des six pays les
+moins couverts, recoupement proposé des critiques et élevés à source unique,
+cohérence de la base (doublons, dates, hors sûreté, contradictions de pays ou
+de bilan), signaux faibles (familles d'événement en hausse sur 3 jours contre
+14), médias inconnus vus passer. Tout est dans `agent_rapport`, lu par l'admin.
+
+**Mesure** : la sonde (`AGENT_SONDE=1`, lancée sur chaque PR qui touche
+l'agent) interroge les moteurs depuis GitHub et n'écrit rien. Le bac à sable
+n'a pas de réseau : le rendement réel de Bing et de ReliefWeb ne se lit que
+dans ce journal.
+
+`scripts/test/agent-recherche.test.js` (17) et 16 cas sur l'émulateur dans
+`verifier-regles-firestore.js`.
