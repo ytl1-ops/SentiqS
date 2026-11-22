@@ -154,7 +154,49 @@
     });
   }
 
+  // ── La « tête » du cache (22/11/2026) ─────────────────────────────────────
+  // Demande de YORO : « un délai de chargement des actus très réduit ». Le
+  // cache complet pèse ~685 Ko (1 694 articles, passage n° 1252) : sur une 4G
+  // lente, plusieurs secondes avant la première actu pour un nouvel appareil.
+  // Le job publie donc aussi, sous la clé « tete », un sous-ensemble lu en
+  // premier, puis remplacé par le cache complet.
+  //
+  // Ce que la tête garde, pour que rien de ce qu'affiche l'écran pendant ces
+  // quelques secondes ne soit FAUX (un niveau trop bas ou un pays « muet » à
+  // tort serait un faux négatif) :
+  //  · tout article au-dessus du normal (crit, high, mod) : ce sont les seuls
+  //    que getLiveAlertEvents compte, les niveaux d'alerte sont donc identiques ;
+  //  · pour chaque pays, ses PAR_PAYS articles les plus récents et son plus
+  //    récent d'une source capable d'alerter (score >= 70) : paysMuet() et
+  //    paysAveugleAlerte() rendent le même verdict qu'avec le cache complet ;
+  //  · tous les articles des pays prioritaires (Côte d'Ivoire, pays pilote) ;
+  //  · les RECENTS articles les plus récents, pour la première page du Flux.
+  // Seuls les comptes (nombre d'actus) sont plus bas pendant ce temps : la
+  // barre d'état le dit.
+  var CLE_TETE = 'tete';
+  function selectionnerTete(articles, options) {
+    var o = options || {};
+    var parPays = o.parPays || 3, recents = o.recents || 150;
+    var prioritaires = o.prioritaires || ['CI'];
+    var liste = (Array.isArray(articles) ? articles : []).filter(function (a) { return a && a.id; });
+    var tries = liste.slice().sort(function (x, y) { return (y.pubDate || 0) - (x.pubDate || 0); });
+    var garde = {};
+    var vusPays = {}, fiablePays = {};
+    tries.forEach(function (a, i) {
+      var cy = a.cy || '';
+      var n = vusPays[cy] || 0;
+      if (a.level === 'crit' || a.level === 'high' || a.level === 'mod') garde[a.id] = true;
+      if (prioritaires.indexOf(cy) !== -1) garde[a.id] = true;
+      if (n < parPays) garde[a.id] = true;
+      vusPays[cy] = n + 1;
+      if (!fiablePays[cy] && (a.score || 0) >= 70) { fiablePays[cy] = true; garde[a.id] = true; }
+      if (i < recents) garde[a.id] = true;
+    });
+    return liste.filter(function (a) { return garde[a.id]; });
+  }
+
   var api = {
+    CLE_TETE: CLE_TETE, selectionnerTete: selectionnerTete,
     COLLECTION: COLLECTION, ID_ANNONCE: ID_ANNONCE, PARTIE_MAX: PARTIE_MAX, CLE_LOCALE: CLE_LOCALE,
     racine: racine, idPartie: idPartie, cleDe: cleDe, decouper: decouper, valeur: valeur,
     decoder: decoder, lireAnnonce: lireAnnonce, lireMorceaux: lireMorceaux, lire: lire,

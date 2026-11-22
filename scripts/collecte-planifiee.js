@@ -38,6 +38,7 @@ const faitsGrsci = require('./lib/faits-grsci');
 const photosGrsci = require('./lib/photos-grsci');
 const { traduire: traduireJob, ressembleAnglais } = require('./lib/traduction-job');
 const cacheFirestore = require('./lib/cache-firestore-ecriture');
+const commun = require('../web/js/cache-firestore.js');
 const { traduireActus, memoire: memoireTraductionsActus, cleMemoire: cleMemoireTraduction } = require('./lib/traduction-actus');
 const { fusionnerAgenda } = require('./lib/agenda-firestore');
 const santeCollecte = require('./lib/sante-collecte');
@@ -298,6 +299,17 @@ function ecrireResumeActions(md) {
         console.log('Cache Firestore publié : ' + pubFs.nbArticles + ' articles, ' + pubFs.parts
           + ' morceau(x), ' + Math.round(pubFs.octets / 1024) + ' Ko (emplacement ' + pubFs.emplacement + ').');
         publicationExterne = { ok: true, nbArticles: pubFs.nbArticles };
+        // Tête du cache (collecte_partagee/tete) : ce qu'un nouvel appareil lit
+        // en premier pour afficher les actus sans attendre le cache complet
+        // (voir selectionnerTete, web/js/cache-firestore.js). Best-effort : sans
+        // elle, la page lit le cache complet, comme avant.
+        try {
+          const tete = commun.selectionnerTete(fusionnes);
+          const pubTete = await cacheFirestore.ecrireCache(compteFirebase, tete, fetch, { cle: commun.CLE_TETE, maintenant: pubFs.updated_at });
+          console.log('Tête du cache publiée : ' + pubTete.nbArticles + ' articles, ' + Math.round(pubTete.octets / 1024) + ' Ko.');
+        } catch (e) {
+          console.warn('::warning::Tête du cache non publiée : ' + ((e && e.message) || e));
+        }
         // Agenda partagé (collecte_partagee/agenda), best-effort : un échec ici
         // ne fait pas tomber la publication du cache d'actus, qui a réussi.
         try {
