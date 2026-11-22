@@ -1,0 +1,41 @@
+name: Sauvegarde Firebase (chiffrée)
+
+# Sauvegarde hebdomadaire des données Firestore (comptes, profils, paiements
+# déclarés, validations, bulletins programmés, cache d'actus), chiffrée par la
+# clé du compte de service (scripts/lib/sauvegarde-chiffree.js). Le dépôt est
+# public : l'artefact peut être téléchargé par n'importe quel compte GitHub,
+# il n'est lisible qu'avec le fichier JSON du compte de service.
+# Retour arrière : scripts/restaurer-firestore.js (voir docs/sans-serveur.md).
+
+on:
+  schedule:
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sauvegarde-firebase
+  cancel-in-progress: false
+
+jobs:
+  sauvegarde:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+      - name: Lit et chiffre Firestore
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/sauvegarder-firestore.js sauvegardes
+      - name: Dépose la sauvegarde (90 jours)
+        uses: actions/upload-artifact@v4
+        with:
+          name: sauvegarde-firebase-${{ github.run_number }}
+          path: sauvegardes/*.json.enc
+          retention-days: 90
+          if-no-files-found: error

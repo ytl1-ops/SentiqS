@@ -4764,3 +4764,46 @@ dans ce journal.
 
 `scripts/test/agent-recherche.test.js` (17) et 16 cas sur l'émulateur dans
 `verifier-regles-firestore.js`.
+## Sans serveur : version hors ligne, sauvegarde chiffrée, collecte depuis un PC — 22/11/2026
+
+Demande de YORO : « je n'ai pas de serveur ». L'appli n'en a pas besoin
+(Pages + Firebase + Actions, tous gratuits) ; ce qui manquait, c'est de tenir
+quand l'un d'eux tombe. Guide pour l'éditeur : `docs/sans-serveur.md`.
+
+- **Version hors ligne** (`web/js/hors-ligne.js`, menu Plus, forfaits payants
+  et admin) : un fichier HTML autonome, scripts locaux recopiés, instantané
+  des actus et des fichiers de `FICHIERS_DONNEES`, police d'icônes en data URL
+  (la CSP du fichier, et seulement d'elle, reçoit `font-src data:`). En tête du
+  fichier, `installer()` ramène `Date` à l'instant de l'instantané (sinon tout
+  sort de la fenêtre de 36 h et le pays paraît calme) et sert les données
+  recopiées par `fetch()`. Bandeau permanent avec l'âge **réel**
+  (`vraiMaintenant`). `checkAuth` → `demarrerHorsLigne()` après le collecteur ;
+  `doCollect`, `trFetch` et `_traduireParLots` ne font rien hors ligne (les
+  traductions attendues gelaient le Flux plus de 15 s). Téléchargement direct,
+  jamais par `dlFile` (pas de panneau de partage : le fichier contient les
+  actus du compte).
+- **`signatureCode()` ignore les scripts `data-src`** : sans cela, le fichier
+  hors ligne aurait une autre signature et reclasserait tout à l'ouverture
+  (~14 ms par article). Les scripts recopiés et l'instantané portent
+  `data-src` ; la page servie n'en a aucun, sa signature ne change pas.
+- **Sauvegarde** : `sauvegarde-firebase.yml` (lundi 4 h 17 UTC) →
+  `scripts/sauvegarder-firestore.js`, chiffrée AES-256-GCM + RSA-OAEP par la
+  clé publique du compte de service (`scripts/lib/sauvegarde-chiffree.js`) :
+  le dépôt est public, l'artefact aussi. Sans `traductions`,
+  `traductions_demandes`, `bulletins_instantanes` (refaits par le job).
+  `scripts/restaurer-firestore.js` : lecture seule par défaut, `--appliquer`
+  exige `--collections`, ne supprime jamais.
+- **Collecte depuis un PC Windows** : `outils/pc/Lancer la collecte.bat` →
+  `collecte-locale.ps1`, même script que le job, repli sur
+  `sentiqs-235ce.web.app` si Pages ne répond pas. `compte-service.json` est
+  dans `.gitignore`.
+- **Mesuré** : fichier de 400 actus, 4,3 Mo, ouvert en `file://` sans réseau
+  dans Chromium (bureau et 390 px) : 0 erreur, Flux, tableau de bord, Alertes
+  et icônes rendus. **Non vérifié d'ici** : un vrai export depuis une session
+  payante sur la page publiée, la sauvegarde sur la vraie base (pas de réseau
+  vers Google), le `.bat` sur Windows.
+- **Limite qui arrivera la première** : le dépôt (312 Mo le 22/11) grossit
+  d'environ 24 Mo par jour, le rapport mensuel étant réécrit et commité
+  chaque jour. À trancher par l'éditeur (voir le guide).
+
+`scripts/test/sans-serveur.test.js` (9).

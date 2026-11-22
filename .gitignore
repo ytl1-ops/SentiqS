@@ -29,3 +29,9 @@ mesure-gdelt.json
 
 # Preuve Search Console, écrite au déploiement Firebase (scripts/search-console.js)
 web/google*.html
+
+# Sans serveur (22/11/2026) : secrets et données du PC, jamais dans le dépôt
+outils/pc/compte-service*.json
+sauvegardes/
+*.json.enc
+SentiqS-hors-ligne-*.html

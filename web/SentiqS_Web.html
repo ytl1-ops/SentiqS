@@ -32,6 +32,7 @@
 <!-- Noyau logique : les fonctions de decision du produit, sorties du script
      inline pour etre testables directement (voir web/js/noyau.js). Charge
      AVANT lui : le script applicatif s'appuie sur ces noms. -->
+<script src="js/hors-ligne.js"></script>
 <script src="js/noyau.js"></script>
 <script src="js/assistant.js"></script>
 <script src="js/calendrier-foules.js"></script>
@@ -3749,6 +3750,9 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
       <button class="actu-btn" onclick="document.getElementById('tbMore').open=false;installerApplication()" id="installerAppBtn" hidden style="background:var(--sf)">
         <i class="ti ti-download"></i> <span data-i18n="btn_installer_app">Installer l'application</span>
       </button>
+      <button class="actu-btn" onclick="document.getElementById('tbMore').open=false;telechargerVersionHorsLigne()" id="horsLigneBtn" title="Télécharger un fichier qui s'ouvre sans Internet (PC, Google Drive, clé USB)" style="background:var(--sf)">
+        <i class="ti ti-file-download"></i> <span data-i18n="btn_hors_ligne">Version hors ligne</span>
+      </button>
       <button class="actu-btn" onclick="runDiagnostic()" id="diagBtn" title="Tester les services de collecte" style="background:var(--sf)">
         <i class="ti ti-stethoscope"></i> <span data-i18n="btn_diagnostic">Diagnostic</span>
       </button>
@@ -6390,7 +6394,7 @@ const I18N = {
     empty_filtres:"Essayez d'élargir les filtres actifs.",
     empty_actualiser:'Cliquez sur Actualiser pour lancer la collecte des flux.',
     logo_sub:"Veille multi-sources · Médias + Réseaux sociaux · 54 pays d'Afrique",
-    live_pret:'Collecte...', btn_actualiser:'Actualiser', btn_diagnostic:'Diagnostic', btn_aller_a:'Aller à…', btn_assistant:'Assistant', btn_assistant_q:'Poser une question', btn_installer_app:'Installer l\'application', btn_aller_pays:'Aller à un pays', btn_theme_sombre:'Sombre',
+    live_pret:'Collecte...', btn_actualiser:'Actualiser', btn_diagnostic:'Diagnostic', btn_aller_a:'Aller à…', btn_assistant:'Assistant', btn_assistant_q:'Poser une question', btn_installer_app:'Installer l\'application', btn_hors_ligne:'Version hors ligne', hl_pas_de_collecte:'Version hors ligne : aucune collecte. Ouvrez l\'appli en ligne pour la veille en direct.', hl_reserve:'La version hors ligne est réservée aux forfaits payants.', hl_generation:'Préparation de la version hors ligne…', hl_pret:'Version hors ligne téléchargée. Ne la publiez pas : elle contient vos actus.', hl_echec:'Version hors ligne impossible pour le moment (réseau). Réessayez.', hl_depuis_fichier:'Ce fichier est déjà une version hors ligne.', btn_aller_pays:'Aller à un pays', btn_theme_sombre:'Sombre',
     menu_params:'Paramètres & Administration', menu_access:'Gestion des accès', menu_logout:'Se déconnecter',
     menu_reclam:'Signaler un problème', menu_paiement:'Déclarer un paiement',
     menu_mode_emploi:"Mode d'emploi (PDF)",
@@ -6547,7 +6551,7 @@ const I18N = {
     empty_filtres:'Try widening the active filters.',
     empty_actualiser:'Click Refresh to start collecting feeds.',
     logo_sub:'Multi-source monitoring · Media + Social networks · 54 African countries',
-    live_pret:'Collecting...', btn_actualiser:'Refresh', btn_diagnostic:'Diagnostic', btn_aller_a:'Go to…', btn_assistant:'Assistant', btn_assistant_q:'Ask a question', btn_installer_app:'Install the app', btn_aller_pays:'Go to a country', btn_theme_sombre:'Dark',
+    live_pret:'Collecting...', btn_actualiser:'Refresh', btn_diagnostic:'Diagnostic', btn_aller_a:'Go to…', btn_assistant:'Assistant', btn_assistant_q:'Ask a question', btn_installer_app:'Install the app', btn_hors_ligne:'Offline version', hl_pas_de_collecte:'Offline version: no collection. Open the online app for live monitoring.', hl_reserve:'The offline version is reserved for paid plans.', hl_generation:'Preparing the offline version…', hl_pret:'Offline version downloaded. Do not publish it: it contains your news.', hl_echec:'Offline version unavailable right now (network). Try again.', hl_depuis_fichier:'This file is already an offline version.', btn_aller_pays:'Go to a country', btn_theme_sombre:'Dark',
     menu_params:'Settings & Administration', menu_access:'Access management', menu_logout:'Log out',
     menu_reclam:'Report an issue', menu_paiement:'Declare a payment',
     menu_mode_emploi:'User guide (PDF)',
@@ -7294,6 +7298,7 @@ function _trDecodeEntities(str) {
 // (source non fiable, entierement hors ligne...).
 async function trFetch(texte, srcLang, tgtLang, force) {
   if (!texte) return texte;
+  if (typeof estHorsLigne === 'function' && estHorsLigne()) return texte;
   srcLang = srcLang || detectLangue(texte);
   tgtLang = tgtLang || LANG;
   const cacheKey = tgtLang + ':' + texte;
@@ -7618,6 +7623,10 @@ function _trPartageDemander(texteEnvoye, tgt, langue, entetes) {
   } catch (_) { /* demande perdue : le job traduira l'actu à son passage */ }
 }
 async function _traduireParLots(uniques) {
+  // Version hors ligne : seules les traductions recopiees dans l'instantane
+  // (a.tr, semees dans TR_CACHE) servent. Attendre des services ici gelait
+  // le Flux plus de quinze secondes sans reseau.
+  if (typeof estHorsLigne === 'function' && estHorsLigne()) return;
   // Une seule lecture groupée pour tout le lot, avant tout appel de service.
   await _trPartageChercher(uniques, LANG);
   let i = 0;
@@ -8586,6 +8595,10 @@ function signatureCode() {
     let h = 2166136261;
     for (const sc of document.scripts) {
       if (sc.src) continue;
+      // Version hors ligne : scripts locaux recopies et instantane portent
+      // data-src. Ils ne comptent pas, pour que le fichier garde la signature
+      // de la page qui l'a produit (sinon tout serait reclasse a l'ouverture).
+      if (sc.hasAttribute && sc.hasAttribute('data-src')) continue;
       const t = sc.textContent;
       for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); }
     }
@@ -11890,6 +11903,9 @@ function paysAveugles(articles) {
 }
 
 async function doCollect() {
+  // Version hors ligne (voir js/hors-ligne.js) : un instantané ne collecte
+  // jamais, il le dit au lieu d'afficher « Collecte en cours ».
+  if (estHorsLigne()) { if (typeof _toastRapide === 'function') _toastRapide(t('hl_pas_de_collecte'), 'ti-plug-connected-x'); return; }
   if (busy) return;
   busy = true;
   _cbarArt.reset();
@@ -18513,6 +18529,9 @@ async function init() {
   if (typeof recalcAlertes === 'function') recalcAlertes({ silencieux: true });
   // Cache local + collecte RSS automatique en arriere-plan
   setTimeout(async()=>{
+    // Version hors ligne : les actus de l'instantane, l'archive recopiee,
+    // et rien d'autre — ni cache local d'une autre session, ni collecte.
+    if (estHorsLigne()) { _appliquerInstantaneHorsLigne(); return; }
     try{
       await initDB();
       if (typeof chargerHistorique === 'function') chargerHistorique();
@@ -19447,6 +19466,94 @@ function checkCollectorSession() {
   return true;
 }
 
+// ── Version hors ligne (22/11/2026) ─────────────────────────────────────
+// Voir web/js/hors-ligne.js : un fichier HTML autonome, genere par une
+// session ouverte, qui s'ouvre sans reseau (PC, Google Drive, cle USB).
+function estHorsLigne() {
+  return !!(window.SentiqHorsLigne && window.SentiqHorsLigne.actif(window));
+}
+function demarrerHorsLigne() {
+  if (!estHorsLigne()) return false;
+  const inst = window.SENTIQ_HORS_LIGNE;
+  // Role « user » meme si l'instantane vient d'un administrateur : les
+  // panneaux d'administration lisent la base en ligne, inutile ici.
+  const u = { email: inst.email || 'hors-ligne@sentiqs.local', name: inst.nom || 'Version hors ligne', role: 'user', plan: inst.plan || 'gratuit' };
+  _MEM_SESSION = { email: u.email, name: u.name, role: 'user', loginAt: new Date(inst.t).toISOString() };
+  _MEM_USERS = [u];
+  document.getElementById('authOverlay').classList.add('hidden');
+  const uw = document.getElementById('userWrap'); if (uw) uw.style.display = 'block';
+  if (typeof showUserChip === 'function') showUserChip(u);
+  if (typeof applyRoleMenus === 'function') applyRoleMenus('user');
+  ['horsLigneBtn', 'actuBtn', 'installerAppBtn'].forEach(id => { const b = document.getElementById(id); if (b) { b.hidden = true; b.style.display = 'none'; } });
+  // Bandeau « Cliquez sur Actualiser » et barre de collecte : sans objet ici,
+  // et la barre affiche une collecte factice tant qu'aucune n'a tourne.
+  ['proxyBar', 'cbar'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+  afficherBandeauHorsLigne();
+  setInterval(afficherBandeauHorsLigne, 60000);
+  if (!window._appInitialized) { window._appInitialized = true; init(); }
+  return true;
+}
+// Bandeau permanent, sans croix : l'age reel de l'instantane, compte avec la
+// vraie horloge (celle de la page est ramenee a l'instantane).
+function afficherBandeauHorsLigne() {
+  const inst = window.SENTIQ_HORS_LIGNE;
+  if (!inst) return;
+  const b = window.SentiqHorsLigne.texteBandeau(inst, inst.vraiMaintenant(), LANG, FENETRE_ACTUALITE_MS);
+  let el = document.getElementById('bandeauHorsLigne');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'bandeauHorsLigne';
+    el.setAttribute('role', 'status');
+    el.setAttribute('translate', 'no');
+    el.style.cssText = 'position:sticky;top:0;z-index:9000;padding:8px 14px;font-size:13px;font-weight:600;line-height:1.4;text-align:center;border-bottom:1px solid var(--bd);background:var(--w);color:var(--t)';
+    document.body.insertBefore(el, document.body.firstChild);
+  }
+  el.textContent = b.texte;
+  // Perime : bordure orange (couleur d'attention, pas de niveau d'alerte),
+  // le texte garde la couleur de lecture pour rester au-dessus du seuil AA.
+  el.style.borderBottom = b.perime ? '3px solid var(--a)' : '1px solid var(--bd)';
+  const bar = document.getElementById('stbarLeft'); if (bar) bar.textContent = b.texte;
+  const lt = document.getElementById('liveTxt'); if (lt) lt.textContent = LANG === 'en' ? 'Offline' : 'Hors ligne';
+}
+function _appliquerInstantaneHorsLigne() {
+  const inst = window.SENTIQ_HORS_LIGNE;
+  ALL = (inst.articles || []).filter(a => a && a.id);
+  ALL.forEach(a => { a.time = fmtAge(a.pubDate || 0); });
+  if (typeof rehydrateArticles === 'function') rehydrateArticles(ALL);
+  if (typeof chargerHistorique === 'function') chargerHistorique();
+  if (typeof chargerAvisOfficiels === 'function') chargerAvisOfficiels();
+  renderFeed(); updStats(); updSynthese();
+  if (typeof majFlashInfo === 'function') majFlashInfo();
+  if (typeof recalcAlertes === 'function') recalcAlertes({ silencieux: true });
+  if (typeof renderDashboard === 'function' && document.getElementById('dashContent')) renderDashboard();
+  if (typeof renderAgenda === 'function') renderAgenda();
+  afficherBandeauHorsLigne();
+}
+async function telechargerVersionHorsLigne() {
+  if (estHorsLigne()) { _toastRapide(t('hl_depuis_fichier'), 'ti-info-circle'); return; }
+  if (!fonctionnalitePayante()) { _toastRapide(t('hl_reserve'), 'ti-lock'); return; }
+  const s = getSession();
+  _toastRapide(t('hl_generation'), 'ti-loader');
+  try {
+    const inst = window.SentiqHorsLigne.instantaneDepuis(ALL, {
+      email: s.email || '', nom: s.name || '', plan: planUtilisateurActuel(), lang: LANG,
+      origine: location.origin + location.pathname
+    });
+    const html = await window.SentiqHorsLigne.generer(window, inst);
+    // Telechargement direct, sans le panneau de partage de dlFile : ce fichier
+    // contient les actus du compte et ne se diffuse pas comme un rapport.
+    const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+    const lien = document.createElement('a');
+    lien.href = url; lien.download = window.SentiqHorsLigne.nomFichier(inst.t);
+    document.body.appendChild(lien); lien.click(); lien.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    _toastRapide(t('hl_pret'), 'ti-check');
+  } catch (e) {
+    console.warn('SentiqS — version hors ligne :', e && e.message ? e.message : e);
+    _toastRapide(t('hl_echec'), 'ti-alert-triangle');
+  }
+}
+
 // _validerMotDePasse(pass, confirm) : regle commune a tous les points de
 // creation/definition de mot de passe (inscription, definition forcee a la
 // premiere connexion d'un compte cree par l'admin, reinitialisation) — un
@@ -20102,6 +20209,9 @@ async function checkAuth() {
   // le jeton correspond. Session synthetique en lecture seule, jamais liee
   // a Supabase Auth.
   if (typeof checkCollectorSession === 'function' && checkCollectorSession()) return;
+  // Version hors ligne : pas de serveur d'identite a joindre, l'instantane
+  // a ete genere par une session ouverte (voir demarrerHorsLigne).
+  if (demarrerHorsLigne()) return;
   // Instantane public (compteur + bulletin) : lu independamment de l'etat de
   // connexion, voir sauvegarderInstantanePublic/renderAuthStats.
   if (typeof renderAuthStats === 'function') renderAuthStats();
