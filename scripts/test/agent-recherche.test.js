@@ -204,3 +204,31 @@ test('le lexique d’agenda lit sessions parlementaires et mises en service dans
   assert.strictEqual(t('Le Sénat, réuni en session ordinaire, adopte la loi', 'Le Sénat adopte le projet de loi agricole'), null);
   assert.strictEqual(t('le retard de la mise en service du pont pèse sur les échanges', 'Pont de Rosso : le wali alerte la BAD'), null);
 });
+
+// Pertinence sûreté (22/11/2026) : « LEC regularizes 304 volunteers » (Liberia) était proposé à la base ;
+// la vraie classify() le met au niveau normal, comme l'interception de migrants en Gambie. Le titre tranche.
+test('pertinence sûreté : un fait de niveau normal n’est proposé que si son titre parle de sûreté', () => {
+  assert.strictEqual(L.pertinentSurete('LEC regularizes 304 volunteers', 'normal'), false);
+  assert.strictEqual(L.pertinentSurete('Gambia navy intercepts boat carrying 200 migrants', 'normal'), true);
+  assert.strictEqual(L.pertinentSurete('Vote du budget 2027 à l’Assemblée', 'normal'), false);
+  assert.strictEqual(L.pertinentSurete('Le coup d’envoi du festival est donné', 'normal'), false);
+  assert.strictEqual(L.pertinentSurete('Tentative de coup d’État déjouée', 'normal'), true);
+  // Un niveau au-dessus du normal suffit : c'est la page qui l'a décidé.
+  assert.strictEqual(L.pertinentSurete('LEC regularizes 304 volunteers', 'high'), true);
+});
+
+test('servirDemande : un fait hors sûreté reste dans la réponse mais n’est jamais proposé à la base', async () => {
+  const pages = rss([
+    { t: 'LEC regularizes 304 volunteers', u: 'https://www.fratmat.info/b1', p: MAINTENANT - 3600000 },
+    { t: 'LEC regularizes 304 volunteers in Monrovia', u: 'https://news.abidjan.net/b2', p: MAINTENANT - 3600000 },
+  ]);
+  const normal = async (cands) => (await analyser(cands)).map((x) => Object.assign(x, { level: 'normal',
+    article: Object.assign(x.article, { level: 'normal' }) }));
+  const r = await L.servirDemande({ q: 'LEC', pays: ['CI'], jours: 7 },
+    { chercher: async (u) => (/bing/.test(u) ? { ok: true, texte: pages } : { ok: false, status: 500 }),
+      blanche: blanche(), noms: NOMS, analyser: normal, existants: [], maintenant: MAINTENANT });
+  assert.strictEqual(r.insertions.length + r.quarantaines.length, 0);
+  assert.ok(r.resultat.faits.length >= 1);
+  assert.ok(r.resultat.faits.every((f) => f.statut === 'hors_theme'));
+  assert.ok(A.resultatValide(r.resultat));
+});

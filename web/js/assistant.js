@@ -588,7 +588,7 @@ function exemples(lg) {
 // code (voir CLAUDE.md) ; les chiffres (sources, fenêtre, forfaits) viennent
 // de la page, jamais d'ici.
 const FAQ = [
-  { cle: 'assistant', q: /(comment tu (fonctionnes?|marches?|reponds)|comment fonctionnes?[- ]tu|comment (marche|fonctionne) l'assistant|qui es[- ]tu|d'ou viennent (tes|les) reponses|tu (inventes|hallucine)|hallucin|how do you work|what are you|where do your answers come)/ },
+  { cle: 'assistant', q: /(comment tu (fonctionnes?|marches?|reponds)|comment fonctionnes?[- ]tu|comment (marche|fonctionne) l'assistant|qui es[- ]tu|qui est louis|c'est qui louis|tu es qui|who is louis|who are you|d'ou viennent (tes|les) reponses|tu (inventes|hallucine)|hallucin|how do you work|what are you|where do your answers come)/ },
   { cle: 'cotation', q: /(cotation|que veut dire (confirme|probable|non confirme)|c'est quoi (confirme|probable)|difference entre confirme|what does (confirmed|probable|unconfirmed) mean|\brating\b)/ },
   { cle: 'validation', q: /(validation analyste|valide analyste|qui valide|analyste|analyst)/ },
   { cle: 'niveau', q: /(comment (est )?(calcule|se calcule|fonctionne) (le|un) niveau|calcul du niveau|que (veut dire|signifie)nt? les (couleurs|niveaux)|les cinq niveaux|5 niveaux|how (is|are) (the )?(alert )?levels? (calculated|computed)|what do the colou?rs mean)/ },
@@ -608,9 +608,12 @@ function reponseFaq(cle, d, lg, interp) {
   const B = [];
   const t = (fr, enTxt) => B.push({ t: 'texte', texte: en ? enTxt : fr });
   if (cle === 'assistant') {
+    t('Je suis Louis, l\'agent de veille de SentiqS.', 'I am Louis, the SentiqS monitoring agent.');
     t('Je comprends votre question (pays, région, période, thème) avec des règles fixes, puis je rassemble ce que la base de SentiqS contient : niveaux calculés, faits collectés et leur cotation, incidents vérifiés, agenda. Je ne rédige rien et je ne cherche rien hors de l\'application : quand la base ne sait pas, je le dis.',
       'I read your question (country, region, period, theme) with fixed rules, then gather what the SentiqS database holds: computed levels, collected facts and their rating, verified incidents, agenda. I write nothing myself and search nothing outside the application: when the database does not know, I say so.');
     t('Un même fait rapporté par plusieurs médias n\'apparaît qu\'une fois, avec la liste de ses sources.', 'A fact reported by several outlets appears once, with the list of its sources.');
+    t('Si vous me le demandez, je cherche aussi sur le web, chez les médias du registre seulement : je passe toutes les 30 minutes environ, et ce que je ne trouve pas, je le dis « introuvable ».',
+      'If you ask me, I also search the web, among the outlets of the registry only: I pass about every 30 minutes, and what I cannot find, I report as “not found”.');
   } else if (cle === 'cotation') {
     B.push({ t: 'liste', titre: en ? 'Rating of a fact' : 'Cotation d\'un fait', items: (en ? [
       'Confirmed: reported by at least two distinct sources (not an official confirmation).',
@@ -650,8 +653,8 @@ function reponseFaq(cle, d, lg, interp) {
     t('Un article compte comme actualité pendant ' + h + ' heures. Un pays sans actualité dans cette fenêtre est signalé « muet » : ce silence ne veut pas dire calme, c\'est un pays sur lequel l\'outil ne voit rien.',
       'An article counts as news for ' + h + ' hours. A country with no news in that window is flagged “silent”: silence does not mean calm, it is a country the tool cannot see.');
   } else if (cle === 'donnees') {
-    t('Votre compte sert à vous connecter et à appliquer votre forfait. Vous pouvez le supprimer vous-même depuis Paramètres, à tout moment et sans frais. Vos questions à l\'assistant restent sur votre appareil.',
-      'Your account is used to sign in and apply your plan. You can delete it yourself from Settings, at any time and free of charge. Your questions to the assistant stay on your device.');
+    t('Votre compte sert à vous connecter et à appliquer votre forfait. Vous pouvez le supprimer vous-même depuis Paramètres, à tout moment et sans frais. Vos questions à Louis restent sur votre appareil, sauf une recherche sur le web que vous demandez : la question est alors transmise au serveur de SentiqS pour être cherchée.',
+      'Your account is used to sign in and apply your plan. You can delete it yourself from Settings, at any time and free of charge. Your questions to Louis stay on your device, except a web search you ask for: the question is then sent to the SentiqS server to be searched.');
   } else if (cle === 'mobile') {
     t('Oui : l\'application s\'ouvre dans le navigateur d\'un ordinateur, d\'une tablette ou d\'un téléphone, avec une présentation adaptée à chaque écran.',
       'Yes: the application opens in the browser of a computer, tablet or phone, with a layout suited to each screen.');

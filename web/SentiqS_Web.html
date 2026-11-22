@@ -3226,6 +3226,46 @@ html.force-mobile .acces-rapide-btn{display:none}
 }
 html.force-mobile .assistant-btn{display:none}
 html.force-mobile .as-boite{margin:0;width:100%;height:100%;border-radius:0;border:0}
+/* ═══ LOUIS, L'AGENT DE VEILLE — 22/11/2026 (voir CLAUDE.md) ═══
+   Demande de YORO : une bulle de chat pour l'IA, nommée Louis. Elle ouvre
+   l'assistant existant (rien n'est généré : réponses sourcées ou
+   « introuvable »). Bleu nuit et or, comme la barre du haut ; aucune
+   couleur de gravité : Louis n'alerte jamais. */
+.louis-avatar{flex:0 0 auto;display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(145deg,#0F2450,#071431);color:#E6BA6E;border:1.5px solid #E6BA6E;
+  font-family:var(--font-serif,serif);font-weight:700;font-size:17px;line-height:1}
+.louis-avatar.petit{width:28px;height:28px;font-size:14px}
+.as-louis{flex-direction:row !important;align-items:flex-start;gap:10px !important}
+.as-louis-txt{display:flex;flex-direction:column;gap:8px;min-width:0;background:var(--sf);border:1px solid var(--bd);border-radius:4px 14px 14px 14px;padding:10px 12px}
+.louis-cherche{display:flex;align-items:center;gap:8px;border-left-color:#E6BA6E}
+.louis-points{display:inline-flex;gap:3px}
+.louis-points i{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.35;animation:louisPoint 1.2s infinite ease-in-out}
+.louis-points i:nth-child(2){animation-delay:.2s}.louis-points i:nth-child(3){animation-delay:.4s}
+@keyframes louisPoint{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+.louis-bulle{position:fixed;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(46px + env(safe-area-inset-bottom,0px));z-index:9500;
+  display:inline-flex;align-items:center;gap:10px;min-height:56px;padding:6px 18px 6px 6px;border-radius:999px;cursor:pointer;
+  background:linear-gradient(145deg,#15306A,#071431);color:#F4F1EA;border:1px solid rgba(230,186,110,.55);
+  box-shadow:0 10px 28px rgba(4,10,26,.45),0 0 0 4px rgba(230,186,110,.08);font:inherit;font-weight:700;font-size:15px;
+  transition:transform .15s ease,box-shadow .15s ease}
+.louis-bulle:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(4,10,26,.5),0 0 0 5px rgba(230,186,110,.14)}
+.louis-bulle:focus-visible{outline:3px solid #E6BA6E;outline-offset:3px}
+.louis-bulle .louis-avatar{width:44px;height:44px;font-size:22px}
+.louis-bulle-txt{display:flex;flex-direction:column;align-items:flex-start;line-height:1.15}
+.louis-bulle-etat{font-size:var(--fs-micro,11px);font-weight:600;color:#E6BA6E}
+.louis-bulle-etat:empty{display:none}
+.louis-pastille{position:absolute;top:2px;left:38px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#E6BA6E;color:#071431;font-size:11px;font-weight:800;display:grid;place-items:center;border:2px solid #071431}
+.louis-pastille[hidden]{display:none}
+.louis-bulle.cherche .louis-avatar{animation:louisHalo 2s infinite ease-in-out}
+@keyframes louisHalo{0%,100%{box-shadow:0 0 0 0 rgba(230,186,110,.5)}50%{box-shadow:0 0 0 6px rgba(230,186,110,0)}}
+body:has(#authOverlay:not(.hidden)) .louis-bulle,html.as-ouvert .louis-bulle,html.fenetre-ouverte .louis-bulle{display:none}
+@media (prefers-reduced-motion:reduce){.louis-points i,.louis-bulle.cherche .louis-avatar{animation:none}.louis-bulle{transition:none}}
+@media print{.louis-bulle{display:none !important}}
+@media (max-width:760px){
+  html:not(.force-web):not(.force-tablette) .louis-bulle{bottom:calc(16px + env(safe-area-inset-bottom,0px));right:calc(12px + env(safe-area-inset-right,0px));padding:6px;min-height:0}
+  html:not(.force-web):not(.force-tablette) .louis-bulle-txt{display:none}
+}
+html.force-mobile .louis-bulle{bottom:calc(16px + env(safe-area-inset-bottom,0px));right:calc(12px + env(safe-area-inset-right,0px));padding:6px;min-height:0}
+html.force-mobile .louis-bulle-txt{display:none}
 /* ═══ FENÊTRES ET NOTIFICATIONS — 15/11/2026 (voir CLAUDE.md) ═══
    Capture de YORO sur téléphone : le popup d'une actu fraîche laissait lire
    la page au travers (fond --gl translucide en sombre). Un seul style pour
@@ -3383,13 +3423,20 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
   display:flex;flex-direction:column;gap:10px;max-width:400px;pointer-events:none;"></div>
 
 <!-- Badge analyse IA en cours -->
-<div id="ia-badge" style="display:none;position:fixed;bottom:14px;right:14px;z-index:9998;
+<div id="ia-badge" style="display:none;position:fixed;bottom:14px;left:14px;z-index:9998;
   background:linear-gradient(135deg,#4B5563,#3A4658);color:#fff;font-size:10px;font-weight:700;
   padding:7px 13px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.25);
   align-items:center;gap:6px;pointer-events:none;">
   <i class="ti ti-brain" style="font-size:13px;"></i>
   <span id="ia-badge-txt">🤖 Analyse IA en cours...</span>
 </div>
+
+<!-- Louis, l'agent de veille (22/11/2026) : bulle de chat qui ouvre l'assistant -->
+<button type="button" class="louis-bulle" id="louisBulle" onclick="ouvrirAssistant()" aria-haspopup="dialog" aria-label="Discuter avec Louis, l'agent de veille" title="Discuter avec Louis, l'agent de veille">
+  <span class="louis-avatar" aria-hidden="true">L</span>
+  <span class="louis-pastille" id="louisPastille" hidden></span>
+  <span class="louis-bulle-txt"><span data-i18n="louis_bulle">Louis</span><span class="louis-bulle-etat" id="louisEtat" role="status"></span></span>
+</button>
 
 <!-- ═══ AUTH OVERLAY ═══════════════════════════════════════════════ -->
 <div class="auth-overlay" id="authOverlay">
@@ -3717,8 +3764,8 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
     </div>
     <div id="globalCyBadge" onclick="clearGlobalCountryFilter()" title="Filtre pays actif sur toute la plateforme — cliquer pour reinitialiser" style="display:none;align-items:center;gap:5px;padding:5px 10px;background:rgba(138,93,26,.25);border:1px solid rgba(138,93,26,.5);border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;"></div>
     <div class="cy-slot-tb" id="cySlotTb"></div>
-    <button type="button" class="assistant-btn" id="assistantBtn" onclick="ouvrirAssistant()" aria-haspopup="dialog" aria-label="Poser une question à l'assistant" title="Poser une question à l'assistant de veille">
-      <i class="ti ti-message-question" aria-hidden="true"></i><span class="as-lib" data-i18n="btn_assistant">Assistant</span>
+    <button type="button" class="assistant-btn" id="assistantBtn" onclick="ouvrirAssistant()" aria-haspopup="dialog" aria-label="Discuter avec Louis, l'agent de veille" title="Discuter avec Louis, l'agent de veille">
+      <i class="ti ti-message-chatbot" aria-hidden="true"></i><span class="as-lib" data-i18n="btn_assistant">Assistant</span>
     </button>
     <button type="button" class="acces-rapide-btn" id="accesRapideBtn" onclick="ouvrirAccesRapide()" aria-label="Aller à un pays ou un module" aria-haspopup="dialog" aria-keyshortcuts="Control+K /" title="Aller à un pays ou un module (Ctrl+K ou /)">
       <i class="ti ti-search" aria-hidden="true"></i><span class="ar-lib" data-i18n="btn_aller_a">Aller à…</span><kbd class="ar-kbd" aria-hidden="true">Ctrl K</kbd>
@@ -3745,7 +3792,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
         <i class="ti ti-search"></i> <span data-i18n="btn_aller_pays">Aller à un pays</span>
       </button>
       <button class="actu-btn" onclick="document.getElementById('tbMore').open=false;ouvrirAssistant()" id="assistantMenu" style="background:var(--sf)">
-        <i class="ti ti-message-question"></i> <span data-i18n="btn_assistant_q">Poser une question</span>
+        <i class="ti ti-message-chatbot"></i> <span data-i18n="btn_assistant_q">Demander à Louis</span>
       </button>
       <button class="actu-btn" onclick="document.getElementById('tbMore').open=false;installerApplication()" id="installerAppBtn" hidden style="background:var(--sf)">
         <i class="ti ti-download"></i> <span data-i18n="btn_installer_app">Installer l'application</span>
@@ -6394,7 +6441,7 @@ const I18N = {
     empty_filtres:"Essayez d'élargir les filtres actifs.",
     empty_actualiser:'Cliquez sur Actualiser pour lancer la collecte des flux.',
     logo_sub:"Veille multi-sources · Médias + Réseaux sociaux · 54 pays d'Afrique",
-    live_pret:'Collecte...', btn_actualiser:'Actualiser', btn_diagnostic:'Diagnostic', btn_aller_a:'Aller à…', btn_assistant:'Assistant', btn_assistant_q:'Poser une question', btn_installer_app:'Installer l\'application', btn_hors_ligne:'Version hors ligne', hl_pas_de_collecte:'Version hors ligne : aucune collecte. Ouvrez l\'appli en ligne pour la veille en direct.', hl_reserve:'La version hors ligne est réservée aux forfaits payants.', hl_generation:'Préparation de la version hors ligne…', hl_pret:'Version hors ligne téléchargée. Ne la publiez pas : elle contient vos actus.', hl_echec:'Version hors ligne impossible pour le moment (réseau). Réessayez.', hl_depuis_fichier:'Ce fichier est déjà une version hors ligne.', btn_aller_pays:'Aller à un pays', btn_theme_sombre:'Sombre',
+    live_pret:'Collecte...', btn_actualiser:'Actualiser', btn_diagnostic:'Diagnostic', btn_aller_a:'Aller à…', btn_assistant:'Louis', btn_assistant_q:'Demander à Louis', louis_bulle:'Louis', btn_installer_app:'Installer l\'application', btn_hors_ligne:'Version hors ligne', hl_pas_de_collecte:'Version hors ligne : aucune collecte. Ouvrez l\'appli en ligne pour la veille en direct.', hl_reserve:'La version hors ligne est réservée aux forfaits payants.', hl_generation:'Préparation de la version hors ligne…', hl_pret:'Version hors ligne téléchargée. Ne la publiez pas : elle contient vos actus.', hl_echec:'Version hors ligne impossible pour le moment (réseau). Réessayez.', hl_depuis_fichier:'Ce fichier est déjà une version hors ligne.', btn_aller_pays:'Aller à un pays', btn_theme_sombre:'Sombre',
     menu_params:'Paramètres & Administration', menu_access:'Gestion des accès', menu_logout:'Se déconnecter',
     menu_reclam:'Signaler un problème', menu_paiement:'Déclarer un paiement',
     menu_mode_emploi:"Mode d'emploi (PDF)",
@@ -6551,7 +6598,7 @@ const I18N = {
     empty_filtres:'Try widening the active filters.',
     empty_actualiser:'Click Refresh to start collecting feeds.',
     logo_sub:'Multi-source monitoring · Media + Social networks · 54 African countries',
-    live_pret:'Collecting...', btn_actualiser:'Refresh', btn_diagnostic:'Diagnostic', btn_aller_a:'Go to…', btn_assistant:'Assistant', btn_assistant_q:'Ask a question', btn_installer_app:'Install the app', btn_hors_ligne:'Offline version', hl_pas_de_collecte:'Offline version: no collection. Open the online app for live monitoring.', hl_reserve:'The offline version is reserved for paid plans.', hl_generation:'Preparing the offline version…', hl_pret:'Offline version downloaded. Do not publish it: it contains your news.', hl_echec:'Offline version unavailable right now (network). Try again.', hl_depuis_fichier:'This file is already an offline version.', btn_aller_pays:'Go to a country', btn_theme_sombre:'Dark',
+    live_pret:'Collecting...', btn_actualiser:'Refresh', btn_diagnostic:'Diagnostic', btn_aller_a:'Go to…', btn_assistant:'Louis', btn_assistant_q:'Ask Louis', louis_bulle:'Louis', btn_installer_app:'Install the app', btn_hors_ligne:'Offline version', hl_pas_de_collecte:'Offline version: no collection. Open the online app for live monitoring.', hl_reserve:'The offline version is reserved for paid plans.', hl_generation:'Preparing the offline version…', hl_pret:'Offline version downloaded. Do not publish it: it contains your news.', hl_echec:'Offline version unavailable right now (network). Try again.', hl_depuis_fichier:'This file is already an offline version.', btn_aller_pays:'Go to a country', btn_theme_sombre:'Dark',
     menu_params:'Settings & Administration', menu_access:'Access management', menu_logout:'Log out',
     menu_reclam:'Report an issue', menu_paiement:'Declare a payment',
     menu_mode_emploi:'User guide (PDF)',
@@ -14622,7 +14669,7 @@ function elementsAccesRapide(q) {
   if (n.length >= 2) out.push({ type: 'recherche', q: String(q).trim(), lib: (en ? 'Search the news for “' : 'Chercher « ') + String(q).trim() + (en ? '”' : ' » dans les actus') });
   // Une phrase (trois mots, ou un point d'interrogation) est une question :
   // l'assistant passe en tête (14/11/2026).
-  if (/\?/.test(q) || n.split(/\s+/).filter(Boolean).length >= 3) out.unshift({ type: 'assistant', q: String(q).trim(), lib: (en ? 'Ask the assistant: “' : 'Demander à l’assistant : « ') + String(q).trim() + (en ? '”' : ' »') });
+  if (/\?/.test(q) || n.split(/\s+/).filter(Boolean).length >= 3) out.unshift({ type: 'assistant', q: String(q).trim(), lib: (en ? 'Ask Louis: “' : 'Demander à Louis : « ') + String(q).trim() + (en ? '”' : ' »') });
   return out.slice(0, 60);
 }
 let _arSel = 0, _arElems = [], _arRetour = null;
@@ -14875,16 +14922,16 @@ function _asRendreTout() {
   if (!fil) return;
   const en = LANG === 'en';
   if (!_asFil.length) {
-    fil.innerHTML = '<div class="as-r"><p>' + (en
+    fil.innerHTML = '<div class="as-r as-louis"><span class="louis-avatar petit" aria-hidden="true">L</span><div class="as-louis-txt"><p><strong>' + (en ? 'Hello, I am Louis, the SentiqS monitoring agent.' : 'Bonjour, je suis Louis, l’agent de veille de SentiqS.') + '</strong></p><p>' + (en
       ? 'Ask in plain words about a country, a region, a period or a theme — or about the tool itself (rating, plans, bulletin). Answers come only from SentiqS data, with each fact\'s rating and a link to its source; a fact reported by several outlets appears once.'
       : 'Posez votre question en langage courant : un pays, une région, une période, un thème — ou l\'outil lui-même (cotation, forfaits, bulletin). Les réponses viennent uniquement des données de SentiqS, avec la cotation de chaque fait et le lien vers sa source ; un fait repris par plusieurs médias n\'apparaît qu\'une fois.')
       + '</p><div class="as-sugg">' + SentiqAssistant.exemplesAssistant(en ? 'en' : 'fr').map(q => '<button type="button" data-as-q="' + _asEsc(q) + '">' + _asEsc(q) + '</button>').join('')
-      + (typeof SentiqAgent !== 'undefined' && estAdmin(getSession()) ? '<button type="button" data-ag-revue><i class="ti ti-shield-check" aria-hidden="true"></i> ' + (en ? 'Agent review' : 'Revue de l’agent') + '</button>' : '')
-      + '</div></div>';
+      + (typeof SentiqAgent !== 'undefined' && estAdmin(getSession()) ? '<button type="button" data-ag-revue><i class="ti ti-shield-check" aria-hidden="true"></i> ' + (en ? 'Louis review' : 'Revue de Louis') + '</button>' : '')
+      + '</div></div></div>';
     return;
   }
   fil.innerHTML = _asFil.map((e, i) => '<div class="as-q" role="note">' + _asEsc(e.q) + '</div>'
-    + '<div class="as-r">' + (e.attente ? '<p class="as-note">' + (en ? 'Looking in the database…' : 'Recherche dans la base…') + '</p>'
+    + '<div class="as-r">' + (e.attente ? '<p class="as-note louis-cherche" role="status"><span class="louis-points" aria-hidden="true"><i></i><i></i><i></i></span> ' + (en ? 'Louis is searching the database…' : 'Louis cherche dans la base…') + '</p>'
       : (e.html || '') + e.r.blocs.map(_asRendreBloc).join('') + (e.r.suggestions.length ? '<div class="as-sugg">' + e.r.suggestions.map(q => '<button type="button" data-as-q="' + _asEsc(q) + '">' + _asEsc(q) + '</button>').join('') + '</div>' : '')
         + (typeof _agentRendreWeb === 'function' ? _agentRendreWeb(e, i) : ''))
     + '</div>').join('');
@@ -14912,7 +14959,32 @@ async function poserQuestionAssistant(q) {
 // Changement de langue : les réponses déjà données sont recomposées dans la
 // nouvelle langue, à partir des mêmes données (rien n'est relu ni traduit à
 // la volée par un service).
+// La bulle dit, sans ouvrir la fenêtre, que Louis cherche sur le web (une
+// pastille par recherche en attente), puis qu'il a répondu.
+let _louisAttentePrec = null;
+let _louisNouvelles = 0;
+function majBulleLouis() {
+  const b = document.getElementById('louisBulle');
+  if (!b) return;
+  const en = LANG === 'en';
+  const n = typeof _agentAttente === 'function' ? _agentAttente().length : 0;
+  const ouvert = document.documentElement.classList.contains('as-ouvert');
+  if (_louisAttentePrec !== null && n < _louisAttentePrec && !ouvert) _louisNouvelles += _louisAttentePrec - n;
+  if (ouvert) _louisNouvelles = 0;
+  _louisAttentePrec = n;
+  const lib = en ? 'Chat with Louis, the monitoring agent' : 'Discuter avec Louis, l’agent de veille';
+  let etat = '';
+  if (_louisNouvelles) etat = en ? (_louisNouvelles > 1 ? _louisNouvelles + ' answers' : 'Louis answered') : (_louisNouvelles > 1 ? _louisNouvelles + ' réponses' : 'Louis a répondu');
+  else if (n) etat = en ? 'Louis is searching…' : 'Louis cherche…';
+  b.classList.toggle('cherche', !!n && !_louisNouvelles);
+  b.setAttribute('aria-label', lib + (etat ? ' — ' + etat : ''));
+  b.title = lib;
+  const e = document.getElementById('louisEtat'); if (e && e.textContent !== etat) e.textContent = etat;
+  const p = document.getElementById('louisPastille');
+  if (p) { const v = _louisNouvelles || n; p.hidden = !v; p.textContent = v ? String(v) : ''; }
+}
 function rafraichirAssistant() {
+  majBulleLouis();
   const d = document.getElementById('assistant');
   if (!d || !d.classList.contains('on')) return;
   _asFil.forEach(e => { if (!e.attente && e.donnees) e.r = SentiqAssistant.composerReponse(e.interp, e.donnees, LANG); });
@@ -14923,12 +14995,12 @@ function _asLibelles() {
   const d = document.getElementById('assistant');
   if (!d) return;
   const en = LANG === 'en';
-  d.querySelector('#asTitre').textContent = en ? 'Monitoring assistant' : 'Assistant de veille';
-  d.querySelector('#asSous').textContent = en ? 'Answers only from SentiqS data — nothing is generated.' : 'Réponses tirées uniquement des données de SentiqS — rien n’est généré.';
+  d.querySelector('#asTitre').textContent = 'Louis';
+  d.querySelector('#asSous').textContent = en ? 'SentiqS monitoring agent — sourced answers only, nothing is made up.' : 'Agent de veille SentiqS — réponses sourcées uniquement, rien n’est inventé.';
   const inp = d.querySelector('#asSaisie');
-  inp.placeholder = en ? 'e.g. Situation in Mali this week' : 'Ex. : situation au Mali cette semaine';
-  inp.setAttribute('aria-label', en ? 'Your question' : 'Votre question');
-  d.querySelector('#asEnvoyer').textContent = en ? 'Ask' : 'Demander';
+  inp.placeholder = en ? 'Write to Louis — e.g. Situation in Mali this week' : 'Écrire à Louis — ex. : situation au Mali cette semaine';
+  inp.setAttribute('aria-label', en ? 'Your message to Louis' : 'Votre message à Louis');
+  d.querySelector('#asEnvoyer').textContent = en ? 'Send' : 'Envoyer';
   d.querySelector('.as-fermer').setAttribute('aria-label', en ? 'Close' : 'Fermer');
 }
 function ouvrirAssistant(q) {
@@ -14940,7 +15012,7 @@ function ouvrirAssistant(q) {
     d.className = 'assistant';
     d.innerHTML = '<div class="as-voile" data-as-fermer></div>'
       + '<div class="as-boite" role="dialog" aria-modal="true" aria-labelledby="asTitre">'
-      + '<div class="as-tete"><i class="ti ti-message-question" aria-hidden="true" style="font-size:20px;color:var(--sig,var(--b))"></i>'
+      + '<div class="as-tete"><span class="louis-avatar" aria-hidden="true">L</span>'
       + '<h2><span id="asTitre"></span><p id="asSous"></p></h2>'
       + '<button type="button" class="as-fermer" data-as-fermer aria-label="Fermer"><span aria-hidden="true">×</span></button></div>'
       + '<div class="as-fil" id="asFil" aria-live="polite"></div>'
@@ -14985,6 +15057,7 @@ function ouvrirAssistant(q) {
   if (!d.classList.contains('on')) _asRetour = document.activeElement;
   d.classList.add('on');
   document.documentElement.classList.add('as-ouvert');
+  majBulleLouis();
   _asRendreTout();
   if (typeof sonderReponsesAgent === 'function' && _agentAttente().length) { sonderReponsesAgent().catch(() => {}); _agentDemarrerSondeur(); }
   if (q) poserQuestionAssistant(q);
@@ -14995,6 +15068,7 @@ function fermerAssistant(sansRetour) {
   if (!d || !d.classList.contains('on')) return;
   d.classList.remove('on');
   document.documentElement.classList.remove('as-ouvert');
+  majBulleLouis();
   if (!sansRetour && _asRetour && _asRetour.focus) { try { _asRetour.focus(); } catch (_) {} }
 }
 function _asAllerPays(cy) { fermerAssistant(true); ouvrirVuePays(cy); }
@@ -15059,7 +15133,7 @@ function _agentAttente() {
   try { const l = JSON.parse(localStorage.getItem(AGENT_ATTENTE_CLE) || '[]'); return Array.isArray(l) ? l.filter(x => x && x.id && Date.now() - x.le < 2 * 86400000) : []; }
   catch (_) { return []; }
 }
-function _agentGarderAttente(l) { try { localStorage.setItem(AGENT_ATTENTE_CLE, JSON.stringify(l.slice(-20))); } catch (_) {} }
+function _agentGarderAttente(l) { try { localStorage.setItem(AGENT_ATTENTE_CLE, JSON.stringify(l.slice(-20))); } catch (_) {} if (typeof majBulleLouis === 'function') majBulleLouis(); }
 async function _agentSession() {
   const entetes = await _entetesFirestore();
   const cfg = window.SENTIQ_FIREBASE_CONFIG;
@@ -15071,29 +15145,32 @@ async function _agentSession() {
 function _agentRendreWeb(e, i) {
   const en = LANG === 'en';
   if (e.attente || !e.interp || typeof SentiqAgent === 'undefined') return '';
+  // Version hors ligne : aucun réseau, la recherche web n'a pas de sens.
+  if (typeof estHorsLigne === 'function' && estHorsLigne()) return '';
   const w = e.web || {};
   const vide = !e.r || !e.r.blocs || !e.r.blocs.some(b => b.t === 'faits' && b.faits && b.faits.length);
   if (!w.etat) {
     return '<div class="as-web"><button type="button" class="' + (vide ? 'fort' : '') + '" data-ag-web="' + i + '"><i class="ti ti-world-search" aria-hidden="true"></i> '
-      + (en ? 'Also search the web' : 'Chercher aussi sur le web') + '</button><span class="as-note">'
+      + (en ? 'Ask Louis to search the web' : 'Demander à Louis de chercher sur le web') + '</button><span class="as-note">'
       + (en ? 'News engines and the outlets of the registry only; answer within about 40 minutes.' : 'Moteurs d’actualité et médias du registre seulement ; réponse sous 40 minutes environ.') + '</span></div>';
   }
   const MSG = {
     envoi: en ? 'Sending the request…' : 'Envoi de la demande…',
-    attente: en ? 'Request sent. The agent searches at the next pass (about every 30 minutes); the answer will appear here, and next time you open the assistant.' : 'Demande envoyée. L’agent cherche au prochain passage (toutes les 30 minutes environ) ; la réponse apparaîtra ici, et à votre prochaine ouverture de l’assistant.',
+    attente: en ? 'Louis is searching… He goes through the news engines at his next pass (about every 30 minutes); his answer will appear here, even if you close this window.' : 'Louis cherche… Il interroge les moteurs d’actualité à son prochain passage (toutes les 30 minutes environ) ; sa réponse apparaîtra ici, même si vous fermez cette fenêtre.',
     quota: en ? 'Daily limit reached (5 web searches per account). Try again tomorrow.' : 'Limite du jour atteinte (5 recherches web par compte). Réessayez demain.',
     refus: en ? 'The request was refused: daily limit reached, or your account does not have access.' : 'Demande refusée : limite du jour atteinte, ou compte sans accès.',
     reseau: en ? 'The request could not be sent. Try again in a moment.' : 'La demande n’a pas pu être envoyée. Réessayez dans un moment.',
     question: en ? 'The question is too short to be searched.' : 'La question est trop courte pour être cherchée.',
     session: en ? 'Sign in to search the web.' : 'Connectez-vous pour chercher sur le web.',
   };
+  if (w.etat === 'attente' || w.etat === 'envoi') return '<div class="as-web"><p class="as-note louis-cherche" role="status"><span class="louis-points" aria-hidden="true"><i></i><i></i><i></i></span> ' + _asEsc(MSG[w.etat]) + '</p></div>';
   if (w.etat !== 'pret') return '<div class="as-web"><p class="as-note">' + _asEsc(MSG[w.etat] || '') + '</p></div>';
   return _agentRendreResultat(w.resultat);
 }
 function _agentRendreResultat(r) {
   const en = LANG === 'en';
   const LIB = SentiqAgent.LIB[en ? 'en' : 'fr'];
-  let h = '<h4>' + (en ? 'On the web' : 'Sur le web') + '</h4>';
+  let h = '<h4>' + (en ? 'Louis on the web' : 'Louis sur le web') + '</h4>';
   if (!r.faits.length) {
     h += '<p>' + (en ? 'Not found: no outlet of the registry reported this on the engines queried, for this period.' : 'Introuvable : aucun média du registre n’en a parlé sur les moteurs interrogés, pour cette période.') + '</p>';
   } else {
@@ -18483,6 +18560,13 @@ async function init() {
   setInterval(() => { if (!document.hidden) chargerValidations(); }, 60 * 60 * 1000);
   // Faits ajoutés par l'agent de recherche (22/11/2026) : relus comme les validations.
   setTimeout(() => { chargerActusAgent().catch(() => {}); }, 8000);
+  // Bulle de Louis : état des recherches web, et relecture des réponses
+  // attendues même fenêtre fermée (le sondeur ne tourne qu'à l'ouverture).
+  majBulleLouis();
+  setInterval(() => {
+    if (typeof sonderReponsesAgent === 'function' && _agentAttente().length && !(typeof estHorsLigne === 'function' && estHorsLigne())) sonderReponsesAgent().catch(() => {});
+    majBulleLouis();
+  }, 5 * 60 * 1000);
   setInterval(() => { chargerActusAgent().catch(() => {}); }, 30 * 60 * 1000);
   demanderPermissionNotifWeb();
   // Regle : si l'utilisateur a ferme la banniere de diagnostic recemment
