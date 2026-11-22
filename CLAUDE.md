@@ -4662,7 +4662,10 @@ durables ». Trois blocages tenaient à un service tiers ou à un secret absent.
   automatique de titres, inférieure à Google, mais l'actu cesse d'être
   masquée en anglais. Sans Python ou sans modèle, le job retombe sur les
   services en ligne, comme avant. La collecte (budget de 3 min) n'installe
-  pas le traducteur local.
+  pas le traducteur local. **Mesuré au premier passage sur la branche
+  (22/11/2026, 10 h 47 UTC) : 0 → 672 traductions nouvelles** en 484 s, cache
+  réécrit ; le journal imprime désormais six titres critiques ou élevés avec
+  leur traduction, pour juger la qualité sur pièce.
 - **Flash sûreté.** Sans `WEBHOOK_ALERTES`, un flash part en commentaire du
   ticket GitHub « Flash sûreté — changements de niveau » (créé au premier
   flash, retrouvé par son titre) : GitHub envoie un e-mail au propriétaire à

@@ -212,8 +212,9 @@ async function traduireActus(articles, opts) {
     }
     if (!res && local && lot[0].source !== 'auto') {
       try { res = await local(lignes, lot[0].source, lot[0].cible); } catch (e) { res = null; }
-      if (!Array.isArray(res) || res.length !== lignes.length) res = null;
-      if (res) stats.locaux = (stats.locaux || 0) + lot.length;
+      // Réponse partielle acceptée : une ligne null reste non traduite.
+      if (!Array.isArray(res) || res.length !== lignes.length || !res.some((x) => typeof x === 'string' && x)) res = null;
+      if (res) stats.locaux = (stats.locaux || 0) + res.filter((x) => typeof x === 'string' && x).length;
     }
     if (res) {
       lot.forEach((u, i) => ranger(u, res[i]));

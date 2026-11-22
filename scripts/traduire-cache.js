@@ -130,6 +130,10 @@ async function passageCache(compte, debut) {
   }
   console.log('Traduction des actus (FR/EN, passage seul) : ' + st.repris + ' reprise(s), ' + st.traduits + ' nouvelle(s), '
     + st.echecs + ' échec(s), ' + (st.locaux || 0) + ' hors ligne, ' + st.reportes + ' reportée(s), ' + st.requetes + ' requête(s), en ' + Math.round((Date.now() - debut) / 1000) + ' s.');
+  // Échantillon relu dans le journal : la qualité d'un traducteur se juge
+  // sur des titres, pas sur un compte.
+  articles.filter((a) => a && a.tr && a.tr.en && a.tr.en.t && (a.level === 'crit' || a.level === 'high')).slice(0, 6)
+    .forEach((a) => console.log('  ' + a.title.slice(0, 110) + '  →  ' + a.tr.en.t.slice(0, 110)));
   if (!st.traduits) { console.log('Aucune traduction nouvelle : le cache n\'est pas réécrit.'); return; }
 
   // Une collecte a pu publier pendant ce passage : on relit, et on reporte.

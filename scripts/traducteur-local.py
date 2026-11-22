@@ -11,7 +11,7 @@
 # Protocole : une requête JSON par ligne sur l'entrée standard,
 #   {"id": 1, "source": "pt", "cible": "fr", "lignes": ["…", "…"]}
 # une réponse par ligne sur la sortie standard,
-#   {"id": 1, "lignes": ["…", "…"]}   ou   {"id": 1, "lignes": null}
+#   {"id": 1, "lignes": ["…", null, "…"]}  (null : ligne non traduite)
 # La première ligne écrite est {"pret": true, "paires": [...]} une fois les
 # modèles chargés. Rien d'autre n'est écrit sur la sortie standard.
 #
@@ -91,12 +91,16 @@ def main():
         lignes = req.get("lignes") or []
         sortie = None
         if source and source != "auto" and cible and isinstance(lignes, list):
-            try:
-                res = [un(str(l), source, cible) for l in lignes]
-                if all(isinstance(x, str) and x.strip() for x in res):
-                    sortie = [x.strip() for x in res]
-            except Exception as e:  # un texte qui fait tomber le modèle ne tue pas le passage
-                journal("Échec de traduction locale :", type(e).__name__)
+            # Ligne par ligne : un titre qui fait tomber le modèle ne coûte que
+            # lui (null à sa place), pas tout le paquet.
+            sortie = []
+            for l in lignes:
+                try:
+                    x = un(str(l), source, cible)
+                except Exception as e:
+                    journal("Échec de traduction locale :", type(e).__name__)
+                    x = None
+                sortie.append(x.strip() if isinstance(x, str) and x.strip() else None)
         print(json.dumps({"id": rid, "lignes": sortie}, ensure_ascii=False), flush=True)
 
 

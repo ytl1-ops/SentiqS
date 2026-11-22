@@ -63,3 +63,13 @@ test('le workflow installe le traducteur hors ligne sans pouvoir bloquer le pass
   const req = fs.readFileSync(path.join(__dirname, '../traducteur-local.requirements.txt'), 'utf8');
   assert.match(req, /^argostranslate==\d+\.\d+\.\d+$/m, 'version exacte');
 });
+
+test('une réponse locale partielle range ce qui est traduit, et seulement cela', async () => {
+  const arts = [art('a', 'Premier titre français de la liste'), art('b', 'Second titre français de la liste')];
+  const langues = new Map(arts.map((a) => [a.title, 'fr']));
+  const st = await traduireActus(arts, { langues, fetchFn: enPanne([]), pauseMs: 0, traducteurLocal: async () => ['First title', null] });
+  assert.strictEqual(st.traduits, 1);
+  assert.strictEqual(st.locaux, 1);
+  assert.strictEqual(arts[0].tr.en.t, 'First title');
+  assert.ok(!arts[1].tr || !arts[1].tr.en || !arts[1].tr.en.t);
+});
