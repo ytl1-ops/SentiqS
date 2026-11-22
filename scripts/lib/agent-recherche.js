@@ -62,7 +62,11 @@ function listeBlanche(srcs) {
 
 // ── Moteurs ─────────────────────────────────────────────────────────────────
 function urlBing(q, marche) {
-  return 'https://www.bing.com/news/search?q=' + encodeURIComponent(q) + '&format=rss&mkt=' + encodeURIComponent(marche || 'fr-FR');
+  // Tri par date : la sonde du 22/11/2026 a montré que l'ordre par défaut
+  // (pertinence) renvoyait surtout des articles de plus d'un mois — 36 sur 85
+  // écartés « hors période » pour l'agenda ivoirien.
+  return 'https://www.bing.com/news/search?q=' + encodeURIComponent(q) + '&format=rss&mkt=' + encodeURIComponent(marche || 'fr-FR')
+    + '&qft=' + encodeURIComponent('sortbydate="1"');
 }
 function urlReliefweb(q) {
   const p = ['appname=sentiqs-veille', 'query[value]=' + encodeURIComponent(q), 'sort[]=date:desc', 'limit=15',

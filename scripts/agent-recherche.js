@@ -201,6 +201,10 @@ async function principal() {
         const cy = q.startsWith('Côte') ? 'CI' : (q.startsWith('Mali') ? 'ML' : 'NG');
         await traiter({ id: null, q, pays: [cy], jours: 7, lang: 'fr' }, false);
       }
+      // ReliefWeb a répondu « erreur » à la première sonde : la raison exacte
+      // dit si c'est l'appname (à faire approuver, gratuit) ou autre chose.
+      const rw = await chercher(L.urlReliefweb('Mali'));
+      console.log('ReliefWeb (sonde) : ' + (rw.ok ? 'ok' : 'échec — HTTP ' + (rw.status || '?') + ' ' + String(rw.raison || '').slice(0, 200)));
       // Un pays francophone, un anglophone, un lusophone (cherché en anglais).
       for (const cy of ['CI', 'KE', 'AO']) {
         const ag = await L.collecterAgenda(cy, ctx);
