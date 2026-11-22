@@ -1,5 +1,5 @@
 {
- "genere": "2026-11-21T12:44:43.290Z",
+ "genere": "2026-11-22T12:39:05.340Z",
  "horizonJours": 120,
  "sources": {
   "feries": {
@@ -61,7 +61,7 @@
     "ZM",
     "ZW"
    ],
-   "evenements": 192
+   "evenements": 194
   }
  },
  "evenements": [
@@ -2176,6 +2176,28 @@
    "nature": "ferie",
    "src": "Nager.Date — jours fériés officiels",
    "surl": "https://date.nager.at/PublicHoliday/NA/2027"
+  },
+  {
+   "id": "ferie-AO-2027-03-22",
+   "date": "2027-03-22",
+   "cy": "AO",
+   "titre": "Dia da Libertação da África Austral (Ponte) (Day of the Liberation of Southern Africa (Ponte))",
+   "titreEn": "Day of the Liberation of Southern Africa (Ponte)",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/AO/2027"
+  },
+  {
+   "id": "ferie-ZA-2027-03-22",
+   "date": "2027-03-22",
+   "cy": "ZA",
+   "titre": "Human Rights Day",
+   "titreEn": "Human Rights Day",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/ZA/2027"
   }
  ]
 }
