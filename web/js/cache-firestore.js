@@ -154,6 +154,22 @@
     });
   }
 
+  // lireLocal(cfg, stockage) : la dernière version lue, sans réseau. Sert quand
+  // Firestore refuse ou ne répond pas (quota du plan gratuit épuisé : 50 000
+  // lectures par jour pour tout le projet). Sans elle, chaque visiteur
+  // retombait sur sa propre collecte de ~560 sources à travers des relais
+  // publics : exactement la charge que le cache partagé existe pour éviter.
+  // Rend { articles, updated_at, inchange:true, degrade:true } ou null.
+  function lireLocal(cfg, stockage) {
+    var cleLocale = CLE_LOCALE + (cleDe(cfg) === ID_ANNONCE ? '' : '_' + cleDe(cfg));
+    var local = null;
+    try { local = stockage ? JSON.parse(stockage.getItem(cleLocale) || 'null') : null; } catch (_) { local = null; }
+    if (!local || typeof local.donnees !== 'string' || !local.updated_at) return Promise.resolve(null);
+    return decoder(local.donnees).then(function (articles) {
+      return Array.isArray(articles) ? { articles: articles, updated_at: local.updated_at, inchange: true, degrade: true } : null;
+    }).catch(function () { return null; });
+  }
+
   // ── La « tête » du cache (22/11/2026) ─────────────────────────────────────
   // Demande de YORO : « un délai de chargement des actus très réduit ». Le
   // cache complet pèse ~685 Ko (1 694 articles, passage n° 1252) : sur une 4G
@@ -196,7 +212,7 @@
   }
 
   var api = {
-    CLE_TETE: CLE_TETE, selectionnerTete: selectionnerTete,
+    CLE_TETE: CLE_TETE, selectionnerTete: selectionnerTete, lireLocal: lireLocal,
     COLLECTION: COLLECTION, ID_ANNONCE: ID_ANNONCE, PARTIE_MAX: PARTIE_MAX, CLE_LOCALE: CLE_LOCALE,
     racine: racine, idPartie: idPartie, cleDe: cleDe, decouper: decouper, valeur: valeur,
     decoder: decoder, lireAnnonce: lireAnnonce, lireMorceaux: lireMorceaux, lire: lire,

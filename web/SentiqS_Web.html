@@ -18557,7 +18557,7 @@ async function init() {
   // Validations d'analyste (13/11/2026) : relues au demarrage puis toutes les
   // 15 minutes, comme le cache partage ; sans Firebase, ne fait rien.
   chargerValidations();
-  setInterval(chargerValidations, 15 * 60 * 1000);
+  setInterval(() => { if (!document.hidden) chargerValidations(); }, 60 * 60 * 1000);
   // Faits ajoutés par l'agent de recherche (22/11/2026) : relus comme les validations.
   setTimeout(() => { chargerActusAgent().catch(() => {}); }, 8000);
   // Bulle de Louis : état des recherches web, et relecture des réponses
@@ -18939,14 +18939,28 @@ async function _entetesFirestore() {
     return jeton ? { Authorization: 'Bearer ' + jeton } : null;
   } catch (_) { return null; }
 }
+// Disjoncteur de lecture (22/11/2026) : après un refus de Firestore (quota
+// du plan gratuit épuisé, panne), on cesse de l'interroger pendant dix
+// minutes et on sert la dernière version gardée sur l'appareil. 50 000
+// visiteurs qui réessaient chacun toutes les 5 minutes un service déjà
+// refusé aggravent la panne sans rien rapporter.
+let _fsPanneJusqua = 0;
+const FS_PANNE_PAUSE_MS = 10 * 60 * 1000;
+const COLLECTE_PARTAGEE_DEGRADEE_MAX_MS = 24 * 60 * 60 * 1000;
 async function _lireCacheFirestore() {
   if (!_fournisseurFirebase() || !window.SentiqCacheFirestore) return null;
+  let stockage = null; try { stockage = window.localStorage; } catch (_) {}
+  const cfg = window.SENTIQ_FIREBASE_CONFIG;
+  if (Date.now() < _fsPanneJusqua) return window.SentiqCacheFirestore.lireLocal(cfg, stockage);
   try {
-    let stockage = null; try { stockage = window.localStorage; } catch (_) {}
     const entetes = await _entetesFirestore();
     if (!entetes) return null;
     return await window.SentiqCacheFirestore.lire(window.SENTIQ_FIREBASE_CONFIG, { stockage, entetes });
-  } catch (e) { console.warn('SentiqS — lecture du cache Firestore a echoue :', e && e.message ? e.message : e); return null; }
+  } catch (e) {
+    console.warn('SentiqS — lecture du cache Firestore a echoue :', e && e.message ? e.message : e);
+    _fsPanneJusqua = Date.now() + FS_PANNE_PAUSE_MS;
+    return window.SentiqCacheFirestore.lireLocal(cfg, stockage);
+  }
 }
 // Dernier cache partage lu mais trop vieux pour dispenser de collecter
 // (22/11/2026) : init() l'AFFICHE tout de suite au lieu d'un Flux vide, puis
@@ -18961,7 +18975,9 @@ async function lireCollectePartagee() {
   const fs = await _lireCacheFirestore();
   if (!fs || !fs.articles.length) return null;
   const ageFs = Date.now() - new Date(fs.updated_at).getTime();
-  if (ageFs <= COLLECTE_PARTAGEE_LECTURE_MAX_MS) return fs.articles;
+  // Version dégradée (copie locale, Firestore refusé) : acceptée jusqu'à 24 h,
+  // car la seule alternative est une collecte de ~560 sources par visiteur.
+  if (ageFs <= (fs.degrade ? COLLECTE_PARTAGEE_DEGRADEE_MAX_MS : COLLECTE_PARTAGEE_LECTURE_MAX_MS)) return fs.articles;
   _cachePartagePerime = { articles: fs.articles, ageMs: ageFs };
   return null; // perime — mieux vaut collecter soi-meme (mais l'afficher d'abord)
 }
@@ -19070,7 +19086,8 @@ async function diagnostiquerCachePartage() {
     return {
       disponible: true, ageMs, updatedAt: fs.updated_at, source: 'Firestore',
       nbArticles: fs.articles.length, nbPays: paysUniques.size,
-      enPanne: ageMs > CACHE_PARTAGE_PANNE_SEUIL_MS,
+      enPanne: ageMs > CACHE_PARTAGE_PANNE_SEUIL_MS || !!fs.degrade,
+      degrade: !!fs.degrade,
     };
   }
   return { disponible: false, raison: 'cache Firestore illisible (pas encore publie, perime, ou compte inactif)' };
