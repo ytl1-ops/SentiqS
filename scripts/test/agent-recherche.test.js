@@ -181,11 +181,11 @@ test('un fait trouvé par l’agent ne fait jamais monter un niveau d’alerte',
   assert.match(f, /a\.origine !== 'agent'/);
 });
 
-test('la page charge l’agent et ne lit que Firestore pour lui', () => {
+test('la page charge l’agent et ne lit que Firestore ou ses propres fichiers statiques pour lui', () => {
   assert.match(HTML, /<script src="js\/agent-recherche\.js"><\/script>/);
   const bloc = HTML.slice(HTML.indexOf('// ── Agent de recherche web (22/11/2026'), HTML.indexOf("// ── fin de l'agent de recherche web ──"));
   assert.ok(bloc.length > 3000);
-  (bloc.match(/fetch\('[^']+/g) || []).forEach((u) => assert.match(u, /^fetch\('https:\/\/firestore\.googleapis\.com\/v1\/projects\//));
+  (bloc.match(/fetch\('[^']+/g) || []).forEach((u) => assert.match(u, /^fetch\('(https:\/\/firestore\.googleapis\.com\/v1\/projects\/|agent\/)/));
   // Une réponse lue est toujours relue par resultatValide avant affichage.
   assert.match(fs.readFileSync(path.join(__dirname, '../../web/js/agent-recherche.js'), 'utf8'), /r = resultatValide\(JSON\.parse/);
 });
