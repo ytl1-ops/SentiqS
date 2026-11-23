@@ -1,5 +1,5 @@
 {
- "genere": "2026-11-22T12:39:05.340Z",
+ "genere": "2026-11-23T14:47:00.625Z",
  "horizonJours": 120,
  "sources": {
   "feries": {
@@ -61,7 +61,7 @@
     "ZM",
     "ZW"
    ],
-   "evenements": 194
+   "evenements": 195
   }
  },
  "evenements": [
@@ -2198,6 +2198,17 @@
    "nature": "ferie",
    "src": "Nager.Date — jours fériés officiels",
    "surl": "https://date.nager.at/PublicHoliday/ZA/2027"
+  },
+  {
+   "id": "ferie-AO-2027-03-23",
+   "date": "2027-03-23",
+   "cy": "AO",
+   "titre": "Dia da Libertação da África Austral (Day of the Liberation of Southern Africa)",
+   "titreEn": "Day of the Liberation of Southern Africa",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/AO/2027"
   }
  ]
 }
