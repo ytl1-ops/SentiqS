@@ -3316,6 +3316,36 @@ passe de 42 à 77 pages. Rendu relu avec LibreOffice et des photos de test :
 **non vérifié avec de vraies photos de source** (pas de réseau ici).
 `scripts/test/grsci-fiches.test.js` (4, vus échouer sur l'ancien code).
 
+**Une analyse après chaque actu (24/11/2026).** Demande de YORO :
+« Présentation 1, réalise des analyses après chaque actu publiées ». Chaque
+fiche porte un paragraphe « Analyse : » ; chaque fait rédigé, une section
+« Analyse sûreté » (qui remplace « Enjeux sûreté »). Même texte dans le
+PowerPoint, le Word et donc le PDF (`redaction.analyserFait`,
+`g.texteAnalyse`). Sans modèle de langue, rien d'inventé :
+- **Lecture** : recoupement (N médias, ou source unique à confirmer), puis,
+  pour les seules familles d'incident, la place du fait parmi ceux de même
+  nature dans le pays sur la période, **comptés par jour** (deux reprises du
+  même naufrage le même jour se comptaient l'une l'autre et faisaient une
+  « série ») ; « série » à partir de trois jours en quatorze. Aucun mot de
+  gravité : le niveau « crit » de la veille (« 2 morts par jour sur les
+  routes ») n'est pas une gravité de terrain.
+- **Implications** : le repère par famille (`ENJEUX`) ; **À surveiller** : les
+  signaux qui feraient évoluer la lecture (`SURVEILLER`).
+- Familles revues en relisant le cumul de novembre : un titre de procédure,
+  déclaration, rencontre ou coopération sans mot d'événement est un **fait de
+  contexte** (« le Parquet fait le point sur les poursuites pour terrorisme »
+  recevait « menace armée sur les axes ») ; « s'attaque aux violences » n'est
+  pas une attaque ; familles `homicide` et `drame` (suicide, noyade) ajoutées ;
+  « accident » avant « homicide » ; « marché » ne vaut plus « marche » ;
+  « drone » seul et « loi de finances » ne comptent plus.
+- L'extrait d'une fiche passe de 360 à 300 caractères pour faire place.
+Mesuré sur le cumul de novembre (CI + 9 pays) : 120 actus, 120 analyses
+(107 fiches, 13 rédigés), 77 pages avant et après, mêmes lignes de sources,
+XML du PowerPoint valide. Les familles restent des règles de mots : une
+partie des repères tombe à côté, d'où la note de l'intercalaire (« à valider
+et compléter par l'analyste »). `scripts/test/grsci-analyse.test.js` (6, vus
+échouer sur l'ancien code).
+
 **Un « & » dans une adresse cassait le PowerPoint (14/11/2026).** pptxgenjs
 écrit l'adresse d'un lien sans l'échapper dans le `.rels` de la diapositive :
 le rapport de novembre portait un lien Guinéematin à paramètres `utm_…&…`,
