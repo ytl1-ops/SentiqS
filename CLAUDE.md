@@ -4857,6 +4857,13 @@ pays frais (BW ER GW SC SL sans actu de moins de 12 h).
 taille réelle de la tête, la cadence obtenue et le gain d'actus ; le journal
 du job les donne (« Tête du cache publiée : N articles, X Ko »).
 `scripts/test/chargement-rapide.test.js` (6, vus échouer sur l'ancien code).
+
+**La relance n'a jamais tourné avant le 24/11/2026.** Passages n° 1254 à 1258
+espacés de 6 h 20 à 12 h 30, job « Relancer le passage suivant » ignoré à
+chaque fois : sa condition `vars.COLLECTE_CHAINEE != '0'` est fausse quand la
+variable n'existe pas, car GitHub compare alors `null` et `'0'` en nombres
+(0 = 0). Écrire `(vars.X || 'oui') != '0'` pour toute variable facultative
+comparée à une valeur ; un test l'exige.
 ## Louis, l'agent de veille — 22/11/2026
 
 Demande de YORO : « Insère une bulle chat pour l'IA, le nom de l'agent IA est
