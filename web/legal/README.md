@@ -1,45 +1,37 @@
-# Pages légales — à compléter avant toute facturation
+# Pages légales — complétées le 22/11/2026
 
-Ces quatre pages (mentions légales, CGV, CGU, confidentialité) sont des **structures**, pas des textes prêts à publier. Chaque
-emplacement `[[À COMPLÉTER : …]]` attend une information que seul l'éditeur
-connaît, ou une clause qui engage juridiquement et doit être validée.
+Les cinq pages (mentions légales, CGU, CGV, confidentialité, suppression du
+compte) ne portent plus aucun `[[À COMPLÉTER : …]]` et sont indexées
+(`index,follow`). `scripts/verifier-pages-legales.js` le vérifie à chaque PR.
 
-Je n'ai pas rédigé les clauses opposables : des CGV et une politique de
-confidentialité engagent la responsabilité de l'éditeur, et un texte générique
-mal ajusté est pire qu'une page absente — il donne l'illusion de la conformité.
+## Ce qui a été écrit, et sur quelle base
 
-## Ce que le droit impose ici
+- **Éditeur** : SentiqS, responsable de la publication YORO Tchéssiéhi.
+- **Ce qui n'est pas connu n'est pas inventé** : immatriculation, adresse
+  postale et numéro fiscal sont dits « en cours » ou « communiqués sur
+  demande via le formulaire de contact ». À remplacer par les vraies valeurs
+  dès qu'elles existent.
+- **Aucune adresse e-mail n'est publiée.** Tout contact (questions,
+  facturation, droits RGPD : accès, rectification, suppression, export, et
+  retrait de contenus) passe par le formulaire « Nous contacter »
+  (`SentiqS_Web.html#contact`, ou `#contact=<objet>`). Les messages sont dans
+  Firestore (`messages_contact`), lus par l'administrateur seul.
+- **Inventaire des données** : tiré des règles Firestore réelles, région
+  `europe-west1` (Belgique), authentification Google (États-Unis, DPF et
+  clauses contractuelles types).
+- **Choix à faire valider par l'éditeur** (écrits de façon prudente) : droit
+  ivoirien et tribunaux d'Abidjan ; responsabilité plafonnée aux sommes
+  payées sur trois mois ; prolongation égale à toute interruption de plus de
+  72 h ; service réservé aux professionnels, donc sans droit de rétractation.
 
-Le service facture en euros, s'adresse à des professionnels et traite des
-données personnelles (comptes, e-mails, journal de connexions, journal de
-trafic). Trois obligations distinctes en découlent :
+## Ce qui reste recommandé
 
-| Page | Fondement | Sanction en cas d'absence |
-|---|---|---|
-| Mentions légales | LCEN, art. 6-III | jusqu'à 75 000 € pour une personne physique |
-| Conditions générales de vente | Code de la consommation / Code de commerce | contrat inopposable au client |
-| Politique de confidentialité | RGPD, art. 13 et 14 | sanction CNIL |
+Une relecture par un juriste avant le premier client payant, en particulier
+le périmètre de responsabilité : SentiqS recommande des mesures de sûreté
+(évacuation, confinement, suspension de convois).
 
-## Un point qui vous est propre
+## Mettre à jour
 
-SentiqS ne se contente pas d'informer : il **recommande des mesures de sûreté**
-— évacuation, confinement, suspension de convois. Le périmètre de
-responsabilité doit être explicite avant le premier client, pas après un
-incident. C'est le seul endroit de ces pages où je recommande formellement de
-faire relire par un juriste plutôt que de compléter soi-même : l'emplacement
-est signalé dans les CGV.
-
-## Une fois complétées
-
-1. Retirer tous les `[[À COMPLÉTER : …]]` — un contrôle est prévu (voir
-   `scripts/verifier-pages-legales.js`).
-2. Vérifier que les liens du pied de page pointent bien vers ces pages.
-3. Les ajouter à `web/sitemap.xml`.
-
-## Conditions générales d'utilisation (13/11/2026)
-
-`cgu.html` est exigée pour l'application Android (fiche Play Store) et pour
-un service réservé aux comptes. Les clauses factuelles sont rédigées (compte
-personnel, usages interdits dont le profilage de personnes, droits sur les
-contenus des sources, nature de l'information) ; restent à compléter l'essai
-gratuit, la suspension d'un compte, la date et le droit applicable.
+Le texte français fait foi. Toute phrase ajoutée doit avoir son entrée dans
+`web/js/dico-site-en.js` : `scripts/test/langue-site.test.js` refuse une
+phrase légale sans traduction.

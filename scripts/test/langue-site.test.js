@@ -46,19 +46,32 @@ test('chaque page porte un sélecteur FR/EN que le moteur ne traduit pas lui-mê
   }
 });
 
-test('les pages légales restent non indexées, non liées, et disent que le français fait foi', () => {
+test('les pages légales sont complètes (22/11/2026), indexées, liées depuis l\'accueil, et disent que le français fait foi', () => {
   for (const p of Object.keys(PAGES).filter((x) => x.startsWith('legal/'))) {
     const h = lire(p);
-    assert.match(h, /<meta name="robots" content="noindex/, p);
-    assert.ok(h.includes('[[À COMPLÉTER'), p + ' : les emplacements à compléter restent dans la source');
+    assert.match(h, /<meta name="robots" content="index,follow">/, p);
+    assert.ok(!h.includes('À COMPLÉTER'), p + ' : emplacement à compléter restant');
     assert.ok(h.includes('<p class="foi">La version française fait foi.</p>'), p);
     assert.match(h, /html\[lang="fr"\] \.foi \{ display: none; \}/, p);
   }
-  // verifier-pages-legales.js bloque un lien vers une page incomplète :
-  // ajouter le sélecteur ne doit pas en avoir créé un.
-  assert.ok(!/href="legal\//.test(lire('index.html')));
+  // Complètes, elles sont liées depuis le pied de page de l'accueil.
+  const idx = lire('index.html');
+  for (const f of ['mentions-legales', 'cgu', 'cgv', 'confidentialite']) assert.ok(idx.includes('href="legal/' + f + '.html"'), f);
   assert.strictEqual(L.traduire('La version française fait foi.'),
     'The French version is the legally binding one; this English version is provided for information only.');
+});
+
+test('les cinq pages légales sont traduites en entier (identifiants et noms propres exceptés)', () => {
+  const garder = new Set(['Google LLC (Firebase)', 'GitHub, Inc.', 'github.com', 'firebase.google.com', '10. Contact', '11. Contact']);
+  for (const p of Object.keys(PAGES).filter((x) => x.startsWith('legal/'))) {
+    const h = lire(p);
+    const main = h.slice(h.indexOf('<main>'), h.indexOf('</main>')).replace(/<code>[^<]*<\/code>/g, '<x>');
+    const textes = main.split(/<[^>]+>/).map((t) => t.replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim())
+      .filter((t) => /[a-zà-ÿ]{3}/i.test(t) && !garder.has(t));
+    assert.ok(textes.length > 5, p + ' : page vide ?');
+    const manquants = textes.filter((t) => L.traduire(t) === t);
+    assert.deepStrictEqual(manquants, [], p);
+  }
 });
 
 test('la table traduit l\'accueil et les pages légales, nombres compris', () => {

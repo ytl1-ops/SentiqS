@@ -371,6 +371,43 @@ service cloud.firestore {
       allow read, delete: if false;
     }
 
+    // Formulaire de contact (22/11/2026) : web/js/contact.js. L'éditeur n'a
+    // pas d'adresse professionnelle ; un message déposé ici n'est lu que par
+    // l'administrateur. Écrit avec ou sans compte (accès perdu, demande de
+    // suppression), création seule. La clé compte les messages du jour sans
+    // compteur : {uid}_{jour}_{n}, n < 3 pour un compte ; anon_{jour}_{n},
+    // n < 40 pour tous les visiteurs sans compte.
+    function messageContactBienForme(d, id) {
+      let compte = request.auth != null;
+      return d.keys().hasOnly(['uid', 'nom', 'email', 'objet', 'message', 'lang', 'jour', 'n', 'at', 'statut'])
+        && d.keys().hasAll(['uid', 'nom', 'email', 'objet', 'message', 'lang', 'jour', 'n', 'at', 'statut'])
+        && d.uid is string && (compte ? d.uid == request.auth.uid : d.uid == '')
+        && d.nom is string && d.nom.size() <= 120
+        && d.email is string && d.email.size() >= 6 && d.email.size() <= 254
+        && d.email.matches('^[^@ ]+@[^@ ]+[.][^@ ]+$')
+        && d.objet in ['question', 'probleme', 'facturation', 'droits_acces', 'droits_rectification',
+                       'droits_suppression', 'retrait_source', 'autre']
+        && d.message is string && d.message.size() >= 10 && d.message.size() <= 3000
+        && d.lang in ['fr', 'en']
+        && d.jour is int && d.jour == math.floor(request.time.toMillis() / 86400000)
+        && d.n is int && d.n >= 0 && d.n < (compte ? 3 : 40)
+        && d.at is timestamp
+        && d.at > request.time - duration.value(10, 'm')
+        && d.at < request.time + duration.value(10, 'm')
+        && d.statut == 'nouveau'
+        && id == (compte ? d.uid : 'anon') + '_' + string(d.jour) + '_' + string(d.n);
+    }
+    match /messages_contact/{id} {
+      allow create: if messageContactBienForme(request.resource.data, id);
+      allow get, list: if estAdmin();
+      allow update: if estAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['statut', 'traitePar', 'traiteLe'])
+        && request.resource.data.statut in ['nouveau', 'en_cours', 'traite']
+        && request.resource.data.traitePar == request.auth.token.email
+        && request.resource.data.traiteLe is string && request.resource.data.traiteLe.size() <= 40;
+      allow delete: if estAdmin();
+    }
+
     // Configuration partagée (identifiants publics EmailJS), venue de la table
     // Supabase config_partagee le 15/11/2026 : lue par tout compte connecté,
     // écrite par l'administrateur seul.

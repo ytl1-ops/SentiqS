@@ -128,6 +128,28 @@ const { doc, getDoc, setDoc, deleteDoc } = require('firebase/firestore');
   await t('agent : admin ne modifie pas le contenu trouvé', false, updateDoc(doc(ctx('admin'), 'actus_agent_quarantaine', 'q1'), { decision: 'valide', decidePar: 'admin@x.org', decideLe: maintenant, cotation: 'confirme' }));
   await t('agent : admin tranche en son nom', true, updateDoc(doc(ctx('admin'), 'actus_agent_quarantaine', 'q1'), { decision: 'valide', decidePar: 'admin@x.org', decideLe: maintenant }));
   await t('agent : rapport lu par l admin seul', false, getDoc(doc(ctx('paye'), 'agent_rapport', 'quotidien')));
+  // Formulaire « Nous contacter » (22/11/2026) : création seule, clé comptée
+  // par jour (3 par compte, 40 sans compte), lecture et suivi par l'admin seul.
+  const msgC = (uid, n, x) => Object.assign({ uid, nom: 'Awa', email: 'awa@exemple.org', objet: 'droits_acces', message: 'Je souhaite une copie de mes données.', lang: 'fr', jour: jr, n, at: Timestamp.now(), statut: 'nouveau' }, x || {});
+  const anon = env.unauthenticatedContext().firestore();
+  await t('contact : message sans compte accepté', true, setDoc(doc(anon, 'messages_contact', 'anon_' + jr + '_0'), msgC('', 0)));
+  await t('contact : emplacement déjà pris refusé', false, setDoc(doc(anon, 'messages_contact', 'anon_' + jr + '_0'), msgC('', 0)));
+  await t('contact : 41e message sans compte refusé', false, setDoc(doc(anon, 'messages_contact', 'anon_' + jr + '_40'), msgC('', 40)));
+  await t('contact : clé qui ne suit pas le contenu refusée', false, setDoc(doc(anon, 'messages_contact', 'anon_' + jr + '_7'), msgC('', 8)));
+  await t('contact : message d un compte accepté', true, setDoc(doc(ctx('paye'), 'messages_contact', 'paye_' + jr + '_0'), msgC('paye', 0)));
+  await t('contact : quatrième message d un compte refusé', false, setDoc(doc(ctx('paye'), 'messages_contact', 'paye_' + jr + '_3'), msgC('paye', 3)));
+  await t('contact : message au nom d un autre compte refusé', false, setDoc(doc(ctx('paye'), 'messages_contact', 'essai_' + jr + '_0'), msgC('essai', 0)));
+  await t('contact : statut déjà traité refusé', false, setDoc(doc(anon, 'messages_contact', 'anon_' + jr + '_1'), msgC('', 1, { statut: 'traite' })));
+  await t('contact : champ en trop refusé', false, setDoc(doc(anon, 'messages_contact', 'anon_' + jr + '_2'), msgC('', 2, { role: 'admin' })));
+  await t('contact : adresse invalide refusée', false, setDoc(doc(anon, 'messages_contact', 'anon_' + jr + '_3'), msgC('', 3, { email: 'pas-une-adresse' })));
+  await t('contact : objet hors liste refusé', false, setDoc(doc(anon, 'messages_contact', 'anon_' + jr + '_4'), msgC('', 4, { objet: 'pirate' })));
+  await t('contact : message relu par son auteur refusé', false, getDoc(doc(ctx('paye'), 'messages_contact', 'paye_' + jr + '_0')));
+  await t('contact : message lu sans compte refusé', false, getDoc(doc(anon, 'messages_contact', 'anon_' + jr + '_0')));
+  await t('contact : admin lit', true, getDoc(doc(ctx('admin'), 'messages_contact', 'anon_' + jr + '_0')));
+  await t('contact : client ne change pas le statut', false, updateDoc(doc(ctx('paye'), 'messages_contact', 'paye_' + jr + '_0'), { statut: 'traite', traitePar: 'paye@x.org', traiteLe: maintenant }));
+  await t('contact : admin ne réécrit pas le message', false, updateDoc(doc(ctx('admin'), 'messages_contact', 'anon_' + jr + '_0'), { statut: 'traite', traitePar: 'admin@x.org', traiteLe: maintenant, message: 'remplacé par l admin' }));
+  await t('contact : admin traite en son nom', true, updateDoc(doc(ctx('admin'), 'messages_contact', 'anon_' + jr + '_0'), { statut: 'traite', traitePar: 'admin@x.org', traiteLe: maintenant }));
+  await t('contact : client ne supprime pas', false, deleteDoc(doc(ctx('paye'), 'messages_contact', 'paye_' + jr + '_0')));
   console.log(res.join('\n'));
   await env.cleanup();
   process.exit(res.some((r) => r.startsWith('FAIL')) ? 1 : 0);
