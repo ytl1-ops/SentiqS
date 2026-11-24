@@ -141,11 +141,20 @@ test('pages légales : repère principal, mode sombre lisible, tableaux empilés
   for (const c of ['#475569', '#1d4ed8']) assert.ok(rapport(hex(c), [255, 255, 255]) >= 4.5, c + ' sur blanc');
 });
 
-test('contenu légal intact : les emplacements « À COMPLÉTER » n\'ont ni bougé ni disparu', () => {
-  // La revue touche la structure et le style, jamais le texte juridique.
+test('contenu légal complet (22/11/2026) : éditeur et responsable nommés, contact par formulaire, aucune adresse e-mail', () => {
   const attendus = { 'cgu.html': null, 'suppression-compte.html': null, 'cgv.html': null, 'confidentialite.html': null, 'mentions-legales.html': null };
-  for (const n of legales) assert.ok(n in attendus, 'page légale inattendue : ' + n);
-  const t = lire('web', 'legal', 'confidentialite.html');
-  assert.ok((t.match(/À COMPLÉTER/g) || []).length >= 8);
-  assert.match(t, /<meta name="robots" content="noindex,nofollow">/, 'noindex conservé tant que la page est trouée');
+  for (const n of legales) {
+    assert.ok(n in attendus, 'page légale inattendue : ' + n);
+    const t = lire('web', 'legal', n);
+    assert.ok(!t.includes('À COMPLÉTER'), n);
+    // Aucune adresse e-mail publiée : l'éditeur n'en a pas de professionnelle,
+    // et la personnelle ne doit pas figurer sur le site.
+    assert.doesNotMatch(t, /mailto:|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.[A-Za-z]{2,}/, n);
+  }
+  const m = lire('web', 'legal', 'mentions-legales.html');
+  assert.match(m, /Dénomination : SentiqS/);
+  assert.match(m, /YORO Tchéssiéhi, responsable de la publication/);
+  assert.match(m, /href="\.\.\/SentiqS_Web\.html#contact"/);
+  assert.match(lire('web', 'legal', 'suppression-compte.html'), /#contact=droits_suppression/);
+  assert.match(lire('web', 'legal', 'confidentialite.html'), /messages_contact/);
 });

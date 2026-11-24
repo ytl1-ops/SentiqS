@@ -1142,6 +1142,15 @@
     "Paramètres & Administration": "Settings & Administration",
     "Utilitaire générique, non utilisé par la connexion (gérée par Firebase) ni par les bulletins programmés (envoyés par le job)": "Generic utility, not used by login (handled by Firebase) nor by scheduled bulletins (sent by the scheduled job)",
     "niveau borne au marron : le point qui ferait passer au rouge vient d'un article seul, ni recoupe par une seconde source ni critique": "level capped at brown: the point that would move it to red comes from a single article, neither corroborated by a second source nor critical",
+    // Formulaire de contact (22/11/2026).
+    "Messages de contact": "Contact messages",
+    "Messages laissés par le formulaire « Nous contacter » (questions, problèmes, droits sur les données, retraits de contenus). « Répondre » ouvre votre messagerie : la réponse part de votre adresse. Conservation : 12 mois, puis suppression.": "Messages left through the « Contact us » form (questions, problems, data rights, content removal). « Reply » opens your mail app: the answer goes from your own address. Kept for 12 months, then deleted.",
+    "Expéditeur": "Sender",
+    "Objet": "Subject",
+    "Nous contacter": "Contact us",
+    "Écrivez-nous :": "Write to us:",
+    "Les numéros de paiement ne sont pas encore publiés.": "The payment numbers are not published yet.",
+    "Déclaration impossible pour le moment (connexion requise). Réessayez, ou écrivez-nous avec": "Declaration not possible right now (sign-in required). Try again, or write to us with",
   });
   // Phrases dont une partie variable n'est pas un nombre (date mise en forme,
   // nom). Le fragment variable repasse par la table.

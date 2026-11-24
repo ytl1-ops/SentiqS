@@ -4,11 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Politique de confidentialité — SentiqS</title>
-<!-- noindex tant que la page porte des emplacements vides : GitHub
-     Pages la sert dès qu'elle existe, liée ou non, et un moteur qui l'indexerait
-     montrerait une page légale trouée sous le nom de SentiqS. Repasser en
-     index,follow une fois la page complète — le contrôle CI l'exige. -->
-<meta name="robots" content="noindex,nofollow">
+<meta name="robots" content="index,follow">
 <style>
   :root { color-scheme: light dark; }
   body { max-width: 46rem; margin: 0 auto; padding: 2.5rem 1.25rem 5rem;
@@ -26,8 +22,8 @@
   footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--bord); font-size: .875rem; }
 
   /* revue-pages-2026-10-15 — mode sombre : les gris/bleus du mode clair tombaient
-     à 3,6:1 (gris) et 3,4:1 (liens) sur fond sombre. Les zones « À COMPLÉTER »
-     gardent leur propre fond. Tableaux empilés sur mobile (la politique de
+     à 3,6:1 (gris) et 3,4:1 (liens) sur fond sombre.
+     Tableaux empilés sur mobile (la politique de
      confidentialité débordait à 509 px pour un écran de 390). */
   :root { --maj: #475569; --lien: #1d4ed8; --bord: #cbd5e1; }
   @media (prefers-color-scheme: dark) { :root { --maj: #a8b5c8; --lien: #8ab4f8; --bord: #334155; } }
@@ -68,55 +64,36 @@
 </header>
 <main>
 <h1>Politique de confidentialité</h1>
-<p class="maj">Dernière mise à jour : <span class="todo">[[À COMPLÉTER : date]]</span></p>
+<p class="maj">Dernière mise à jour : 22 novembre 2026</p>
 
-<p>
-  Cet inventaire est établi à partir du schéma réel de la base : il décrit ce
-  que le service collecte effectivement, pas ce qu'il pourrait collecter.
-</p>
+<p>Cet inventaire est établi à partir des règles réelles de la base de données : il décrit ce que le service collecte effectivement, pas ce qu'il pourrait collecter.</p>
 
 <h2>Responsable du traitement</h2>
-<p>
-  <span class="todo">[[À COMPLÉTER : identité et coordonnées — reprendre les
-  mentions légales]]</span><br>
-  Délégué à la protection des données :
-  <span class="todo">[[À COMPLÉTER : nom et contact, ou mention « non désigné »
-  si le service n'y est pas tenu]]</span>
-</p>
+<p>SentiqS, représenté par YORO Tchéssiéhi, responsable de la publication (voir les <a href="mentions-legales.html">mentions légales</a>).</p>
+<p>Contact : <a href="../SentiqS_Web.html#contact">formulaire « Nous contacter »</a>.</p>
+<p>Délégué à la protection des données : non désigné. Les demandes sont traitées directement par le responsable du traitement.</p>
 
 <h2>Données traitées</h2>
 <table>
   <thead><tr><th>Donnée</th><th>Origine</th><th>Finalité</th><th>Base légale</th></tr></thead>
   <tbody>
     <tr>
-      <td data-l="Donnée">Adresse e-mail, rôle (<code>profiles</code>)</td>
+      <td data-l="Donnée">Adresse e-mail, nom, organisation, rôle, forfait et échéance (<code>profiles</code>)</td>
       <td data-l="Origine">inscription</td>
-      <td data-l="Finalité">authentification, gestion des droits</td>
+      <td data-l="Finalité">authentification, gestion des droits et de l'abonnement</td>
       <td data-l="Base légale">exécution du contrat</td>
     </tr>
     <tr>
-      <td data-l="Donnée">Nom, e-mail, téléphone, pays (<code>subscribers</code>)</td>
-      <td data-l="Origine">souscription</td>
-      <td data-l="Finalité">gestion de l'abonnement et facturation</td>
-      <td data-l="Base légale">exécution du contrat</td>
+      <td data-l="Donnée">Date de début de l'essai gratuit, rattachée à l'adresse e-mail (<code>essais</code>)</td>
+      <td data-l="Origine">inscription</td>
+      <td data-l="Finalité">un seul essai gratuit par adresse</td>
+      <td data-l="Base légale">intérêt légitime : prévenir les abus de l'essai gratuit</td>
     </tr>
     <tr>
-      <td data-l="Donnée">Horodatage des connexions (<code>connexions_log</code>)</td>
+      <td data-l="Donnée">Horodatage, nom, rôle et type d'appareil des connexions (<code>connexions_log</code>)</td>
       <td data-l="Origine">connexion</td>
       <td data-l="Finalité">sécurité du compte, affichage « dernière connexion »</td>
-      <td data-l="Base légale"><span class="todo">[[À COMPLÉTER : intérêt légitime, à documenter]]</span></td>
-    </tr>
-    <tr>
-      <td data-l="Donnée">Page, pays, empreinte d'IP, navigateur, référent, durée (<code>traffic_logs</code>)</td>
-      <td data-l="Origine">navigation</td>
-      <td data-l="Finalité">mesure d'audience</td>
-      <td data-l="Base légale"><span class="todo">[[À COMPLÉTER : intérêt légitime ou consentement — dépend du caractère réellement anonyme de l'empreinte d'IP]]</span></td>
-    </tr>
-    <tr>
-      <td data-l="Donnée">Format et horodatage des exports (<code>telechargements</code>)</td>
-      <td data-l="Origine">usage du service</td>
-      <td data-l="Finalité">application du quota d'abonnement</td>
-      <td data-l="Base légale">exécution du contrat</td>
+      <td data-l="Base légale">intérêt légitime : sécurité du service</td>
     </tr>
     <tr>
       <td data-l="Donnée">Paiement déclaré : forfait, moyen de paiement, référence de transaction, note, date (<code>paiements_declares</code>)</td>
@@ -130,51 +107,65 @@
       <td data-l="Finalité">traçabilité des faits validés</td>
       <td data-l="Base légale">exécution du contrat</td>
     </tr>
+    <tr>
+      <td data-l="Donnée">Bulletins programmés : pays, heures, canaux, destinataires (adresse e-mail, identifiant Telegram, numéro WhatsApp) et leur accord (<code>bulletins_programmes</code>, <code>bulletins_etat</code>, <code>reponses_destinataires</code>)</td>
+      <td data-l="Origine">paramètres de l'utilisateur</td>
+      <td data-l="Finalité">envoi des bulletins demandés</td>
+      <td data-l="Base légale">exécution du contrat ; accord du destinataire pour toute adresse autre que celle du compte</td>
+    </tr>
+    <tr>
+      <td data-l="Donnée">Identifiants d'envoi apportés par l'utilisateur (serveur e-mail, compte WhatsApp Business), chiffrés (<code>smtp_comptes</code>, <code>whatsapp_comptes</code>)</td>
+      <td data-l="Origine">paramètres de l'utilisateur</td>
+      <td data-l="Finalité">envoi des bulletins depuis le compte de l'utilisateur</td>
+      <td data-l="Base légale">exécution du contrat</td>
+    </tr>
+    <tr>
+      <td data-l="Donnée">Questions posées à Louis pour une recherche sur le web, et leurs réponses (<code>agent_demandes</code>, <code>agent_reponses</code>)</td>
+      <td data-l="Origine">usage du service</td>
+      <td data-l="Finalité">recherche demandée par l'utilisateur</td>
+      <td data-l="Base légale">exécution du contrat</td>
+    </tr>
+    <tr>
+      <td data-l="Donnée">Messages de contact : nom, adresse de réponse, objet, message, date (<code>messages_contact</code>)</td>
+      <td data-l="Origine">formulaire « Nous contacter »</td>
+      <td data-l="Finalité">répondre, traiter les demandes d'exercice des droits et de retrait de contenus</td>
+      <td data-l="Base légale">intérêt légitime : répondre à qui nous écrit ; obligation légale pour les demandes d'exercice des droits</td>
+    </tr>
   </tbody>
 </table>
 <p>
   Le service <strong>ne collecte pas</strong> de données de localisation
   précise, ni de données sensibles au sens de l'article 9 du RGPD.
 </p>
-
-<p>
-  Le logo et l'identité d'envoi saisis dans les paramètres restent dans le
-  navigateur de l'utilisateur ; ils ne sont pas envoyés au serveur.
-</p>
+<p>Le logo et l'identité d'envoi saisis dans les paramètres, les préférences d'affichage et le décompte des téléchargements restent dans le navigateur de l'utilisateur ; ils ne sont pas envoyés au serveur.</p>
 <p>
   L'application Android ouvre ce même site. Elle ne collecte aucune donnée
   supplémentaire : ni localisation, ni contacts, ni identifiant publicitaire.
 </p>
 
 <h2>Durées de conservation</h2>
-<p>
-  Les articles collectés sont purgés automatiquement
-  (<code>purger_articles_rag_perimes</code>, quotidien ; agenda, hebdomadaire).
-  <span class="todo">[[À COMPLÉTER : durée de conservation des comptes après
-  résiliation, du journal de connexions, du journal de trafic et des factures —
-  cette dernière est encadrée par le Code de commerce]]</span>
-</p>
+<ul>
+  <li>Compte et profil : jusqu'à la suppression du compte par l'utilisateur, ou par l'éditeur à sa demande.</li>
+  <li>Journal des connexions : pendant la durée du compte, puis effacé sous trente jours après sa suppression.</li>
+  <li>Date de début de l'essai : conservée pour qu'un essai échu ne se rouvre pas ; effacée sur demande si aucun compte n'est rattaché à l'adresse.</li>
+  <li>Paiements déclarés : conservés comme pièces comptables, pour la durée imposée par la loi applicable, dix ans au plus.</li>
+  <li>Messages de contact : douze mois, puis supprimés.</li>
+  <li>Bulletins programmés et identifiants d'envoi : jusqu'à leur suppression par l'utilisateur ou la suppression de son compte.</li>
+</ul>
 
 <h2>Destinataires et sous-traitants</h2>
 <table>
   <thead><tr><th>Sous-traitant</th><th>Rôle</th><th>Localisation</th></tr></thead>
   <tbody>
-    <tr><td data-l="Sous-traitant">Google LLC (Firebase)</td><td data-l="Rôle">authentification, profils, journal des connexions, actualités et agenda partagés, configuration partagée, validations, paiements déclarés, hébergement du site</td><td data-l="Localisation"><span class="todo">[[À COMPLÉTER : région du projet Firebase]]</span></td></tr>
-    <tr><td data-l="Sous-traitant">GitHub, Inc.</td><td data-l="Rôle">hébergement du site</td><td data-l="Localisation">États-Unis</td></tr>
+    <tr><td data-l="Sous-traitant">Google LLC (Firebase)</td><td data-l="Rôle">authentification, profils, journal des connexions, actualités et agenda partagés, configuration partagée, validations, paiements déclarés, messages de contact, hébergement du site</td><td data-l="Localisation">base de données : Belgique (europe-west1) ; authentification : États-Unis</td></tr>
+    <tr><td data-l="Sous-traitant">GitHub, Inc.</td><td data-l="Rôle">hébergement du site, envoi programmé des bulletins</td><td data-l="Localisation">États-Unis</td></tr>
   </tbody>
 </table>
-<p>
-  <span class="todo">[[À COMPLÉTER : encadrement des transferts hors Union
-  européenne — clauses contractuelles types ou décision d'adéquation]]</span>
-</p>
+<p>Les bulletins programmés partent par les canaux que l'utilisateur choisit (e-mail, Telegram, WhatsApp) ; ces services reçoivent le message et l'adresse du destinataire.</p>
+<p>Google LLC et GitHub, Inc. sont établis aux États-Unis. Les transferts hors de l'Union européenne qui en découlent sont encadrés par le cadre de protection des données UE–États-Unis (Data Privacy Framework), auquel ces deux sociétés adhèrent, et par les clauses contractuelles types de la Commission européenne prévues dans leurs conditions de traitement des données.</p>
 
 <h2>Vos droits</h2>
-<p>
-  Accès, rectification, effacement, limitation, opposition et portabilité
-  s'exercent auprès de
-  <span class="todo">[[À COMPLÉTER : adresse de contact dédiée]]</span>.
-  Réponse sous un mois. Une réclamation peut être adressée à la CNIL.
-</p>
+<p>Accès, rectification, effacement, limitation, opposition et portabilité s'exercent par le <a href="../SentiqS_Web.html#contact=droits_acces">formulaire « Nous contacter »</a>, avec l'objet correspondant à votre demande. L'éditeur peut vous demander de la confirmer depuis l'adresse du compte concerné. Réponse sous un mois. Une réclamation peut être adressée à la CNIL.</p>
 <p>
   Pour les personnes situées en Côte d'Ivoire, ces droits découlent de la loi
   n° 2013-450 relative à la protection des données à caractère personnel ; une
@@ -185,18 +176,12 @@
   depuis Paramètres, « Supprimer mon compte » ; la procédure est décrite sur la
   page <a href="suppression-compte.html">Supprimer mon compte</a>. Les paiements
   déclarés sont conservés comme trace de l'encaissement.
-  <span class="todo">[[À COMPLÉTER : procédure d'export des données d'un compte
-  (aucun export automatique n'existe à ce jour)]]</span>
 </p>
+<p>Copie de vos données : sur demande par le formulaire de contact (objet « Accès à mes données »), l'éditeur vous transmet sous un mois une copie des données de votre compte dans un format lisible (JSON).</p>
 
 <h2>Traceurs</h2>
-<p>
-  Le service utilise le stockage local du navigateur pour ses préférences
-  (thème, langue, affichage) et sa session. Ces usages sont strictement
-  nécessaires au fonctionnement.
-  <span class="todo">[[À COMPLÉTER : si une mesure d'audience non exemptée est
-  ajoutée, un bandeau de consentement devient obligatoire]]</span>
-</p>
+<p>Le service utilise le stockage local du navigateur pour ses préférences (thème, langue, affichage) et sa session. Ces usages sont strictement nécessaires au fonctionnement.</p>
+<p>Aucune mesure d'audience ni aucun traceur publicitaire n'est utilisé ; aucun bandeau de consentement n'est donc nécessaire. Si une mesure d'audience soumise au consentement était ajoutée, un bandeau le demanderait avant tout dépôt.</p>
 
 </main>
 

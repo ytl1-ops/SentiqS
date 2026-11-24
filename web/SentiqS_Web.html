@@ -47,6 +47,7 @@
 <script src="js/cache-firestore.js"></script>
 <script src="js/traductions-partagees.js"></script>
 <script src="js/agent-recherche.js"></script>
+<script src="js/contact.js"></script>
 <!-- Le kit se télécharge dès l'ouverture, pendant l'animation de garde, au lieu
      d'attendre checkAuth : la connexion ne patiente plus après la vidéo. -->
 <!-- Et l'écran de connexion passe en mode Firebase (bouton Google, lien
@@ -3229,6 +3230,35 @@ html.force-mobile .acces-rapide-btn{display:none}
 }
 html.force-mobile .assistant-btn{display:none}
 html.force-mobile .as-boite{margin:0;width:100%;height:100%;border-radius:0;border:0}
+/* ═══ NOUS CONTACTER — 22/11/2026 (voir CLAUDE.md) ═══
+   Formulaire rendu par ouvrirContact(), messages lus par l'administrateur. */
+.contact-intro{font-size:var(--fs-sm,12px);color:var(--t2);line-height:1.6;margin:0 0 12px}
+.contact-form{display:flex;flex-direction:column;gap:6px}
+.contact-form label{font-size:var(--fs-micro,10px);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t2);margin-top:6px}
+.contact-form input,.contact-form select,.contact-form textarea{font:inherit;font-size:14px;color:var(--t);background:var(--w);border:1px solid var(--bd);border-radius:var(--r-md,4px);padding:9px 11px;min-height:40px;width:100%;box-sizing:border-box}
+.contact-form textarea{resize:vertical;min-height:120px;line-height:1.5}
+.contact-form input:focus-visible,.contact-form select:focus-visible,.contact-form textarea:focus-visible{outline:2px solid var(--sig,var(--b));outline-offset:1px}
+.contact-aide{font-size:var(--fs-micro,10px);color:var(--lg)}
+.contact-piege{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+.contact-rgpd{font-size:var(--fs-micro,10px);color:var(--lg);line-height:1.5;margin:8px 0 2px}
+.contact-rgpd a{color:var(--t2)}
+.contact-envoyer{align-self:flex-start;min-height:40px;padding:0 18px;border:0;border-radius:var(--r-md,4px);background:var(--b);color:var(--on-b,#fff);font:inherit;font-weight:700;cursor:pointer;margin-top:6px}
+.contact-envoyer:disabled{opacity:.7;cursor:wait}
+#contactMsg.ok{color:var(--g);background:var(--sf);border-color:var(--bd)}
+#contactMsg.err{color:var(--r);background:var(--sf);border-color:var(--bd)}
+#contactPanel .admin-box{max-height:calc(100dvh - 32px);overflow:auto}
+.contact-admin-note{font-size:var(--fs-micro,10px);color:var(--lg);padding:10px 16px 0;line-height:1.5}
+.contact-table-wrap{overflow-x:auto}
+.contact-texte{max-width:340px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.5}
+.contact-adr{overflow-wrap:anywhere}
+.contact-compte{font-size:var(--fs-micro,10px);color:var(--lg)}
+.contact-actions{display:flex;gap:5px;flex-wrap:wrap}
+.contact-actions a.btn-action{text-decoration:none;display:inline-flex;align-items:center}
+.contact-vide{text-align:center;color:var(--lg);padding:16px}
+.contact-badge{margin-left:auto;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--sig,var(--b));color:var(--on-b,#fff);font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center}
+.toast-contact{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--w);color:var(--t);border:1px solid var(--bd);border-radius:var(--r-md,4px);font-size:13px;pointer-events:auto}
+.toast-contact button{font:inherit;font-size:12px;min-height:32px;padding:0 10px;border:1px solid var(--bd);border-radius:var(--r-md,4px);background:var(--sf);color:var(--t);cursor:pointer}
+
 /* ═══ LOUIS, L'AGENT DE VEILLE — 22/11/2026 (voir CLAUDE.md) ═══
    Demande de YORO : une bulle de chat pour l'IA, nommée Louis. Elle ouvre
    l'assistant existant (rien n'est généré : réponses sourcées ou
@@ -3624,6 +3654,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
     <div class="auth-public-links">
       <span onclick="ouvrirBulletinPublic()" role="button" tabindex="0"><i class="ti ti-news"></i><span data-i18n="public_bulletin">Bulletin public gratuit</span></span>
       <span onclick="ouvrirMethodologiePublique()" role="button" tabindex="0"><i class="ti ti-shield-check"></i><span data-i18n="public_methodo">Méthodologie &amp; sources</span></span>
+      <span onclick="ouvrirContact()" role="button" tabindex="0"><i class="ti ti-mail"></i><span data-i18n="public_contact">Nous contacter</span></span>
     </div>
   </div>
 </div>
@@ -3691,25 +3722,12 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
   </div>
 </div>
 
-<!-- ═══ RECLAMATION (accessible a tous les roles, via le menu profil) ═══ -->
-<div class="admin-panel hidden" id="reclamPanel">
-  <div class="admin-box" style="max-width:480px">
-    <div class="admin-hd">
-      <div class="admin-title"><i class="ti ti-message-report"></i>Signaler un problème</div>
-      <span class="admin-close" onclick="closeReclamation()" role="button" tabindex="0">✕</span>
-    </div>
-    <div class="admin-sec">
-      <div style="font-size:11px;color:var(--t2);margin-bottom:10px;line-height:1.6">
-        Décrivez votre problème ou votre réclamation — un administrateur la traitera depuis Paramètres &amp; Administration.
-      </div>
-      <div class="user-form" style="flex-direction:column;align-items:stretch">
-        <input type="text" id="reclamSujet" data-i18n-ph="ph_sujet_ex_donnees_manquantes_bug_d_affich" placeholder="Sujet (ex. Données manquantes, Bug d'affichage...)">
-        <textarea id="reclamMessage" data-i18n-ph="ph_decrivez_le_probleme_rencontre" placeholder="Décrivez le problème rencontré..." rows="4" style="padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--w);color:var(--t);font-size:13px;font-family:inherit;resize:vertical"></textarea>
-        <button onclick="submitReclamation()"><i class="ti ti-send"></i> <span data-i18n="btn_envoyer">Envoyer</span></button>
-      </div>
-      <div class="admin-msg" id="reclamMsg"></div>
-    </div>
-  </div>
+<!-- ═══ NOUS CONTACTER (22/11/2026) : accessible avec ou sans compte (menu du
+     profil, écran de connexion, lien #contact des pages légales). Le contenu
+     est rendu par ouvrirContact() dans la langue courante ; le message part
+     dans Firestore (messages_contact), lu par l'administrateur seul. ═══ -->
+<div class="admin-panel hidden" id="contactPanel">
+  <div class="admin-box contact-box" id="contactBox" style="max-width:520px"></div>
 </div>
 
 <!-- ═══ DÉCLARATION DE PAIEMENT (accessible a tous les roles, via le menu profil) ═══ -->
@@ -3821,8 +3839,8 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
         <div class="user-menu-item" onclick="toggleUserMenu();openPaiementDeclare()">
           <i class="ti ti-receipt"></i> <span data-i18n="menu_paiement">Déclarer un paiement</span>
         </div>
-        <div class="user-menu-item" onclick="toggleUserMenu();openReclamation()">
-          <i class="ti ti-message-report"></i> <span data-i18n="menu_reclam">Signaler un problème</span>
+        <div class="user-menu-item" onclick="toggleUserMenu();ouvrirContact()">
+          <i class="ti ti-mail"></i> <span data-i18n="menu_reclam">Nous contacter</span>
         </div>
         <div class="user-menu-item" onclick="switchView(&#39;params&#39;,document.getElementById(&#39;tabParams&#39;))" id="adminMenuItem" style="display:none">
           <i class="ti ti-settings"></i> <span data-i18n="menu_params">Parametres &amp; Administration</span>
@@ -5244,20 +5262,24 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
             </div>
           </div>
 
-          <!-- Suivi des réclamations -->
-          <div class="pm-section">
+          <!-- Messages de contact (22/11/2026) : formulaire « Nous contacter »,
+               avec ou sans compte, lus dans Firestore (messages_contact). -->
+          <div class="pm-section" id="contactMsgSection">
             <div class="pm-sec-hd">
-              <div class="pm-sec-hd-l"><i class="ti ti-message-report"></i>
-                <div><div class="pm-sec-title">Suivi des réclamations</div>
-                <div class="pm-sec-sub" id="reclamCount">0 réclamation(s)</div></div>
+              <div class="pm-sec-hd-l"><i class="ti ti-mail"></i>
+                <div><div class="pm-sec-title">Messages de contact</div>
+                <div class="pm-sec-sub" id="contactMsgCount">0 message(s)</div></div>
               </div>
             </div>
             <div class="pm-sec-body">
-              <div style="font-size:10px;color:var(--lg);padding:10px 16px 0">Réclamations soumises par les utilisateurs via « Signaler un problème » (menu du profil).</div>
+              <div class="contact-admin-note">Messages laissés par le formulaire « Nous contacter » (questions, problèmes, droits sur les données, retraits de contenus). « Répondre » ouvre votre messagerie : la réponse part de votre adresse. Conservation : 12 mois, puis suppression.</div>
+              <div class="pmu-msg" id="contactMsgAdmin"></div>
+              <div class="contact-table-wrap">
               <table class="pm-users-table">
-                <thead><tr><th>Date</th><th>Client</th><th>Sujet</th><th>Message</th><th>Statut</th><th>Actions</th></tr></thead>
-                <tbody id="reclamBody"></tbody>
+                <thead><tr><th>Date</th><th>Expéditeur</th><th>Objet</th><th>Message</th><th>Statut</th><th>Actions</th></tr></thead>
+                <tbody id="contactMsgBody"></tbody>
               </table>
+              </div>
             </div>
           </div>
 
@@ -5415,7 +5437,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
 
 <div class="stbar">
   <span id="stbarLeft">Initialisation de la veille en direct...</span>
-  <span>SentiqS · RSS live · Sans API · <a id="stbarContact" href="mailto:yorot225@gmail.com">yo•••••@gmail.com</a></span>
+  <span>SentiqS · RSS live · Sans API · <a id="stbarContact" href="#contact" onclick="ouvrirContact();return false">Contact</a></span>
 </div>
 
 <script>
@@ -6446,7 +6468,7 @@ const I18N = {
     logo_sub:"Veille multi-sources · Médias + Réseaux sociaux · 54 pays d'Afrique",
     live_pret:'Collecte...', btn_actualiser:'Actualiser', btn_diagnostic:'Diagnostic', btn_aller_a:'Aller à…', btn_assistant:'Louis', btn_assistant_q:'Demander à Louis', louis_bulle:'Louis', btn_installer_app:'Installer l\'application', btn_hors_ligne:'Version hors ligne', hl_pas_de_collecte:'Version hors ligne : aucune collecte. Ouvrez l\'appli en ligne pour la veille en direct.', hl_reserve:'La version hors ligne est réservée aux forfaits payants.', hl_generation:'Préparation de la version hors ligne…', hl_pret:'Version hors ligne téléchargée. Ne la publiez pas : elle contient vos actus.', hl_echec:'Version hors ligne impossible pour le moment (réseau). Réessayez.', hl_depuis_fichier:'Ce fichier est déjà une version hors ligne.', btn_aller_pays:'Aller à un pays', btn_theme_sombre:'Sombre',
     menu_params:'Paramètres & Administration', menu_access:'Gestion des accès', menu_logout:'Se déconnecter',
-    menu_reclam:'Signaler un problème', menu_paiement:'Déclarer un paiement',
+    menu_reclam:'Nous contacter', menu_paiement:'Déclarer un paiement',
     menu_mode_emploi:"Mode d'emploi (PDF)",
     proxy_title:'Collecte RSS automatique — Cliquez Actualiser',
     cbar_lbl:'Collecte RSS', cbar_init:'Collecte en parallèle : Malijet... (15/195)',
@@ -6488,12 +6510,12 @@ const I18N = {
     register_name_label:'Nom complet', register_email_label:'Adresse e-mail professionnelle', register_org_label:'Organisation / Fonction',
     register_btn:'Envoyer la demande', register_back:'← Retour à la connexion',
     ph_reg_name:'Prénom Nom', ph_reg_org:'Ex : DSI - Entreprise XYZ',
-    public_bulletin:'Bulletin public gratuit', public_methodo:'Méthodologie & sources',
+    public_bulletin:'Bulletin public gratuit', public_methodo:'Méthodologie & sources', public_contact:'Nous contacter',
     err_fields_required:'Veuillez remplir tous les champs.', err_invalid_email:'Adresse e-mail invalide.',
     err_email_unknown:"Adresse e-mail non reconnue. Demandez un accès à l'administrateur.",
-    err_suspended:'Accès suspendu. Contactez : ', err_wrong_code:"Mot de passe incorrect.",
-    err_trial_expired:'Compte gratuit expiré (validité 72h). Demandez un nouveau code gratuit ci-dessous, ou passez à un plan payant — contactez ',
-    err_acces_expire:'Accès expiré (durée fixée par l\'administrateur). Contactez : ',
+    err_suspended:'Accès suspendu. Écrivez-nous avec « Nous contacter », en bas de cet écran.', err_wrong_code:"Mot de passe incorrect.",
+    err_trial_expired:'Compte gratuit expiré (validité 72h). Pour passer à un plan payant, écrivez-nous avec « Nous contacter », en bas de cet écran.',
+    err_acces_expire:'Accès expiré (durée fixée par l\'administrateur). Écrivez-nous avec « Nous contacter », en bas de cet écran.',
     err_already_registered:'Cette adresse est déjà enregistrée.',
     register_activating:'Activation de votre essai gratuit…', register_activated:'Essai gratuit activé (72h)',
     register_code_sent:'Votre code d\'accès a été envoyé à :', register_code_manual:"Envoi automatique indisponible — notez votre code d'accès :",
@@ -6603,7 +6625,7 @@ const I18N = {
     logo_sub:'Multi-source monitoring · Media + Social networks · 54 African countries',
     live_pret:'Collecting...', btn_actualiser:'Refresh', btn_diagnostic:'Diagnostic', btn_aller_a:'Go to…', btn_assistant:'Louis', btn_assistant_q:'Ask Louis', louis_bulle:'Louis', btn_installer_app:'Install the app', btn_hors_ligne:'Offline version', hl_pas_de_collecte:'Offline version: no collection. Open the online app for live monitoring.', hl_reserve:'The offline version is reserved for paid plans.', hl_generation:'Preparing the offline version…', hl_pret:'Offline version downloaded. Do not publish it: it contains your news.', hl_echec:'Offline version unavailable right now (network). Try again.', hl_depuis_fichier:'This file is already an offline version.', btn_aller_pays:'Go to a country', btn_theme_sombre:'Dark',
     menu_params:'Settings & Administration', menu_access:'Access management', menu_logout:'Log out',
-    menu_reclam:'Report an issue', menu_paiement:'Declare a payment',
+    menu_reclam:'Contact us', menu_paiement:'Declare a payment',
     menu_mode_emploi:'User guide (PDF)',
     proxy_title:'Automatic RSS collection — Click Refresh',
     cbar_lbl:'RSS Collection', cbar_init:'Parallel collection: Malijet... (15/195)',
@@ -6645,12 +6667,12 @@ const I18N = {
     register_name_label:'Full name', register_email_label:'Professional email address', register_org_label:'Organization / Role',
     register_btn:'Send request', register_back:'← Back to login',
     ph_reg_name:'First name Last name', ph_reg_org:'E.g.: CISO - Company XYZ',
-    public_bulletin:'Free public bulletin', public_methodo:'Methodology & sources',
+    public_bulletin:'Free public bulletin', public_methodo:'Methodology & sources', public_contact:'Contact us',
     err_fields_required:'Please fill in all fields.', err_invalid_email:'Invalid email address.',
     err_email_unknown:'Email address not recognized. Request access from the administrator.',
-    err_suspended:'Access suspended. Contact: ', err_wrong_code:'Incorrect password.',
-    err_trial_expired:'Free account expired (72h validity). Request a new free code below, or switch to a paid plan — contact ',
-    err_acces_expire:'Access expired (duration set by the administrator). Contact: ',
+    err_suspended:'Access suspended. Write to us with « Contact us » at the bottom of this screen.', err_wrong_code:'Incorrect password.',
+    err_trial_expired:'Free account expired (72h validity). To switch to a paid plan, write to us with « Contact us » at the bottom of this screen.',
+    err_acces_expire:'Access expired (duration set by the administrator). Write to us with « Contact us » at the bottom of this screen.',
     err_already_registered:'This address is already registered.',
     register_activating:'Activating your free trial…', register_activated:'Free trial activated (72h)',
     register_code_sent:'Your access code has been sent to:', register_code_manual:'Automatic sending unavailable — note your access code:',
@@ -7224,13 +7246,13 @@ function _trReponseInvalide(d, out) {
 // Moteur 1/3 — MyMemory (quota le plus genereux avec &de=email, essaye en
 // premier).
 async function _trViaMyMemory(texte, srcLang, tgtLang) {
-  // &de=email : identifie l'appelant aupres de MyMemory. Sans email, le
-  // quota gratuit est limite a 5000 mots/jour PAR IP (partage entre tous
-  // les visiteurs de l'appli derriere la meme IP/proxy). Avec un email
-  // enregistre, MyMemory porte ce quota a 50000 mots/jour (gratuit, sans
-  // cle API).
+  // Sans paramètre &de= depuis le 22/11/2026 : il portait l'adresse e-mail
+  // personnelle de l'éditeur, lisible dans le code servi. Sans lui, chaque
+  // visiteur a son propre quota par adresse IP (5 000 caractères par jour),
+  // au lieu d'un quota de 50 000 partagé par tous ; la traduction de fond est
+  // faite par le job horaire, qui a son propre secret MYMEMORY_EMAIL.
   const srcMM = (srcLang === 'other') ? 'autodetect' : srcLang;
-  const r = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(texte) + '&langpair=' + srcMM + '|' + tgtLang + '&de=yorot225@gmail.com', { signal: AbortSignal.timeout(9000) });
+  const r = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(texte) + '&langpair=' + srcMM + '|' + tgtLang, { signal: AbortSignal.timeout(9000) });
   const d = await r.json();
   const out = (d && d.responseData && d.responseData.translatedText) ? d.responseData.translatedText : null;
   if (_trReponseInvalide(d, out)) throw new Error('mymemory: quota depasse ou reponse invalide');
@@ -18802,12 +18824,12 @@ function estAdmin(u) {
   const profil = (typeof getUsers === 'function' ? getUsers() : []).find(x => x.email === email);
   return !!profil && profil.role === 'admin';
 }
-// SUPPORT_CONTACT_EMAIL : adresse affichee a un utilisateur bloque (compte
-// suspendu, essai gratuit expire) pour qu'il sache qui contacter — un
-// besoin different de estAdmin() ci-dessus, jamais utilisee pour une
-// verification de droits. A remplacer par une adresse professionnelle
-// degagee de l'identite personnelle du proprietaire des que l'une existe.
-const SUPPORT_CONTACT_EMAIL = 'yorot225@gmail.com';
+// Contact de l'éditeur (22/11/2026) : plus aucune adresse e-mail sur le site.
+// L'adresse personnelle du propriétaire y était affichée (pied de page,
+// messages d'un compte suspendu ou d'un essai échu, export Excel) faute
+// d'adresse professionnelle. Le formulaire « Nous contacter » la remplace
+// partout ; ce lien est celui qu'on écrit hors de la page (export Excel).
+const CONTACT_LIEN = 'https://sentiqs-235ce.web.app/SentiqS_Web.html#contact';
 // _maskEmail(email) : masque l'adresse de l'administrateur/proprietaire du
 // compte partout ou elle est affichee a l'ecran ou dans un rapport genere
 // (statut, profil, tableau des comptes, rapports) — garde les 2 premiers
@@ -18818,15 +18840,6 @@ function _maskEmail(email) {
   const at = email.indexOf('@');
   return email.slice(0, 2) + '•••••' + email.slice(at);
 }
-// Le lien de contact du bandeau de pied de page (HTML statique, avant tout
-// script) portait sa propre copie de l'adresse de contact — deux endroits a
-// tenir a jour au lieu d'un seul, exactement ce que ce fichier deconseille
-// ailleurs (voir "L'adresse de l'administrateur ne vit plus dans le code
-// servi"). Synchronise ici depuis SUPPORT_CONTACT_EMAIL, seule source.
-(() => {
-  const el = document.getElementById('stbarContact');
-  if (el) { el.href = 'mailto:' + SUPPORT_CONTACT_EMAIL; el.textContent = _maskEmail(SUPPORT_CONTACT_EMAIL); }
-})();
 const STORE_KEY   = 'sentinel_auth_v1';
 const USERS_KEY   = 'sentinel_users_v1';
 const PENDING_KEY = 'sentinel_pending_v1';
@@ -19550,6 +19563,8 @@ function applyRoleMenus(role) {
   // donnees clientele/utilisateurs de la plateforme.
   const pmAdminOnly  = document.getElementById('pmAdminOnly');
   if (adminItem)   adminItem.style.display   = isAdmin ? 'flex' : 'none';
+  // Messages de contact : l'administrateur est prévenu à l'ouverture de sa session.
+  if (isAdmin && typeof verifierMessagesContact === 'function') setTimeout(verifierMessagesContact, 4000);
   if (accessItem)  accessItem.style.display  = isAdmin ? 'flex' : 'none';
   if (paramsTab)   paramsTab.style.display   = 'flex';
   if (dispSwitch)  dispSwitch.style.display  = isAdmin ? 'flex' : 'none';
@@ -19796,13 +19811,13 @@ async function _ouvrirSessionDepuisCompte(authUser) {
   const user = _profilVersUtilisateur(row);
   if (user.status !== 'active') {
     await client.auth.signOut();
-    if (errEl) { errEl.textContent = t('err_suspended')+SUPPORT_CONTACT_EMAIL; errEl.classList.add('show'); }
+    if (errEl) { errEl.textContent = t('err_suspended'); errEl.classList.add('show'); }
     return false;
   }
   if (compteGratuitExpire(user)) {
     await client.auth.signOut();
     const causeManuelle = !!user.accesJusquau;
-    if (errEl) { errEl.textContent = t(causeManuelle ? 'err_acces_expire' : 'err_trial_expired')+SUPPORT_CONTACT_EMAIL+'.'; errEl.classList.add('show'); }
+    if (errEl) { errEl.textContent = t(causeManuelle ? 'err_acces_expire' : 'err_trial_expired'); errEl.classList.add('show'); }
     return false;
   }
   if (user.doitDefinirMdp) {
@@ -19952,7 +19967,7 @@ async function supprimerMonCompte() {
   }
   const client = getClientFirebase();
   if (!client || !client.auth || typeof client.auth.supprimerCompte !== 'function') {
-    pmMsg((en ? 'Write to ' : 'Écrivez à ') + SUPPORT_CONTACT_EMAIL + (en ? ' to delete your account.' : ' pour supprimer votre compte.'), 'err', 'supprMsg'); return;
+    pmMsg(en ? 'Deletion is not available here: send the request with « Contact us ».' : 'Suppression indisponible ici : envoyez la demande avec « Nous contacter ».', 'err', 'supprMsg'); ouvrirContact('droits_suppression'); return;
   }
   const { error } = await client.auth.supprimerCompte();
   if (error) {
@@ -21512,7 +21527,7 @@ function loadParamsModule() {
   renderEmailjsCfg();
   renderPartageStats();
   renderDLStats();
-  renderReclamationsAdmin();
+  renderMessagesContact();
   renderTraffic();
   if (typeof renderConnexionsServeur === 'function') renderConnexionsServeur();
 }
@@ -22486,10 +22501,6 @@ function activerAbonnementEtEnvoyerCode(email, planKey, msgElId) {
 }
 
 
-// ── SUIVI DES RÉCLAMATIONS ───────────────────────────────────────────────
-const RECLAM_KEY = 'sentinel_reclamations_v1';
-function getReclamations()  { return _ls(()=>JSON.parse(localStorage.getItem(RECLAM_KEY)||'[]'),[]); }
-function saveReclamations(r){ _ls(()=>localStorage.setItem(RECLAM_KEY,JSON.stringify(r))); }
 
 // ── PAIEMENT DÉCLARÉ (pas de compte entreprise requis) ────────────────────
 // Le client transfère lui-même le montant vers un des numéros Mobile
@@ -22517,7 +22528,7 @@ function moyensPayables() { return getPaymethods().filter(m => m.actif && (m.det
 function htmlMoyensPaiementClient(moyens, plan) {
   if (!moyens.length) {
     return '<div class="pd-moyens-vide">Les numéros de paiement ne sont pas encore publiés. ' +
-      'Écrivez au support : <a href="mailto:' + escHtml(SUPPORT_CONTACT_EMAIL) + '">' + escHtml(SUPPORT_CONTACT_EMAIL) + '</a>.</div>';
+      'Écrivez-nous : <a href="#contact" onclick="ouvrirContact(\'facturation\');return false">Nous contacter</a>.</div>';
   }
   const montant = plan && plan.prix ? '<div class="pd-montant">Montant à transférer : <b>' + plan.prix.toLocaleString('fr-FR') + ' FCFA</b></div>' : '';
   return montant + '<ul class="pd-moyens">' + moyens.map(m =>
@@ -22649,7 +22660,7 @@ async function submitPaiementDeclare() {
   // l'administrateur ne la verrait jamais : on le dit au lieu de faire croire
   // qu'elle est partie.
   if (!moi) {
-    dire('Déclaration impossible pour le moment (connexion requise). Réessayez, ou écrivez au support : ' + escHtml(SUPPORT_CONTACT_EMAIL) + '.', 'err');
+    dire('Déclaration impossible pour le moment (connexion requise). Réessayez, ou écrivez-nous avec <a href="#contact" onclick="ouvrirContact(\'facturation\');return false">Nous contacter</a>.', 'err');
     return false;
   }
   const plan = getPricing().find(p => p.key === forfait);
@@ -22739,64 +22750,236 @@ async function _trancherPaiement(id, statut) {
 function pmConfirmerPaiement(id) { return _trancherPaiement(id, 'confirme'); }
 function pmRejeterPaiement(id) { return _trancherPaiement(id, 'rejete'); }
 
-function openReclamation() {
-  document.getElementById('reclamSujet').value='';
-  document.getElementById('reclamMessage').value='';
-  const msgEl = document.getElementById('reclamMsg');
-  msgEl.innerHTML=''; msgEl.className='admin-msg';
-  document.getElementById('reclamPanel').classList.remove('hidden');
+// ── NOUS CONTACTER (22/11/2026) ──────────────────────────────────────────
+// Remplace « Signaler un problème », qui rangeait la réclamation dans le
+// navigateur de son auteur : l'administrateur ne la voyait jamais (même
+// défaut que les paiements déclarés avant le 13/11/2026), et le tableau de
+// suivi l'affichait sans l'échapper. Le message part désormais dans Firestore
+// (messages_contact, web/js/contact.js), avec ou sans compte : c'est aussi la
+// voie des demandes d'exercice des droits et des retraits de contenus, qui
+// remplace l'adresse e-mail personnelle de l'éditeur sur le site.
+const CONTACT_COMPTE_CLE = 'sentinel_contact_jour';
+let _contactOuvertLe = 0, _contactEnvoi = false;
+function _contactTextes() {
+  const en = LANG === 'en';
+  return en ? {
+    titre: 'Contact us', intro: 'Questions, problems, billing, requests about your personal data (access, correction, deletion) or removal of content: write to us here. The publisher answers by e-mail, usually within a few days and within one month at most.',
+    objet: 'Subject', nom: 'Name (optional)', email: 'E-mail address for the answer', message: 'Message',
+    aideEmail: 'Used only to answer you.', piege: 'Leave this field empty',
+    rgpd: 'Your message is kept for 12 months, then deleted. It is read only by the publisher.', politique: 'Privacy policy',
+    envoyer: 'Send', envoi: 'Sending…', fermer: 'Close',
+    ok: 'Message sent. The publisher will answer you at {email}.',
+    horsLigne: 'The offline version cannot send messages. Use the online version.',
+  } : {
+    titre: 'Nous contacter', intro: 'Question, problème, facturation, demande sur vos données personnelles (accès, rectification, suppression) ou retrait de contenus : écrivez-nous ici. L\'éditeur répond par e-mail, en général sous quelques jours et au plus tard sous un mois.',
+    objet: 'Objet', nom: 'Nom (facultatif)', email: 'Adresse e-mail pour la réponse', message: 'Message',
+    aideEmail: 'Elle sert uniquement à vous répondre.', piege: 'Laissez ce champ vide',
+    rgpd: 'Votre message est conservé 12 mois, puis effacé. Seul l\'éditeur le lit.', politique: 'Politique de confidentialité',
+    envoyer: 'Envoyer', envoi: 'Envoi…', fermer: 'Fermer',
+    ok: 'Message envoyé. L\'éditeur vous répondra à {email}.',
+    horsLigne: 'La version hors ligne ne peut pas envoyer de message. Utilisez la version en ligne.',
+  };
 }
-function closeReclamation() { document.getElementById('reclamPanel').classList.add('hidden'); }
-
-function submitReclamation() {
-  const sujet   = document.getElementById('reclamSujet').value.trim();
-  const message = document.getElementById('reclamMessage').value.trim();
-  const msgEl = document.getElementById('reclamMsg');
-  if (!sujet || !message) { msgEl.textContent = 'Sujet et message sont requis.'; msgEl.className = 'admin-msg err'; return; }
-  const session = getSession();
-  const list = getReclamations();
-  list.unshift({
-    id: 'r'+Date.now().toString(36), email: session.email, nom: session.name,
-    sujet, message, statut: 'nouveau', date: new Date().toISOString(),
-  });
-  saveReclamations(list);
-  msgEl.innerHTML = '<b>Réclamation envoyée.</b> Un administrateur va la traiter.';
-  msgEl.className = 'admin-msg ok';
-  renderReclamationsAdmin();
-  setTimeout(closeReclamation, 1200);
+// ouvrirContact(objet) : objet présélectionné (ex. 'droits_suppression').
+function ouvrirContact(objet) {
+  const panneau = document.getElementById('contactPanel');
+  const boite = document.getElementById('contactBox');
+  if (!panneau || !boite) return;
+  const T = _contactTextes();
+  const C = window.SentiqContact;
+  const lang = LANG === 'en' ? 'en' : 'fr';
+  const s = getSession();
+  const choix = C && C.OBJETS.some(o => o.id === objet) ? objet : 'question';
+  const options = C ? C.OBJETS.map(o => '<option value="' + o.id + '"' + (o.id === choix ? ' selected' : '') + '>' + escHtml(o[lang]) + '</option>').join('') : '';
+  boite.setAttribute('role', 'dialog');
+  boite.setAttribute('aria-labelledby', 'contactTitre');
+  boite.innerHTML =
+    '<div class="admin-hd"><div class="admin-title" id="contactTitre"><i class="ti ti-mail" aria-hidden="true"></i>' + escHtml(T.titre) + '</div>'
+    + '<button type="button" class="admin-close" onclick="fermerContact()" aria-label="' + escHtml(T.fermer) + '">✕</button></div>'
+    + '<div class="admin-sec">'
+    + '<p class="contact-intro">' + escHtml(T.intro) + '</p>'
+    + '<form class="contact-form" id="contactForm" novalidate onsubmit="event.preventDefault();envoyerContact()">'
+    + '<label for="contactObjet">' + escHtml(T.objet) + '</label><select id="contactObjet" required>' + options + '</select>'
+    + '<label for="contactNom">' + escHtml(T.nom) + '</label><input type="text" id="contactNom" maxlength="120" autocomplete="name" value="' + escHtml(s && s.email && s.name && s.name !== 'Visiteur' ? s.name : '') + '">'
+    + '<label for="contactEmail">' + escHtml(T.email) + '</label><input type="email" id="contactEmail" maxlength="254" autocomplete="email" required aria-describedby="contactEmailAide" value="' + escHtml(s && s.email ? s.email : '') + '">'
+    + '<span class="contact-aide" id="contactEmailAide">' + escHtml(T.aideEmail) + '</span>'
+    + '<label for="contactMessage">' + escHtml(T.message) + '</label><textarea id="contactMessage" rows="6" maxlength="3000" required></textarea>'
+    + '<div class="contact-piege" aria-hidden="true"><label for="contactSite">' + escHtml(T.piege) + '</label><input type="text" id="contactSite" tabindex="-1" autocomplete="off"></div>'
+    + '<p class="contact-rgpd">' + escHtml(T.rgpd) + ' <a href="legal/confidentialite.html" target="_blank" rel="noopener">' + escHtml(T.politique) + '</a></p>'
+    + '<button type="submit" class="contact-envoyer" id="contactEnvoyer"><i class="ti ti-send" aria-hidden="true"></i> <span>' + escHtml(T.envoyer) + '</span></button>'
+    + '<div class="admin-msg" id="contactMsg" role="status" aria-live="polite"></div>'
+    + '</form></div>';
+  _contactOuvertLe = Date.now();
+  _contactEnvoi = false;
+  panneau.classList.remove('hidden');
+  const premier = document.getElementById(s && s.email ? 'contactMessage' : 'contactEmail');
+  if (premier) setTimeout(() => { try { premier.focus(); } catch (_) {} }, 50);
 }
+function fermerContact() { const p = document.getElementById('contactPanel'); if (p) p.classList.add('hidden'); }
+// Ancien nom, gardé pour les liens déjà écrits.
+function openReclamation() { ouvrirContact('probleme'); }
+function closeReclamation() { fermerContact(); }
+function _contactDire(txt, type) {
+  const el = document.getElementById('contactMsg');
+  if (!el) return;
+  el.textContent = txt;
+  el.className = 'admin-msg' + (type ? ' ' + type : '');
+}
+async function envoyerContact() {
+  const C = window.SentiqContact;
+  const T = _contactTextes();
+  const lang = LANG === 'en' ? 'en' : 'fr';
+  if (_contactEnvoi || !C) return;
+  if (typeof estHorsLigne === 'function' && estHorsLigne()) { _contactDire(T.horsLigne, 'err'); return; }
+  const v = id => (document.getElementById(id) || {}).value || '';
+  const r = C.valider({ nom: v('contactNom'), email: v('contactEmail'), objet: v('contactObjet'), message: v('contactMessage'), piege: v('contactSite') },
+    { ouvertLe: _contactOuvertLe });
+  if (!r.ok) { _contactDire(C.messageErreur(r.erreurs[0], lang), 'err'); return; }
+  const bouton = document.getElementById('contactEnvoyer');
+  _contactEnvoi = true;
+  if (bouton) { bouton.disabled = true; bouton.lastElementChild.textContent = T.envoi; }
+  try {
+    // Avec un compte, le message porte son identifiant (trois par jour) ;
+    // sans compte, il part avec la seule clé d'API, sur un emplacement libre.
+    const entetes = await _entetesFirestore();
+    const jeton = entetes ? String(entetes.Authorization || '').replace(/^Bearer\s+/, '') : '';
+    const uid = jeton && window.SentiqTraductionsPartagees ? SentiqTraductionsPartagees.uidDuJeton(jeton) : '';
+    const jour = C.jourDe(Date.now());
+    let depart = 0;
+    try { const m = JSON.parse(localStorage.getItem(CONTACT_COMPTE_CLE) || 'null'); if (m && m.jour === jour && m.uid === uid) depart = m.n; } catch (_) {}
+    const res = await C.deposer(window.SENTIQ_FIREBASE_CONFIG, uid ? entetes : null, r.donnees,
+      { uid, lang, depart, fetchFn: fetch.bind(window) });
+    if (res.id) {
+      try { localStorage.setItem(CONTACT_COMPTE_CLE, JSON.stringify({ jour, uid, n: res.n + 1 })); } catch (_) {}
+      _contactDire(T.ok.replace('{email}', r.donnees.email), 'ok');
+      const f = document.getElementById('contactForm');
+      ['contactMessage'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+      if (bouton) bouton.style.display = 'none';
+      if (f) f.querySelectorAll('input,select,textarea').forEach(el => { el.disabled = true; });
+      return;
+    }
+    _contactDire(C.messageErreur(res.erreur, lang), 'err');
+  } catch (_) {
+    _contactDire(C.messageErreur('reseau', lang), 'err');
+  } finally {
+    _contactEnvoi = false;
+    if (bouton) { bouton.disabled = false; bouton.lastElementChild.textContent = T.envoyer; }
+  }
+}
+// Lien #contact (pages légales, accueil) : ouvre le formulaire, avec ou
+// sans compte, par-dessus l'écran de connexion. #contact=<objet> présélectionne.
+function ouvrirContactDepuisAdresse() {
+  const m = /^#contact(?:=([a-z_]{2,30}))?$/.exec(String(location.hash || ''));
+  if (!m) return false;
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (_) {}
+  ouvrirContact(m[1] || 'question');
+  return true;
+}
+window.addEventListener('hashchange', ouvrirContactDepuisAdresse);
+// À l'arrivée par un lien #contact : après l'animation d'ouverture, s'il y en a une.
+window.addEventListener('load', () => {
+  if (!/^#contact/.test(String(location.hash || ''))) return;
+  let essais = 0;
+  const attendre = () => {
+    const intro = document.getElementById('introVideoOverlay');
+    if (intro && !intro.classList.contains('hidden') && essais++ < 40) { setTimeout(attendre, 300); return; }
+    ouvrirContactDepuisAdresse();
+  };
+  setTimeout(attendre, 300);
+});
 
-function renderReclamationsAdmin() {
-  const body = document.getElementById('reclamBody');
-  if (!body) return;
-  const list = getReclamations();
-  document.getElementById('reclamCount').textContent = list.length + ' réclamation(s)';
-  if (!list.length) {
-    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--lg);padding:16px">Aucune réclamation pour le moment.</td></tr>';
+// Côté administrateur : Paramètres > « Messages de contact ».
+let _messagesContact = null;
+async function renderMessagesContact() {
+  const body = document.getElementById('contactMsgBody');
+  const compte = document.getElementById('contactMsgCount');
+  if (!body || !window.SentiqContact || !estAdmin(getSession())) return;
+  const en = LANG === 'en';
+  const entetes = await _entetesFirestore();
+  const liste = await SentiqContact.lister(window.SENTIQ_FIREBASE_CONFIG, entetes, fetch.bind(window));
+  if (liste === null) {
+    body.innerHTML = '<tr><td colspan="6" class="contact-vide">' + escHtml(en ? 'Messages could not be read (connection or rules).' : 'Lecture des messages impossible (connexion ou règles).') + '</td></tr>';
     return;
   }
-  const lbl = {nouveau:['bs-nouveau','Nouveau'], en_cours:['bs-encours','En cours'], resolu:['bs-resolu','Résolu']};
-  body.innerHTML = list.map(r => {
-    const [cls, txt] = lbl[r.statut] || lbl.nouveau;
-    return '<tr>'+
-      '<td style="white-space:nowrap">'+new Date(r.date).toLocaleDateString('fr-FR')+'</td>'+
-      '<td>'+(r.nom||r.email)+'</td>'+
-      '<td>'+r.sujet+'</td>'+
-      '<td style="max-width:260px">'+r.message+'</td>'+
-      '<td><span class="badge-status '+cls+'">'+txt+'</span></td>'+
-      '<td style="display:flex;gap:5px;flex-wrap:wrap">'+
-        (r.statut!=='en_cours' ? '<button class="btn-action btn-rev" onclick="pmSetReclamStatut(\''+r.id+'\',\'en_cours\')">En cours</button>' : '')+
-        (r.statut!=='resolu' ? '<button class="btn-action btn-rest" onclick="pmSetReclamStatut(\''+r.id+'\',\'resolu\')">Résoudre</button>' : '')+
-      '</td></tr>';
+  _messagesContact = liste;
+  const nouveaux = liste.filter(m => m.statut === 'nouveau').length;
+  if (compte) compte.textContent = en ? liste.length + ' message(s), ' + nouveaux + ' new' : liste.length + ' message(s), dont ' + nouveaux + ' nouveau(x)';
+  _majBadgeContact(nouveaux);
+  if (!liste.length) {
+    body.innerHTML = '<tr><td colspan="6" class="contact-vide">' + escHtml(en ? 'No message yet.' : 'Aucun message pour le moment.') + '</td></tr>';
+    return;
+  }
+  const lbl = en ? { nouveau: 'New', en_cours: 'In progress', traite: 'Handled' } : { nouveau: 'Nouveau', en_cours: 'En cours', traite: 'Traité' };
+  const cls = { nouveau: 'bs-nouveau', en_cours: 'bs-encours', traite: 'bs-resolu' };
+  const lang = en ? 'en' : 'fr';
+  body.innerHTML = liste.map(m => {
+    const d = m.at ? new Date(m.at) : null;
+    const date = d && !isNaN(d) ? d.toLocaleString(en ? 'en-GB' : 'fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+    const qui = (m.nom ? escHtml(m.nom) + '<br>' : '') + '<span class="contact-adr">' + escHtml(m.email || '—') + '</span>'
+      + (m.uid ? '<br><span class="contact-compte">' + escHtml(en ? 'signed-in account' : 'compte connecté') + '</span>' : '');
+    const id = escHtml(m.id);
+    const rep = SentiqContact.lienReponse(m);
+    return '<tr>'
+      + '<td style="white-space:nowrap">' + escHtml(date) + '</td>'
+      + '<td>' + qui + '</td>'
+      + '<td>' + escHtml(SentiqContact.libelleObjet(m.objet, lang)) + '</td>'
+      + '<td class="contact-texte">' + escHtml(m.message) + '</td>'
+      + '<td><span class="badge-status ' + cls[m.statut] + '">' + escHtml(lbl[m.statut]) + '</span></td>'
+      + '<td class="contact-actions">'
+      + (rep ? '<a class="btn-action btn-rev" href="' + escHtml(rep) + '">' + escHtml(en ? 'Reply' : 'Répondre') + '</a>' : '')
+      + (m.statut !== 'en_cours' && m.statut !== 'traite' ? '<button type="button" class="btn-action btn-rev" onclick="statutMessageContact(\'' + id + '\',\'en_cours\')">' + escHtml(lbl.en_cours) + '</button>' : '')
+      + (m.statut !== 'traite' ? '<button type="button" class="btn-action btn-rest" onclick="statutMessageContact(\'' + id + '\',\'traite\')">' + escHtml(lbl.traite) + '</button>' : '')
+      + '<button type="button" class="btn-action btn-del" onclick="supprimerMessageContact(\'' + id + '\')">' + escHtml(en ? 'Delete' : 'Supprimer') + '</button>'
+      + '</td></tr>';
   }).join('');
 }
-function pmSetReclamStatut(id, statut) {
-  const list = getReclamations();
-  const r = list.find(x=>x.id===id);
-  if (!r) return;
-  r.statut = statut;
-  saveReclamations(list);
-  renderReclamationsAdmin();
+async function statutMessageContact(id, statut) {
+  const entetes = await _entetesFirestore();
+  const ok = await SentiqContact.changerStatut(window.SENTIQ_FIREBASE_CONFIG, entetes, id, statut, getSession().email, fetch.bind(window));
+  if (!ok) pmMsg(LANG === 'en' ? 'Status not saved.' : 'Statut non enregistré.', 'err', 'contactMsgAdmin');
+  renderMessagesContact();
+}
+async function supprimerMessageContact(id) {
+  if (!confirm(LANG === 'en' ? 'Delete this message for good?' : 'Supprimer définitivement ce message ?')) return;
+  const entetes = await _entetesFirestore();
+  const ok = await SentiqContact.supprimer(window.SENTIQ_FIREBASE_CONFIG, entetes, id, fetch.bind(window));
+  if (!ok) pmMsg(LANG === 'en' ? 'Deletion refused.' : 'Suppression refusée.', 'err', 'contactMsgAdmin');
+  renderMessagesContact();
+}
+function _majBadgeContact(n) {
+  const item = document.getElementById('adminMenuItem');
+  if (!item) return;
+  let b = document.getElementById('contactBadge');
+  if (!n) { if (b) b.remove(); return; }
+  if (!b) { b = document.createElement('span'); b.id = 'contactBadge'; b.className = 'contact-badge'; item.appendChild(b); }
+  b.textContent = String(n);
+  b.setAttribute('aria-label', LANG === 'en' ? n + ' new contact message(s)' : n + ' nouveau(x) message(s) de contact');
+}
+// Notification de l'administrateur à l'ouverture de sa session : une seule
+// fois par onglet, et seulement s'il y a du nouveau.
+async function verifierMessagesContact() {
+  if (!window.SentiqContact || !estAdmin(getSession())) return;
+  if (typeof estHorsLigne === 'function' && estHorsLigne()) return;
+  const entetes = await _entetesFirestore();
+  const liste = await SentiqContact.lister(window.SENTIQ_FIREBASE_CONFIG, entetes, fetch.bind(window));
+  if (!liste) return;
+  const n = liste.filter(m => m.statut === 'nouveau').length;
+  _majBadgeContact(n);
+  let deja = false;
+  try { deja = sessionStorage.getItem('sentinel_contact_notifie') === '1'; sessionStorage.setItem('sentinel_contact_notifie', '1'); } catch (_) {}
+  if (!n || deja) return;
+  const zone = document.getElementById('toastContainer');
+  if (!zone) return;
+  const en = LANG === 'en';
+  const el = document.createElement('div');
+  el.className = 'toast-contact';
+  el.setAttribute('role', 'status');
+  el.innerHTML = '<i class="ti ti-mail" aria-hidden="true"></i><span>' + escHtml(en ? n + ' new contact message(s)' : n + ' nouveau(x) message(s) de contact') + '</span>'
+    + '<button type="button" class="toast-contact-voir">' + escHtml(en ? 'Open' : 'Voir') + '</button>'
+    + '<button type="button" class="fenetre-fermer" aria-label="' + escHtml(en ? 'Close' : 'Fermer') + '">✕</button>';
+  el.querySelector('.toast-contact-voir').onclick = () => { el.remove(); switchView('params', document.getElementById('tabParams')); setTimeout(() => { const s = document.getElementById('contactMsgSection'); if (s) s.scrollIntoView({ block: 'start' }); }, 400); };
+  el.querySelector('.fenetre-fermer').onclick = () => el.remove();
+  zone.appendChild(el);
 }
 
 // ── SUIVI DU TRAFIC ───────────────────────────────────────────────────────
@@ -26213,7 +26396,7 @@ async function exportExcel(type){
       ['Filtre','Articles <'+libelleFenetreCourt()+' uniquement'],
       ['Sources actives',Object.values(SRC_ST).filter(s=>s?.ok).length+'/'+SRCS.length],
       ['Articles exportés',getExportData().length],
-      ['Contact',_maskEmail(SUPPORT_CONTACT_EMAIL)],
+      ['Contact',CONTACT_LIEN],
     ]);
     XLSX.utils.book_append_sheet(wb, wsMeta, 'Métadonnées');
 

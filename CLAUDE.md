@@ -3743,9 +3743,8 @@ publiées par le job `firebase` au déploiement.
   dans la politique de confidentialité. Restent à compléter par l'éditeur :
   identité légale, TVA, durées de conservation, région d'hébergement, export
   des données (41 emplacements).
-- **Contact support** : toujours l'adresse Gmail de `SUPPORT_CONTACT_EMAIL`,
-  faute d'adresse professionnelle fournie. À changer dans cette seule
-  constante (et les deux liens de `web/index.html`) dès qu'elle existe.
+- **Contact support** : `SUPPORT_CONTACT_EMAIL` a été retirée le 22/11/2026,
+  voir « Nous contacter » en fin de fichier.
 
 Exports : 14/14 identiques avant/après (Word, PDF, PowerPoint, aperçus).
 
@@ -4905,3 +4904,44 @@ Les validations exportées n'ont jamais l'adresse de l'analyste (`par` =
 13/11/2026). Sorties déterministes : aucun diff, aucun commit. Ne rebrancher
 aucune lecture par utilisateur sur une collection commune. Modèle :
 `node scripts/capacite-50000.js`, `docs/capacite-50000.md`.
+
+---
+
+## « Nous contacter » et pages légales complétées — 22/11/2026
+
+Demande de YORO : finaliser sans adresse e-mail professionnelle. Consigne :
+**aucune adresse personnelle sur le site**, rien d'inventé dans les pages
+légales.
+
+- **Formulaire** (`web/js/contact.js`, double export) : ouvert par le menu du
+  compte, l'écran de connexion (sans compte), la barre d'état et les adresses
+  `#contact` / `#contact=<objet>` (pages légales, accueil). Objets : question,
+  problème, facturation, droits d'accès / rectification / suppression,
+  retrait de contenus, autre. Anti-spam sans service tiers : champ piège,
+  délai de 3 s, trois liens au plus, caractères invisibles et
+  bidirectionnels retirés. Le message part dans Firestore
+  `messages_contact`, en création seule.
+- **Débit borné par la clé du document**, sans compteur ni serveur :
+  `{uid}_{jour}_{n}` avec n < 3 pour un compte, `anon_{jour}_{n}` avec
+  n < 40 pour tous les visiteurs sans compte réunis (emplacements tirés au
+  hasard). Les règles recalculent la clé et le jour du serveur.
+- **Lu par l'admin seul** (Paramètres & Administration > Messages de
+  contact, tout échappé, statut nouveau / en cours / traité, réponse par
+  `mailto:`), pastille sur le menu et notification une fois par onglet.
+- Remplace « Signaler un problème », qui rangeait la réclamation dans le
+  navigateur de son auteur (l'admin ne la voyait jamais) et l'affichait sans
+  l'échapper.
+- **Adresse personnelle retirée** de tout `web/` : pied de l'accueil, barre
+  d'état, messages de compte suspendu ou d'essai échu, métadonnées Excel,
+  paramètre `de=` de MyMemory. `contact.test.js` refuse son retour.
+- **Pages légales** : plus aucun « À COMPLÉTER », indexées, traduites en
+  entier (`langue-site.test.js`). Éditeur « en cours d'immatriculation »,
+  adresse postale communiquée sur demande. Voir `web/legal/README.md` pour
+  les choix à faire valider par l'éditeur.
+- Créer une adresse dédiée : `docs/adresse-pro.md` (l'éditeur seul peut le
+  faire, vérification par téléphone).
+
+Vérifié : `npm test` (1 092), règles sur émulateur (18 cas de plus, 79/79),
+`verifier-pages-hors-appli.js` (FR/EN), `verifier-accessibilite-interface.js`
+(0/0/0), fumée, envoi réel dans Chromium (Firestore intercepté : clé
+`anon_<jour>_<n>`, dix champs). Exports à la demande : seule la ligne « Contact » des métadonnées Excel change (lien du formulaire au lieu de l'adresse masquée).
