@@ -8943,7 +8943,16 @@ const CK_CRIT = ['attaque','attentat','enlev',"enlevement",'massacre','explosion
   'ataque','ataques','atacam','atacado','atacados','atacada','atentado','atentados','mortos','mortas',
   'assassinado','assassinados','assassinato','raptado','raptados','raptadas','rapto','sequestro',
   'sequestrados','emboscada','explosao','decapitados','muertos','muertas','asesinado','asesinados',
-  'asesinato','secuestro','secuestrado','secuestrados'];
+  'asesinato','secuestro','secuestrado','secuestrados',
+  // Lacunes mesurées le 24/11/2026 sur des titres types de la presse
+  // lusophone et hispanophone : « Tentativa de golpe de Estado em Bissau »,
+  // « Jovem morto a tiro no Cazenga », « Un hombre muerto a tiros en Bata »
+  // sortaient au niveau normal, alors que « tentative de coup d'État » et
+  // « tué par balle » sont critiques en français. « mata » est écarté (la
+  // forêt en portugais), seules les formes passées sont retenues.
+  'golpe de estado','tentativa de golpe','intento de golpe','homicidio','homicidios',
+  'morto a tiro','mortos a tiro','morta a tiro','baleado','baleados','baleada',
+  'muerto a tiros','muertos a tiros','muerta a tiros','matou','mataram','mataron'];
 const CK_HIGH = ['incendie','tension','alerte','insecurite','crise','manifestation','greve','blocus','restriction','fermeture','evacuation','deplacement','menace','avertissement','siege','offensive','combat','violence',
   // « threat » ecarte : dans la presse politique nigeriane il designe une
   // menace electorale (« flogging threat may turn voters ») bien plus souvent
@@ -8962,7 +8971,10 @@ const CK_HIGH = ['incendie','tension','alerte','insecurite','crise','manifestati
   // Portugais et espagnol.
   'feridos','feridas','heridos','heridas','confrontos','enfrentamientos','tiroteio','tiroteo',
   'manifestacao','manifestacoes','manifestacion','manifestaciones','protestos','protestas',
-  'incendio','huelga','deslocados','desplazados','inseguranca','inseguridad','motim','disturbios'];
+  'incendio','huelga','deslocados','desplazados','inseguranca','inseguridad','motim','disturbios',
+  // Vol à main armée, pendant de « braquage » (24/11/2026).
+  'assalto a mao armada','roubo a mao armada','assalto armado','assaltos armados',
+  'robo armado','robo a mano armada','atraco','atracos'];
 const HIGH_SELON_CONTEXTE = new Set(['abat', 'bles']);
 const CK_SEC  = ['securite','securitaire','arme','armee','militaire','terrorisme','terroriste','terroristes','jihadiste','djihadiste','jnim','aqmi','boko','bandit','bandits','banditisme','criminalite','enlev','fsr','m23','adf','eis','al-shabaab','groupes armes',
   'security','troops','soldiers','military','terrorist','terrorists','militants','insurgents','jihadist','jihadists',
@@ -10134,12 +10146,12 @@ function estSuiteJudiciaire(tTitre) { return SUITE_JUDICIAIRE_RE.test(tTitre.tri
 // reste VISIBLE — un autocar a vingt-cinq morts doit se voir, plafond
 // ELEVE — mais ne peut plus atteindre CRITIQUE ; le bilan routier
 // periodique, lui, redescend a MODERE.
-const ACCIDENT_RE = /\b(accidents?|acidentes?|carambolage|collision|delit de fuite|hit[- ]and[- ]run|(?:bus|car|road|plane|train|truck|boat) crash|crash d[eu]|road traffic)\b/;
+const ACCIDENT_RE = /\b(accidents?|acidentes?|accidentes?|carambolage|collision|delit de fuite|hit[- ]and[- ]run|(?:bus|car|road|plane|train|truck|boat) crash|crash d[eu]|road traffic)\b/;
 const BILAN_ROUTIER_RE = /\b(bilan routier|morts sur (?:les|la|nos) routes?|tues sur (?:les|la|nos) routes?|road deaths|road toll|securite routiere)\b/;
 // Une attaque contre un vehicule reste une attaque : le plafond ne
 // s'applique jamais si le titre porte du vocabulaire d'agression. Sans
 // cette garde, « bus attaque par des hommes armes » serait plafonne.
-const AGRESSION_RE = /\b(attaque|attaques|attentat|attack|attacks|attacked|ambush|embuscade|gunmen|armed|armes|explosion|bombe|bomb|bombing|terroriste|terrorist|jihad|djihad|militants|assaillants|braquage|kidnap|enlevement|abduction|shooting|tirs)\b/;
+const AGRESSION_RE = /\b(attaque|attaques|attentat|attack|attacks|attacked|ambush|embuscade|gunmen|armed|armes|explosion|bombe|bomb|bombing|terroriste|terrorist|jihad|djihad|militants|assaillants|braquage|kidnap|enlevement|abduction|shooting|tirs|ataques?|atentados?|emboscada|tiroteio|tiroteo|sequestro|secuestro|rapto|homens armados|hombres armados)\b/;
 function estAccident(tTitre) { return !AGRESSION_RE.test(tTitre) && ACCIDENT_RE.test(tTitre); }
 function estBilanRoutier(tTitre) { return !AGRESSION_RE.test(tTitre) && BILAN_ROUTIER_RE.test(tTitre); }
 

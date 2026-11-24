@@ -63,6 +63,42 @@ const estAgence = (s) => AGENCE_RE.test(s.n || '') && !/allafrica|_gn_|presse de
 
 // Agences absentes du registre, à sonder par leur page d'accueil.
 const CANDIDATS = [
+  // Pays encore à source unique ou muets au 24/11/2026 (AO ER GQ GW KM SC).
+  // Titres nommés, sondés par auto-découverte (méthode du 07/09/2026 :
+  // tester nominativement les grands titres de chaque pays). Lusophones et
+  // hispanophones inclus : le lexique les lit depuis le 20/11/2026 (complété
+  // le 24/11/2026), ce qui les avait fait écarter le 19/11/2026.
+  { cy: 'AO', nom: 'Novo Jornal', url: 'https://www.novojornal.co.ao/' },
+  { cy: 'AO', nom: 'Jornal de Angola', url: 'https://www.jornaldeangola.ao/' },
+  { cy: 'AO', nom: 'O País (Angola)', url: 'https://opais.co.ao/' },
+  { cy: 'AO', nom: 'Angola24Horas', url: 'https://www.angola24horas.com/' },
+  { cy: 'AO', nom: 'Club-K', url: 'https://club-k.net/' },
+  { cy: 'AO', nom: 'Maka Angola', url: 'https://www.makaangola.org/' },
+  { cy: 'AO', nom: 'Angonotícias', url: 'https://www.angonoticias.com/' },
+  { cy: 'AO', nom: 'Portal de Angola', url: 'https://www.portaldeangola.com/' },
+  { cy: 'AO', nom: 'RNA — Rádio Nacional de Angola', url: 'https://rna.ao/' },
+  { cy: 'AO', nom: 'TPA — Televisão Pública de Angola', url: 'https://tpa.ao/' },
+  { cy: 'GW', nom: 'Rádio Sol Mansi', url: 'https://www.radiosolmansi.net/' },
+  { cy: 'GW', nom: 'e-Global (Guiné-Bissau)', url: 'https://www.e-global.pt/' },
+  { cy: 'GW', nom: 'Gbissau.com', url: 'https://www.gbissau.com/' },
+  { cy: 'GW', nom: 'Conosaba do Porto', url: 'https://conosaba.blogspot.com/' },
+  { cy: 'GW', nom: 'Bissau Digital', url: 'https://bissaudigital.com/' },
+  { cy: 'GQ', nom: 'Real Equatorial Guinea', url: 'https://www.realequatorialguinea.com/' },
+  { cy: 'GQ', nom: 'ASODEGUE', url: 'https://www.asodegue.org/' },
+  { cy: 'GQ', nom: 'Radio Macuto', url: 'https://www.radiomacuto.net/' },
+  { cy: 'GQ', nom: 'RTVGE (flux natif)', url: 'https://rtvge.online/' },
+  { cy: 'KM', nom: 'Al-Watwan (flux natif)', url: 'https://alwatwan.net/' },
+  { cy: 'KM', nom: 'ORTC (flux natif)', url: 'https://ortc.km/' },
+  { cy: 'KM', nom: 'HabariZaComores', url: 'https://www.habarizacomores.com/' },
+  { cy: 'KM', nom: 'Al-Fajr', url: 'https://www.alfajr-quotidien.com/' },
+  { cy: 'KM', nom: 'Masiwa', url: 'https://masiwa-comores.com/' },
+  { cy: 'SC', nom: 'SNA (flux natif)', url: 'https://www.seychellesnewsagency.com/' },
+  { cy: 'SC', nom: 'Today in Seychelles', url: 'https://www.todayinseychelles.com/' },
+  { cy: 'SC', nom: 'Seychelles Weekly', url: 'https://www.seychellesweekly.com/' },
+  { cy: 'ER', nom: 'TesfaNews', url: 'https://www.tesfanews.net/' },
+  { cy: 'ER', nom: 'Eritrea Hub', url: 'https://eritreahub.org/' },
+  { cy: 'ER', nom: 'Madote', url: 'https://www.madote.com/' },
+  { cy: 'ER', nom: 'Erena', url: 'https://erena.org/' },
   { cy: 'SO', nom: 'SONNA — Somali National News Agency', url: 'https://sonna.so/' },
   { cy: 'ZA', nom: 'SAnews — South African Government News Agency', url: 'https://www.sanews.gov.za/' },
   { cy: 'MW', nom: 'MANA — Malawi News Agency', url: 'https://www.manaonline.gov.mw/' },
@@ -146,16 +182,27 @@ const rapport = { seuil: SEUIL, uniques, medias: [], agences: [] };
 async function sonderAgence(cy, id, score, url, etiquette) {
   let r;
   try { r = await decouvrirMeilleurFlux(url); } catch (e) { r = { trouve: false, essais: [e.message] }; }
-  let n = 0; let frais = null; let echantillon = [];
+  let n = 0; let frais = null; let echantillon = []; let lecture = null;
   if (r.trouve) {
     try {
-      const arts = analyser(await lire(r.url)); n = arts.length; echantillon = arts.slice(0, 3).map((a) => a.titre);
+      const arts = analyser(await lire(r.url)); n = arts.length; echantillon = arts.slice(0, 8).map((a) => a.titre);
       const d = arts.map((a) => a.date).filter(Boolean); frais = d.length ? Math.round((maintenant - Math.max(...d)) / 3600000) : null;
+      // Ce que la vraie classify() ferait de ce flux : la lecture éditoriale
+      // juge le faux positif sur pièce, pas sur le nom du média.
+      lecture = { sur36h: d.filter((x) => maintenant - x <= 36 * 3600000).length, niveaux: { crit: 0, high: 0, mod: 0, ok: 0 }, audessus: [] };
+      for (const a of arts) {
+        const texte = a.titre + ' ' + a.resume;
+        const c = ctx.classify(texte, { cy, cat: 'securite' }, a.titre);
+        lecture.niveaux[c.lvl] = (lecture.niveaux[c.lvl] || 0) + 1;
+        if (c.lvl === 'crit' || c.lvl === 'high') lecture.audessus.push({ niveau: c.lvl, titre: a.titre, mot: motDeclencheur(a.titre, texte) });
+      }
     } catch (e) { r.erreurLecture = e.message; }
   }
-  rapport.agences.push({ cy, id, score, url, flux: r.trouve ? r.url : null, articles: n, plusFraisH: frais, echantillon, essais: r.essais || null, erreur: r.erreurLecture || null });
+  rapport.agences.push({ cy, id, score, url, flux: r.trouve ? r.url : null, articles: n, plusFraisH: frais, echantillon, lecture, essais: r.essais || null, erreur: r.erreurLecture || null });
   console.log(etiquette + ' ' + cy + ' ' + id + (score != null ? ' (' + score + ')' : '') + ' → ' + (r.trouve ? r.url + ' : ' + n + ' articles, le plus frais à ' + frais + ' h' + (r.erreurLecture ? ' (lecture : ' + r.erreurLecture + ')' : '') : 'aucun flux (' + (r.essais || []).join(' ; ') + ')'));
+  if (lecture) console.log('      ' + lecture.sur36h + ' sur 36 h, ' + JSON.stringify(lecture.niveaux));
   echantillon.forEach((t) => console.log('      · ' + t.slice(0, 110)));
+  if (lecture) lecture.audessus.forEach((a) => console.log('      ! ' + a.niveau + ' [' + a.mot + '] ' + a.titre.slice(0, 110)));
 }
 
 (async () => {

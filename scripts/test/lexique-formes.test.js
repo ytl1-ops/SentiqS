@@ -35,3 +35,21 @@ test('écartés après mesure : « enlevées » et « mortes » ne font pas un c
   assert.notStrictEqual(niveau('Souveraineté alimentaire : seules 16 000 tonnes de riz enlevées'), 'crit');
   assert.notStrictEqual(niveau('Pleuropneumonie : 110 chèvres mortes dans 12 foyers'), 'crit');
 });
+
+// Lacunes du 24/11/2026 : coup d'État, tué par balle, vol à main armée en
+// portugais et en espagnol. Chaque cas de garde porte les deux sens.
+test('portugais et espagnol : coup d\'État et tué par balle sortent critiques', () => {
+  for (const [t, cy] of [['Tentativa de golpe de Estado em Bissau', 'GW'], ['Intento de golpe de Estado en Malabo', 'GQ'],
+    ['Jovem morto a tiro no Cazenga', 'AO'], ['Un hombre muerto a tiros en Bata', 'GQ'], ['Homicídio em Luanda', 'AO']]) {
+    assert.strictEqual(niveau(t, cy), 'crit', t);
+  }
+  assert.strictEqual(niveau('Golpe de teatro na Assembleia', 'GW'), 'ok', 'golpe seul n\'est pas un coup d\'État');
+  assert.strictEqual(niveau('Mata do Maiombe : governo lança plano de reflorestação', 'AO'), 'ok', '« mata » = la forêt');
+});
+
+test('portugais et espagnol : vol à main armée élevé ; accident plafonné, attaque non', () => {
+  assert.strictEqual(niveau('Roubo à mão armada no Zango', 'AO'), 'high');
+  assert.strictEqual(niveau('Detenido tras un atraco en Malabo', 'GQ'), 'high');
+  assert.strictEqual(niveau('Muertos en un accidente de tráfico en Mongomo', 'GQ'), 'high', 'un accident n\'est pas une attaque');
+  assert.strictEqual(niveau('Ataque armado contra un autobús: accidente provocado, cinco muertos', 'GQ'), 'crit', 'garde : les deux vocabulaires');
+});
