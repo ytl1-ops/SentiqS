@@ -75,12 +75,14 @@ function construireWord(D, { jour, ci, regionaux, emetteur }) {
   // Une fiche par actu (demande de YORO du 14/11/2026), même contenu que le
   // PowerPoint (g.ficheTexte) : titre, extrait cité, sources, photo de la
   // source à droite avec son crédit ; sans photo, le texte prend la largeur.
-  function ficheWord(f, derniere) {
-    const c = g.ficheTexte(f);
+  function ficheWord(f, derniere, faitsPays) {
+    const c = g.ficheTexte(f, faitsPays);
     const texte = [par(run(c.titre, { bold: true, color: g.VERT, size: 32 }), { spacing: { before: 120, after: 60 } })];
     texte.push(c.extrait
       ? par([run(c.extrait.source + ' : ' + c.extrait.langue, { bold: true, size: 27 }), run('« ' + c.extrait.texte + ' »', { italics: true, size: 27 })], { spacing: { after: 60 } })
       : par(run(c.sansExtrait, { italics: true, color: g.LEGERE, size: 27 }), { spacing: { after: 60 } }));
+    // L'analyse après chaque actu (24/11/2026), même texte que le PowerPoint.
+    texte.push(par([run('Analyse : ', { bold: true, color: g.VERT, size: 25 }), run(g.texteAnalyse(c.analyse), { size: 25 })], { spacing: { after: 60 } }));
     const restants = c.sources.filter((x) => !c.liens.some((l) => l.source === x));
     texte.push(par([
       run(c.t.etiquette, { bold: true, size: 24 }),
@@ -109,15 +111,16 @@ function construireWord(D, { jour, ci, regionaux, emetteur }) {
     }
     return new Table({ width: { size: UTILE, type: WidthType.DXA }, columnWidths: photo ? [UTILE - LARGE_PHOTO, LARGE_PHOTO] : [UTILE], rows: [new TableRow({ cantSplit: true, children: cellules })] });
   }
-  function lignesFaits(faits) {
-    return faits.map((f, i) => ficheWord(f, i === faits.length - 1));
+  function lignesFaits(faits, faitsPays) {
+    return faits.map((f, i) => ficheWord(f, i === faits.length - 1, faitsPays));
   }
 
   // Un fait marquant rédigé (demande du 23/10/2026) : même texte que la page
   // PowerPoint (redaction-grsci.js), photo de la source à droite avec son
   // crédit et le lien ; sans photo, le texte prend toute la largeur.
-  function faitMarquant(f, nomPays) {
+  function faitMarquant(f, nomPays, faitsPays) {
     const r = redaction.rediger(f, nomPays);
+    const a = redaction.analyserFait(f, faitsPays);
     const t = g.faitTexte(f);
     const inter = (x) => par(run(x, { bold: true, color: g.VERT, size: 28 }), { spacing: { before: 120, after: 20 } });
     const texte = [
@@ -127,7 +130,9 @@ function construireWord(D, { jour, ci, regionaux, emetteur }) {
       ...(r.extraits.length
         ? r.extraits.map((e) => par([run(e.source + ' : ', { bold: true, size: 26 }), run('« ' + e.texte + ' »', { italics: true, size: 26 })], { spacing: { after: 60 } }))
         : [par(run(r.sansExtrait, { italics: true, color: g.LEGERE, size: 26 }))]),
-      inter('Enjeux sûreté'), par(run(r.enjeux, { size: 26 })),
+      inter('Analyse sûreté'), par(run(a.lecture, { size: 26 })),
+      par([run('Implications : ', { bold: true, size: 26 }), run(r.enjeux, { size: 26 })]),
+      par(run(a.surveiller, { size: 26 })),
     ];
     const liens = r.liens.slice(0, 4);
     const restants = r.sources.filter((x) => !liens.some((l) => l.source === x));
@@ -246,11 +251,11 @@ function construireWord(D, { jour, ci, regionaux, emetteur }) {
   for (const { rub, marquants, liste } of plan.ci) {
     marquants.forEach((f) => {
       corps.push(...entete(rub.num, '- ' + rub.titre, 'CI'));
-      corps.push(...faitMarquant(f, ci.nom || 'Côte d\'Ivoire'));
+      corps.push(...faitMarquant(f, ci.nom || 'Côte d\'Ivoire', ci.faits));
     });
     g.paginer(liste, g.FAITS_PAR_PAGE).forEach((p) => {
       corps.push(...entete(rub.num, '- ' + rub.titre, 'CI'));
-      corps.push(...lignesFaits(p));
+      corps.push(...lignesFaits(p, ci.faits));
     });
   }
 
@@ -262,14 +267,14 @@ function construireWord(D, { jour, ci, regionaux, emetteur }) {
     marquants.forEach((f) => {
       corps.push(...entete(g.ROMAIN[i + 1], k ? d.nom : titre0, d.cy));
       k++;
-      corps.push(...faitMarquant(f, d.nom));
+      corps.push(...faitMarquant(f, d.nom, d.faits));
     });
     const pages = g.paginer(liste, g.FAITS_PAR_PAGE);
     if (!pages.length && !k) pages.push([]);
     pages.forEach((p) => {
       corps.push(...entete(g.ROMAIN[i + 1], k ? d.nom : titre0, d.cy));
       k++;
-      if (p.length) corps.push(...lignesFaits(p));
+      if (p.length) corps.push(...lignesFaits(p, d.faits));
       else corps.push(par(run('Aucun fait marquant relevé sur la période.', { italics: true, color: g.LEGERE }), { spacing: { before: 160 } }));
     });
   });
