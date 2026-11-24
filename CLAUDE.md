@@ -4975,3 +4975,24 @@ Vérifié : `npm test` (1 092), règles sur émulateur (18 cas de plus, 79/79),
 `verifier-pages-hors-appli.js` (FR/EN), `verifier-accessibilite-interface.js`
 (0/0/0), fumée, envoi réel dans Chromium (Firestore intercepté : clé
 `anon_<jour>_<n>`, dix champs). Exports à la demande : seule la ligne « Contact » des métadonnées Excel change (lien du formulaire au lieu de l'adresse masquée).
+
+---
+
+## Source unique : de 6 à 3 pays, et le lexique portugais/espagnol — 24/11/2026
+
+Demande de YORO : plus d'actus, et de meilleure qualité. Lexique : coup
+d'État, tué par balle, homicide et vol à main armée en portugais et en
+espagnol (« Tentativa de golpe de Estado em Bissau », « Jovem morto a tiro »
+sortaient normaux), et l'accident de la route espagnol plafonné comme les
+autres. « mata » (la forêt) et « golpe » seul écartés, un test l'exige.
+
+Sonde nominative (`lecture-medias.js`, 31 titres d'AO ER GQ GW KM SC, depuis
+GitHub). Entrent : **O País** (AO, 72), **Masiwa** (KM, 72), **Real Equatorial
+Guinea** (GQ, 70, proche du pouvoir), et à 68, sous le seuil, HabariZaComores
+(KM) et Conosaba do Porto (GW), deux blogs. `PLAFOND_PAYS_SOURCE_UNIQUE` :
+6 → 3 (ER GW SC). Accueil : 583 sources.
+
+Rien trouvé pour l'Érythrée et les Seychelles (pas de flux, ou 403). Le flux
+`ortc.km/feed/` publie du **spam de casino** (site piraté) : ne jamais le
+passer en natif. Firecrawl a servi à sonder ; le passage d'un défi Cloudflare
+par un service tiers a été refusé, et reste hors de question.

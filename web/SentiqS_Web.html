@@ -6173,6 +6173,11 @@ const SRCS=[
  {id:'sudantribune_sd',n:'Sudan Tribune (AR)',col:'#4B5563',cy:'SD',sc:'national',cat:'securite',score:68,url:'https://sudantribune.net/',rss:'https://sudantribune.net/feed',rss_method:'RSS natif'},
  {id:'thesierraleonetele_sl',n:'The Sierra Leone Telegraph',col:'#4B5563',cy:'SL',sc:'national',cat:'securite',score:72,url:'https://thesierraleonetelegraph.com/',rss:'https://www.thesierraleonetelegraph.com/feed/',rss_method:'RSS natif',note:'lu le 19/11/2026 : flux natif vivant depuis GitHub, titres relus, 68 -> 72 ; edite depuis Londres, couvre la Sierra Leone au quotidien'},
  {id:'libyaherald_ly',n:'Libya Herald',col:'#4B5563',cy:'LY',sc:'national',cat:'securite',score:72,url:'https://libyaherald.com/',rss:'https://libyaherald.com/rss.xml',rss_method:'RSS natif',note:'lu le 19/11/2026 : flux natif vivant depuis GitHub (50 articles, le plus frais a 7 h), presse generale en anglais, titres relus'},
+ {id:'opais_ao',n:'O País (Angola)',col:'#4B5563',cy:'AO',sc:'national',cat:'securite',score:72,url:'https://opais.ao/',rss:'https://opais.ao/feed/',rss_method:'RSS natif',note:'lu le 24/11/2026 : flux natif vivant depuis GitHub (lecture-medias, PR #207), 10 articles sur 36 h, presse generale en portugais, titres relus'},
+ {id:'realeg_gq',n:'Real Equatorial Guinea',col:'#4B5563',cy:'GQ',sc:'national',cat:'securite',score:70,url:'https://realequatorialguinea.com/',rss:'https://realequatorialguinea.com/feed/',rss_method:'RSS natif',note:'lu le 24/11/2026 : flux natif vivant depuis GitHub (lecture-medias, PR #207), 14 articles sur 36 h, en espagnol. Ligne proche du pouvoir (agenda presidentiel) : note au seuil, seul il reste cote Probable'},
+ {id:'masiwa_km',n:'Masiwa',col:'#4B5563',cy:'KM',sc:'national',cat:'securite',score:72,url:'https://masiwa-comores.com/',rss:'https://masiwa-comores.com/feed/',rss_method:'RSS natif',note:'lu le 24/11/2026 : flux natif vivant depuis GitHub (lecture-medias, PR #207), hebdomadaire independant en francais, titres relus'},
+ {id:'habarizacomores_km',n:'HabariZaComores',col:'#4B5563',cy:'KM',sc:'national',cat:'securite',score:68,url:'https://www.habarizacomores.com/',rss:'https://www.habarizacomores.com/feeds/posts/default',rss_method:'RSS natif',note:'lu le 24/11/2026 : flux natif vivant depuis GitHub (lecture-medias, PR #207), 10 articles sur 36 h. Blog d information, ton favorable au pouvoir : sous le seuil, alimente le flux sans faire monter un niveau'},
+ {id:'conosaba_gw',n:'Conosaba do Porto (Guinee-Bissau)',col:'#4B5563',cy:'GW',sc:'national',cat:'politique',score:68,url:'https://conosaba.blogspot.com/',rss:'https://conosaba.blogspot.com/feeds/posts/default',rss_method:'RSS natif',note:'lu le 24/11/2026 : flux natif vivant depuis GitHub (lecture-medias, PR #207), 18 articles sur 36 h. Blog de relais de l actualite politique bissau-guineenne : sous le seuil, alimente le flux sans faire monter un niveau'},
  {id:'dabanga_en_sd',n:'Dabanga (anglais)',col:'#4B5563',cy:'SD',sc:'national',cat:'securite',score:72,url:'https://www.dabangasudan.org/en',rss:'https://www.dabangasudan.org/en/feed',rss_method:'RSS natif',note:'lu le 19/11/2026 : flux natif vivant depuis GitHub (le plus frais a 10 h), titres relus ; redaction a Amsterdam, correspondants au Soudan'},
  {id:'senenews_sn',n:'SeneNews',col:'#4B5563',cy:'SN',sc:'national',cat:'securite',score:68,url:'https://senenews.com/',rss:'https://www.senenews.com/feed',rss_method:'RSS natif'},
  {id:'wiwsport_sn',n:'wiwsport',col:'#4B5563',cy:'SN',sc:'national',cat:'securite',score:68,url:'https://wiwsport.com/',rss:'https://wiwsport.com/feed/',rss_method:'RSS natif'},
@@ -8943,7 +8948,16 @@ const CK_CRIT = ['attaque','attentat','enlev',"enlevement",'massacre','explosion
   'ataque','ataques','atacam','atacado','atacados','atacada','atentado','atentados','mortos','mortas',
   'assassinado','assassinados','assassinato','raptado','raptados','raptadas','rapto','sequestro',
   'sequestrados','emboscada','explosao','decapitados','muertos','muertas','asesinado','asesinados',
-  'asesinato','secuestro','secuestrado','secuestrados'];
+  'asesinato','secuestro','secuestrado','secuestrados',
+  // Lacunes mesurées le 24/11/2026 sur des titres types de la presse
+  // lusophone et hispanophone : « Tentativa de golpe de Estado em Bissau »,
+  // « Jovem morto a tiro no Cazenga », « Un hombre muerto a tiros en Bata »
+  // sortaient au niveau normal, alors que « tentative de coup d'État » et
+  // « tué par balle » sont critiques en français. « mata » est écarté (la
+  // forêt en portugais), seules les formes passées sont retenues.
+  'golpe de estado','tentativa de golpe','intento de golpe','homicidio','homicidios',
+  'morto a tiro','mortos a tiro','morta a tiro','baleado','baleados','baleada',
+  'muerto a tiros','muertos a tiros','muerta a tiros','matou','mataram','mataron'];
 const CK_HIGH = ['incendie','tension','alerte','insecurite','crise','manifestation','greve','blocus','restriction','fermeture','evacuation','deplacement','menace','avertissement','siege','offensive','combat','violence',
   // « threat » ecarte : dans la presse politique nigeriane il designe une
   // menace electorale (« flogging threat may turn voters ») bien plus souvent
@@ -8962,7 +8976,10 @@ const CK_HIGH = ['incendie','tension','alerte','insecurite','crise','manifestati
   // Portugais et espagnol.
   'feridos','feridas','heridos','heridas','confrontos','enfrentamientos','tiroteio','tiroteo',
   'manifestacao','manifestacoes','manifestacion','manifestaciones','protestos','protestas',
-  'incendio','huelga','deslocados','desplazados','inseguranca','inseguridad','motim','disturbios'];
+  'incendio','huelga','deslocados','desplazados','inseguranca','inseguridad','motim','disturbios',
+  // Vol à main armée, pendant de « braquage » (24/11/2026).
+  'assalto a mao armada','roubo a mao armada','assalto armado','assaltos armados',
+  'robo armado','robo a mano armada','atraco','atracos'];
 const HIGH_SELON_CONTEXTE = new Set(['abat', 'bles']);
 const CK_SEC  = ['securite','securitaire','arme','armee','militaire','terrorisme','terroriste','terroristes','jihadiste','djihadiste','jnim','aqmi','boko','bandit','bandits','banditisme','criminalite','enlev','fsr','m23','adf','eis','al-shabaab','groupes armes',
   'security','troops','soldiers','military','terrorist','terrorists','militants','insurgents','jihadist','jihadists',
@@ -10134,12 +10151,12 @@ function estSuiteJudiciaire(tTitre) { return SUITE_JUDICIAIRE_RE.test(tTitre.tri
 // reste VISIBLE — un autocar a vingt-cinq morts doit se voir, plafond
 // ELEVE — mais ne peut plus atteindre CRITIQUE ; le bilan routier
 // periodique, lui, redescend a MODERE.
-const ACCIDENT_RE = /\b(accidents?|acidentes?|carambolage|collision|delit de fuite|hit[- ]and[- ]run|(?:bus|car|road|plane|train|truck|boat) crash|crash d[eu]|road traffic)\b/;
+const ACCIDENT_RE = /\b(accidents?|acidentes?|accidentes?|carambolage|collision|delit de fuite|hit[- ]and[- ]run|(?:bus|car|road|plane|train|truck|boat) crash|crash d[eu]|road traffic)\b/;
 const BILAN_ROUTIER_RE = /\b(bilan routier|morts sur (?:les|la|nos) routes?|tues sur (?:les|la|nos) routes?|road deaths|road toll|securite routiere)\b/;
 // Une attaque contre un vehicule reste une attaque : le plafond ne
 // s'applique jamais si le titre porte du vocabulaire d'agression. Sans
 // cette garde, « bus attaque par des hommes armes » serait plafonne.
-const AGRESSION_RE = /\b(attaque|attaques|attentat|attack|attacks|attacked|ambush|embuscade|gunmen|armed|armes|explosion|bombe|bomb|bombing|terroriste|terrorist|jihad|djihad|militants|assaillants|braquage|kidnap|enlevement|abduction|shooting|tirs)\b/;
+const AGRESSION_RE = /\b(attaque|attaques|attentat|attack|attacks|attacked|ambush|embuscade|gunmen|armed|armes|explosion|bombe|bomb|bombing|terroriste|terrorist|jihad|djihad|militants|assaillants|braquage|kidnap|enlevement|abduction|shooting|tirs|ataques?|atentados?|emboscada|tiroteio|tiroteo|sequestro|secuestro|rapto|homens armados|hombres armados)\b/;
 function estAccident(tTitre) { return !AGRESSION_RE.test(tTitre) && ACCIDENT_RE.test(tTitre); }
 function estBilanRoutier(tTitre) { return !AGRESSION_RE.test(tTitre) && BILAN_ROUTIER_RE.test(tTitre); }
 
