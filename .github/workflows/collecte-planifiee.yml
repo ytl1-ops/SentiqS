@@ -368,7 +368,11 @@ jobs:
     name: Relancer le passage suivant
     runs-on: ubuntu-latest
     needs: collecte
-    if: always() && github.ref == 'refs/heads/main' && vars.COLLECTE_CHAINEE != '0'
+    # Variable absente = null, et GitHub compare null à '0' en nombres
+    # (null → 0, '0' → 0) : « vars.X != '0' » était FAUX sans variable, et le
+    # job a été ignoré à chaque passage du 22 au 24/11/2026 (n° 1254 à 1258,
+    # espacés de 6 à 12 h). Le repli « || 'oui' » garde une chaîne.
+    if: always() && github.ref == 'refs/heads/main' && (vars.COLLECTE_CHAINEE || 'oui') != '0'
     timeout-minutes: 32
     permissions:
       actions: write

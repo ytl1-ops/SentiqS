@@ -78,7 +78,10 @@ test('chaque passage relance le suivant à la cadence voulue, sur main seulement
   assert.match(WORKFLOW, /\n  relance:\n/);
   const r = WORKFLOW.slice(WORKFLOW.indexOf('\n  relance:\n'), WORKFLOW.indexOf('\n  alerte:\n'));
   assert.match(r, /needs: collecte/);
-  assert.match(r, /if: always\(\) && github\.ref == 'refs\/heads\/main' && vars\.COLLECTE_CHAINEE != '0'/);
+  assert.match(r, /if: always\(\) && github\.ref == 'refs\/heads\/main' && \(vars\.COLLECTE_CHAINEE \|\| 'oui'\) != '0'/);
+  // Sans variable, vars.X vaut null, et null != '0' est faux pour GitHub
+  // (comparaison en nombres) : le job était ignoré à chaque passage.
+  assert.doesNotMatch(r, /&& vars\.COLLECTE_CHAINEE != '0'/, 'une variable absente ferait ignorer la relance');
   assert.match(r, /gh workflow run collecte-planifiee\.yml/);
   assert.match(r, /CADENCE_MIN: \$\{\{ vars\.COLLECTE_CADENCE_MIN \|\| '30' \}\}/);
   assert.match(WORKFLOW, /cancel-in-progress: false/, 'sans file unique, deux chaînes tourneraient en parallèle');
