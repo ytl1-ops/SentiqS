@@ -1,6 +1,6 @@
 {
  "source": "FCDO — gov.uk Content API (Open Government Licence v3.0) ; Affaires mondiales Canada — données ouvertes (Licence du gouvernement ouvert — Canada) ; Département d'État des États-Unis — flux RSS (domaine public)",
- "lu": "2026-11-23T16:27:46.912Z",
+ "lu": "2026-11-24T16:21:28.695Z",
  "pays": {
   "AO": {
    "statuts": [
@@ -299,7 +299,7 @@
     {
      "source": "États-Unis",
      "degre": "prudence_partie",
-     "revu": "2025-07-15T00:00:00.000Z",
+     "revu": "2026-11-24T00:00:00.000Z",
      "url": "https://travel.state.gov/content/tsg_aem/us/en/home/international-travel/travel-advisories/destination.egy.html"
     }
    ]
@@ -691,7 +691,7 @@
     {
      "source": "Canada",
      "degre": "prudence",
-     "revu": "2026-10-14T14:32:00.000Z",
+     "revu": "2026-11-23T16:27:29.000Z",
      "url": "https://travel.gc.ca/destinations/malawi"
     },
     {
@@ -1155,7 +1155,7 @@
    "source": "Canada",
    "avis": "aabe_total",
    "libelle": "voyages non essentiels déconseillés dans tout le pays",
-   "revuIlYaJ": 33
+   "revuIlYaJ": 34
   },
   {
    "code": "MG",
@@ -1163,7 +1163,7 @@
    "source": "FCDO",
    "avis": "aucun",
    "libelle": "aucune restriction",
-   "revuIlYaJ": 7
+   "revuIlYaJ": 8
   },
   {
    "code": "SN",
@@ -1171,7 +1171,7 @@
    "source": "FCDO",
    "avis": "aucun",
    "libelle": "aucune restriction",
-   "revuIlYaJ": 39
+   "revuIlYaJ": 40
   },
   {
    "code": "UG",
@@ -1179,7 +1179,7 @@
    "source": "FCDO",
    "avis": "aucun",
    "libelle": "aucune restriction",
-   "revuIlYaJ": 17
+   "revuIlYaJ": 18
   }
  ]
 }
