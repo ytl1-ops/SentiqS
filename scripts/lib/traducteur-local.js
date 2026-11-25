@@ -1,6 +1,6 @@
 'use strict';
 // Pont Node → traducteur hors ligne (scripts/traducteur-local.py, Argos
-// Translate), 22/11/2026. Voir l'en-tête du script Python pour le pourquoi.
+// Translate, puis CTranslate2 en direct le 25/11/2026), 22/11/2026. Voir l'en-tête du script Python pour le pourquoi.
 //
 // demarrerTraducteurLocal() lance le processus et attend qu'il annonce ses
 // modèles ; il rend une fonction (lignes, source, cible) → Promise<tableau
@@ -18,7 +18,11 @@ function demarrerTraducteurLocal(opts) {
   const o = opts || {};
   const python = o.python || process.env.TRADUCTEUR_LOCAL_PYTHON || 'python3';
   const delaiDemarrageMs = o.delaiDemarrageMs || 10 * 60 * 1000;
-  const delaiRequeteMs = o.delaiRequeteMs || 60 * 1000;
+  // Délai proportionnel au paquet (25/11/2026) : un délai fixe de 60 s
+  // faisait compter en échec un paquet de 25 chapôs encore en cours, et le
+  // processus, toujours occupé, faisait échouer les suivants en cascade.
+  const delaiBaseMs = o.delaiRequeteMs || 60 * 1000;
+  const delaiParLigneMs = o.delaiParLigneMs || 3 * 1000;
   const lancer = o.spawn || spawn;
   return new Promise((resolve) => {
     let enfant;
@@ -48,7 +52,7 @@ function demarrerTraducteurLocal(opts) {
         const traduire = (lignes, source, cible) => new Promise((ok) => {
           if (mort || !Array.isArray(lignes) || !lignes.length || !source || source === 'auto') { ok(null); return; }
           const id = suivant++;
-          const t = setTimeout(() => { attente.delete(id); ok(null); }, delaiRequeteMs);
+          const t = setTimeout(() => { attente.delete(id); ok(null); }, Math.max(delaiBaseMs, lignes.length * delaiParLigneMs));
           attente.set(id, (res) => { clearTimeout(t); ok(res); });
           enfant.stdin.write(JSON.stringify({ id, source, cible, lignes }) + '\n');
         });

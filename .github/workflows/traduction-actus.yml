@@ -46,6 +46,8 @@ jobs:
       # passage de 8 h UTC). Argos Translate traduit sur le runner, sans clé
       # ni quota ; ses modèles (~100 Mo par paire) sont gardés en cache.
       # Un échec ici ne bloque rien : le script retombe sur les services en ligne.
+      # 25/11/2026 : CTranslate2 et SentencePiece appelés en direct (mêmes
+      # modèles OPUS-MT), plus de torch ni de Stanza : ~40 Mo au lieu de ~900.
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -60,7 +62,7 @@ jobs:
       - name: Installer le traducteur hors ligne
         continue-on-error: true
         run: |
-          pip install --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple -r scripts/traducteur-local.requirements.txt
+          pip install -r scripts/traducteur-local.requirements.txt
           python3 scripts/traducteur-local.py < /dev/null
       - name: Traduire les actus du cache partagé
         env:

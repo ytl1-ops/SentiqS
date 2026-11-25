@@ -99,6 +99,29 @@ jobs:
           npm install playwright@1 pptxgenjs@3.12.0 docx@8.5.0
           npx playwright install --with-deps chromium
 
+      # Traducteur hors ligne (25/11/2026) : la collecte traduit elle-même
+      # les actus nouvelles avec les modèles OPUS-MT (CTranslate2, sans clé ni
+      # quota), au lieu de les laisser masquées en anglais jusqu'au passage de
+      # traduction suivant (cadence réelle : 6 à 12 h). Modèles relus dans le
+      # cache rempli par traduction-actus.yml (restauration seule : ce job ne
+      # l'écrit pas). Un échec ici ne bloque rien : services en ligne seuls.
+      - uses: actions/setup-python@v5
+        continue-on-error: true
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: scripts/traducteur-local.requirements.txt
+      - name: Restaurer les modèles de traduction
+        uses: actions/cache/restore@v4
+        continue-on-error: true
+        with:
+          path: ~/.local/share/argos-translate
+          key: argos-modeles-${{ runner.os }}-v1-${{ hashFiles('scripts/traducteur-local.py') }}
+          restore-keys: argos-modeles-${{ runner.os }}-v1-
+      - name: Installer le traducteur hors ligne
+        continue-on-error: true
+        run: pip install -r scripts/traducteur-local.requirements.txt
+
       # Echeance absolue du passage, lue par scripts/collecte-planifiee.js :
       # si l'installation a ete lente, la fenetre de collecte se raccourcit
       # d'autant au lieu de laisser la garde du job tuer la publication.

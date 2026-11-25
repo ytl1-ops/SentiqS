@@ -34,6 +34,7 @@ const cacheFirestore = require('./lib/cache-firestore-ecriture');
 const { traduireActus, memoire, cleMemoire, CIBLES } = require('./lib/traduction-actus');
 const { demarrerTraducteurLocal } = require('./lib/traducteur-local');
 const { servirDemandes } = require('./lib/traductions-partagees-job');
+const { traduire: traduireJob } = require('./lib/traduction-job');
 
 const BUDGET_MS = Number(process.env.TRAD_BUDGET_MS || 8 * 60 * 1000);
 const RACINE = path.join(__dirname, '..', 'web');
@@ -94,40 +95,50 @@ async function principal() {
   const compte = cacheFirestore.lireCompte(process.env.FIREBASE_SERVICE_ACCOUNT || '');
   if (!compte) { console.log('FIREBASE_SERVICE_ACCOUNT absent ou illisible : rien à traduire.'); return; }
   const debut = Date.now();
+  // Un seul traducteur hors ligne pour le cache ET les demandes des
+  // navigateurs (25/11/2026) : les demandes n'allaient qu'aux services en
+  // ligne, morts depuis les runners (18 traduites sur 80 le 25/11 à 17 h).
+  const local = process.env.TRADUCTEUR_LOCAL === '0' ? null : await demarrerTraducteurLocal();
+  console.log(local ? 'Traducteur hors ligne prêt : ' + local.paires.join(', ') + '.' : 'Traducteur hors ligne absent : services en ligne seuls.');
   try {
-    await passageCache(compte, debut);
+    await passageCache(compte, debut, local);
   } catch (e) {
     console.warn('::warning::Traduction du cache non terminée : ' + ((e && e.message) || e));
   }
   // Les demandes des navigateurs passent après le cache, dans le même budget
   // (deux minutes de plus au plus : le cache est ce que tout le monde lit).
   try {
-    const d = await servirDemandes(compte, fetch, { echeance: debut + BUDGET_MS + 2 * 60 * 1000 });
+    const d = await servirDemandes(compte, fetch, { echeance: debut + BUDGET_MS + 2 * 60 * 1000, traduireFn: traduireLocalDabord(local) });
     console.log('Demandes de traduction des navigateurs : ' + d.lues + ' lue(s), ' + d.traduites + ' traduite(s) et rangée(s) pour tous, '
       + d.dejaRangees + ' déjà rangée(s), ' + d.echecs + ' échec(s) (gardées), ' + d.perimees + ' périmée(s), ' + d.invalides + ' invalide(s), '
       + d.reportees + ' reportée(s).');
   } catch (e) {
     console.warn('::warning::Demandes de traduction non servies : ' + ((e && e.message) || e));
+  } finally {
+    if (local) local.arreter();
   }
 }
 
-async function passageCache(compte, debut) {
+// Une demande : le traducteur hors ligne d'abord (langue connue seulement,
+// il ne devine pas une langue), les services en ligne s'il ne rend rien.
+function traduireLocalDabord(local) {
+  return async (texte, source, opts) => {
+    if (local && source && source !== 'auto') {
+      const r = await local([texte], source, opts.cible).catch(() => null);
+      if (Array.isArray(r) && typeof r[0] === 'string' && r[0].trim()) return r[0].trim();
+    }
+    return traduireJob(texte, source, opts);
+  };
+}
+
+async function passageCache(compte, debut, local) {
   const lu = await cacheFirestore.lireCache(compte, fetch);
   if (!lu || !lu.articles.length) { console.log('Cache partagé vide ou illisible : rien à traduire.'); return; }
   const articles = lu.articles;
   const textes = [...new Set(articles.flatMap((a) => [a && a.title, a && a.analysis]).filter((t) => typeof t === 'string' && t))];
   const det = await detecterLangues(textes);
   const langues = new Map(textes.map((t, i) => [t, det.langues[i]]));
-  // Repli hors ligne (Argos Translate), installé par le workflow : sans lui,
-  // les services en ligne seuls, comme avant le 22/11/2026.
-  const local = process.env.TRADUCTEUR_LOCAL === '0' ? null : await demarrerTraducteurLocal();
-  console.log(local ? 'Traducteur hors ligne prêt : ' + local.paires.join(', ') + '.' : 'Traducteur hors ligne absent : services en ligne seuls.');
-  let st;
-  try {
-    st = await traduireActus(articles, { existants: articles, langues, resumeMax: det.resumeMax, echeance: debut + BUDGET_MS, traducteurLocal: local });
-  } finally {
-    if (local) local.arreter();
-  }
+  const st = await traduireActus(articles, { existants: articles, langues, resumeMax: det.resumeMax, echeance: debut + BUDGET_MS, traducteurLocal: local });
   console.log('Traduction des actus (FR/EN, passage seul) : ' + st.repris + ' reprise(s), ' + st.traduits + ' nouvelle(s), '
     + st.echecs + ' échec(s), ' + (st.locaux || 0) + ' hors ligne, ' + st.reportes + ' reportée(s), ' + st.requetes + ' requête(s), en ' + Math.round((Date.now() - debut) / 1000) + ' s.');
   // Échantillon relu dans le journal : la qualité d'un traducteur se juge

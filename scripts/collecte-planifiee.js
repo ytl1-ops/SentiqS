@@ -40,6 +40,7 @@ const { traduire: traduireJob, ressembleAnglais } = require('./lib/traduction-jo
 const cacheFirestore = require('./lib/cache-firestore-ecriture');
 const commun = require('../web/js/cache-firestore.js');
 const { traduireActus, memoire: memoireTraductionsActus, cleMemoire: cleMemoireTraduction } = require('./lib/traduction-actus');
+const { demarrerTraducteurLocal } = require('./lib/traducteur-local');
 const { fusionnerAgenda } = require('./lib/agenda-firestore');
 const santeCollecte = require('./lib/sante-collecte');
 
@@ -287,10 +288,21 @@ function ecrireResumeActions(md) {
             const echeanceEnv = Number(process.env.COLLECTE_ECHEANCE_EPOCH || 0) * 1000;
             const echeance = Math.max(Date.now() + 45 * 1000,
               Math.min(Date.now() + TRAD_ACTUS_MAX_MS, echeanceEnv ? echeanceEnv - 60 * 1000 : Infinity));
-            const st = await traduireActus(fusionnes, { existants: existant ? existant.articles : [], langues, resumeMax: det.resumeMax, echeance });
+            // Traducteur hors ligne (25/11/2026), installé par le workflow :
+            // sans lui (ou sans modèle), les services en ligne seuls, comme
+            // avant. Démarrage borné à 60 s : les modèles viennent du cache.
+            const local = process.env.TRADUCTEUR_LOCAL === '0' ? null
+              : await demarrerTraducteurLocal({ delaiDemarrageMs: 60 * 1000 }).catch(() => null);
+            let st;
+            try {
+              st = await traduireActus(fusionnes, { existants: existant ? existant.articles : [], langues, resumeMax: det.resumeMax, echeance, traducteurLocal: local });
+            } finally {
+              if (local) local.arreter();
+            }
             memoireTraductions = memoireTraductionsActus(fusionnes);
             console.log('Traduction des actus (FR/EN) : ' + st.repris + ' reprise(s), ' + st.traduits + ' nouvelle(s), '
-              + st.echecs + ' échec(s), ' + st.reportes + ' reportée(s) au passage suivant, ' + st.requetes + ' requête(s).');
+              + st.echecs + ' échec(s), ' + (st.locaux || 0) + ' hors ligne' + (local ? '' : ' (traducteur hors ligne absent)') + ', '
+              + st.reportes + ' reportée(s) au passage suivant, ' + st.requetes + ' requête(s).');
           }
         } catch (e) {
           console.warn('::warning::Traduction des actus non faite : ' + ((e && e.message) || e));
