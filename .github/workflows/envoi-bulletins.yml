@@ -18,7 +18,7 @@ name: Envoi des bulletins programmés
 # éditeur. Procédure : docs/bulletins-programmes.md.
 on:
   schedule:
-    - cron: '7,22,37,52 * * * *'
+    - cron: '22 6-21/3 * * *'
   workflow_dispatch:
 
 permissions:

@@ -15,7 +15,7 @@ name: Agent de recherche d'actus
 # n'est écrit) mesure les moteurs depuis les runners GitHub.
 on:
   schedule:
-    - cron: '7,37 * * * *'
+    - cron: '7 8,18 * * *'
   workflow_dispatch:
     inputs:
       valider_pays:

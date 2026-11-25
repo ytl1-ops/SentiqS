@@ -13,7 +13,10 @@ name: Traduction des actus (FR/EN)
 # version la plus récente.
 on:
   schedule:
-    - cron: '17 * * * *'
+    # Une fois par jour (dépôt privé, quota de minutes) : la collecte traduit
+    # déjà ses actus avec le traducteur hors ligne ; ce passage sert les
+    # demandes des navigateurs et l'arriéré.
+    - cron: '47 7 * * *'
   workflow_dispatch:
 
 permissions:

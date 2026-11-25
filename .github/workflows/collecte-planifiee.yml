@@ -23,7 +23,10 @@ name: Collecte planifiée (cache partagé)
 # fichier source (COLLECTOR_TOKEN), jamais dupliqué ici.
 on:
   schedule:
-    - cron: '*/30 * * * *'
+    # Dépôt privé (25/11/2026) : 2 000 min d'Actions par mois. Trois passages
+    # par jour, à heures fixes, plutôt qu'une chaîne à 30 min (~1 400 min/jour,
+    # attente comprise). Le premier tombe après 6 h GMT : le bulletin du jour.
+    - cron: '7 6,13,20 * * *'
   workflow_dispatch:
     inputs:
       rapport_mensuel:
@@ -387,8 +390,8 @@ jobs:
   # depuis son début. Le groupe de concurrence ne garde qu'un passage en
   # attente : si le cron en ajoute un, les deux chaînes se fondent en une. Le
   # cron reste le filet qui relance la chaîne si elle casse.
-  # Arrêt : variable de dépôt COLLECTE_CHAINEE = 0. Dépôt public : les
-  # minutes d'Actions de l'attente ne coûtent rien.
+  # Désactivée par défaut depuis le passage du dépôt en privé (l'attente est
+  # facturée) : variable de dépôt COLLECTE_CHAINEE = 1 pour la rétablir.
   relance:
     name: Relancer le passage suivant
     runs-on: ubuntu-latest
@@ -397,7 +400,7 @@ jobs:
     # (null → 0, '0' → 0) : « vars.X != '0' » était FAUX sans variable, et le
     # job a été ignoré à chaque passage du 22 au 24/11/2026 (n° 1254 à 1258,
     # espacés de 6 à 12 h). Le repli « || 'oui' » garde une chaîne.
-    if: always() && github.ref == 'refs/heads/main' && (vars.COLLECTE_CHAINEE || 'oui') != '0'
+    if: always() && github.ref == 'refs/heads/main' && vars.COLLECTE_CHAINEE == '1'
     timeout-minutes: 32
     permissions:
       actions: write
