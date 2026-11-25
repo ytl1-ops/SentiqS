@@ -1,0 +1,43 @@
+# Sonde du traducteur hors ligne (25/11/2026) : couverture du cache et débit
+# du nouveau traducteur contre l'ancienne bibliothèque Argos, sur le même
+# échantillon. Informative : n'écrit rien, n'échoue jamais une PR.
+name: Sonde de traduction
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - scripts/traducteur-local.py
+      - scripts/sonde-traduction.js
+      - .github/workflows/sonde-traduction.yml
+permissions:
+  contents: read
+jobs:
+  sonde:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Restaurer les modèles de traduction
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.local/share/argos-translate
+          key: argos-modeles-${{ runner.os }}-v1-${{ hashFiles('scripts/traducteur-local.py') }}
+          restore-keys: argos-modeles-${{ runner.os }}-v1-
+      - name: Installer les deux traducteurs
+        run: |
+          pip install -r scripts/traducteur-local.requirements.txt
+          python3 -m venv /tmp/argos
+          /tmp/argos/bin/pip install --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple argostranslate==1.11.0
+      - name: Mesurer
+        continue-on-error: true
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          SONDE_ARGOS: '1'
+          SONDE_ARGOS_PYTHON: /tmp/argos/bin/python
+        run: node scripts/sonde-traduction.js

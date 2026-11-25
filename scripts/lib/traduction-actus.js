@@ -32,6 +32,10 @@ const { traduire: traduireUn } = require('./traduction-job');
 const CIBLES = ['fr', 'en'];
 const PAQUET_MAX_CARACTERES = 1400; // texte brut ; ~4 000 une fois encodé dans l'adresse
 const PAQUET_MAX_LIGNES = 25;
+// Traducteur hors ligne : un lot de 40 lignes (titres ou chapôs) tient en une
+// dizaine de secondes sur un runner à 4 cœurs, sous le délai du pont Node.
+const PAQUET_LOCAL_LIGNES = 40;
+const PAQUET_LOCAL_CARACTERES = 12000;
 const DELAI_REQUETE_MS = 12000;
 const PAUSE_ENTRE_REQUETES_MS = 250;
 const GOOGLE_ECHECS_MAX = 3;
@@ -95,7 +99,9 @@ async function traduirePaquetGoogle(lignes, source, cible, fetchFn, delaiMs) {
 }
 
 // Découpe en paquets de même langue source, bornés en caractères et en lignes.
-function paquets(items) {
+function paquets(items, bornes) {
+  const maxLignes = (bornes && bornes.lignes) || PAQUET_MAX_LIGNES;
+  const maxCar = (bornes && bornes.caracteres) || PAQUET_MAX_CARACTERES;
   const parSource = new Map();
   items.forEach((it) => {
     const k = it.source + '>' + it.cible;
@@ -107,7 +113,7 @@ function paquets(items) {
     let cour = [];
     let taille = 0;
     liste.forEach((it) => {
-      if (cour.length && (taille + it.envoye.length + 1 > PAQUET_MAX_CARACTERES || cour.length >= PAQUET_MAX_LIGNES)) {
+      if (cour.length && (taille + it.envoye.length + 1 > maxCar || cour.length >= maxLignes)) {
         out.push(cour); cour = []; taille = 0;
       }
       cour.push(it); taille += it.envoye.length + 1;
@@ -192,49 +198,74 @@ async function traduireActus(articles, opts) {
     u.cibles.forEach((it) => poser(it.a, it.cible, it.champ, propre));
     stats.traduits++;
   };
-  // L'ordre de priorité doit survivre au découpage en paquets.
-  const lots = paquets(uniques).sort((p, q) => p[0].rang - q[0].rang);
-  // Traducteur hors ligne (scripts/lib/traducteur-local.js, 22/11/2026) :
-  // après GOOGLE_ECHECS_MAX paquets refusés d'affilée, Google n'est plus
-  // appelé pour ce passage (même idée que creerDisjoncteur dans le noyau) et
-  // chaque paquet va directement au traducteur local. Le 22/11/2026 à 8 h
-  // UTC, 766 requêtes en ligne avaient donné 0 traduction.
+  // Traducteur hors ligne (scripts/lib/traducteur-local.js) EN PREMIER pour
+  // les langues qu'il connaît, depuis le 25/11/2026. Avant, Google passait
+  // d'abord : depuis les runners il ne répond plus (0 traduction sur 766
+  // requêtes le 22/11/2026), et chaque passage perdait trois délais de 12 s
+  // avant de basculer. Les services en ligne restent le repli, et la seule
+  // route pour une langue sans modèle local (« auto »). Les lots du local sont
+  // plus gros (PAQUET_LOCAL_*) : aucune adresse à borner, et le modèle va
+  // d'autant plus vite qu'il reçoit de phrases à la fois.
   const local = typeof o.traducteurLocal === 'function' ? o.traducteurLocal : null;
+  const lots = local
+    ? paquets(uniques, { lignes: PAQUET_LOCAL_LIGNES, caracteres: PAQUET_LOCAL_CARACTERES }).sort((p, q) => p[0].rang - q[0].rang)
+    : paquets(uniques).sort((p, q) => p[0].rang - q[0].rang);
+  // Après GOOGLE_ECHECS_MAX paquets refusés d'affilée, Google n'est plus
+  // appelé pour ce passage (même idée que creerDisjoncteur dans le noyau).
   let googleEchecs = 0;
-  for (const lot of lots) {
-    if (Date.now() >= echeance) { stats.reportes += lot.length; continue; }
+  const parLocal = async (lot) => {
     const lignes = lot.map((u) => u.envoye);
     let res = null;
-    if (googleEchecs < GOOGLE_ECHECS_MAX) {
-      stats.requetes++;
-      res = await traduirePaquetGoogle(lignes, lot[0].source, lot[0].cible, fetchFn, delaiMs);
-      googleEchecs = res ? 0 : googleEchecs + 1;
-    }
-    if (!res && local && lot[0].source !== 'auto') {
-      try { res = await local(lignes, lot[0].source, lot[0].cible); } catch (e) { res = null; }
-      // Réponse partielle acceptée : une ligne null reste non traduite.
-      if (!Array.isArray(res) || res.length !== lignes.length || !res.some((x) => typeof x === 'string' && x)) res = null;
-      if (res) stats.locaux = (stats.locaux || 0) + res.filter((x) => typeof x === 'string' && x).length;
-    }
-    if (res) {
-      lot.forEach((u, i) => ranger(u, res[i]));
-    } else if (local && googleEchecs >= GOOGLE_ECHECS_MAX) {
-      // Le local a refusé ce paquet et les services en ligne sont tombés :
-      // inutile de les rejouer ligne par ligne, le passage suivant réessaiera.
-      lot.forEach(() => stats.echecs++);
-    } else {
-      for (const u of lot) {
-        if (Date.now() >= echeance) { stats.reportes++; continue; }
+    try { res = await local(lignes, lot[0].source, lot[0].cible); } catch (e) { res = null; }
+    // Réponse partielle acceptée : une ligne null reste non traduite.
+    if (!Array.isArray(res) || res.length !== lignes.length || !res.some((x) => typeof x === 'string' && x)) return null;
+    stats.locaux = (stats.locaux || 0) + res.filter((x) => typeof x === 'string' && x).length;
+    return res;
+  };
+  const enLigne = async (lot) => {
+    // Repli en ligne : on redécoupe aux bornes de l'adresse Google.
+    for (const sous of paquets(lot)) {
+      if (Date.now() >= echeance) { stats.reportes += sous.length; continue; }
+      let res = null;
+      if (googleEchecs < GOOGLE_ECHECS_MAX) {
         stats.requetes++;
-        let t = null;
-        try { t = await traduireUn(u.envoye, u.source, { fetchFn, delaiMs, cible: u.cible }); } catch (e) { t = null; }
-        ranger(u, t);
-        if (pauseMs) await attendre(pauseMs);
+        res = await traduirePaquetGoogle(sous.map((u) => u.envoye), sous[0].source, sous[0].cible, fetchFn, delaiMs);
+        googleEchecs = res ? 0 : googleEchecs + 1;
       }
+      if (res) {
+        sous.forEach((u, i) => ranger(u, res[i]));
+      } else if (googleEchecs >= GOOGLE_ECHECS_MAX) {
+        // Services en ligne tombés : inutile de les rejouer ligne par ligne,
+        // le passage suivant réessaiera. Une langue sans modèle local
+        // (« auto ») est comptée à part : ce n'est pas un échec du modèle.
+        sous.forEach((u) => { if (u.source === 'auto') stats.sansModele = (stats.sansModele || 0) + 1; else stats.echecs++; });
+      } else {
+        for (const u of sous) {
+          if (Date.now() >= echeance) { stats.reportes++; continue; }
+          stats.requetes++;
+          let t = null;
+          try { t = await traduireUn(u.envoye, u.source, { fetchFn, delaiMs, cible: u.cible }); } catch (e) { t = null; }
+          ranger(u, t);
+          if (pauseMs) await attendre(pauseMs);
+        }
+      }
+      if (pauseMs) await attendre(pauseMs);
     }
-    if (pauseMs) await attendre(pauseMs);
+  };
+  for (const lot of lots) {
+    if (Date.now() >= echeance) { stats.reportes += lot.length; continue; }
+    const res = local && lot[0].source !== 'auto' ? await parLocal(lot) : null;
+    if (res) {
+      // Une ligne que le local a laissée vide part en ligne, avec les autres
+      // lignes vides du même lot.
+      const restes = [];
+      lot.forEach((u, i) => { if (typeof res[i] === 'string' && res[i].trim()) ranger(u, res[i]); else restes.push(u); });
+      if (restes.length) await enLigne(restes);
+    } else {
+      await enLigne(lot);
+    }
   }
   return stats;
 }
 
-module.exports = { traduireActus, memoire, cleMemoire, paquets, traduirePaquetGoogle, bornerTexte, CIBLES };
+module.exports = { traduireActus, memoire, cleMemoire, paquets, traduirePaquetGoogle, bornerTexte, CIBLES, PAQUET_LOCAL_LIGNES };
