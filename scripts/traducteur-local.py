@@ -188,7 +188,7 @@ def main():
         import ctranslate2  # noqa: F401
         import sentencepiece  # noqa: F401
     except Exception as e:
-        journal("ctranslate2 ou sentencepiece absent :", type(e).__name__)
+        journal("ctranslate2 ou sentencepiece inutilisable :", type(e).__name__, str(e)[:200])
         return
     trouves = paquets_installes()
     manquants = [p for p in PAIRES if p not in trouves]
