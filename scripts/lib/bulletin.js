@@ -37,7 +37,7 @@ const fs = require('fs');
 const path = require('path');
 const { tendanceNiveaux } = require('../../web/js/noyau.js');
 
-const URL_SITE = 'https://ytl1-ops.github.io/SentiqS/';
+const URL_SITE = 'https://sentiqs-235ce.web.app/';
 // Adresse canonique des pages publiques pour les moteurs de recherche
 // (14/11/2026, voir web/js/domaine-canonique.js). Les liens des messages
 // gardent URL_SITE : la page y renvoie d'elle-même vers ce domaine.

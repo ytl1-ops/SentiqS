@@ -7558,7 +7558,7 @@ function resumeBulletinProgramme(cy) {
     faitsNotables: d.faitsNotables,
     confirmes: d.faits.filter(f => f.cotation && f.cotation.cle === 'confirme').length,
     muet: !!(d.angleMort && d.angleMort.muet), fenetreH: d.fenetreH,
-    url: 'https://ytl1-ops.github.io/SentiqS/bulletins/' + cy + '/dernier.html',
+    url: 'https://sentiqs-235ce.web.app/bulletins/' + cy + '/dernier.html',
     faits: d.faits.slice(0, 5).map(f => ({
       titre: f.titre, langue: (typeof detectLangue === 'function') ? detectLangue(f.titre) : 'fr',
       url: f.url, source: f.source, cotation: f.cotation ? f.cotation.cle : null, niveau: f.niveau,

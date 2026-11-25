@@ -31,7 +31,7 @@
 // premier signalement est une information utile, pas un faux départ.
 // ============================================================
 
-const URL_PRODUIT = 'https://ytl1-ops.github.io/SentiqS/SentiqS_Web.html';
+const URL_PRODUIT = 'https://sentiqs-235ce.web.app/SentiqS_Web.html';
 
 /** Liste de codes pays -> clé stable, indépendante de l'ordre d'entrée. */
 function cleEnsemble(codes) {

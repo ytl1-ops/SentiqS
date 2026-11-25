@@ -78,12 +78,12 @@ test('deux créneaux manqués ne partent pas en rafale : seul le dernier', () =>
 
 const INSTANTANE = { genere: '2026-11-14T06:00:00Z', pays: {
   CI: { cy: 'CI', nom: 'Côte d\'Ivoire', nomEn: 'Côte d\'Ivoire', niveau: 'jaune', confiance: 'faible', faitsNotables: 2, confirmes: 1, fenetreH: 36,
-    url: 'https://ytl1-ops.github.io/SentiqS/bulletins/CI/dernier.html',
+    url: 'https://sentiqs-235ce.web.app/bulletins/CI/dernier.html',
     faits: [{ titre: 'Attaque <b>signalée</b> près de Téhini', langue: 'fr', url: 'https://ex.com/a', source: 'AIP', cotation: 'confirme' },
       { titre: 'Bandits attack convoy in the north', langue: 'en', url: 'javascript:alert(1)', source: 'X', cotation: 'probable' }] } } };
 
 test('message : une seule langue, rien d\'exécutable, lien de désabonnement', () => {
-  const fr = B.composerMessage([INSTANTANE.pays.CI], { langue: 'fr', fuseau: 'Africa/Abidjan', creneauMs: Date.parse('2026-11-14T07:00:00Z'), lienDesabonnement: 'https://ytl1-ops.github.io/SentiqS/abonnement.html#non=' + 'a'.repeat(40) });
+  const fr = B.composerMessage([INSTANTANE.pays.CI], { langue: 'fr', fuseau: 'Africa/Abidjan', creneauMs: Date.parse('2026-11-14T07:00:00Z'), lienDesabonnement: 'https://sentiqs-235ce.web.app/abonnement.html#non=' + 'a'.repeat(40) });
   assert.ok(!fr.texte.includes('Bandits attack'), 'un titre anglais non traduit ne passe pas dans un message français');
   assert.match(fr.texte, /Titre en anglais — traduction indisponible/);
   assert.ok(!fr.html.includes('<b>signalée</b>'), 'le titre est échappé');
