@@ -207,9 +207,10 @@ for (const [nom, debut, fin, attendu] of GENERATEURS) {
 test('chaque export passe son module a dlFile (le message de partage du document en depend)', () => {
   const appels = HTML.match(/\bdlFile\([^\n]*\);/g) || [];
   const sansDefinition = appels.filter(l => !l.startsWith('dlFile(blob, name'));
-  assert.strictEqual(sansDefinition.length, 5, 'Word, PDF, PowerPoint, Excel, CSV : ' + sansDefinition.join(' | '));
+  // + 2 depuis le 25/11/2026 : la Présentation 1 composée (PowerPoint, Word).
+  assert.strictEqual(sansDefinition.length, 7, 'Word, PDF, PowerPoint, Excel, CSV, Présentation 1 ×2 : ' + sansDefinition.join(' | '));
   for (const l of sansDefinition) {
-    assert.ok(/,\s*(type|'flux')\);$/.test(l), 'dlFile sans module : ' + l);
+    assert.ok(/,\s*(type|'flux'|'presentation1')\);$/.test(l), 'dlFile sans module : ' + l);
   }
 });
 

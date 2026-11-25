@@ -4975,3 +4975,58 @@ Vérifié : `npm test` (1 092), règles sur émulateur (18 cas de plus, 79/79),
 `verifier-pages-hors-appli.js` (FR/EN), `verifier-accessibilite-interface.js`
 (0/0/0), fumée, envoi réel dans Chromium (Firestore intercepté : clé
 `anon_<jour>_<n>`, dix champs). Exports à la demande : seule la ligne « Contact » des métadonnées Excel change (lien du formulaire au lieu de l'adresse masquée).
+
+---
+
+## Présentation 1 : analyse sans intitulé, plus de texte, filtres — 25/11/2026
+
+Demande de YORO : « Fait l'analyse en dessous de l'actu sans indiquer
+analyse. Donner plus de texte dans l'actu. Revise Présentation 1 avec des
+filtres pays, régional d'un pays, région ouest ou est Afrique… »
+
+- **Sans intitulé.** Fiche : plus de « Analyse : » ; le paragraphe suit la
+  citation. Fait rédigé : plus de « Contexte », « Ce que rapportent les
+  sources », « Analyse sûreté », « Implications : » ; le texte coule (contexte
+  en gris, citations en italique, lecture + implications, « À surveiller »).
+  PowerPoint, Word, donc PDF. Rapport de novembre régénéré : 77 → 78 pages,
+  XML valide, 0 « Analyse : » (107 avant).
+- **Plus de texte.** Le job lit la page de chaque actu du rapport
+  (`photos-grsci.lireDebuts`, `scripts/lib/texte-article.js`) et en garde le
+  DÉBUT : premiers paragraphes de `<article>`, au plus 650 caractères, coupés
+  en fin de phrase, sans menu, date, légende ni « Lire aussi ». Gardé dans le
+  cumul (`texte`, `texteFr` traduit), une page lue une fois par mois ; son
+  og:image évite une seconde lecture pour la photo. C'est une courte citation
+  attribuée avec le lien, **jamais l'article** ; un texte étranger non
+  traduit n'est pas cité. La fiche cite jusqu'à 650 caractères (420 avant) et
+  un second média (280). **Non mesuré d'ici** (pas de réseau) : le taux de
+  pages lisibles ; le journal du job le dit (« N pages d'article lues »).
+- **Le cumul couvre les 54 pays** (relevé seulement ; traduction et rapport
+  mensuel restent CI + 9). `faitsMoisPays` y verse `titreFr`/`resumeFr` tirés
+  de `a.tr.fr`.
+- **Filtres** (`web/js/presentation-perimetre.js`, double export) : un pays
+  et une zone (15 pays découpés : CI par districts et régions, BF, ML, NE, NG,
+  GH, TG, BJ, GN, SN, LR, CM, TD, CD, MZ), ou une région (5 régions de l'UA,
+  qui couvrent les 54 pays une fois, plus AES, Sahel, Golfe de Guinée,
+  CEDEAO sans l'AES, UEMOA, Grands Lacs, Corne, Maghreb) avec un pays mis en
+  tête ; rubriques, cotation, 7/14 jours, 5/10/20 actus. Une zone se
+  reconnaît par une localité en mot entier ; les noms ambigus (« =Man »,
+  « =Kong », « =Plateau ») exigent leur majuscule, et la ville notée par la
+  page ne compte que pour un nom sans homonyme (elle notait « Man » pour un
+  article sur l'Allemagne). Un fait sans localité n'est jamais rangé : le
+  rapport dit combien sont écartés. Un pays sans fait est nommé (« Sans fait
+  retenu sur la période »), jamais montré comme calme.
+- **Composé dans le navigateur** (Rapports › « Composer une Présentation 1
+  sur mesure ») avec le MÊME générateur : `web/js/presentation-1.js` est
+  construit par `node scripts/construire-presentation-web.js` depuis
+  `scripts/lib/*` (sigle retiré du fichier servi) ; un test refuse un fichier
+  périmé. Images du modèle copiées dans `web/assets/presentation-1/` (un test
+  les compare). Le générateur reçoit `donnees.perimetre` ; sans lui, le
+  rapport du job est inchangé (`perimetreModele`). PDF = page imprimable
+  16:9 (le PDF mensuel reste la conversion LibreOffice du job). Photos : si
+  Paramètres › Affichage l'autorise et si la source permet la copie. Le
+  document reste en français ; l'écran suit FR/EN.
+
+`presentation-texte.test.js` (6), `presentation-filtres.test.js` (10). Banc
+Chromium : CI › Nord (2 actus, 16 sans localité) et Afrique de l'Ouest
+(CI en tête, 70 actus, 4 pays sans fait faute de cumul avant ce jour),
+PowerPoint, Word et impression générés, 0 erreur JS.

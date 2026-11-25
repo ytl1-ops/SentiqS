@@ -130,7 +130,9 @@ test('PowerPoint : une page rédigée par fait marquant, la photo seulement si e
   // cherche la page du fait, pas sa ligne de sommaire.
   const page = (t) => p.slides.find((s) => s.textes.some((x) => x.includes(t)) && !s.textes.some((x) => x.includes('TABLE DES MATIÈRES')));
   const pa = page('Attaque contre un poste de gendarmerie');
-  assert.ok(pa.textes.some((x) => x.includes('Ce que rapportent les sources') && x.includes('« Des hommes armés ont ouvert le feu. »') && x.includes('Analyse sûreté')));
+  // Depuis le 25/11/2026 le texte coule sans intertitre ni libellé « Analyse »
+  // (YORO) : la citation, puis le paragraphe qui la commente.
+  assert.ok(pa.textes.some((x) => x.includes('« Des hommes armés ont ouvert le feu. »') && x.includes('À surveiller : ') && !/Analyse|Ce que rapportent les sources|Contexte|Implications :/.test(x)));
   const photo = pa.images.find((i) => i.data);
   assert.ok(photo && /^image\/jpeg;base64,/.test(photo.data), 'photo embarquée');
   assert.ok(Math.abs(photo.w / photo.h - 1200 / 675) < 0.01, 'proportions respectées');
@@ -153,7 +155,9 @@ test('Word : même texte rédigé, photo avec crédit, rien sans photo', () => {
   const ci = { cy: 'CI', nom: "Côte d'Ivoire", faits: [F('Grève des enseignants', 'high', { cat: 'humanitaire', resume: 'Mot d’ordre de 72 heures.', photo }), F('Braquage', 'high')] };
   require('../lib/rapport-grsci-word.js').construireWord(D, { jour: '2026-10-23', ci, regionaux: [] });
   const t = runs.join('\n');
-  for (const x of ['Contexte', 'Ce que rapportent les sources', '« Mot d’ordre de 72 heures. »', 'Analyse sûreté', 'Photo : © aip.ci']) assert.ok(t.includes(x), x);
+  for (const x of ['« Mot d’ordre de 72 heures. »', 'À surveiller : ', 'Photo : © aip.ci']) assert.ok(t.includes(x), x);
+  // Ni intertitre ni libellé « Analyse » depuis le 25/11/2026.
+  for (const x of ['Contexte', 'Ce que rapportent les sources', 'Analyse sûreté', 'Implications : ']) assert.ok(!runs.includes(x), x);
   const photos = images.filter((i) => i.data === photo.data);
   assert.strictEqual(photos.length, 1, 'une seule photo : celle du fait qui en a une');
   assert.strictEqual(photos[0].transformation.width / photos[0].transformation.height, 800 / 600);
