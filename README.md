@@ -2,7 +2,7 @@
 
 Veille de sûreté sur les **54 pays d'Afrique**, à destination de
 professionnels de la sûreté. Le produit est une page web unique, servie par
-GitHub Pages : <https://ytl1-ops.github.io/SentiqS/SentiqS_Web.html>
+Production (Firebase Hosting) : <https://sentiqs-235ce.web.app/SentiqS_Web.html> (le dépôt est privé : GitHub Pages ne sert plus rien)
 
 ## Ce qu'il fait
 

@@ -440,6 +440,10 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
+            // Dépôt privé, Issues coupées (25/11/2026) : l'API répond 410. Le
+            // signal passe alors par l'échec visible du passage lui-même, et ce
+            // job ne doit pas ajouter un second échec par-dessus le premier.
+            try {
             const titre = 'Collecte planifiée en échec';
             const url = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             const ouvertes = await github.rest.issues.listForRepo({
@@ -457,4 +461,7 @@ jobs:
                 owner: context.repo.owner, repo: context.repo.repo,
                 title: titre, body: corps, labels: ['collecte-en-panne'],
               });
+            }
+            } catch (e) {
+              core.warning("Ticket d'incident impossible (Issues coupées ?) : " + (e && e.message));
             }

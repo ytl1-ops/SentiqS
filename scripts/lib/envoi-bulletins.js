@@ -21,7 +21,7 @@ const B = require('../../web/js/bulletin-message.js');
 const IE = require('../../web/js/identifiants-envoi.js');
 const { nettoyer: nettoyerTexte } = require('./identifiants-envoi');
 
-const URL_SITE = 'https://ytl1-ops.github.io/SentiqS/';
+const URL_SITE = 'https://sentiqs-235ce.web.app/';
 const URL_REPONSE = URL_SITE + 'abonnement.html';
 
 function masquer(v) {

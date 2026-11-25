@@ -37,7 +37,7 @@
 
 const { NIVEAUX_ORDRE } = require('../../web/js/noyau.js');
 
-const URL_PRODUIT = 'https://ytl1-ops.github.io/SentiqS/SentiqS_Web.html';
+const URL_PRODUIT = 'https://sentiqs-235ce.web.app/SentiqS_Web.html';
 
 /** L'état { code: niveau } déduit d'un instantané d'archive. */
 function etatDepuis(instantane) {
