@@ -147,13 +147,15 @@ jobs:
           RAPPORT_IDENTITE: ${{ inputs.identite_envoi }}
           RAPPORT_SIGNATURE: ${{ inputs.signature_envoi }}
           RAPPORT_LOGO: ${{ inputs.logo_envoi }}
-          # Firebase Hosting retire (voir suppression du workflow
-          # firebase-hosting-deploy.yml) — GitHub Pages est desormais
-          # l'unique hebergement reellement mis a jour a chaque push.
-          # L'ancienne cible sentinel-surete.web.app ne recoit plus aucun
-          # deploiement depuis ce changement et aurait fini par servir une
-          # version figee/perimee de l'app a ce job planifie.
-          SENTINEL_URL: https://ytl1-ops.github.io/SentiqS/SentiqS_Web.html
+          # Cible : le miroir Firebase Hosting (sentiqs-235ce), publié par le
+          # job « firebase » de gh-pages-deploy.yml à chaque push et à chaque
+          # archive. Le 24/11/2026 vers 19 h 30 UTC le dépôt est passé en
+          # privé : GitHub Pages ne sert plus rien (« There isn't a GitHub
+          # Pages site here »), la page ne chargeait plus, la session
+          # collecteur ne s'ouvrait jamais (« waitForFunction: Timeout ») et
+          # 46 passages d'affilée ont échoué, cache figé au 24/11 19 h 18.
+          # Firebase sert la même page, quel que soit l'état de Pages.
+          SENTINEL_URL: https://sentiqs-235ce.web.app/SentiqS_Web.html
           # Canal d'alerte sortant : URL d'un webhook entrant Slack, d'un
           # connecteur Teams, ou de n'importe quel relais acceptant
           # {"text": "..."}. OPTIONNEL — sans lui, le job calcule quand meme

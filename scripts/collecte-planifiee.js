@@ -45,7 +45,7 @@ const santeCollecte = require('./lib/sante-collecte');
 
 // Firebase Hosting retire (sentinel-surete.web.app ne recoit plus de
 // deploiement) — GitHub Pages est desormais l'hebergement reel.
-const TARGET_URL = process.env.SENTINEL_URL || 'https://ytl1-ops.github.io/SentiqS/SentiqS_Web.html';
+const TARGET_URL = process.env.SENTINEL_URL || 'https://sentiqs-235ce.web.app/SentiqS_Web.html';
 const HTML_PATH = process.env.SENTINEL_HTML_PATH || path.join(__dirname, '..', 'web', 'SentiqS_Web.html');
 // Premier run réel (18/07) : les proxys CORS partagés (allorigins,
 // corsproxy.org, codetabs...) renvoient énormément de 429 (rate-limit) face
