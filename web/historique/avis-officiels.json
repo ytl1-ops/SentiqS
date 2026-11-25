@@ -1,6 +1,6 @@
 {
  "source": "FCDO — gov.uk Content API (Open Government Licence v3.0) ; Affaires mondiales Canada — données ouvertes (Licence du gouvernement ouvert — Canada) ; Département d'État des États-Unis — flux RSS (domaine public)",
- "lu": "2026-11-24T16:21:28.695Z",
+ "lu": "2026-11-25T16:01:56.807Z",
  "pays": {
   "AO": {
    "statuts": [
@@ -497,8 +497,8 @@
   },
   "KM": {
    "statuts": [],
-   "revu": "2025-12-10T13:42:55Z",
-   "maj": "2025-12-10T13:42:55+00:00",
+   "revu": "2026-11-25T10:50:56Z",
+   "maj": "2026-11-25T10:50:56+00:00",
    "url": "https://www.gov.uk/foreign-travel-advice/comoros",
    "temoins": [
     {
@@ -684,8 +684,8 @@
   },
   "MW": {
    "statuts": [],
-   "revu": "2026-10-20T14:35:09Z",
-   "maj": "2026-10-20T15:35:09+01:00",
+   "revu": "2026-11-25T11:22:56Z",
+   "maj": "2026-11-25T11:22:56+00:00",
    "url": "https://www.gov.uk/foreign-travel-advice/malawi",
    "temoins": [
     {
@@ -927,7 +927,7 @@
     {
      "source": "Canada",
      "degre": "aat_total",
-     "revu": "2026-10-02T18:02:37.000Z",
+     "revu": "2026-11-25T14:39:16.000Z",
      "url": "https://travel.gc.ca/destinations/south-sudan"
     },
     {
@@ -1034,7 +1034,7 @@
     {
      "source": "Canada",
      "degre": "prudence_partie",
-     "revu": "2026-10-14T19:47:29.000Z",
+     "revu": "2026-11-24T20:52:29.000Z",
      "url": "https://travel.gc.ca/destinations/tunisia"
     },
     {
@@ -1155,7 +1155,15 @@
    "source": "Canada",
    "avis": "aabe_total",
    "libelle": "voyages non essentiels déconseillés dans tout le pays",
-   "revuIlYaJ": 34
+   "revuIlYaJ": 35
+  },
+  {
+   "code": "KM",
+   "niveau": "orange",
+   "source": "FCDO",
+   "avis": "aucun",
+   "libelle": "aucune restriction",
+   "revuIlYaJ": 0
   },
   {
    "code": "MG",
@@ -1163,7 +1171,7 @@
    "source": "FCDO",
    "avis": "aucun",
    "libelle": "aucune restriction",
-   "revuIlYaJ": 8
+   "revuIlYaJ": 9
   },
   {
    "code": "SN",
@@ -1171,7 +1179,7 @@
    "source": "FCDO",
    "avis": "aucun",
    "libelle": "aucune restriction",
-   "revuIlYaJ": 40
+   "revuIlYaJ": 41
   },
   {
    "code": "UG",
@@ -1179,7 +1187,7 @@
    "source": "FCDO",
    "avis": "aucun",
    "libelle": "aucune restriction",
-   "revuIlYaJ": 18
+   "revuIlYaJ": 19
   }
  ]
 }
