@@ -5046,3 +5046,27 @@ Mesuré sur le cumul de novembre (1 647 faits) et sur 36 h de collecte :
 
 `scripts/test/doublons-rapports.test.js` (7 ; les deux tests de la collecte
 vus échouer sur l'ancien code).
+
+---
+
+## La forme double la couleur du niveau — 26/11/2026
+
+Audit des couleurs demandé par YORO (comparaison avec les sites de renom).
+Simulation de daltonisme (Machado 2009) et distance de couleur ΔE sur les cinq
+niveaux et l'or de marque (`--sig`) :
+
+- **thème clair, deutéranopie** : marron/rouge ΔE **2,7**, orange/marron 9,4 ;
+- **thème sombre (le défaut)** : marron `#D9A85C` et or de marque `#E6BA6E`
+  ΔE **6,7 même en vision normale** ; vert/or 6,5 en protanopie.
+
+Correction posée sans toucher une couleur de gravité : `glypheNiveau(n)` dessine
+un disque dont le remplissage monte avec la gravité (0 / 25 / 50 / 75 / 100 %,
+`NIV[k].f`, CSS `.niv-g`, `currentColor`). Affiché dans la légende, la tuile pays
+du cartogramme, la pastille de niveau des cartes d'actu, l'en-tête de fiche
+pays et la fiche d'alerte. Les exports lisent `col`/`label` : inchangés.
+
+**Non fait, décision de marque** : l'or du thème sombre reste `#E6BA6E`. Le
+rendre plus pâle (`#F5EBD0`, pire ΔE 13,5) le rapproche du texte `--t` et lui
+ôte son caractère doré ; à arbitrer avec YORO.
+
+`scripts/test/glyphe-niveau.test.js` (4, vus échouer sur l'ancien code).

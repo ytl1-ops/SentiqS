@@ -124,6 +124,7 @@ try { if (SentiqLangue.lireChoix() === 'en') { document.documentElement.setAttri
   /* Jetons de la revision du 15/10/2026 (texte sur accent, bleu et violet de texte). */
   --on-b:#FFFFFF;--bleu-txt:#2C5AAE;--violet-txt:#6D28D9;
   --p:0; /* progression de l'animation d'ouverture, ecrite par js/intro.js */
+  --f:0; /* remplissage du glyphe de niveau (0 a 100), ecrit en ligne par glypheNiveau */
   /* Palette "Horizon Cobalt & Bronze", direction B du 23/09/2026 : deux
      roles distincts au lieu d'un bleu unique partout (audit du meme jour —
      "cobalt utilise a la fois pour la structure, l'action et les liens,
@@ -3349,6 +3350,8 @@ html.force-mobile .admin-box,html.force-mobile .val-boite,html.force-mobile #kpi
 html.force-mobile .admin-box{padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px)) !important}
 html.force-mobile .tb-more-panel{position:fixed;top:calc(56px + env(safe-area-inset-top,0px));right:8px;max-height:calc(100dvh - 72px);overflow-y:auto}
 
+/* ═══ GLYPHE DE NIVEAU — 26/11/2026 : la forme double la couleur ═══ */
+.niv-g{display:inline-block;width:.9em;height:.9em;border-radius:50%;border:1.5px solid currentColor;box-sizing:border-box;margin-right:.35em;vertical-align:-.12em;flex-shrink:0;background:conic-gradient(currentColor calc(var(--f,0)*1%),transparent 0)}
 /* ═══ MOUVEMENT ET FLUIDITÉ — 26/11/2026 (voir CLAUDE.md) ═══
    Demande de YORO : un site animé, agréable et fluide. Règles reprises du
    skill « design-motion-principles » (MIT, .claude/skills) : un outil de
@@ -14635,7 +14638,7 @@ async function majFlashInfo(force) {
     return '<span class="flashinfo-item" onclick="switchView(\'flux\',document.querySelector(\'.ntab[onclick*=flux]\'));showDet(\''+a.id+'\')" role="button" tabindex="0">'+
       '<span class="tt-niv" style="background:'+col+';color:#fff;" title="Niveau de cette actu">'+lb+'</span>'+
       '<span class="tt-pays">'+c.flag+' '+c.name+'</span>'+
-      (npy ? '<span class="cy-niv-pill" style="background:'+npy.col+'" title="Niveau d\'alerte sûreté du pays (distinct du niveau de cette actu)"><i class="ti ti-shield-half" style="font-size:8px"></i>'+npy.label+'</span>' : '')+
+      (npy ? '<span class="cy-niv-pill" style="background:'+npy.col+'" title="Niveau d\'alerte sûreté du pays (distinct du niveau de cette actu)"><i class="ti ti-shield-half" style="font-size:8px"></i>'+glypheNiveau(npy)+npy.label+'</span>' : '')+
       '<span class="tt-date"><i class="ti ti-calendar"></i>'+dateTxt+'</span>'+
       '<span class="tt-heure"><i class="ti ti-clock"></i>'+heureTxt+'</span>'+
       '<span data-tt="'+ttKey+'">'+shown+'</span>'+
@@ -15564,7 +15567,7 @@ async function renderFeed() {
           '<div style="font-size:9px;color:var(--lg);">Capitale '+pysB0.capital+' · '+artsTous.length+' article'+(artsTous.length>1?'s':'')+' actif'+(artsTous.length>1?'s':'')+'</div>'+
         '</div>'+
         '<div style="text-align:right;">'+
-          '<div style="padding:3px 10px;border-radius:5px;font-size:9px;font-weight:700;color:#fff;background:'+scB0.niv.col+';">'+scB0.niv.label+' · '+scB0.total100+'/100</div>'+
+          '<div style="padding:3px 10px;border-radius:5px;font-size:9px;font-weight:700;color:#fff;background:'+scB0.niv.col+';">'+glypheNiveau(scB0.niv)+scB0.niv.label+' · '+scB0.total100+'/100</div>'+
         '</div>'+
         '<i class="ti ti-chevron-right" style="font-size:16px;color:var(--lg);"></i>'+
       '</div>';
@@ -16874,7 +16877,7 @@ const cartogramme = () => {
                 ${chipTendance(s.cy)}
               </div>
               <div style="display:flex;align-items:center;gap:4px;margin-top:4px;flex-wrap:wrap;">
-                <span style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:${txt};">${NIV[s.key].sous}</span>
+                <span style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:${txt};">${glypheNiveau(NIV[s.key])}${NIV[s.key].sous}</span>
                 ${marqueSilence(s.cy)}
                 ${marqueConfiance(s.confiance)}
               </div>
@@ -23634,21 +23637,29 @@ function getLiveAlertEvents(cy) {
 // (les cartes affichaient "Critique" sous ROUGE, en contradiction avec la
 // legende juste au-dessus qui annonce "ROUGE — Situation grave").
 const NIV = {
-  rouge:  {dot:'#8B1A1A', col:'#8B1A1A', border:'#8B1A1A', bg:'#FEF2F2', bgLight:'#FEE2E2', txt:'#7F1D1D', label:'ROUGE',  sous:'Grave',    descr:'Situation grave'},
-  marron: {dot:'#78350F', col:'#78350F', border:'#78350F', bg:'#FDF4EC', bgLight:'#F3E1CB', txt:'#78350F', label:'MARRON', sous:'Critique', descr:'Situation critique'},
-  orange: {dot:'#7C4A00', col:'#7C4A00', border:'#7C4A00', bg:'#FFFBEB', bgLight:'#FEF3C7', txt:'#92400E', label:'ORANGE', sous:'Élevé',    descr:'Situation tendue'},
-  jaune:  {dot:'#CA8A04', col:'#CA8A04', border:'#CA8A04', bg:'#FEFCE8', bgLight:'#FEF9C3', txt:'#854D0E', label:'JAUNE',  sous:'Modéré',   descr:"Situation d'alerte"},
-  vert:   {dot:'#0F4F2A', col:'#0F4F2A', border:'#0F4F2A', bg:'#F0FDF4', bgLight:'#DCFCE7', txt:'#065F46', label:'VERT',   sous:'Stable',   descr:'Situation normale'},
+  rouge:  {dot:'#8B1A1A', f:100, col:'#8B1A1A', border:'#8B1A1A', bg:'#FEF2F2', bgLight:'#FEE2E2', txt:'#7F1D1D', label:'ROUGE',  sous:'Grave',    descr:'Situation grave'},
+  marron: {dot:'#78350F', f:75, col:'#78350F', border:'#78350F', bg:'#FDF4EC', bgLight:'#F3E1CB', txt:'#78350F', label:'MARRON', sous:'Critique', descr:'Situation critique'},
+  orange: {dot:'#7C4A00', f:50, col:'#7C4A00', border:'#7C4A00', bg:'#FFFBEB', bgLight:'#FEF3C7', txt:'#92400E', label:'ORANGE', sous:'Élevé',    descr:'Situation tendue'},
+  jaune:  {dot:'#CA8A04', f:25, col:'#CA8A04', border:'#CA8A04', bg:'#FEFCE8', bgLight:'#FEF9C3', txt:'#854D0E', label:'JAUNE',  sous:'Modéré',   descr:"Situation d'alerte"},
+  vert:   {dot:'#0F4F2A', f:0, col:'#0F4F2A', border:'#0F4F2A', bg:'#F0FDF4', bgLight:'#DCFCE7', txt:'#065F46', label:'VERT',   sous:'Stable',   descr:'Situation normale'},
 };
 // renderLegendeNiveaux() : legende UNIQUE des 5 niveaux d'alerte (couleur +
 // libelle + signification), reutilisee par le module Alertes (fiches pays,
 // #alerteLegende) — un seul point de verite pour cette legende plutot
 // qu'une copie HTML figee, qui aurait fini par diverger silencieusement.
+// glypheNiveau(n) : le niveau se lit AUSSI par une forme (audit des couleurs
+// du 26/11/2026 : marron/rouge indiscernables en deuteranopie, DeltaE 2,7 ; or
+// de marque et marron a 6,7 en theme sombre). Un disque dont le remplissage
+// monte avec la gravite : vide = stable, plein = grave. Herite la couleur du
+// texte (currentColor) : aucune couleur de gravite n'est touchee.
+function glypheNiveau(n) {
+  return (n && typeof n.f === 'number') ? '<i class="niv-g" aria-hidden="true" style="--f:' + n.f + '"></i>' : '';
+}
 function renderLegendeNiveaux() {
   return '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
     Object.keys(NIV).map(k => {
       const n = NIV[k];
-      return '<span style="padding:3px 10px;border-radius:4px;background:' + n.col + ';border:1px solid ' + n.border + ';color:#fff;font-size:9px;font-weight:700;letter-spacing:.05em" data-filtre="alniv:' + k + '" role="button" tabindex="0" title="' + n.descr + ' — ' + (LANG === 'en' ? 'go to the first country at this level' : 'aller au premier pays de ce niveau') + '">' + n.label + ' — ' + n.descr + '</span>';
+      return '<span style="padding:3px 10px;border-radius:4px;background:' + n.col + ';border:1px solid ' + n.border + ';color:#fff;font-size:9px;font-weight:700;letter-spacing:.05em" data-filtre="alniv:' + k + '" role="button" tabindex="0" title="' + n.descr + ' — ' + (LANG === 'en' ? 'go to the first country at this level' : 'aller au premier pays de ce niveau') + '">' + glypheNiveau(n) + n.label + ' — ' + n.descr + '</span>';
     }).join('') +
   '</div>';
 }
@@ -24519,7 +24530,7 @@ async function ouvrirVuePays(cy) {
           <div style="font-size:10px;color:var(--lg);">Capitale : ${pays.capital} · Vue consolidee tous modules</div>
         </div>
         ${niv ? `<div style="text-align:right;">
-          <div style="padding:4px 11px;border-radius:5px;font-size:10px;font-weight:700;color:#fff;background:${niv.col};">${niv.label}</div>
+          <div style="padding:4px 11px;border-radius:5px;font-size:10px;font-weight:700;color:#fff;background:${niv.col};">${glypheNiveau(niv)}${niv.label}</div>
           <div style="font-size:9px;color:var(--lg);margin-top:3px;">Score ${score.total100}/100</div>
         </div>` : ''}
         <button onclick="toggleShareMenuAlerte(event,'${cy}')" style="padding:7px 12px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;color:var(--t);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;margin-left:8px;"><i class="ti ti-share-2"></i>${LANG==='en'?'Share':'Partager'}</button>
