@@ -114,6 +114,8 @@ const serveur = http.createServer((req, res) => {
   }
 
   const page = await nav.newPage();
+  // THEME_CLAIR=1 mesure le theme clair (le sombre est le defaut depuis le 20/10/2026).
+  if (process.env.THEME_CLAIR) await page.addInitScript(() => { try { localStorage.setItem('sentinel_theme_choix', 'light'); } catch (e) {} });
   // Reseau exterieur coupe : on mesure la structure, pas la collecte.
   await page.route('**', (r) => (r.request().url().startsWith(base) ? r.continue() : r.abort()));
 

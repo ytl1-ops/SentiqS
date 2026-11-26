@@ -5075,3 +5075,23 @@ s'en éloigner. Le doublon forme + libellé suffit, et la marque ne porte jamais
 un niveau à elle seule. À rouvrir seulement si la marque change de teinte.
 
 `scripts/test/glyphe-niveau.test.js` (4, vus échouer sur l'ancien code).
+
+---
+
+## Le thème clair rejoint le bleu nuit — 26/11/2026
+
+Demande de YORO (« tu choisis quelle palette ? » puis « Ok ») : le sombre est le
+défaut depuis le 20/10/2026 (bleu nuit + or), mais le clair était resté en
+encre/graphite et bronze, un second produit visuellement. Même famille
+désormais : chrome (`--ink`, `--nav-bg`) en `#050E24`, action `--b` et titres
+`--n` en bleu nuit, neutres bleutés (`--sf`, `--page-bg`, `--bd`, `--t`, `--t2`,
+`--gr`, `--lg`), or clair `#E6BA6E` sur le chrome (surcharge locale de `--sig`
+dans `.tb,.nav-wrap`), et `--sig` en texte sur fond clair assombri à `#8A5E14`.
+
+**Les cinq couleurs de gravité ne bougent pas** (un test les fige). La mesure a
+trouvé au passage un défaut du clair que personne ne voyait, le sombre étant le
+défaut : « Panorama » en bronze `#A97425` à 3,76:1. Il est corrigé par le jeton.
+`THEME_CLAIR=1 node scripts/verifier-accessibilite-interface.js` mesure le clair
+(la CI ne mesure que le sombre) : 1 → 0 texte sous AA. Les documents exportés
+gardent leur bronze codé en dur. `scripts/test/theme-clair-bleu-nuit.test.js`
+(3, 2 vus échouer sur l'ancien code).
