@@ -4975,3 +4975,46 @@ Vérifié : `npm test` (1 092), règles sur émulateur (18 cas de plus, 79/79),
 `verifier-pages-hors-appli.js` (FR/EN), `verifier-accessibilite-interface.js`
 (0/0/0), fumée, envoi réel dans Chromium (Firestore intercepté : clé
 `anon_<jour>_<n>`, dix champs). Exports à la demande : seule la ligne « Contact » des métadonnées Excel change (lien du formulaire au lieu de l'adresse masquée).
+
+---
+
+## Mouvement et fluidité — 26/11/2026
+
+Demande de YORO : « scanne les compétences GitHub pour un site animé,
+dynamique, agréable et fluide ». Recensement (recherche GitHub, licence et
+fichiers lus un par un) : retenu **`design-motion-principles`**
+(kylezantos, MIT, Markdown seulement, aucun script), copié tel quel dans
+`.claude/skills/design-motion-principles/` avec `SOURCE.md`. Les skills
+officiels d'Anthropic (frontend-design, etc.) sont dans la PR #212 ;
+`ui-ux-pro-max` avait déjà servi le 14/11 (il embarque des scripts Python,
+non copié).
+
+Règle du skill appliquée : l'appli est un tableau de bord consulté à haute
+fréquence (retenue, moins de 300 ms), l'accueil une page marketing (plus
+expressif, une fois par visite). Bloc CSS « MOUVEMENT ET FLUIDITÉ » (avant
+« MOBILE : LE CONTENU D'ABORD ») et fonctions à côté de `renderFeedDebounced` :
+
+- **une actu s'anime à sa première apparition dans la session seulement**
+  (`animerEntreeCartes`, `_cartesVues`, dix au plus, jamais hors écran) : un
+  filtre ou un cycle de collecte ne rejoue rien. Mesuré : 5 cartes animées
+  sur 40 rendues au premier affichage (celles qui sont à l'écran) ;
+- **images des sources en fondu** à la fin du chargement : `html.mvt-images`
+  n'est posé qu'APRÈS l'écouteur `load` et le marquage des images déjà
+  chargées, sinon une image resterait à opacité nulle (un test l'exige) ;
+- **cartes fantômes** pendant une collecte à vide (`squelettesFluxHtml`), au
+  lieu de « Cliquez sur Actualiser » ; la fin de `doCollect` les retire même
+  si rien n'est rapporté ;
+- bouton pressé `scale:.97` (propriété `scale`, qui se compose avec un
+  transform existant), sélecteurs en `:where()` pour ne jamais écraser une
+  transition déjà réglée ;
+- **rien au clavier** (`html.nav-clavier`) et **garde globale**
+  `prefers-reduced-motion` (durées à 0,01 ms, l'état final reste).
+
+Accueil : `.rv` passe à une courbe ease-out avec léger flou qui se dissipe,
+et les cartes des grilles (étapes, chiffres, forfaits) suivent décalées de
+70 ms. Le contrôle des pages hors appli mesure en mouvement réduit : l'état
+final.
+
+Pas touché : niveaux, couleurs de gravité (un test l'interdit dans le bloc),
+générateurs de documents. `scripts/test/mouvement.test.js` (8, vus échouer
+sur l'ancien code).
