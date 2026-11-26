@@ -29,7 +29,7 @@ function jetonAlpha(html, nom) {
 }
 
 test('accueil : les trois niveaux de texte atténué tiennent 4,5:1 sur tous les fonds de la page', () => {
-  const fonds = { bg: '#05080B', bg2: '#070C11', panel: '#101A22', 'panel-b': '#1C2E3D', navy: '#16212C', 'bande finale': '#24384A' };
+  const fonds = { bg: '#071431', bg2: '#0A1A3D', panel: '#0F2450', 'panel-b': '#16295A', navy: '#16212C', 'bande finale': '#24384A' };
   const encre = hex('#F5F7FA');
   for (const j of ['ink2', 'ink3', 'ink4']) {
     const a = jetonAlpha(accueil, j);
@@ -43,7 +43,7 @@ test('accueil : les trois niveaux de texte atténué tiennent 4,5:1 sur tous les
 });
 
 test('fiches pays, hub et gabarit : texte atténué lisible sur les cartes', () => {
-  const carte = hex('#1C2E3D'), encre = hex('#F5F7FA');
+  const carte = hex('#16295A'), encre = hex('#F5F7FA');
   for (const f of [...fiches.map((n) => path.join('web', 'pays', n)), path.join('scripts', 'templates', 'fiche-country.template.html')]) {
     const html = lire(f);
     const m = /--ink4:\s*rgba\(245,\s*247,\s*250,\s*([0-9.]+)\)/.exec(html);

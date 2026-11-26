@@ -5095,3 +5095,12 @@ défaut : « Panorama » en bronze `#A97425` à 3,76:1. Il est corrigé par le j
 (la CI ne mesure que le sombre) : 1 → 0 texte sous AA. Les documents exportés
 gardent leur bronze codé en dur. `scripts/test/theme-clair-bleu-nuit.test.js`
 (3, 2 vus échouer sur l'ancien code).
+
+**Le noir devient bleu nuit (26/11/2026, suite).** YORO : « remplace le noir par
+un bleu nuit adapté ». Le chrome (`--ink` `#0B1C3F`, `--ink-2` `#102853`,
+`--ink-line` `#274680`, `--nav-bg`) et le dégradé de la barre du haut ne sont
+plus quasi noirs ; l'accueil, `en.html`, les fiches pays et leur gabarit
+passent de `#05080B` / `#101A22` à `#071431` / `#0F2450` (`--panel-b` `#16295A` :
+`#1C3466` mettait `--ink4` à 4,25:1, repéré par `pages-hors-appli.test.js`).
+Les documents exportés gardent leurs couleurs codées en dur. Mesuré : contraste
+0 sous AA en sombre, en clair, sur l'accueil, les fiches et les pages légales.
