@@ -5046,3 +5046,32 @@ Mesuré sur le cumul de novembre (1 647 faits) et sur 36 h de collecte :
 
 `scripts/test/doublons-rapports.test.js` (7 ; les deux tests de la collecte
 vus échouer sur l'ancien code).
+
+---
+
+## La forme double la couleur du niveau — 26/11/2026
+
+Audit des couleurs demandé par YORO (comparaison avec les sites de renom).
+Simulation de daltonisme (Machado 2009) et distance de couleur ΔE sur les cinq
+niveaux et l'or de marque (`--sig`) :
+
+- **thème clair, deutéranopie** : marron/rouge ΔE **2,7**, orange/marron 9,4 ;
+- **thème sombre (le défaut)** : marron `#D9A85C` et or de marque `#E6BA6E`
+  ΔE **6,7 même en vision normale** ; vert/or 6,5 en protanopie.
+
+Correction posée sans toucher une couleur de gravité : `glypheNiveau(n)` dessine
+un disque dont le remplissage monte avec la gravité (0 / 25 / 50 / 75 / 100 %,
+`NIV[k].f`, CSS `.niv-g`, `currentColor`). Affiché dans la légende, la tuile pays
+du cartogramme, la pastille de niveau des cartes d'actu, l'en-tête de fiche
+pays et la fiche d'alerte. Les exports lisent `col`/`label` : inchangés.
+
+**Or de marque du thème sombre : gardé à `#E6BA6E`, décision du 26/11/2026**
+(YORO : « décide »). Recherche sur une grille teinte 34-52° × saturation
+35-100 % × clarté 60-90 % : seules des teintes crème (clarté ≥ 88 %, pire ΔE
+12,5 contre les niveaux sous les trois daltonismes) s'écartent assez du jaune,
+de l'orange et du marron, et elles se confondent alors avec le texte `--t`. Les
+niveaux occupent déjà tout l'espace des jaunes-bruns : un or franc ne peut pas
+s'en éloigner. Le doublon forme + libellé suffit, et la marque ne porte jamais
+un niveau à elle seule. À rouvrir seulement si la marque change de teinte.
+
+`scripts/test/glyphe-niveau.test.js` (4, vus échouer sur l'ancien code).
