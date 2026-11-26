@@ -5065,8 +5065,13 @@ un disque dont le remplissage monte avec la gravité (0 / 25 / 50 / 75 / 100 %,
 du cartogramme, la pastille de niveau des cartes d'actu, l'en-tête de fiche
 pays et la fiche d'alerte. Les exports lisent `col`/`label` : inchangés.
 
-**Non fait, décision de marque** : l'or du thème sombre reste `#E6BA6E`. Le
-rendre plus pâle (`#F5EBD0`, pire ΔE 13,5) le rapproche du texte `--t` et lui
-ôte son caractère doré ; à arbitrer avec YORO.
+**Or de marque du thème sombre : gardé à `#E6BA6E`, décision du 26/11/2026**
+(YORO : « décide »). Recherche sur une grille teinte 34-52° × saturation
+35-100 % × clarté 60-90 % : seules des teintes crème (clarté ≥ 88 %, pire ΔE
+12,5 contre les niveaux sous les trois daltonismes) s'écartent assez du jaune,
+de l'orange et du marron, et elles se confondent alors avec le texte `--t`. Les
+niveaux occupent déjà tout l'espace des jaunes-bruns : un or franc ne peut pas
+s'en éloigner. Le doublon forme + libellé suffit, et la marque ne porte jamais
+un niveau à elle seule. À rouvrir seulement si la marque change de teinte.
 
 `scripts/test/glyphe-niveau.test.js` (4, vus échouer sur l'ancien code).
