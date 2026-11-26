@@ -667,6 +667,13 @@ function ecrireResumeActions(md) {
               if (deplaces.length) faitsGrsci.ecrireCumul(RACINE_GRSCI, cumul);
             }
           } catch (e) { console.warn('::warning::Rattachement des faits du mois non revu : ' + ((e && e.message) || e)); }
+          // Un même article ne figure qu'une fois dans le cumul, d'un pays à
+          // l'autre aussi (audit du 26/11/2026).
+          try {
+            const retires = faitsGrsci.retirerDoublonsEntrePays(cumul, 'CI');
+            retires.forEach((d) => console.log('  Présentation 1 : doublon retiré de ' + d.de + ' (gardé à ' + d.garde + ') — ' + d.titre));
+            if (retires.length) faitsGrsci.ecrireCumul(RACINE_GRSCI, cumul);
+          } catch (e) { console.warn('::warning::Doublons du mois non revus : ' + ((e && e.message) || e)); }
           // Une seule langue dans un document du groupe : les titres en
           // anglais, portugais ou arabe sont traduits en français par la
           // chaîne de la page, une fois, et le titre traduit est gardé dans

@@ -108,6 +108,42 @@ function reattribuer(c, paysDe) {
   return deplaces;
 }
 
+// retirerDoublonsEntrePays(cumul, prioritaire) : un même article (même adresse,
+// ou même titre à l'identique) ne figure qu'une fois dans le cumul du mois.
+// Audit du 26/11/2026 : 23 titres identiques dans le cumul, 3 d'un pays à
+// l'autre (le même article HCR au Bénin et au Niger). `cumuler` ne
+// dédoublonne que DANS un pays. Le fait reste dans le pays prioritaire (la
+// Côte d'Ivoire dans le rapport), sinon dans le premier par ordre de code ;
+// il garde la meilleure cotation et le meilleur niveau des exemplaires, et
+// complète ses champs vides. Rend la liste des retraits pour le journal.
+function retirerDoublonsEntrePays(c, prioritaire) {
+  const retires = [];
+  const codes = Object.keys((c && c.pays) || {}).sort((a, b) => (a === prioritaire ? -1 : b === prioritaire ? 1 : a < b ? -1 : 1));
+  const vus = new Map();
+  const RANG_NIVEAU = { crit: 0, high: 1, mod: 2 };
+  for (const cy of codes) {
+    const garde = [];
+    for (const f of c.pays[cy]) {
+      const cles = [];
+      if (f.url) cles.push('u:' + f.url);
+      const t = nettoyerTitre(f.titre).toLowerCase();
+      if (t.length >= 25) cles.push('t:' + t);
+      const ancien = cles.map((k) => vus.get(k)).find(Boolean);
+      if (ancien && ancien.cy !== cy) {
+        ancien.f.cotation = meilleureCotation(ancien.f.cotation, f.cotation);
+        if ((RANG_NIVEAU[f.niveau] ?? 9) < (RANG_NIVEAU[ancien.f.niveau] ?? 9)) ancien.f.niveau = f.niveau;
+        for (const k of ['resume', 'ville', 'img', 'video', 'langue', 'titreFr']) if (!ancien.f[k] && f[k]) ancien.f[k] = f[k];
+        retires.push({ de: cy, garde: ancien.cy, titre: f.titre });
+        continue;
+      }
+      garde.push(f);
+      cles.forEach((k) => { if (!vus.has(k)) vus.set(k, { cy, f }); });
+    }
+    c.pays[cy] = garde;
+  }
+  return retires;
+}
+
 function ecrireCumul(racine, c) {
   fs.mkdirSync(racine, { recursive: true });
   fs.writeFileSync(cheminCumul(racine, c.mois), JSON.stringify(c) + '\n');
@@ -217,4 +253,4 @@ function faitEnFrancais(f) {
   return !(f && LANGUES_ETRANGERES.has(f.langue) && !f.titreFr);
 }
 
-module.exports = { faitEnFrancais, cheminCumul, cumuler, ecrireCumul, lireCumul, nettoyerTitre, regrouper, faitsDuMois, trier, reattribuer };
+module.exports = { faitEnFrancais, cheminCumul, cumuler, ecrireCumul, lireCumul, nettoyerTitre, regrouper, faitsDuMois, trier, reattribuer, retirerDoublonsEntrePays };

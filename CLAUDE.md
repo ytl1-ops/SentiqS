@@ -5018,3 +5018,31 @@ final.
 Pas touché : niveaux, couleurs de gravité (un test l'interdit dans le bloc),
 générateurs de documents. `scripts/test/mouvement.test.js` (8, vus échouer
 sur l'ancien code).
+
+---
+
+## Cohérence des données : un fait, une fois — 26/11/2026
+
+Demande de YORO : « auditer et réviser l'appli pour établir une cohérence entre
+les données afin d'éviter les doublons et répétitions dans les rapports ».
+Mesuré sur le cumul de novembre (1 647 faits) et sur 36 h de collecte :
+
+- **Même source qui se republie** : `dedupliquerArticles` ignorait toute paire
+  de même source (`primary`) ; 19 paires en 36 h restaient en double. Elles se
+  replient désormais sur **adresse identique ou titre identique** seulement
+  (jamais sur une ressemblance), et **sans devenir « recoupées »** : une
+  source ne se corrobore pas elle-même.
+- **Même article d'un pays à l'autre** dans la Présentation 1 :
+  `retirerDoublonsEntrePays` (`faits-grsci.js`, appelée par le job après
+  `reattribuer`) garde le fait une fois — Côte d'Ivoire d'abord, sinon premier
+  code — avec la meilleure cotation et le niveau le plus grave. Novembre :
+  3 retraits (HCR Bénin/Niger, Brigade spéciale Mali/Burkina, condoléances
+  Tinubu). Octobre : 0. Les paires seulement *voisines* (34 mesurées) ne sont
+  pas touchées : un fait effacé coûte plus qu'un doublon.
+- **Non corrigé, décision à prendre** : les analyses de la Présentation 1
+  répètent des repères identiques (1 279 fiches, **49 textes distincts**, le
+  plus fréquent 264 fois). Les réduire retire en partie ce que YORO a demandé
+  le 24/11 (« une analyse après chaque actu ») : à arbitrer.
+
+`scripts/test/doublons-rapports.test.js` (7 ; les deux tests de la collecte
+vus échouer sur l'ancien code).

@@ -10456,15 +10456,24 @@ function dedupliquerArticles(arts) {
       if (aSupprimer.has(a.id)) continue;
       for (let j = i + 1; j < groupe.length; j++) {
         const b = groupe[j];
-        if (aSupprimer.has(b.id) || a.primary === b.primary) continue;
-        if (!articlesSontDoublons(a, b)) continue;
+        if (aSupprimer.has(b.id)) continue;
+        // Une source qui se republie elle-même (audit du 26/11/2026 : 19
+        // paires sur 36 h, le même article sous deux identifiants) se replie
+        // quand l'adresse ou le titre est IDENTIQUE, jamais sur une simple
+        // ressemblance, et sans devenir « recoupée » : deux fois la même
+        // source ne corrobore rien.
+        const memeSource = a.primary === b.primary;
+        if (memeSource) {
+          const tA = titreNormalise(a.title || '');
+          if (!((a.url && a.url === b.url) || (tA && tA === titreNormalise(b.title || '')))) continue;
+        } else if (!articlesSontDoublons(a, b)) continue;
         // Fusion : on garde la version de la source la mieux notee, on unit
         // les listes de sources/corroboration des deux versions.
         const garde = (a.score >= b.score) ? a : b;
         const fusionne = (garde === a) ? b : a;
         garde.srcs = [...new Set([...(garde.srcs||[garde.primary]), ...(fusionne.srcs||[fusionne.primary])])];
         garde.crosses = [...new Set([...(garde.crosses||[]), ...(fusionne.crosses||[fusionne.n||fusionne.primary])])];
-        garde.verified = true;
+        if (!memeSource) garde.verified = true;
         // Trace de la fusion : l'article replie n'est plus perdu sans laisser
         // d'empreinte — son titre et sa source restent consultables (panneau
         // de detail, rapports) et une fusion erronee reste diagnosticable.
