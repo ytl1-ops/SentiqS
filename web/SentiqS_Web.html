@@ -34,6 +34,7 @@
      AVANT lui : le script applicatif s'appuie sur ces noms. -->
 <script src="js/hors-ligne.js"></script>
 <script src="js/noyau.js"></script>
+<script src="js/reperes-surete.js"></script>
 <script src="js/assistant.js"></script>
 <script src="js/calendrier-foules.js"></script>
 <script src="js/bulletin-message.js"></script>
@@ -2859,6 +2860,26 @@ html[data-theme="dark"] .vact-repli{background-image:linear-gradient(150deg,rgba
 .val-ecartes summary h3,.val-ecartes summary p{display:inline-block}
 .val-journal{width:100%;border-collapse:collapse;font-size:12px}
 .val-journal th,.val-journal td{border-bottom:1px solid var(--bd);padding:5px 6px;text-align:left;vertical-align:top}
+/* Fiche de synthèse d'une actu et main courante de l'analyste (26/11/2026,
+   repris du prototype SentiqS 2). Aucune couleur de gravité : la fiche
+   reprend le niveau en toutes lettres, la main courante n'en porte aucun. */
+.fiche-syn{border:1px solid var(--bd);border-radius:var(--r-md,4px);padding:var(--sp-3) var(--sp-4);margin:var(--sp-3) 0;background:var(--sf)}
+.fiche-syn-hd{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-2);flex-wrap:wrap;margin-bottom:var(--sp-2)}
+.fiche-syn-hd h3{font-family:var(--font-serif);font-size:16px;margin:0}
+.fiche-syn dl{display:grid;grid-template-columns:minmax(120px,190px) 1fr;gap:6px 14px;margin:0;font-size:13px;line-height:1.45}
+.fiche-syn dt{font-weight:700;color:var(--t2)}
+.fiche-syn dd{margin:0;color:var(--t)}
+.fiche-syn-note{font-size:var(--fs-micro);color:var(--lg);font-style:italic;margin:var(--sp-2) 0}
+.mc-form{display:flex;flex-direction:column;gap:8px;margin:10px 0 14px}
+.mc-form textarea{min-height:84px;font:inherit;font-size:13px;background:var(--sf);color:var(--t);border:1px solid var(--bd);border-radius:4px;padding:6px 8px;resize:vertical}
+.mc-fait{font-size:12px;color:var(--t2)}
+.mc-liste{display:flex;flex-direction:column}
+.mc-entree{border-top:1px solid var(--bd);padding:8px 0;font-size:13px}
+.mc-entree .val-tete{margin-bottom:2px}
+.mc-entree p{margin:0;white-space:pre-wrap}
+@media (max-width:760px){html:not(.force-web) .fiche-syn dl{grid-template-columns:1fr;gap:2px}html:not(.force-web) .fiche-syn dd{margin-bottom:6px}}
+html.force-mobile .fiche-syn dl{grid-template-columns:1fr;gap:2px}
+html.force-mobile .fiche-syn dd{margin-bottom:6px}
 
 @media (max-width:760px){
   html:not(.force-web) .vact-vignette{float:right;width:96px;height:72px;margin:0 0 var(--sp-2) var(--sp-2)}
@@ -11550,6 +11571,82 @@ function resumeCourt(texte, max) {
   const t = String(texte || '');
   return t.length > max ? t.slice(0, max).replace(/\s+\S*$/, '') + ' …' : t;
 }
+// FICHE DE SYNTHÈSE D'UNE ACTU (26/11/2026). Format repris du prototype
+// SentiqS 2 (docs/prototype-cowork, 66 fiches recoupées d'août 2026), à la
+// demande de YORO : Pays · Lieu de survenance · Date de survenance · Niveau ·
+// Fait · Source et fiabilité · Impact sur la sûreté pays · À surveiller. C'est
+// la forme qu'un responsable sûreté lit et transmet. Rien n'y est calculé à
+// côté : niveau, cotation, survenance et lieu sont ceux déjà affichés, et les
+// repères d'impact viennent de js/reperes-surete.js, le même texte que
+// l'analyse de la Présentation 1. Lecture seule : ni le niveau d'alerte ni les
+// documents exportés ne la lisent.
+function ficheSynthese(a) {
+  const en = LANG === 'en';
+  const R = (typeof SentiqReperes !== 'undefined') ? SentiqReperes : null;
+  const pa = lignePaysArticle(a);
+  const npy = (a.cy && a.cy !== 'INT' && typeof niveauAlertePays === 'function') ? niveauAlertePays(a.cy) : null;
+  const cleNiv = npy ? (Object.keys(NIV).find(k => NIV[k] === npy) || 'vert') : null;
+  const nivPays = npy ? (en ? rl('niv')[cleNiv] : npy.label) : '';
+  const surv = fmtSurvenance(a);
+  const cot = cotationActu(a);
+  const nSrc = new Set((a.srcs && a.srcs.length ? a.srcs : [a.primary]).filter(Boolean)).size;
+  const voir = sourcesVisibles();
+  const trFr = a.tr && a.tr.fr;
+  let impact = '', surveiller = '';
+  if (R) {
+    const rep = R.enjeuxSurete({ titre: a.title, titreFr: trFr && trFr.t, resume: a.analysis, resumeFr: trFr && trFr.s, cat: a.cat });
+    impact = en
+      ? (rep.cle === 'categorie' ? (R.IMPLICATIONS_CATEGORIE_EN[a.cat] || R.IMPLICATIONS_CATEGORIE_EN.economique) : R.IMPLICATIONS_EN[rep.cle])
+      : rep.texte;
+    surveiller = (en ? R.SURVEILLER_EN : R.SURVEILLER)[rep.cle] || '';
+    surveiller = surveiller.charAt(0).toUpperCase() + surveiller.slice(1);
+  }
+  const fiabilite = libelleCotationR(cot) + ' · '
+    + (nSrc > 1 ? (en ? 'cross-checked by ' + nSrc + ' sources' : 'recoupé par ' + nSrc + ' sources') : (en ? 'single source' : 'source unique'))
+    + (voir && a.primary ? ' — ' + srcName(a.primary) : '');
+  const lignes = [
+    [en ? 'Country' : 'Pays', pa.nom + (nivPays ? (en ? ' (country level: ' : ' (niveau pays : ') + nivPays + ')' : '')],
+    [en ? 'Place' : 'Lieu de survenance', pa.ville || (en ? 'Not specified' : 'Non précisé')],
+    [en ? 'Date of the event' : 'Date de survenance', surv.inconnue ? (en ? 'Unknown — to be verified' : 'Inconnue — à vérifier') : surv.texte],
+    [en ? 'Level of the item' : 'Niveau du fait', libelleNiveauPartage(a.level)],
+    [en ? 'Fact' : 'Fait', String(L(a.title) || '').replace(/\s+/g, ' ').trim()],
+    [en ? 'Source and reliability' : 'Source et fiabilité', fiabilite],
+  ];
+  if (impact) lignes.push([en ? 'Impact on country security' : 'Impact sur la sûreté pays', impact]);
+  if (surveiller) lignes.push([en ? 'To watch' : 'À surveiller', surveiller]);
+  const note = en
+    ? 'Impact and items to watch are automatic markers by type of event, to be validated by the analyst.'
+    : 'Impact et points à surveiller : repères automatiques par type d\'événement, à valider par l\'analyste.';
+  const lien = voir ? articleLienDirect(a) : '';
+  const texte = lignes.map(l => l[0] + ' : ' + l[1]).join('\n') + (lien ? '\n' + (en ? 'Link' : 'Lien') + ' : ' + lien : '') + '\n(' + note + ')';
+  return { lignes, note, texte };
+}
+function ficheSyntheseHtml(a) {
+  const f = ficheSynthese(a);
+  const en = LANG === 'en';
+  return '<section class="fiche-syn" aria-labelledby="fsyn-' + escHtml(a.id) + '">'
+    + '<div class="fiche-syn-hd"><h3 id="fsyn-' + escHtml(a.id) + '">' + (en ? 'Summary sheet' : 'Fiche de synthèse') + '</h3>'
+    + '<button type="button" class="dbt fiche-syn-copier" onclick="copierFicheSynthese(\'' + escHtml(a.id) + '\', this)"><i class="ti ti-copy"></i>' + (en ? 'Copy the sheet' : 'Copier la fiche') + '</button></div>'
+    + '<dl>' + f.lignes.map(l => '<dt>' + escHtml(l[0]) + '</dt><dd>' + escHtml(l[1]) + '</dd>').join('') + '</dl>'
+    + '<p class="fiche-syn-note">' + escHtml(f.note) + '</p>'
+    + (estAdmin(getSession()) && _clientValidation()
+      ? '<button type="button" class="dbt" onclick="ouvrirMainCourante(\'' + escHtml(a.id) + '\')"><i class="ti ti-notebook"></i>' + (en ? 'Note in the log' : 'Noter dans la main courante') + '</button>'
+      : '')
+    + '</section>';
+}
+async function copierFicheSynthese(id, bouton) {
+  const a = (typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === id);
+  if (!a) return;
+  const en = LANG === 'en';
+  let ok = true;
+  try { await navigator.clipboard.writeText(ficheSynthese(a).texte); } catch (e) { ok = false; }
+  if (bouton) {
+    const avant = bouton.innerHTML;
+    bouton.innerHTML = ok ? '<i class="ti ti-check"></i>' + (en ? 'Copied' : 'Copiée') : '<i class="ti ti-alert-circle"></i>' + (en ? 'Copy failed' : 'Copie impossible');
+    setTimeout(() => { bouton.innerHTML = avant; }, 1800);
+  }
+}
+
 function detailRapportActu(a) {
   const en = LANG === 'en';
   const titre = String(L(a.title) || '').replace(/\s+/g, ' ').trim();
@@ -16009,6 +16106,7 @@ async function showDet(id) {
     (sourcesVisibles()
       ? '<div style="font-size:8px;color:var(--lg);padding:6px 0 0;font-style:italic;border-top:.5px solid var(--bd);margin-top:8px;">Extrait à fin de veille (usage loyal). Contenu et droits appartenant à la source citée. Consulter l\'article complet sur le site d\'origine.</div>'
       : '')+
+    ficheSyntheseHtml(a)+
     (a.recos?.length?'<div class="drec"><div class="drec-hd"><i class="ti ti-chevron-right"></i>Actions recommandees</div>'+
       a.recos.map(r=>'<div class="rli">'+r+'</div>').join('')+'</div>':'')+
     '<div class="dact">'+
@@ -25969,9 +26067,10 @@ function _dialogueValidation() {
   d.innerHTML = '<div class="val-boite">'
     + '<div class="val-entete"><h2 id="valDlgTitre">Validation des faits</h2>'
     + '<div class="val-onglets"><button id="valTabFile" onclick="afficherFileValidation()">À valider</button>'
-    + '<button id="valTabJournal" onclick="afficherJournalValidation()">Journal</button></div>'
+    + '<button id="valTabJournal" onclick="afficherJournalValidation()">Journal</button>'
+    + '<button id="valTabMainCourante" onclick="afficherMainCourante()">Main courante</button></div>'
     + '<button class="val-fermer" aria-label="Fermer" onclick="fermerValidation()"><i class="ti ti-x"></i></button></div>'
-    + '<p class="val-aide">Grille de l\'Amirauté : la lettre juge la <b>source</b>, le chiffre juge l\'<b>information</b>. '
+    + '<p class="val-aide" id="valAideGrille">Grille de l\'Amirauté : la lettre juge la <b>source</b>, le chiffre juge l\'<b>information</b>. '
     + 'Confirmer exige une information 1 à 3, infirmer 4 ou 5. Le client lit « Validé analyste » ou « Infirmé par l\'analyste ». '
     + 'Le niveau d\'alerte n\'est pas modifié.</p>'
     + '<div id="valCorps" class="val-corps"></div></div>';
@@ -25994,6 +26093,7 @@ function fermerValidation() {
   if (d) d.style.display = 'none';
 }
 function afficherFileValidation() {
+  _entetePanneauAnalyste(false);
   const t = triValidation(typeof ALL !== 'undefined' ? ALL : []);
   const titre = (n, txt, regle) => '<h3 class="val-groupe">' + txt + ' <span class="val-compte">' + n + '</span></h3><p class="val-regle">' + regle + '</p>';
   let h = titre(t.jugement.length, '1. À votre jugement',
@@ -26033,6 +26133,7 @@ async function enregistrerLot() {
   else _toastRapide && _toastRapide(ok + ' fait(s) validé(s) en lot.', 'ti-checks');
 }
 async function afficherJournalValidation() {
+  _entetePanneauAnalyste(false);
   const corps = document.getElementById('valCorps');
   corps.innerHTML = '<p class="val-aide">Chargement du journal…</p>';
   const c = _clientValidation();
@@ -26091,6 +26192,125 @@ async function enregistrerValidation(id, decision, grille) {
   if (typeof redessinerVuesOuvertes === 'function') redessinerVuesOuvertes();
   return true;
 }
+// ════════════════════════════════════════════════════════════════════════════
+//  MAIN COURANTE DE L'ANALYSTE — 26/11/2026
+// ════════════════════════════════════════════════════════════════════════════
+// Repris du prototype SentiqS 2 (MainCourante.tsx), à la demande de YORO : des
+// notes horodatées, signées d'initiales, rattachées à un pays et, si l'analyste
+// part d'une actu, à ce fait. C'est la trace de ce qui a été vu, décidé ou
+// transmis : passation d'équipe, preuve après un incident.
+//  · main_courante/{auto} — lue et écrite par l'administrateur (l'analyste du
+//    pilote) seul, ni modifiable ni effaçable : une main courante qu'on
+//    réécrit n'en est plus une. Voir firebase/firestore.rules.
+// Elle ne touche ni au niveau d'alerte, ni à la cotation, ni aux documents
+// exportés : aucun calcul ne la lit.
+const MAIN_COURANTE_MESSAGE_MAX = 2000;
+let _mainCouranteActu = null;
+// Entrée prête à écrire, ou null si la saisie ne respecte pas les règles du
+// serveur (mêmes bornes que firebase/firestore.rules : refuser ici évite un
+// aller-retour pour rien).
+function entreeMainCourante(saisie, session, maintenant) {
+  const u = session && session.user;
+  if (!u || !u.email || !u.id) return null;
+  const message = String((saisie && saisie.message) || '').trim();
+  if (message.length < 3 || message.length > MAIN_COURANTE_MESSAGE_MAX) return null;
+  const pays = String((saisie && saisie.pays) || '').trim().toUpperCase();
+  if (pays && !/^[A-Z]{2,3}$/.test(pays)) return null;
+  const initiales = String((saisie && saisie.initiales) || '').trim().toUpperCase().slice(0, 6);
+  const a = saisie && saisie.actu;
+  return {
+    message, pays, initiales,
+    fait: a ? String(a.title || '').replace(/\s+/g, ' ').trim().slice(0, 300) : '',
+    url: a ? String(a.link || '').slice(0, 600) : '',
+    par: u.email, parUid: u.id,
+    le: new Date(maintenant == null ? Date.now() : maintenant).toISOString(),
+  };
+}
+// Même fenêtre que la validation des faits : le titre et la notice de la grille
+// suivent l'onglet ouvert.
+function _entetePanneauAnalyste(mainCourante) {
+  const t = document.getElementById('valDlgTitre');
+  if (t) t.textContent = mainCourante ? 'Main courante' : 'Validation des faits';
+  const g = document.getElementById('valAideGrille');
+  if (g) g.style.display = mainCourante ? 'none' : '';
+}
+function ouvrirMainCourante(idActu) {
+  const d = _dialogueValidation();
+  d.style.display = 'flex';
+  afficherMainCourante(idActu);
+}
+async function afficherMainCourante(idActu) {
+  _entetePanneauAnalyste(true);
+  const corps = document.getElementById('valCorps');
+  if (!corps) return;
+  _mainCouranteActu = idActu ? ((typeof ALL !== 'undefined' ? ALL : []).find(x => x.id === idActu) || null) : null;
+  const a = _mainCouranteActu;
+  const defaut = (a && a.cy && a.cy !== 'INT') ? a.cy : (typeof fCy !== 'undefined' && fCy !== 'all' ? fCy : '');
+  const options = '<option value="">— Aucun pays —</option>'
+    + (typeof CYS !== 'undefined' ? CYS : []).map(c => '<option value="' + escHtml(c.code) + '"' + (c.code === defaut ? ' selected' : '') + '>'
+      + escHtml(c.flag + ' ' + ((typeof paysR === 'function' && paysR(c.code).name) || c.name)) + '</option>').join('');
+  corps.innerHTML = '<p class="val-aide">Notes horodatées de l\'analyste : ce qui a été vu, décidé ou transmis. Réservée à l\'analyste, '
+    + 'jamais modifiable ni effaçable. Elle ne change ni les niveaux, ni la cotation, ni les rapports.</p>'
+    + '<form class="mc-form" onsubmit="event.preventDefault();enregistrerMainCourante()">'
+    + (a ? '<div class="mc-fait">Fait rattaché : ' + escHtml(L(a.title)) + '</div>' : '')
+    + '<div class="val-champs"><label>Pays<select id="mcPays">' + options + '</select></label>'
+    + '<label>Initiales<input id="mcInit" maxlength="6" autocomplete="off" style="width:90px"></label></div>'
+    + '<label class="val-champs" style="flex-direction:column">Note<textarea id="mcMsg" maxlength="' + MAIN_COURANTE_MESSAGE_MAX + '" required></textarea></label>'
+    + '<div class="val-actions"><button type="submit" class="val-ok"><i class="ti ti-notebook"></i> Inscrire dans la main courante</button>'
+    + '<span class="val-msg" id="mcEtat" role="status"></span></div></form>'
+    + '<h3 class="val-groupe">Dernières inscriptions</h3><div id="mcListe" class="mc-liste"><p class="val-aide">Chargement…</p></div>';
+  const sel = document.getElementById('mcPays');
+  if (sel) sel.addEventListener('change', () => listerMainCourante());
+  const zone = document.getElementById('mcMsg');
+  if (zone) zone.focus();
+  listerMainCourante();
+}
+async function listerMainCourante() {
+  const el = document.getElementById('mcListe');
+  if (!el) return;
+  const c = _clientValidation();
+  if (!c || !estAdmin(getSession())) { el.innerHTML = '<p class="val-aide">Réservée à l\'analyste connecté.</p>'; return; }
+  try {
+    const { data, error } = await c.from('main_courante').select().order('le', { ascending: false }).limit(100);
+    if (error) throw error;
+    const filtre = (document.getElementById('mcPays') || {}).value || '';
+    const lignes = (data || []).filter(e => !filtre || e.pays === filtre);
+    el.innerHTML = lignes.length
+      ? lignes.map(e => '<div class="mc-entree"><div class="val-tete">' + escHtml(fmtFull(Date.parse(e.le)))
+          + (e.pays ? ' · ' + escHtml(((typeof paysR === 'function' && paysR(e.pays).name) || e.pays)) : '')
+          + ' · ' + escHtml(e.initiales || _maskEmail(e.par || '')) + '</div>'
+          + (e.fait ? '<div class="mc-fait">' + (e.url ? '<a href="' + escHtml(safeUrl(e.url)) + '" target="_blank" rel="noopener">' + escHtml(e.fait) + '</a>' : escHtml(e.fait)) + '</div>' : '')
+          + '<p>' + escHtml(e.message) + '</p></div>').join('')
+      : '<p class="val-aide">' + (filtre ? 'Aucune inscription pour ce pays.' : 'Aucune inscription pour l\'instant.') + '</p>';
+  } catch (e) {
+    el.innerHTML = '<p class="val-aide">Main courante illisible : ' + escHtml((e && e.message) || 'accès refusé') + '. Vérifiez que les règles Firestore du 26/11/2026 sont publiées.</p>';
+  }
+}
+async function enregistrerMainCourante() {
+  const etat = document.getElementById('mcEtat');
+  const dire = t => { if (etat) etat.textContent = t; };
+  const c = _clientValidation();
+  if (!c || !estAdmin(getSession())) { dire('Action réservée à l\'analyste connecté.'); return false; }
+  let session = null;
+  try { session = (await c.auth.getSession()).data.session; } catch (_) {}
+  if (!session || !session.user) { dire('Session expirée : reconnectez-vous.'); return false; }
+  const e = entreeMainCourante({
+    message: (document.getElementById('mcMsg') || {}).value,
+    pays: (document.getElementById('mcPays') || {}).value,
+    initiales: (document.getElementById('mcInit') || {}).value,
+    actu: _mainCouranteActu,
+  }, session);
+  if (!e) { dire('La note doit compter de 3 à ' + MAIN_COURANTE_MESSAGE_MAX + ' caractères.'); return false; }
+  dire('Enregistrement…');
+  const r = await c.from('main_courante').insert(e);
+  if (r.error) { dire('Refusé : ' + (r.error.message || 'droits insuffisants')); return false; }
+  const zone = document.getElementById('mcMsg');
+  if (zone) zone.value = '';
+  dire('Inscrit.');
+  listerMainCourante();
+  return true;
+}
+// FIN MAIN COURANTE
 // Libelles de survenance produits par extraireDateSurvenance (« hier », « il y a
 // 3 jours »…) : du francais, par construction (le texte source l'est).
 function libelleSurvenanceR(label) {

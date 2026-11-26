@@ -246,6 +246,30 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Main courante de l'analyste (26/11/2026, reprise du prototype SentiqS 2) :
+    // notes horodatées, rattachées à un pays et éventuellement à un fait. Lue et
+    // écrite par l'administrateur seul, signée de sa session, jamais modifiable
+    // ni effaçable — même règle que le journal des validations. Le champ
+    // created_at est posé par l'adaptateur de la page (web/js/firebase.js).
+    function entreeMainCouranteBienFormee(d) {
+      return d.keys().hasOnly(['message', 'pays', 'initiales', 'fait', 'url', 'par', 'parUid', 'le', 'created_at'])
+        && d.keys().hasAll(['message', 'pays', 'initiales', 'fait', 'url', 'par', 'parUid', 'le'])
+        && d.message is string && d.message.size() >= 3 && d.message.size() <= 2000
+        && d.pays is string && (d.pays == '' || d.pays.matches('^[A-Z]{2,3}$'))
+        && d.initiales is string && d.initiales.size() <= 6
+        && d.fait is string && d.fait.size() <= 300
+        && d.url is string && d.url.size() <= 600
+        && d.par == request.auth.token.email
+        && d.parUid == request.auth.uid
+        && d.le is string && d.le.size() <= 40
+        && (!('created_at' in d) || (d.created_at is string && d.created_at.size() <= 40));
+    }
+    match /main_courante/{id} {
+      allow create: if estAdmin() && entreeMainCouranteBienFormee(request.resource.data);
+      allow read: if estAdmin();
+      allow update, delete: if false;
+    }
+
     // Paiement déclaré (13/11/2026, bloquant de vente). Avant, la
     // déclaration du client et les numéros Mobile Money ne vivaient que dans
     // le localStorage de chaque navigateur : le client ne voyait aucun numéro

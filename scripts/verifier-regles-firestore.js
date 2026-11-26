@@ -150,6 +150,20 @@ const { doc, getDoc, setDoc, deleteDoc } = require('firebase/firestore');
   await t('contact : admin ne réécrit pas le message', false, updateDoc(doc(ctx('admin'), 'messages_contact', 'anon_' + jr + '_0'), { statut: 'traite', traitePar: 'admin@x.org', traiteLe: maintenant, message: 'remplacé par l admin' }));
   await t('contact : admin traite en son nom', true, updateDoc(doc(ctx('admin'), 'messages_contact', 'anon_' + jr + '_0'), { statut: 'traite', traitePar: 'admin@x.org', traiteLe: maintenant }));
   await t('contact : client ne supprime pas', false, deleteDoc(doc(ctx('paye'), 'messages_contact', 'paye_' + jr + '_0')));
+  // Main courante de l'analyste (26/11/2026) : admin seul, signée de sa
+  // session, ni modifiable ni effaçable.
+  const mc = (uid, extra) => Object.assign({ message: 'Point fait avec la DSI sur Kong', pays: 'CI', initiales: 'YT', fait: '', url: '',
+    par: uid + '@x.org', parUid: uid, le: maintenant, created_at: maintenant }, extra || {});
+  await t('main courante : admin inscrit', true, setDoc(doc(ctx('admin'), 'main_courante', 'mc1'), mc('admin')));
+  await t('main courante : admin lit', true, getDoc(doc(ctx('admin'), 'main_courante', 'mc1')));
+  await t('main courante : client n inscrit pas', false, setDoc(doc(ctx('paye'), 'main_courante', 'mc2'), mc('paye')));
+  await t('main courante : client ne lit pas', false, getDoc(doc(ctx('paye'), 'main_courante', 'mc1')));
+  await t('main courante : inscription au nom d un autre refusée', false, setDoc(doc(ctx('admin'), 'main_courante', 'mc3'), mc('admin', { par: 'paye@x.org' })));
+  await t('main courante : note trop courte refusée', false, setDoc(doc(ctx('admin'), 'main_courante', 'mc4'), mc('admin', { message: 'ok' })));
+  await t('main courante : pays mal formé refusé', false, setDoc(doc(ctx('admin'), 'main_courante', 'mc5'), mc('admin', { pays: 'cote' })));
+  await t('main courante : champ en trop refusé', false, setDoc(doc(ctx('admin'), 'main_courante', 'mc6'), mc('admin', { niveau: 'rouge' })));
+  await t('main courante : admin ne réécrit pas', false, updateDoc(doc(ctx('admin'), 'main_courante', 'mc1'), { message: 'réécrit après coup' }));
+  await t('main courante : admin n efface pas', false, deleteDoc(doc(ctx('admin'), 'main_courante', 'mc1')));
   console.log(res.join('\n'));
   await env.cleanup();
   process.exit(res.some((r) => r.startsWith('FAIL')) ? 1 : 0);
