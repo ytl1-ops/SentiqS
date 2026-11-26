@@ -77,9 +77,20 @@ img,svg{display:block;max-width:100%}
 ::selection{background:var(--sblue);color:#fff}
 
 /* ── reveal-on-scroll ─────────────────────────────────────────────── */
-.rv{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
-.rv.in{opacity:1;transform:translateY(0)}
-@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}}
+/* 26/11/2026 : courbe ease-out franche et léger flou qui se dissipe (le bloc
+   « se met au point » en arrivant). Rare (une fois
+   par bloc et par visite) : c'est la place d'un mouvement plus expressif. */
+.rv{opacity:0;transform:translateY(16px);filter:blur(4px);transition:opacity .6s cubic-bezier(.23,1,.32,1),transform .6s cubic-bezier(.23,1,.32,1),filter .6s cubic-bezier(.23,1,.32,1)}
+.rv.in{opacity:1;transform:translateY(0);filter:none}
+/* Grilles (étapes, chiffres, forfaits) : les cartes suivent leur bloc,
+   décalées de 70 ms, pour se lire de gauche à droite. */
+.rv:is(.steps,.cov-stats,.plans)>*{opacity:0;transform:translateY(10px);transition:opacity .5s cubic-bezier(.23,1,.32,1),transform .5s cubic-bezier(.23,1,.32,1)}
+.rv.in:is(.steps,.cov-stats,.plans)>*{opacity:1;transform:none}
+.rv:is(.steps,.cov-stats,.plans)>:nth-child(2){transition-delay:70ms}
+.rv:is(.steps,.cov-stats,.plans)>:nth-child(3){transition-delay:140ms}
+.rv:is(.steps,.cov-stats,.plans)>:nth-child(4){transition-delay:210ms}
+.rv:is(.steps,.cov-stats,.plans)>:nth-child(n+5){transition-delay:280ms}
+@media (prefers-reduced-motion:reduce){.rv,.rv:is(.steps,.cov-stats,.plans)>*{opacity:1;transform:none;filter:none;transition:none}}
 
 /* ── NAV ──────────────────────────────────────────────────────────── */
 .nav{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;align-items:center;justify-content:space-between;
