@@ -2880,6 +2880,32 @@ html[data-theme="dark"] .vact-repli{background-image:linear-gradient(150deg,rgba
 @media (max-width:760px){html:not(.force-web) .fiche-syn dl{grid-template-columns:1fr;gap:2px}html:not(.force-web) .fiche-syn dd{margin-bottom:6px}}
 html.force-mobile .fiche-syn dl{grid-template-columns:1fr;gap:2px}
 html.force-mobile .fiche-syn dd{margin-bottom:6px}
+/* Tri du tableau des Alertes et chronologie 30 jours de la fiche pays
+   (27/11/2026, repris du prototype SentiqS 2). La couleur d'une case de la
+   chronologie est celle du niveau relevé ce jour-là, et elle est doublée par
+   le texte (infobulle, résumé lu par les lecteurs d'écran). */
+.tri-col{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:4px;min-height:24px;font:inherit;color:inherit;text-transform:inherit;letter-spacing:inherit}
+.tri-col i{font-size:11px;opacity:.55}
+.tri-col.actif{color:var(--t)}
+.tri-col.actif i{opacity:1}
+.tri-col:focus-visible{outline:2px solid var(--sig);outline-offset:2px;border-radius:2px}
+.c30-bande{display:flex;gap:2px;height:22px;margin:2px 0 4px}
+.c30-j{flex:1;border-radius:2px;min-width:0;position:relative}
+.c30-j.vide{border:1px dashed var(--bd);background:transparent}
+.c30-j.a-faits::after{content:"";position:absolute;left:50%;bottom:-6px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--t2)}
+.c30-axe{display:flex;justify-content:space-between;font-size:var(--fs-micro);color:var(--lg);margin-top:6px}
+.c30-resume{font-size:12px;color:var(--t2);margin:6px 0 10px}
+.c30-jour{display:grid;grid-template-columns:72px 1fr;gap:10px;border-top:1px solid var(--bd);padding:7px 0}
+.c30-date{font-size:12px;font-weight:700;color:var(--t2)}
+.c30-jour ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--t);line-height:1.4}
+.c30-niv{font-size:var(--fs-micro);font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--t2);border:1px solid var(--bd);border-radius:3px;padding:0 4px;margin-right:4px}
+.c30-meta{color:var(--lg);font-size:11.5px}
+.c30-meta a{color:var(--b)}
+.c30-chg{color:var(--t2);font-weight:600}
+.c30-chg i{margin-right:4px}
+.c30-vide{font-size:12px;color:var(--lg);font-style:italic;margin:6px 0}
+@media (max-width:760px){html:not(.force-web) .c30-jour{grid-template-columns:1fr;gap:3px}}
+html.force-mobile .c30-jour{grid-template-columns:1fr;gap:3px}
 
 @media (max-width:760px){
   html:not(.force-web) .vact-vignette{float:right;width:96px;height:72px;margin:0 0 var(--sp-2) var(--sp-2)}
@@ -16449,9 +16475,9 @@ async function renderPanelATraiter(cyFiltre, zoneFiltre) {
 let HISTORIQUE_SERIE = null;
 let historiqueDemande = false;
 function chargerHistorique() {
-  if (historiqueDemande) return;
-  historiqueDemande = true;
-  fetch('historique/serie.json', { cache: 'no-cache' })
+  // Rend la promesse (27/11/2026) : la chronologie de la fiche pays l'attend.
+  if (historiqueDemande) return historiqueDemande;
+  historiqueDemande = fetch('historique/serie.json', { cache: 'no-cache' })
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (j) {
       if (!j || !j.pays) return;
@@ -24310,10 +24336,85 @@ async function renderAlertCard(score) {
   </div>`;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// TRI DU TABLEAU DES ALERTES — 27/11/2026
+//
+// Repris du prototype SentiqS 2 (dépôt ytl1-ops/SentiqS-2), à la demande de
+// YORO : le tableau récapitulatif des 54 pays ne se lisait que dans un ordre,
+// le score décroissant. Un clic sur l'en-tête d'une colonne trie par cette
+// colonne, un second clic inverse le sens. Le tri ne touche qu'à l'ordre des
+// lignes : niveaux, scores et fiches restent ceux de calcAlertScore.
+// L'ordre par défaut reste le score décroissant, celui de recalcAlertes.
+// ═══════════════════════════════════════════════════════════════════════════
+const RANG_NIVEAU_TRI = { vert:0, jaune:1, orange:2, marron:3, rouge:4 };
+const COLONNES_TRI_ALERTES = ['pays', 'capitale', 'niveau', 'score', 'incidents', 'maj'];
+let TRI_TABLEAU_ALERTES = { col: 'score', sens: 'desc' };
+let _scoresTableauAlertes = null;
+
+// Sens proposé au premier clic sur une colonne : le plus utile d'abord (le
+// plus grave, le plus récent) pour les nombres, l'ordre alphabétique pour les noms.
+function sensInitialTri(col) { return (col === 'pays' || col === 'capitale') ? 'asc' : 'desc'; }
+
+// scores : sortie de calcAlertScore. ctx : { nom(cy), capitale(cy), majTs(cy) },
+// injecté pour que le tri se teste sans la page. Toujours une copie : l'ordre
+// des scores lu ailleurs (instantané public, top 5) ne doit pas bouger.
+function trierScoresTableau(scores, tri, ctx) {
+  const col = COLONNES_TRI_ALERTES.includes(tri && tri.col) ? tri.col : 'score';
+  const sens = (tri && tri.sens === 'asc') ? 1 : -1;
+  const comparerTexte = (x, y) => String(x || '').localeCompare(String(y || ''), 'fr', { sensitivity: 'base' });
+  const valeur = {
+    pays:      s => ctx.nom(s.cy),
+    capitale:  s => ctx.capitale(s.cy),
+    niveau:    s => RANG_NIVEAU_TRI[s.key] != null ? RANG_NIVEAU_TRI[s.key] : -1,
+    score:     s => Number(s.total100) || 0,
+    incidents: s => (s.events || []).length,
+    // Un pays sans aucune actu captée est le plus ancien de tous.
+    maj:       s => ctx.majTs(s.cy) || 0,
+  }[col];
+  return scores.slice().sort((a, b) => {
+    const va = valeur(a), vb = valeur(b);
+    const d = (typeof va === 'string') ? comparerTexte(va, vb) : va - vb;
+    if (d) return d * sens;
+    // À égalité, le plus grave d'abord, puis le nom : un ordre stable d'un rendu à l'autre.
+    return ((Number(b.total100) || 0) - (Number(a.total100) || 0)) || comparerTexte(ctx.nom(a.cy), ctx.nom(b.cy));
+  });
+}
+
+function contexteTriAlertes() {
+  return {
+    nom: cy => ((LANG === 'en' && typeof PAYS_EN !== 'undefined' && PAYS_EN[cy]) || (PAYS_INFO[cy] || {}).name || cy),
+    capitale: cy => (PAYS_INFO[cy] || {}).capital || '',
+    majTs: cy => derniereActuTsPays(cy),
+  };
+}
+
+async function trierTableauAlertes(col) {
+  if (!COLONNES_TRI_ALERTES.includes(col)) return;
+  TRI_TABLEAU_ALERTES = (TRI_TABLEAU_ALERTES.col === col)
+    ? { col, sens: TRI_TABLEAU_ALERTES.sens === 'asc' ? 'desc' : 'asc' }
+    : { col, sens: sensInitialTri(col) };
+  const table = document.getElementById('alerteTable');
+  if (!table || !_scoresTableauAlertes) return;
+  const html = await renderAlertTable(_scoresTableauAlertes);
+  table.innerHTML = html; table._htmlRendu = html;
+  const btn = table.querySelector('th[data-col="' + col + '"] button');
+  if (btn) btn.focus();
+}
+
 async function renderAlertTable(scores) {
-  const h = '<tr>' + ['Pays','Capitale','Niveau','Score','Incidents','Mesure clé expatriés','Mesure clé installations','MAJ'].map(c=>
-    `<th style="padding:7px 10px;text-align:left;font-size:9px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;background:var(--sf);border-bottom:1px solid var(--bd);">${c}</th>`
-  ).join('') + '</tr>';
+  _scoresTableauAlertes = scores;
+  const tri = TRI_TABLEAU_ALERTES;
+  const enTetes = [['pays','Pays'],['capitale','Capitale'],['niveau','Niveau'],['score','Score'],['incidents','Incidents'],
+    [null,'Mesure clé expatriés'],[null,'Mesure clé installations'],['maj','MAJ']];
+  const styleTh = 'padding:7px 10px;text-align:left;font-size:9px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;background:var(--sf);border-bottom:1px solid var(--bd);';
+  const h = '<tr>' + enTetes.map(([col, c]) => {
+    if (!col) return `<th scope="col" style="${styleTh}">${c}</th>`;
+    const actif = tri.col === col;
+    const fleche = actif ? (tri.sens === 'asc' ? 'ti-arrow-up' : 'ti-arrow-down') : 'ti-arrows-sort';
+    return `<th scope="col" data-col="${col}" aria-sort="${actif ? (tri.sens === 'asc' ? 'ascending' : 'descending') : 'none'}" style="${styleTh}">`
+      + `<button type="button" class="tri-col${actif ? ' actif' : ''}" onclick="trierTableauAlertes('${col}')" title="Trier par cette colonne">${c}<i class="ti ${fleche}" aria-hidden="true"></i></button></th>`;
+  }).join('') + '</tr>';
+  scores = trierScoresTableau(scores, tri, contexteTriAlertes());
 
   await preTraduireRapport(Object.values(MESURES).flatMap(m => [m.expatries[0], m.installations[0]]));
   const rows = scores.map((s,i) => {
@@ -24461,6 +24562,152 @@ function updateGlobalFilterBadge() {
   el.innerHTML = '<i class="ti ti-filter" style="font-size:11px"></i><span>'+p.flag+' '+p.name+'</span>'+
     '<i class="ti ti-x" onclick="event.stopPropagation();clearGlobalCountryFilter()" style="cursor:pointer;margin-left:4px;font-size:12px;opacity:.8;"></i>';
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CHRONOLOGIE 30 JOURS D'UN PAYS — 27/11/2026
+//
+// Repris du prototype SentiqS 2, à la demande de YORO : la fiche pays disait
+// le niveau du jour, jamais le chemin qui y mène. La chronologie montre, sur
+// les trente derniers jours, le niveau relevé chaque jour par l'archive
+// (historique/serie.json, écrite par le job : rien n'est recalculé) et, jour
+// par jour, les faits critiques et élevés que l'outil connaît pour ce pays.
+//
+// Deux règles tenues :
+//  · un jour sans relevé reste vide, il n'est jamais comblé par le voisin :
+//    un niveau supposé serait une affirmation sans mesure (même règle que les
+//    flèches de tendance, aucune en dessous de deux relevés) ;
+//  · les faits sont ceux de l'assistant (temps réel, référence, cumul du mois
+//    publié, relu par la classification d'aujourd'hui), une même adresse ne
+//    compte qu'une fois. La chronologie ne touche ni au niveau ni au score.
+// ═══════════════════════════════════════════════════════════════════════════
+const CHRONO_PAYS_JOURS = 30;
+const CHRONO_PAYS_FAITS_MAX = 25;
+const _JOUR_MS = 86400000;
+
+function _jourUtc(ms) { return new Date(ms).toISOString().slice(0, 10); }
+
+// lignesSerie : [[AAAA-MM-JJ, niveau], …] (serie.json, pays donné).
+// faits : [{ titre, niveau:'crit'|'high'|…, publieMs, url, … }].
+function chronologie30Jours(lignesSerie, faits, maintenantMs, nbJours) {
+  const n = nbJours || CHRONO_PAYS_JOURS;
+  const parJour = new Map((lignesSerie || []).filter(l => Array.isArray(l) && l[0]).map(l => [l[0], l[1] || null]));
+  const fin = _jourUtc(maintenantMs);
+  const debutMs = Date.parse(fin + 'T00:00:00Z') - (n - 1) * _JOUR_MS;
+  const jours = [];
+  for (let i = 0; i < n; i++) {
+    const jour = _jourUtc(debutMs + i * _JOUR_MS);
+    jours.push({ jour, niveau: parJour.has(jour) ? parJour.get(jour) : null, changement: null, faits: [] });
+  }
+  // Le niveau de référence du premier jour est le dernier relevé d'AVANT la
+  // fenêtre : sans lui, un changement survenu le premier jour serait tu.
+  const anterieurs = [...parJour.keys()].filter(j => j < jours[0].jour).sort();
+  let precedent = anterieurs.length ? parJour.get(anterieurs[anterieurs.length - 1]) : null;
+  let nbReleves = 0, nbChangements = 0;
+  const comptes = {};
+  jours.forEach(j => {
+    if (!j.niveau) return;
+    nbReleves++;
+    comptes[j.niveau] = (comptes[j.niveau] || 0) + 1;
+    if (precedent && precedent !== j.niveau) { j.changement = { de: precedent, a: j.niveau }; nbChangements++; }
+    precedent = j.niveau;
+  });
+  const index = new Map(jours.map(j => [j.jour, j]));
+  const vus = new Set();
+  let nbFaits = 0;
+  (faits || [])
+    .filter(f => f && f.titre && (f.niveau === 'crit' || f.niveau === 'high') && f.publieMs >= debutMs && f.publieMs <= maintenantMs)
+    // Du plus ancien au plus récent : une reprise du même article garde la
+    // date de la première publication, pas celle de la reprise.
+    .sort((a, b) => (a.publieMs - b.publieMs) || ((a.niveau === 'crit' ? 0 : 1) - (b.niveau === 'crit' ? 0 : 1)))
+    .forEach(f => {
+      const cle = f.url || String(f.titre).toLowerCase().replace(/\s+/g, ' ').trim();
+      if (vus.has(cle)) return;
+      vus.add(cle);
+      const j = index.get(_jourUtc(f.publieMs));
+      if (j) { j.faits.push(f); nbFaits++; }
+    });
+  jours.forEach(j => j.faits.reverse());
+  return { debut: jours[0].jour, fin, jours, nbReleves, nbChangements, nbFaits, comptes };
+}
+
+// Faits du pays sur la fenêtre : mêmes sources et mêmes règles que l'assistant
+// (donneesAssistant), pour qu'une question à Louis et la fiche pays disent la
+// même chose.
+async function faitsPays30Jours(cy, maintenantMs) {
+  const depuis = maintenantMs - CHRONO_PAYS_JOURS * _JOUR_MS;
+  const faits = [];
+  (typeof ALL !== 'undefined' ? ALL : []).forEach(a => { if (a && a.cy === cy) { const f = _asFaitDeArticle(a); if (f) faits.push(f); } });
+  (typeof HISTORIQUE !== 'undefined' ? HISTORIQUE : []).forEach(a => {
+    if (!a || a.cy !== cy || a._dateNonFiable) return;
+    const f = _asFaitDeArticle(a); if (f) { f.enDirect = false; faits.push(f); }
+  });
+  const mois = [...new Set([depuis, maintenantMs].map(ms => _jourUtc(ms).slice(0, 7)))];
+  const cumuls = await Promise.all(mois.map(_asCumulMois));
+  cumuls.forEach(c => ((c && c.pays && c.pays[cy]) || []).forEach(x => {
+    if (!x || !x.titre) return;
+    let niveau = x.niveau;
+    try { const c2 = classify(x.titre + ' ' + (x.resume || ''), null, x.titre); niveau = c2 && c2.lvl; } catch (_) {}
+    faits.push({ titre: x.titre, titreFr: x.titreFr || null, cy, niveau, publieMs: x.publieMs || null,
+      source: x.source || null, url: x.url || null, cotation: x.cotation || 'non_confirme', enDirect: false });
+  }));
+  return faits;
+}
+
+function chronologie30JoursHtml(c) {
+  const en = LANG === 'en';
+  const nomNiv = k => (NIV[k] ? (en ? ({ vert:'Green', jaune:'Yellow', orange:'Orange', marron:'Brown', rouge:'Red' })[k] : NIV[k].label.charAt(0) + NIV[k].label.slice(1).toLowerCase()) : k);
+  const fmtJour = j => new Date(j + 'T12:00:00Z').toLocaleDateString(en ? 'en-GB' : 'fr-FR', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+  const resume = Object.keys(NIV).filter(k => c.comptes[k]).map(k => nomNiv(k) + ' ' + c.comptes[k] + (en ? ' d' : ' j')).join(', ');
+  const sansReleve = CHRONO_PAYS_JOURS - c.nbReleves;
+  const libelleBande = (en ? 'Level day by day, ' : 'Niveau au jour le jour, du ') + fmtJour(c.debut) + (en ? ' to ' : ' au ') + fmtJour(c.fin)
+    + ' : ' + (resume || (en ? 'no record' : 'aucun relevé')) + (sansReleve ? (en ? ', no record ' : ', sans relevé ') + sansReleve + (en ? ' d' : ' j') : '');
+  const cases = c.jours.map(j => {
+    const t = fmtJour(j.jour) + ' — ' + (j.niveau ? nomNiv(j.niveau) : (en ? 'no record' : 'pas de relevé')) + (j.faits.length ? ' · ' + j.faits.length + (en ? ' fact(s)' : ' fait(s)') : '');
+    return `<span class="c30-j${j.niveau ? '' : ' vide'}${j.faits.length ? ' a-faits' : ''}" title="${escHtml(t)}" style="${j.niveau && NIV[j.niveau] ? 'background:' + NIV[j.niveau].col : ''}"></span>`;
+  }).join('');
+  const bande = `<div class="c30-bande" role="img" aria-label="${escHtml(libelleBande)}">${cases}</div>
+    <div class="c30-axe"><span>${fmtJour(c.debut)}</span><span>${en ? 'Today' : "Aujourd'hui"}</span></div>
+    <p class="c30-resume">${escHtml(libelleBande)}.${c.nbReleves >= 2 ? ' ' + (c.nbChangements ? c.nbChangements + (en ? ' level change(s).' : ' changement(s) de niveau.') : (en ? 'No level change.' : 'Aucun changement de niveau.')) : ' ' + (en ? 'Not enough records yet to read a trajectory.' : 'Pas encore assez de relevés pour lire une trajectoire.')}</p>`;
+  let reste = CHRONO_PAYS_FAITS_MAX, masques = 0;
+  const lignes = c.jours.slice().reverse().filter(j => j.changement || j.faits.length).map(j => {
+    const items = [];
+    if (j.changement) items.push(`<li class="c30-chg"><i class="ti ${RANG_NIVEAU_TRI[j.changement.a] > RANG_NIVEAU_TRI[j.changement.de] ? 'ti-trending-up' : 'ti-trending-down'}" aria-hidden="true"></i>${en ? 'Level' : 'Niveau'} : ${glypheNiveau(NIV[j.changement.de])}${nomNiv(j.changement.de)} → ${glypheNiveau(NIV[j.changement.a])}${nomNiv(j.changement.a)}</li>`);
+    j.faits.forEach(f => {
+      if (reste <= 0) { masques++; return; }
+      reste--;
+      const titre = (!en && f.titreFr) ? f.titreFr : L(f.titre);
+      const cot = (typeof COTATION_LIBELLES !== 'undefined') ? libelleCotationR({ cle: f.cotation, libelle: COTATION_LIBELLES[f.cotation] || '' }) : '';
+      const lien = (sourcesVisibles() && f.url && /^https:\/\//.test(f.url)) ? ` <a href="${escHtml(f.url)}" target="_blank" rel="noopener">${escHtml(f.source || (en ? 'source' : 'source'))}</a>` : '';
+      items.push(`<li><span class="c30-niv">${f.niveau === 'crit' ? (en ? 'Critical' : 'Critique') : (en ? 'High' : 'Élevé')}</span> ${escHtml(titre)}<span class="c30-meta">${cot ? ' · ' + escHtml(cot) : ''}${lien}</span></li>`);
+    });
+    return items.length ? `<div class="c30-jour"><div class="c30-date">${fmtJour(j.jour)}</div><ul>${items.join('')}</ul></div>` : '';
+  }).join('');
+  const vide = `<p class="c30-vide">${en ? 'No critical or high fact known for this country over these 30 days. This is not a sign of calm: it may be a country the tool sees poorly.' : "Aucun fait critique ou élevé connu pour ce pays sur ces 30 jours. Ce n'est pas un signe de calme : ce peut être un pays que l'outil voit mal."}</p>`;
+  return bande + (lignes || vide) + (masques ? `<p class="c30-vide">${en ? 'And ' + masques + ' more fact(s), in the Flux and the Présentation 1.' : 'Et ' + masques + ' fait(s) de plus, dans le Flux et la Présentation 1.'}</p>` : '');
+}
+
+async function remplirChronologiePays(cy) {
+  const box = document.getElementById('chrono30-' + cy);
+  if (!box) return;
+  try {
+    if (!HISTORIQUE_SERIE) await chargerHistorique();
+    const maintenant = Date.now();
+    const faits = await faitsPays30Jours(cy, maintenant);
+    const lignes = (HISTORIQUE_SERIE && HISTORIQUE_SERIE.pays && HISTORIQUE_SERIE.pays[cy]) || [];
+    const c = chronologie30Jours(lignes, faits, maintenant);
+    const ecrire = () => { const cible = document.getElementById('chrono30-' + cy); if (cible) cible.innerHTML = chronologie30JoursHtml(c); };
+    ecrire();
+    // La traduction ne retarde pas l'affichage : la bande des niveaux sort
+    // tout de suite, les titres traduits remplacent ensuite la mention
+    // « traduction en cours ». Seuls les faits affichés sont traduits.
+    const affiches = c.jours.flatMap(j => j.faits).slice(0, CHRONO_PAYS_FAITS_MAX).map(f => f.titre);
+    if (affiches.length) preTraduireRapport(affiches).then(ecrire, () => {});
+  } catch (e) {
+    const cible = document.getElementById('chrono30-' + cy);
+    if (cible) cible.innerHTML = '<p class="c30-vide">' + (LANG === 'en' ? 'Timeline unavailable right now.' : 'Chronologie indisponible pour le moment.') + '</p>';
+  }
+}
+// FIN CHRONOLOGIE 30 JOURS
 
 async function ouvrirVuePays(cy) {
   applyGlobalCountryFilter(cy);
@@ -24638,6 +24885,7 @@ async function ouvrirVuePays(cy) {
       ${score ? (() => { const ligne = pastilleCouvertureFaible(derniereActuTsPays(cy), dateDernierIncident(score.events)); return ligne ? `<div style="padding:8px 20px 0 20px;">${ligne}</div>` : ''; })() : ''}
       <div style="padding:18px 20px;">
         ${section('Briefing Executif et Conformite', 'ti-briefcase', '', htmlBriefing)}
+        ${section('Chronologie 30 jours', 'ti-timeline', '', `<div id="chrono30-${cy}" class="c30"><p class="c30-vide">Chargement de la chronologie…</p></div>`)}
      ${section('Actualites — module Flux', 'ti-news', actus.length, htmlActus)}
         ${section('Reseaux sociaux', 'ti-social', social?social.arts.length:0, htmlSocial)}
         ${section('Veille regionale', 'ti-map-pin', regionaux.length, htmlRegio)}
@@ -24662,6 +24910,7 @@ async function ouvrirVuePays(cy) {
     </div>`;
 
   document.body.appendChild(overlay);
+  remplirChronologiePays(cy);
 
      fetchFCDOAdvice(cy).then(data => {
        const box = document.getElementById('fcdoBox-' + cy);

@@ -5104,3 +5104,28 @@ passent de `#05080B` / `#101A22` à `#071431` / `#0F2450` (`--panel-b` `#16295A`
 `#1C3466` mettait `--ink4` à 4,25:1, repéré par `pages-hors-appli.test.js`).
 Les documents exportés gardent leurs couleurs codées en dur. Mesuré : contraste
 0 sous AA en sombre, en clair, sur l'accueil, les fiches et les pages légales.
+
+---
+
+## Tri du tableau des Alertes et chronologie 30 jours — 27/11/2026
+
+Repris du prototype SentiqS-2, à la demande de YORO.
+
+- **Tri par colonne** (`trierScoresTableau`, `trierTableauAlertes`) : pays,
+  capitale, niveau (par gravité, jamais alphabétique), score, incidents, MAJ
+  (un pays sans actu captée est le plus ancien). Égalité : score, puis nom.
+  Défaut : score décroissant. Le tri ne s'applique qu'au rendu, sur une copie :
+  l'ordre de `scores` utilisé ailleurs ne change pas. En-têtes en `<button>`,
+  `aria-sort`. Les deux colonnes de mesures ne se trient pas.
+- **Chronologie 30 jours** dans la fiche pays (`chronologie30Jours`,
+  `remplirChronologiePays`) : niveau jour par jour lu dans l'archive
+  (`serie.json`), un jour sans relevé reste vide (jamais comblé), changements
+  datés y compris le premier jour de la fenêtre ; faits critiques et élevés de
+  `ALL`, `HISTORIQUE` et des cumuls du mois, une adresse une fois. **Ne lit ni
+  n'écrit le niveau** : un test interdit `calcAlertScore` dans le bloc.
+  Affichée d'abord, traduite ensuite (`preTraduireRapport` bloque hors ligne).
+- La chronologie montre les faits tels que `classify` les a classés : elle
+  rend visibles ses faux positifs (« Piqûre de scorpion… attaque » critique),
+  elle ne les crée pas.
+
+`scripts/test/tri-chronologie.test.js` (11).
