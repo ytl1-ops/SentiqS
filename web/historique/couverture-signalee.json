@@ -1,4 +1,7 @@
 {
- "cle": "",
- "pays": []
+ "cle": "BW,CV",
+ "pays": [
+  "BW",
+  "CV"
+ ]
 }
