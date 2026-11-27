@@ -5263,3 +5263,84 @@ demande. Offrir le choix des periodes, des pays, zones geographique... », puis
 
 Tests : `categorie-actus.test.js` (13), `reclasser-cumul.test.js` (3),
 `presentation-periode.test.js` (7), `sport-impact.test.js` (3).
+
+---
+
+## Audit de l'agenda — 27/11/2026
+
+Signalement de YORO : « l'agenda affiche des incohérences ». Banc : la vraie
+page, horloge figée au 27/11/2026, les faits des sept derniers jours du cumul
+de novembre injectés dans `ALL` (779 articles), l'agenda de l'agent et les
+fériés réels (`web/agenda/externe.json`). 192 entrées avant. Ce qui était faux :
+
+- **Statuts figés des entrées saisies** : le sommet de la CEDEAO du 2 juillet
+  restait « URGENT » en tête de liste, la présidentielle de São Tomé (juillet)
+  aussi ; 27 entrées passées n'étaient pas « achevées » ; la Biennale de Dakar
+  (19 novembre – 19 décembre) restait « planifiée » au lieu d'« en cours ».
+- **Un événement détecté dans le Flux était daté de la parution** de
+  l'article et passait « achevé » 24 h plus tard : « rassemblement national
+  prévu le 5 décembre » à Rabat, le meeting du Pastef du 6 décembre, la grève
+  du SYNES dès le 4 janvier, le Gamou de Médina Niassène du 9 janvier (affiché
+  « URGENT » au 27 novembre).
+- **L'agenda de l'agent n'était lu que par Louis**, jamais par le module
+  Agenda ; un événement de plusieurs jours en sortait deux jours après son
+  début ; un événement à venir portait « −1H ».
+- **Doublons de fêtes** : « Noël — 42 pays » (férié) et « Noël — 2 pays »
+  (calcul) le même jour ; « Aïd el-Fitr — 29 pays » et « Korité — Mali ».
+- **L'Égypte fêtait Noël le 25 décembre** (son Noël copte est le 7 janvier) ;
+  Achoura était décrite comme le « nouvel an musulman » (c'est le 10 mouharram).
+- **Langues mêlées** : en français, des fériés en amharique (« ጥምቀት »), en
+  arabe (« عيد الثورة 25 يناير »), en portugais (« Dia do Heroi Nacional »),
+  en anglais (« Easter Saturday ») ; « Jour de l'an » le 1er ET le 2 janvier.
+
+Correctifs : `agendaAJour` (page) fait suivre le statut à la date
+(`SentiqCalendrier.statutParDate`) et date un événement détecté par la date
+**écrite** dans son titre puis son extrait (`SentiqCalendrier.dateAnnoncee`,
+désormais partagée avec l'agent ; sans date écrite, rien ne change) ;
+`renderAgenda` lit `agendaComplet()`, la même liste que Louis ;
+`fusionnerCalendrier` réunit une fête officielle et la même fête calculée
+tombant le même jour ; `titreFerie` n'affiche un nom local que pour un pays
+francophone en écriture latine.
+
+`dateAnnoncee` : sans année, l'occurrence passée si elle tombe dans les
+60 jours avant la parution, sinon la suivante (elle renvoyait à l'année
+suivante toute date passée de plus de trois jours). Un lieu qui porte une
+date (« stade du 1er mai », « place du 26 mars ») n'est pas une date.
+
+**Ne bougent pas, exprès** : le niveau d'alerte (l'agenda n'y entre pas), les
+exports (`getExportAgenda` ne passe pas par `agendaAJour` — un test l'exige ;
+le JSON exporté est identique avant/après sur le banc), la détection
+(`typeEvenementDetecte`, qui décide aussi de ce qui sort du Flux) et la
+fenêtre de 7 jours (`estAgendaRecent`). La Présentation 1 n'a pas d'agenda :
+pas de doublon possible avec elle.
+
+**Limites connues** : la détection classe encore des actus comme événements
+(« Museveni fils s'invite dans l'arène » → sportif, « L'Assemblée nationale
+adopte la loi de finances » → gouvernemental) ; les retirer change le Flux et
+ses exports, à décider à part. Un événement détecté annoncé loin à l'avance
+quitte l'agenda sept jours après la parution de l'article. Les dates des
+fériés sont celles de Nager.Date (le vodoun du Bénin y est le 7 et le
+8 janvier 2027, non vérifié d'ici). Les fêtes musulmanes restent des dates
+estimées (Umm al-Qura), souvent un jour avant l'observation en Afrique de
+l'Ouest. Les exports d'agenda gardent les statuts figés des entrées saisies.
+
+`scripts/test/agenda-coherence.test.js` (11, vus échouer sur l'ancien code).
+
+**Aucun incident à l'agenda (27/11/2026, suite).** YORO : « les événements
+tels que attaques ne doivent pas être dans l'agenda ». `AGENDA_INCIDENT_RE`
+couvre désormais FR, EN, PT et ES (morts, noyade, naufrage, incendie, « part
+en fumée », accident, effondrement, évacués, rebelles, crash, mortos, muertos…)
+et `estIncidentAgenda` l'applique dans `agendaAJour` à **toutes** les sources
+(saisie, Flux, agenda partagé, agent), donc à Louis aussi ; jours fériés et
+fêtes calculées n'y passent pas (« Fête des martyrs »). Une commémoration
+garde sa place (« Massacre de Thiaroye 44 : le programme de la cérémonie »),
+comme une campagne « contre les violences » ou une session judiciaire « de
+lutte contre le terrorisme » (`AGENDA_INCIDENT_NEUTRES`). « militants » et
+« bomb… » en préfixe ne sont pas lus en anglais : « le CAR mobilise ses
+militants », « Jubilé du Bombardier ». Mesuré sur les 2 780 faits des cumuls
+d'octobre et novembre : agenda 231 → 226, sept incidents sortent (atelier
+incendié à Podor, noyade après un match, naufrage, députés évacués…), deux
+articles sur la Toussaint entrent (fête religieuse) ; trois articles reviennent
+au Flux. Le cumul ne contient que des faits au-dessus du normal : l'effet sur
+les articles de niveau normal n'est pas mesuré d'ici.
+`scripts/test/agenda-sans-incident.test.js` (4, trois vus échouer).
