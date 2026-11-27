@@ -4893,6 +4893,15 @@ chaque fois : sa condition `vars.COLLECTE_CHAINEE != '0'` est fausse quand la
 variable n'existe pas, car GitHub compare alors `null` et `'0'` en nombres
 (0 = 0). Écrire `(vars.X || 'oui') != '0'` pour toute variable facultative
 comparée à une valeur ; un test l'exige.
+
+**Les passages annexes étaient étranglés aussi (27/11/2026).** En 24 h, l'agent
+de recherche (cron toutes les 30 min) n'avait tourné que deux fois, la
+traduction (cron horaire) une fois, et les avis officiels comme l'agenda des
+jours fériés pas du tout depuis leur échec du 26/11. Le job `relance` les
+redemande : traduction et agent à chaque passage, juste après la collecte ;
+avis officiels et agenda une fois par jour, s'ils n'ont pas encore réussi ou
+ne sont pas en cours. Leurs crons restent le filet.
+`scripts/test/relance-annexes.test.js` (3).
 ## Louis, l'agent de veille — 22/11/2026
 
 Demande de YORO : « Insère une bulle chat pour l'IA, le nom de l'agent IA est
