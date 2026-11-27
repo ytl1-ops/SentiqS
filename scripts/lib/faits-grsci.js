@@ -115,6 +115,27 @@ function reattribuer(c, paysDe) {
   return deplaces;
 }
 
+// reclasser(cumul, classerDe) : rejoue le classement courant (niveau,
+// catégorie) sur les faits déjà versés. `classerDe(f, cy)` rend
+// { niveau, cat }. Audit du 27/11/2026 : `cumuler` ne revoit un fait que s'il
+// repasse dans la collecte, donc un correctif de classement (piqûre de
+// scorpion en « politique ») laissait les erreurs du mois en place. La
+// cotation n'est jamais touchée. Rend la liste des changements.
+function reclasser(c, classerDe) {
+  const changes = [];
+  for (const cy of Object.keys(c.pays || {})) {
+    for (const f of c.pays[cy]) {
+      const r = classerDe(f, cy);
+      if (!r) continue;
+      const avant = { niveau: f.niveau, cat: f.cat };
+      if (r.niveau && r.niveau !== f.niveau) f.niveau = r.niveau;
+      if (r.cat && r.cat !== f.cat) f.cat = r.cat;
+      if (avant.niveau !== f.niveau || avant.cat !== f.cat) changes.push({ cy, titre: f.titre, avant, apres: { niveau: f.niveau, cat: f.cat } });
+    }
+  }
+  return changes;
+}
+
 // retirerDoublonsEntrePays(cumul, prioritaire) : un même article (même adresse,
 // ou même titre à l'identique) ne figure qu'une fois dans le cumul du mois.
 // Audit du 26/11/2026 : 23 titres identiques dans le cumul, 3 d'un pays à
@@ -255,8 +276,14 @@ function regrouper(faits, nomPays) {
  */
 function faitsDuMois(cumul, cy, nomPays) {
   const liste = (cumul && cumul.pays && cumul.pays[cy]) || [];
-  return regrouper(liste.filter((f) => !horsSurete.estHorsSurete(f, cy)), nomPays)
+  // Un fait que le classement courant ramène au niveau normal, au sport ou à
+  // la culture (reclasser, 27/11/2026) n'est plus un fait du mois.
+  return regrouper(liste.filter((f) => !horsSurete.estHorsSurete(f, cy) && !estSortiDuRadar(f)), nomPays)
     .filter(faitEnFrancais);
+}
+
+function estSortiDuRadar(f) {
+  return !!f && (f.niveau === 'ok' || f.cat === 'sport' || f.cat === 'culture');
 }
 
 // Une seule langue par document (YORO, 19/11/2026 : « tout type de rapport
@@ -268,4 +295,4 @@ function faitEnFrancais(f) {
   return !(f && LANGUES_ETRANGERES.has(f.langue) && !f.titreFr);
 }
 
-module.exports = { faitEnFrancais, cheminCumul, cumuler, ecrireCumul, lireCumul, nettoyerTitre, regrouper, faitsDuMois, trier, reattribuer, retirerDoublonsEntrePays };
+module.exports = { faitEnFrancais, cheminCumul, cumuler, ecrireCumul, lireCumul, nettoyerTitre, regrouper, faitsDuMois, trier, reattribuer, reclasser, estSortiDuRadar, retirerDoublonsEntrePays };

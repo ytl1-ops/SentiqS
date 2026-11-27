@@ -10537,10 +10537,14 @@ function classify(txt, src, titre) {
   if (lvl !== 'ok' && estBilanRoutier(tTitre)) lvl = 'mod';
   if (lvl === 'crit' && estNonEvenement(tTitre)) lvl = 'mod';
   if ((lvl === 'crit' || lvl === 'high') && estActiviteInstitutionnelle(tTitre)) lvl = 'mod';
-  if ((lvl === 'crit' || lvl === 'high') && estAttaqueAnimale(tTitre)) lvl = 'mod';
-  if (lvl !== 'ok' && estVieePratique(tTitre)) lvl = 'ok';
+  // `plafond` nomme la règle qui a abaissé le niveau : le rejeu sur un cumul
+  // déjà versé (scripts/reclasser-cumul.js) n'applique au niveau que ces
+  // règles-là, jamais l'écart dû à un chapô plus court que l'article.
+  let plafond = null;
+  if ((lvl === 'crit' || lvl === 'high') && estAttaqueAnimale(tTitre)) { lvl = 'mod'; plafond = 'animal'; }
+  if (lvl !== 'ok' && estVieePratique(tTitre)) { lvl = 'ok'; plafond = 'vie_pratique'; }
 
-  return {lvl, cat};
+  return plafond ? {lvl, cat, plafond} : {lvl, cat};
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

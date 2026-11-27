@@ -677,6 +677,17 @@ function ecrireResumeActions(md) {
               if (deplaces.length) faitsGrsci.ecrireCumul(RACINE_GRSCI, cumul);
             }
           } catch (e) { console.warn('::warning::Rattachement des faits du mois non revu : ' + ((e && e.message) || e)); }
+          // Classement courant rejoué sur les faits déjà versés (audit du
+          // 27/11/2026 : une piqûre de scorpion restait en « politique » tout
+          // le mois). Catégorie toujours, niveau seulement par une règle qui
+          // l'abaisse expressément (voir scripts/reclasser-cumul.js).
+          try {
+            const reclasses = require('./reclasser-cumul').reclasserCumul(cumul);
+            if (reclasses.length) {
+              console.log('  Présentation 1 : ' + reclasses.length + ' fait(s) du mois reclassé(s) par la règle courante');
+              faitsGrsci.ecrireCumul(RACINE_GRSCI, cumul);
+            }
+          } catch (e) { console.warn('::warning::Classement des faits du mois non revu : ' + ((e && e.message) || e)); }
           // Un même article ne figure qu'une fois dans le cumul, d'un pays à
           // l'autre aussi (audit du 26/11/2026).
           try {
