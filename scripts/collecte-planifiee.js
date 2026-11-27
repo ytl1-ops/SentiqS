@@ -626,9 +626,8 @@ function ecrireResumeActions(md) {
         // ── RAPPORT MENSUEL GRSCI ───────────────────────────────────────
         // Demande du 20/10/2026 : « Faits marquants en Côte d'Ivoire » et
         // « Dynamiques régionales » dans la forme du modèle d'octobre 2024,
-        // automatisés. Le rapport du mois en cours est réécrit chaque jour
-        // sur la période du 1er à aujourd'hui (demande du 23/10/2026) ; voir
-        // rapportsAActualiser dans scripts/lib/rapport-grsci.js.
+        // Le cumul du mois est tenu à chaque passage ; le document, lui, ne
+        // s'écrit qu'à la demande depuis le 27/11/2026 (voir plus bas).
         try {
           // Cumul du mois, à CHAQUE passage : le rapport du 24 lit ce que la
           // collecte a vu depuis le 1er, pas seulement la fenêtre de 36 h
@@ -729,16 +728,27 @@ function ecrireResumeActions(md) {
           console.log('  Présentation 1 : ' + total + ' faits cumules pour ' + mois + ' (' + aTraduire + ' titres soumis a traduction, ' + titresTraduits + ' traduits'
             + (horsBudget ? ', ' + horsBudget + ' reportes au passage suivant faute de temps' : '') + ').');
 
-          // Rapport du mois en cours réécrit au premier passage de chaque jour
-          // (période du 1er à aujourd'hui), mois écoulé finalisé le lendemain
-          // de sa fin. GRSCI_FORCER=1 réécrit le mois en cours tout de suite.
-          const aEcrire = rapportGrsci.rapportsAActualiser(RACINE_GRSCI, jour);
-          if (process.env.GRSCI_FORCER === '1' && !aEcrire.some((r) => r.mois === mois)) aEcrire.push({ mois, fin: jour });
+          // La Présentation 1 ne s'écrit plus d'elle-même (YORO, 27/11/2026 :
+          // « Ne pas faire Présentation 1 automatique, mais plutôt à la
+          // demande »). Le cumul ci-dessus continue d'être tenu à chaque
+          // passage : c'est la matière du composeur du module Rapports. Le
+          // document du job ne s'écrit que sur lancement manuel
+          // (rapport_mensuel = vrai, GRSCI_FORCER=1), pour le mois en cours ou
+          // pour celui que donne RAPPORT_MOIS (AAAA-MM, un mois clos est écrit
+          // jusqu'à son dernier jour). Un test refuse le retour de
+          // rapportsAActualiser ici.
+          const aEcrire = [];
+          if (process.env.GRSCI_FORCER === '1') {
+            const demande = /^\d{4}-\d{2}$/.test(process.env.RAPPORT_MOIS || '') ? process.env.RAPPORT_MOIS : mois;
+            const finDemande = demande === mois ? jour
+              : new Date(Date.UTC(Number(demande.slice(0, 4)), Number(demande.slice(5, 7)), 0)).toISOString().slice(0, 10);
+            if (demande <= mois) aEcrire.push({ mois: demande, fin: finDemande });
+          }
           // Identité d'envoi saisie au lancement manuel : retenue pour le mois
           // (voir fixerEmetteurMois). Rien de saisi : SentiqS par défaut, et le
           // journal le dit.
           if (process.env.GRSCI_FORCER === '1') {
-            const saisie = rapportGrsci.fixerEmetteurMois(RACINE_GRSCI, mois, {
+            const saisie = rapportGrsci.fixerEmetteurMois(RACINE_GRSCI, aEcrire.length ? aEcrire[0].mois : mois, {
               identite: process.env.RAPPORT_IDENTITE, signature: process.env.RAPPORT_SIGNATURE, logo: process.env.RAPPORT_LOGO,
             });
             if (!saisie) console.warn('  Présentation 1 : aucune identité d\'envoi précisée au lancement — émetteur par défaut.');

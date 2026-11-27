@@ -212,6 +212,7 @@ function dateLongue(jour) {
 function libellePeriode(fin, debut) {
   const [a, m, j] = String(fin).split('-').map(Number);
   const jj = (x) => (x === 1 ? '1er' : String(x));
+  if (debut && debut === fin) return 'Journée du ' + jj(j) + ' ' + MOIS[m - 1] + ' ' + a;
   if (debut && debut !== fin.slice(0, 7) + '-01') {
     const [a0, m0, j0] = String(debut).split('-').map(Number);
     const tete = jj(j0) + (m0 !== m || a0 !== a ? ' ' + MOIS[m0 - 1] + (a0 !== a ? ' ' + a0 : '') : '');

@@ -5182,3 +5182,64 @@ filtres pays, régional d'un pays, région ouest ou est Afrique… »
 Chromium : CI › Nord (2 actus, 16 sans localité) et Afrique de l'Ouest
 (CI en tête, 70 actus, 4 pays sans fait faute de cumul avant ce jour),
 PowerPoint, Word et impression générés, 0 erreur JS.
+
+---
+
+## Présentation 1 à la demande, rubrique « Faits divers » — 27/11/2026
+
+YORO : « Trop de confusion dans presentation1, une piqure de scorpion est
+placé en politique. Ne pas faire presentation 1 automatique, mais plutot a la
+demande. Offrir le choix des periodes, des pays, zones geographique... », puis
+« affine pour la qualité des actu réelle ».
+
+- **Plus aucune génération automatique.** Le job ne réécrit plus le rapport
+  du mois chaque jour : `rapportsAActualiser` n'est plus appelée,
+  `aEcrire` n'est rempli que par le lancement manuel (`rapport_mensuel`,
+  `GRSCI_FORCER=1`), pour le mois en cours ou celui de `mois_rapport`
+  (`RAPPORT_MOIS`). Le cumul des faits, lui, continue chaque passage : c'est
+  la matière du composeur. Un test refuse le retour de l'appel.
+- **Composeur** (module Rapports, en tête de la carte « Présentation 1 et
+  bulletins pays ») : un mois, 7 ou 14 derniers jours, un jour, une plage
+  libre (`p1Bornes`), sur un pays, une zone ou une région. Une période sur
+  deux mois lit les deux cumuls (`p1CumulPeriode`, `moisDeLaPeriode`) ;
+  `composer` reçoit `debut` et écarte aussi ce qui suit la fin (`finMs`). Une
+  journée s'écrit « Journée du … » en couverture. Mesuré sur la Côte
+  d'Ivoire : plage du 25/10 au 05/11 = 33 faits d'octobre + 10 de novembre.
+- **La catégorie se lit dans le titre** (`categorieActu`, avant
+  `estFormatEditorial` dans `classify`) : racines distinctes du titre ×3, le
+  corps seulement si le titre ne dit rien (plafonné à 2), égalité tranchée par
+  sécurité > politique > humanitaire > divers > économique. Les familles
+  d'incident (CK_CRIT) du titre poussent la sécurité sauf dans un fait divers
+  (`FAIT_DIVERS_RE` : accident, noyade, bilan routier…). Nouvelle catégorie
+  **`divers`** (filtre du Flux, Recherche, Synthèse, panorama ; rubrique
+  « IV - Divers » de la Présentation 1). Sans aucun mot : catégorie de la
+  source si elle est économique ou humanitaire, sinon divers — un média
+  généraliste ne fait plus « politique » par défaut.
+- **Deux plafonds de niveau, explicites** (`plafond` dans le retour de
+  `classify`) : une attaque animale (`estAttaqueAnimale`, sauf agresseur
+  humain dans le titre) plafonne à modéré ; un article de vie pratique
+  (`VIE_PRATIQUE_RE`) redescend au normal. « exécution budgétaire »,
+  « la route tue », MVP/Road to BAL/Ligue 1-2 rejoignent les gardes
+  existantes. Aucun niveau ne monte.
+- **Mesuré** sur des faits étiquetés à la main : catégorie juste 49 → 92 sur
+  100 (lot d'ajustement), 44 → 75 sur 80 (lot témoin, tenu à part). Sur les
+  2 384 faits des cumuls d'octobre et novembre : 20 niveaux changent, tous à
+  la baisse et relus (vie pratique, sport, exécution budgétaire, scorpion,
+  abeilles). Restent : la lutte sénégalaise non reconnue comme sport, quelques
+  faits politiques rangés en divers.
+- **Cumuls reclassés** (`scripts/reclasser-cumul.js`, appelé aussi par le
+  job) : la catégorie suit toujours la vraie `classify` ; le niveau ne change
+  que par un plafond explicite ou pour le sport et la culture — rejouer le
+  niveau sur un chapô tronqué en déplaçait ~150. `faitsDuMois` écarte un fait
+  sorti du radar (`estSortiDuRadar`).
+- **L'analyse sous l'actu** (`reperes-surete.js`) a une famille `animal` en
+  tête : une piqûre ou une morsure recevait « menace armée sur les axes » par
+  le mot « attaque ». Sautée si le titre nomme un agresseur humain.
+  « Hippodrome », « Éléphants » et « Lions » (équipes) ne comptent pas.
+  2 analyses changent sur les 2 384 faits.
+- `construire-presentation-web.js` embarque `web/js/reperes-surete.js`
+  (`MODULES_WEB`) : le générateur servi était cassé depuis que la rédaction
+  le requiert.
+
+Tests : `categorie-actus.test.js` (13), `reclasser-cumul.test.js` (3),
+`presentation-periode.test.js` (7).

@@ -211,6 +211,7 @@
     let sansLieu = 0;
     const garde = (faits || []).filter((f) => {
       if (crit.depuisMs && (f.publieMs || 0) < crit.depuisMs) return false;
+      if (crit.finMs && (f.publieMs || 0) >= crit.finMs) return false;
       if (crit.cotation && RANG_COTATION[f.cotation || 'non_confirme'] > RANG_COTATION[crit.cotation]) return false;
       if (crit.rubriques && crit.rubriques.length && rubriqueDe && !crit.rubriques.includes(rubriqueDe(f))) return false;
       if (crit.zone && crit.zonePays === cy) {
@@ -224,6 +225,20 @@
   }
 
   const MAJ = (t) => String(t).toUpperCase();
+  const MOIS_NOMS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  const jourLisible = (j) => { const [a, m, d] = String(j).split('-').map(Number); return (d === 1 ? '1er' : d) + ' ' + MOIS_NOMS[m - 1] + ' ' + a; };
+  // moisDeLaPeriode('2026-10-28', '2026-11-03') → ['2026-10', '2026-11'] :
+  // les cumuls mensuels à lire pour une période qui chevauche deux mois.
+  function moisDeLaPeriode(debut, fin) {
+    const out = [];
+    let [a, m] = String(debut).slice(0, 7).split('-').map(Number);
+    const [af, mf] = String(fin).slice(0, 7).split('-').map(Number);
+    while ((a < af || (a === af && m <= mf)) && out.length < 24) {
+      out.push(a + '-' + String(m).padStart(2, '0'));
+      m++; if (m > 12) { m = 1; a++; }
+    }
+    return out;
+  }
 
   /**
    * Le périmètre transmis au générateur (voir perimetreModele dans
@@ -233,14 +248,25 @@
    *  - mode 'region' : `region` (id de REGIONS) et `principal` facultatif
    *    (un pays mis en tête avec ses rubriques, comme la Côte d'Ivoire dans
    *    le modèle) ;
-   *  - `rubriques`, `cotation`, `jours` (période), `max`, `jour` (fin).
+   *  - `rubriques`, `cotation`, `jours` (période), `max`, `jour` (fin) ;
+   *  - `debut` (AAAA-MM-JJ) : début d'une période choisie (un jour, une
+   *    semaine, une plage libre, 27/11/2026) ; les faits publiés après le
+   *    jour de fin sont écartés aussi.
    */
   function composer(pays, c, rubriqueDe) {
     const crit = Object.assign({}, c || {});
     const parCy = new Map((pays || []).map((d) => [d.cy, d]));
     const fin = crit.jour || new Date().toISOString().slice(0, 10);
     let debut = null;
-    if (crit.jours) {
+    const JOUR_RE = /^\d{4}-\d{2}-\d{2}$/;
+    if (JOUR_RE.test(String(crit.jour || '')) && crit.jour !== new Date().toISOString().slice(0, 10)) {
+      crit.finMs = Date.parse(crit.jour + 'T00:00:00Z') + 86400000;
+    }
+    if (JOUR_RE.test(String(crit.debut || ''))) {
+      debut = crit.debut <= fin ? crit.debut : fin;
+      crit.depuisMs = Date.parse(debut + 'T00:00:00Z');
+      crit.finMs = Date.parse(fin + 'T00:00:00Z') + 86400000;
+    } else if (crit.jours) {
       const t = Date.parse(fin + 'T00:00:00Z') - (crit.jours - 1) * 86400000;
       const d0 = new Date(Math.max(t, Date.parse(fin.slice(0, 7) + '-01T00:00:00Z'))).toISOString().slice(0, 10);
       crit.depuisMs = Date.parse(d0 + 'T00:00:00Z');
@@ -288,12 +314,13 @@
     }
     if (crit.rubriques && crit.rubriques.length && crit.rubriques.length < 4) criteres.push('Rubriques : ' + crit.rubriques.map((r) => LIBELLE_RUBRIQUE[r] || r).join(', '));
     if (crit.cotation && LIBELLE_COTATION[crit.cotation]) criteres.push('Cotation : ' + LIBELLE_COTATION[crit.cotation]);
-    if (crit.jours) criteres.push('Période : ' + crit.jours + ' derniers jours');
+    if (debut && JOUR_RE.test(String(crit.debut || ''))) criteres.push(debut === fin ? 'Période : le ' + jourLisible(fin) : 'Période : du ' + jourLisible(debut) + ' au ' + jourLisible(fin));
+    else if (crit.jours) criteres.push('Période : ' + crit.jours + ' derniers jours');
     if (crit.max) criteres.push('Au plus ' + crit.max + ' actus par ' + (crit.mode === 'pays' ? 'rubrique' : 'pays'));
     if (z && sansLieu) criteres.push(sansLieu + ' actu' + (sansLieu > 1 ? 's' : '') + ' du pays sans localité précise, non retenue' + (sansLieu > 1 ? 's' : '') + ' par le filtre de zone');
     const total = retenus.reduce((n, d) => n + d.faits.length, 0);
     return { libelle, criteres, absents, max: crit.max || null, debut, principal, groupe, total, sansLieu };
   }
 
-  return { REGIONS, ZONES, region, zonesDe, zone, zoneDuFait, filtrerFaits, composer, sansAccents };
+  return { REGIONS, ZONES, region, zonesDe, zone, zoneDuFait, filtrerFaits, composer, moisDeLaPeriode, sansAccents };
 }));

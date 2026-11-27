@@ -4365,14 +4365,14 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
           </div>
           <div id="rpLibellePerimetre" style="font-size:10px;color:var(--lg);margin-bottom:16px">Périmètre : toutes zones, tous pays</div>
 
-          <div class="acard" id="rpAuto" style="padding:14px;margin-bottom:12px" role="region" aria-label="Rapports automatiques">
+          <div class="acard" id="rpAuto" style="padding:14px;margin-bottom:12px" role="region" aria-label="Présentation 1 et bulletins pays">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
               <i class="ti ti-calendar-event" style="font-size:16px;color:var(--b)"></i>
-              <span style="font-size:12px;font-weight:700;color:var(--t)">Rapports automatiques</span>
+              <span style="font-size:12px;font-weight:700;color:var(--t)">Présentation 1 et bulletins pays</span>
             </div>
-            <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Produits par la collecte planifiée, sans action de votre part. La Présentation 1, rapport mensuel de sûreté (Côte d'Ivoire et dynamiques régionales) : PowerPoint et Word modifiables, et PDF. Elle est mise à jour chaque jour sur la période du mois en cours, puis finalisée le lendemain de la fin du mois ; elle peut aussi être relancée à la demande depuis GitHub Actions (« Collecte planifiée », case rapport_mensuel).</div>
-            <div id="rpAutoListe" style="font-size:11px;color:var(--t)">Chargement…</div>
+            <div style="font-size:10px;color:var(--lg);margin-bottom:10px">La Présentation 1, rapport de sûreté (faits marquants et dynamiques régionales), se compose à la demande : choisissez la période, le pays, la zone ou la région, puis le PowerPoint, le Word ou l'impression en PDF. Elle n'est plus produite d'elle-même. Les versions déjà générées restent téléchargeables ci-dessous. Les bulletins pays, eux, sont produits chaque jour par la collecte.</div>
             <div id="rpP1" class="p1-compo" role="group" aria-label="Composer une Présentation 1 sur mesure"></div>
+            <div id="rpAutoListe" style="font-size:11px;color:var(--t);margin-top:10px">Chargement…</div>
             <div id="rpBulletins" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--bd);font-size:11px;color:var(--t)">Chargement des bulletins pays…</div>
           </div>
 
@@ -26956,7 +26956,7 @@ function chargerRapportsAuto(){
     .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(function(d){
       var l = (d && d.rapports) || [];
-      if (!l.length) { el.textContent = "Aucune Présentation 1 n'a encore été générée. Elle le sera au prochain passage de la collecte, puis mise à jour chaque jour."; return; }
+      if (!l.length) { el.textContent = "Aucune Présentation 1 générée par le serveur : composez-la ci-dessus."; return; }
       el.innerHTML = '';
       var NOMS = { pptx: 'PowerPoint', docx: 'Word', pdf: 'PDF' };
       l.forEach(function(r, i){
@@ -27049,8 +27049,36 @@ async function p1Ressources(S) {
 async function p1Cumul(mois) {
   if (_p1.cumuls[mois]) return _p1.cumuls[mois];
   const r = await fetch('rapports/mensuel/faits-' + mois + '.json', { cache: 'no-cache' });
+  if (r.status === 404) return (_p1.cumuls[mois] = null);
   if (!r.ok) throw new Error('faits du mois ' + mois + ' indisponibles (HTTP ' + r.status + ')');
   return (_p1.cumuls[mois] = await r.json());
+}
+// Les faits d'une période qui peut chevaucher deux mois (27/11/2026 : « offrir
+// le choix des périodes ») : les cumuls mensuels concernés, mis bout à bout.
+// Un mois sans cumul (avant le début de la collecte) est simplement absent.
+async function p1CumulPeriode(Per, debut, fin) {
+  const cumuls = (await Promise.all(Per.moisDeLaPeriode(debut, fin).map(p1Cumul))).filter(Boolean);
+  if (!cumuls.length) throw new Error('aucun fait collecté sur cette période');
+  const pays = {};
+  cumuls.forEach((c) => Object.entries(c.pays || {}).forEach(([cy, l]) => { pays[cy] = (pays[cy] || []).concat(l); }));
+  return { mois: fin.slice(0, 7), pays };
+}
+// [début, fin] de la période choisie, en jours AAAA-MM-JJ (UTC, comme les
+// dates de publication du cumul). La fin ne dépasse jamais aujourd'hui.
+function p1Bornes(S, c) {
+  const auj = new Date().toISOString().slice(0, 10);
+  const recul = (n) => new Date(Date.parse(auj + 'T00:00:00Z') - n * 86400000).toISOString().slice(0, 10);
+  const borne = (j) => (/^\d{4}-\d{2}-\d{2}$/.test(j || '') ? (j > auj ? auj : j) : null);
+  if (c.periode === 'semaine') return [recul(6), auj];
+  if (c.periode === 'quinzaine') return [recul(13), auj];
+  if (c.periode === 'jour') { const j = borne(c.le) || auj; return [j, j]; }
+  if (c.periode === 'plage') {
+    let d = borne(c.du) || recul(6), f = borne(c.au) || auj;
+    if (d > f) [d, f] = [f, d];
+    return [d, f];
+  }
+  if (!/^\d{4}-\d{2}$/.test(c.mois)) throw new Error('aucun mois disponible');
+  return [c.mois + '-01', auj.slice(0, 7) === c.mois ? auj : S.rapport.dernierJourMois(c.mois)];
 }
 const _p1v = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
 function p1Criteres() {
@@ -27060,22 +27088,21 @@ function p1Criteres() {
     mois: _p1v('p1Mois'), mode, cy: _p1v('p1Pays'), zone: _p1v('p1Zone') || null,
     region: _p1v('p1Region'), principal: _p1v('p1Principal') || null,
     rubriques: rubriques.length === 4 ? null : rubriques, cotation: _p1v('p1Cotation') || null,
-    jours: Number(_p1v('p1Periode')) || null, max: Number(_p1v('p1Max')) || null,
+    periode: _p1v('p1Periode') || 'mois', le: _p1v('p1Le'), du: _p1v('p1Du'), au: _p1v('p1Au'),
+    max: Number(_p1v('p1Max')) || null,
   };
-}
-// Le jour de fin : aujourd'hui pour le mois en cours, sinon son dernier jour.
-function p1Jour(S, mois) {
-  const auj = new Date().toISOString().slice(0, 10);
-  return auj.slice(0, 7) === mois ? auj : S.rapport.dernierJourMois(mois);
 }
 async function p1Perimetre() {
   const [Per, S] = await p1Modules();
   const c = p1Criteres();
-  if (!/^\d{4}-\d{2}$/.test(c.mois)) throw new Error('aucun mois disponible');
-  const cumul = await p1Cumul(c.mois);
+  const [debut, jour] = p1Bornes(S, c);
+  // Un mois civil entier n'a pas de « début » à dire : la couverture garde
+  // « Période du 1er au … » du modèle.
+  c.debut = (c.periode === 'mois') ? null : debut;
+  c.etiquette = c.periode === 'mois' ? c.mois : (debut === jour ? debut : debut + '_' + jour);
+  const cumul = await p1CumulPeriode(Per, debut, jour);
   const cys = c.mode === 'region' ? ((Per.region(c.region) || {}).pays || []) : [c.cy];
   const pays = cys.filter((cy) => PAYS_INFO[cy]).map((cy) => ({ cy, nom: PAYS_INFO[cy].name, faits: S.faits.faitsDuMois(cumul, cy, PAYS_INFO[cy].name) }));
-  const jour = p1Jour(S, c.mois);
   const P = Per.composer(pays, Object.assign({}, c, { jour }), S.rapport.rubriqueDe);
   return { P, jour, S, Per, c };
 }
@@ -27143,6 +27170,8 @@ function p1MajPrincipal(Per) {
 function p1MajMode() {
   const mode = (document.querySelector('input[name="p1Mode"]:checked') || {}).value || 'pays';
   document.querySelectorAll('#rpP1 [data-p1-si]').forEach((el) => { el.hidden = el.getAttribute('data-p1-si') !== mode; });
+  const per = _p1v('p1Periode') || 'mois';
+  document.querySelectorAll('#rpP1 [data-p1-per]').forEach((el) => { el.hidden = !el.getAttribute('data-p1-per').split(' ').includes(per); });
 }
 async function initComposerP1() {
   const hote = document.getElementById('rpP1');
@@ -27161,15 +27190,23 @@ async function initComposerP1() {
   const opt = (v, t, sel) => '<option value="' + _apEsc(v) + '"' + (sel ? ' selected' : '') + '>' + _apEsc(t) + '</option>';
   const MOISN = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
   const nomMois = (m) => MOISN[Number(m.slice(5, 7)) - 1] + ' ' + m.slice(0, 4);
+  // Bornes des champs de date : du premier mois collecté à aujourd'hui.
+  const aujJ = new Date().toISOString().slice(0, 10);
+  const septJ = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
+  const premierJour = (mois.length ? mois[mois.length - 1] : aujJ.slice(0, 7)) + '-01';
   const pays = Object.keys(PAYS_INFO).filter((cy) => /^[A-Z]{2}$/.test(cy) && cy !== 'INT').sort((a, b) => PAYS_INFO[a].name.localeCompare(PAYS_INFO[b].name, 'fr'));
   const ua = Per.REGIONS.filter((r) => r.type === 'ua'); const ens = Per.REGIONS.filter((r) => r.type !== 'ua');
   const ids = identitesMarquePerso(getMarquePerso());
   const identites = fonctionnalitePayante() ? [ids.identite1, ids.identite2, ids.identite3].filter(Boolean) : [];
   const champ = (id, libelle, html, attrs) => '<label class="p1-champ" for="' + id + '"' + (attrs || '') + '><span>' + libelle + '</span>' + html + '</label>';
   hote.innerHTML = '<div class="p1-tt"><i class="ti ti-adjustments-horizontal" aria-hidden="true"></i> Composer une Présentation 1 sur mesure</div>'
-    + '<div class="p1-aide">Même mise en page que le rapport du mois, sur le périmètre de votre choix : un pays ou une zone d\'un pays, une région d\'Afrique, des rubriques, une cotation, une période. Les faits viennent de la collecte du mois.</div>'
+    + '<div class="p1-aide">Même mise en page que le rapport du mois, sur le périmètre de votre choix : une période (un jour, une semaine, un mois ou une plage libre), un pays ou une zone d\'un pays, une région d\'Afrique, des rubriques, une cotation. Les faits viennent de la collecte, rien n\'est produit sans votre demande.</div>'
     + '<div class="p1-grille">'
-    + champ('p1Mois', 'Mois', '<select id="p1Mois">' + mois.map((m, i) => opt(m, nomMois(m), !i)).join('') + '</select>')
+    + champ('p1Periode', 'Période', '<select id="p1Periode">' + opt('mois', 'Un mois', true) + opt('semaine', '7 derniers jours') + opt('quinzaine', '14 derniers jours') + opt('jour', 'Un jour') + opt('plage', 'Plage libre (du … au …)') + '</select>')
+    + champ('p1Mois', 'Mois', '<select id="p1Mois">' + mois.map((m, i) => opt(m, nomMois(m), !i)).join('') + '</select>', ' data-p1-per="mois"')
+    + champ('p1Le', 'Jour', '<input type="date" id="p1Le" min="' + premierJour + '" max="' + aujJ + '" value="' + aujJ + '">', ' data-p1-per="jour"')
+    + champ('p1Du', 'Du', '<input type="date" id="p1Du" min="' + premierJour + '" max="' + aujJ + '" value="' + septJ + '">', ' data-p1-per="plage"')
+    + champ('p1Au', 'Au', '<input type="date" id="p1Au" min="' + premierJour + '" max="' + aujJ + '" value="' + aujJ + '">', ' data-p1-per="plage"')
     + '<fieldset class="p1-champ p1-mode"><legend>Périmètre</legend>'
     + '<label><input type="radio" name="p1Mode" value="pays" checked> Un pays</label>'
     + '<label><input type="radio" name="p1Mode" value="region"> Une région d\'Afrique</label></fieldset>'
@@ -27180,7 +27217,6 @@ async function initComposerP1() {
     + '<fieldset class="p1-champ p1-rubs"><legend>Rubriques</legend>'
     + [['politique', 'Politique'], ['humanitaire', 'Social'], ['securite', 'Sécurité'], ['divers', 'Divers']].map(([k, t]) => '<label><input type="checkbox" data-p1-rub="' + k + '" checked> ' + t + '</label>').join('') + '</fieldset>'
     + champ('p1Cotation', 'Cotation', '<select id="p1Cotation">' + opt('', 'Toutes') + opt('probable', 'Confirmé et Probable') + opt('confirme', 'Confirmé seulement') + '</select>')
-    + champ('p1Periode', 'Période', '<select id="p1Periode">' + opt('', 'Tout le mois') + opt('14', '14 derniers jours') + opt('7', '7 derniers jours') + '</select>')
     + champ('p1Max', 'Actus au plus', '<select id="p1Max">' + opt('5', '5 par rubrique ou pays') + opt('', '10 par rubrique ou pays', true) + opt('20', '20 par rubrique ou pays') + '</select>')
     + champ('p1Identite', 'Signé par', '<select id="p1Identite">' + opt('', 'SentiqS') + identites.map((t) => opt(t, t)).join('') + '</select>')
     + '<label class="p1-champ p1-case" for="p1Images"><input type="checkbox" id="p1Images"' + (imagesDocumentsActives() ? ' checked' : ' disabled') + '> <span>Photos des sources' + (imagesDocumentsActives() ? '' : ' (à autoriser dans Paramètres › Affichage)') + '</span></label>'
@@ -27196,7 +27232,7 @@ async function initComposerP1() {
     const id = ev.target.id;
     if (id === 'p1Pays') p1MajZones(Per);
     if (id === 'p1Region') p1MajPrincipal(Per);
-    if (ev.target.name === 'p1Mode') p1MajMode();
+    if (ev.target.name === 'p1Mode' || id === 'p1Periode') p1MajMode();
     p1Planifier();
   });
   hote.querySelectorAll('[data-p1-format]').forEach((b) => b.addEventListener('click', () => genererPresentation1(b.getAttribute('data-p1-format'), b)));
@@ -27220,11 +27256,11 @@ async function genererPresentation1(format, btn) {
       const PptxGenJS = await chargerBibliotheque('pptx');
       const pptx = S.rapport.construire(PptxGenJS, donnees);
       const blob = await pptx.write({ outputType: 'blob' });
-      dlFile(blob, p1NomFichier(P, c.mois, 'pptx'), 'presentation1');
+      dlFile(blob, p1NomFichier(P, c.etiquette, 'pptx'), 'presentation1');
     } else if (format === 'docx') {
       const D = await chargerBibliotheque('docx');
       const doc = S.word.construireWord(D, donnees);
-      dlFile(await D.Packer.toBlob(doc), p1NomFichier(P, c.mois, 'docx'), 'presentation1');
+      dlFile(await D.Packer.toBlob(doc), p1NomFichier(P, c.etiquette, 'docx'), 'presentation1');
     } else {
       fen.document.open(); fen.document.write(htmlImpressionP1(S, donnees)); fen.document.close();
     }
