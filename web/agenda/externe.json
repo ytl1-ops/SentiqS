@@ -1,5 +1,5 @@
 {
- "genere": "2026-11-25T14:29:50.354Z",
+ "genere": "2026-11-27T12:27:31.182Z",
  "horizonJours": 120,
  "sources": {
   "feries": {
@@ -61,7 +61,7 @@
     "ZM",
     "ZW"
    ],
-   "evenements": 198
+   "evenements": 225
   }
  },
  "evenements": [
@@ -2242,6 +2242,303 @@
    "nature": "ferie",
    "src": "Nager.Date — jours fériés officiels",
    "surl": "https://date.nager.at/PublicHoliday/ML/2027"
+  },
+  {
+   "id": "ferie-AO-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "AO",
+   "titre": "Sexta Feira Santa (Good Friday)",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/AO/2027"
+  },
+  {
+   "id": "ferie-BW-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "BW",
+   "titre": "Good Friday",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/BW/2027"
+  },
+  {
+   "id": "ferie-CM-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "CM",
+   "titre": "Good Friday",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/CM/2027"
+  },
+  {
+   "id": "ferie-ER-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "ER",
+   "titre": "Arbi Siklet ዓርቢ ስቅለት (Good Friday)",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/ER/2027"
+  },
+  {
+   "id": "ferie-GH-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "GH",
+   "titre": "Good Friday",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/GH/2027"
+  },
+  {
+   "id": "ferie-GM-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "GM",
+   "titre": "Good Friday",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/GM/2027"
+  },
+  {
+   "id": "ferie-GQ-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "GQ",
+   "titre": "Good Friday",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/GQ/2027"
+  },
+  {
+   "id": "ferie-GW-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "GW",
+   "titre": "Good Friday",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/GW/2027"
+  },
+  {
+   "id": "ferie-KE-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "KE",
+   "titre": "Good Friday",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/KE/2027"
+  },
+  {
+   "id": "ferie-LS-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "LS",
+   "titre": "Good Friday",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/LS/2027"
+  },
+  {
+   "id": "ferie-MW-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "MW",
+   "titre": "Good Friday",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/MW/2027"
+  },
+  {
+   "id": "ferie-NA-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "NA",
+   "titre": "Good Friday",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/NA/2027"
+  },
+  {
+   "id": "ferie-NG-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "NG",
+   "titre": "Good Friday",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/NG/2027"
+  },
+  {
+   "id": "ferie-RW-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "RW",
+   "titre": "Good Friday",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/RW/2027"
+  },
+  {
+   "id": "ferie-SC-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "SC",
+   "titre": "Good Friday",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/SC/2027"
+  },
+  {
+   "id": "ferie-SL-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "SL",
+   "titre": "Good Friday",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/SL/2027"
+  },
+  {
+   "id": "ferie-SS-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "SS",
+   "titre": "Good Friday",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/SS/2027"
+  },
+  {
+   "id": "ferie-SZ-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "SZ",
+   "titre": "Good Friday",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/SZ/2027"
+  },
+  {
+   "id": "ferie-TZ-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "TZ",
+   "titre": "Ijumaa Kuu (Good Friday)",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/TZ/2027"
+  },
+  {
+   "id": "ferie-UG-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "UG",
+   "titre": "Good Friday",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/UG/2027"
+  },
+  {
+   "id": "ferie-ZA-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "ZA",
+   "titre": "Good Friday",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/ZA/2027"
+  },
+  {
+   "id": "ferie-ZM-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "ZM",
+   "titre": "Good Friday",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/ZM/2027"
+  },
+  {
+   "id": "ferie-ZW-2027-03-26",
+   "date": "2027-03-26",
+   "cy": "ZW",
+   "titre": "Good Friday",
+   "titreEn": "Good Friday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/ZW/2027"
+  },
+  {
+   "id": "ferie-SC-2027-03-27",
+   "date": "2027-03-27",
+   "cy": "SC",
+   "titre": "Easter Saturday (Holy Saturday)",
+   "titreEn": "Holy Saturday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/SC/2027"
+  },
+  {
+   "id": "ferie-SS-2027-03-27",
+   "date": "2027-03-27",
+   "cy": "SS",
+   "titre": "Holy Saturday",
+   "titreEn": "Holy Saturday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/SS/2027"
+  },
+  {
+   "id": "ferie-ZM-2027-03-27",
+   "date": "2027-03-27",
+   "cy": "ZM",
+   "titre": "Easter Saturday (Holy Saturday)",
+   "titreEn": "Holy Saturday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/ZM/2027"
+  },
+  {
+   "id": "ferie-ZW-2027-03-27",
+   "date": "2027-03-27",
+   "cy": "ZW",
+   "titre": "Easter Saturday (Holy Saturday)",
+   "titreEn": "Holy Saturday",
+   "type": "ceremonie",
+   "nature": "ferie",
+   "src": "Nager.Date — jours fériés officiels",
+   "surl": "https://date.nager.at/PublicHoliday/ZW/2027"
   }
  ]
 }
