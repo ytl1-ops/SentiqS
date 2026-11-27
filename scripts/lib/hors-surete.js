@@ -36,6 +36,8 @@ const LOCUTIONS_NEUTRES = [
   /enlevement des (marchandises|ordures|dechets|conteneurs|vehicules)/g,
   /gestion de crise/g, /cellule de crise/g, /exercice (de simulation|de secours)/g,
   /annonce mort/g, /millions? de morts/g, /crise de legitimite/g,
+  // « manifest » est dans la garde (manifestation de rue) : l'appel d'offres non.
+  /manifestation d'interet/g,
 ];
 
 // Vocabulaire d'atteinte : sa présence garde le fait, quel que soit le thème.
@@ -64,6 +66,11 @@ const THEMES = {
   sante_chronique: /\b(diabete|cancer|tuberculose|inactivite physique|prevalence|bilharziose|hypertension|obesite)\b/,
   sport: /\b(can 20\d\d|qualifs?|qualification[s]? (pour|a) la (can|coupe)|eliminatoires|match|matchday|ligue \d|ligue des champions|championnat|champion(ne)?s|coupe (du monde|d'afrique|de la confederation|inter)|selection nationale|selectionneur|buteur|mercato|footballeur|handball|basket(ball)?|athletisme|lutteurs?|lutte (avec frappe|traditionnelle)|combat royal|special combat|beach wrestling|jeux olympiques| vs )\b/,
   culture_people: /\b(festival|concert|album|clip officiel|film|cinema|miss |artiste|chanteu[rs]e?|comedien|celebrite|kardashian|tupac|mariage de|anniversaire de|defile de mode|vernissage|ecrivains?|celebre (\d+|les)|fausse rumeur|recompensee?s?)\b/,
+  // Avis administratifs (27/11/2026) : relus dans la Présentation 1 de Mali
+  // et de Niger, classés « élevé » (« AVIS À MANIFESTATION D'INTÉRÊT …
+  // RECRUTEMENT D'UN CABINET »). 9 sur les cumuls d'octobre et novembre, tous
+  // des appels d'offres ou de candidatures.
+  avis_administratif: /\b(manifestation d'interet|avis d'appel|appels? a candidatures?|avis de recrutement|recrutement d'un (cabinet|consultant|bureau)|avis de vacance|dossier d'appel|avis general de passation|demande de cotation|demande de propositions)\b/,
   communication: /\b(tournee (nationale )?d'information|journee portes ouvertes)\b/,
   carriere: /\b(depart a la retraite|admis a la retraite|prise de fonction|passation de (charges|service)|distinction honorifique)\b/,
   presse_opinion: /^(revue de (la )?presse|editorial|edito|chronique|billet|lu pour vous)\b|\brevue de (la )?presse\b/,

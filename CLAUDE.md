@@ -5263,3 +5263,61 @@ demande. Offrir le choix des periodes, des pays, zones geographique... », puis
 
 Tests : `categorie-actus.test.js` (13), `reclasser-cumul.test.js` (3),
 `presentation-periode.test.js` (7), `sport-impact.test.js` (3).
+
+---
+
+## « Pas à jour », et les rapports à la demande relus — 27/11/2026
+
+Signalement de YORO : « Pas à jour et les rendus des rapports sont
+inexploitables ». Le déploiement avait réussi ; ce qui était périmé, c'était
+ce que l'appareil gardait.
+
+- **Une page ouverte ne se rechargeait jamais.** Un onglet laissé ouvert ou
+  l'application installée gardaient l'ancien code. Le déploiement écrit
+  désormais `web/version.json` (`scripts/ecrire-version.js`, sur Pages ET sur
+  Firebase), avec la signature de la page calculée par
+  `scripts/lib/signature-page.js`, le même FNV-1a que `signatureCode()`. La
+  page le relit 60 s après l'ouverture, toutes les 30 min et au retour sur
+  l'onglet (`verifierNouvelleVersion`). Si la signature diffère, elle affiche
+  un bandeau « Une nouvelle version de SentiqS est en ligne · Recharger ». Le
+  test de fumée exige que les deux signatures coïncident ; s'il échoue, le
+  bandeau s'affichera en permanence.
+- **Au retour sur l'onglet**, la page relit d'abord le cache partagé, que la
+  collecte publie toutes les 30 min. Avant, elle lançait une collecte par le
+  navigateur, à travers des relais publics saturés.
+- **L'heure des actus est affichée** dans la barre du haut (sauf sur un écran
+  de moins de 480 px) et dans la barre d'état (« Actus de 17:44 »). Au-delà de
+  deux heures, elle passe en gras souligné, sans couleur d'alerte.
+- **La Présentation 1 publiée pour novembre** a été générée le 27/11 à 0 h 19
+  UTC, avant le correctif des catégories (le scorpion y est classé en
+  Politique). Elle n'est plus réécrite automatiquement : il faut la relancer
+  à la main, après avoir demandé à YORO l'identité d'envoi.
+
+**Composeur, mesuré sur les cumuls réels** (CI novembre, Afrique de l'Ouest
+sur 7 jours, CI le 26/11, Mali en octobre ; PowerPoint, Word et PDF lus en
+images) :
+
+- **Les titres étrangers sans langue notée passaient.** `langueTexte`
+  (`faits-grsci.js`) reconnaît l'anglais, le portugais, l'espagnol et l'arabe
+  quand cet alphabet domine. `faitEnFrancais` écarte alors le fait non
+  traduit, et `rediger` ne cite pas un extrait étranger. L'aperçu du composeur
+  dit combien de faits sont écartés (`faitsNonTraduits`). Sur la région
+  Ouest, en 7 jours, on passe de 136 à 124 actus et d'environ 100 mots-outils
+  anglais à 0. Mesure sur les 1 783 titres français du cumul de novembre :
+  3 signalés, tous réellement étrangers. Le job traduit désormais les titres
+  des 54 pays du cumul (toujours 120 au plus par passage).
+- **Les avis administratifs étaient classés « élevé »** (« AVIS à
+  manifestation d'intérêt », appels d'offres, recrutements de consultant).
+  Le thème `avis_administratif` de `hors-surete.js` les retire. « manifestation
+  d'intérêt » est une locution neutre, car « manifest » fait partie de la
+  garde. Sur octobre et novembre, 9 avis étaient concernés, tous réels.
+- **Les mentions ajoutées par les flux** (« The post … appeared first on … »
+  de WordPress, en-tête ReliefWeb « Please refer to the attached file ») sont
+  retirées des extraits (`sansMentionsDeFlux`).
+
+**Non corrigé, constaté** : les analyses génériques répétées (décision du
+26/11), la place vide des pages de fiches, et quelques faits sans lien avec
+le pays (« Mariages précoces » ONU rangé sous CI Politique).
+
+`scripts/test/version-rapports-27-11.test.js` (10 tests, tous vus échouer sur
+l'ancien code).

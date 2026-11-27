@@ -78,6 +78,11 @@ const serveur = http.createServer((req, res) => {
         classifieCritique: typeof classify === 'function'
           && classify('Attentat revendique dans la capitale', { cy: 'SN', cat: 'securite' }).lvl === 'crit',
         nbSources: typeof SRCS !== 'undefined' ? SRCS.length : 0,
+        // Signature de la page servie (27/11/2026) : le job l'écrit dans
+        // version.json, la page la compare à la sienne pour annoncer une
+        // nouvelle version. Elles doivent coïncider, sinon le bandeau
+        // « nouvelle version » s'afficherait en permanence.
+        signature: typeof signatureCode === 'function' ? signatureCode() : null,
         // Un flux dont la date est enveloppee d'espaces et de retours a la
         // ligne (la forme exacte de Jeune Afrique) doit etre date. Sans le
         // trim() de parseRSS, ses 30 articles etaient sans date, donc
@@ -148,11 +153,14 @@ const serveur = http.createServer((req, res) => {
   console.log('Date de flux entouree d\'espaces : ' + (sonde.dateEntoureeLue ? 'lue' : 'PERDUE'));
   console.log('Flux precede d\'espaces avant <?xml : ' + (sonde.documentPrecedeDEspacesLu ? 'lu' : 'REFUSE'));
   console.log('Bascule de langue FR → EN → FR : ' + sonde.bascule);
+  const sigJob = require('./lib/signature-page').signaturePage(require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'web', 'SentiqS_Web.html'), 'utf8'));
+  const signatureOk = sonde.signature === sigJob;
+  console.log('Signature de la page (job / navigateur) : ' + sigJob + ' / ' + sonde.signature + (signatureOk ? '' : ' DIFFERENTES'));
   console.log('Erreurs JS non liees au reseau : ' + bloquantes.length);
   bloquantes.slice(0, 8).forEach((e) => console.error('   ' + e.slice(0, 200)));
 
   const ko = sonde.manquants.length || bloquantes.length || !sonde.nbSources
-    || !sonde.classifieCritique || !sonde.dateEntoureeLue || !sonde.documentPrecedeDEspacesLu || sonde.bascule !== 'ok' || !sonde.score || String(sonde.score).startsWith('ERREUR');
+    || !sonde.classifieCritique || !sonde.dateEntoureeLue || !sonde.documentPrecedeDEspacesLu || sonde.bascule !== 'ok' || !sonde.score || String(sonde.score).startsWith('ERREUR') || !signatureOk;
   if (ko) {
     if (sonde.panne) console.error('\n✗ Le script inline n\'a pas pu s\'executer : ' + sonde.panne);
     if (sonde.manquants.length) console.error('\n✗ Absentes de la page : ' + sonde.manquants.join(', '));

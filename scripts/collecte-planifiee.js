@@ -700,19 +700,25 @@ function ecrireResumeActions(md) {
           // le cumul. Plafonné par passage : le reste attend le suivant.
           let aTraduire = 0;
           let titresTraduits = 0;
-          for (const cy of paysGrsci) {
+          // Les 54 pays depuis le 27/11/2026 : le composeur de la Présentation 1
+          // couvre toute l'Afrique, et un titre non traduit en est écarté (une
+          // seule langue par document). Les pays du rapport du job d'abord.
+          const paysATraduire = [...new Set([...paysGrsci, ...Object.keys(cumul.pays || {})])];
+          for (const cy of paysATraduire) {
             for (const f of (cumul.pays[cy] || [])) {
               // Entrées versées avant le 27/10/2026 (premier cumul, PR #125) :
               // sans langue notée, elles ne seraient jamais traduites.
               if ((!f.langue || f.langue === 'other') && !f.titreFr) {
                 try { f.langue = await page.evaluate((t) => (typeof detectLangue === 'function') ? detectLangue(t) : null, f.titre); } catch (e) { /* passage suivant */ }
                 if ((!f.langue || f.langue === 'other') && ressembleAnglais(f.titre)) f.langue = 'en';
+                // Repli sur le texte (faits-grsci.langueTexte) : portugais, espagnol, anglais sans indice.
+                if (!f.langue || f.langue === 'other') { const l = faitsGrsci.langueTexte(f.titre, f.langue); if (l && l !== 'other') f.langue = l; }
               }
               if (!f.titreFr && memoireTraductions) {
                 const connu = memoireTraductions.get(cleMemoireTraduction('fr', f.titre));
                 if (connu && connu.trim() !== f.titre.trim()) { f.titreFr = faitsGrsci.nettoyerTitre(connu); titresTraduits++; continue; }
               }
-              if (f.titreFr || !['en', 'pt', 'ar'].includes(f.langue) || aTraduire >= 120) continue;
+              if (f.titreFr || !['en', 'pt', 'ar', 'es'].includes(f.langue) || aTraduire >= 120) continue;
               if (!dansBudget()) { horsBudget++; continue; }
               aTraduire++;
               try {

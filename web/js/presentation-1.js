@@ -236,6 +236,8 @@ const LOCUTIONS_NEUTRES = [
   /enlevement des (marchandises|ordures|dechets|conteneurs|vehicules)/g,
   /gestion de crise/g, /cellule de crise/g, /exercice (de simulation|de secours)/g,
   /annonce mort/g, /millions? de morts/g, /crise de legitimite/g,
+  // « manifest » est dans la garde (manifestation de rue) : l'appel d'offres non.
+  /manifestation d'interet/g,
 ];
 
 // Vocabulaire d'atteinte : sa présence garde le fait, quel que soit le thème.
@@ -264,6 +266,11 @@ const THEMES = {
   sante_chronique: /\b(diabete|cancer|tuberculose|inactivite physique|prevalence|bilharziose|hypertension|obesite)\b/,
   sport: /\b(can 20\d\d|qualifs?|qualification[s]? (pour|a) la (can|coupe)|eliminatoires|match|matchday|ligue \d|ligue des champions|championnat|champion(ne)?s|coupe (du monde|d'afrique|de la confederation|inter)|selection nationale|selectionneur|buteur|mercato|footballeur|handball|basket(ball)?|athletisme|lutteurs?|lutte (avec frappe|traditionnelle)|combat royal|special combat|beach wrestling|jeux olympiques| vs )\b/,
   culture_people: /\b(festival|concert|album|clip officiel|film|cinema|miss |artiste|chanteu[rs]e?|comedien|celebrite|kardashian|tupac|mariage de|anniversaire de|defile de mode|vernissage|ecrivains?|celebre (\d+|les)|fausse rumeur|recompensee?s?)\b/,
+  // Avis administratifs (27/11/2026) : relus dans la Présentation 1 de Mali
+  // et de Niger, classés « élevé » (« AVIS À MANIFESTATION D'INTÉRÊT …
+  // RECRUTEMENT D'UN CABINET »). 9 sur les cumuls d'octobre et novembre, tous
+  // des appels d'offres ou de candidatures.
+  avis_administratif: /\b(manifestation d'interet|avis d'appel|appels? a candidatures?|avis de recrutement|recrutement d'un (cabinet|consultant|bureau)|avis de vacance|dossier d'appel|avis general de passation|demande de cotation|demande de propositions)\b/,
   communication: /\b(tournee (nationale )?d'information|journee portes ouvertes)\b/,
   carriere: /\b(depart a la retraite|admis a la retraite|prise de fonction|passation de (charges|service)|distinction honorifique)\b/,
   presse_opinion: /^(revue de (la )?presse|editorial|edito|chronique|billet|lu pour vous)\b|\brevue de (la )?presse\b/,
@@ -645,6 +652,18 @@ function faitsDuMois(cumul, cy, nomPays) {
     .filter(faitEnFrancais);
 }
 
+// Ce que la règle de langue écarte, sur une période (27/11/2026) : le
+// composeur le dit au lieu de le taire, sinon un pays anglophone paraît
+// calme. debut / fin en AAAA-MM-JJ, bornes comprises (UTC).
+function faitsNonTraduits(cumul, cy, nomPays, debut, fin) {
+  const liste = (cumul && cumul.pays && cumul.pays[cy]) || [];
+  const d = debut ? Date.parse(debut + 'T00:00:00Z') : -Infinity;
+  const f2 = fin ? Date.parse(fin + 'T23:59:59Z') : Infinity;
+  return regrouper(liste.filter((f) => !horsSurete.estHorsSurete(f, cy) && !estSortiDuRadar(f)
+    && (f.publieMs || 0) >= d && (f.publieMs || 0) <= f2), nomPays)
+    .filter((f) => !faitEnFrancais(f)).length;
+}
+
 // Le sport reste seulement avec un impact avéré sur la sûreté
 // (horsSurete.estSportSansImpact, YORO 27/11/2026) : une rixe de supporters
 // classée « sport » ne doit pas disparaître, un match oui.
@@ -657,11 +676,49 @@ function estSortiDuRadar(f) {
 // n'a pas encore été traduit par le job n'entre pas dans le rapport, au lieu
 // d'y figurer en « (EN) … ». Il y entre au passage qui le traduit.
 const LANGUES_ETRANGERES = new Set(['en', 'pt', 'ar']);
+// La langue notée par la collecte ne suffit pas (27/11/2026) : seuls les dix
+// pays du rapport du job passaient par la détection, les 44 autres versés au
+// cumul depuis le 25/11 n'en ont pas (ou « other »). Mesure sur le cumul de
+// novembre : 45 titres anglais notés « other » ; une Présentation 1 « Afrique
+// de l'Ouest » sur 7 jours en portait 13 en anglais et 1 en portugais, et 12
+// extraits anglais, au milieu d'un document français. On lit donc aussi le
+// texte : mots-outils anglais ou portugais sans mot-outil français, ou
+// alphabet arabe. Prudent dans le doute : un texte qui ne tranche pas garde
+// la langue notée.
+// « on », « as », « us » sont aussi français ou ambigus : écartés.
+const MOTS_EN = new Set('the of and to in for with at by from is are was were after over says say into against amid his her their its that this be has have will not than more who while'.split(' '));
+const MOTS_PT = new Set('o os da do das dos em com para uma pelo pela seu sua não são ao à no na nos nas foi e'.split(' '));
+const MOTS_ES = new Set('el los las del contra sus por con establece una y'.split(' '));
+const MOTS_FR = new Set('le la les des du de un une et en pour sur par dans au aux est sont qui que ce se sa son ses il elle ou à'.split(' '));
+function langueTexte(texte, declaree) {
+  if (LANGUES_ETRANGERES.has(declaree)) return declaree;
+  const t = String(texte || '');
+  // Arabe : quand l'alphabet arabe domine (un nom propre cité ne compte pas).
+  if ((t.match(/[\u0600-\u06FF]/g) || []).length > (t.match(/[A-Za-zÀ-ÿ]/g) || []).length) return 'ar';
+  const mots = t.toLowerCase().match(/[a-zà-ÿ']+/g) || [];
+  let en = 0, pt = 0, fr = 0;
+  for (const m of mots) { if (MOTS_EN.has(m)) en++; if (MOTS_PT.has(m)) pt++; if (MOTS_FR.has(m)) fr++; }
+  if (/ção|ções|ões\b|ã[oe]?\b/i.test(t)) pt += 2;
+  // Le génitif anglais (« Ghana’s ») n'existe pas en français.
+  if (/[a-z][’']s\b/i.test(t)) en++;
+  let es = 0;
+  for (const m of mots) if (MOTS_ES.has(m)) es++;
+  if (es >= 2 && es > fr) return 'es';
+  if (/[éèêàâçùûôîïë]/i.test(t) && !/ç[ãõ]|ção/i.test(t)) fr += 1;
+  if (en >= 2 && en > fr) return 'en';
+  // Un seul mot-outil anglais suffit sans aucun indice français (même règle
+  // que ressembleAnglais, traduction-job.js).
+  if (en >= 1 && fr === 0) return 'en';
+  if (pt >= 3 && pt > fr + 1) return 'pt';
+  return declaree || null;
+}
 function faitEnFrancais(f) {
-  return !(f && LANGUES_ETRANGERES.has(f.langue) && !f.titreFr);
+  if (!f || f.titreFr) return true;
+  const l = langueTexte(f.titre, f.langue);
+  return !(LANGUES_ETRANGERES.has(l) || l === 'es');
 }
 
-module.exports = { faitEnFrancais, cheminCumul, cumuler, ecrireCumul, lireCumul, nettoyerTitre, regrouper, faitsDuMois, trier, reattribuer, reclasser, estSortiDuRadar, retirerDoublonsEntrePays };
+module.exports = { langueTexte, faitEnFrancais, faitsNonTraduits, cheminCumul, cumuler, ecrireCumul, lireCumul, nettoyerTitre, regrouper, faitsDuMois, trier, reattribuer, reclasser, estSortiDuRadar, retirerDoublonsEntrePays };
 
   });
   definir("./redaction-p1", function (module, exports, require, __dirname) {
@@ -681,7 +738,7 @@ module.exports = { faitEnFrancais, cheminCumul, cumuler, ecrireCumul, lireCumul,
 //   d'ouverture du rapport le dit, et l'analyste la reprend dans le Word.
 //
 // Pur : ni réseau ni page. Testé par scripts/test/p1-marquants.test.js.
-const { nettoyerTitre } = require('./faits-p1');
+const { nettoyerTitre, langueTexte } = require('./faits-p1');
 
 // Langues d'origine qu'un rapport en français ne cite jamais telles quelles.
 const LANGUES_ETRANGERES = new Set(['en', 'pt', 'ar']);
@@ -834,8 +891,22 @@ const EXTRAITS_MAX = 2;
 // citation : entre guillemets, attribuée au média, avec le lien vers
 // l'article et « © site » sur la photo — jamais l'article entier.
 const EXTRAIT_MAX_CAR = 650;
+// Ce que les flux ajoutent au texte de l'article et qui n'en est pas : la
+// mention WordPress « The post … appeared first on … » (vue le 27/11/2026 dans
+// les extraits de Présentation 1, en anglais au milieu d'un document en
+// français), la ligne d'en-tête « Source: … Please refer to the attached
+// file. » de ReliefWeb, et le « […] » de coupe du flux.
+function sansMentionsDeFlux(t) {
+  return String(t || '')
+    // Mention coupée par le flux avant « appeared first » : après « […] ».
+    .replace(/\s*\[(…|\.\.\.)\]\s*The post\b[\s\S]*$/i, ' …')
+    .replace(/\s*The post\b[\s\S]*?\bappeared first on\b[^.]*\.?/gi, ' ')
+    .replace(/^\s*Source\s*:[^.]*?(Please refer to the attached file\.?|\.)\s*/i, '')
+    .replace(/\s*Please refer to the attached file\.?\s*/gi, ' ')
+    .replace(/\s*\[(…|\.\.\.)\]\s*$/, ' …');
+}
 function couper(t, max) {
-  const s = nettoyerTitre(t);
+  const s = nettoyerTitre(sansMentionsDeFlux(t));
   return s.length > max ? s.slice(0, max).replace(/\s+\S*$/, '') + ' …' : s;
 }
 
@@ -865,9 +936,11 @@ function rediger(f, nomPays) {
     if (!e || !(e.resume || e.long) || extraits.length >= EXTRAITS_MAX) continue;
     // Une seule langue par document (YORO, 19/11/2026) : un texte en langue
     // étrangère que le job n'a pas pu traduire n'est pas cité.
-    const etranger = LANGUES_ETRANGERES.has(e.langue);
-    const chapo = e.resume && (!etranger || e.fr) ? e.resume : null;
-    const long = e.long && (!etranger || e.longFr) ? e.long : null;
+    // La langue se lit aussi dans le texte (27/11/2026, voir langueTexte) :
+    // un extrait anglais noté « other » se citait tel quel.
+    const etranger = (x) => { const l = langueTexte(x, e.langue); return LANGUES_ETRANGERES.has(l) || l === 'es'; };
+    const chapo = e.resume && (e.fr || !etranger(e.resume)) ? e.resume : null;
+    const long = e.long && (e.longFr || !etranger(e.long)) ? e.long : null;
     // Le début de l'article, quand il dit plus que le chapô (25/11/2026).
     const brut = long && long.length > (chapo || '').length + 40 ? long : chapo;
     if (!brut) continue;
@@ -897,7 +970,8 @@ const NOTE_REDACTION = 'Faits marquants : textes établis à partir des médias 
   + 'Le paragraphe qui suit chaque citation situe le fait parmi ceux de même nature relevés dans le pays sur la période ; '
   + 'implications et points à surveiller sont des repères par type d\'événement, à valider et compléter par l\'analyste.';
 
-module.exports = { LANGUES_ETRANGERES, phraseDe, choisirMarquants, rediger, enjeuxSurete, analyserFait, SURVEILLER, MARQUANTS_CI, MARQUANTS_PAYS, NOTE_REDACTION, dateRedigee };
+module.exports = {
+  sansMentionsDeFlux, LANGUES_ETRANGERES, phraseDe, choisirMarquants, rediger, enjeuxSurete, analyserFait, SURVEILLER, MARQUANTS_CI, MARQUANTS_PAYS, NOTE_REDACTION, dateRedigee };
 
   });
   definir("./rapport-p1", function (module, exports, require, __dirname) {
