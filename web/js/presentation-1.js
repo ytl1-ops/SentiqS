@@ -307,9 +307,57 @@ function themeHorsSurete(f, cy) {
   return null;
 }
 
+// Le sport n'entre dans le rapport que s'il a un impact avéré sur la sûreté
+// (YORO, 27/11/2026 : « Retire le sport sauf si après analyse, il a un impact
+// avéré sur la sûreté pays ou autre »). La garde générale ne suffit pas ici :
+// « attaque », « blessé », « condamné », « frappe fort » ont un sens sportif
+// (« Tour du Faso : Tom Wijfje frappe fort », « Football scolaire : 38 jeunes
+// à l'assaut de la phase zonale », classés critiques). Mesure sur les cumuls
+// d'octobre et novembre 2026 : 38 faits sportifs passaient le filtre ; 8 ont
+// un impact (convoi d'un lutteur attaqué, supporters qui s'affrontent, combat
+// interdit par le préfet, alerte de la CNDH sur les violences) et restent.
+// « lutte contre … » n'est pas un sport, « course-poursuite » non plus, et
+// « stade » ne compte qu'avec une majuscule (« à un stade avancé »). « JOJ »
+// seul ne fait pas un fait sportif : la presse sénégalaise date tout par
+// rapport aux Jeux (grève suspendue « pour les JOJ », budget des armées
+// « après les JOJ »), et le dispositif de sécurité des Jeux est de la sûreté.
+const SPORT_RE = new RegExp([
+  "\\bfootball", "\\bsoccer\\b", "\\bfifa\\b", "\\bla caf\\b", "\\bcoupe (de la caf|assep|du monde|d'afrique|de la confederation)",
+  "\\bcan (beach|20\\d\\d|u\\d\\d)", "\\bafcon\\b", "\\bchan 20\\d\\d", "\\bmondial u\\d+", "\\bu1[5-9]\\b", "\\bu2[0-3]\\b",
+  "\\bufoa", "\\bmedailles?\\b", "\\bdecroche l'or\\b", "\\btour du faso\\b", "\\bcyclis", "\\bmarathon\\b", "\\bboxe(ur)?s?\\b",
+  "\\bbasket", "\\bhandball\\b", "\\bvolley", "\\btennis\\b", "\\bathletisme\\b", "\\blutteurs?\\b",
+  "\\blutte (senegalaise|olympique|avec frappe|traditionnelle)", "^lutte ?:", "\\bcombat royal\\b", "\\bopen press\\b",
+  "\\blamb\\b", "\\barene nationale\\b", "\\btournoi", "\\bmaracana\\b", "\\bequipe nationale\\b", "\\bselection nationale\\b",
+  "\\bselectionneur", "\\bentraineur", "\\bcoach\\b", "\\bmercato\\b", "\\bchampionnat", "\\bchampionship\\b",
+  "\\bligue (\\d|des champions)", "\\bpremier league\\b", "\\bmatch(s)?\\b", "\\bderby\\b", "\\bsupporters?\\b",
+  "\\bfeguifoot\\b", "\\btribunal arbitral du sport\\b", "\\ble sport\\b", "\\bsportifs?\\b", "\\bsuper eagles\\b",
+  "\\bblack stars\\b", "\\bbeach soccer\\b", "\\bqualifs?\\b", "\\beliminatoires\\b",
+].join('|'));
+const STADE_RE = /\b(Stade|Stadium)\s+[A-ZÉÈ]/;
+// Ce qu'un fait sportif doit dire pour rester : une atteinte aux personnes,
+// une violence collective, ou une mesure des autorités.
+const IMPACT_SPORT_RE = new RegExp([
+  "\\btue[es]?\\b", "\\bmort[s]?\\b", "\\bmorte[s]?\\b", "\\bmeurt\\b", "\\bdeces\\b", "\\bblesses\\b", "\\bblessee?s? (grave|par)",
+  "\\battaqu(e|es|ee|ees)\\b(?! par l'adversaire)", "\\battentat", "\\baffrontements?\\b", "\\bviolences?\\b", "\\bemeute",
+  "\\bbousculade", "\\bheurts?\\b", "\\bhooligan", "\\bvandal", "\\bsaccag", "\\bpillage",
+  "\\binterdit\\b", "\\binterdiction\\b", "\\bsecuritaires?\\b", "\\bsecurite\\b", "\\bagents de securite\\b", "\\bhuis clos\\b", "\\bmesures? de securite\\b", "\\bdispositif (securitaire|de securite)",
+  "\\barrete?s\\b", "\\binterpell", "\\bterror", "\\bdjihad", "\\bstampede\\b", "\\briots?\\b", "\\bclash", "\\bkilled\\b",
+].join('|'));
+
+/** Fait sportif (catégorie ou vocabulaire du titre). */
+function estSport(f) {
+  if (!f) return false;
+  const brut = String(f.titreFr || f.titre || '');
+  return f.cat === 'sport' || SPORT_RE.test(norm(brut)) || STADE_RE.test(brut);
+}
+/** Un fait sportif sans impact avéré sur la sûreté : hors du rapport. */
+function estSportSansImpact(f) {
+  return estSport(f) && !IMPACT_SPORT_RE.test(norm(f.titreFr || f.titre));
+}
+
 function estHorsSurete(f, cy) { return themeHorsSurete(f, cy) !== null; }
 
-module.exports = { themeHorsSurete, estHorsSurete, THEMES, GARDE_RE };
+module.exports = { themeHorsSurete, estHorsSurete, estSport, estSportSansImpact, THEMES, GARDE_RE };
 
   });
   definir("./faits-p1", function (module, exports, require, __dirname) {
@@ -597,8 +645,11 @@ function faitsDuMois(cumul, cy, nomPays) {
     .filter(faitEnFrancais);
 }
 
+// Le sport reste seulement avec un impact avéré sur la sûreté
+// (horsSurete.estSportSansImpact, YORO 27/11/2026) : une rixe de supporters
+// classée « sport » ne doit pas disparaître, un match oui.
 function estSortiDuRadar(f) {
-  return !!f && (f.niveau === 'ok' || f.cat === 'sport' || f.cat === 'culture');
+  return !!f && (f.niveau === 'ok' || f.cat === 'culture' || horsSurete.estSportSansImpact(f));
 }
 
 // Une seule langue par document (YORO, 19/11/2026 : « tout type de rapport

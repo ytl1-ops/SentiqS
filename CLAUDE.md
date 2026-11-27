@@ -5241,5 +5241,16 @@ demande. Offrir le choix des periodes, des pays, zones geographique... », puis
   (`MODULES_WEB`) : le générateur servi était cassé depuis que la rédaction
   le requiert.
 
+- **Le sport sort du rapport, sauf impact avéré sur la sûreté** (YORO, même
+  jour). `estSportSansImpact` (`hors-surete.js`, lu par `estSortiDuRadar`) :
+  un fait sportif (catégorie ou vocabulaire du titre) ne reste que si son titre
+  dit une atteinte, une violence collective ou une mesure des autorités
+  (morts, affrontements, combat interdit, dispositif de sécurité). La garde
+  générale ne suffisait pas : « frappe fort », « à l'assaut » y passaient.
+  « JOJ » seul n'est pas du sport (grève suspendue « pour les JOJ », dispositif
+  de sécurité des Jeux). Cumuls d'octobre et novembre : 38 faits sportifs
+  passaient, **30 sortent, 8 restent** (convoi du lutteur Siguil, supporters de
+  Fass Mbao, combat interdit par le préfet, alerte de la CNDH…).
+
 Tests : `categorie-actus.test.js` (13), `reclasser-cumul.test.js` (3),
-`presentation-periode.test.js` (7).
+`presentation-periode.test.js` (7), `sport-impact.test.js` (3).

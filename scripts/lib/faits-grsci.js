@@ -282,8 +282,11 @@ function faitsDuMois(cumul, cy, nomPays) {
     .filter(faitEnFrancais);
 }
 
+// Le sport reste seulement avec un impact avéré sur la sûreté
+// (horsSurete.estSportSansImpact, YORO 27/11/2026) : une rixe de supporters
+// classée « sport » ne doit pas disparaître, un match oui.
 function estSortiDuRadar(f) {
-  return !!f && (f.niveau === 'ok' || f.cat === 'sport' || f.cat === 'culture');
+  return !!f && (f.niveau === 'ok' || f.cat === 'culture' || horsSurete.estSportSansImpact(f));
 }
 
 // Une seule langue par document (YORO, 19/11/2026 : « tout type de rapport
