@@ -15,6 +15,12 @@ const path = require('node:path');
 
 const RACINE = path.join(__dirname, '..');
 const MODULES = ['hors-surete', 'faits-grsci', 'redaction-grsci', 'rapport-grsci', 'rapport-grsci-word'];
+// Modules partagés avec la page (double export), lus hors de scripts/lib :
+// la rédaction lit les repères de sûreté de web/js depuis le 26/11/2026.
+const MODULES_WEB = ['reperes-surete'];
+const cheminSource = (m) => MODULES_WEB.includes(m)
+  ? path.join(RACINE, 'web', 'js', m + '.js')
+  : path.join(RACINE, 'scripts', 'lib', m + '.js');
 const SORTIE = path.join(RACINE, 'web', 'js', 'presentation-1.js');
 
 // « Le terme GRSCI ne doit pas figurer dans l'appli » (YORO, 01/11/2026) :
@@ -23,12 +29,12 @@ const SORTIE = path.join(RACINE, 'web', 'js', 'presentation-1.js');
 const sansSigle = (t) => t.replace(/GRSCI/g, 'P1').replace(/Grsci/g, 'P1').replace(/grsci/g, 'p1');
 
 function construire() {
-  const parties = MODULES.map((m) => {
-    const src = sansSigle(fs.readFileSync(path.join(RACINE, 'scripts', 'lib', m + '.js'), 'utf8').replace(/^#!.*\n/, ''));
+  const parties = [...MODULES_WEB, ...MODULES].map((m) => {
+    const src = sansSigle(fs.readFileSync(cheminSource(m), 'utf8').replace(/^#!.*\n/, ''));
     return '  definir(' + JSON.stringify('./' + sansSigle(m)) + ', function (module, exports, require, __dirname) {\n' + src + '\n  });\n';
   });
   return '// FICHIER CONSTRUIT — ne pas modifier : node scripts/construire-presentation-web.js\n'
-    + '// Sources : le générateur de la Présentation 1 du job (scripts/lib), ' + MODULES.length + ' modules.\n'
+    + '// Sources : le générateur de la Présentation 1 du job (scripts/lib), ' + (MODULES.length + MODULES_WEB.length) + ' modules.\n'
     + '(function (racine) {\n'
     + '  \'use strict\';\n'
     + '  const defs = {}; const faits = {};\n'
@@ -41,7 +47,7 @@ function construire() {
     + '  function exiger(nom) {\n'
     + '    if (nom === \'node:fs\' || nom === \'fs\') return fsNav;\n'
     + '    if (nom === \'node:path\' || nom === \'path\') return pathNav;\n'
-    + '    const k = \'./\' + nom.replace(/^\\.\\//, \'\').replace(/\\.js$/, \'\');\n'
+    + '    const k = \'./\' + nom.replace(/^.*\\//, \'\').replace(/\\.js$/, \'\');\n'
     + '    if (faits[k]) return faits[k].exports;\n'
     + '    if (!defs[k]) throw new Error(\'module absent : \' + nom);\n'
     + '    const m = faits[k] = { exports: {} };\n'

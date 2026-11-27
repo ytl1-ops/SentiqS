@@ -9208,6 +9208,9 @@ const SENS_ADMINISTRATIFS = [
   /\benlevements?\s+(?:des|de\s+la|du|de|d')\s*(?:marchandises?|ordures?|dechets?|colis|conteneurs?|vehicules?|epaves?|bagages?|cargaisons?|ordures\s+menageres)/g,
   /\b(?:fete|jour|journee)\s+des\s+morts/g,
   /\bpieces?\s+d'execution/g,
+  // « Exécution budgétaire à fin septembre », « Rapport d'exécution budgétaire »
+  // sortaient CRITIQUES (audit du 27/11/2026).
+  /\b(?:rapport\s+d'|rapports\s+d')?execution\s+(?:budgetaire|financiere|physique)/g,
   // « attaque » au sens de critique (audit du 15/11/2026) : « Minority caucus
   // attacks 2027 Budget » (JoyOnline) sortait CRITIQUE. Le verbe disparait
   // quand son objet est un texte, un budget ou une decision ; une attaque
@@ -9517,7 +9520,11 @@ const SPORT_CONTENU_KW = [
   'hors-jeu','hors jeu','penalty','tirs au but','seance de tirs au but',
   'prolongation','prolongations','mort subite','explosion de joie',
   'frappe puissante','frappe enroulee','arbitre','var (arbitrage)','stade municipal',
-  'derby','championnat national','coupe nationale','coupe d\'afrique','can 20',
+  'derby','championnat national',
+  // Audit du 27/11/2026 : « Road to BAL 2027 – Elite 16 : Jean-Jacques Boissy
+  // frappe fort avec 29 points et le titre de MVP » sortait CRITIQUE, et
+  // « Ligue 2 : le Fello Star surclasse la Flamme Olympique » en Social.
+  'mvp','road to bal','basketball africa league','basket-ball','basketball','ligue 1','ligue 2','grimpe au classement','coupe nationale','coupe d\'afrique','can 20',
   'can2026','can 2027','eliminatoires can','eliminatoires mondial','selection nationale',
   'les elephants','les lions de la teranga','les aigles','les etalons','les leopards',
   'footballeur','joueur professionnel','entraineur (football)','maillot du club',
@@ -10262,7 +10269,7 @@ function estSuiteJudiciaire(tTitre) { return SUITE_JUDICIAIRE_RE.test(tTitre.tri
 // ELEVE — mais ne peut plus atteindre CRITIQUE ; le bilan routier
 // periodique, lui, redescend a MODERE.
 const ACCIDENT_RE = /\b(accidents?|acidentes?|carambolage|collision|delit de fuite|hit[- ]and[- ]run|(?:bus|car|road|plane|train|truck|boat) crash|crash d[eu]|road traffic)\b/;
-const BILAN_ROUTIER_RE = /\b(bilan routier|morts sur (?:les|la|nos) routes?|tues sur (?:les|la|nos) routes?|road deaths|road toll|securite routiere)\b/;
+const BILAN_ROUTIER_RE = /\b(bilan routier|la route tue|morts sur (?:les|la|nos) routes?|tues sur (?:les|la|nos) routes?|road deaths|road toll|securite routiere)\b/;
 // Une attaque contre un vehicule reste une attaque : le plafond ne
 // s'applique jamais si le titre porte du vocabulaire d'agression. Sans
 // cette garde, « bus attaque par des hommes armes » serait plafonne.
@@ -10309,6 +10316,119 @@ function motsTouches(texte, lexique) {
   return familles;
 }
 
+// ── CATÉGORIE D'UNE ACTU : le titre d'abord, et une rubrique « Faits divers »
+//
+// Audit du 27/11/2026 (YORO : « une piqûre de scorpion est placée en
+// politique »). Rejeu de classify() sur les cumuls d'octobre et novembre
+// (2 384 faits) : 821 (34 %) ne portaient AUCUN mot de catégorie et
+// recevaient la catégorie de leur SOURCE — 343 tombaient ainsi en politique
+// (un meurtre à Kaolack, un incendie d'appartement, la lutte sénégalaise).
+// Sur un échantillon de 100 faits relus un par un, 51 catégories étaient
+// fausses. Trois causes :
+//   1. le repli sur la catégorie de la source, alors qu'un média généraliste
+//      déclaré « politique » publie de tout ;
+//   2. aucun lexique du crime ordinaire, de la santé, de l'éducation ;
+//   3. aucune place pour ce qui n'est ni sécurité, ni politique, ni social,
+//      ni économie : accidents, incendies domestiques, noyades, piqûres,
+//      fêtes, examens, mode.
+// D'où `divers` (« Faits divers »), et des lexiques qui ne servent QU'À la
+// catégorie : rien ici ne touche au niveau d'un article ni d'un pays.
+//
+// Règle : chaque mot du TITRE compte trois fois, chaque mot du corps une
+// fois. Sans aucun mot, la source ne décide que si elle est spécialisée
+// (économique, humanitaire) ; un média généraliste donne « Faits divers ».
+const CAT_LEX = {
+  securite: /\b(?:agress\w*|groupes? armes?|islamist\w*|civils|securite|armee|armees|fama|forces armees|forces de securite|extremis\w*|africom|meurtr\w*|assassin\w*|egorg\w*|homicide\w*|tentative de viol|viols?|violee?s?|agression\w* sexuel\w*|violences? sexuel\w*|interpell\w*|arrestation\w*|arretes?|arretee?s?|mandats? d'arret|cavale|inculp\w*|garde a vue|detention|detenu\w*|prison\w*|ecroue\w*|braqu\w*|cambriol\w*|vols? a main armee|voleurs?|drogues?|antidrogue|stupefiants?|haschich|cannabis|cocaine|chanvre|trafi\w*|contrebande|police|policier\w*|gendarm\w*|commissariat|enquete\w*|enqueteurs?|machette|poignard\w*|couteau|explosifs?|engins explosifs|saisi\w* d'armes|douane\w* saisi\w*|armee de l'air|forces? de defense|defense nationale|militaires?|soldats?|terroris\w*|djihad\w*|jihad\w*|jnim|eigs|boko haram|bandits?|banditisme|criminalite|criminel\w*|crimes?|insecurite|securitaire|surete|securite (?:nationale|interieure|publique)|murder\w*|arrested|arrest|police|robbery|robbers|kidnap\w*|gunmen|bandits|terror\w*|militar\w*|troops|army|drug\w*|traffick\w*|smuggl\w*|seiz\w*|prison|jail\w*|stabbed|rape\w*|assassinat)\b/g,
+  politique: /\b(?:presidente?s?|presidentiel\w*|chef de l'etat|premier ministre|ministres?|gouvernement\w*|partis?|opposition|opposants?|militants|meeting|deputes?|assemblee nationale|senat\w*|senateurs?|parlement\w*|decrets?|conseil des ministres|diplomat\w*|ambassad\w*|ambassadeurs?|cooperation|visite officielle|audience|accueilli\w*|recu par|recoit|sommet|nations unies|onu|union africaine|cedeao|ecowas|aes|confederation|elections?|electora\w*|scrutin|vote|referendum|motion de censure|responsabilite du gouvernement|constitution\w*|pouvoir|regime|junte|transition|souverainete|condoleances|commandeur|ordre national|decore\w*|haute autorite|harc|maire|mairie|municipal\w*|prefet|gouverneur|tribune|opinion|politique\w*|president|minister|government|parliament|senate|election\w*|opposition|party|diplomat\w*|ambassador|summit|un meeting|sovereignty|manifestation\w*|marche pacifique)\b/g,
+  humanitaire: /\b(?:sante|sanitaire\w*|hopita\w*|chu|clinique|medec\w*|medic\w*|infirmi\w*|patients?|maladies?|vih|sida|depistage|vaccin\w*|paludisme|cholera|ebola|diphterie|rougeole|meningite|dengue|mpox|polio\w*|epidemi\w*|pandemi\w*|grev\w*|syndica\w*|preavis|migrants?|migrations?|migratoire|emigra\w*|immigra\w*|rapatri\w*|refoul\w*|expulse\w*|refugie\w*|deplace\w*|humanitaire\w*|inondation\w*|secheresse|climat\w*|cop\d*|environnement\w*|pollution|decharge|dechets|hygiene|assainissement|eau potable|malnutrition|alimentaire|faim|famine|cantines?|vbg|violences? basees? sur le genre|violences? faites aux femmes|handicap\w*|pauvrete|health|hospital\w*|disease|outbreak|strike|union\w*|migrants?|refugees?|displaced|flood\w*|drought|climate|humanitarian|hunger|famine)\b/g,
+  economique: /\b(?:econom\w*|fmi|banque mondiale|budget\w*|budgetaire|loi de finances|lfr|lfi|finances?|financ\w*|dette\w*|fcfa|f cfa|milliards?|millions de|investiss\w*|banques?|bancaire\w*|mobile money|paiements?|monnaie|billets|bceao|uemoa|croissance|inflation|prix|cherte|commerc\w*|entreprises?|emplois?|chomage|port autonome|exportat\w*|importat\w*|douane\w*|fiscal\w*|impots?|taxes?|agricole\w*|agricult\w*|producteurs?|recolte\w*|riz|cacao|coton|anacarde|semences?|elevage|mines?|minier\w*|petrol\w*|gaz|energie|electricite|marches?|vendeu\w*|bourse|startup|innovation|tarifs?|carburant|penurie|economy|economic|imf|world bank|budget|bank\w*|finance\w*|investment\w*|trade|market\w*|inflation|prices?|mining|oil|gas)\b/g,
+  divers: /\b(?:accidents?|collision|circulation|drame routier|carambolage|crash|incendie\w*|flammes|brule\w*|noyade\w*|noye\w*|naufrage\w*|chavir\w*|electrocut\w*|effondrement|eboulement|foudre|fosse septique|retrouvee? morte?|retrouve mort|deces|decede\w*|obseques|funerailles|inhum\w*|piqure\w*|piquee?s?|morsure\w*|scorpions?|serpents?|abeilles|essaim|crocodiles?|hippopotames?|toussaint|noel|tabaski|ramadan|fete\w*|celebration\w*|festival|carnaval|concert|spectacle|defile de mode|semaine de la mode|fashion|podium|miss|baccalaureat|bac|bepc|cepe|examens?|concours|releve de notes|inaugur\w*|ceremonie\w*|anniversaire|memorial|commemorat\w*|mariage|insolite|astuces?|conseils?|voici comment|ce qu'il faut savoir|ce que vous devez savoir|bon a savoir|gestes a adopter|recette|fire|drown\w*|accident\w*|crash|festival|exam\w*|wedding|funeral)\b/g,
+};
+// L'éducation compte pour UN mot au plus : « Enseignement supérieur : la
+// retenue sur salaire des grévistes relance la crise universitaire » est une
+// grève (Social), pas un fait divers parce qu'il nomme deux fois l'université.
+const CAT_EDUCATION_RE = /\b(?:etudiants?|eleves|ecoles?|scolaire\w*|universit\w*|enseignement\w*|enseignants?)\b/;
+// Une « sécurité » qui n'est pas la sûreté : chacune renvoie à sa catégorie.
+const CAT_SECURITE_COMPOSEE = [
+  [/\bsecurite alimentaire\b/g, ' alimentaire '],
+  [/\bsecurite sociale\b/g, ' sante '],
+  [/\bsecurite routiere\b/g, ' accident '],
+  [/\bsecurite (?:des paiements|numerique|financiere|energetique)\b/g, ' paiements '],
+];
+// Un sinistre, un accident, une piqûre décrivent un fait divers : leurs mots
+// de bilan (« morts », « tués ») ne doivent pas en faire un fait de sécurité,
+// sauf vocabulaire d'agression dans le titre (AGRESSION_RE).
+const FAIT_DIVERS_RE = /\b(?:securite routiere|la route tue|bilan routier|echouement|accidents?|collision|drame routier|carambolage|crash|incendie\w*|noyade\w*|noye\w*|naufrage\w*|chavir\w*|electrocut\w*|effondrement|eboulement|foudre|fosse septique|piqure\w*|morsure\w*|scorpions?|serpents?|abeilles|essaim|crocodiles?|hippopotames?)\b/;
+// ATTAQUE D'ANIMAL : « Podor : attaque d'abeilles, un mort », « piqûre de
+// scorpion » sortaient CRITIQUES sur le mot « attaque » ou « mort ». Un
+// animal n'est pas un agresseur : plafond MODÉRÉ, catégorie Faits divers,
+// jamais si le titre nomme aussi un agresseur humain.
+const ANIMAL_RE = /\b(?:piqure\w* de (?:scorpion|serpent|guepe|abeille)\w*|scorpions?|serpents?|morsure\w* de (?:serpent|chien|crocodile)\w*|attaque\w* d'(?:abeilles|un essaim|un crocodile|un hippopotame|un elephant|elephants|hyenes?|un lion)|essaim d'abeilles|abeilles|crocodiles?|hippopotames?|snake ?bites?|scorpion stings?|bee attack)\b/;
+const AGRESSEUR_HUMAIN_RE = /\b(?:hommes armes|individus armes|assaillants|bandits?|terroris\w*|djihad\w*|jihad\w*|gunmen|militants|braqu\w*|ravisseurs)\b/;
+function estAttaqueAnimale(tTitre) { return ANIMAL_RE.test(tTitre) && !AGRESSEUR_HUMAIN_RE.test(tTitre); }
+// VIE PRATIQUE : « Ce qu'il faut savoir sur la Toussaint », « Voici comment
+// réagir face à un arrêt cardiaque », « 8 signes pour reconnaître une société
+// frauduleuse » : des articles de conseil, pas des faits. Niveau normal,
+// sauf si le titre décrit aussi un incident (« Ce qu'il faut savoir sur
+// l'attaque de Djibo » reste une attaque).
+const VIE_PRATIQUE_RE = /\b(?:ce qu'il faut savoir|ce que vous devez savoir|voici comment|comment (?:reagir|reconnaitre|eviter|se proteger|bien)|signes pour reconnaitre|gestes a adopter|bon a savoir|astuces?|nos conseils|conseils pratiques|what you need to know|how to)\b/;
+function estVieePratique(tTitre) {
+  return VIE_PRATIQUE_RE.test(tTitre) && !AGRESSION_RE.test(tTitre)
+    && !/\b(?:tues?|tuee?s?|morts? (?:dans|lors|apres)|bilan|victimes)\b/.test(tTitre);
+}
+function compterCat(texte, re, lexique) {
+  const vus = new Set();
+  for (const m of texte.matchAll(re)) vus.add(m[0].slice(0, 5));
+  if (lexique) for (const k of lexique) if (matchMot(texte, k)) vus.add(k.slice(0, 5));
+  return vus.size;
+}
+const ORDRE_CATEGORIES = ['securite', 'politique', 'humanitaire', 'divers', 'economique'];
+// Les lexiques historiques comptent aussi, sans compter deux fois un mot.
+// « grève » et « manifestation » restent hors de la politique : une grève est
+// un fait social (Présentation 1, rubrique II), une manifestation un fait
+// d'ordre public que le titre décide.
+// (Construit au premier appel : ce bloc est lu par des tests qui ne chargent
+// pas les lexiques CK_*.)
+let _lexiquesCategorie = null;
+function lexiquesCategorie() {
+  return _lexiquesCategorie || (_lexiquesCategorie = {
+    securite: CK_SEC,
+    politique: CK_POL.filter((k) => k !== 'greve' && k !== 'manifestation'),
+    humanitaire: [...CK_HUM, ...CK_HUM_DOMAINE],
+    economique: CK_ECO,
+    divers: null,
+  });
+}
+function categorieActu(tTitre, tCorps, srcCat) {
+  const titreSeul = tTitre !== tCorps;
+  for (const [re, r] of CAT_SECURITE_COMPOSEE) { tTitre = tTitre.replace(re, r); tCorps = tCorps.replace(re, r); }
+  const faitDivers = FAIT_DIVERS_RE.test(tTitre) && !AGRESSION_RE.test(tTitre);
+  const scores = {}, corps = {};
+  for (const c of ORDRE_CATEGORIES) {
+    const lex = lexiquesCategorie()[c];
+    const tt = compterCat(tTitre, CAT_LEX[c], lex);
+    scores[c] = 3 * tt;
+    corps[c] = titreSeul ? Math.min(2, Math.max(0, compterCat(tCorps, CAT_LEX[c], lex) - tt)) : 0;
+  }
+  if (CAT_EDUCATION_RE.test(tTitre)) scores.divers += 3;
+  else if (titreSeul && CAT_EDUCATION_RE.test(tCorps)) corps.divers += 1;
+  // Le vocabulaire d'incident (CK_CRIT, CK_HIGH) du titre est aussi un mot de
+  // sécurité — sauf dans un fait divers, où « morts » est un bilan.
+  if (!faitDivers) {
+    scores.securite += 3 * (motsTouches(tTitre, CK_CRIT).size);
+  }
+  if (estAttaqueAnimale(tTitre)) return 'divers';
+  // Le corps ne parle que si le titre se tait : il départagerait mal (un
+  // compte rendu de remise d'hélicoptères à l'armée cite le président).
+  if (!ORDRE_CATEGORIES.some((c) => scores[c] > 0)) {
+    for (const c of ORDRE_CATEGORIES) scores[c] += corps[c];
+  }
+  let cat = null, mx = 0;
+  for (const c of ORDRE_CATEGORIES) if (scores[c] > mx) { mx = scores[c]; cat = c; }
+  if (cat) return cat;
+  return (srcCat === 'economique' || srcCat === 'humanitaire') ? srcCat : 'divers';
+}
+
 // classify(txt, src, titre) : txt est le titre suivi du corps ; titre, quand
 // l'appelant le fournit, permet de distinguer ce que dit le TITRE de ce que
 // dit le corps. Sans lui (anciens appels, tests), tout est traite comme titre :
@@ -10351,8 +10471,6 @@ function classify(txt, src, titre) {
     politique:  CK_POL.filter(k=>matchMot(tScan,k)).length,
     economique: CK_ECO.filter(k=>matchMot(tScan,k)).length,
   };
-  let cat = src.cat, mx = 0;
-  for (const [c,v] of Object.entries(scores)) if (v>mx) { mx=v; cat=c; }
 
   // Correspondance MOT ENTIER (matchMot), pas sous-chaine brute : evite les
   // faux positifs caches type "tue" dans "statue", "arme" dans "larme",
@@ -10389,6 +10507,7 @@ function classify(txt, src, titre) {
   const tTitre = (typeof titre === 'string' && titre)
     ? neutraliserExpressions(normaliserAccents(titre.toLowerCase()))
     : tScan;
+  const cat = categorieActu(tTitre, tScan, src.cat);
   if (estFormatEditorial(tTitre)) return {lvl: 'ok', cat};
 
   const critTitre = motsTouches(tTitre, CK_CRIT);
@@ -10416,6 +10535,8 @@ function classify(txt, src, titre) {
   if (lvl !== 'ok' && estBilanRoutier(tTitre)) lvl = 'mod';
   if (lvl === 'crit' && estNonEvenement(tTitre)) lvl = 'mod';
   if ((lvl === 'crit' || lvl === 'high') && estActiviteInstitutionnelle(tTitre)) lvl = 'mod';
+  if ((lvl === 'crit' || lvl === 'high') && estAttaqueAnimale(tTitre)) lvl = 'mod';
+  if (lvl !== 'ok' && estVieePratique(tTitre)) lvl = 'ok';
 
   return {lvl, cat};
 }

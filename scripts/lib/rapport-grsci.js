@@ -232,7 +232,7 @@ const RUBRIQUES = [
   { cle: 'politique', num: 'I', titre: 'POLITIQUE', cats: ['politique'] },
   { cle: 'humanitaire', num: 'II', titre: 'SOCIAL', cats: ['humanitaire'] },
   { cle: 'securite', num: 'III', titre: 'SÉCURITÉ', cats: ['securite'] },
-  { cle: 'divers', num: 'IV', titre: 'DIVERS', cats: ['economique', 'economie', null] },
+  { cle: 'divers', num: 'IV', titre: 'DIVERS', cats: ['economique', 'economie', 'divers', null] },
 ];
 // Deux fiches d'actu (texte + photo) par page depuis le 14/11/2026 (cinq
 // titres auparavant).
