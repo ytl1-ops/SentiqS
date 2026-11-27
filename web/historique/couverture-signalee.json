@@ -1,6 +1,11 @@
 {
- "cle": "BW",
+ "cle": "BW,CG,DJ,ER,LS,SC",
  "pays": [
-  "BW"
+  "BW",
+  "CG",
+  "DJ",
+  "ER",
+  "LS",
+  "SC"
  ]
 }
