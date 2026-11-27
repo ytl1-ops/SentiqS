@@ -116,6 +116,7 @@
     "Tous les pays": "All countries",
     "Parametres": "Settings",
     "Économique": "Economic",
+    "Faits divers": "Other news",
     "Réseaux sociaux": "Social media",
     "Plus récent": "Most recent",
     "Priorité": "Priority",

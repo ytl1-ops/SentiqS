@@ -4076,6 +4076,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
           <span class="chip" onclick="setCat(this,&#39;humanitaire&#39;)" role="button" tabindex="0">Humanitaire</span>
           <span class="chip" onclick="setCat(this,&#39;politique&#39;)" role="button" tabindex="0">Politique</span>
           <span class="chip" onclick="setCat(this,&#39;economique&#39;)" role="button" tabindex="0">Économique</span>
+          <span class="chip" onclick="setCat(this,&#39;divers&#39;)" role="button" tabindex="0">Faits divers</span>
           <span class="chip chip-social" onclick="setSocialFilter(this)" role="button" tabindex="0"><i class="ti ti-social"></i>Réseaux sociaux</span>
           <span class="chip" onclick="setCat(this,&#39;valides&#39;)" role="button" tabindex="0"><i class="ti ti-user-check"></i><span data-i18n="chip_valides">Validés analyste</span></span>
         </div>
@@ -4175,6 +4176,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
             <option value="humanitaire">Humanitaire</option>
             <option value="politique">Politique</option>
             <option value="economique">Economique</option>
+            <option value="divers">Faits divers</option>
           </select>
           <button onclick="renderRecherche()" title="Rafraichir les resultats depuis les donnees deja collectees" style="padding:5px 12px;background:rgba(138,93,26,.12);border:1px solid rgba(138,93,26,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
             <i class="ti ti-refresh"></i> <span data-i18n="btn_actualiser">Actualiser</span>
@@ -8535,7 +8537,7 @@ function recordSrcFail(srcId, reason) {
 let fCat='all', fCy='all', fSc='all', fGeo='all', fAg='all';
 // Filtre pose par une pastille de carte (theme, ville) : voir actionPastille().
 let fPastille = null;
-const CATS_FILTRABLES = ['securite', 'humanitaire', 'politique', 'economique'];
+const CATS_FILTRABLES = ['securite', 'humanitaire', 'politique', 'economique', 'divers'];
 
 // ── DETECTION DU MEILLEUR SERVICE DE COLLECTE ───────────────────────────────
 async function detectProxy() {
@@ -11259,7 +11261,7 @@ function getSocialSummary(cy, platform) {
   const total = arts.length || 1;
   const dominant = pos>neg && pos>=neutre ? 'positif' : neg>pos && neg>=neutre ? 'negatif' : 'neutre';
 
-  const themes = {securite:0,humanitaire:0,politique:0,economique:0};
+  const themes = {securite:0,humanitaire:0,politique:0,economique:0,divers:0};
   arts.forEach(a => { if(themes[a.cat]!==undefined) themes[a.cat]++; });
 
   const alertesLiees = (typeof getLiveAlertEvents==='function') ? getLiveAlertEvents(cy) : [];
@@ -11619,7 +11621,7 @@ function renderMediaBlock(a, heightPx) {
 // ═══════════════════════════════════════════════════════════════════════
 const VISUEL_OGP_MAX = 24;
 let _visuelOgpDemandes = 0;
-const _VISUEL_CAT_ICONE = { securite:'ti-shield-half', politique:'ti-building-bank', humanitaire:'ti-heart-handshake', economie:'ti-chart-line', economique:'ti-chart-line', sport:'ti-ball-football' };
+const _VISUEL_CAT_ICONE = { securite:'ti-shield-half', politique:'ti-building-bank', humanitaire:'ti-heart-handshake', economie:'ti-chart-line', economique:'ti-chart-line', divers:'ti-news', sport:'ti-ball-football' };
 const _VISUEL_NIV_VAR = { crit:'var(--r)', high:'var(--a)', mod:'var(--j)', ok:'var(--g)' };
 function urlImageSure(u) {
   return (typeof u === 'string' && /^https:\/\/[^\s"'<>]+$/i.test(u)) ? u : null;
@@ -16794,15 +16796,15 @@ function chipTendance(code) {
 // la couleur seule), et la trajectoire n'est tracée qu'à partir de deux
 // relevés : une courbe d'un point serait une affirmation sans mesure.
 const PANO_NIVEAUX = ['rouge', 'marron', 'orange', 'jaune', 'vert'];
-const PANO_THEMES = ['securite', 'humanitaire', 'politique', 'economique'];
+const PANO_THEMES = ['securite', 'humanitaire', 'politique', 'economique', 'divers'];
 function libelleNiveauPano(k) {
   const fr = { rouge: 'Grave', marron: 'Critique', orange: 'Élevé', jaune: 'Modéré', vert: 'Stable' };
   const en = { rouge: 'Severe', marron: 'Critical', orange: 'High', jaune: 'Moderate', vert: 'Stable' };
   return (LANG === 'en' ? en : fr)[k] || k;
 }
 function libelleThemePano(t) {
-  const fr = { securite: 'Sécurité', humanitaire: 'Humanitaire', politique: 'Politique', economique: 'Économique' };
-  const en = { securite: 'Security', humanitaire: 'Humanitarian', politique: 'Political', economique: 'Economic' };
+  const fr = { securite: 'Sécurité', humanitaire: 'Humanitaire', politique: 'Politique', economique: 'Économique', divers: 'Faits divers' };
+  const en = { securite: 'Security', humanitaire: 'Humanitarian', politique: 'Political', economique: 'Economic', divers: 'Other news' };
   return (LANG === 'en' ? en : fr)[t] || t;
 }
 // Série quotidienne : combien de pays à l'orange ou plus, et au marron ou
@@ -17252,7 +17254,7 @@ async function updSynthese() {
   document.getElementById('syHigh').innerHTML='<i class="ti ti-alert-circle" style="font-size:9px;vertical-align:-1px"></i> '+high+' eleve'+(high>1?'s':'');
   document.getElementById('sySrc').innerHTML='<i class="ti ti-database" style="font-size:9px;vertical-align:-1px"></i> '+okSrc+' sources actives';
 
-  const byCat={securite:[],humanitaire:[],politique:[],economique:[]};
+  const byCat={securite:[],humanitaire:[],politique:[],economique:[],divers:[]};
   actusAffichables(perimetre).sort((a,b)=>(b.pubDate||0)-(a.pubDate||0)).slice(0,60)
     .forEach(a=>{if(byCat[a.cat])byCat[a.cat].push(a);});
 
@@ -17261,6 +17263,7 @@ async function updSynthese() {
     {k:'humanitaire',ic:'ti-leaf',        cl:'ha',lb:'Axe humanitaire'},
     {k:'politique', ic:'ti-building-community',cl:'hb',lb:'Environnement politique'},
     {k:'economique',ic:'ti-chart-line',   cl:'hg',lb:'Contexte economique'},
+    {k:'divers',    ic:'ti-news',         cl:'hg',lb:'Faits divers'},
   ];
 
   let html='';
@@ -26235,8 +26238,8 @@ function lvlFr(l){
 }
 function catFr(c){
   const dict = LANG==='en'
-    ? {securite:'Security',humanitaire:'Humanitarian',politique:'Political',economique:'Economic',sport:'Sports',culture:'Culture'}
-    : {securite:'Sécurité',humanitaire:'Humanitaire',politique:'Politique',economique:'Économique',sport:'Sport',culture:'Culture'};
+    ? {securite:'Security',humanitaire:'Humanitarian',politique:'Political',economique:'Economic',divers:'Other news',sport:'Sports',culture:'Culture'}
+    : {securite:'Sécurité',humanitaire:'Humanitaire',politique:'Politique',economique:'Économique',divers:'Faits divers',sport:'Sport',culture:'Culture'};
   return dict[c]||c;
 }
 function srcName(id){const s=SRCS.find(x=>x.id===id);return s?s.n:id;}
