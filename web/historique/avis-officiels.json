@@ -1,6 +1,6 @@
 {
  "source": "FCDO — gov.uk Content API (Open Government Licence v3.0) ; Affaires mondiales Canada — données ouvertes (Licence du gouvernement ouvert — Canada) ; Département d'État des États-Unis — flux RSS (domaine public)",
- "lu": "2026-11-27T12:27:26.567Z",
+ "lu": "2026-11-27T15:33:43.318Z",
  "pays": {
   "AO": {
    "statuts": [
@@ -123,7 +123,7 @@
     {
      "source": "Canada",
      "degre": "aat_total",
-     "revu": "2026-11-02T14:31:46.000Z",
+     "revu": "2026-11-27T15:03:34.000Z",
      "url": "https://travel.gc.ca/destinations/congo-kinshasa"
     },
     {
@@ -484,7 +484,7 @@
     {
      "source": "Canada",
      "degre": "prudence_partie",
-     "revu": "2026-11-17T16:26:57.000Z",
+     "revu": "2026-11-27T15:14:21.000Z",
      "url": "https://travel.gc.ca/destinations/kenya"
     },
     {
@@ -927,7 +927,7 @@
     {
      "source": "Canada",
      "degre": "aat_total",
-     "revu": "2026-11-25T14:39:16.000Z",
+     "revu": "2026-11-27T15:05:24.000Z",
      "url": "https://travel.gc.ca/destinations/south-sudan"
     },
     {
@@ -1076,7 +1076,7 @@
     {
      "source": "Canada",
      "degre": "aabe_total",
-     "revu": "2026-10-13T19:34:18.000Z",
+     "revu": "2026-11-27T15:10:35.000Z",
      "url": "https://travel.gc.ca/destinations/uganda"
     },
     {
@@ -1155,7 +1155,7 @@
    "source": "Canada",
    "avis": "aabe_total",
    "libelle": "voyages non essentiels déconseillés dans tout le pays",
-   "revuIlYaJ": 36
+   "revuIlYaJ": 37
   },
   {
    "code": "KM",
