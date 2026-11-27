@@ -15471,7 +15471,7 @@ async function entreesCalendrierAgenda() {
   });
   const off = SentiqCalendrier.feriesVersAgenda(feries.filter(h => { const t = Date.parse(h.date + 'T12:00:00Z'); return t >= debut && t <= fin; }), LANG, nomPays);
   const reco = recoAgendaAuto('religieux');
-  return calc.map(e => Object.assign(e, { reco })).concat(off);
+  return SentiqCalendrier.fusionnerCalendrier(calc.map(e => Object.assign(e, { reco })), off, LANG, nomPays);
 }
 async function agendaComplet() {
   const detectes = (ALL || []).filter(a => a._estAgenda && estAgendaRecent(a)).map(a => articleVersAgenda(a));
@@ -15479,7 +15479,68 @@ async function agendaComplet() {
   const partages = (typeof agendaPartageeMisAJour === 'function') ? await agendaPartageeMisAJour() : [];
   const cal = await entreesCalendrierAgenda();
   const agent = (typeof agendaAgent === 'function') ? await agendaAgent().catch(() => []) : [];
-  return [...AGENDA, ...detectes, ...(partages || []).filter(e => !ids.has(e.id)), ...agent, ...cal];
+  return agendaAJour([...AGENDA, ...detectes, ...(partages || []).filter(e => !ids.has(e.id)), ...agent, ...cal]);
+}
+
+// ── L'agenda tel qu'il s'affiche : la date de l'événement fait le statut ────
+// Audit du 27/11/2026 (YORO : « l'agenda affiche des incohérences ») :
+//  - les entrées saisies gardaient leur statut figé : le sommet de la CEDEAO
+//    du 2 juillet restait « URGENT » en tête de liste fin novembre, la
+//    présidentielle zambienne du 13 août « PLANIFIÉE », la Biennale de Dakar
+//    (19 novembre – 19 décembre) « PLANIFIÉE » alors qu'elle était en cours ;
+//  - un événement détecté dans le Flux était daté du jour de PARUTION de
+//    l'article, et passait « ACHEVÉ » 24 h plus tard : « rassemblement
+//    national prévu le 5 décembre » s'affichait au 27 novembre, puis achevé ;
+//  - l'agenda de l'agent (54 pays, dates écrites) n'était lu que par Louis,
+//    jamais par le module Agenda.
+// La date écrite dans le titre (puis dans l'extrait) devient la date de
+// l'événement ; sans date écrite, rien ne change. Le niveau d'alerte n'en
+// dépend pas, et les exports (getExportAgenda) ne passent pas par ici.
+function agendaAJour(liste, maintenant) {
+  if (typeof SentiqCalendrier === 'undefined' || !SentiqCalendrier.statutParDate) return liste;
+  const C = SentiqCalendrier, J = 86400000, now = maintenant || Date.now();
+  const MOIS_ABBR = ['Jan','Fev','Mar','Avr','Mai','Jun','Jul','Aou','Sep','Oct','Nov','Dec'];
+  const out = (liste || []).filter(Boolean).map(e0 => {
+    if (e0._calendrier) return e0;
+    const e = Object.assign({}, e0);
+    if (e._agent) {
+      e.status = C.statutParDate(e._ts, e._finMs || e._ts, now, 'planifie');
+      return e;
+    }
+    if (e._detecteAuto) {
+      const pub = _agendaTs(e);
+      const d = C.dateAnnoncee(e.title, pub) || C.dateAnnoncee(e.desc, pub);
+      if (!d) return e;
+      const dd = new Date(d.debutMs);
+      Object.assign(e, {
+        _publieMs: pub, _ts: d.debutMs, _finMs: d.finMs, _dateAnnoncee: true, hour: '',
+        day: String(dd.getUTCDate()).padStart(2, '0'), month: MOIS_ABBR[dd.getUTCMonth()], year: String(dd.getUTCFullYear()),
+      });
+      let st = C.statutParDate(d.debutMs, d.finMs, now, e.status);
+      // « Urgent » venait du niveau de l'article : pas pour un événement
+      // annoncé dans plus de trois jours.
+      if (st === 'urgent' && Math.floor(d.debutMs / J) * J - now > 3 * J) st = 'planifie';
+      e.status = st;
+      return e;
+    }
+    // Saisie manuelle : la durée se lit dans la description quand elle y est
+    // écrite (« du 19 novembre au 19 décembre 2026 ») et part du même jour.
+    const d0 = _agendaTs(e);
+    const r = C.dateAnnoncee(e.desc, d0);
+    const fin = (r && Math.floor(r.debutMs / J) === Math.floor(d0 / J) && r.finMs > d0) ? r.finMs : d0;
+    e._finMs = fin;
+    e.status = C.statutParDate(d0, fin, now, e.status);
+    return e;
+  });
+  // L'agent peut retrouver un article déjà détecté dans le Flux : une ligne.
+  const vus = new Set();
+  return out.filter(e => {
+    if (e._calendrier || !e._detecteAuto) return true;
+    const cles = [e.surl ? 'u|' + e.surl : null, 't|' + resolveAgendaCy(e.cy) + '|' + titreNormalise(e.title || '')].filter(Boolean);
+    if (cles.some(k => vus.has(k))) return false;
+    cles.forEach(k => vus.add(k));
+    return true;
+  });
 }
 function fermerAccesRapide(sansRetour) {
   const d = document.getElementById('accesRapide');
@@ -15683,7 +15744,10 @@ function agendaAgentVersEntree(cle, json, MOIS_ABBR) {
   try { e = JSON.parse(json || 'null'); } catch (_) { return null; }
   if (!e || !PAYS_INFO[e.cy] || e.cy === 'INT' || AGENDA_AGENT_TYPES.indexOf(e.type) === -1) return null;
   const debut = Number(e.debutMs);
-  if (!(debut > 0) || debut < Date.now() - 2 * 86400000) return null;
+  // Un événement de plusieurs jours reste à l'agenda jusqu'à son dernier
+  // jour (27/11/2026) : il en sortait deux jours après le premier.
+  const fin = Number(e.finMs) >= debut ? Number(e.finMs) : debut;
+  if (!(debut > 0) || fin < Date.now() - 86400000) return null;
   const titre = SentiqAgent.nettoyerTexte(e.titre, SentiqAgent.TITRE_MAX);
   const lien = (Array.isArray(e.liens) ? e.liens : []).map(l => l && SentiqAgent.urlSure(l.url)).filter(Boolean)[0];
   const src = SRCS.find(s => s.id === e.sourceId);
@@ -15695,7 +15759,7 @@ function agendaAgentVersEntree(cle, json, MOIS_ABBR) {
     title: titre, desc: SentiqAgent.nettoyerTexte(e.extrait, 220),
     status: 'planifie', type: e.type, cy: e.cy,
     impact: (e.type === 'travaux' || e.type === 'manifestation') ? 'moyen' : 'faible',
-    surl: lien, src: src.n, reco: recoAgendaAuto(e.type), _detecteAuto: true, _agent: true, _ts: debut,
+    surl: lien, src: src.n, reco: recoAgendaAuto(e.type), _detecteAuto: true, _agent: true, _ts: debut, _finMs: fin,
     _cotation: SentiqAgent.COTATIONS.indexOf(e.cotation) !== -1 ? e.cotation : 'non_confirme',
   };
 }
@@ -17610,17 +17674,11 @@ async function renderAgenda() {
   // 7 jours voulue (AGENDA_MAX_AGE) sur les 54 pays plutot que de perdre
   // toute detection au bout de 12h. Dedoublonnes par id : un evenement
   // encore frais localement n'est jamais compte deux fois.
-  const detectes = (ALL||[])
-    .filter(a => a._estAgenda && estAgendaRecent(a))
-    .map(a => articleVersAgenda(a));
-  const idsDetectesLocaux = new Set(detectes.map(e => e.id).filter(Boolean));
-  const partages = (typeof agendaPartageeMisAJour === 'function') ? await agendaPartageeMisAJour() : [];
-  const detectesPartages = (partages || []).filter(e => !idsDetectesLocaux.has(e.id));
-  const tousDetectes = [...detectes, ...detectesPartages];
   // Jours fériés officiels et grands rassemblements calculés (14/11/2026) :
   // annoncés à l'avance, là où la presse n'en parle que le jour même.
-  const calendrier = await entreesCalendrierAgenda();
-  const toutes = [...AGENDA, ...tousDetectes, ...calendrier];
+  // Même liste que Louis depuis le 27/11/2026 (agendaComplet) : l'agenda de
+  // l'agent n'était lu que par lui, et les statuts suivent la date.
+  const toutes = await agendaComplet();
 
   let filt = fAg==='all' ? toutes : toutes.filter(e=>e.status===fAg);
   filt = trierAgenda(filt);
@@ -17685,8 +17743,11 @@ function ligneAgendaHtml(e, i, SL, IC, TYP) {
   const typBadge = '<span style="font-size:8px;font-weight:700;padding:1px 6px;border-radius:3px;margin-left:5px;color:' + typ[2] + ';background:' + typ[2] + '1A;border:1px solid ' + typ[2] + '44;"' + attrFiltre('agtype:' + (e.type || 'securite'), (LANG === 'en' ? 'Show events of this type' : 'Voir les événements de ce type')) + '>' + typ[0] + ' ' + typ[1] + '</span>';
   // Un evenement detecte dans le Flux renvoie a son actu (13/11/2026).
   const artAg = e._detecteAuto && e.id && typeof ALL !== 'undefined' && ALL.some(x => x.id === e.id);
-  const ageHFresh = e._detecteAuto ? (Date.now() - _agendaTs(e)) / 3600000 : Infinity;
-  const fresh = ageHFresh < 24;
+  // L'âge se compte depuis la parution de l'article, jamais depuis la date de
+  // l'événement : un événement à venir affichait « −1H » (27/11/2026).
+  const tsParution = e._agent ? null : (e._publieMs || (e._detecteAuto ? _agendaTs(e) : null));
+  const ageHFresh = tsParution ? (Date.now() - tsParution) / 3600000 : Infinity;
+  const fresh = ageHFresh >= 0 && ageHFresh < 24;
   const freshTag = fresh ? '<span style="font-size:8px;font-weight:700;color:#fff;background:#15803D;padding:1px 6px;border-radius:3px;margin-left:6px;">−' + Math.max(1, Math.round(ageHFresh)) + 'H</span>' : '';
   const calTag = e._calendrier ? '<span style="font-size:8px;font-weight:700;color:var(--t2);background:var(--sf);border:1px solid var(--bd);padding:1px 6px;border-radius:3px;margin-left:6px;" title="' + (e._ferie ? (LANG === 'en' ? 'Official public holiday' : 'Jour férié officiel') : (LANG === 'en' ? 'Date computed from the calendar' : 'Date calculée d\'après le calendrier')) + '"><i class="ti ti-calendar-event" style="font-size:9px;"></i> ' + (e._ferie ? (LANG === 'en' ? 'Public holiday' : 'Férié') : (LANG === 'en' ? 'Calendar' : 'Calendrier')) + '</span>' : '';
   const autoTag = e._detecteAuto ? '<span style="font-size:8px;font-weight:700;color:var(--b);background:var(--bl);border:1px solid var(--bb);padding:1px 6px;border-radius:3px;margin-left:6px;" title="Detecte automatiquement depuis les flux RSS"><i class="ti ti-robot" style="font-size:9px;"></i> Auto</span>' : '';

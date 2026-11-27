@@ -432,43 +432,11 @@ const REQUETES_AGENDA_EN = [
 ];
 const PAYS_FRANCOPHONES = new Set(['BJ', 'BF', 'BI', 'CM', 'CF', 'KM', 'CG', 'CD', 'CI', 'DJ', 'GA', 'GN', 'MG', 'ML',
   'MR', 'MA', 'NE', 'RW', 'SN', 'SC', 'TD', 'TG', 'TN', 'DZ', 'MU']);
-const MOIS_RE = {
-  janvier: 0, fevrier: 1, mars: 2, avril: 3, mai: 4, juin: 5, juillet: 6, aout: 7, septembre: 8, octobre: 9, novembre: 10, decembre: 11,
-  january: 0, february: 1, march: 2, april: 3, june: 5, july: 6, august: 7, september: 8, october: 9, november: 10, december: 11,
-  janeiro: 0, fevereiro: 1, marco: 2, abril: 3, maio: 4, junho: 5, julho: 6, agosto: 7, setembro: 8, outubro: 9, dezembro: 11,
-  enero: 0, febrero: 1, marzo: 2, mayo: 4, junio: 5, julio: 6, septiembre: 8, octubre: 9, noviembre: 10, diciembre: 11,
-};
 // dateAnnoncee(texte, publieMs) : { debutMs, finMs } d'un événement écrit en
-// toutes lettres, ou null. Sans année, la prochaine occurrence à partir de la
-// publication (un article de fin décembre qui annonce « le 5 janvier » parle
-// de l'année suivante).
-function dateAnnoncee(texte, publieMs) {
-  const t = String(texte || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-  const noms = Object.keys(MOIS_RE).join('|');
-  const pub = publieMs || Date.now();
-  const an = (j, m, y) => {
-    if (y) return Date.UTC(Number(y), m, Number(j), 12);
-    const p = new Date(pub);
-    let ms = Date.UTC(p.getUTCFullYear(), m, Number(j), 12);
-    if (ms < pub - 3 * 86400000) ms = Date.UTC(p.getUTCFullYear() + 1, m, Number(j), 12);
-    return ms;
-  };
-  // « du 25 au 27 novembre [2026] », « 25-27 novembre », « 25 au 27 nov. »
-  let m = new RegExp('\\b(\\d{1,2})(?:er)?\\s*(?:-|au|et|to|a|–)\\s*(\\d{1,2})\\s+(' + noms + ')\\b(?:\\s+(20\\d\\d))?').exec(t);
-  if (m && Number(m[1]) <= 31 && Number(m[2]) <= 31) {
-    const fin = an(m[2], MOIS_RE[m[3]], m[4]);
-    let debut = an(m[1], MOIS_RE[m[3]], m[4]);
-    if (debut > fin) debut = fin;
-    return { debutMs: debut, finMs: fin };
-  }
-  // « 25 novembre [2026] », « le 1er décembre »
-  m = new RegExp('\\b(\\d{1,2})(?:er|st|nd|rd|th)?\\s+(?:de\\s+)?(' + noms + ')\\b(?:\\s+(?:de\\s+)?(20\\d\\d))?').exec(t);
-  if (m && Number(m[1]) >= 1 && Number(m[1]) <= 31) { const d = an(m[1], MOIS_RE[m[2]], m[3]); return { debutMs: d, finMs: d }; }
-  // « November 25[, 2026] »
-  m = new RegExp('\\b(' + noms + ')\\s+(\\d{1,2})(?:st|nd|rd|th)?\\b(?:,?\\s+(20\\d\\d))?').exec(t);
-  if (m && Number(m[2]) >= 1 && Number(m[2]) <= 31) { const d = an(m[2], MOIS_RE[m[1]], m[3]); return { debutMs: d, finMs: d }; }
-  return null;
-}
+// toutes lettres, ou null. Partagée avec la page depuis le 27/11/2026
+// (web/js/calendrier-foules.js) : l'agenda détecté dans le Flux et celui de
+// l'agent lisent une date de la même façon.
+const { dateAnnoncee } = require('../../web/js/calendrier-foules.js');
 function requetesAgenda(cy, noms) {
   const n = noms && noms[cy];
   if (!n) return [];
