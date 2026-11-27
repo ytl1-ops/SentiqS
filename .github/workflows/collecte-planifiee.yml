@@ -407,6 +407,38 @@ jobs:
     permissions:
       actions: write
     steps:
+      # Les crons des passages annexes sont étranglés comme celui de la
+      # collecte. Mesuré le 27/11/2026 : l'agent de recherche (« 7,37 * * * * »)
+      # n'a tourné que deux fois en 24 h (23 h 16 et 5 h 19 GMT), la traduction
+      # (« 17 * * * * ») une seule fois (2 h 52), et les avis officiels comme
+      # l'agenda des jours fériés pas du tout depuis leur échec du 26/11 (quota
+      # du dépôt privé). La traduction et l'agent repartent donc à chaque
+      # passage, juste après la collecte (le cache est frais), et les deux
+      # passages quotidiens une fois par jour s'ils n'ont pas encore réussi.
+      # Chaque workflow garde son groupe de concurrence : un seul passage en
+      # attente, jamais deux en même temps. Le cron de chacun reste le filet.
+      - name: Relancer traduction, agent et passages quotidiens
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -uo pipefail
+          for wf in traduction-actus.yml agent-recherche.yml; do
+            gh workflow run "$wf" -R "$GITHUB_REPOSITORY" --ref main \
+              && echo "$wf demandé." \
+              || echo "::warning::$wf non demandé — son cron prendra le relais."
+          done
+          jour=$(date -u +%Y-%m-%d)
+          for wf in avis-officiels.yml sources-agenda.yml; do
+            n=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/$wf/runs?created=%3E%3D$jour&per_page=20" \
+                  --jq '[.workflow_runs[] | select(.conclusion == "success" or .status != "completed")] | length' 2>/dev/null || echo 1)
+            if [ "${n:-1}" = "0" ]; then
+              gh workflow run "$wf" -R "$GITHUB_REPOSITORY" --ref main \
+                && echo "$wf demandé (aucun passage réussi aujourd'hui)." \
+                || echo "::warning::$wf non demandé."
+            else
+              echo "$wf : déjà passé ou en cours aujourd'hui."
+            fi
+          done
       - name: Attendre la cadence puis relancer
         env:
           GH_TOKEN: ${{ github.token }}
