@@ -21,14 +21,19 @@ const HAUTEUR = 10800;
 const MARGE = 700;
 const UTILE = LARGEUR - 2 * MARGE;
 
-function construireWord(D, { jour, ci, regionaux, emetteur }) {
+function construireWord(D, donnees) {
+  const { jour, emetteur } = donnees;
+  const P = g.perimetreDe(donnees);
   const em = emetteur || g.lireEmetteur();
   const {
     Document, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, ShadingType, AlignmentType,
     BorderStyle, ImageRun, Footer, PageNumber, PageOrientation, HeightRule, VerticalAlign,
     HorizontalPositionRelativeFrom, VerticalPositionRelativeFrom, TextWrappingType, ExternalHyperlink,
   } = D;
-  const img = (f) => fs.readFileSync(path.join(g.ASSETS, f));
+  // Composé dans l'appli (25/11/2026) : les images du modèle et le logo
+  // arrivent en octets (g.ressources, em.logoData) au lieu du disque.
+  const img = (f) => g.ressources[f] || fs.readFileSync(path.join(g.ASSETS, f));
+  const logo = () => em.logoData || fs.readFileSync(em.logo);
   const AUCUNE = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
   const SANS_BORDURE = { top: AUCUNE, bottom: AUCUNE, left: AUCUNE, right: AUCUNE };
   const FILET = (c) => ({ style: BorderStyle.SINGLE, size: 6, color: c || g.TEXTE });
@@ -81,8 +86,10 @@ function construireWord(D, { jour, ci, regionaux, emetteur }) {
     texte.push(c.extrait
       ? par([run(c.extrait.source + ' : ' + c.extrait.langue, { bold: true, size: 27 }), run('« ' + c.extrait.texte + ' »', { italics: true, size: 27 })], { spacing: { after: 60 } })
       : par(run(c.sansExtrait, { italics: true, color: g.LEGERE, size: 27 }), { spacing: { after: 60 } }));
-    // L'analyse après chaque actu (24/11/2026), même texte que le PowerPoint.
-    texte.push(par([run('Analyse : ', { bold: true, color: g.VERT, size: 25 }), run(g.texteAnalyse(c.analyse), { size: 25 })], { spacing: { after: 60 } }));
+    if (c.extrait2) texte.push(par([run(c.extrait2.source + ' : ', { bold: true, size: 25 }), run('« ' + c.extrait2.texte + ' »', { italics: true, size: 25 })], { spacing: { after: 60 } }));
+    // L'analyse après chaque actu (24/11/2026), même texte que le PowerPoint,
+    // sans libellé depuis le 25/11/2026 (YORO : « sans indiquer analyse »).
+    texte.push(par(run(g.texteAnalyse(c.analyse), { size: 25 }), { spacing: { before: 80, after: 60 } }));
     const restants = c.sources.filter((x) => !c.liens.some((l) => l.source === x));
     texte.push(par([
       run(c.t.etiquette, { bold: true, size: 24 }),
@@ -122,16 +129,15 @@ function construireWord(D, { jour, ci, regionaux, emetteur }) {
     const r = redaction.rediger(f, nomPays);
     const a = redaction.analyserFait(f, faitsPays);
     const t = g.faitTexte(f);
-    const inter = (x) => par(run(x, { bold: true, color: g.VERT, size: 28 }), { spacing: { before: 120, after: 20 } });
+    // Le texte coule sous le titre, sans intertitre (25/11/2026), comme le
+    // PowerPoint : contexte, citations, puis ce qui les commente.
     const texte = [
       par(run(r.titre, { bold: true, color: g.VERT, size: 40, font: g.POLICE_TITRE }), { spacing: { before: 120, after: 60 } }),
-      inter('Contexte'), par(run(r.contexte, { size: 26 })),
-      inter('Ce que rapportent les sources'),
+      par(run(r.contexte, { size: 26, color: g.LEGERE }), { spacing: { after: 80 } }),
       ...(r.extraits.length
         ? r.extraits.map((e) => par([run(e.source + ' : ', { bold: true, size: 26 }), run('« ' + e.texte + ' »', { italics: true, size: 26 })], { spacing: { after: 60 } }))
         : [par(run(r.sansExtrait, { italics: true, color: g.LEGERE, size: 26 }))]),
-      inter('Analyse sûreté'), par(run(a.lecture, { size: 26 })),
-      par([run('Implications : ', { bold: true, size: 26 }), run(r.enjeux, { size: 26 })]),
+      par(run(a.lecture + ' ' + r.enjeux, { size: 26 }), { spacing: { before: 120, after: 60 } }),
       par(run(a.surveiller, { size: 26 })),
     ];
     const liens = r.liens.slice(0, 4);
@@ -187,37 +193,25 @@ function construireWord(D, { jour, ci, regionaux, emetteur }) {
     corps.push(new Table({
       width: { size: t.width * 15 + 300, type: WidthType.DXA }, columnWidths: [t.width * 15 + 300],
       rows: [new TableRow({ children: [new TableCell({ borders: SANS_BORDURE, width: { size: t.width * 15 + 300, type: WidthType.DXA }, shading: { type: ShadingType.CLEAR, fill: 'FFFFFF', color: 'auto' }, margins: { top: 100, bottom: 100, left: 150, right: 150 },
-        children: [par(new ImageRun({ data: fs.readFileSync(em.logo), transformation: t }))] })] })],
+        children: [par(new ImageRun({ data: logo(), transformation: t }))] })] })],
     }));
     for (let i = 0; i < 1; i++) corps.push(par(run('', { size: 40 })));
   } else {
     for (let i = 0; i < 10; i++) corps.push(par(run('', { size: 40 })));
   }
   corps.push(par(run(g.dateLongue(jour).toUpperCase(), { bold: true, size: 40, color: 'FFFFFF' }), { alignment: AlignmentType.RIGHT }));
-  corps.push(par(run(g.libellePeriode(jour), { size: 28, color: 'FFFFFF' }), { alignment: AlignmentType.RIGHT }));
+  corps.push(par(run(g.libellePeriode(jour, P.debut), { size: 28, color: 'FFFFFF' }), { alignment: AlignmentType.RIGHT }));
+  // Rapport composé dans l'appli : son périmètre, sur la couverture aussi.
+  if (P.libelle) corps.push(par(run(P.libelle, { bold: true, size: 30, color: 'FFFFFF' }), { alignment: AlignmentType.RIGHT, spacing: { before: 80 } }));
 
   // — Table des matières : deux cadres, comme le modèle.
   corps.push(...entete('0', '- TABLE DES MATIÈRES'));
   {
-    // Même entrée que le sommaire du PowerPoint : casse de phrase, coupe au mot.
-    const court = (f) => {
-      const marque = !f.titreFr && g.LANGUE_ORIGINE[f.langue] ? '(' + g.LANGUE_ORIGINE[f.langue] + ') ' : '';
-      const t = marque + redaction.phraseDe(f);
-      return t.length > 72 ? t.slice(0, 71).replace(/\s+\S*$/, '') + ' …' : t;
-    };
-    const gauche = [];
-    for (const r of g.RUBRIQUES) {
-      const faits = g.faitsRubrique(ci, r);
-      if (!faits.length) continue;
-      gauche.push(par(run(r.titre, { bold: true, color: g.VERT, size: 20 }), { spacing: { before: 100 } }));
-      faits.slice(0, 6).forEach((f) => gauche.push(par([run('\u2751  ', { size: 18 }), run(court(f), { size: 18 })], { indent: { left: 240 } })));
-    }
-    if (!gauche.length) gauche.push(par(run('Aucun fait marquant relevé sur la période.', { italics: true })));
-    const droite = [];
-    regionaux.forEach((d) => {
-      droite.push(par(run(d.nom.toUpperCase(), { bold: true, color: g.VERT, size: 20 }), { spacing: { before: 100 } }));
-      (d.faits || []).slice(0, 1).forEach((f) => droite.push(par([run('\u2751  ', { size: 18 }), run(court(f), { size: 18 })], { indent: { left: 240 } })));
-    });
+    // Mêmes cadres que le sommaire du PowerPoint (g.cadresSommaire).
+    const lignes = (l) => l.map((x) => (x.titre ? par(run(x.t, { bold: true, color: g.VERT, size: 20 }), { spacing: { before: 100 } })
+      : x.puce ? par([run('\u2751  ', { size: 18 }), run(x.t, { size: 18 })], { indent: { left: 240 } })
+        : par(run(x.t, { italics: !!x.vide, size: 18 }))));
+    const [cg, cd] = g.cadresSommaire(P);
     const bloc = (titre, enfants) => new TableCell({
       borders: CADRE, width: { size: Math.floor(UTILE / 2) - 100, type: WidthType.DXA }, margins: { top: 100, left: 150, right: 150 },
       children: [par(run(titre, { font: g.POLICE_TITRE, color: g.VERT, size: 30 }), { alignment: AlignmentType.CENTER }), ...enfants],
@@ -225,7 +219,7 @@ function construireWord(D, { jour, ci, regionaux, emetteur }) {
     corps.push(par(run('', { size: 12 })));
     corps.push(new Table({
       width: { size: UTILE, type: WidthType.DXA }, columnWidths: [Math.floor(UTILE / 2), UTILE - Math.floor(UTILE / 2)],
-      rows: [new TableRow({ children: [bloc('FAITS MARQUANTS EN CÔTE D\'IVOIRE', gauche), bloc('DYNAMIQUES SOUS-RÉGIONALES', droite)] })],
+      rows: [new TableRow({ children: [bloc(cg.titre, lignes(cg.lignes)), bloc(cd.titre, lignes(cd.lignes))] })],
     }));
   }
 
@@ -238,46 +232,57 @@ function construireWord(D, { jour, ci, regionaux, emetteur }) {
         borders: SANS_BORDURE, width: { size: UTILE, type: WidthType.DXA }, verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.CLEAR, fill: 'CDCDCD', color: 'auto' },
         children: [
           par(new ImageRun({ data: img(image), transformation: { width: 300, height: 300 } }), { alignment: AlignmentType.CENTER }),
-          par(run(titre, { font: g.POLICE_TITRE, size: 88, color: '111111' }), { alignment: AlignmentType.CENTER, border: { bottom: { style: BorderStyle.SINGLE, size: 24, color: '000000', space: 8 } } }),
-          ...(note ? [par(run(note, { italics: true, size: 22, color: '333333' }), { alignment: AlignmentType.CENTER, spacing: { before: 240 } })] : []),
+          par(run(titre, { font: g.POLICE_TITRE, size: titre.length > 34 ? 64 : 88, color: '111111' }), { alignment: AlignmentType.CENTER, border: { bottom: { style: BorderStyle.SINGLE, size: 24, color: '000000', space: 8 } } }),
+          ...(note ? note.split('\n').map((x, i) => par(run(x, { italics: true, size: 22, color: '333333' }), { alignment: AlignmentType.CENTER, spacing: { before: i ? 120 : 240 } })) : []),
         ],
       })] })],
     }));
   };
-  intercalaire('FAITS MARQUANTS EN CÔTE D\'IVOIRE', 'carte-ci.jpg', redaction.NOTE_REDACTION);
-  const plan = g.planRapport(ci, regionaux);
-
-  // — Rubriques de la Côte d'Ivoire : faits rédigés d'abord, puis la liste.
-  for (const { rub, marquants, liste } of plan.ci) {
-    marquants.forEach((f) => {
-      corps.push(...entete(rub.num, '- ' + rub.titre, 'CI'));
-      corps.push(...faitMarquant(f, ci.nom || 'Côte d\'Ivoire', ci.faits));
-    });
-    g.paginer(liste, g.FAITS_PAR_PAGE).forEach((p) => {
-      corps.push(...entete(rub.num, '- ' + rub.titre, 'CI'));
-      corps.push(...lignesFaits(p, ci.faits));
-    });
+  const plan = g.planPerimetre(P);
+  let note = redaction.NOTE_REDACTION;
+  // — Pays principal (la Côte d'Ivoire dans le modèle) : rubriques, faits
+  // rédigés d'abord, puis les fiches.
+  if (P.principal) {
+    const d = P.principal.d;
+    intercalaire(P.principal.titre, P.principal.image, note);
+    note = null;
+    for (const { rub, marquants, liste } of plan.principal) {
+      marquants.forEach((f) => {
+        corps.push(...entete(rub.num, '- ' + rub.titre, d.cy));
+        corps.push(...faitMarquant(f, d.nom || 'Côte d\'Ivoire', d.faits));
+      });
+      g.paginerFiches(liste, d.faits).forEach((p) => {
+        corps.push(...entete(rub.num, '- ' + rub.titre, d.cy));
+        corps.push(...lignesFaits(p, d.faits));
+      });
+    }
   }
 
-  // — Dynamiques régionales : une rubrique numérotée par pays, avec son drapeau.
-  intercalaire('DYNAMIQUES RÉGIONALES', 'afrique.png');
-  plan.regionaux.forEach(({ d, marquants, liste }, i) => {
-    const titre0 = i === 0 ? d.nom + ' : situation ' + g.periode(jour) : d.nom;
-    let k = 0;
-    marquants.forEach((f) => {
-      corps.push(...entete(g.ROMAIN[i + 1], k ? d.nom : titre0, d.cy));
-      k++;
-      corps.push(...faitMarquant(f, d.nom, d.faits));
+  // — Groupe de pays (dynamiques régionales du modèle) : une rubrique
+  // numérotée par pays, avec son drapeau.
+  // Le modèle garde toujours son intercalaire régional ; un rapport composé
+  // sur un seul pays n'en a pas.
+  if (P.groupe && (P.groupe.pays.length || !P.principal || !P.libelle)) {
+    const absents = P.absents && P.absents.length ? 'Sans fait retenu sur la période : ' + P.absents.join(', ') + '.' : null;
+    intercalaire(P.groupe.titre, P.groupe.image, [note, absents].filter(Boolean).join('\n') || null);
+    plan.groupe.forEach(({ d, marquants, liste }, i) => {
+      const titre0 = i === 0 ? d.nom + ' : situation ' + g.periode(jour) : d.nom;
+      let k = 0;
+      marquants.forEach((f) => {
+        corps.push(...entete(g.romain(i + 1), k ? d.nom : titre0, d.cy));
+        k++;
+        corps.push(...faitMarquant(f, d.nom, d.faits));
+      });
+      const pages = g.paginerFiches(liste, d.faits);
+      if (!pages.length && !k) pages.push([]);
+      pages.forEach((p) => {
+        corps.push(...entete(g.romain(i + 1), k ? d.nom : titre0, d.cy));
+        k++;
+        if (p.length) corps.push(...lignesFaits(p, d.faits));
+        else corps.push(par(run('Aucun fait marquant relevé sur la période.', { italics: true, color: g.LEGERE }), { spacing: { before: 160 } }));
+      });
     });
-    const pages = g.paginer(liste, g.FAITS_PAR_PAGE);
-    if (!pages.length && !k) pages.push([]);
-    pages.forEach((p) => {
-      corps.push(...entete(g.ROMAIN[i + 1], k ? d.nom : titre0, d.cy));
-      k++;
-      if (p.length) corps.push(...lignesFaits(p, d.faits));
-      else corps.push(par(run('Aucun fait marquant relevé sur la période.', { italics: true, color: g.LEGERE }), { spacing: { before: 160 } }));
-    });
-  });
+  }
 
   // — Dernière page, comme le modèle.
   corps.push(new Paragraph({ children: [], pageBreakBefore: debutPage(), spacing: { after: 0 }, run: { size: 2 } }));
@@ -294,7 +299,7 @@ function construireWord(D, { jour, ci, regionaux, emetteur }) {
   const pied = new Footer({ children: [new Table({
     width: { size: UTILE, type: WidthType.DXA }, columnWidths: [1500, UTILE - 1500 - 3000, 3000],
     rows: [new TableRow({ children: [
-      new TableCell({ borders: SANS_BORDURE, width: { size: 1500, type: WidthType.DXA }, children: [par(em.logo ? new ImageRun({ data: fs.readFileSync(em.logo), transformation: logoPx(90, 40) }) : run(''))] }),
+      new TableCell({ borders: SANS_BORDURE, width: { size: 1500, type: WidthType.DXA }, children: [par(em.logo ? new ImageRun({ data: logo(), transformation: logoPx(90, 40) }) : run(''))] }),
       new TableCell({ borders: CADRE, verticalAlign: VerticalAlign.CENTER, width: { size: UTILE - 4500, type: WidthType.DXA }, children: [par(run(g.piedTexte(em), { size: 22 }), { alignment: AlignmentType.CENTER })] }),
       new TableCell({ borders: SANS_BORDURE, verticalAlign: VerticalAlign.CENTER, width: { size: 3000, type: WidthType.DXA }, children: [par([run('|  ' + g.dateCourte(jour) + '   |   ', { size: 20 }), new TextRun({ children: [PageNumber.CURRENT], font: g.POLICE, size: 20, color: g.TEXTE })], { alignment: AlignmentType.RIGHT })] }),
     ] })],
@@ -302,7 +307,7 @@ function construireWord(D, { jour, ci, regionaux, emetteur }) {
 
   return new Document({
     creator: em.identite,
-    title: g.TITRE_DOCUMENT(jour),
+    title: g.TITRE_DOCUMENT(jour) + (P.libelle ? ' — ' + P.libelle : ''),
     sections: [{
       properties: { page: { size: { width: HAUTEUR, height: LARGEUR, orientation: PageOrientation.LANDSCAPE }, margin: { top: 500, bottom: 700, left: MARGE, right: MARGE, header: 300, footer: 250 } } },
       footers: { default: pied },

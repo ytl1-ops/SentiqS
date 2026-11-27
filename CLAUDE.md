@@ -5129,3 +5129,128 @@ Repris du prototype SentiqS-2, à la demande de YORO.
   elle ne les crée pas.
 
 `scripts/test/tri-chronologie.test.js` (11).
+
+## Présentation 1 : analyse sans intitulé, plus de texte, filtres — 25/11/2026
+
+Demande de YORO : « Fait l'analyse en dessous de l'actu sans indiquer
+analyse. Donner plus de texte dans l'actu. Revise Présentation 1 avec des
+filtres pays, régional d'un pays, région ouest ou est Afrique… »
+
+- **Sans intitulé.** Fiche : plus de « Analyse : » ; le paragraphe suit la
+  citation. Fait rédigé : plus de « Contexte », « Ce que rapportent les
+  sources », « Analyse sûreté », « Implications : » ; le texte coule (contexte
+  en gris, citations en italique, lecture + implications, « À surveiller »).
+  PowerPoint, Word, donc PDF. Rapport de novembre régénéré : 77 → 78 pages,
+  XML valide, 0 « Analyse : » (107 avant).
+- **Plus de texte.** Le job lit la page de chaque actu du rapport
+  (`photos-grsci.lireDebuts`, `scripts/lib/texte-article.js`) et en garde le
+  DÉBUT : premiers paragraphes de `<article>`, au plus 650 caractères, coupés
+  en fin de phrase, sans menu, date, légende ni « Lire aussi ». Gardé dans le
+  cumul (`texte`, `texteFr` traduit), une page lue une fois par mois ; son
+  og:image évite une seconde lecture pour la photo. C'est une courte citation
+  attribuée avec le lien, **jamais l'article** ; un texte étranger non
+  traduit n'est pas cité. La fiche cite jusqu'à 650 caractères (420 avant) et
+  un second média (280). **Non mesuré d'ici** (pas de réseau) : le taux de
+  pages lisibles ; le journal du job le dit (« N pages d'article lues »).
+- **Le cumul couvre les 54 pays** (relevé seulement ; traduction et rapport
+  mensuel restent CI + 9). `faitsMoisPays` y verse `titreFr`/`resumeFr` tirés
+  de `a.tr.fr`.
+- **Filtres** (`web/js/presentation-perimetre.js`, double export) : un pays
+  et une zone (15 pays découpés : CI par districts et régions, BF, ML, NE, NG,
+  GH, TG, BJ, GN, SN, LR, CM, TD, CD, MZ), ou une région (5 régions de l'UA,
+  qui couvrent les 54 pays une fois, plus AES, Sahel, Golfe de Guinée,
+  CEDEAO sans l'AES, UEMOA, Grands Lacs, Corne, Maghreb) avec un pays mis en
+  tête ; rubriques, cotation, 7/14 jours, 5/10/20 actus. Une zone se
+  reconnaît par une localité en mot entier ; les noms ambigus (« =Man »,
+  « =Kong », « =Plateau ») exigent leur majuscule, et la ville notée par la
+  page ne compte que pour un nom sans homonyme (elle notait « Man » pour un
+  article sur l'Allemagne). Un fait sans localité n'est jamais rangé : le
+  rapport dit combien sont écartés. Un pays sans fait est nommé (« Sans fait
+  retenu sur la période »), jamais montré comme calme.
+- **Composé dans le navigateur** (Rapports › « Composer une Présentation 1
+  sur mesure ») avec le MÊME générateur : `web/js/presentation-1.js` est
+  construit par `node scripts/construire-presentation-web.js` depuis
+  `scripts/lib/*` (sigle retiré du fichier servi) ; un test refuse un fichier
+  périmé. Images du modèle copiées dans `web/assets/presentation-1/` (un test
+  les compare). Le générateur reçoit `donnees.perimetre` ; sans lui, le
+  rapport du job est inchangé (`perimetreModele`). PDF = page imprimable
+  16:9 (le PDF mensuel reste la conversion LibreOffice du job). Photos : si
+  Paramètres › Affichage l'autorise et si la source permet la copie. Le
+  document reste en français ; l'écran suit FR/EN.
+
+`presentation-texte.test.js` (6), `presentation-filtres.test.js` (10). Banc
+Chromium : CI › Nord (2 actus, 16 sans localité) et Afrique de l'Ouest
+(CI en tête, 70 actus, 4 pays sans fait faute de cumul avant ce jour),
+PowerPoint, Word et impression générés, 0 erreur JS.
+
+---
+
+## Présentation 1 à la demande, rubrique « Faits divers » — 27/11/2026
+
+YORO : « Trop de confusion dans presentation1, une piqure de scorpion est
+placé en politique. Ne pas faire presentation 1 automatique, mais plutot a la
+demande. Offrir le choix des periodes, des pays, zones geographique... », puis
+« affine pour la qualité des actu réelle ».
+
+- **Plus aucune génération automatique.** Le job ne réécrit plus le rapport
+  du mois chaque jour : `rapportsAActualiser` n'est plus appelée,
+  `aEcrire` n'est rempli que par le lancement manuel (`rapport_mensuel`,
+  `GRSCI_FORCER=1`), pour le mois en cours ou celui de `mois_rapport`
+  (`RAPPORT_MOIS`). Le cumul des faits, lui, continue chaque passage : c'est
+  la matière du composeur. Un test refuse le retour de l'appel.
+- **Composeur** (module Rapports, en tête de la carte « Présentation 1 et
+  bulletins pays ») : un mois, 7 ou 14 derniers jours, un jour, une plage
+  libre (`p1Bornes`), sur un pays, une zone ou une région. Une période sur
+  deux mois lit les deux cumuls (`p1CumulPeriode`, `moisDeLaPeriode`) ;
+  `composer` reçoit `debut` et écarte aussi ce qui suit la fin (`finMs`). Une
+  journée s'écrit « Journée du … » en couverture. Mesuré sur la Côte
+  d'Ivoire : plage du 25/10 au 05/11 = 33 faits d'octobre + 10 de novembre.
+- **La catégorie se lit dans le titre** (`categorieActu`, avant
+  `estFormatEditorial` dans `classify`) : racines distinctes du titre ×3, le
+  corps seulement si le titre ne dit rien (plafonné à 2), égalité tranchée par
+  sécurité > politique > humanitaire > divers > économique. Les familles
+  d'incident (CK_CRIT) du titre poussent la sécurité sauf dans un fait divers
+  (`FAIT_DIVERS_RE` : accident, noyade, bilan routier…). Nouvelle catégorie
+  **`divers`** (filtre du Flux, Recherche, Synthèse, panorama ; rubrique
+  « IV - Divers » de la Présentation 1). Sans aucun mot : catégorie de la
+  source si elle est économique ou humanitaire, sinon divers — un média
+  généraliste ne fait plus « politique » par défaut.
+- **Deux plafonds de niveau, explicites** (`plafond` dans le retour de
+  `classify`) : une attaque animale (`estAttaqueAnimale`, sauf agresseur
+  humain dans le titre) plafonne à modéré ; un article de vie pratique
+  (`VIE_PRATIQUE_RE`) redescend au normal. « exécution budgétaire »,
+  « la route tue », MVP/Road to BAL/Ligue 1-2 rejoignent les gardes
+  existantes. Aucun niveau ne monte.
+- **Mesuré** sur des faits étiquetés à la main : catégorie juste 49 → 92 sur
+  100 (lot d'ajustement), 44 → 75 sur 80 (lot témoin, tenu à part). Sur les
+  2 384 faits des cumuls d'octobre et novembre : 20 niveaux changent, tous à
+  la baisse et relus (vie pratique, sport, exécution budgétaire, scorpion,
+  abeilles). Restent : la lutte sénégalaise non reconnue comme sport, quelques
+  faits politiques rangés en divers.
+- **Cumuls reclassés** (`scripts/reclasser-cumul.js`, appelé aussi par le
+  job) : la catégorie suit toujours la vraie `classify` ; le niveau ne change
+  que par un plafond explicite ou pour le sport et la culture — rejouer le
+  niveau sur un chapô tronqué en déplaçait ~150. `faitsDuMois` écarte un fait
+  sorti du radar (`estSortiDuRadar`).
+- **L'analyse sous l'actu** (`reperes-surete.js`) a une famille `animal` en
+  tête : une piqûre ou une morsure recevait « menace armée sur les axes » par
+  le mot « attaque ». Sautée si le titre nomme un agresseur humain.
+  « Hippodrome », « Éléphants » et « Lions » (équipes) ne comptent pas.
+  2 analyses changent sur les 2 384 faits.
+- `construire-presentation-web.js` embarque `web/js/reperes-surete.js`
+  (`MODULES_WEB`) : le générateur servi était cassé depuis que la rédaction
+  le requiert.
+
+- **Le sport sort du rapport, sauf impact avéré sur la sûreté** (YORO, même
+  jour). `estSportSansImpact` (`hors-surete.js`, lu par `estSortiDuRadar`) :
+  un fait sportif (catégorie ou vocabulaire du titre) ne reste que si son titre
+  dit une atteinte, une violence collective ou une mesure des autorités
+  (morts, affrontements, combat interdit, dispositif de sécurité). La garde
+  générale ne suffisait pas : « frappe fort », « à l'assaut » y passaient.
+  « JOJ » seul n'est pas du sport (grève suspendue « pour les JOJ », dispositif
+  de sécurité des Jeux). Cumuls d'octobre et novembre : 38 faits sportifs
+  passaient, **30 sortent, 8 restent** (convoi du lutteur Siguil, supporters de
+  Fass Mbao, combat interdit par le préfet, alerte de la CNDH…).
+
+Tests : `categorie-actus.test.js` (13), `reclasser-cumul.test.js` (3),
+`presentation-periode.test.js` (7), `sport-impact.test.js` (3).

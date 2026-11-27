@@ -626,9 +626,8 @@ function ecrireResumeActions(md) {
         // ── RAPPORT MENSUEL GRSCI ───────────────────────────────────────
         // Demande du 20/10/2026 : « Faits marquants en Côte d'Ivoire » et
         // « Dynamiques régionales » dans la forme du modèle d'octobre 2024,
-        // automatisés. Le rapport du mois en cours est réécrit chaque jour
-        // sur la période du 1er à aujourd'hui (demande du 23/10/2026) ; voir
-        // rapportsAActualiser dans scripts/lib/rapport-grsci.js.
+        // Le cumul du mois est tenu à chaque passage ; le document, lui, ne
+        // s'écrit qu'à la demande depuis le 27/11/2026 (voir plus bas).
         try {
           // Cumul du mois, à CHAQUE passage : le rapport du 24 lit ce que la
           // collecte a vu depuis le 1er, pas seulement la fenêtre de 36 h
@@ -647,8 +646,18 @@ function ecrireResumeActions(md) {
           const dansBudget = () => Date.now() < limiteGrsci;
           const TRAD_DELAI_MS = 15000;
           let horsBudget = 0;
+          // Le relevé couvre les 54 pays depuis le 25/11/2026 : une
+          // Présentation 1 filtrée (un pays, une région d'Afrique) se compose
+          // dans le module Rapports à partir de ce cumul. Traductions et
+          // rapport mensuel restent sur leur périmètre (paysGrsci) : le budget
+          // du passage ne s'étend pas.
+          let paysReleve = paysGrsci;
+          try {
+            const tous = await page.evaluate(() => (typeof PAYS_INFO === 'object') ? Object.keys(PAYS_INFO).filter((c) => /^[A-Z]{2}$/.test(c) && c !== 'INT') : []);
+            if (Array.isArray(tous) && tous.length >= paysGrsci.length) paysReleve = paysGrsci.concat(tous.filter((c) => !paysGrsci.includes(c)));
+          } catch (e) { /* relevé restreint au périmètre du rapport */ }
           const releve = {};
-          for (const cy of paysGrsci) {
+          for (const cy of paysReleve) {
             releve[cy] = await page.evaluate(([c, d]) => (typeof faitsMoisPays === 'function') ? faitsMoisPays(c, d) : [], [cy, debutReleve]);
           }
           if (Number(jour.slice(8, 10)) <= 2) faitsGrsci.cumuler(RACINE_GRSCI, depuis, releve);
@@ -667,6 +676,17 @@ function ecrireResumeActions(md) {
               if (deplaces.length) faitsGrsci.ecrireCumul(RACINE_GRSCI, cumul);
             }
           } catch (e) { console.warn('::warning::Rattachement des faits du mois non revu : ' + ((e && e.message) || e)); }
+          // Classement courant rejoué sur les faits déjà versés (audit du
+          // 27/11/2026 : une piqûre de scorpion restait en « politique » tout
+          // le mois). Catégorie toujours, niveau seulement par une règle qui
+          // l'abaisse expressément (voir scripts/reclasser-cumul.js).
+          try {
+            const reclasses = require('./reclasser-cumul').reclasserCumul(cumul);
+            if (reclasses.length) {
+              console.log('  Présentation 1 : ' + reclasses.length + ' fait(s) du mois reclassé(s) par la règle courante');
+              faitsGrsci.ecrireCumul(RACINE_GRSCI, cumul);
+            }
+          } catch (e) { console.warn('::warning::Classement des faits du mois non revu : ' + ((e && e.message) || e)); }
           // Un même article ne figure qu'une fois dans le cumul, d'un pays à
           // l'autre aussi (audit du 26/11/2026).
           try {
@@ -708,16 +728,27 @@ function ecrireResumeActions(md) {
           console.log('  Présentation 1 : ' + total + ' faits cumules pour ' + mois + ' (' + aTraduire + ' titres soumis a traduction, ' + titresTraduits + ' traduits'
             + (horsBudget ? ', ' + horsBudget + ' reportes au passage suivant faute de temps' : '') + ').');
 
-          // Rapport du mois en cours réécrit au premier passage de chaque jour
-          // (période du 1er à aujourd'hui), mois écoulé finalisé le lendemain
-          // de sa fin. GRSCI_FORCER=1 réécrit le mois en cours tout de suite.
-          const aEcrire = rapportGrsci.rapportsAActualiser(RACINE_GRSCI, jour);
-          if (process.env.GRSCI_FORCER === '1' && !aEcrire.some((r) => r.mois === mois)) aEcrire.push({ mois, fin: jour });
+          // La Présentation 1 ne s'écrit plus d'elle-même (YORO, 27/11/2026 :
+          // « Ne pas faire Présentation 1 automatique, mais plutôt à la
+          // demande »). Le cumul ci-dessus continue d'être tenu à chaque
+          // passage : c'est la matière du composeur du module Rapports. Le
+          // document du job ne s'écrit que sur lancement manuel
+          // (rapport_mensuel = vrai, GRSCI_FORCER=1), pour le mois en cours ou
+          // pour celui que donne RAPPORT_MOIS (AAAA-MM, un mois clos est écrit
+          // jusqu'à son dernier jour). Un test refuse le retour de
+          // rapportsAActualiser ici.
+          const aEcrire = [];
+          if (process.env.GRSCI_FORCER === '1') {
+            const demande = /^\d{4}-\d{2}$/.test(process.env.RAPPORT_MOIS || '') ? process.env.RAPPORT_MOIS : mois;
+            const finDemande = demande === mois ? jour
+              : new Date(Date.UTC(Number(demande.slice(0, 4)), Number(demande.slice(5, 7)), 0)).toISOString().slice(0, 10);
+            if (demande <= mois) aEcrire.push({ mois: demande, fin: finDemande });
+          }
           // Identité d'envoi saisie au lancement manuel : retenue pour le mois
           // (voir fixerEmetteurMois). Rien de saisi : SentiqS par défaut, et le
           // journal le dit.
           if (process.env.GRSCI_FORCER === '1') {
-            const saisie = rapportGrsci.fixerEmetteurMois(RACINE_GRSCI, mois, {
+            const saisie = rapportGrsci.fixerEmetteurMois(RACINE_GRSCI, aEcrire.length ? aEcrire[0].mois : mois, {
               identite: process.env.RAPPORT_IDENTITE, signature: process.env.RAPPORT_SIGNATURE, logo: process.env.RAPPORT_LOGO,
             });
             if (!saisie) console.warn('  Présentation 1 : aucune identité d\'envoi précisée au lancement — émetteur par défaut.');
@@ -770,6 +801,34 @@ function ecrireResumeActions(md) {
                   } catch (err) { /* chapô gardé dans sa langue : le passage suivant réessaiera */ }
                 }
               }
+              // Plus de texte dans l'actu (25/11/2026) : le début de l'article,
+              // lu sur sa page (au plus 650 caractères, courte citation
+              // attribuée, voir texte-article.js). Gardé dans le cumul par
+              // adresse : une page n'est lue qu'une fois dans le mois. Son
+              // og:image est posée sur le fait au passage, illustrer() ne relit
+              // donc pas la même page. Un texte dans une autre langue est
+              // traduit ; non traduit, il n'est pas cité (rediger()).
+              const lues = await photosGrsci.lireDebuts(illustres, {
+                limiteMs: limiteGrsci,
+                connu: (u) => { const x = parUrl.get(u); return x && x.texte ? { texte: x.texteFr || x.texte, fr: !!x.texteFr } : null; },
+                garder: (u, t) => { const x = parUrl.get(u); if (x) x.texte = t; },
+              });
+              let textesTraduits = 0;
+              for (const f of illustres) {
+                for (const e of (f.extraits || []).slice(0, 2)) {
+                  if (!e.long || e.longFr || !['en', 'pt', 'ar'].includes(e.langue)) continue;
+                  const entree = parUrl.get(e.url);
+                  if (!dansBudget()) break;
+                  try {
+                    const fr = await avecDelai(traduireJob(e.long, e.langue), TRAD_DELAI_MS);
+                    if (typeof fr === 'string' && fr.trim() && fr.trim() !== e.long.trim()) {
+                      e.long = faitsGrsci.nettoyerTitre(fr); e.longFr = true; textesTraduits++;
+                      if (entree) entree.texteFr = e.long;
+                    }
+                  } catch (err) { /* cité au passage suivant, une fois traduit */ }
+                }
+              }
+              console.log('  Présentation 1 : ' + lues + ' pages d\'article lues pour leur début, ' + textesTraduits + ' textes traduits.');
               // Photos ramenées à 1 000 px en JPEG par le navigateur déjà ouvert
               // (audit du 15/11/2026 : 45 Mo pour le rapport de novembre).
               const reduirePhoto = async (buf, largeur) => {

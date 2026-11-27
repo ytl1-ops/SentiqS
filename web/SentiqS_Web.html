@@ -3451,6 +3451,25 @@ html.mvt-images .vact img.img-pret{opacity:1}
   .une-carte:hover .vact img{scale:1 !important}
 }
 
+/* ═══ PRÉSENTATION 1 SUR MESURE — 25/11/2026 (voir CLAUDE.md) ═══
+   La grille se replie seule (auto-fill) : aucune règle propre au téléphone,
+   donc rien à écrire deux fois pour html.force-mobile. */
+.p1-compo{margin-top:12px;padding-top:10px;border-top:1px solid var(--bd)}
+.p1-compo:empty{display:none}
+.p1-tt{font-size:12px;font-weight:700;color:var(--t);display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.p1-aide{font-size:var(--fs-micro,10px);color:var(--lg);margin-bottom:10px}
+.p1-grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:8px 12px}
+.p1-champ{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--t2);margin:0;padding:0;border:0;min-width:0}
+.p1-champ>span,.p1-champ legend{font-weight:700;color:var(--t2);padding:0}
+.p1-champ[hidden]{display:none}
+.p1-champ select{min-height:28px;padding:3px 6px;border:1px solid var(--bd);border-radius:var(--r-md,4px);background:var(--w);color:var(--t);font-size:12px;max-width:100%}
+.p1-mode,.p1-rubs{flex-direction:row;flex-wrap:wrap;gap:4px 12px;align-items:center}
+.p1-mode legend,.p1-rubs legend{width:100%}
+.p1-mode label,.p1-rubs label,.p1-case{display:inline-flex;align-items:center;gap:5px;min-height:24px;color:var(--t);font-size:12px;cursor:pointer}
+.p1-case{flex-direction:row}
+.p1-etat{font-size:11px;color:var(--lg);margin:10px 0 8px}
+.p1-actions{display:flex;flex-wrap:wrap;gap:8px}
+.p1-actions .btn-dl{min-height:28px;padding:5px 12px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:5px}
 /* ═══ MOBILE : LE CONTENU D'ABORD — 22/10/2026 (voir CLAUDE.md) ═══
    Capture de YORO sur téléphone (texte agrandi par le navigateur) : barre du
    haut, bandeau « Cliquez sur Actualiser », collecte, flash info, filtre pays,
@@ -4057,6 +4076,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
           <span class="chip" onclick="setCat(this,&#39;humanitaire&#39;)" role="button" tabindex="0">Humanitaire</span>
           <span class="chip" onclick="setCat(this,&#39;politique&#39;)" role="button" tabindex="0">Politique</span>
           <span class="chip" onclick="setCat(this,&#39;economique&#39;)" role="button" tabindex="0">Économique</span>
+          <span class="chip" onclick="setCat(this,&#39;divers&#39;)" role="button" tabindex="0">Faits divers</span>
           <span class="chip chip-social" onclick="setSocialFilter(this)" role="button" tabindex="0"><i class="ti ti-social"></i>Réseaux sociaux</span>
           <span class="chip" onclick="setCat(this,&#39;valides&#39;)" role="button" tabindex="0"><i class="ti ti-user-check"></i><span data-i18n="chip_valides">Validés analyste</span></span>
         </div>
@@ -4156,6 +4176,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
             <option value="humanitaire">Humanitaire</option>
             <option value="politique">Politique</option>
             <option value="economique">Economique</option>
+            <option value="divers">Faits divers</option>
           </select>
           <button onclick="renderRecherche()" title="Rafraichir les resultats depuis les donnees deja collectees" style="padding:5px 12px;background:rgba(138,93,26,.12);border:1px solid rgba(138,93,26,.4);border-radius:5px;color:var(--b);font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
             <i class="ti ti-refresh"></i> <span data-i18n="btn_actualiser">Actualiser</span>
@@ -4344,13 +4365,14 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
           </div>
           <div id="rpLibellePerimetre" style="font-size:10px;color:var(--lg);margin-bottom:16px">Périmètre : toutes zones, tous pays</div>
 
-          <div class="acard" id="rpAuto" style="padding:14px;margin-bottom:12px" role="region" aria-label="Rapports automatiques">
+          <div class="acard" id="rpAuto" style="padding:14px;margin-bottom:12px" role="region" aria-label="Présentation 1 et bulletins pays">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
               <i class="ti ti-calendar-event" style="font-size:16px;color:var(--b)"></i>
-              <span style="font-size:12px;font-weight:700;color:var(--t)">Rapports automatiques</span>
+              <span style="font-size:12px;font-weight:700;color:var(--t)">Présentation 1 et bulletins pays</span>
             </div>
-            <div style="font-size:10px;color:var(--lg);margin-bottom:10px">Produits par la collecte planifiée, sans action de votre part. La Présentation 1, rapport mensuel de sûreté (Côte d'Ivoire et dynamiques régionales) : PowerPoint et Word modifiables, et PDF. Elle est mise à jour chaque jour sur la période du mois en cours, puis finalisée le lendemain de la fin du mois ; elle peut aussi être relancée à la demande depuis GitHub Actions (« Collecte planifiée », case rapport_mensuel).</div>
-            <div id="rpAutoListe" style="font-size:11px;color:var(--t)">Chargement…</div>
+            <div style="font-size:10px;color:var(--lg);margin-bottom:10px">La Présentation 1, rapport de sûreté (faits marquants et dynamiques régionales), se compose à la demande : choisissez la période, le pays, la zone ou la région, puis le PowerPoint, le Word ou l'impression en PDF. Elle n'est plus produite d'elle-même. Les versions déjà générées restent téléchargeables ci-dessous. Les bulletins pays, eux, sont produits chaque jour par la collecte.</div>
+            <div id="rpP1" class="p1-compo" role="group" aria-label="Composer une Présentation 1 sur mesure"></div>
+            <div id="rpAutoListe" style="font-size:11px;color:var(--t);margin-top:10px">Chargement…</div>
             <div id="rpBulletins" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--bd);font-size:11px;color:var(--t)">Chargement des bulletins pays…</div>
           </div>
 
@@ -6956,7 +6978,7 @@ function redessinerVuesOuvertes() {
     alertes: () => { if (typeof recalcAlertes === 'function') recalcAlertes({ silencieux: true }); },
     agenda: () => { if (typeof renderAgenda === 'function') renderAgenda(); },
     geopolitique: () => { if (typeof renderGeopolitique === 'function') renderGeopolitique(); },
-    rapports: () => { if (typeof peuplerFiltresRapports === 'function') peuplerFiltresRapports(); if (typeof chargerRapportsAuto === 'function') chargerRapportsAuto(); },
+    rapports: () => { if (typeof peuplerFiltresRapports === 'function') peuplerFiltresRapports(); if (typeof chargerRapportsAuto === 'function') chargerRapportsAuto(); if (typeof initComposerP1 === 'function') initComposerP1(); },
     recherche: () => { if (typeof renderRecherche === 'function') renderRecherche(); },
     params: () => { if (typeof loadParamsModule === 'function') loadParamsModule(); },
   };
@@ -7703,6 +7725,11 @@ function faitsMoisPays(cy, depuisMs) {
     ville: (() => { const g = detectGeo(cy, (a.title || '') + ' ' + (a.analysis || '')); return g && !g.estime ? g.ville : null; })(),
     img: mediaActu(a).img || null,
     video: mediaActu(a).video ? lienVideoActu(a) : null,
+    // Traductions déjà faites par le job de traduction du cache (a.tr,
+    // 19/11/2026) : avec elles, un fait des 54 pays est lisible en français
+    // dans une Présentation 1 filtrée sans nouvel appel (25/11/2026).
+    titreFr: (a.tr && a.tr.fr && a.tr.fr.t) || null,
+    resumeFr: (a.tr && a.tr.fr && a.tr.fr.s) || null,
   }));
 }
 // paysDuFaitCumule(f, cy) : le pays qu'attribue la regle COURANTE a un fait
@@ -8510,7 +8537,7 @@ function recordSrcFail(srcId, reason) {
 let fCat='all', fCy='all', fSc='all', fGeo='all', fAg='all';
 // Filtre pose par une pastille de carte (theme, ville) : voir actionPastille().
 let fPastille = null;
-const CATS_FILTRABLES = ['securite', 'humanitaire', 'politique', 'economique'];
+const CATS_FILTRABLES = ['securite', 'humanitaire', 'politique', 'economique', 'divers'];
 
 // ── DETECTION DU MEILLEUR SERVICE DE COLLECTE ───────────────────────────────
 async function detectProxy() {
@@ -9183,6 +9210,9 @@ const SENS_ADMINISTRATIFS = [
   /\benlevements?\s+(?:des|de\s+la|du|de|d')\s*(?:marchandises?|ordures?|dechets?|colis|conteneurs?|vehicules?|epaves?|bagages?|cargaisons?|ordures\s+menageres)/g,
   /\b(?:fete|jour|journee)\s+des\s+morts/g,
   /\bpieces?\s+d'execution/g,
+  // « Exécution budgétaire à fin septembre », « Rapport d'exécution budgétaire »
+  // sortaient CRITIQUES (audit du 27/11/2026).
+  /\b(?:rapport\s+d'|rapports\s+d')?execution\s+(?:budgetaire|financiere|physique)/g,
   // « attaque » au sens de critique (audit du 15/11/2026) : « Minority caucus
   // attacks 2027 Budget » (JoyOnline) sortait CRITIQUE. Le verbe disparait
   // quand son objet est un texte, un budget ou une decision ; une attaque
@@ -9492,7 +9522,11 @@ const SPORT_CONTENU_KW = [
   'hors-jeu','hors jeu','penalty','tirs au but','seance de tirs au but',
   'prolongation','prolongations','mort subite','explosion de joie',
   'frappe puissante','frappe enroulee','arbitre','var (arbitrage)','stade municipal',
-  'derby','championnat national','coupe nationale','coupe d\'afrique','can 20',
+  'derby','championnat national',
+  // Audit du 27/11/2026 : « Road to BAL 2027 – Elite 16 : Jean-Jacques Boissy
+  // frappe fort avec 29 points et le titre de MVP » sortait CRITIQUE, et
+  // « Ligue 2 : le Fello Star surclasse la Flamme Olympique » en Social.
+  'mvp','road to bal','basketball africa league','basket-ball','basketball','ligue 1','ligue 2','grimpe au classement','coupe nationale','coupe d\'afrique','can 20',
   'can2026','can 2027','eliminatoires can','eliminatoires mondial','selection nationale',
   'les elephants','les lions de la teranga','les aigles','les etalons','les leopards',
   'footballeur','joueur professionnel','entraineur (football)','maillot du club',
@@ -10237,7 +10271,7 @@ function estSuiteJudiciaire(tTitre) { return SUITE_JUDICIAIRE_RE.test(tTitre.tri
 // ELEVE — mais ne peut plus atteindre CRITIQUE ; le bilan routier
 // periodique, lui, redescend a MODERE.
 const ACCIDENT_RE = /\b(accidents?|acidentes?|carambolage|collision|delit de fuite|hit[- ]and[- ]run|(?:bus|car|road|plane|train|truck|boat) crash|crash d[eu]|road traffic)\b/;
-const BILAN_ROUTIER_RE = /\b(bilan routier|morts sur (?:les|la|nos) routes?|tues sur (?:les|la|nos) routes?|road deaths|road toll|securite routiere)\b/;
+const BILAN_ROUTIER_RE = /\b(bilan routier|la route tue|morts sur (?:les|la|nos) routes?|tues sur (?:les|la|nos) routes?|road deaths|road toll|securite routiere)\b/;
 // Une attaque contre un vehicule reste une attaque : le plafond ne
 // s'applique jamais si le titre porte du vocabulaire d'agression. Sans
 // cette garde, « bus attaque par des hommes armes » serait plafonne.
@@ -10284,6 +10318,119 @@ function motsTouches(texte, lexique) {
   return familles;
 }
 
+// ── CATÉGORIE D'UNE ACTU : le titre d'abord, et une rubrique « Faits divers »
+//
+// Audit du 27/11/2026 (YORO : « une piqûre de scorpion est placée en
+// politique »). Rejeu de classify() sur les cumuls d'octobre et novembre
+// (2 384 faits) : 821 (34 %) ne portaient AUCUN mot de catégorie et
+// recevaient la catégorie de leur SOURCE — 343 tombaient ainsi en politique
+// (un meurtre à Kaolack, un incendie d'appartement, la lutte sénégalaise).
+// Sur un échantillon de 100 faits relus un par un, 51 catégories étaient
+// fausses. Trois causes :
+//   1. le repli sur la catégorie de la source, alors qu'un média généraliste
+//      déclaré « politique » publie de tout ;
+//   2. aucun lexique du crime ordinaire, de la santé, de l'éducation ;
+//   3. aucune place pour ce qui n'est ni sécurité, ni politique, ni social,
+//      ni économie : accidents, incendies domestiques, noyades, piqûres,
+//      fêtes, examens, mode.
+// D'où `divers` (« Faits divers »), et des lexiques qui ne servent QU'À la
+// catégorie : rien ici ne touche au niveau d'un article ni d'un pays.
+//
+// Règle : chaque mot du TITRE compte trois fois, chaque mot du corps une
+// fois. Sans aucun mot, la source ne décide que si elle est spécialisée
+// (économique, humanitaire) ; un média généraliste donne « Faits divers ».
+const CAT_LEX = {
+  securite: /\b(?:agress\w*|groupes? armes?|islamist\w*|civils|securite|armee|armees|fama|forces armees|forces de securite|extremis\w*|africom|meurtr\w*|assassin\w*|egorg\w*|homicide\w*|tentative de viol|viols?|violee?s?|agression\w* sexuel\w*|violences? sexuel\w*|interpell\w*|arrestation\w*|arretes?|arretee?s?|mandats? d'arret|cavale|inculp\w*|garde a vue|detention|detenu\w*|prison\w*|ecroue\w*|braqu\w*|cambriol\w*|vols? a main armee|voleurs?|drogues?|antidrogue|stupefiants?|haschich|cannabis|cocaine|chanvre|trafi\w*|contrebande|police|policier\w*|gendarm\w*|commissariat|enquete\w*|enqueteurs?|machette|poignard\w*|couteau|explosifs?|engins explosifs|saisi\w* d'armes|douane\w* saisi\w*|armee de l'air|forces? de defense|defense nationale|militaires?|soldats?|terroris\w*|djihad\w*|jihad\w*|jnim|eigs|boko haram|bandits?|banditisme|criminalite|criminel\w*|crimes?|insecurite|securitaire|surete|securite (?:nationale|interieure|publique)|murder\w*|arrested|arrest|police|robbery|robbers|kidnap\w*|gunmen|bandits|terror\w*|militar\w*|troops|army|drug\w*|traffick\w*|smuggl\w*|seiz\w*|prison|jail\w*|stabbed|rape\w*|assassinat)\b/g,
+  politique: /\b(?:presidente?s?|presidentiel\w*|chef de l'etat|premier ministre|ministres?|gouvernement\w*|partis?|opposition|opposants?|militants|meeting|deputes?|assemblee nationale|senat\w*|senateurs?|parlement\w*|decrets?|conseil des ministres|diplomat\w*|ambassad\w*|ambassadeurs?|cooperation|visite officielle|audience|accueilli\w*|recu par|recoit|sommet|nations unies|onu|union africaine|cedeao|ecowas|aes|confederation|elections?|electora\w*|scrutin|vote|referendum|motion de censure|responsabilite du gouvernement|constitution\w*|pouvoir|regime|junte|transition|souverainete|condoleances|commandeur|ordre national|decore\w*|haute autorite|harc|maire|mairie|municipal\w*|prefet|gouverneur|tribune|opinion|politique\w*|president|minister|government|parliament|senate|election\w*|opposition|party|diplomat\w*|ambassador|summit|un meeting|sovereignty|manifestation\w*|marche pacifique)\b/g,
+  humanitaire: /\b(?:sante|sanitaire\w*|hopita\w*|chu|clinique|medec\w*|medic\w*|infirmi\w*|patients?|maladies?|vih|sida|depistage|vaccin\w*|paludisme|cholera|ebola|diphterie|rougeole|meningite|dengue|mpox|polio\w*|epidemi\w*|pandemi\w*|grev\w*|syndica\w*|preavis|migrants?|migrations?|migratoire|emigra\w*|immigra\w*|rapatri\w*|refoul\w*|expulse\w*|refugie\w*|deplace\w*|humanitaire\w*|inondation\w*|secheresse|climat\w*|cop\d*|environnement\w*|pollution|decharge|dechets|hygiene|assainissement|eau potable|malnutrition|alimentaire|faim|famine|cantines?|vbg|violences? basees? sur le genre|violences? faites aux femmes|handicap\w*|pauvrete|health|hospital\w*|disease|outbreak|strike|union\w*|migrants?|refugees?|displaced|flood\w*|drought|climate|humanitarian|hunger|famine)\b/g,
+  economique: /\b(?:econom\w*|fmi|banque mondiale|budget\w*|budgetaire|loi de finances|lfr|lfi|finances?|financ\w*|dette\w*|fcfa|f cfa|milliards?|millions de|investiss\w*|banques?|bancaire\w*|mobile money|paiements?|monnaie|billets|bceao|uemoa|croissance|inflation|prix|cherte|commerc\w*|entreprises?|emplois?|chomage|port autonome|exportat\w*|importat\w*|douane\w*|fiscal\w*|impots?|taxes?|agricole\w*|agricult\w*|producteurs?|recolte\w*|riz|cacao|coton|anacarde|semences?|elevage|mines?|minier\w*|petrol\w*|gaz|energie|electricite|marches?|vendeu\w*|bourse|startup|innovation|tarifs?|carburant|penurie|economy|economic|imf|world bank|budget|bank\w*|finance\w*|investment\w*|trade|market\w*|inflation|prices?|mining|oil|gas)\b/g,
+  divers: /\b(?:accidents?|collision|circulation|drame routier|carambolage|crash|incendie\w*|flammes|brule\w*|noyade\w*|noye\w*|naufrage\w*|chavir\w*|electrocut\w*|effondrement|eboulement|foudre|fosse septique|retrouvee? morte?|retrouve mort|deces|decede\w*|obseques|funerailles|inhum\w*|piqure\w*|piquee?s?|morsure\w*|scorpions?|serpents?|abeilles|essaim|crocodiles?|hippopotames?|toussaint|noel|tabaski|ramadan|fete\w*|celebration\w*|festival|carnaval|concert|spectacle|defile de mode|semaine de la mode|fashion|podium|miss|baccalaureat|bac|bepc|cepe|examens?|concours|releve de notes|inaugur\w*|ceremonie\w*|anniversaire|memorial|commemorat\w*|mariage|insolite|astuces?|conseils?|voici comment|ce qu'il faut savoir|ce que vous devez savoir|bon a savoir|gestes a adopter|recette|fire|drown\w*|accident\w*|crash|festival|exam\w*|wedding|funeral)\b/g,
+};
+// L'éducation compte pour UN mot au plus : « Enseignement supérieur : la
+// retenue sur salaire des grévistes relance la crise universitaire » est une
+// grève (Social), pas un fait divers parce qu'il nomme deux fois l'université.
+const CAT_EDUCATION_RE = /\b(?:etudiants?|eleves|ecoles?|scolaire\w*|universit\w*|enseignement\w*|enseignants?)\b/;
+// Une « sécurité » qui n'est pas la sûreté : chacune renvoie à sa catégorie.
+const CAT_SECURITE_COMPOSEE = [
+  [/\bsecurite alimentaire\b/g, ' alimentaire '],
+  [/\bsecurite sociale\b/g, ' sante '],
+  [/\bsecurite routiere\b/g, ' accident '],
+  [/\bsecurite (?:des paiements|numerique|financiere|energetique)\b/g, ' paiements '],
+];
+// Un sinistre, un accident, une piqûre décrivent un fait divers : leurs mots
+// de bilan (« morts », « tués ») ne doivent pas en faire un fait de sécurité,
+// sauf vocabulaire d'agression dans le titre (AGRESSION_RE).
+const FAIT_DIVERS_RE = /\b(?:securite routiere|la route tue|bilan routier|echouement|accidents?|collision|drame routier|carambolage|crash|incendie\w*|noyade\w*|noye\w*|naufrage\w*|chavir\w*|electrocut\w*|effondrement|eboulement|foudre|fosse septique|piqure\w*|morsure\w*|scorpions?|serpents?|abeilles|essaim|crocodiles?|hippopotames?)\b/;
+// ATTAQUE D'ANIMAL : « Podor : attaque d'abeilles, un mort », « piqûre de
+// scorpion » sortaient CRITIQUES sur le mot « attaque » ou « mort ». Un
+// animal n'est pas un agresseur : plafond MODÉRÉ, catégorie Faits divers,
+// jamais si le titre nomme aussi un agresseur humain.
+const ANIMAL_RE = /\b(?:piqure\w* de (?:scorpion|serpent|guepe|abeille)\w*|scorpions?|serpents?|morsure\w* de (?:serpent|chien|crocodile)\w*|attaque\w* d'(?:abeilles|un essaim|un crocodile|un hippopotame|un elephant|elephants|hyenes?|un lion)|essaim d'abeilles|abeilles|crocodiles?|hippopotames?|snake ?bites?|scorpion stings?|bee attack)\b/;
+const AGRESSEUR_HUMAIN_RE = /\b(?:hommes armes|individus armes|assaillants|bandits?|terroris\w*|djihad\w*|jihad\w*|gunmen|militants|braqu\w*|ravisseurs)\b/;
+function estAttaqueAnimale(tTitre) { return ANIMAL_RE.test(tTitre) && !AGRESSEUR_HUMAIN_RE.test(tTitre); }
+// VIE PRATIQUE : « Ce qu'il faut savoir sur la Toussaint », « Voici comment
+// réagir face à un arrêt cardiaque », « 8 signes pour reconnaître une société
+// frauduleuse » : des articles de conseil, pas des faits. Niveau normal,
+// sauf si le titre décrit aussi un incident (« Ce qu'il faut savoir sur
+// l'attaque de Djibo » reste une attaque).
+const VIE_PRATIQUE_RE = /\b(?:ce qu'il faut savoir|ce que vous devez savoir|voici comment|comment (?:reagir|reconnaitre|eviter|se proteger|bien)|signes pour reconnaitre|gestes a adopter|bon a savoir|astuces?|nos conseils|conseils pratiques|what you need to know|how to)\b/;
+function estVieePratique(tTitre) {
+  return VIE_PRATIQUE_RE.test(tTitre) && !AGRESSION_RE.test(tTitre)
+    && !/\b(?:tues?|tuee?s?|morts? (?:dans|lors|apres)|bilan|victimes)\b/.test(tTitre);
+}
+function compterCat(texte, re, lexique) {
+  const vus = new Set();
+  for (const m of texte.matchAll(re)) vus.add(m[0].slice(0, 5));
+  if (lexique) for (const k of lexique) if (matchMot(texte, k)) vus.add(k.slice(0, 5));
+  return vus.size;
+}
+const ORDRE_CATEGORIES = ['securite', 'politique', 'humanitaire', 'divers', 'economique'];
+// Les lexiques historiques comptent aussi, sans compter deux fois un mot.
+// « grève » et « manifestation » restent hors de la politique : une grève est
+// un fait social (Présentation 1, rubrique II), une manifestation un fait
+// d'ordre public que le titre décide.
+// (Construit au premier appel : ce bloc est lu par des tests qui ne chargent
+// pas les lexiques CK_*.)
+let _lexiquesCategorie = null;
+function lexiquesCategorie() {
+  return _lexiquesCategorie || (_lexiquesCategorie = {
+    securite: CK_SEC,
+    politique: CK_POL.filter((k) => k !== 'greve' && k !== 'manifestation'),
+    humanitaire: [...CK_HUM, ...CK_HUM_DOMAINE],
+    economique: CK_ECO,
+    divers: null,
+  });
+}
+function categorieActu(tTitre, tCorps, srcCat) {
+  const titreSeul = tTitre !== tCorps;
+  for (const [re, r] of CAT_SECURITE_COMPOSEE) { tTitre = tTitre.replace(re, r); tCorps = tCorps.replace(re, r); }
+  const faitDivers = FAIT_DIVERS_RE.test(tTitre) && !AGRESSION_RE.test(tTitre);
+  const scores = {}, corps = {};
+  for (const c of ORDRE_CATEGORIES) {
+    const lex = lexiquesCategorie()[c];
+    const tt = compterCat(tTitre, CAT_LEX[c], lex);
+    scores[c] = 3 * tt;
+    corps[c] = titreSeul ? Math.min(2, Math.max(0, compterCat(tCorps, CAT_LEX[c], lex) - tt)) : 0;
+  }
+  if (CAT_EDUCATION_RE.test(tTitre)) scores.divers += 3;
+  else if (titreSeul && CAT_EDUCATION_RE.test(tCorps)) corps.divers += 1;
+  // Le vocabulaire d'incident (CK_CRIT, CK_HIGH) du titre est aussi un mot de
+  // sécurité — sauf dans un fait divers, où « morts » est un bilan.
+  if (!faitDivers) {
+    scores.securite += 3 * (motsTouches(tTitre, CK_CRIT).size);
+  }
+  if (estAttaqueAnimale(tTitre)) return 'divers';
+  // Le corps ne parle que si le titre se tait : il départagerait mal (un
+  // compte rendu de remise d'hélicoptères à l'armée cite le président).
+  if (!ORDRE_CATEGORIES.some((c) => scores[c] > 0)) {
+    for (const c of ORDRE_CATEGORIES) scores[c] += corps[c];
+  }
+  let cat = null, mx = 0;
+  for (const c of ORDRE_CATEGORIES) if (scores[c] > mx) { mx = scores[c]; cat = c; }
+  if (cat) return cat;
+  return (srcCat === 'economique' || srcCat === 'humanitaire') ? srcCat : 'divers';
+}
+
 // classify(txt, src, titre) : txt est le titre suivi du corps ; titre, quand
 // l'appelant le fournit, permet de distinguer ce que dit le TITRE de ce que
 // dit le corps. Sans lui (anciens appels, tests), tout est traite comme titre :
@@ -10326,8 +10473,6 @@ function classify(txt, src, titre) {
     politique:  CK_POL.filter(k=>matchMot(tScan,k)).length,
     economique: CK_ECO.filter(k=>matchMot(tScan,k)).length,
   };
-  let cat = src.cat, mx = 0;
-  for (const [c,v] of Object.entries(scores)) if (v>mx) { mx=v; cat=c; }
 
   // Correspondance MOT ENTIER (matchMot), pas sous-chaine brute : evite les
   // faux positifs caches type "tue" dans "statue", "arme" dans "larme",
@@ -10364,6 +10509,7 @@ function classify(txt, src, titre) {
   const tTitre = (typeof titre === 'string' && titre)
     ? neutraliserExpressions(normaliserAccents(titre.toLowerCase()))
     : tScan;
+  const cat = categorieActu(tTitre, tScan, src.cat);
   if (estFormatEditorial(tTitre)) return {lvl: 'ok', cat};
 
   const critTitre = motsTouches(tTitre, CK_CRIT);
@@ -10391,8 +10537,14 @@ function classify(txt, src, titre) {
   if (lvl !== 'ok' && estBilanRoutier(tTitre)) lvl = 'mod';
   if (lvl === 'crit' && estNonEvenement(tTitre)) lvl = 'mod';
   if ((lvl === 'crit' || lvl === 'high') && estActiviteInstitutionnelle(tTitre)) lvl = 'mod';
+  // `plafond` nomme la règle qui a abaissé le niveau : le rejeu sur un cumul
+  // déjà versé (scripts/reclasser-cumul.js) n'applique au niveau que ces
+  // règles-là, jamais l'écart dû à un chapô plus court que l'article.
+  let plafond = null;
+  if ((lvl === 'crit' || lvl === 'high') && estAttaqueAnimale(tTitre)) { lvl = 'mod'; plafond = 'animal'; }
+  if (lvl !== 'ok' && estVieePratique(tTitre)) { lvl = 'ok'; plafond = 'vie_pratique'; }
 
-  return {lvl, cat};
+  return plafond ? {lvl, cat, plafond} : {lvl, cat};
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -11113,7 +11265,7 @@ function getSocialSummary(cy, platform) {
   const total = arts.length || 1;
   const dominant = pos>neg && pos>=neutre ? 'positif' : neg>pos && neg>=neutre ? 'negatif' : 'neutre';
 
-  const themes = {securite:0,humanitaire:0,politique:0,economique:0};
+  const themes = {securite:0,humanitaire:0,politique:0,economique:0,divers:0};
   arts.forEach(a => { if(themes[a.cat]!==undefined) themes[a.cat]++; });
 
   const alertesLiees = (typeof getLiveAlertEvents==='function') ? getLiveAlertEvents(cy) : [];
@@ -11473,7 +11625,7 @@ function renderMediaBlock(a, heightPx) {
 // ═══════════════════════════════════════════════════════════════════════
 const VISUEL_OGP_MAX = 24;
 let _visuelOgpDemandes = 0;
-const _VISUEL_CAT_ICONE = { securite:'ti-shield-half', politique:'ti-building-bank', humanitaire:'ti-heart-handshake', economie:'ti-chart-line', economique:'ti-chart-line', sport:'ti-ball-football' };
+const _VISUEL_CAT_ICONE = { securite:'ti-shield-half', politique:'ti-building-bank', humanitaire:'ti-heart-handshake', economie:'ti-chart-line', economique:'ti-chart-line', divers:'ti-news', sport:'ti-ball-football' };
 const _VISUEL_NIV_VAR = { crit:'var(--r)', high:'var(--a)', mod:'var(--j)', ok:'var(--g)' };
 function urlImageSure(u) {
   return (typeof u === 'string' && /^https:\/\/[^\s"'<>]+$/i.test(u)) ? u : null;
@@ -16648,15 +16800,15 @@ function chipTendance(code) {
 // la couleur seule), et la trajectoire n'est tracée qu'à partir de deux
 // relevés : une courbe d'un point serait une affirmation sans mesure.
 const PANO_NIVEAUX = ['rouge', 'marron', 'orange', 'jaune', 'vert'];
-const PANO_THEMES = ['securite', 'humanitaire', 'politique', 'economique'];
+const PANO_THEMES = ['securite', 'humanitaire', 'politique', 'economique', 'divers'];
 function libelleNiveauPano(k) {
   const fr = { rouge: 'Grave', marron: 'Critique', orange: 'Élevé', jaune: 'Modéré', vert: 'Stable' };
   const en = { rouge: 'Severe', marron: 'Critical', orange: 'High', jaune: 'Moderate', vert: 'Stable' };
   return (LANG === 'en' ? en : fr)[k] || k;
 }
 function libelleThemePano(t) {
-  const fr = { securite: 'Sécurité', humanitaire: 'Humanitaire', politique: 'Politique', economique: 'Économique' };
-  const en = { securite: 'Security', humanitaire: 'Humanitarian', politique: 'Political', economique: 'Economic' };
+  const fr = { securite: 'Sécurité', humanitaire: 'Humanitaire', politique: 'Politique', economique: 'Économique', divers: 'Faits divers' };
+  const en = { securite: 'Security', humanitaire: 'Humanitarian', politique: 'Political', economique: 'Economic', divers: 'Other news' };
   return (LANG === 'en' ? en : fr)[t] || t;
 }
 // Série quotidienne : combien de pays à l'orange ou plus, et au marron ou
@@ -17106,7 +17258,7 @@ async function updSynthese() {
   document.getElementById('syHigh').innerHTML='<i class="ti ti-alert-circle" style="font-size:9px;vertical-align:-1px"></i> '+high+' eleve'+(high>1?'s':'');
   document.getElementById('sySrc').innerHTML='<i class="ti ti-database" style="font-size:9px;vertical-align:-1px"></i> '+okSrc+' sources actives';
 
-  const byCat={securite:[],humanitaire:[],politique:[],economique:[]};
+  const byCat={securite:[],humanitaire:[],politique:[],economique:[],divers:[]};
   actusAffichables(perimetre).sort((a,b)=>(b.pubDate||0)-(a.pubDate||0)).slice(0,60)
     .forEach(a=>{if(byCat[a.cat])byCat[a.cat].push(a);});
 
@@ -17115,6 +17267,7 @@ async function updSynthese() {
     {k:'humanitaire',ic:'ti-leaf',        cl:'ha',lb:'Axe humanitaire'},
     {k:'politique', ic:'ti-building-community',cl:'hb',lb:'Environnement politique'},
     {k:'economique',ic:'ti-chart-line',   cl:'hg',lb:'Contexte economique'},
+    {k:'divers',    ic:'ti-news',         cl:'hg',lb:'Faits divers'},
   ];
 
   let html='';
@@ -26089,8 +26242,8 @@ function lvlFr(l){
 }
 function catFr(c){
   const dict = LANG==='en'
-    ? {securite:'Security',humanitaire:'Humanitarian',politique:'Political',economique:'Economic',sport:'Sports',culture:'Culture'}
-    : {securite:'Sécurité',humanitaire:'Humanitaire',politique:'Politique',economique:'Économique',sport:'Sport',culture:'Culture'};
+    ? {securite:'Security',humanitaire:'Humanitarian',politique:'Political',economique:'Economic',divers:'Other news',sport:'Sports',culture:'Culture'}
+    : {securite:'Sécurité',humanitaire:'Humanitaire',politique:'Politique',economique:'Économique',divers:'Faits divers',sport:'Sport',culture:'Culture'};
   return dict[c]||c;
 }
 function srcName(id){const s=SRCS.find(x=>x.id===id);return s?s.n:id;}
@@ -26803,7 +26956,7 @@ function chargerRapportsAuto(){
     .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(function(d){
       var l = (d && d.rapports) || [];
-      if (!l.length) { el.textContent = "Aucune Présentation 1 n'a encore été générée. Elle le sera au prochain passage de la collecte, puis mise à jour chaque jour."; return; }
+      if (!l.length) { el.textContent = "Aucune Présentation 1 générée par le serveur : composez-la ci-dessus."; return; }
       el.innerHTML = '';
       var NOMS = { pptx: 'PowerPoint', docx: 'Word', pdf: 'PDF' };
       l.forEach(function(r, i){
@@ -26852,6 +27005,333 @@ function chargerRapportsAuto(){
       });
     })
     .catch(function(e){ el.textContent = 'Liste des rapports indisponible (' + ((e && e.message) || e) + ').'; });
+}
+// ── Présentation 1 sur mesure (25/11/2026) ─────────────────────────────
+// YORO : « Revise Présentation 1 avec des filtres pays, régional d'un pays,
+// région ouest ou est Afrique… pour avoir des options de contenus selon les
+// besoins. » Le rapport du mois reste celui du job (liste ci-dessus) ; ce
+// bloc en compose une version filtrée, dans le navigateur, à partir du même
+// cumul du mois (rapports/mensuel/faits-AAAA-MM.json) et du MÊME générateur
+// (js/presentation-1.js, construit depuis le générateur du job). Les deux
+// scripts ne se chargent qu'à l'ouverture du module Rapports.
+// Images des sources : seulement si Paramètres > Affichage l'autorise, et
+// seulement celles que la source permet de copier (même règle que les autres
+// exports, chargerImagesRapport). Jamais une image hébergée par SentiqS.
+const P1_IMAGES_MODELE = ['couverture-abidjan.jpg', 'carte-ci.jpg', 'afrique.png'];
+const P1_IMAGES_MAX = 24;
+const _p1 = { cumuls: {}, mois: [], ressources: null, minuteur: null };
+function chargerScriptLocal(src, globale) {
+  if (window[globale]) return Promise.resolve(window[globale]);
+  _p1['s_' + src] = _p1['s_' + src] || new Promise((resolve, reject) => {
+    const el = document.createElement('script');
+    el.src = src; el.async = true;
+    el.onload = () => (window[globale] ? resolve(window[globale]) : reject(new Error(src + ' illisible')));
+    el.onerror = () => { delete _p1['s_' + src]; reject(new Error(src + ' non chargé')); };
+    document.head.appendChild(el);
+  });
+  return _p1['s_' + src];
+}
+function p1Modules() {
+  return Promise.all([chargerScriptLocal('js/presentation-perimetre.js', 'SentiqPerimetre'), chargerScriptLocal('js/presentation-1.js', 'SentiqPresentation1')]);
+}
+async function p1Ressources(S) {
+  if (_p1.ressources) return _p1.ressources;
+  const res = {};
+  await Promise.all(P1_IMAGES_MODELE.map(async (nom) => {
+    const r = await fetch('assets/presentation-1/' + nom);
+    if (!r.ok) throw new Error('image du modèle absente : ' + nom);
+    res[nom] = new Uint8Array(await r.arrayBuffer());
+  }));
+  S.rapport.utiliserRessources(res);
+  _p1.ressources = res;
+  return res;
+}
+async function p1Cumul(mois) {
+  if (_p1.cumuls[mois]) return _p1.cumuls[mois];
+  const r = await fetch('rapports/mensuel/faits-' + mois + '.json', { cache: 'no-cache' });
+  if (r.status === 404) return (_p1.cumuls[mois] = null);
+  if (!r.ok) throw new Error('faits du mois ' + mois + ' indisponibles (HTTP ' + r.status + ')');
+  return (_p1.cumuls[mois] = await r.json());
+}
+// Les faits d'une période qui peut chevaucher deux mois (27/11/2026 : « offrir
+// le choix des périodes ») : les cumuls mensuels concernés, mis bout à bout.
+// Un mois sans cumul (avant le début de la collecte) est simplement absent.
+async function p1CumulPeriode(Per, debut, fin) {
+  const cumuls = (await Promise.all(Per.moisDeLaPeriode(debut, fin).map(p1Cumul))).filter(Boolean);
+  if (!cumuls.length) throw new Error('aucun fait collecté sur cette période');
+  const pays = {};
+  cumuls.forEach((c) => Object.entries(c.pays || {}).forEach(([cy, l]) => { pays[cy] = (pays[cy] || []).concat(l); }));
+  return { mois: fin.slice(0, 7), pays };
+}
+// [début, fin] de la période choisie, en jours AAAA-MM-JJ (UTC, comme les
+// dates de publication du cumul). La fin ne dépasse jamais aujourd'hui.
+function p1Bornes(S, c) {
+  const auj = new Date().toISOString().slice(0, 10);
+  const recul = (n) => new Date(Date.parse(auj + 'T00:00:00Z') - n * 86400000).toISOString().slice(0, 10);
+  const borne = (j) => (/^\d{4}-\d{2}-\d{2}$/.test(j || '') ? (j > auj ? auj : j) : null);
+  if (c.periode === 'semaine') return [recul(6), auj];
+  if (c.periode === 'quinzaine') return [recul(13), auj];
+  if (c.periode === 'jour') { const j = borne(c.le) || auj; return [j, j]; }
+  if (c.periode === 'plage') {
+    let d = borne(c.du) || recul(6), f = borne(c.au) || auj;
+    if (d > f) [d, f] = [f, d];
+    return [d, f];
+  }
+  if (!/^\d{4}-\d{2}$/.test(c.mois)) throw new Error('aucun mois disponible');
+  return [c.mois + '-01', auj.slice(0, 7) === c.mois ? auj : S.rapport.dernierJourMois(c.mois)];
+}
+const _p1v = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
+function p1Criteres() {
+  const mode = (document.querySelector('input[name="p1Mode"]:checked') || {}).value || 'pays';
+  const rubriques = [...document.querySelectorAll('#rpP1 input[data-p1-rub]:checked')].map((x) => x.getAttribute('data-p1-rub'));
+  return {
+    mois: _p1v('p1Mois'), mode, cy: _p1v('p1Pays'), zone: _p1v('p1Zone') || null,
+    region: _p1v('p1Region'), principal: _p1v('p1Principal') || null,
+    rubriques: rubriques.length === 4 ? null : rubriques, cotation: _p1v('p1Cotation') || null,
+    periode: _p1v('p1Periode') || 'mois', le: _p1v('p1Le'), du: _p1v('p1Du'), au: _p1v('p1Au'),
+    max: Number(_p1v('p1Max')) || null,
+  };
+}
+async function p1Perimetre() {
+  const [Per, S] = await p1Modules();
+  const c = p1Criteres();
+  const [debut, jour] = p1Bornes(S, c);
+  // Un mois civil entier n'a pas de « début » à dire : la couverture garde
+  // « Période du 1er au … » du modèle.
+  c.debut = (c.periode === 'mois') ? null : debut;
+  c.etiquette = c.periode === 'mois' ? c.mois : (debut === jour ? debut : debut + '_' + jour);
+  const cumul = await p1CumulPeriode(Per, debut, jour);
+  const cys = c.mode === 'region' ? ((Per.region(c.region) || {}).pays || []) : [c.cy];
+  const pays = cys.filter((cy) => PAYS_INFO[cy]).map((cy) => ({ cy, nom: PAYS_INFO[cy].name, faits: S.faits.faitsDuMois(cumul, cy, PAYS_INFO[cy].name) }));
+  const P = Per.composer(pays, Object.assign({}, c, { jour }), S.rapport.rubriqueDe);
+  return { P, jour, S, Per, c };
+}
+function p1Emetteur() {
+  const choix = _p1v('p1Identite');
+  const identite = (choix && fonctionnalitePayante()) ? choix : 'SentiqS';
+  const em = { identite, signature: null, logo: null, logoRatio: 1 };
+  const l = fonctionnalitePayante() ? logoMarqueActuelle() : null;
+  if (l) Object.assign(em, { logo: 'logo', logoData: logoMarqueOctets(l), logoType: l.png ? 'png' : 'jpeg', logoRatio: l.ratio });
+  return em;
+}
+function p1Tous(S, P) {
+  const plan = S.rapport.planPerimetre(P);
+  return plan.principal.flatMap((x) => x.marquants.concat(x.liste)).concat(plan.groupe.flatMap((x) => x.marquants.concat(x.liste)));
+}
+async function p1Photos(S, P) {
+  if (!(document.getElementById('p1Images') || {}).checked || !imagesDocumentsActives()) return 0;
+  const faits = p1Tous(S, P).filter((f) => f.img && /^https:\/\//.test(f.img)).slice(0, P1_IMAGES_MAX);
+  let n = 0;
+  await Promise.all(faits.map(async (f) => {
+    const v = await _imageRapport(f.img);
+    if (!v) return;
+    const lien = (f.liens && f.liens[0] && f.liens[0].url) || f.url || null;
+    let credit = null; try { credit = new URL(lien || f.img).hostname.replace(/^www\./, ''); } catch (e) { /* sans crédit lisible */ }
+    f.photo = { data: logoMarqueOctets(v), type: 'jpeg', w: Math.round(480), h: Math.round(480 / v.ratio), credit: credit || 'source', lien };
+    n++;
+  }));
+  return n;
+}
+function p1NomFichier(P, mois, ext) {
+  const s = String(P.libelle || 'filtre').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
+  return 'Presentation-1-' + mois + '-' + s + '.' + ext;
+}
+function p1Etat(t, erreur) {
+  const el = document.getElementById('p1Etat');
+  if (el) { el.textContent = t; el.style.color = erreur ? 'var(--r)' : 'var(--lg)'; }
+}
+async function p1MajApercu() {
+  try {
+    const { P, S } = await p1Perimetre();
+    const nPays = (P.principal ? 1 : 0) + (P.groupe ? P.groupe.pays.length : 0);
+    // Ce que le rapport montrera (plafond par rubrique ou par pays compris),
+    // puis ce que les filtres ont retenu.
+    const n = p1Tous(S, P).length;
+    p1Etat(n + ' actu' + (n > 1 ? 's' : '') + ' dans le rapport' + (P.total > n ? ' (sur ' + P.total + ' retenues)' : '') + ' · ' + nPays + ' pays'
+      + (P.absents.length ? ' · sans fait : ' + P.absents.length : '') + (P.sansLieu ? ' · ' + P.sansLieu + ' sans localité précise' : ''));
+  } catch (e) { p1Etat('Aperçu indisponible : ' + ((e && e.message) || e), true); }
+}
+function p1Planifier() { clearTimeout(_p1.minuteur); _p1.minuteur = setTimeout(p1MajApercu, 200); }
+function p1MajZones(Per) {
+  const sel = document.getElementById('p1Zone');
+  if (!sel) return;
+  const zs = Per.zonesDe(_p1v('p1Pays'));
+  sel.innerHTML = '<option value="">Tout le pays</option>' + zs.map((z) => '<option value="' + _apEsc(z.id) + '">' + _apEsc(z.nom) + '</option>').join('');
+  sel.disabled = !zs.length;
+  sel.title = zs.length ? 'Une actu est rattachée à une zone si elle en nomme une localité' : 'Pas encore de découpage en zones pour ce pays';
+}
+function p1MajPrincipal(Per) {
+  const sel = document.getElementById('p1Principal');
+  if (!sel) return;
+  const r = Per.region(_p1v('p1Region'));
+  const cys = ((r && r.pays) || []).filter((cy) => PAYS_INFO[cy]).sort((a, b) => PAYS_INFO[a].name.localeCompare(PAYS_INFO[b].name, 'fr'));
+  sel.innerHTML = '<option value="">Aucun</option>' + cys.map((cy) => '<option value="' + cy + '"' + (cy === 'CI' ? ' selected' : '') + '>' + _apEsc(PAYS_INFO[cy].name) + '</option>').join('');
+}
+function p1MajMode() {
+  const mode = (document.querySelector('input[name="p1Mode"]:checked') || {}).value || 'pays';
+  document.querySelectorAll('#rpP1 [data-p1-si]').forEach((el) => { el.hidden = el.getAttribute('data-p1-si') !== mode; });
+  const per = _p1v('p1Periode') || 'mois';
+  document.querySelectorAll('#rpP1 [data-p1-per]').forEach((el) => { el.hidden = !el.getAttribute('data-p1-per').split(' ').includes(per); });
+}
+async function initComposerP1() {
+  const hote = document.getElementById('rpP1');
+  if (!hote || hote.getAttribute('data-pret')) return;
+  hote.setAttribute('data-pret', '1');
+  let Per;
+  try { [Per] = await p1Modules(); } catch (e) { hote.textContent = 'Composition indisponible : ' + ((e && e.message) || e); return; }
+  let mois = [];
+  try {
+    const r = await fetch('rapports/mensuel/index.json', { cache: 'no-cache' });
+    mois = ((await r.json()).rapports || []).map((x) => x.mois).filter((m) => /^\d{4}-\d{2}$/.test(m));
+  } catch (e) { /* liste vide : dit plus bas */ }
+  const auj = new Date().toISOString().slice(0, 7);
+  if (!mois.includes(auj)) mois.unshift(auj);
+  mois = [...new Set(mois)].sort().reverse();
+  const opt = (v, t, sel) => '<option value="' + _apEsc(v) + '"' + (sel ? ' selected' : '') + '>' + _apEsc(t) + '</option>';
+  const MOISN = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  const nomMois = (m) => MOISN[Number(m.slice(5, 7)) - 1] + ' ' + m.slice(0, 4);
+  // Bornes des champs de date : du premier mois collecté à aujourd'hui.
+  const aujJ = new Date().toISOString().slice(0, 10);
+  const septJ = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
+  const premierJour = (mois.length ? mois[mois.length - 1] : aujJ.slice(0, 7)) + '-01';
+  const pays = Object.keys(PAYS_INFO).filter((cy) => /^[A-Z]{2}$/.test(cy) && cy !== 'INT').sort((a, b) => PAYS_INFO[a].name.localeCompare(PAYS_INFO[b].name, 'fr'));
+  const ua = Per.REGIONS.filter((r) => r.type === 'ua'); const ens = Per.REGIONS.filter((r) => r.type !== 'ua');
+  const ids = identitesMarquePerso(getMarquePerso());
+  const identites = fonctionnalitePayante() ? [ids.identite1, ids.identite2, ids.identite3].filter(Boolean) : [];
+  const champ = (id, libelle, html, attrs) => '<label class="p1-champ" for="' + id + '"' + (attrs || '') + '><span>' + libelle + '</span>' + html + '</label>';
+  hote.innerHTML = '<div class="p1-tt"><i class="ti ti-adjustments-horizontal" aria-hidden="true"></i> Composer une Présentation 1 sur mesure</div>'
+    + '<div class="p1-aide">Même mise en page que le rapport du mois, sur le périmètre de votre choix : une période (un jour, une semaine, un mois ou une plage libre), un pays ou une zone d\'un pays, une région d\'Afrique, des rubriques, une cotation. Les faits viennent de la collecte, rien n\'est produit sans votre demande.</div>'
+    + '<div class="p1-grille">'
+    + champ('p1Periode', 'Période', '<select id="p1Periode">' + opt('mois', 'Un mois', true) + opt('semaine', '7 derniers jours') + opt('quinzaine', '14 derniers jours') + opt('jour', 'Un jour') + opt('plage', 'Plage libre (du … au …)') + '</select>')
+    + champ('p1Mois', 'Mois', '<select id="p1Mois">' + mois.map((m, i) => opt(m, nomMois(m), !i)).join('') + '</select>', ' data-p1-per="mois"')
+    + champ('p1Le', 'Jour', '<input type="date" id="p1Le" min="' + premierJour + '" max="' + aujJ + '" value="' + aujJ + '">', ' data-p1-per="jour"')
+    + champ('p1Du', 'Du', '<input type="date" id="p1Du" min="' + premierJour + '" max="' + aujJ + '" value="' + septJ + '">', ' data-p1-per="plage"')
+    + champ('p1Au', 'Au', '<input type="date" id="p1Au" min="' + premierJour + '" max="' + aujJ + '" value="' + aujJ + '">', ' data-p1-per="plage"')
+    + '<fieldset class="p1-champ p1-mode"><legend>Périmètre</legend>'
+    + '<label><input type="radio" name="p1Mode" value="pays" checked> Un pays</label>'
+    + '<label><input type="radio" name="p1Mode" value="region"> Une région d\'Afrique</label></fieldset>'
+    + champ('p1Pays', 'Pays', '<select id="p1Pays">' + pays.map((cy) => opt(cy, PAYS_INFO[cy].name, cy === 'CI')).join('') + '</select>', ' data-p1-si="pays"')
+    + champ('p1Zone', 'Zone du pays', '<select id="p1Zone"></select>', ' data-p1-si="pays"')
+    + champ('p1Region', 'Région', '<select id="p1Region"><optgroup label="Régions de l\'Union africaine">' + ua.map((r) => opt(r.id, r.nom, r.id === 'ouest')).join('') + '</optgroup><optgroup label="Ensembles">' + ens.map((r) => opt(r.id, r.nom)).join('') + '</optgroup></select>', ' data-p1-si="region"')
+    + champ('p1Principal', 'Pays mis en tête', '<select id="p1Principal"></select>', ' data-p1-si="region"')
+    + '<fieldset class="p1-champ p1-rubs"><legend>Rubriques</legend>'
+    + [['politique', 'Politique'], ['humanitaire', 'Social'], ['securite', 'Sécurité'], ['divers', 'Divers']].map(([k, t]) => '<label><input type="checkbox" data-p1-rub="' + k + '" checked> ' + t + '</label>').join('') + '</fieldset>'
+    + champ('p1Cotation', 'Cotation', '<select id="p1Cotation">' + opt('', 'Toutes') + opt('probable', 'Confirmé et Probable') + opt('confirme', 'Confirmé seulement') + '</select>')
+    + champ('p1Max', 'Actus au plus', '<select id="p1Max">' + opt('5', '5 par rubrique ou pays') + opt('', '10 par rubrique ou pays', true) + opt('20', '20 par rubrique ou pays') + '</select>')
+    + champ('p1Identite', 'Signé par', '<select id="p1Identite">' + opt('', 'SentiqS') + identites.map((t) => opt(t, t)).join('') + '</select>')
+    + '<label class="p1-champ p1-case" for="p1Images"><input type="checkbox" id="p1Images"' + (imagesDocumentsActives() ? ' checked' : ' disabled') + '> <span>Photos des sources' + (imagesDocumentsActives() ? '' : ' (à autoriser dans Paramètres › Affichage)') + '</span></label>'
+    + '</div>'
+    + '<div id="p1Etat" class="p1-etat" role="status" aria-live="polite">Calcul…</div>'
+    + '<div class="p1-actions">'
+    + '<button type="button" class="btn-dl" data-p1-format="pptx"><i class="ti ti-presentation" aria-hidden="true"></i> PowerPoint</button>'
+    + '<button type="button" class="btn-dl" data-p1-format="docx"><i class="ti ti-file-text" aria-hidden="true"></i> Word</button>'
+    + '<button type="button" class="btn-dl" data-p1-format="pdf"><i class="ti ti-printer" aria-hidden="true"></i> PDF (impression)</button>'
+    + '</div>';
+  p1MajZones(Per); p1MajPrincipal(Per); p1MajMode();
+  hote.addEventListener('change', (ev) => {
+    const id = ev.target.id;
+    if (id === 'p1Pays') p1MajZones(Per);
+    if (id === 'p1Region') p1MajPrincipal(Per);
+    if (ev.target.name === 'p1Mode' || id === 'p1Periode') p1MajMode();
+    p1Planifier();
+  });
+  hote.querySelectorAll('[data-p1-format]').forEach((b) => b.addEventListener('click', () => genererPresentation1(b.getAttribute('data-p1-format'), b)));
+  p1MajApercu();
+}
+async function genererPresentation1(format, btn) {
+  // La fenêtre d'impression s'ouvre tout de suite, au clic : ouverte après
+  // les chargements, le navigateur la prendrait pour une fenêtre surgissante.
+  const fen = format === 'pdf' ? window.open('', '_blank') : null;
+  if (format === 'pdf' && !fen) { p1Etat('Fenêtre bloquée par le navigateur : autorisez les fenêtres de SentiqS puis réessayez.', true); return; }
+  if (fen) fen.document.write('<p style="font-family:sans-serif;padding:24px">Préparation de la Présentation 1…</p>');
+  if (btn) btn.disabled = true;
+  try {
+    const { P, jour, S, c } = await p1Perimetre();
+    if (!P.total) throw new Error('aucune actu ne passe ces filtres — élargissez le périmètre');
+    p1Etat('Préparation du document…');
+    await p1Ressources(S);
+    const photos = await p1Photos(S, P);
+    const donnees = { jour, emetteur: p1Emetteur(), perimetre: P };
+    if (format === 'pptx') {
+      const PptxGenJS = await chargerBibliotheque('pptx');
+      const pptx = S.rapport.construire(PptxGenJS, donnees);
+      const blob = await pptx.write({ outputType: 'blob' });
+      dlFile(blob, p1NomFichier(P, c.etiquette, 'pptx'), 'presentation1');
+    } else if (format === 'docx') {
+      const D = await chargerBibliotheque('docx');
+      const doc = S.word.construireWord(D, donnees);
+      dlFile(await D.Packer.toBlob(doc), p1NomFichier(P, c.etiquette, 'docx'), 'presentation1');
+    } else {
+      fen.document.open(); fen.document.write(htmlImpressionP1(S, donnees)); fen.document.close();
+    }
+    p1Etat('Document prêt : ' + p1Tous(S, P).length + ' actus' + (photos ? ', ' + photos + ' photo' + (photos > 1 ? 's' : '') + ' de source' : '') + '.');
+  } catch (e) {
+    if (fen) fen.close();
+    p1Etat('Document non généré : ' + ((e && e.message) || e), true);
+  } finally { if (btn) btn.disabled = false; }
+}
+// La version imprimable : les pages du PowerPoint en HTML, au format 16:9,
+// lues dans le même plan (planPerimetre) et rédigées par les mêmes fonctions.
+// « Enregistrer en PDF » depuis la boîte d'impression du navigateur. Le PDF
+// du rapport mensuel, lui, reste la conversion du PowerPoint par le job.
+function htmlImpressionP1(S, donnees) {
+  const R = S.rapport, Red = S.redaction, P = donnees.perimetre, em = donnees.emetteur;
+  const e = _apEsc;
+  const lien = (u, t) => (/^https?:\/\//.test(String(u || '')) ? '<a href="' + e(u) + '" rel="noopener">' + e(t) + '</a>' : e(t));
+  const photo = (f) => (f.photo ? '<figure><img src="data:image/jpeg;base64,' + R.enBase64(f.photo.data) + '" alt="Photo : ' + e(f.photo.credit) + '"><figcaption>Photo : ' + lien(f.photo.lien, '© ' + f.photo.credit) + '</figcaption></figure>' : '');
+  const ligneSources = (t, liens, sources, video) => '<p class="src"><b>' + e(t.etiquette) + '</b>' + (liens.length ? liens.slice(0, 4).map((l) => lien(l.url, l.source || 'article')).join(' · ') : e(t.source)) + (t.quand ? ' — ' + e(t.quand) : '') + (t.cotation ? ' · <b>Cotation : ' + e(t.cotation) + '</b>' : '') + (video ? ' · ' + lien(video, 'Voir la vidéo de la source') : '') + '</p>';
+  const fiche = (f, faitsPays) => {
+    const c = R.ficheTexte(f, faitsPays);
+    return '<div class="fiche">' + photo(f) + '<h3>' + e(c.titre) + '</h3>'
+      + (c.extrait ? '<p><b>' + e(c.extrait.source) + ' :</b> <i>« ' + e(c.extrait.texte) + ' »</i></p>' : '<p class="leg"><i>' + e(c.sansExtrait) + '</i></p>')
+      + (c.extrait2 ? '<p><b>' + e(c.extrait2.source) + ' :</b> <i>« ' + e(c.extrait2.texte) + ' »</i></p>' : '')
+      + '<p>' + e(R.texteAnalyse(c.analyse)) + '</p>' + ligneSources(c.t, c.liens, c.sources, c.video) + '</div>';
+  };
+  const redige = (f, nom, faitsPays) => {
+    const r = Red.rediger(f, nom); const a = Red.analyserFait(f, faitsPays); const t = R.faitTexte(f);
+    return '<div class="fiche seule">' + photo(f) + '<h2 class="fait">' + e(r.titre) + '</h2><p class="leg">' + e(r.contexte) + '</p>'
+      + (r.extraits.length ? r.extraits.map((x) => '<p><b>' + e(x.source) + ' :</b> <i>« ' + e(x.texte) + ' »</i></p>').join('') : '<p class="leg"><i>' + e(r.sansExtrait) + '</i></p>')
+      + '<p>' + e(a.lecture + ' ' + r.enjeux) + '</p><p>' + e(a.surveiller) + '</p>' + ligneSources(t, r.liens, r.sources, r.video) + '</div>';
+  };
+  let n = 0;
+  const page = (titre, corps, cls) => '<section class="page ' + (cls || '') + '">' + (titre ? '<header>' + titre + '</header>' : '') + '<div class="corps">' + corps + '</div><footer><span>' + e(R.piedTexte(em)) + '</span><span class="num">' + (++n) + '</span></footer></section>';
+  const titrePage = (num, t) => '<span class="num-r">' + e(num) + '</span> ' + e(t);
+  const pages = [];
+  pages.push(page('', '<h1>' + e(R.TITRE_COUVERTURE.join(' ')) + '</h1><p class="emet">' + e(em.identite) + '</p>' + (P.libelle ? '<p class="lib">' + e(P.libelle) + '</p>' : '') + '<p class="date">' + e(R.dateLongue(donnees.jour)) + '<br>' + e(R.libellePeriode(donnees.jour, P.debut)) + '</p>', 'couv'));
+  const cadres = R.cadresSommaire(P);
+  pages.push(page(titrePage('0', '- TABLE DES MATIÈRES'), '<div class="cadres">' + cadres.map((c) => '<div class="cadre"><h4>' + e(c.titre) + '</h4><ul>' + c.lignes.map((l) => (l.titre ? '<li class="t">' : l.puce ? '<li class="p">' : '<li>') + e(l.t) + '</li>').join('') + '</ul></div>').join('') + '</div>'));
+  const plan = R.planPerimetre(P);
+  let note = Red.NOTE_REDACTION;
+  const inter = (t, extra) => pages.push(page('', '<h2 class="inter">' + e(t) + '</h2>' + ([note, extra].filter(Boolean).length ? '<p class="note">' + e([note, extra].filter(Boolean).join(' ')) + '</p>' : ''), 'inter'));
+  if (P.principal) {
+    const d = P.principal.d;
+    inter(P.principal.titre); note = null;
+    plan.principal.forEach(({ rub, marquants, liste }) => {
+      marquants.forEach((f) => pages.push(page(titrePage(rub.num, '- ' + rub.titre), redige(f, d.nom, d.faits))));
+      R.paginerFiches(liste, d.faits).forEach((p) => pages.push(page(titrePage(rub.num, '- ' + rub.titre), p.map((f) => fiche(f, d.faits)).join('<hr>'))));
+    });
+  }
+  if (P.groupe && (P.groupe.pays.length || !P.principal)) {
+    inter(P.groupe.titre, P.absents.length ? 'Sans fait retenu sur la période : ' + P.absents.join(', ') + '.' : null);
+    plan.groupe.forEach(({ d, marquants, liste }, i) => {
+      marquants.forEach((f) => pages.push(page(titrePage(R.romain(i + 1), d.nom), redige(f, d.nom, d.faits))));
+      R.paginerFiches(liste, d.faits).forEach((p) => pages.push(page(titrePage(R.romain(i + 1), d.nom), p.map((f) => fiche(f, d.faits)).join('<hr>'))));
+    });
+  }
+  pages.push(page('', '<h2 class="inter">MERCI</h2>', 'inter'));
+  return '<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>' + e('Présentation 1 — ' + (P.libelle || '')) + '</title><style>'
+    + '@page{size:13.33in 7.5in;margin:0}*{box-sizing:border-box}body{margin:0;background:#9CA3AF;font-family:Calibri,Carlito,Arial,sans-serif;color:#1F2937}'
+    + '.barre{position:sticky;top:0;background:#1E2530;color:#fff;padding:10px 16px;display:flex;gap:10px;align-items:center;justify-content:flex-end;font-size:13px}.barre span{margin-right:auto}.barre button{padding:7px 14px;border:0;border-radius:6px;background:#0F4F2A;color:#fff;font-weight:700;cursor:pointer}'
+    + '.page{width:13.33in;height:7.5in;margin:16px auto;background:#fff;position:relative;overflow:hidden;page-break-after:always;break-after:page;padding:.35in .55in .7in}'
+    + 'header{font-size:24px;color:#0F4F2A;border-bottom:2px solid #0F4F2A;padding-bottom:6px;margin-bottom:12px}.num-r{display:inline-block;background:#0F4F2A;color:#fff;border-radius:50%;min-width:34px;text-align:center;padding:2px 6px;margin-right:6px}'
+    + 'footer{position:absolute;left:.55in;right:.55in;bottom:.22in;display:flex;justify-content:center;font-size:12px;border-top:1px solid #0F4F2A;padding-top:4px}footer .num{position:absolute;right:0}'
+    + '.couv{background:#0B1E3F;color:#fff;text-align:center;padding-top:1.4in}.couv h1{font-size:46px;margin:0 0 18px}.couv .emet{font-size:26px}.couv .lib{font-size:22px;font-weight:700;color:#E6BA6E}.couv .date{font-size:18px;margin-top:1.2in}'
+    + '.inter{background:#CDCDCD}.inter h2{text-align:center;font-size:40px;margin-top:2.3in}.inter .note{text-align:center;font-style:italic;max-width:10in;margin:16px auto;font-size:14px}'
+    + '.cadres{display:grid;grid-template-columns:1fr 1fr;gap:18px}.cadre{border:1px solid #1F2937;padding:8px 14px;height:5.1in;overflow:hidden}.cadre h4{color:#0F4F2A;text-align:center;margin:4px 0 8px}.cadre ul{list-style:none;padding:0;margin:0;font-size:12px}.cadre li.t{color:#0F4F2A;font-weight:700;margin-top:6px}.cadre li.p::before{content:"❑ "}'
+    + '.fiche{font-size:14px;line-height:1.35;overflow:hidden}.fiche h3{color:#0F4F2A;margin:0 0 6px;font-size:17px}.fiche h2.fait{color:#0F4F2A;font-size:22px;margin:0 0 8px}.fiche p{margin:0 0 6px}.leg{color:#6B7280}.src{font-size:12.5px}'
+    + 'figure{float:right;width:3.6in;margin:0 0 8px 16px}figure img{width:100%;max-height:3.4in;object-fit:contain}figcaption{text-align:right;font-size:10px;color:#6B7280}hr{border:0;border-top:1px solid #D1D5DB;margin:10px 0;clear:both}a{color:#0F4F2A}'
+    + '@media print{body{background:#fff}.barre{display:none}.page{margin:0}}'
+    + '</style></head><body><div class="barre"><span>Présentation 1 — ' + e(P.libelle || '') + '</span><button onclick="window.print()">Imprimer / Enregistrer en PDF</button></div>' + pages.join('') + '</body></html>';
 }
 // Bulletins quotidiens des 54 pays (web/bulletins/index.json, écrit par le
 // job). Jusqu'au 13/11/2026 seule la Côte d'Ivoire avait le sien ; YORO a
@@ -26909,6 +27389,7 @@ function chargerBulletinsPays(){
 function updateDLCounts(){
   chargerRapportsAuto();
   chargerBulletinsPays();
+  if (typeof initComposerP1 === 'function') initComposerP1();
   const n=getExportData().length;
   const el=document.getElementById('dlFluxCount');
   if(el){

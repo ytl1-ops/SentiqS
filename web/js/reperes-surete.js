@@ -18,6 +18,13 @@ function sansAccents(s) {
 // titre ou le chapô donne le repère. Mots en français ET en anglais, comme
 // les lexiques de la page (62 titres sur 262 étaient en anglais).
 const ENJEUX = [
+  // EN TÊTE depuis le 27/11/2026 : « Piqûre de scorpion : voici les gestes à
+  // adopter après une attaque » recevait le repère « menace armée sur les
+  // axes » par le mot « attaque ». Une morsure ou une piqûre est un risque
+  // sanitaire de terrain. Si le titre nomme aussi un agresseur humain
+  // (hommes armés, assaillants…), cette famille est sautée (AGRESSEUR_RE).
+  { cle: 'animal', re: /\b(scorpion|serpent|vipere|morsure|piqure|abeilles?|essaim|guepes?|chiens? errants?|rage\b|crocodile|hippopotame|hyenes?|snake|snakebite|bees?\b|swarm|dog bite|rabies|hippos?\b)/,
+    texte: 'Risque animal ou sanitaire de terrain : rappeler aux personnels les gestes de premiers secours, l\'emplacement des centres de soins disposant de sérums ou de vaccins, et les précautions sur les sites isolés.' },
   { cle: 'coup', re: /\b(coup d.?etat|putsch|junte|mutinerie|mutin|coup attempt|military takeover|junta)\b/,
     texte: 'Instabilité institutionnelle : couvre-feu, fermeture des frontières ou coupure des communications possibles. Vérifier les plans d\'évacuation et de continuité d\'activité, et les moyens de joindre les personnels.' },
   { cle: 'enlevement', re: /\b(enlev|kidnapp|otage|hostage|rapt|abduct)/,
@@ -76,6 +83,7 @@ function sansFigure(t) {
 const EVENEMENT_RE = /\b(tue[es]?\b|tuee?s\b|morts?\b|attaqu|embuscade|frappe|explos|blesse|assassin|incendie|accident|fusillade|affrontement|combats?\b|greve|manifest|emeute|killed|dead|attack|ambush|injur|clash|protest)/;
 const CONTEXTE_RE = /\b(lutte contre|face au|face a la|poursuites|parquet|proces\b|juges?\b|jugement|condamn|tribunal|assises|reclusion|plans?\b|strategie|cooperation|partenariat|formation|formes?\b|atelier|seminaire|conference|sommet|forum|debat|sensibilis|recoit|audience|visite|dessous|tribune|interview|entretien|plaidoyer|condoleances|remaniement|nomination|nomme|surveillance)/;
 const CONTEXTE = { cle: 'contexte', texte: 'Fait de contexte (procédure, décision, déclaration ou coopération) : il éclaire la situation du pays sans être un incident sur le terrain. À intégrer à l\'analyse pays plutôt qu\'aux consignes opérationnelles.' };
+const AGRESSEUR_RE = /\b(hommes armes|assaillant|gunmen|jihad|djihad|terror|bandits? arm|militaire|soldat|police|rebelle|insurg|kidnapp|enlev)/;
 function enjeuxSurete(f) {
   // Le titre décide, le chapô ne sert qu'à défaut (même règle que classify) :
   // « Le Burkina Faso rétablit la peine de mort », dont le chapô cite les
@@ -83,7 +91,9 @@ function enjeuxSurete(f) {
   const titre = sansFigure(sansAccents([f.titreFr, f.titre].filter(Boolean).join(' ')));
   const chapo = sansFigure(sansAccents([f.resumeFr, f.resume].filter(Boolean).join(' ')));
   if (CONTEXTE_RE.test(titre) && !EVENEMENT_RE.test(titre)) return { cle: CONTEXTE.cle, texte: CONTEXTE.texte };
-  const famille = ENJEUX.find((e) => e.re.test(titre)) || ENJEUX.find((e) => e.re.test(chapo));
+  const humain = AGRESSEUR_RE.test(titre);
+  const candidates = humain ? ENJEUX.filter((e) => e.cle !== 'animal') : ENJEUX;
+  const famille = candidates.find((e) => e.re.test(titre)) || candidates.find((e) => e.re.test(chapo));
   if (famille) return { cle: famille.cle, texte: famille.texte };
   return { cle: 'categorie', texte: ENJEU_PAR_CATEGORIE[f.cat] || ENJEU_PAR_CATEGORIE.economique };
 }
@@ -101,6 +111,7 @@ function enjeuxSurete(f) {
 //   lecture — ce qu'un analyste chercherait dans les jours suivants.
 // Ni gravité, ni niveau d'alerte, ni score : le modèle du rapport n'en a pas.
 const SURVEILLER = {
+  animal: 'répétition des cas dans la même localité, disponibilité des sérums ou vaccins dans les centres de soins proches.',
   coup: 'position des forces armées, annonces de la junte ou du gouvernement, couvre-feu, état des frontières, de l\'aéroport et des télécommunications.',
   enlevement: 'revendication, demandes de rançon, nouveaux rapts sur les mêmes axes, consignes des ambassades.',
   attaque: 'bilan définitif, revendication, riposte des forces de défense, extension aux localités et axes voisins.',
@@ -122,6 +133,7 @@ const SURVEILLER = {
 // français, ne les lit pas. Une clé ajoutée à ENJEUX ou SURVEILLER sans sa
 // traduction ici fait échouer scripts/test/fiche-synthese.test.js.
 const IMPLICATIONS_EN = {
+  animal: 'Animal or field health risk: remind staff of first-aid steps, where to find care centres with antivenom or vaccines, and precautions on isolated sites.',
   coup: 'Institutional instability: curfew, border closures or communication cuts are possible. Check evacuation and business continuity plans, and the means of reaching staff.',
   enlevement: 'Kidnapping risk: keep movements discreet, track staff on assignment and visitors, check crisis procedures and emergency contacts.',
   attaque: 'Armed threat on the roads and localities of the area: reassess overland movements (timing, convoys, fallback routes) and the instructions for nearby sites and staff.',
@@ -143,6 +155,7 @@ const IMPLICATIONS_CATEGORIE_EN = {
   economique: 'Possible impact on the business environment, supplies and the security of operations.',
 };
 const SURVEILLER_EN = {
+  animal: 'repeated cases in the same locality, availability of antivenom or vaccines in nearby care centres.',
   coup: 'position of the armed forces, announcements by the junta or government, curfew, status of borders, the airport and telecommunications.',
   enlevement: 'claim of responsibility, ransom demands, new abductions on the same roads, embassy advice.',
   attaque: 'final toll, claim of responsibility, response by the defence forces, spread to neighbouring localities and roads.',

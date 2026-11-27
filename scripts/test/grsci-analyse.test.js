@@ -38,12 +38,12 @@ test('chaque fiche et chaque fait rédigé du PowerPoint porte son analyse', () 
   const ml = { cy: 'ML', nom: 'Mali', faits: fg.faitsDuMois(cumul, 'ML', 'Mali') };
   const p = g.construire(FauxPptx, { jour: '2026-11-24', ci, regionaux: [ml], emetteur: EM });
   const textes = p.slides.flatMap((s) => s.textes).join('\n');
-  // Une analyse par actu : fiches (« Analyse : ») et rédigés (« Analyse sûreté »).
-  const nbFiches = (textes.match(/Analyse : /g) || []).length;
-  const nbRediges = (textes.match(/Analyse sûreté/g) || []).length;
-  assert.strictEqual(nbFiches + nbRediges, ci.faits.length + ml.faits.length);
-  assert.ok(nbFiches > 0 && nbRediges > 0);
-  assert.ok(textes.includes('À surveiller : '));
+  // Une analyse par actu, fiches et rédigés, chacune finissant par ses points
+  // à surveiller — et, depuis le 25/11/2026, sans le mot « Analyse » ni
+  // intertitre (YORO : « fait l'analyse en dessous de l'actu sans indiquer
+  // analyse »). Vu échouer sur la version du 24/11.
+  assert.strictEqual((textes.match(/À surveiller : /g) || []).length, ci.faits.length + ml.faits.length);
+  assert.doesNotMatch(textes, /Analyse :|Analyse sûreté|Implications :/);
 });
 
 test('la lecture situe le fait parmi ceux de même nature, comptés par jour', () => {

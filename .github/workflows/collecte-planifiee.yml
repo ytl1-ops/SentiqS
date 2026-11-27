@@ -27,9 +27,13 @@ on:
   workflow_dispatch:
     inputs:
       rapport_mensuel:
-        description: "Réécrire tout de suite la Présentation 1 (rapport mensuel de sûreté) du mois (sinon : premier passage de chaque jour)"
+        description: "Écrire la Présentation 1 (rapport mensuel de sûreté) du mois. Elle ne s'écrit plus d'elle-même depuis le 27/11/2026 : à la demande seulement (ou composée dans le module Rapports)."
         type: boolean
         default: false
+      mois_rapport:
+        description: "Mois du rapport (AAAA-MM). Vide : le mois en cours."
+        type: string
+        default: ''
       identite_envoi:
         description: "Identité d'envoi du rapport (nom de l'organisation). Vide : SentiqS par défaut. Retenue pour le mois."
         type: string
@@ -170,6 +174,7 @@ jobs:
           RAPPORT_IDENTITE: ${{ inputs.identite_envoi }}
           RAPPORT_SIGNATURE: ${{ inputs.signature_envoi }}
           RAPPORT_LOGO: ${{ inputs.logo_envoi }}
+          RAPPORT_MOIS: ${{ inputs.mois_rapport }}
           # Cible : le miroir Firebase Hosting (sentiqs-235ce), publié par le
           # job « firebase » de gh-pages-deploy.yml à chaque push et à chaque
           # archive. Le 24/11/2026 vers 19 h 30 UTC le dépôt est passé en
@@ -227,8 +232,8 @@ jobs:
       - name: PDF du rapport mensuel de sûreté
         # Le PDF est le PowerPoint du mois converti par LibreOffice : mêmes
         # pages, mêmes couleurs. Seulement quand le PDF manque ou que le PowerPoint
-        # vient d'être réécrit (premier passage de chaque jour : le rapport du
-        # mois est tenu à jour sur sa période), pour ne pas installer
+        # vient d'être réécrit (à la demande seulement depuis le 27/11/2026 : un
+        # passage ordinaire n'écrit plus de PowerPoint), pour ne pas installer
         # LibreOffice à chaque passage. Un échec ne fait pas échouer la
         # collecte : le PowerPoint et le Word sont déjà écrits.
         # !cancelled() et non success() : le 28/10/2026 la publication du cache

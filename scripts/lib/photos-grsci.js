@@ -174,4 +174,35 @@ async function illustrer(faits, fetchFn, limiteMs, reduire) {
   return n;
 }
 
-module.exports = { ressembleLogo, dimensionsImage, imageDeclaree, chargerPhoto, illustrer, alleger, PHOTO_MAX_OCTETS, PHOTO_LARGEUR_MAX };
+// Le début d'un article (Présentation 1, 25/11/2026 : « donner plus de texte
+// dans l'actu »). La page est lue une fois, comme pour sa photo ; on en garde
+// au plus TEXTE_MAX_CAR caractères (texte-article.js), et son og:image, posée
+// sur le fait pour qu'illustrer() n'ait pas à relire la même page. `connu(url)`
+// rend le texte déjà gardé dans le cumul : la page n'est pas relue. Retourne
+// le nombre de pages lues.
+async function lireDebuts(faits, opts) {
+  const o = opts || {};
+  const texteArticle = require('./texte-article');
+  const reste = () => !o.limiteMs || Date.now() < o.limiteMs;
+  let lues = 0;
+  for (const f of faits || []) {
+    if (!reste()) break;
+    const extraits = (f.extraits || []).slice(0, o.parFait || 2);
+    for (const e of extraits) {
+      if (!e || !e.url || e.long || !reste()) continue;
+      const deja = o.connu ? o.connu(e.url) : null;
+      if (deja) { e.long = deja.texte; e.longFr = !!deja.fr; continue; }
+      if (!/^https?:\/\//.test(e.url)) continue;
+      const html = await telecharger(e.url, PAGE_MAX_OCTETS, o.fetchFn);
+      lues++;
+      if (!html) continue;
+      const s = html.toString('utf8');
+      const t = texteArticle.extraitArticle(s, f.titre);
+      if (!f.img) { const img = imageDeclaree(s, e.url); if (img) f.img = img; }
+      if (t) { e.long = t; if (o.garder) o.garder(e.url, t, f.img); }
+    }
+  }
+  return lues;
+}
+
+module.exports = { ressembleLogo, dimensionsImage, imageDeclaree, chargerPhoto, illustrer, alleger, lireDebuts, telecharger, PHOTO_MAX_OCTETS, PHOTO_LARGEUR_MAX };
