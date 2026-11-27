@@ -26,7 +26,8 @@ test('un titre tout en capitales est ramené en casse de phrase, noms propres et
 test('le sommaire est en casse de phrase, coupé au mot, et borné en lignes', () => {
   assert.match(src, /const LIGNES_SOMMAIRE = \d+/);
   assert.match(src, /const t = marque \+ redaction\.phraseDe\(f\);\n\s+return t\.length > 72/);
-  assert.match(srcWord, /const t = marque \+ redaction\.phraseDe\(f\);\n\s+return t\.length > 72/);
+  // Le Word lit les mêmes cadres que le PowerPoint depuis le 25/11/2026.
+  assert.match(srcWord, /g\.cadresSommaire\(P\)/);
   assert.doesNotMatch(srcWord, /court\(g\.titreDeFait\(f\)\)/);
 });
 

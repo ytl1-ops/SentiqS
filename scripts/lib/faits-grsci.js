@@ -67,7 +67,14 @@ function cumuler(racine, mois, parPays) {
         cotation: f.cotation || null,
         resume: f.resume ? nettoyerTitre(f.resume) : null, ville: f.ville || null,
         img: f.img || null, video: f.video || null,
+        // Traductions déjà faites par le job de traduction du cache (a.tr,
+        // 19/11/2026) : versées avec le fait, elles rendent lisibles en
+        // français les faits des 54 pays sans nouvel appel (25/11/2026).
+        titreFr: f.titreFr ? nettoyerTitre(f.titreFr) : null,
+        resumeFr: f.resumeFr ? nettoyerTitre(f.resumeFr) : null,
       };
+      if (!propre.titreFr) delete propre.titreFr;
+      if (!propre.resumeFr) delete propre.resumeFr;
       const k = cleFait(propre);
       if (index.has(k)) {
         const ancien = liste[index.get(k)];
@@ -77,7 +84,7 @@ function cumuler(racine, mois, parPays) {
         ancien.cotation = meilleureCotation(ancien.cotation, propre.cotation);
         // Un chapô, une ville ou une image arrivés plus tard (aperçu de la
         // source chargé après coup) complètent l'entrée ; jamais ne l'effacent.
-        for (const k of ['resume', 'ville', 'img', 'video', 'langue']) if (!ancien[k] && propre[k]) ancien[k] = propre[k];
+        for (const k of ['resume', 'ville', 'img', 'video', 'langue', 'titreFr', 'resumeFr']) if (!ancien[k] && propre[k]) ancien[k] = propre[k];
       } else {
         index.set(k, liste.length);
         liste.push(propre);
@@ -193,6 +200,14 @@ function trier(faits) {
   return faits.slice().sort((x, y) => ((RANG[x.niveau] ?? 3) - (RANG[y.niveau] ?? 3)) || ((y.publieMs || 0) - (x.publieMs || 0)));
 }
 
+// Ce qu'un média dit d'un fait : son chapô (flux RSS) et, depuis le
+// 25/11/2026, le début de son article quand le job a pu le lire (`texte`,
+// texte-article.js), chacun avec sa traduction française quand elle existe.
+function extraitDe(f) {
+  return { source: f.source || null, resume: f.resumeFr || f.resume || null, url: f.url || null, langue: f.langue || null, fr: !!f.resumeFr,
+    long: f.texteFr || f.texte || null, longFr: !!f.texteFr };
+}
+
 /**
  * Regroupe les faits d'un même pays qui décrivent le même événement. Le
  * premier (le plus grave, puis le plus récent) porte le titre et le lien ;
@@ -213,7 +228,7 @@ function regrouper(faits, nomPays) {
         g.fait.sources.push(f.source);
         // Ce que chaque autre média en dit : la matière du texte rédigé
         // d'un fait marquant (redaction-grsci.js).
-        if (f.resume) g.fait.extraits.push({ source: f.source, resume: f.resumeFr || f.resume, url: f.url || null, langue: f.langue || null, fr: !!f.resumeFr });
+        if (f.resume || f.texte || f.url) g.fait.extraits.push(extraitDe(f));
         if (f.url) g.fait.liens.push({ source: f.source, url: f.url });
       }
       for (const k of ['ville', 'img', 'video']) if (!g.fait[k] && f[k]) g.fait[k] = f[k];
@@ -225,7 +240,7 @@ function regrouper(faits, nomPays) {
     } else {
       groupes.push({ membres: [r], fait: Object.assign({}, f, {
         titre: nettoyerTitre(f.titre), sources: f.source ? [f.source] : [],
-        extraits: f.resume ? [{ source: f.source || null, resume: f.resumeFr || f.resume, url: f.url || null, langue: f.langue || null, fr: !!f.resumeFr }] : [],
+        extraits: (f.resume || f.texte || f.url) ? [extraitDe(f)] : [],
         liens: f.url ? [{ source: f.source || null, url: f.url }] : [],
       }) });
     }

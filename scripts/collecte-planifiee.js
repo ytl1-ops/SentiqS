@@ -647,8 +647,18 @@ function ecrireResumeActions(md) {
           const dansBudget = () => Date.now() < limiteGrsci;
           const TRAD_DELAI_MS = 15000;
           let horsBudget = 0;
+          // Le relevé couvre les 54 pays depuis le 25/11/2026 : une
+          // Présentation 1 filtrée (un pays, une région d'Afrique) se compose
+          // dans le module Rapports à partir de ce cumul. Traductions et
+          // rapport mensuel restent sur leur périmètre (paysGrsci) : le budget
+          // du passage ne s'étend pas.
+          let paysReleve = paysGrsci;
+          try {
+            const tous = await page.evaluate(() => (typeof PAYS_INFO === 'object') ? Object.keys(PAYS_INFO).filter((c) => /^[A-Z]{2}$/.test(c) && c !== 'INT') : []);
+            if (Array.isArray(tous) && tous.length >= paysGrsci.length) paysReleve = paysGrsci.concat(tous.filter((c) => !paysGrsci.includes(c)));
+          } catch (e) { /* relevé restreint au périmètre du rapport */ }
           const releve = {};
-          for (const cy of paysGrsci) {
+          for (const cy of paysReleve) {
             releve[cy] = await page.evaluate(([c, d]) => (typeof faitsMoisPays === 'function') ? faitsMoisPays(c, d) : [], [cy, debutReleve]);
           }
           if (Number(jour.slice(8, 10)) <= 2) faitsGrsci.cumuler(RACINE_GRSCI, depuis, releve);
@@ -770,6 +780,34 @@ function ecrireResumeActions(md) {
                   } catch (err) { /* chapô gardé dans sa langue : le passage suivant réessaiera */ }
                 }
               }
+              // Plus de texte dans l'actu (25/11/2026) : le début de l'article,
+              // lu sur sa page (au plus 650 caractères, courte citation
+              // attribuée, voir texte-article.js). Gardé dans le cumul par
+              // adresse : une page n'est lue qu'une fois dans le mois. Son
+              // og:image est posée sur le fait au passage, illustrer() ne relit
+              // donc pas la même page. Un texte dans une autre langue est
+              // traduit ; non traduit, il n'est pas cité (rediger()).
+              const lues = await photosGrsci.lireDebuts(illustres, {
+                limiteMs: limiteGrsci,
+                connu: (u) => { const x = parUrl.get(u); return x && x.texte ? { texte: x.texteFr || x.texte, fr: !!x.texteFr } : null; },
+                garder: (u, t) => { const x = parUrl.get(u); if (x) x.texte = t; },
+              });
+              let textesTraduits = 0;
+              for (const f of illustres) {
+                for (const e of (f.extraits || []).slice(0, 2)) {
+                  if (!e.long || e.longFr || !['en', 'pt', 'ar'].includes(e.langue)) continue;
+                  const entree = parUrl.get(e.url);
+                  if (!dansBudget()) break;
+                  try {
+                    const fr = await avecDelai(traduireJob(e.long, e.langue), TRAD_DELAI_MS);
+                    if (typeof fr === 'string' && fr.trim() && fr.trim() !== e.long.trim()) {
+                      e.long = faitsGrsci.nettoyerTitre(fr); e.longFr = true; textesTraduits++;
+                      if (entree) entree.texteFr = e.long;
+                    }
+                  } catch (err) { /* cité au passage suivant, une fois traduit */ }
+                }
+              }
+              console.log('  Présentation 1 : ' + lues + ' pages d\'article lues pour leur début, ' + textesTraduits + ' textes traduits.');
               // Photos ramenées à 1 000 px en JPEG par le navigateur déjà ouvert
               // (audit du 15/11/2026 : 45 Mo pour le rapport de novembre).
               const reduirePhoto = async (buf, largeur) => {

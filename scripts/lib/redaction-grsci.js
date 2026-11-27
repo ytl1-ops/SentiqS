@@ -161,7 +161,12 @@ function phraseDe(f) {
 }
 
 const EXTRAITS_MAX = 2;
-const EXTRAIT_MAX_CAR = 420;
+// 420 caractères jusqu'au 25/11/2026. YORO : « donner plus de texte dans
+// l'actu ». Le texte cité vient du début de l'article quand le job a pu le
+// lire (`long`, texte-article.js), sinon du chapô du flux. Il reste une COURTE
+// citation : entre guillemets, attribuée au média, avec le lien vers
+// l'article et « © site » sur la photo — jamais l'article entier.
+const EXTRAIT_MAX_CAR = 650;
 function couper(t, max) {
   const s = nettoyerTitre(t);
   return s.length > max ? s.slice(0, max).replace(/\s+\S*$/, '') + ' …' : s;
@@ -187,16 +192,22 @@ function rediger(f, nomPays) {
   const vus = new Set();
   const extraits = [];
   const candidats = (f.extraits && f.extraits.length ? f.extraits
-    : (f.resume ? [{ source: f.source, resume: f.resumeFr || f.resume, url: f.url, langue: f.langue || null, fr: !!f.resumeFr }] : []));
+    : ((f.resume || f.texte) ? [{ source: f.source, resume: f.resumeFr || f.resume, url: f.url, langue: f.langue || null, fr: !!f.resumeFr,
+      long: f.texteFr || f.texte || null, longFr: !!f.texteFr }] : []));
   for (const e of candidats) {
-    if (!e || !e.resume || extraits.length >= EXTRAITS_MAX) continue;
-    // Une seule langue par document (YORO, 19/11/2026) : un chapô en langue
+    if (!e || !(e.resume || e.long) || extraits.length >= EXTRAITS_MAX) continue;
+    // Une seule langue par document (YORO, 19/11/2026) : un texte en langue
     // étrangère que le job n'a pas pu traduire n'est pas cité.
-    if (LANGUES_ETRANGERES.has(e.langue) && !e.fr) continue;
-    const k = sansAccents(e.resume).slice(0, 80);
+    const etranger = LANGUES_ETRANGERES.has(e.langue);
+    const chapo = e.resume && (!etranger || e.fr) ? e.resume : null;
+    const long = e.long && (!etranger || e.longFr) ? e.long : null;
+    // Le début de l'article, quand il dit plus que le chapô (25/11/2026).
+    const brut = long && long.length > (chapo || '').length + 40 ? long : chapo;
+    if (!brut) continue;
+    const k = sansAccents(brut).slice(0, 80);
     if (vus.has(k)) continue;
     vus.add(k);
-    extraits.push({ source: e.source || 'la source', texte: couper(e.resume, EXTRAIT_MAX_CAR) });
+    extraits.push({ source: e.source || 'la source', texte: couper(brut, EXTRAIT_MAX_CAR) });
   }
   const liens = (f.liens && f.liens.length ? f.liens : (f.url ? [{ source: f.source, url: f.url }] : []))
     .filter((l) => l && typeof l.url === 'string' && /^https?:\/\//.test(l.url));
@@ -212,8 +223,11 @@ function rediger(f, nomPays) {
   };
 }
 
-const NOTE_REDACTION = 'Faits marquants : textes établis à partir des médias cités, dont les chapôs sont reproduits entre guillemets. '
-  + 'Chaque actu est suivie d\'une analyse : la lecture situe le fait parmi ceux de même nature relevés dans le pays sur la période ; '
+// Le texte qui suit chaque citation n'est plus annoncé par « Analyse » (YORO,
+// 25/11/2026 : « fait l'analyse en dessous de l'actu sans indiquer
+// analyse ») ; ce qu'il est, et d'où il vient, reste dit ici une fois.
+const NOTE_REDACTION = 'Faits marquants : textes établis à partir des médias cités, dont les extraits sont reproduits entre guillemets, en courte citation, avec le lien vers l\'article. '
+  + 'Le paragraphe qui suit chaque citation situe le fait parmi ceux de même nature relevés dans le pays sur la période ; '
   + 'implications et points à surveiller sont des repères par type d\'événement, à valider et compléter par l\'analyste.';
 
 module.exports = { LANGUES_ETRANGERES, phraseDe, choisirMarquants, rediger, enjeuxSurete, analyserFait, SURVEILLER, MARQUANTS_CI, MARQUANTS_PAYS, NOTE_REDACTION, dateRedigee };
