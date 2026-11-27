@@ -35,3 +35,4 @@ outils/pc/compte-service*.json
 sauvegardes/
 *.json.enc
 SentiqS-hors-ligne-*.html
+web/version.json

@@ -31,6 +31,10 @@ jobs:
       # commite sans le régénérer) : voir scripts/generer-seo.js.
       - name: Sitemap à jour
         run: node scripts/generer-seo.js
+      # Signature du code servi (27/11/2026) : la page ouverte la compare à la
+      # sienne et propose de recharger (scripts/ecrire-version.js).
+      - name: Version de la page
+        run: node scripts/ecrire-version.js
       - uses: actions/upload-pages-artifact@v3
         with:
           path: web
@@ -91,6 +95,9 @@ jobs:
         # en 403 sur Service Usage avant même de toucher aux règles.
         if: steps.secret.outputs.present == 'true'
         run: node scripts/publier-regles-firestore.js
+      - name: Version de la page
+        if: steps.secret.outputs.present == 'true'
+        run: node scripts/ecrire-version.js
       - name: Déployer Hosting et règles Firestore
         if: steps.secret.outputs.present == 'true'
         run: |

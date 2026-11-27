@@ -14,7 +14,7 @@
 //   d'ouverture du rapport le dit, et l'analyste la reprend dans le Word.
 //
 // Pur : ni réseau ni page. Testé par scripts/test/grsci-marquants.test.js.
-const { nettoyerTitre } = require('./faits-grsci');
+const { nettoyerTitre, langueTexte } = require('./faits-grsci');
 
 // Langues d'origine qu'un rapport en français ne cite jamais telles quelles.
 const LANGUES_ETRANGERES = new Set(['en', 'pt', 'ar']);
@@ -167,8 +167,22 @@ const EXTRAITS_MAX = 2;
 // citation : entre guillemets, attribuée au média, avec le lien vers
 // l'article et « © site » sur la photo — jamais l'article entier.
 const EXTRAIT_MAX_CAR = 650;
+// Ce que les flux ajoutent au texte de l'article et qui n'en est pas : la
+// mention WordPress « The post … appeared first on … » (vue le 27/11/2026 dans
+// les extraits de Présentation 1, en anglais au milieu d'un document en
+// français), la ligne d'en-tête « Source: … Please refer to the attached
+// file. » de ReliefWeb, et le « […] » de coupe du flux.
+function sansMentionsDeFlux(t) {
+  return String(t || '')
+    // Mention coupée par le flux avant « appeared first » : après « […] ».
+    .replace(/\s*\[(…|\.\.\.)\]\s*The post\b[\s\S]*$/i, ' …')
+    .replace(/\s*The post\b[\s\S]*?\bappeared first on\b[^.]*\.?/gi, ' ')
+    .replace(/^\s*Source\s*:[^.]*?(Please refer to the attached file\.?|\.)\s*/i, '')
+    .replace(/\s*Please refer to the attached file\.?\s*/gi, ' ')
+    .replace(/\s*\[(…|\.\.\.)\]\s*$/, ' …');
+}
 function couper(t, max) {
-  const s = nettoyerTitre(t);
+  const s = nettoyerTitre(sansMentionsDeFlux(t));
   return s.length > max ? s.slice(0, max).replace(/\s+\S*$/, '') + ' …' : s;
 }
 
@@ -198,9 +212,11 @@ function rediger(f, nomPays) {
     if (!e || !(e.resume || e.long) || extraits.length >= EXTRAITS_MAX) continue;
     // Une seule langue par document (YORO, 19/11/2026) : un texte en langue
     // étrangère que le job n'a pas pu traduire n'est pas cité.
-    const etranger = LANGUES_ETRANGERES.has(e.langue);
-    const chapo = e.resume && (!etranger || e.fr) ? e.resume : null;
-    const long = e.long && (!etranger || e.longFr) ? e.long : null;
+    // La langue se lit aussi dans le texte (27/11/2026, voir langueTexte) :
+    // un extrait anglais noté « other » se citait tel quel.
+    const etranger = (x) => { const l = langueTexte(x, e.langue); return LANGUES_ETRANGERES.has(l) || l === 'es'; };
+    const chapo = e.resume && (e.fr || !etranger(e.resume)) ? e.resume : null;
+    const long = e.long && (e.longFr || !etranger(e.long)) ? e.long : null;
     // Le début de l'article, quand il dit plus que le chapô (25/11/2026).
     const brut = long && long.length > (chapo || '').length + 40 ? long : chapo;
     if (!brut) continue;
@@ -230,4 +246,5 @@ const NOTE_REDACTION = 'Faits marquants : textes établis à partir des médias 
   + 'Le paragraphe qui suit chaque citation situe le fait parmi ceux de même nature relevés dans le pays sur la période ; '
   + 'implications et points à surveiller sont des repères par type d\'événement, à valider et compléter par l\'analyste.';
 
-module.exports = { LANGUES_ETRANGERES, phraseDe, choisirMarquants, rediger, enjeuxSurete, analyserFait, SURVEILLER, MARQUANTS_CI, MARQUANTS_PAYS, NOTE_REDACTION, dateRedigee };
+module.exports = {
+  sansMentionsDeFlux, LANGUES_ETRANGERES, phraseDe, choisirMarquants, rediger, enjeuxSurete, analyserFait, SURVEILLER, MARQUANTS_CI, MARQUANTS_PAYS, NOTE_REDACTION, dateRedigee };

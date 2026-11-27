@@ -3470,6 +3470,17 @@ html.mvt-images .vact img.img-pret{opacity:1}
 .p1-etat{font-size:11px;color:var(--lg);margin:10px 0 8px}
 .p1-actions{display:flex;flex-wrap:wrap;gap:8px}
 .p1-actions .btn-dl{min-height:28px;padding:5px 12px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:5px}
+/* ── NOUVELLE VERSION ET HEURE DES DONNÉES (27/11/2026) ── */
+.bandeau-version{position:fixed;left:0;right:0;margin-inline:auto;width:max-content;bottom:56px;z-index:9000;display:flex;align-items:center;gap:10px;max-width:calc(100vw - 32px);padding:10px 12px 10px 14px;background:var(--w);color:var(--t);border:1px solid var(--sig);border-radius:var(--r-md,6px);box-shadow:0 6px 24px rgba(0,0,0,.35);font-size:13px}
+.bandeau-version i{color:var(--sig);font-size:18px}
+.bandeau-version .bv-ok{min-height:32px;padding:0 14px;border:0;border-radius:6px;background:var(--b);color:var(--on-b,#fff);font-weight:700;cursor:pointer}
+.bandeau-version .bv-x{min-width:32px;min-height:32px;border:0;background:transparent;color:var(--t2);font-size:20px;cursor:pointer}
+.maj-donnees{margin-left:6px;font-size:var(--fs-micro,10px);opacity:.85;white-space:nowrap}
+.maj-donnees.vieux,.maj-donnees-pied.vieux{opacity:1;font-weight:700;text-decoration:underline dotted}
+.maj-donnees-pied{font-weight:700}
+.maj-donnees-pied::after{content:" ·"}
+@media (max-width:480px){.maj-donnees{display:none}}
+@media print{.bandeau-version{display:none}}
 /* ═══ MOBILE : LE CONTENU D'ABORD — 22/10/2026 (voir CLAUDE.md) ═══
    Capture de YORO sur téléphone (texte agrandi par le navigateur) : barre du
    haut, bandeau « Cliquez sur Actualiser », collecte, flash info, filtre pays,
@@ -3903,6 +3914,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
     <div class="live">
       <div class="ldot" id="liveDot"></div>
       <span class="ltxt" id="liveTxt" data-i18n="live_pret">Collecte...</span>
+      <span class="maj-donnees" id="majDonnees" hidden></span>
     </div>
     <div id="globalCyBadge" onclick="clearGlobalCountryFilter()" title="Filtre pays actif sur toute la plateforme — cliquer pour reinitialiser" style="display:none;align-items:center;gap:5px;padding:5px 10px;background:rgba(138,93,26,.25);border:1px solid rgba(138,93,26,.5);border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;"></div>
     <div class="cy-slot-tb" id="cySlotTb"></div>
@@ -5561,7 +5573,7 @@ html.force-mobile .stbar{position:static;flex-direction:column;align-items:flex-
 
 <div class="stbar">
   <span id="stbarLeft">Initialisation de la veille en direct...</span>
-  <span>SentiqS · RSS live · Sans API · <a id="stbarContact" href="#contact" onclick="ouvrirContact();return false">Contact</a></span>
+  <span><span class="maj-donnees-pied" id="majDonneesPied" hidden></span> SentiqS · RSS live · Sans API · <a id="stbarContact" href="#contact" onclick="ouvrirContact();return false">Contact</a></span>
 </div>
 
 <script>
@@ -6590,7 +6602,7 @@ const I18N = {
     empty_filtres:"Essayez d'élargir les filtres actifs.",
     empty_actualiser:'Cliquez sur Actualiser pour lancer la collecte des flux.',
     logo_sub:"Veille multi-sources · Médias + Réseaux sociaux · 54 pays d'Afrique",
-    live_pret:'Collecte...', btn_actualiser:'Actualiser', btn_diagnostic:'Diagnostic', btn_aller_a:'Aller à…', btn_assistant:'Louis', btn_assistant_q:'Demander à Louis', louis_bulle:'Louis', btn_installer_app:'Installer l\'application', btn_hors_ligne:'Version hors ligne', hl_pas_de_collecte:'Version hors ligne : aucune collecte. Ouvrez l\'appli en ligne pour la veille en direct.', hl_reserve:'La version hors ligne est réservée aux forfaits payants.', hl_generation:'Préparation de la version hors ligne…', hl_pret:'Version hors ligne téléchargée. Ne la publiez pas : elle contient vos actus.', hl_echec:'Version hors ligne impossible pour le moment (réseau). Réessayez.', hl_depuis_fichier:'Ce fichier est déjà une version hors ligne.', btn_aller_pays:'Aller à un pays', btn_theme_sombre:'Sombre',
+    live_pret:'Collecte...', version_nouvelle:'Une nouvelle version de SentiqS est en ligne', version_recharger:'Recharger', version_plus_tard:'Plus tard', donnees_maj:'Actus de {q}', donnees_maj_titre:'Actus mises à jour à {q} (il y a {a})', btn_actualiser:'Actualiser', btn_diagnostic:'Diagnostic', btn_aller_a:'Aller à…', btn_assistant:'Louis', btn_assistant_q:'Demander à Louis', louis_bulle:'Louis', btn_installer_app:'Installer l\'application', btn_hors_ligne:'Version hors ligne', hl_pas_de_collecte:'Version hors ligne : aucune collecte. Ouvrez l\'appli en ligne pour la veille en direct.', hl_reserve:'La version hors ligne est réservée aux forfaits payants.', hl_generation:'Préparation de la version hors ligne…', hl_pret:'Version hors ligne téléchargée. Ne la publiez pas : elle contient vos actus.', hl_echec:'Version hors ligne impossible pour le moment (réseau). Réessayez.', hl_depuis_fichier:'Ce fichier est déjà une version hors ligne.', btn_aller_pays:'Aller à un pays', btn_theme_sombre:'Sombre',
     menu_params:'Paramètres & Administration', menu_access:'Gestion des accès', menu_logout:'Se déconnecter',
     menu_reclam:'Nous contacter', menu_paiement:'Déclarer un paiement',
     menu_mode_emploi:"Mode d'emploi (PDF)",
@@ -6747,7 +6759,7 @@ const I18N = {
     empty_filtres:'Try widening the active filters.',
     empty_actualiser:'Click Refresh to start collecting feeds.',
     logo_sub:'Multi-source monitoring · Media + Social networks · 54 African countries',
-    live_pret:'Collecting...', btn_actualiser:'Refresh', btn_diagnostic:'Diagnostic', btn_aller_a:'Go to…', btn_assistant:'Louis', btn_assistant_q:'Ask Louis', louis_bulle:'Louis', btn_installer_app:'Install the app', btn_hors_ligne:'Offline version', hl_pas_de_collecte:'Offline version: no collection. Open the online app for live monitoring.', hl_reserve:'The offline version is reserved for paid plans.', hl_generation:'Preparing the offline version…', hl_pret:'Offline version downloaded. Do not publish it: it contains your news.', hl_echec:'Offline version unavailable right now (network). Try again.', hl_depuis_fichier:'This file is already an offline version.', btn_aller_pays:'Go to a country', btn_theme_sombre:'Dark',
+    live_pret:'Collecting...', version_nouvelle:'A new version of SentiqS is online', version_recharger:'Reload', version_plus_tard:'Later', donnees_maj:'News as of {q}', donnees_maj_titre:'News updated at {q} ({a} ago)', btn_actualiser:'Refresh', btn_diagnostic:'Diagnostic', btn_aller_a:'Go to…', btn_assistant:'Louis', btn_assistant_q:'Ask Louis', louis_bulle:'Louis', btn_installer_app:'Install the app', btn_hors_ligne:'Offline version', hl_pas_de_collecte:'Offline version: no collection. Open the online app for live monitoring.', hl_reserve:'The offline version is reserved for paid plans.', hl_generation:'Preparing the offline version…', hl_pret:'Offline version downloaded. Do not publish it: it contains your news.', hl_echec:'Offline version unavailable right now (network). Try again.', hl_depuis_fichier:'This file is already an offline version.', btn_aller_pays:'Go to a country', btn_theme_sombre:'Dark',
     menu_params:'Settings & Administration', menu_access:'Access management', menu_logout:'Log out',
     menu_reclam:'Contact us', menu_paiement:'Declare a payment',
     menu_mode_emploi:'User guide (PDF)',
@@ -12602,6 +12614,7 @@ async function doCollect() {
   // Sauvegarder
   dbPut(ALL);
   dbMeta('lastCollect',Date.now());
+  majHeureDonnees(Date.now());
   localStorage.setItem('sentinel_lastCollectTs', Date.now().toString());
   if (typeof attachConfidenceScores === 'function') attachConfidenceScores();
   if (typeof syncCYSLevels === 'function') syncCYSLevels();
@@ -18999,8 +19012,83 @@ function _demarrerAutoRefresh() {
   }, 5 * 60 * 1000);
 }
 
+// ── Nouvelle version et heure des données (27/11/2026) ────────────────────
+// YORO : « Pas à jour ». Le déploiement du jour était bien en ligne ; c'est
+// l'onglet ouvert, ou l'application installée, qui ne recharge jamais la
+// page : il garde le code de la veille tant qu'on ne le ferme pas, et rien ne
+// le disait. Le déploiement publie version.json (signature du code servi,
+// scripts/ecrire-version.js, même calcul que signatureCode()) : si elle
+// diffère de celle de la page ouverte, un bandeau propose de recharger.
+// Vérifiée une minute après l'ouverture, toutes les 30 minutes, et au retour
+// sur l'onglet (au plus une fois par 5 minutes). Sans version.json (404,
+// hors ligne, fichier local), rien n'est affiché : jamais de faux bandeau.
+const VERSION_VERIF_MS = 30 * 60 * 1000;
+let _versionVerifTs = 0;
+async function verifierNouvelleVersion(force) {
+  if (typeof estHorsLigne === 'function' && estHorsLigne()) return null;
+  if (!/^https?:$/.test(location.protocol)) return null;
+  if (!force && Date.now() - _versionVerifTs < 5 * 60 * 1000) return null;
+  _versionVerifTs = Date.now();
+  try {
+    const r = await fetch('version.json?t=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) return null;
+    const v = await r.json();
+    const ici = signatureCode();
+    if (!v || typeof v.signature !== 'string' || !ici || v.signature === ici) return false;
+    afficherBandeauVersion(v);
+    return true;
+  } catch (_) { return null; }
+}
+function afficherBandeauVersion(v) {
+  if (document.getElementById('bandeauVersion')) return;
+  const d = document.createElement('div');
+  d.id = 'bandeauVersion';
+  d.className = 'bandeau-version';
+  d.setAttribute('role', 'status');
+  let quand = '';
+  try { if (v && v.deploye) quand = ' (' + new Date(v.deploye).toLocaleString(localeRapport ? localeRapport() : 'fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + ')'; } catch (_) {}
+  d.innerHTML = '<i class="ti ti-refresh" aria-hidden="true"></i><span>' + _apEsc(t('version_nouvelle')) + _apEsc(quand) + '</span>'
+    + '<button type="button" class="bv-ok" onclick="location.reload()">' + _apEsc(t('version_recharger')) + '</button>'
+    + '<button type="button" class="bv-x" aria-label="' + _apEsc(t('version_plus_tard')) + '" title="' + _apEsc(t('version_plus_tard')) + '" onclick="this.parentNode.remove()">×</button>';
+  document.body.appendChild(d);
+}
+// L'heure des actus affichées : celle du cache partagé lu (publié par la
+// collecte, toutes les 30 min environ), ou celle de la collecte faite par ce
+// navigateur. Dans la barre du haut et en pied de page, pour qu'un écran figé
+// se voie au lieu de passer pour un écran à jour.
+let _majDonneesTs = 0;
+function majHeureDonnees(ts) {
+  const n = Number(ts) || 0;
+  if (!n || n < _majDonneesTs) return;
+  _majDonneesTs = n;
+  dessinerHeureDonnees();
+}
+function dessinerHeureDonnees() {
+  if (!_majDonneesTs) return;
+  const d = new Date(_majDonneesTs);
+  const loc = (typeof localeRapport === 'function') ? localeRapport() : 'fr-FR';
+  const auj = new Date().toDateString() === d.toDateString();
+  const heure = d.toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit' });
+  const jour = auj ? '' : d.toLocaleDateString(loc, { day: '2-digit', month: '2-digit' }) + ' ';
+  const min = Math.max(0, Math.round((Date.now() - _majDonneesTs) / 60000));
+  const age = min < 60 ? min + ' min' : Math.round(min / 60) + ' h';
+  const texte = t('donnees_maj').replace('{q}', jour + heure);
+  const titre = t('donnees_maj_titre').replace('{q}', jour + heure).replace('{a}', age);
+  ['majDonnees', 'majDonneesPied'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = texte;
+    el.title = titre;
+    el.hidden = false;
+    el.classList.toggle('vieux', min > 120);
+  });
+}
+setInterval(dessinerHeureDonnees, 60 * 1000);
+
 async function init() {
   if (typeof _MEM_SESSION !== 'undefined' && _MEM_SESSION) activerProtectionsSecurite(_MEM_SESSION);
+  setTimeout(() => { verifierNouvelleVersion(true); }, 60 * 1000);
+  setInterval(() => { if (!document.hidden) verifierNouvelleVersion(true); }, VERSION_VERIF_MS);
   // Validations d'analyste (13/11/2026) : relues au demarrage puis toutes les
   // 15 minutes, comme le cache partage ; sans Firebase, ne fait rien.
   chargerValidations();
@@ -19088,7 +19176,7 @@ async function init() {
     // cache partage s'affiche avant le cache complet, lu juste apres.
     if (!ALL.length) {
       const _tete = await lireTetePartagee();
-      if (_tete) _afficherArticlesProvisoires(_tete.articles, _tete.articles.length + ' premières actus · chargement complet en cours…');
+      if (_tete) { _afficherArticlesProvisoires(_tete.articles, _tete.articles.length + ' premières actus · chargement complet en cours…'); if (_tete.updated_at) majHeureDonnees(new Date(_tete.updated_at).getTime()); }
     }
     // ── Éviter une collecte réseau redondante à CHAQUE connexion ─────────────
     // Auparavant, une collecte complète (~500 sources) repartait sans condition
@@ -19129,6 +19217,7 @@ async function init() {
       if (_cachePartagePerime) {
         const _h = Math.round(_cachePartagePerime.ageMs / 3600000);
         _afficherArticlesProvisoires(_cachePartagePerime.articles, 'Cache partagé de ' + _h + ' h · actualisation en direct en cours…');
+        majHeureDonnees(Date.now() - _cachePartagePerime.ageMs);
       }
       // ── Delai aleatoire avant la PREMIERE collecte reseau ────────────────────
       // Sans lui, des millions d'utilisateurs ouvrant l'appli au meme moment
@@ -19185,10 +19274,19 @@ async function init() {
         // Garde-fou anti-rafale : visibilitychange/focus peuvent se
         // déclencher plusieurs fois de suite (ex. plusieurs onglets) —
         // au plus une collecte forcée par minute à la réouverture.
+        verifierNouvelleVersion(false);
         const lastTs = parseInt(localStorage.getItem('sentinel_lastCollectTs') || '0');
         if ((Date.now() - lastTs) < 60 * 1000) return;
         localStorage.setItem('sentinel_lastCollectTs', Date.now().toString());
-        doCollect().catch(() => {});
+        // Cache partagé d'abord (27/11/2026) : la collecte le republie toutes
+        // les 30 min environ. Une collecte par ce navigateur, à travers les
+        // relais publics, prend plusieurs minutes et ramène moins : elle ne
+        // part que si le cache partagé est absent ou trop vieux.
+        (async () => {
+          const partagee = (typeof lireCollectePartagee === 'function') ? await lireCollectePartagee() : null;
+          if (partagee) _appliquerArticlesPartages(partagee);
+          else doCollect().catch(() => {});
+        })().catch(() => {});
       };
       document.addEventListener('visibilitychange', relancerSiReouverture);
       window.addEventListener('focus', relancerSiReouverture);
@@ -19415,7 +19513,7 @@ async function lireCollectePartagee() {
   const ageFs = Date.now() - new Date(fs.updated_at).getTime();
   // Version dégradée (copie locale, Firestore refusé) : acceptée jusqu'à 24 h,
   // car la seule alternative est une collecte de ~560 sources par visiteur.
-  if (ageFs <= (fs.degrade ? COLLECTE_PARTAGEE_DEGRADEE_MAX_MS : COLLECTE_PARTAGEE_LECTURE_MAX_MS)) return fs.articles;
+  if (ageFs <= (fs.degrade ? COLLECTE_PARTAGEE_DEGRADEE_MAX_MS : COLLECTE_PARTAGEE_LECTURE_MAX_MS)) { majHeureDonnees(new Date(fs.updated_at).getTime()); return fs.articles; }
   _cachePartagePerime = { articles: fs.articles, ageMs: ageFs };
   return null; // perime — mieux vaut collecter soi-meme (mais l'afficher d'abord)
 }
@@ -27104,6 +27202,9 @@ async function p1Perimetre() {
   const cys = c.mode === 'region' ? ((Per.region(c.region) || {}).pays || []) : [c.cy];
   const pays = cys.filter((cy) => PAYS_INFO[cy]).map((cy) => ({ cy, nom: PAYS_INFO[cy].name, faits: S.faits.faitsDuMois(cumul, cy, PAYS_INFO[cy].name) }));
   const P = Per.composer(pays, Object.assign({}, c, { jour }), S.rapport.rubriqueDe);
+  // Une seule langue par document : ce qui reste à traduire est écarté, et dit.
+  P.nonTraduits = typeof S.faits.faitsNonTraduits === 'function'
+    ? cys.filter((cy) => PAYS_INFO[cy]).reduce((n, cy) => n + S.faits.faitsNonTraduits(cumul, cy, PAYS_INFO[cy].name, debut, jour), 0) : 0;
   return { P, jour, S, Per, c };
 }
 function p1Emetteur() {
@@ -27148,7 +27249,8 @@ async function p1MajApercu() {
     // puis ce que les filtres ont retenu.
     const n = p1Tous(S, P).length;
     p1Etat(n + ' actu' + (n > 1 ? 's' : '') + ' dans le rapport' + (P.total > n ? ' (sur ' + P.total + ' retenues)' : '') + ' · ' + nPays + ' pays'
-      + (P.absents.length ? ' · sans fait : ' + P.absents.length : '') + (P.sansLieu ? ' · ' + P.sansLieu + ' sans localité précise' : ''));
+      + (P.absents.length ? ' · sans fait : ' + P.absents.length : '') + (P.sansLieu ? ' · ' + P.sansLieu + ' sans localité précise' : '')
+      + (P.nonTraduits ? ' · ' + P.nonTraduits + ' en langue étrangère, pas encore traduite' + (P.nonTraduits > 1 ? 's' : '') + ', écartée' + (P.nonTraduits > 1 ? 's' : '') : ''));
   } catch (e) { p1Etat('Aperçu indisponible : ' + ((e && e.message) || e), true); }
 }
 function p1Planifier() { clearTimeout(_p1.minuteur); _p1.minuteur = setTimeout(p1MajApercu, 200); }
