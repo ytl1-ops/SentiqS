@@ -12,9 +12,11 @@ const jour = (ms) => new Date(ms).toISOString().slice(0, 10);
 function monter() {
   const ctx = bac(
     tranche('const MOIS_IDX = {', 'function _agendaSortKey('),
+    tranche('const AGENDA_INCIDENT_RE', '// Familles lues aussi dans le CORPS'),
     tranche('function agendaAJour(', 'function fermerAccesRapide('),
     'this.agendaAJour = agendaAJour;'
   );
+  ctx.normaliserAccents = require('../../web/js/noyau.js').normaliserAccents;
   ctx.SentiqCalendrier = C;
   ctx.resolveAgendaCy = (cy) => cy;
   return ctx;

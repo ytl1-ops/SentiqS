@@ -9918,8 +9918,52 @@ const EVENT_TITRE_NEUTRES = /\bau sommet(?! (des|de|du|d'))|\b(conferences? de p
 // « Barcelone : des violences éclatent après les cortèges de la grève »).
 // Mots entiers, pour qu'une « cyberattaque » évoquée à propos des JOJ ne
 // retire pas l'événement.
-const AGENDA_INCIDENT_RE = /\b(tue|tues|tuee|tuees|morts?|mortes?|deces|meurtre|assassin\w*|blesses?|blessees?|attaque[es]?|attaques|attaquee?s?|attentat|explosion|fusillade|embuscade|enleve\w*|enlevement|kidnapp\w*|otages?|incendie|affrontements?|heurts|violences?|emeutes?|arrestations?|arretes?|interpelle\w*|braquage|bombardement|frappes?|killed|dead|deaths?|attack(ed|s|ers)?|clash(es)?|gunmen|shooting|riots?|arrested|injured|wounded|abducted|kidnapped|mortos|ataque|feridos)\b/;
-function estIncidentTitre(tt) { return AGENDA_INCIDENT_RE.test(tt); }
+const AGENDA_INCIDENT_RE = new RegExp('\\b(' + [
+  // Français
+  'tue|tues|tuee|tuees|tuent|tuerie|massacre\\w*|morts?|mortes?|meurt|meurent|mort de|decede\\w*|deces|perit|peri|perissent',
+  'meurtre\\w*|assassin\\w*|lynch\\w*|egorge\\w*|poignard\\w*|blesses?|blessees?|blessure\\w*',
+  'attaque\\w*|attentat\\w*|assaillants?|explosion\\w*|explose\\w*|engins? explosifs?|bombe\\w*|kamikaze|fusillade|tirs|coups? de feu',
+  'embuscade\\w*|enleve\\w*|enlevement\\w*|kidnapp\\w*|rapt|otages?|sequestr\\w*',
+  'incendi\\w*|part en fumee|parti en fumee|en cendres|ravage\\w* par les flammes|proie des flammes',
+  'affrontements?|heurts|violences?|violents?|emeutes?|echauffourees?|accrochages?|pillages?|saccag\\w*|vandalis\\w*',
+  'arrestations?|arretes?|interpelle\\w*|braquage\\w*|braqueurs?|vol a main armee|agression\\w*|agresse\\w*|viols?',
+  'bombardement\\w*|frappes?|raid|incursion\\w*|jihadistes?|djihadistes?|terroristes?|insurges?|rebelles?|bandits armes|hommes armes',
+  'crise politico-militaire|conflit arme|evacues?|evacuation\\w*|disparition tragique|drame|tragedie|tragique',
+  'accidents?|collision\\w*|carambolage|naufrage\\w*|chavire\\w*|noyade\\w*|noye\\w*|crash|eboulement\\w*|effondrement\\w*|effondre\\w*|glissements? de terrain|inondation\\w*|bousculade\\w*',
+  // Anglais (« militants » et « bomb… » en préfixe en sont exclus : ce sont
+  // des mots français — « le CAR mobilise ses militants », « Jubilé du
+  // Bombardier », un boxeur)
+  'killed|kills?|killing\\w*|slain|dead|dies|died|deaths?|murder\\w*|stabbed|shot dead|shooting\\w*|gunfire|gunmen|gunman',
+  'attack\\w*|ambush\\w*|bombs?|bombings?|bombed|bombers?|blasts?|explosions?|clash\\w*|riots?|rioters|unrest|looting|looted|arson|torched|gutted|blaze|inferno',
+  'kidnap\\w*|abduct\\w*|hostages?|insurgents?|jihadists?|terrorists?|bandits|raided|arrested|detained|injured|wounded|casualties',
+  'crash\\w*|collision|capsiz\\w*|drown\\w*|sank|floods?|flooding|landslides?|collapse\\w*|stampede|lynch\\w*|robbery|robbers',
+  // Portugais
+  'mortos?|mortas?|morreu|morrem|mata|matam|matou|mataram|assassinad\\w*|ataques?|atacad\\w*|atentados?|emboscadas?',
+  'tiroteios?|disparos|explosao|incendios?|confrontos|violencias?|feridos?|feridas|sequestrad\\w*|raptad\\w*|raptos?|detidos|presos',
+  'acidentes?|naufragios?|afogad\\w*|inundacoes|desabamento|insurgentes|terroristas|rebeldes',
+  // Espagnol
+  'muertos?|muertas?|muere|mueren|murio|murieron|mato|mataron|asesinad\\w*|tiroteos?|explosion|enfrentamientos|heridos?|heridas',
+  'secuestr\\w*|detenidos|accidentes?|naufragio|ahogad\\w*|inundaciones|derrumbe',
+].join('|') + ')\\b');
+// Ce qui contient un mot d'incident sans en être un : une commémoration
+// (« Massacre de Thiaroye 44 : le programme de la cérémonie », « journée du
+// souvenir des victimes des accidents »), une campagne « contre les
+// violences », une session judiciaire « en matière de lutte contre le
+// terrorisme », la fête des morts. Retirés avant la recherche, sans quoi
+// l'agenda perdrait les commémorations, qui sont des échéances planifiées.
+const AGENDA_INCIDENT_NEUTRES = /\b(lutte|luttes|campagne|activisme|mobilisation|plaidoyer|sensibilisation|prevention|fight|campaign|combate|lucha) (contre|against|contra) (le |la |les |l'|the |o |a |os |as |el |los |las )?[a-z'-]+( (faites|basees|fondees|routiers?|conjugales?|domestiques?|sexuelles?)( aux| sur| a)?( (femmes|filles|enfants|genre))?)?|\b(fete|jour|journee) des morts|\btoussaint|\b(securite|prevention|victimes?) (routiere|des accidents|de la route)|\bjournee (mondiale|nationale|internationale|africaine) (du souvenir|des victimes|des martyrs|de la securite routiere)[^:]*|\b(commemor\w*|anniversaire|souvenir|devoir de memoire|en memoire|memorial|remembrance|anniversary|commemorat\w*) [^:]*|\bprogramme de la ceremonie/g;
+const AGENDA_COMMEMORATION_RE = /\b(commemor\w*|anniversaire|souvenir|devoir de memoire|memorial|remembrance|anniversary|programme de la ceremonie)\b/;
+function estIncidentTitre(tt) {
+  const t = String(tt || '').replace(/[’‘]/g, "'");
+  // Une commémoration nomme le drame qu'elle rappelle : elle reste à l'agenda.
+  if (AGENDA_COMMEMORATION_RE.test(t)) return false;
+  return AGENDA_INCIDENT_RE.test(t.replace(AGENDA_INCIDENT_NEUTRES, ' '));
+}
+// Même règle sur un titre brut (accents, casse) : entrées saisies, agenda de
+// l'agent, agenda partagé — tout ce que lisent le module Agenda et Louis.
+function estIncidentAgenda(titre) {
+  return estIncidentTitre(normaliserAccents(String(titre || '').toLowerCase()));
+}
 // Familles lues aussi dans le CORPS de l'article, en formulation de plusieurs
 // mots seulement. « gouvernemental » et « élection » n'y sont plus : sur le
 // même cache, 119 des 158 articles « gouvernementaux » ne l'étaient que par
@@ -15533,9 +15577,15 @@ function agendaAJour(liste, maintenant) {
     return e;
   });
   // L'agent peut retrouver un article déjà détecté dans le Flux : une ligne.
+  // Un incident n'est pas une échéance : quelle que soit sa source (saisie,
+  // agent, agenda partagé, Flux), il reste au Flux et sort de l'agenda — et
+  // donc de Louis, qui lit cette même liste. Jours fériés et fêtes calculées
+  // n'y passent pas : leurs titres sont écrits ici (« Fête des martyrs »).
   const vus = new Set();
   return out.filter(e => {
-    if (e._calendrier || !e._detecteAuto) return true;
+    if (e._calendrier || e._ferie) return true;
+    if (estIncidentAgenda(e.title)) return false;
+    if (!e._detecteAuto) return true;
     const cles = [e.surl ? 'u|' + e.surl : null, 't|' + resolveAgendaCy(e.cy) + '|' + titreNormalise(e.title || '')].filter(Boolean);
     if (cles.some(k => vus.has(k))) return false;
     cles.forEach(k => vus.add(k));
@@ -19660,7 +19710,7 @@ function lignesAgendaPartagee(articles) {
 // attaqué ») : la règle s'applique aussi à la lecture, sans attendre que
 // l'agenda partagé ait tourné (sept jours).
 function ligneAgendaEstIncident(row) {
-  return estIncidentTitre(normaliserAccents(String((row && row.title) || '').toLowerCase()));
+  return estIncidentAgenda((row && row.title) || '');
 }
 function ligneAgendaPartageeVersEntree(row) {
   const pseudoArticle = {

@@ -5325,3 +5325,22 @@ estimées (Umm al-Qura), souvent un jour avant l'observation en Afrique de
 l'Ouest. Les exports d'agenda gardent les statuts figés des entrées saisies.
 
 `scripts/test/agenda-coherence.test.js` (11, vus échouer sur l'ancien code).
+
+**Aucun incident à l'agenda (27/11/2026, suite).** YORO : « les événements
+tels que attaques ne doivent pas être dans l'agenda ». `AGENDA_INCIDENT_RE`
+couvre désormais FR, EN, PT et ES (morts, noyade, naufrage, incendie, « part
+en fumée », accident, effondrement, évacués, rebelles, crash, mortos, muertos…)
+et `estIncidentAgenda` l'applique dans `agendaAJour` à **toutes** les sources
+(saisie, Flux, agenda partagé, agent), donc à Louis aussi ; jours fériés et
+fêtes calculées n'y passent pas (« Fête des martyrs »). Une commémoration
+garde sa place (« Massacre de Thiaroye 44 : le programme de la cérémonie »),
+comme une campagne « contre les violences » ou une session judiciaire « de
+lutte contre le terrorisme » (`AGENDA_INCIDENT_NEUTRES`). « militants » et
+« bomb… » en préfixe ne sont pas lus en anglais : « le CAR mobilise ses
+militants », « Jubilé du Bombardier ». Mesuré sur les 2 780 faits des cumuls
+d'octobre et novembre : agenda 231 → 226, sept incidents sortent (atelier
+incendié à Podor, noyade après un match, naufrage, députés évacués…), deux
+articles sur la Toussaint entrent (fête religieuse) ; trois articles reviennent
+au Flux. Le cumul ne contient que des faits au-dessus du normal : l'effet sur
+les articles de niveau normal n'est pas mesuré d'ici.
+`scripts/test/agenda-sans-incident.test.js` (4, trois vus échouer).
