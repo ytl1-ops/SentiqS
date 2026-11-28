@@ -1,6 +1,6 @@
 {
  "source": "FCDO — gov.uk Content API (Open Government Licence v3.0) ; Affaires mondiales Canada — données ouvertes (Licence du gouvernement ouvert — Canada) ; Département d'État des États-Unis — flux RSS (domaine public)",
- "lu": "2026-11-27T15:33:43.318Z",
+ "lu": "2026-11-28T00:21:10.337Z",
  "pays": {
   "AO": {
    "statuts": [
@@ -801,7 +801,7 @@
     {
      "source": "Canada",
      "degre": "aat_partie",
-     "revu": "2026-11-20T15:43:21.000Z",
+     "revu": "2026-11-27T15:38:58.000Z",
      "url": "https://travel.gc.ca/destinations/rwanda"
     },
     {
