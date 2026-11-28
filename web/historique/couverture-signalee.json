@@ -1,7 +1,10 @@
 {
- "cle": "KM,SL",
+ "cle": "BW,DJ,KM,SC,SL",
  "pays": [
+  "BW",
+  "DJ",
   "KM",
+  "SC",
   "SL"
  ]
 }
